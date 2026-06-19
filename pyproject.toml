@@ -1,0 +1,15 @@
+[project]
+name = "prg32-construction-kit"
+version = "0.1.0"
+description = "Scratch-inspired PRG32 blocks-to-cartridge classroom studio"
+readme = "README.md"
+requires-python = ">=3.11"
+license = {text = "MIT"}
+dependencies = [
+  "Flask>=3.0,<4.0",
+  "requests>=2.31,<3.0"
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

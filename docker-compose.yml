@@ -1,0 +1,12 @@
+services:
+  prg32-construction-kit:
+    build: .
+    ports:
+      - "5090:5090"
+    environment:
+      PRG32_KIT_DATA: /data
+      PRG32_KIT_PORT: 5090
+      PRG32_STORE_URL: http://host.docker.internal:5080
+    volumes:
+      - ./data:/data
+    restart: unless-stopped

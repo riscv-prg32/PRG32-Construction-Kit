@@ -1,0 +1,160 @@
+{
+  "abi": "prg32-construction-kit-project-1.0",
+  "title": "Hello Blocks",
+  "description": "Move a yellow square with LEFT and RIGHT.",
+  "author": "PRG32 Kit",
+  "tags": [
+    "starter",
+    "blocks"
+  ],
+  "blocks_json": {
+    "blocks": {
+      "languageVersion": 0,
+      "blocks": [
+        {
+          "type": "prg32_on_start",
+          "id": "start",
+          "x": 20,
+          "y": 20,
+          "inputs": {
+            "DO": {
+              "block": {
+                "type": "prg32_set_state",
+                "id": "setx",
+                "fields": {
+                  "VAR": "player_x",
+                  "VALUE": "150"
+                },
+                "next": {
+                  "block": {
+                    "type": "prg32_set_state",
+                    "id": "sety",
+                    "fields": {
+                      "VAR": "player_y",
+                      "VALUE": "180"
+                    },
+                    "next": {
+                      "block": {
+                        "type": "prg32_set_state",
+                        "id": "score",
+                        "fields": {
+                          "VAR": "score",
+                          "VALUE": "0"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "prg32_update",
+          "id": "update",
+          "x": 330,
+          "y": 20,
+          "inputs": {
+            "DO": {
+              "block": {
+                "type": "prg32_if_button",
+                "id": "left",
+                "fields": {
+                  "BUTTON": "LEFT"
+                },
+                "inputs": {
+                  "DO": {
+                    "block": {
+                      "type": "prg32_change_state",
+                      "id": "move-left",
+                      "fields": {
+                        "VAR": "player_x",
+                        "DELTA": "-3"
+                      }
+                    }
+                  }
+                },
+                "next": {
+                  "block": {
+                    "type": "prg32_if_button",
+                    "id": "right",
+                    "fields": {
+                      "BUTTON": "RIGHT"
+                    },
+                    "inputs": {
+                      "DO": {
+                        "block": {
+                          "type": "prg32_change_state",
+                          "id": "move-right",
+                          "fields": {
+                            "VAR": "player_x",
+                            "DELTA": "3"
+                          }
+                        }
+                      }
+                    },
+                    "next": {
+                      "block": {
+                        "type": "prg32_clamp_state",
+                        "id": "clamp",
+                        "fields": {
+                          "VAR": "player_x",
+                          "LOW": "0",
+                          "HIGH": "304"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "prg32_draw",
+          "id": "draw",
+          "x": 650,
+          "y": 20,
+          "inputs": {
+            "DO": {
+              "block": {
+                "type": "prg32_clear_screen",
+                "id": "clear",
+                "fields": {
+                  "COLOR": "BLACK"
+                },
+                "next": {
+                  "block": {
+                    "type": "prg32_draw_rect",
+                    "id": "player",
+                    "fields": {
+                      "X": "player_x",
+                      "Y": "player_y",
+                      "W": "16",
+                      "H": "16",
+                      "COLOR": "YELLOW"
+                    },
+                    "next": {
+                      "block": {
+                        "type": "prg32_draw_text",
+                        "id": "text",
+                        "fields": {
+                          "TEXT": "PRG32 BLOCKS",
+                          "X": "8",
+                          "Y": "8",
+                          "FG": "GREEN",
+                          "BG": "BLACK"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  "game_json": {}
+}

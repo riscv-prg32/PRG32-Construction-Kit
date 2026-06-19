@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Sprite Lab - PRG32-Construction-Kit{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+  <div>
+    <h1 class="h3 mb-1">Sprite and Image Editor</h1>
+    <div class="text-muted">Create pixel sprites, import small images, save JSON sprites, and convert them to C arrays.</div>
+  </div>
+  <div class="btn-toolbar gap-2">
+    <button class="btn btn-outline-primary" id="newSprite"><i class="bi bi-plus-circle"></i> New Sprite</button>
+    <button class="btn btn-success" id="saveSprite"><i class="bi bi-save"></i> Save</button>
+    <button class="btn btn-primary" id="convertSprite"><i class="bi bi-filetype-c"></i> Convert to C</button>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-3">
+    <div class="card shadow-sm mb-3">
+      <div class="card-header"><strong>Sprites</strong></div>
+      <div class="list-group list-group-flush" id="spriteList"></div>
+    </div>
+    <div class="card shadow-sm">
+      <div class="card-header"><strong>Properties</strong></div>
+      <div class="card-body">
+        <input type="hidden" id="spriteId">
+        <div class="mb-3"><label class="form-label">Name</label><input class="form-control" id="spriteName" value="sprite"></div>
+        <div class="row g-2 mb-3">
+          <div class="col"><label class="form-label">Width</label><input class="form-control" id="spriteWidth" type="number" min="4" max="64" value="16"></div>
+          <div class="col"><label class="form-label">Height</label><input class="form-control" id="spriteHeight" type="number" min="4" max="64" value="16"></div>
+        </div>
+        <label class="form-label">Paint color</label>
+        <input class="form-control form-control-color mb-3" id="paintColor" value="#ffd800">
+        <div class="d-grid gap-2">
+          <button class="btn btn-outline-secondary" id="resizeSprite">Resize/Clear</button>
+          <button class="btn btn-outline-danger" id="eraser">Eraser</button>
+          <label class="btn btn-outline-primary mb-0">Import image <input class="d-none" type="file" id="imageImport" accept="image/*"></label>
+          <button class="btn btn-outline-dark" id="downloadPng">Download PNG</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-5">
+    <div class="card shadow-sm">
+      <div class="card-header"><strong>Canvas</strong></div>
+      <div class="card-body text-center">
+        <canvas id="spriteCanvas" width="512" height="512" class="sprite-canvas"></canvas>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card shadow-sm h-100">
+      <div class="card-header"><strong>Generated C</strong></div>
+      <pre class="code-panel flex-grow-1"><code id="spriteC">Click Convert to C.</code></pre>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/sprite_editor.js') }}"></script>
+{% endblock %}

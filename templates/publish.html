@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Publish - PRG32-Construction-Kit{% endblock %}
+{% block content %}
+<div class="row g-4">
+  <div class="col-lg-5">
+    <div class="card shadow-sm mb-4">
+      <div class="card-header"><strong>Cartridge Store profiles</strong></div>
+      <div class="card-body">
+        <form id="profileForm" class="row g-2 mb-3">
+          <div class="col-12"><input class="form-control" name="name" placeholder="Profile name" value="Local Cartridge Store" required></div>
+          <div class="col-12"><input class="form-control" name="store_url" placeholder="http://127.0.0.1:5080" value="http://127.0.0.1:5080" required></div>
+          <div class="col-12"><input class="form-control" name="bearer_token" placeholder="Bearer token, optional"></div>
+          <div class="col-12"><button class="btn btn-primary" type="submit">Save profile</button></div>
+        </form>
+        <div class="list-group" id="profileList"></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-7">
+    <div class="card shadow-sm">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <strong>Store bundles</strong>
+        <button class="btn btn-outline-primary btn-sm" id="refreshPublish"><i class="bi bi-arrow-clockwise"></i> Refresh</button>
+      </div>
+      <div class="card-body">
+        <p class="text-muted">Publish uses the Cartridge Store bundle endpoint. Build or prepare a project first to create a bundle artifact.</p>
+        <div id="bundleList" class="vstack gap-3"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card shadow-sm mt-4">
+  <div class="card-header"><strong>Publish response</strong></div>
+  <pre class="code-panel"><code id="publishLog">No publish attempt yet.</code></pre>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/publish.js') }}"></script>
+{% endblock %}

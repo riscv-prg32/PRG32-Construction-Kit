@@ -1,0 +1,215 @@
+{
+  "abi": "prg32-construction-kit-project-1.0",
+  "title": "Lemon Catcher",
+  "description": "Starter catch-game idea with a player and falling lemon block logic.",
+  "author": "PRG32 Kit",
+  "tags": [
+    "catch",
+    "tutorial",
+    "lemon"
+  ],
+  "blocks_json": {
+    "blocks": {
+      "languageVersion": 0,
+      "blocks": [
+        {
+          "type": "prg32_on_start",
+          "id": "start",
+          "x": 20,
+          "y": 20,
+          "inputs": {
+            "DO": {
+              "block": {
+                "type": "prg32_set_state",
+                "id": "setx",
+                "fields": {
+                  "VAR": "player_x",
+                  "VALUE": "150"
+                },
+                "next": {
+                  "block": {
+                    "type": "prg32_set_state",
+                    "id": "sety",
+                    "fields": {
+                      "VAR": "player_y",
+                      "VALUE": "180"
+                    },
+                    "next": {
+                      "block": {
+                        "type": "prg32_set_state",
+                        "id": "score",
+                        "fields": {
+                          "VAR": "score",
+                          "VALUE": "0"
+                        },
+                        "next": {
+                          "block": {
+                            "type": "prg32_set_state",
+                            "id": "lemon-x",
+                            "fields": {
+                              "VAR": "lemon_x",
+                              "VALUE": "80"
+                            },
+                            "next": {
+                              "block": {
+                                "type": "prg32_set_state",
+                                "id": "lemon-y",
+                                "fields": {
+                                  "VAR": "lemon_y",
+                                  "VALUE": "20"
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "prg32_update",
+          "id": "update",
+          "x": 330,
+          "y": 20,
+          "inputs": {
+            "DO": {
+              "block": {
+                "type": "prg32_if_button",
+                "id": "left",
+                "fields": {
+                  "BUTTON": "LEFT"
+                },
+                "inputs": {
+                  "DO": {
+                    "block": {
+                      "type": "prg32_change_state",
+                      "id": "move-left",
+                      "fields": {
+                        "VAR": "player_x",
+                        "DELTA": "-3"
+                      }
+                    }
+                  }
+                },
+                "next": {
+                  "block": {
+                    "type": "prg32_if_button",
+                    "id": "right",
+                    "fields": {
+                      "BUTTON": "RIGHT"
+                    },
+                    "inputs": {
+                      "DO": {
+                        "block": {
+                          "type": "prg32_change_state",
+                          "id": "move-right",
+                          "fields": {
+                            "VAR": "player_x",
+                            "DELTA": "3"
+                          }
+                        }
+                      }
+                    },
+                    "next": {
+                      "block": {
+                        "type": "prg32_clamp_state",
+                        "id": "clamp",
+                        "fields": {
+                          "VAR": "player_x",
+                          "LOW": "0",
+                          "HIGH": "304"
+                        },
+                        "next": {
+                          "block": {
+                            "type": "prg32_change_state",
+                            "id": "lemon-fall",
+                            "fields": {
+                              "VAR": "lemon_y",
+                              "DELTA": "2"
+                            },
+                            "next": {
+                              "block": {
+                                "type": "prg32_clamp_state",
+                                "id": "lemon-clamp",
+                                "fields": {
+                                  "VAR": "lemon_y",
+                                  "LOW": "0",
+                                  "HIGH": "190"
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "prg32_draw",
+          "id": "draw",
+          "x": 650,
+          "y": 20,
+          "inputs": {
+            "DO": {
+              "block": {
+                "type": "prg32_clear_screen",
+                "id": "clear",
+                "fields": {
+                  "COLOR": "BLACK"
+                },
+                "next": {
+                  "block": {
+                    "type": "prg32_draw_rect",
+                    "id": "player",
+                    "fields": {
+                      "X": "player_x",
+                      "Y": "player_y",
+                      "W": "16",
+                      "H": "16",
+                      "COLOR": "YELLOW"
+                    },
+                    "next": {
+                      "block": {
+                        "type": "prg32_draw_text",
+                        "id": "text",
+                        "fields": {
+                          "TEXT": "PRG32 BLOCKS",
+                          "X": "8",
+                          "Y": "8",
+                          "FG": "GREEN",
+                          "BG": "BLACK"
+                        },
+                        "next": {
+                          "block": {
+                            "type": "prg32_draw_rect",
+                            "id": "lemon-rect",
+                            "fields": {
+                              "X": "lemon_x",
+                              "Y": "lemon_y",
+                              "W": "10",
+                              "H": "10",
+                              "COLOR": "ORANGE"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  "game_json": {}
+}

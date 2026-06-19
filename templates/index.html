@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Projects - PRG32-Construction-Kit{% endblock %}
+{% block content %}
+<section class="kit-hero rounded-4 p-4 p-lg-5 mb-4">
+  <div class="row align-items-center g-4">
+    <div class="col-lg-8">
+      <div class="badge text-bg-warning mb-3">Scratch-inspired PRG32 game studio</div>
+      <h1 class="display-5 fw-bold mb-3">Build cartridges with blocks, sprites, simulation, C, and publishing.</h1>
+      <p class="lead mb-4">Students assemble game logic visually, play it in the browser, inspect generated C, package it as PRG32 cartridge material, and submit bundles to Cartridge Store.</p>
+      <div class="d-flex flex-wrap gap-2">
+        <button class="btn btn-primary btn-lg" data-bs-toggle="modal" data-bs-target="#newProjectModal"><i class="bi bi-plus-circle"></i> New Project</button>
+        <label class="btn btn-outline-light btn-lg mb-0"><i class="bi bi-file-earmark-arrow-up"></i> Import JSON <input class="d-none" type="file" id="importProjectFile" accept="application/json,.json"></label>
+        <a class="btn btn-outline-light btn-lg" href="/documentation"><i class="bi bi-journal-text"></i> Learn</a>
+      </div>
+    </div>
+    <div class="col-lg-4">
+      <div class="device-card mx-auto">
+        <div class="screen">
+          <div class="pixel-title">PRG32</div>
+          <div class="pixel-row"></div>
+          <div class="pixel-player"></div>
+        </div>
+        <div class="device-buttons"><span></span><span></span><span></span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-3"><div class="metric-card"><div class="metric" id="projectCount">0</div><div>Projects</div></div></div>
+  <div class="col-md-3"><div class="metric-card"><div class="metric" id="spriteCount">0</div><div>Sprites</div></div></div>
+  <div class="col-md-3"><div class="metric-card"><div class="metric" id="artifactCount">0</div><div>Artifacts</div></div></div>
+  <div class="col-md-3"><div class="metric-card"><div class="metric" id="buildCount">0</div><div>Builds</div></div></div>
+</div>
+
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <h2 class="h4 mb-0">Game Projects</h2>
+  <button class="btn btn-outline-primary" id="refreshProjects"><i class="bi bi-arrow-clockwise"></i> Refresh</button>
+</div>
+<div class="row g-4" id="projectGrid"></div>
+
+<div class="modal fade" id="newProjectModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <form class="modal-content" id="newProjectForm">
+      <div class="modal-header">
+        <h5 class="modal-title">Create a PRG32 Blocks project</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3"><label class="form-label">Title</label><input class="form-control" name="title" value="My PRG32 Game" required></div>
+        <div class="mb-3"><label class="form-label">Author</label><input class="form-control" name="author" value="Student"></div>
+        <div class="mb-3"><label class="form-label">Summary</label><textarea class="form-control" name="description" rows="3">A block-built PRG32 cartridge.</textarea></div>
+        <div class="mb-3"><label class="form-label">Tags</label><input class="form-control" name="tags" value="blocks,classroom"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-primary" type="submit">Create</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

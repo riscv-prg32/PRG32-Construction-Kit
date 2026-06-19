@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Docs - PRG32-Construction-Kit{% endblock %}
+{% block content %}
+<div class="kit-hero rounded-4 p-4 mb-4">
+  <h1 class="h2">Documentation</h1>
+  <p class="mb-0">All project documentation is kept in the repository <code>docs/</code> directory. The list below serves the Markdown files directly for classroom use.</p>
+</div>
+<div class="row g-3">
+  {% for doc in docs %}
+  <div class="col-md-6 col-xl-4">
+    <a class="doc-card card h-100 shadow-sm text-decoration-none" href="/docs/{{ doc }}">
+      <div class="card-body">
+        <h2 class="h6"><i class="bi bi-file-earmark-text"></i> {{ doc }}</h2>
+        <p class="text-muted mb-0">Open the Markdown source.</p>
+      </div>
+    </a>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

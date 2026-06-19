@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Artifacts - PRG32-Construction-Kit{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+  <div>
+    <h1 class="h3 mb-1">Artifacts</h1>
+    <div class="text-muted">Generated C, sprite arrays, source bundles, store bundles, uploaded assets, and build logs.</div>
+  </div>
+  <form class="d-flex gap-2" id="uploadArtifactForm">
+    <input class="form-control" type="file" name="file" required>
+    <input class="form-control" name="kind" value="upload" style="max-width: 140px">
+    <button class="btn btn-primary" type="submit"><i class="bi bi-upload"></i> Upload</button>
+  </form>
+</div>
+
+<div class="card shadow-sm">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead><tr><th>Name</th><th>Kind</th><th>Content type</th><th>Updated</th><th class="text-end">Actions</th></tr></thead>
+      <tbody id="artifactRows"></tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/artifacts.js') }}"></script>
+{% endblock %}
