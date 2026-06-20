@@ -2,7 +2,7 @@
 
 PRG32-Construction-Kit is a Flask, Bootstrap, jQuery, JavaScript, and Blockly progressive web application for classroom PRG32 game creation.
 
-![Construction Kit](docs/figures/image.png)
+![Construction Kit](docs/figures/PRG32-Construction-Kit_01.png)
 
 
 Students can:
