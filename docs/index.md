@@ -13,6 +13,7 @@ PRG32-Construction-Kit is a classroom web application for building PRG32 games w
 7. `cartridge_store_publish.md` - publishing bundles.
 8. `api.md` - CRUD and action API.
 9. `tutorials/` - step-by-step lessons.
+10. `../examples/textbook/` - 36 C and RISC-V assembly textbook examples.
 
 ## Classroom workflow
 

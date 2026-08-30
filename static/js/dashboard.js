@@ -40,6 +40,12 @@
     }).catch(err => Kit.toast(err.message, 'danger'));
   }
 
+  function loadExamples() {
+    Kit.api('/api/examples').then(data => {
+      $('#exampleList').html(data.examples.map(example => `<div class="list-group-item d-flex gap-3 align-items-center justify-content-between"><div><strong>${Kit.escape(example.title)}</strong><div class="small text-muted">${Kit.escape(example.description)}</div></div><button class="btn btn-primary btn-sm import-example" data-slug="${Kit.escape(example.slug)}">Add</button></div>`).join(''));
+    }).catch(err => $('#exampleList').html(`<div class="alert alert-danger">${Kit.escape(err.message)}</div>`));
+  }
+
   $('#newProjectForm').on('submit', function (event) {
     event.preventDefault();
     const form = new FormData(this);
@@ -55,6 +61,14 @@
     Kit.api('/api/projects/' + id, { method: 'DELETE' }).then(load).catch(err => Kit.toast(err.message, 'danger'));
   });
 
+  $('#exampleList').on('click', '.import-example', function () {
+    const button = $(this);
+    button.prop('disabled', true);
+    Kit.api('/api/examples/' + encodeURIComponent(button.data('slug')) + '/import', { method: 'POST', body: {} })
+      .then(project => { window.location.href = '/projects/' + project.id; })
+      .catch(err => { button.prop('disabled', false); Kit.toast(err.message, 'danger'); });
+  });
+
   $('#importProjectFile').on('change', function () {
     const file = this.files[0];
     if (!file) return;
@@ -66,5 +80,6 @@
   });
 
   $('#refreshProjects').on('click', load);
+  $('#examplesModal').on('show.bs.modal', loadExamples);
   load();
 })();

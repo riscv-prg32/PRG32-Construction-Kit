@@ -54,7 +54,7 @@ On Linux, `host.docker.internal` may need extra configuration. A simple classroo
 The base Dockerfile installs only the web app dependencies. To build `.prg32` files inside the container, extend the image and install the PRG32 SDK/tooling. The important runtime check is:
 
 ```bash
-docker compose exec prg32-construction-kit python3 -m prg32 build --help
+docker compose exec prg32-construction-kit python3 -m prg32 cartridge build --help
 ```
 
 If your build command is different, set:

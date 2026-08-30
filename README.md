@@ -50,16 +50,16 @@ The compose file mounts `./data` to `/data` inside the container.
 The app always generates C source. To produce real `.prg32` files, install the PRG32 Python build module/tooling in the runtime environment and make this command work:
 
 ```bash
-python3 -m prg32 build --help
+python3 -m prg32 cartridge build --help
 ```
 
 Override the build command when needed:
 
 ```bash
-export PRG32_BUILD_COMMAND="python3 -m prg32 build"
+export PRG32_BUILD_COMMAND="python3 -m prg32 cartridge build"
 ```
 
-Without the PRG32 toolchain, **Prepare Cartridge** still creates a source bundle containing generated C, project JSON, game IR JSON, manifest metadata, and build logs. With the toolchain, it also adds `.prg32` architecture artifacts to the Cartridge Store bundle.
+Without the PRG32 toolchain, **Compile Cartridge** still creates a source bundle containing generated C, project JSON, game IR JSON, manifest metadata, and build logs. With the toolchain, it also adds `.prg32` architecture artifacts to the Cartridge Store bundle.
 
 ## Repository layout
 

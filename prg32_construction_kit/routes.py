@@ -17,6 +17,7 @@ from .db import (
 from .generator import blocks_to_c, sprite_to_c
 from .packager import prepare_package
 from .publisher import publish_bundle
+from .sample_data import UPSTREAM_EXAMPLES, upstream_example_projects
 
 bp = Blueprint("kit", __name__)
 
@@ -152,6 +153,27 @@ def api_import_project():
     return jsonify(item), 201
 
 
+@bp.get("/api/examples")
+def api_list_examples():
+    """List built-in Blocks adaptations of the upstream PRG32 examples."""
+    return jsonify(
+        {
+            "examples": [
+                {"slug": slug, "title": title, "description": description}
+                for slug, title, description, _color, _x_name, _y_name in UPSTREAM_EXAMPLES
+            ]
+        }
+    )
+
+
+@bp.post("/api/examples/<slug>/import")
+def api_import_example(slug: str):
+    for example, project in zip(UPSTREAM_EXAMPLES, upstream_example_projects()):
+        if example[0] == slug:
+            return jsonify(create_resource("projects", project)), 201
+    return json_error("Example not found", 404)
+
+
 @bp.get("/api/projects/<project_id>/export")
 def api_export_project(project_id: str):
     project = get_resource("projects", project_id)
@@ -240,6 +262,22 @@ def api_package_project(project_id: str):
             },
         },
     )
+    cartridge_artifacts = []
+    for architecture in result["architectures"]:
+        cartridge_path = Path(result["work_dir"]) / architecture["file"]
+        cartridge_artifacts.append(
+            create_resource(
+                "artifacts",
+                {
+                    "project_id": project_id,
+                    "kind": "prg32_cartridge",
+                    "name": architecture["file"],
+                    "content_type": "application/vnd.prg32.cartridge",
+                    "path": str(cartridge_path),
+                    "metadata": {"architecture": architecture["id"], "portable": True, "build_id": build["id"]},
+                },
+            )
+        )
     build = update_resource(
         "builds",
         build["id"],
@@ -254,7 +292,7 @@ def api_package_project(project_id: str):
             },
         },
     )
-    return jsonify({"build": build, "c_artifact": c_artifact, "bundle_artifact": bundle_artifact, "result": result})
+    return jsonify({"build": build, "c_artifact": c_artifact, "bundle_artifact": bundle_artifact, "cartridge_artifacts": cartridge_artifacts, "result": result})
 
 
 @bp.post("/api/sprites/<sprite_id>/convert")

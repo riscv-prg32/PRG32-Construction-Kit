@@ -8,7 +8,7 @@ Open a project and click **Generate C**. Confirm that the generated C looks reas
 
 ## 2. Prepare cartridge
 
-Click **Prepare Cartridge**.
+Click **Compile Cartridge**.
 
 If the PRG32 build toolchain is installed, the result should be a publishable store bundle containing `.prg32` files. If not, the app creates a source-only teaching bundle.
 

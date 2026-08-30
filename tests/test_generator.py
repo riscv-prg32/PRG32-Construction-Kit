@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from prg32_construction_kit.generator import blocks_to_c, blocks_to_ir, sprite_to_c
-from prg32_construction_kit.sample_data import default_blocks
+from prg32_construction_kit.sample_data import default_blocks, upstream_example_projects
 
 
 def test_blocks_to_ir_has_lifecycle():
@@ -19,6 +19,13 @@ def test_blocks_to_c_contains_prg32_calls():
     assert "prg32_input_read" in c_source
     assert "prg32_gfx_rect" in c_source
     assert ir["entry_prefix"] == "hello_blocks"
+
+
+def test_every_upstream_example_has_convertible_blocks():
+    for project in upstream_example_projects():
+        ir, c_source = blocks_to_c(project["blocks_json"], project)
+        assert ir["warnings"] == []
+        assert "prg32_gfx_rect" in c_source
 
 
 def test_sprite_to_c_rgb565():

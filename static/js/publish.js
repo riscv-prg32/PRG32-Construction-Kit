@@ -30,7 +30,7 @@
             </div>
           </div>
         </div>`;
-      }).join('') || '<div class="alert alert-info">No bundles yet. Open a project and click Prepare Cartridge.</div>');
+      }).join('') || '<div class="alert alert-info">No bundles yet. Open a project and click Compile Cartridge.</div>');
     });
   }
 

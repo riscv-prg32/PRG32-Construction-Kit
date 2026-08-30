@@ -19,9 +19,11 @@
     <button class="btn btn-warning" id="stepGame"><i class="bi bi-skip-forward"></i> Step</button>
     <button class="btn btn-outline-danger" id="resetGame"><i class="bi bi-arrow-counterclockwise"></i> Reset</button>
     <button class="btn btn-primary" id="convertProject"><i class="bi bi-filetype-c"></i> Generate C</button>
-    <button class="btn btn-dark" id="packageProject"><i class="bi bi-box-arrow-up"></i> Prepare Cartridge</button>
+    <button class="btn btn-dark" id="packageProject"><i class="bi bi-download"></i> Compile Cartridge</button>
   </div>
 </div>
+
+<div class="alert alert-success d-none" id="cartridgeDownloads" role="status"></div>
 
 <div class="row g-3">
   <div class="col-xxl-7">
@@ -37,10 +39,30 @@
     <div class="card shadow-sm mb-3">
       <div class="card-header d-flex justify-content-between align-items-center">
         <strong><i class="bi bi-controller"></i> Online PRG32 Simulator</strong>
-        <span class="small text-muted">Arrow keys + A/B/Z/X</span>
+        <span class="small text-muted">Arrow keys + Z/X + Enter/Shift</span>
       </div>
       <div class="card-body">
         <canvas id="gameCanvas" width="320" height="200" class="game-canvas"></canvas>
+        <section class="simulator-gamepad mt-3" aria-label="Simulator game controls">
+          <div class="gamepad-brand">PRG32</div>
+          <div class="gamepad-controls">
+            <div class="d-pad" role="group" aria-label="Direction buttons">
+              <button class="gamepad-button d-pad-button d-pad-up" type="button" data-game-button="UP" aria-label="Up"><i class="bi bi-caret-up-fill"></i></button>
+              <button class="gamepad-button d-pad-button d-pad-left" type="button" data-game-button="LEFT" aria-label="Left"><i class="bi bi-caret-left-fill"></i></button>
+              <span class="d-pad-center" aria-hidden="true"></span>
+              <button class="gamepad-button d-pad-button d-pad-right" type="button" data-game-button="RIGHT" aria-label="Right"><i class="bi bi-caret-right-fill"></i></button>
+              <button class="gamepad-button d-pad-button d-pad-down" type="button" data-game-button="DOWN" aria-label="Down"><i class="bi bi-caret-down-fill"></i></button>
+            </div>
+            <div class="gamepad-menu" role="group" aria-label="Menu buttons">
+              <button class="gamepad-button menu-button" type="button" data-game-button="SELECT" aria-label="Select"><span></span><small>SELECT</small></button>
+              <button class="gamepad-button menu-button" type="button" data-game-button="START" aria-label="Start"><span></span><small>START</small></button>
+            </div>
+            <div class="gamepad-actions" role="group" aria-label="Action buttons">
+              <button class="gamepad-button action-button button-b" type="button" data-game-button="B" aria-label="B button">B</button>
+              <button class="gamepad-button action-button button-a" type="button" data-game-button="A" aria-label="A button">A</button>
+            </div>
+          </div>
+        </section>
         <div class="debug-strip mt-2" id="debugState">Ready.</div>
       </div>
     </div>

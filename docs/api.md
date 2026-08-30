@@ -2,6 +2,20 @@
 
 All responses are JSON unless a download endpoint is used.
 
+## Built-in Blocks examples
+
+`GET /api/examples` lists the editable Blocks adaptations of the upstream
+PRG32 example games and feature demos. `POST /api/examples/<slug>/import`
+creates a new project from one of them; it never changes the built-in example.
+
+## Compile and download a cartridge
+
+`POST /api/projects/<id>/package` validates the saved Blocks JSON, generates
+deterministic C, and invokes the configured PRG32 toolchain. When compilation
+succeeds, the response's `cartridge_artifacts` array contains portable
+`.prg32` files. Download one through
+`GET /api/artifacts/<artifact-id>/download`.
+
 ## Discovery
 
 ```http

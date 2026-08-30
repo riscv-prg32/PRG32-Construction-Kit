@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from types import SimpleNamespace
+
 from prg32_construction_kit.sample_data import default_blocks
 
 
@@ -51,3 +53,41 @@ def test_discovery(client):
     response = client.get("/.well-known/prg32-construction-kit.json")
     assert response.status_code == 200
     assert response.get_json()["abi"] == "prg32-construction-kit-discovery-1.0"
+
+
+def test_upstream_blocks_examples_can_be_listed_and_imported(client):
+    response = client.get("/api/examples")
+    assert response.status_code == 200
+    examples = response.get_json()["examples"]
+    assert len(examples) == 22
+    assert {example["slug"] for example in examples} >= {"pong", "raycaster", "audio_synth"}
+
+    response = client.post("/api/examples/pong/import", json={})
+    assert response.status_code == 201
+    project = response.get_json()
+    assert project["title"] == "Pong"
+    assert project["blocks_json"]["blocks"]["blocks"]
+
+
+def test_package_exposes_downloadable_prg32_cartridges(client, monkeypatch):
+    def fake_run(command, **_kwargs):
+        out_path = command[command.index("--out") + 1]
+        with open(out_path, "wb") as cartridge:
+            cartridge.write(b"PRG32-test")
+        return SimpleNamespace(returncode=0, stdout="built\n", stderr="")
+
+    monkeypatch.setattr("prg32_construction_kit.packager.subprocess.run", fake_run)
+    project = client.post(
+        "/api/projects",
+        json={"title": "Download Me", "author": "Tester", "blocks_json": default_blocks()},
+    ).get_json()
+
+    response = client.post(f"/api/projects/{project['id']}/package", json={})
+    assert response.status_code == 200
+    cartridges = response.get_json()["cartridge_artifacts"]
+    assert {item["metadata"]["architecture"] for item in cartridges} == {"esp32c6", "qemu"}
+    assert all(item["kind"] == "prg32_cartridge" for item in cartridges)
+
+    download = client.get(f"/api/artifacts/{cartridges[0]['id']}/download")
+    assert download.status_code == 200
+    assert download.data == b"PRG32-test"

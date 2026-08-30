@@ -14,23 +14,27 @@ void my_game_draw(void);
 
 The function prefix comes from the project title, sanitized as a C identifier.
 
-## Prepare Cartridge
+## Compile and download a cartridge
 
-When a student clicks **Prepare Cartridge**, the app:
+When a student clicks **Compile Cartridge**, the app:
 
 1. saves the Blockly JSON;
 2. regenerates C;
 3. creates a build record;
 4. writes `game.c`, `project.blocks.json`, and `game.ir.json` to `data/builds/<build_id>/`;
 5. runs the configured PRG32 build command for `esp32c6` and `qemu` labels;
-6. creates a Cartridge Store bundle zip.
+6. creates directly downloadable `.prg32` artifacts and a Cartridge Store bundle zip.
+
+After a successful build, green download buttons appear above the editor. The
+portable cartridge can be uploaded to a device slot through the PRG32 setup
+page or the upstream `python3 -m prg32 esp32c6 upload` command.
 
 ## PRG32 build command
 
 Default:
 
 ```bash
-python3 -m prg32 build
+python3 -m prg32 cartridge build
 ```
 
 The app appends:
@@ -42,7 +46,7 @@ game.c --portable --entry-prefix <prefix> --name <slug> --out <slug>-<architectu
 Override the command:
 
 ```bash
-export PRG32_BUILD_COMMAND="python3 -m prg32 build"
+export PRG32_BUILD_COMMAND="python3 -m prg32 cartridge build"
 ```
 
 ## Source-only bundles

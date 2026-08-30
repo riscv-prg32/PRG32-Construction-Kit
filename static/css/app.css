@@ -135,6 +135,88 @@ body {
   box-shadow: inset 0 0 0 2px #334155;
 }
 
+.simulator-gamepad {
+  position: relative;
+  overflow: hidden;
+  padding: 1.1rem 1rem .9rem;
+  border: 1px solid #9ca3af;
+  border-radius: 1.35rem 1.35rem 2.4rem 1.35rem;
+  background: linear-gradient(145deg, #e5e7eb, #b9c0ca);
+  box-shadow: inset 0 2px 1px rgba(255, 255, 255, .75), inset 0 -3px 4px rgba(15, 23, 42, .18), 0 .35rem .75rem rgba(15, 23, 42, .14);
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+}
+
+.gamepad-brand {
+  position: absolute;
+  top: .4rem;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #6b7280;
+  font-size: .64rem;
+  font-weight: 800;
+  letter-spacing: .2em;
+}
+
+.gamepad-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .6rem;
+  padding-top: .55rem;
+}
+
+.gamepad-button {
+  border: 0;
+  line-height: 1;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.gamepad-button:focus-visible {
+  outline: 3px solid var(--kit-blue);
+  outline-offset: 3px;
+}
+
+.d-pad {
+  display: grid;
+  grid-template: repeat(3, 1.85rem) / repeat(3, 1.85rem);
+  filter: drop-shadow(0 3px 1px rgba(15, 23, 42, .35));
+}
+
+.d-pad-button, .d-pad-center {
+  color: #e5e7eb;
+  background: linear-gradient(145deg, #4b5563, #111827);
+}
+
+.d-pad-button { font-size: .85rem; }
+.d-pad-button:active, .d-pad-button.is-pressed { transform: translateY(2px); background: #111827; }
+.d-pad-up { grid-area: 1 / 2; border-radius: .32rem .32rem 0 0; }
+.d-pad-left { grid-area: 2 / 1; border-radius: .32rem 0 0 .32rem; }
+.d-pad-center { grid-area: 2 / 2; }
+.d-pad-right { grid-area: 2 / 3; border-radius: 0 .32rem .32rem 0; }
+.d-pad-down { grid-area: 3 / 2; border-radius: 0 0 .32rem .32rem; }
+
+.gamepad-menu { display: flex; align-items: end; gap: .5rem; padding-top: 1.2rem; }
+.menu-button { display: grid; justify-items: center; gap: .26rem; color: #4b5563; background: transparent; }
+.menu-button span { display: block; width: 1.7rem; height: .58rem; border-radius: 999px; background: linear-gradient(180deg, #6b7280, #374151); box-shadow: 0 2px 1px rgba(15, 23, 42, .28); }
+.menu-button small { font-size: .46rem; font-weight: 800; letter-spacing: .03em; }
+.menu-button:active span, .menu-button.is-pressed span { transform: translateY(2px); background: #1f2937; }
+
+.gamepad-actions { display: flex; align-items: center; gap: .45rem; padding: .5rem; border-radius: 999px; background: rgba(107, 114, 128, .2); transform: rotate(-18deg); }
+.action-button { display: grid; place-items: center; width: 2.35rem; height: 2.35rem; border-radius: 50%; color: white; font-size: 1rem; font-weight: 800; box-shadow: inset 0 -4px 0 rgba(0, 0, 0, .24), 0 3px 2px rgba(15, 23, 42, .28); }
+.button-a { background: linear-gradient(145deg, #f43f5e, #be123c); }
+.button-b { background: linear-gradient(145deg, #fb7185, #e11d48); }
+.action-button:active, .action-button.is-pressed { transform: translateY(3px); box-shadow: inset 0 -1px 0 rgba(0, 0, 0, .24), 0 1px 1px rgba(15, 23, 42, .28); }
+
+@media (max-width: 390px) {
+  .gamepad-controls { gap: .3rem; }
+  .d-pad { grid-template: repeat(3, 1.65rem) / repeat(3, 1.65rem); }
+  .gamepad-menu { gap: .25rem; }
+  .action-button { width: 2rem; height: 2rem; }
+}
+
 .sprite-canvas {
   width: min(100%, 512px);
   image-rendering: pixelated;

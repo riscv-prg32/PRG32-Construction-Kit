@@ -18,6 +18,6 @@ class Config:
     BUILD_ROOT = Path(os.environ.get("PRG32_KIT_BUILD_ROOT", DATA_DIR / "builds")).resolve()
     ARTIFACT_ROOT = Path(os.environ.get("PRG32_KIT_ARTIFACT_ROOT", DATA_DIR / "artifacts")).resolve()
     DEFAULT_STORE_URL = os.environ.get("PRG32_STORE_URL", "http://127.0.0.1:5080")
-    PRG32_BUILD_COMMAND = os.environ.get("PRG32_BUILD_COMMAND", "python3 -m prg32 build")
+    PRG32_BUILD_COMMAND = os.environ.get("PRG32_BUILD_COMMAND", "python3 -m prg32 cartridge build")
     MAX_CONTENT_LENGTH = int(os.environ.get("PRG32_KIT_MAX_UPLOAD", str(32 * 1024 * 1024)))
     JSON_SORT_KEYS = False

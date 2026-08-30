@@ -32,7 +32,7 @@ http://127.0.0.1:5090/
 | `PRG32_KIT_DB` | `$PRG32_KIT_DATA/construction_kit.sqlite` | SQLite path. |
 | `PRG32_KIT_PORT` | `5090` | HTTP port. |
 | `PRG32_STORE_URL` | `http://127.0.0.1:5080` | Default Cartridge Store URL. |
-| `PRG32_BUILD_COMMAND` | `python3 -m prg32 build` | Command used by Prepare Cartridge. |
+| `PRG32_BUILD_COMMAND` | `python3 -m prg32 cartridge build` | Command used by Compile Cartridge. |
 | `SECRET_KEY` | development value | Flask session secret. Change for shared deployments. |
 
 ## Initialize or reset data
@@ -51,7 +51,7 @@ A starter project, starter sprite, and local publish profile are seeded when the
 The app can generate C without a PRG32 toolchain. To also create real `.prg32` cartridge files, make sure this works in the same shell or container:
 
 ```bash
-python3 -m prg32 build --help
+python3 -m prg32 cartridge build --help
 ```
 
-Then open a project and click **Prepare Cartridge**.
+Then open a project and click **Compile Cartridge**.

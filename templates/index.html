@@ -9,6 +9,7 @@
       <p class="lead mb-4">Students assemble game logic visually, play it in the browser, inspect generated C, package it as PRG32 cartridge material, and submit bundles to Cartridge Store.</p>
       <div class="d-flex flex-wrap gap-2">
         <button class="btn btn-primary btn-lg" data-bs-toggle="modal" data-bs-target="#newProjectModal"><i class="bi bi-plus-circle"></i> New Project</button>
+        <button class="btn btn-outline-light btn-lg" data-bs-toggle="modal" data-bs-target="#examplesModal"><i class="bi bi-collection-play"></i> Examples</button>
         <label class="btn btn-outline-light btn-lg mb-0"><i class="bi bi-file-earmark-arrow-up"></i> Import JSON <input class="d-none" type="file" id="importProjectFile" accept="application/json,.json"></label>
         <a class="btn btn-outline-light btn-lg" href="/documentation"><i class="bi bi-journal-text"></i> Learn</a>
       </div>
@@ -31,6 +32,15 @@
   <div class="col-md-3"><div class="metric-card"><div class="metric" id="spriteCount">0</div><div>Sprites</div></div></div>
   <div class="col-md-3"><div class="metric-card"><div class="metric" id="artifactCount">0</div><div>Artifacts</div></div></div>
   <div class="col-md-3"><div class="metric-card"><div class="metric" id="buildCount">0</div><div>Builds</div></div></div>
+</div>
+
+<div class="modal fade" id="examplesModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title">PRG32 examples in Blocks</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body"><p class="text-muted small">These are editable, classroom-sized Blocks adaptations of every game and feature demo in the upstream PRG32 examples.</p><div class="list-group" id="exampleList"></div></div>
+    </div>
+  </div>
 </div>
 
 <div class="d-flex align-items-center justify-content-between mb-3">

@@ -29,7 +29,7 @@ Token: optional bearer token
 ## Publish flow
 
 1. Open a project.
-2. Click **Prepare Cartridge**.
+2. Click **Compile Cartridge**.
 3. Open **Publish**.
 4. Select the store profile.
 5. Click **Publish** on a store bundle.

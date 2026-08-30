@@ -59,8 +59,14 @@
         $('#generatedC').text(result.c_artifact.text_content || $('#generatedC').text());
         $('#generatedIR').text(JSON.stringify(result.result.manifest, null, 2));
         setLog(result.build.log || JSON.stringify(result.result, null, 2));
-        const kind = result.result.publishable ? 'success' : 'warning';
-        Kit.toast(result.result.publishable ? 'Store bundle prepared' : 'Source bundle prepared; PRG32 toolchain required for .prg32 files', kind);
+        const cartridges = result.cartridge_artifacts || [];
+        if (cartridges.length) {
+          const links = cartridges.map(artifact => `<a class="btn btn-success btn-sm ms-2" href="/api/artifacts/${encodeURIComponent(artifact.id)}/download"><i class="bi bi-download"></i> ${Kit.escape(artifact.metadata.architecture)} .prg32</a>`).join('');
+          $('#cartridgeDownloads').removeClass('d-none alert-warning').addClass('alert-success').html(`<strong>Cartridge ready.</strong> Download it and upload it to a PRG32 cartridge slot.${links}`);
+        } else {
+          $('#cartridgeDownloads').removeClass('d-none alert-success').addClass('alert-warning').text('The source bundle is ready, but the PRG32 compiler toolchain is not installed on this server.');
+        }
+        Kit.toast(cartridges.length ? 'PRG32 cartridge compiled' : 'Source bundle prepared; PRG32 toolchain required for the binary', cartridges.length ? 'success' : 'warning');
       })
       .catch(err => Kit.toast(err.message, 'danger'))
       .finally(() => $('#packageProject').prop('disabled', false));

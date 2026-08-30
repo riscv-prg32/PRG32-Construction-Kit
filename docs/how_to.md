@@ -1,5 +1,9 @@
 # How-To Recipes
 
+## How to use the simulator gamepad
+
+Below the simulator screen, the classic-style gamepad lets students test games with a mouse or touch screen. Its direction pad sends `UP`, `DOWN`, `LEFT`, and `RIGHT`; the red buttons send `A` and `B`; and the middle buttons send `SELECT` and `START`. These are the same names used by the **if button pressed** blocks. Keyboard controls remain available: arrow keys, `Z`/`X`, `Enter`, and `Shift`.
+
 ## How to make a moving player
 
 1. Add `when game starts`.

@@ -16,7 +16,7 @@ def app(tmp_path: Path):
             "DB_PATH": tmp_path / "test.sqlite",
             "BUILD_ROOT": tmp_path / "builds",
             "ARTIFACT_ROOT": tmp_path / "artifacts",
-            "PRG32_BUILD_COMMAND": "python3 -m prg32 build",
+            "PRG32_BUILD_COMMAND": "python3 -m prg32 cartridge build",
         }
     )
     yield app

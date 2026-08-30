@@ -139,20 +139,56 @@ window.PRG32Simulator = (function () {
       this.running = false;
       this.frame = 0;
       this.audio = null;
+      this.inputSources = {};
       this.bindKeys();
+      this.bindGamepad();
       this.reset();
+    }
+
+    setInput(button, source, down) {
+      if (!this.inputSources[button]) this.inputSources[button] = new Set();
+      const sources = this.inputSources[button];
+      if (down) sources.add(source);
+      else sources.delete(source);
+      this.keys[button] = sources.size > 0;
     }
 
     bindKeys() {
       const set = (event, down) => {
         const map = { ArrowLeft: 'LEFT', ArrowRight: 'RIGHT', ArrowUp: 'UP', ArrowDown: 'DOWN', z: 'A', Z: 'A', x: 'B', X: 'B', Enter: 'START', Shift: 'SELECT' };
         if (map[event.key]) {
-          this.keys[map[event.key]] = down;
+          this.setInput(map[event.key], 'keyboard-' + event.code, down);
           event.preventDefault();
         }
       };
       window.addEventListener('keydown', event => set(event, true));
       window.addEventListener('keyup', event => set(event, false));
+      window.addEventListener('blur', () => {
+        Object.keys(this.inputSources).forEach(button => {
+          Array.from(this.inputSources[button]).filter(source => source.startsWith('keyboard-')).forEach(source => this.setInput(button, source, false));
+        });
+      });
+    }
+
+    bindGamepad() {
+      document.querySelectorAll('[data-game-button]').forEach(button => {
+        const gameButton = button.dataset.gameButton;
+        const source = pointerId => 'pointer-' + pointerId;
+        const release = event => {
+          this.setInput(gameButton, source(event.pointerId), false);
+          button.classList.remove('is-pressed');
+        };
+        button.addEventListener('pointerdown', event => {
+          event.preventDefault();
+          button.setPointerCapture(event.pointerId);
+          this.setInput(gameButton, source(event.pointerId), true);
+          button.classList.add('is-pressed');
+        });
+        button.addEventListener('pointerup', release);
+        button.addEventListener('pointercancel', release);
+        button.addEventListener('lostpointercapture', release);
+        button.addEventListener('contextmenu', event => event.preventDefault());
+      });
     }
 
     loadBlocks(blocks) {
