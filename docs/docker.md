@@ -28,6 +28,19 @@ The compose file mounts:
 
 That directory stores SQLite data, generated C, packages, uploaded artifacts, and build logs.
 
+SQLite is the convenient single-container default. For a multi-user production
+deployment, run PostgreSQL as a separate managed service or Compose service,
+install `requirements-production.txt`, and provide:
+
+```yaml
+environment:
+  DATABASE_URL: postgresql+psycopg://prg32:${PRG32_DB_PASSWORD}@database/prg32_kit
+```
+
+Keep generated artifacts on persistent shared storage if the web application
+runs with more than one replica. The SQL database stores their metadata, not
+the large cartridge and bundle files themselves.
+
 ## Manual Docker build and run
 
 ```bash

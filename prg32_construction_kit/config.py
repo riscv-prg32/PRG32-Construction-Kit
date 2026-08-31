@@ -15,6 +15,9 @@ class Config:
     SECRET_KEY = os.environ.get("SECRET_KEY", "dev-prg32-construction-kit-change-me")
     DATA_DIR = Path(os.environ.get("PRG32_KIT_DATA", "data")).resolve()
     DB_PATH = Path(os.environ.get("PRG32_KIT_DB", DATA_DIR / "construction_kit.sqlite")).resolve()
+    SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL")
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+    SQLALCHEMY_ENGINE_OPTIONS = {"pool_pre_ping": True}
     BUILD_ROOT = Path(os.environ.get("PRG32_KIT_BUILD_ROOT", DATA_DIR / "builds")).resolve()
     ARTIFACT_ROOT = Path(os.environ.get("PRG32_KIT_ARTIFACT_ROOT", DATA_DIR / "artifacts")).resolve()
     DEFAULT_STORE_URL = os.environ.get("PRG32_STORE_URL", "http://127.0.0.1:5080")

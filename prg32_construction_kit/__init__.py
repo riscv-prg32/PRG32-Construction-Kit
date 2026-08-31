@@ -14,6 +14,9 @@ def create_app(test_config: dict | None = None) -> Flask:
     if test_config:
         app.config.update(test_config)
 
+    if not app.config.get("SQLALCHEMY_DATABASE_URI"):
+        app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{app.config['DB_PATH']}"
+
     app.config["DATA_DIR"].mkdir(parents=True, exist_ok=True)
     app.config["BUILD_ROOT"].mkdir(parents=True, exist_ok=True)
     app.config["ARTIFACT_ROOT"].mkdir(parents=True, exist_ok=True)

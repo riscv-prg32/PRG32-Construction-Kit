@@ -1,5 +1,17 @@
 # Architecture
 
+## Persistence
+
+All CRUD operations use SQLAlchemy models. SQLite is selected automatically for
+local and classroom installations; `DATABASE_URL` can select any supported
+SQLAlchemy database. PostgreSQL with the `psycopg` driver is recommended for
+production concurrency. JSON-shaped fields remain JSON text columns so the
+existing API format and SQLite schema stay compatible.
+
+SQLite connections use foreign-key enforcement, WAL mode, and a five-second
+busy timeout. These improve small classroom concurrency but do not turn SQLite
+into a multi-server production database.
+
 ## Overview
 
 PRG32-Construction-Kit uses a deliberately simple pipeline:
@@ -19,7 +31,7 @@ Blockly workspace JSON
 | Component | Location | Role |
 | --- | --- | --- |
 | Flask app | `prg32_construction_kit/` | Routes, CRUD API, conversion, packaging, publishing. |
-| SQLite storage | `data/construction_kit.sqlite` | Projects, sprites, assets, artifacts, builds, publish profiles. |
+| SQLAlchemy storage | `prg32_construction_kit/db.py` | Database-neutral models and CRUD for projects, sprites, assets, artifacts, builds, and publish profiles. |
 | Blockly editor | `static/js/blockly_blocks.js` | Custom PRG32 block vocabulary. |
 | Online simulator | `static/js/simulator.js` | Browser execution of the game IR. |
 | C generator | `prg32_construction_kit/generator.py` | Converts saved Blocks JSON into PRG32 C. |
