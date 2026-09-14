@@ -16,6 +16,7 @@ window.PRG32Blocks = (function () {
       { type: 'prg32_set_state', message0: 'set %1 to %2', args0: [{ type: 'field_input', name: 'VAR', text: 'score' }, { type: 'field_input', name: 'VALUE', text: '0' }], previousStatement: null, nextStatement: null, colour: 260, tooltip: 'Create or assign an integer state variable.' },
       { type: 'prg32_change_state', message0: 'change %1 by %2', args0: [{ type: 'field_input', name: 'VAR', text: 'score' }, { type: 'field_input', name: 'DELTA', text: '1' }], previousStatement: null, nextStatement: null, colour: 260, tooltip: 'Add a number to an integer state variable.' },
       { type: 'prg32_clamp_state', message0: 'keep %1 between %2 and %3', args0: [{ type: 'field_input', name: 'VAR', text: 'player_x' }, { type: 'field_input', name: 'LOW', text: '0' }, { type: 'field_input', name: 'HIGH', text: '304' }], previousStatement: null, nextStatement: null, colour: 260, tooltip: 'Clamp a variable to a safe range.' },
+      { type: 'prg32_random_state', message0: 'set %1 to random from %2 to %3', args0: [{ type: 'field_input', name: 'VAR', text: 'target_x' }, { type: 'field_input', name: 'LOW', text: '0' }, { type: 'field_input', name: 'HIGH', text: '304' }], previousStatement: null, nextStatement: null, colour: 260, tooltip: 'Uniform inclusive PRG32 random number.' },
       { type: 'prg32_if_button', message0: 'if button %1 pressed %2 %3', args0: [{ type: 'field_dropdown', name: 'BUTTON', options: BUTTONS }, { type: 'input_dummy' }, { type: 'input_statement', name: 'DO' }], previousStatement: null, nextStatement: null, colour: 15, tooltip: 'Run blocks when a PRG32 button is pressed.' },
       { type: 'prg32_if_touching', message0: 'if rect %1 %2 %3 %4 touches rect %5 %6 %7 %8 %9 %10', args0: [
         { type: 'field_input', name: 'AX', text: 'player_x' }, { type: 'field_input', name: 'AY', text: 'player_y' }, { type: 'field_input', name: 'AW', text: '16' }, { type: 'field_input', name: 'AH', text: '16' },
@@ -24,8 +25,14 @@ window.PRG32Blocks = (function () {
       ], previousStatement: null, nextStatement: null, colour: 15, tooltip: 'Use PRG32 rectangle hitbox collision.' },
       { type: 'prg32_clear_screen', message0: 'clear screen %1', args0: [{ type: 'field_dropdown', name: 'COLOR', options: COLORS }], previousStatement: null, nextStatement: null, colour: 160, tooltip: 'Fill the PRG32 viewport.' },
       { type: 'prg32_draw_rect', message0: 'draw rectangle x %1 y %2 w %3 h %4 color %5', args0: [{ type: 'field_input', name: 'X', text: '0' }, { type: 'field_input', name: 'Y', text: '0' }, { type: 'field_input', name: 'W', text: '16' }, { type: 'field_input', name: 'H', text: '16' }, { type: 'field_dropdown', name: 'COLOR', options: COLORS }], previousStatement: null, nextStatement: null, colour: 160, tooltip: 'Draw a filled rectangle.' },
+      { type: 'prg32_draw_pixel', message0: 'draw pixel x %1 y %2 color %3', args0: [{ type: 'field_input', name: 'X', text: '0' }, { type: 'field_input', name: 'Y', text: '0' }, { type: 'field_dropdown', name: 'COLOR', options: COLORS }], previousStatement: null, nextStatement: null, colour: 160, tooltip: 'Draw one RGB565 pixel.' },
+      { type: 'prg32_palette_set', message0: 'palette index %1 color %2', args0: [{ type: 'field_input', name: 'INDEX', text: '1' }, { type: 'field_dropdown', name: 'COLOR', options: COLORS }], previousStatement: null, nextStatement: null, colour: 160, tooltip: 'Assign an RGB565 color to an indexed palette entry.' },
+      { type: 'prg32_clear_indexed', message0: 'clear indexed screen with index %1', args0: [{ type: 'field_input', name: 'INDEX', text: '0' }], previousStatement: null, nextStatement: null, colour: 160, tooltip: 'Clear with a palette index.' },
+      { type: 'prg32_draw_rect_indexed', message0: 'draw indexed rectangle x %1 y %2 w %3 h %4 index %5', args0: [{ type: 'field_input', name: 'X', text: '0' }, { type: 'field_input', name: 'Y', text: '0' }, { type: 'field_input', name: 'W', text: '16' }, { type: 'field_input', name: 'H', text: '16' }, { type: 'field_input', name: 'INDEX', text: '1' }], previousStatement: null, nextStatement: null, colour: 160, tooltip: 'Draw an indexed rectangle.' },
+      { type: 'prg32_draw_pixel_indexed', message0: 'draw indexed pixel x %1 y %2 index %3', args0: [{ type: 'field_input', name: 'X', text: '0' }, { type: 'field_input', name: 'Y', text: '0' }, { type: 'field_input', name: 'INDEX', text: '1' }], previousStatement: null, nextStatement: null, colour: 160, tooltip: 'Draw one indexed pixel.' },
       { type: 'prg32_draw_text', message0: 'draw text %1 at x %2 y %3 fg %4 bg %5', args0: [{ type: 'field_input', name: 'TEXT', text: 'HELLO' }, { type: 'field_input', name: 'X', text: '8' }, { type: 'field_input', name: 'Y', text: '8' }, { type: 'field_dropdown', name: 'FG', options: COLORS }, { type: 'field_dropdown', name: 'BG', options: COLORS }], previousStatement: null, nextStatement: null, colour: 160, tooltip: 'Draw 8x8 text.' },
       { type: 'prg32_play_beep', message0: 'play beep freq %1 ms %2', args0: [{ type: 'field_input', name: 'FREQ', text: '880' }, { type: 'field_input', name: 'MS', text: '80' }], previousStatement: null, nextStatement: null, colour: 300, tooltip: 'Play a short sound.' },
+      { type: 'prg32_audio_note', message0: 'play MIDI note %1 on channel %2 for %3 ms', args0: [{ type: 'field_input', name: 'NOTE', text: '60' }, { type: 'field_input', name: 'CHANNEL', text: '0' }, { type: 'field_input', name: 'MS', text: '250' }], previousStatement: null, nextStatement: null, colour: 300, tooltip: 'Play the default instrument on a PRG32 mixer channel.' },
       { type: 'prg32_comment', message0: 'comment %1', args0: [{ type: 'field_input', name: 'TEXT', text: 'explain this idea' }], previousStatement: null, nextStatement: null, colour: 90, tooltip: 'A note for students and generated C.' }
     ]);
   }
@@ -42,6 +49,7 @@ window.PRG32Blocks = (function () {
       <block type="prg32_set_state"></block>
       <block type="prg32_change_state"></block>
       <block type="prg32_clamp_state"></block>
+      <block type="prg32_random_state"></block>
     </category>
     <category name="Input & Logic" colour="15">
       <block type="prg32_if_button"></block>
@@ -50,10 +58,16 @@ window.PRG32Blocks = (function () {
     <category name="Drawing" colour="160">
       <block type="prg32_clear_screen"></block>
       <block type="prg32_draw_rect"></block>
+      <block type="prg32_draw_pixel"></block>
+      <block type="prg32_palette_set"></block>
+      <block type="prg32_clear_indexed"></block>
+      <block type="prg32_draw_rect_indexed"></block>
+      <block type="prg32_draw_pixel_indexed"></block>
       <block type="prg32_draw_text"></block>
     </category>
     <category name="Audio" colour="300">
       <block type="prg32_play_beep"></block>
+      <block type="prg32_audio_note"></block>
     </category>
   </xml>`;
 

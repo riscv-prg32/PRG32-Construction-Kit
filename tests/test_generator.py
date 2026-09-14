@@ -28,6 +28,26 @@ def test_beep_uses_current_audio_abi():
     assert "prg32_audio_note(0, 0, prg32_kit_note_from_hz(880), 255, 80);" in c_source
 
 
+def test_current_main_scalar_features_generate_public_api_calls():
+    blocks = {"blocks": {"blocks": [
+        {"type": "prg32_random_state", "fields": {"VAR": "target_x", "LOW": "0", "HIGH": "319"}},
+        {"type": "prg32_palette_set", "fields": {"INDEX": "1", "COLOR": "RED"}},
+        {"type": "prg32_clear_indexed", "fields": {"INDEX": "0"}},
+        {"type": "prg32_draw_rect_indexed", "fields": {"X": "2", "Y": "3", "W": "4", "H": "5", "INDEX": "1"}},
+        {"type": "prg32_draw_pixel_indexed", "fields": {"X": "6", "Y": "7", "INDEX": "1"}},
+        {"type": "prg32_draw_pixel", "fields": {"X": "8", "Y": "9", "COLOR": "BLUE"}},
+        {"type": "prg32_audio_note", "fields": {"NOTE": "60", "CHANNEL": "1", "MS": "250"}},
+    ]}}
+    _, source = blocks_to_c(blocks, {"title": "API Check"})
+    for call in (
+        "prg32_random_number(0, 319)", "prg32_palette_set(1, PRG32_COLOR_RED)",
+        "prg32_gfx_clear_indexed(0)", "prg32_gfx_rect_indexed(2, 3, 4, 5, 1)",
+        "prg32_gfx_pixel_indexed(6, 7, 1)", "prg32_gfx_pixel(8, 9, PRG32_COLOR_BLUE)",
+        "prg32_audio_note(1, 0, 60, 255, 250)",
+    ):
+        assert call in source
+
+
 def test_every_upstream_example_has_convertible_blocks():
     for project in upstream_example_projects():
         ir, c_source = blocks_to_c(project["blocks_json"], project)
