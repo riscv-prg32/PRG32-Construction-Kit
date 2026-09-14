@@ -66,11 +66,13 @@ def project_manifest(project: dict[str, Any], game_ir: dict[str, Any], architect
     }
 
 
-def run_prg32_build(build_command: str, source_path: Path, out_path: Path, entry_prefix: str, name: str) -> tuple[bool, str]:
+def run_prg32_build(build_command: str, source_path: Path, out_path: Path, entry_prefix: str, name: str, architecture: str) -> tuple[bool, str]:
     out_path.parent.mkdir(parents=True, exist_ok=True)
     command = shlex.split(build_command) + [
         str(source_path),
         "--portable",
+        "--architecture",
+        architecture,
         "--entry-prefix",
         entry_prefix,
         "--name",
@@ -114,7 +116,7 @@ def prepare_package(
     for arch in ["esp32c6", "qemu"]:
         out_name = f"{slug}-{arch}.prg32"
         out_path = work_dir / out_name
-        ok, log = run_prg32_build(build_command, source_path, out_path, str(entry_prefix), slug)
+        ok, log = run_prg32_build(build_command, source_path, out_path, str(entry_prefix), slug, arch)
         logs.append(f"[{arch}]\n{log}")
         if ok:
             architectures.append({"id": arch, "file": out_name})

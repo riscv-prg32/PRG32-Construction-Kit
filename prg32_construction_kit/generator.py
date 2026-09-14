@@ -313,7 +313,7 @@ def _emit_statement(stmt: dict[str, Any], phase: str, indent: str = "    ") -> l
             f"{color_macro(stmt.get('fg'))}, {color_macro(stmt.get('bg', 'BLACK'))});"
         )
     elif op == "beep":
-        lines.append(f"{indent}prg32_audio_beep({stmt['freq']}, {stmt['ms']});")
+        lines.append(f"{indent}prg32_audio_note(0, 0, prg32_kit_note_from_hz({stmt['freq']}), 255, {stmt['ms']});")
     elif op == "comment":
         lines.append(f"{indent}/* {c_string(stmt.get('text'))} */")
     else:
@@ -335,6 +335,23 @@ def ir_to_c(game_ir: dict[str, Any]) -> str:
     for macro, value in COLOR_DEFINES.items():
         lines.extend([f"#ifndef {macro}", f"#define {macro} {value}", "#endif"])
     lines.append("")
+    lines.extend([
+        "/* Convert a classroom frequency to the nearest supported MIDI note. */",
+        "static uint8_t prg32_kit_note_from_hz(int hz) {",
+        "    static const uint16_t frequencies[] = {",
+        "        131, 139, 147, 156, 165, 175, 185, 196, 208, 220, 233, 247,",
+        "        262, 277, 294, 311, 330, 349, 370, 392, 415, 440, 466, 494,",
+        "        523, 554, 587, 622, 659, 698, 740, 784, 831, 880, 932, 988, 1047",
+        "    };",
+        "    unsigned int index;",
+        "    if (hz <= frequencies[0]) return 48;",
+        "    for (index = 0; index < 36; ++index) {",
+        "        if (hz < (frequencies[index] + frequencies[index + 1]) / 2) return (uint8_t)(48 + index);",
+        "    }",
+        "    return 84;",
+        "}",
+        "",
+    ])
     for item in game_ir.get("state", []):
         name = c_identifier(item.get("name"), "state")
         initial = c_int(item.get("initial"), 0)
