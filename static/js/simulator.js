@@ -75,6 +75,10 @@ window.PRG32Simulator = (function () {
       const name = ensureVar(ctx, field(block, 'VAR', 'x'), 0);
       return { op: 'clamp', var: name, low: saneExpr(field(block, 'LOW', 0), 0), high: saneExpr(field(block, 'HIGH', 320), 320) };
     }
+    if (type === 'prg32_random_state') {
+      const name = ensureVar(ctx, field(block, 'VAR', 'target_x'), 0);
+      return { op: 'random', var: name, low: saneExpr(field(block, 'LOW', 0), 0), high: saneExpr(field(block, 'HIGH', 304), 304) };
+    }
     if (type === 'prg32_if_button') {
       return { op: 'if_button', button: String(field(block, 'BUTTON', 'A')).toUpperCase(), then: parseStack(child(block, 'DO'), ctx) };
     }
@@ -86,8 +90,14 @@ window.PRG32Simulator = (function () {
     }
     if (type === 'prg32_clear_screen') return { op: 'clear', color: String(field(block, 'COLOR', 'BLACK')).toUpperCase() };
     if (type === 'prg32_draw_rect') return { op: 'rect', x: saneExpr(field(block, 'X', 0), 0), y: saneExpr(field(block, 'Y', 0), 0), w: saneExpr(field(block, 'W', 16), 16), h: saneExpr(field(block, 'H', 16), 16), color: String(field(block, 'COLOR', 'WHITE')).toUpperCase() };
+    if (type === 'prg32_draw_pixel') return { op: 'pixel', x: saneExpr(field(block, 'X', 0), 0), y: saneExpr(field(block, 'Y', 0), 0), color: String(field(block, 'COLOR', 'WHITE')).toUpperCase() };
+    if (type === 'prg32_palette_set') return { op: 'palette_set', index: saneExpr(field(block, 'INDEX', 1), 1), color: String(field(block, 'COLOR', 'WHITE')).toUpperCase() };
+    if (type === 'prg32_clear_indexed') return { op: 'clear_indexed', index: saneExpr(field(block, 'INDEX', 0), 0) };
+    if (type === 'prg32_draw_rect_indexed') return { op: 'rect_indexed', x: saneExpr(field(block, 'X', 0), 0), y: saneExpr(field(block, 'Y', 0), 0), w: saneExpr(field(block, 'W', 16), 16), h: saneExpr(field(block, 'H', 16), 16), index: saneExpr(field(block, 'INDEX', 1), 1) };
+    if (type === 'prg32_draw_pixel_indexed') return { op: 'pixel_indexed', x: saneExpr(field(block, 'X', 0), 0), y: saneExpr(field(block, 'Y', 0), 0), index: saneExpr(field(block, 'INDEX', 1), 1) };
     if (type === 'prg32_draw_text') return { op: 'text', text: String(field(block, 'TEXT', 'HELLO')), x: saneExpr(field(block, 'X', 8), 8), y: saneExpr(field(block, 'Y', 8), 8), fg: String(field(block, 'FG', 'WHITE')).toUpperCase(), bg: String(field(block, 'BG', 'BLACK')).toUpperCase() };
     if (type === 'prg32_play_beep') return { op: 'beep', freq: saneExpr(field(block, 'FREQ', 880), 880), ms: saneExpr(field(block, 'MS', 80), 80) };
+    if (type === 'prg32_audio_note') return { op: 'note', note: saneExpr(field(block, 'NOTE', 60), 60), channel: saneExpr(field(block, 'CHANNEL', 0), 0), ms: saneExpr(field(block, 'MS', 250), 250) };
     if (type === 'prg32_comment') return { op: 'comment', text: String(field(block, 'TEXT', 'comment')) };
     ctx.warnings.push('Skipped unsupported block type: ' + type);
     return null;
@@ -106,8 +116,12 @@ window.PRG32Simulator = (function () {
       }
     });
     if (Object.keys(ctx.vars).length === 0) ctx.vars = { player_x: 150, player_y: 180, score: 0 };
+    if (ir.draw.length === 0) {
+      if (!('player_x' in ctx.vars)) ctx.vars.player_x = 150;
+      if (!('player_y' in ctx.vars)) ctx.vars.player_y = 180;
+      ir.draw = [{ op: 'clear', color: 'BLACK' }, { op: 'rect', x: 'player_x', y: 'player_y', w: '16', h: '16', color: 'YELLOW' }];
+    }
     ir.state = Object.entries(ctx.vars).map(([name, initial]) => ({ name, type: 'int', initial }));
-    if (ir.draw.length === 0) ir.draw = [{ op: 'clear', color: 'BLACK' }, { op: 'rect', x: 'player_x', y: 'player_y', w: '16', h: '16', color: 'YELLOW' }];
     return ir;
   }
 
@@ -199,6 +213,7 @@ window.PRG32Simulator = (function () {
 
     reset() {
       this.state = {};
+      this.palette = { 0: COLOR.BLACK, 1: COLOR.WHITE };
       this.ir.state.forEach(item => { this.state[item.name] = Number(item.initial || 0); });
       this.frame = 0;
       this.exec(this.ir.init || []);
@@ -238,11 +253,18 @@ window.PRG32Simulator = (function () {
         if (stmt.op === 'set') this.state[stmt.var] = evalExpr(stmt.value, this.state);
         else if (stmt.op === 'change') this.state[stmt.var] = Number(this.state[stmt.var] || 0) + evalExpr(stmt.delta, this.state);
         else if (stmt.op === 'clamp') this.state[stmt.var] = Math.max(evalExpr(stmt.low, this.state), Math.min(evalExpr(stmt.high, this.state), Number(this.state[stmt.var] || 0)));
+        else if (stmt.op === 'random') {
+          const low = Math.max(0, Math.trunc(evalExpr(stmt.low, this.state)));
+          const high = Math.max(0, Math.trunc(evalExpr(stmt.high, this.state)));
+          this.state[stmt.var] = high <= low ? low : low + Math.floor(Math.random() * (high - low + 1));
+        }
+        else if (stmt.op === 'palette_set') this.palette[Math.trunc(evalExpr(stmt.index, this.state)) & 255] = COLOR[stmt.color] || COLOR.WHITE;
         else if (stmt.op === 'if_button' && this.keys[stmt.button]) this.exec(stmt.then || []);
         else if (stmt.op === 'if_touching') {
           const values = ['ax', 'ay', 'aw', 'ah', 'bx', 'by', 'bw', 'bh'].map(k => evalExpr(stmt[k], this.state));
           if (hit(...values)) this.exec(stmt.then || []);
         } else if (stmt.op === 'beep') this.beep(evalExpr(stmt.freq, this.state), evalExpr(stmt.ms, this.state));
+        else if (stmt.op === 'note') this.beep(440 * Math.pow(2, (evalExpr(stmt.note, this.state) - 69) / 12), evalExpr(stmt.ms, this.state));
       });
     }
 
@@ -256,6 +278,17 @@ window.PRG32Simulator = (function () {
         } else if (stmt.op === 'rect') {
           ctx.fillStyle = COLOR[stmt.color] || '#fff';
           ctx.fillRect(evalExpr(stmt.x, this.state), evalExpr(stmt.y, this.state), evalExpr(stmt.w, this.state), evalExpr(stmt.h, this.state));
+        } else if (stmt.op === 'pixel') {
+          ctx.fillStyle = COLOR[stmt.color] || COLOR.WHITE;
+          ctx.fillRect(evalExpr(stmt.x, this.state), evalExpr(stmt.y, this.state), 1, 1);
+        } else if (stmt.op === 'palette_set') {
+          this.palette[Math.trunc(evalExpr(stmt.index, this.state)) & 255] = COLOR[stmt.color] || COLOR.WHITE;
+        } else if (stmt.op === 'clear_indexed') {
+          ctx.fillStyle = this.palette[Math.trunc(evalExpr(stmt.index, this.state)) & 255] || COLOR.BLACK;
+          ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        } else if (stmt.op === 'rect_indexed' || stmt.op === 'pixel_indexed') {
+          ctx.fillStyle = this.palette[Math.trunc(evalExpr(stmt.index, this.state)) & 255] || COLOR.BLACK;
+          ctx.fillRect(evalExpr(stmt.x, this.state), evalExpr(stmt.y, this.state), stmt.op === 'pixel_indexed' ? 1 : evalExpr(stmt.w, this.state), stmt.op === 'pixel_indexed' ? 1 : evalExpr(stmt.h, this.state));
         } else if (stmt.op === 'text') {
           ctx.fillStyle = COLOR[stmt.bg] || '#000';
           const x = evalExpr(stmt.x, this.state), y = evalExpr(stmt.y, this.state);

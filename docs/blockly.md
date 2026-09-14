@@ -55,6 +55,25 @@ projects.blocks_json
 | Block | C behavior |
 | --- | --- |
 | `play beep freq 880 ms 80` | Converts 880 Hz to the nearest MIDI note and calls `prg32_audio_note` for 80 ms. Frequencies are clamped to the C3–C6 range. |
+| `play MIDI note 60 on channel 0 for 250 ms` | Calls the asynchronous `prg32_audio_note` mixer API with default instrument 0. |
+
+## Current PRG32 main coverage
+
+The Blocks editor supports the cartridge lifecycle, one local controller,
+integer state, rectangle collision, RGB565 clear/rectangle/pixel/text,
+palette and indexed clear/rectangle/pixel, inclusive random numbers, and
+simple mixer notes. The JavaScript simulator approximates these operations;
+physical audio and random-number sequences may differ.
+
+The current PRG32 cartridge ABI also includes tiles and scrolling playfields,
+platform actors, sprite assets and animation, samples and tracker audio,
+on-screen keyboard, scores, multiplayer, status bands, RGB LED, performance
+measurement, and other runtime services. These do **not** yet have equivalent
+Blocks and simulator behavior. The **Advanced C** editor can build cartridges
+using the full portable cartridge ABI with the current PRG32 toolchain. Some
+`prg32.h` functions are resident-only and cannot be called by a cartridge. Use the
+[PRG32 framework manual](https://github.com/riscv-prg32/PRG32/blob/main/docs/software/framework_manual.md)
+for those lessons. Blocks and simulator parity remains a separate future task.
 
 ## Expression rules
 

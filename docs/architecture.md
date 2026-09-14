@@ -50,6 +50,11 @@ The app uses CRUD resources:
 - publish profiles
 
 The most important field is `projects.blocks_json`. It stores the Blockly workspace serialization exactly as JSON. Generated C and bundles are artifacts.
+An advanced C project stores its explicitly authored source in
+`projects.game_json.source_c` with `source_mode: "c"`; this uses the existing
+JSON column, so older SQLite databases need no schema migration. Converting or
+packaging that project retains and builds the saved C instead of regenerating
+it from Blocks. The browser simulator remains specific to Blocks projects.
 
 ## Why use an intermediate representation?
 
@@ -64,4 +69,8 @@ JS:    if (keys.LEFT) { state.player_x += -3; }
 
 ## Build behavior
 
-The app always creates generated C. It only creates real `.prg32` files when the configured PRG32 build command is available and succeeds.
+Blocks projects create generated C. Advanced C projects build the saved source
+after checking its permitted includes and required lifecycle entry points.
+Both produce real `.prg32` files only when the configured PRG32 build command
+is available and succeeds. C compilation is intended for trusted classroom
+installations; source validation is not an OS sandbox.

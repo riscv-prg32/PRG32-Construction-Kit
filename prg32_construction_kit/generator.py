@@ -173,6 +173,9 @@ def parse_statement(block: dict[str, Any], ctx: ParseContext) -> dict[str, Any] 
             "low": c_expr(field_value(block, "LOW", 0)),
             "high": c_expr(field_value(block, "HIGH", 320)),
         }
+    if btype == "prg32_random_state":
+        name = ctx.ensure_var(str(field_value(block, "VAR", "target_x")))
+        return {"op": "random", "var": name, "low": c_expr(field_value(block, "LOW", 0)), "high": c_expr(field_value(block, "HIGH", 304))}
     if btype == "prg32_if_button":
         child = input_block(block, "DO")
         return {
@@ -205,6 +208,21 @@ def parse_statement(block: dict[str, Any], ctx: ParseContext) -> dict[str, Any] 
             "h": c_expr(field_value(block, "H", 16)),
             "color": str(field_value(block, "COLOR", "WHITE")).upper(),
         }
+    if btype in {"prg32_draw_pixel", "prg32_draw_pixel_indexed", "prg32_draw_rect_indexed"}:
+        result = {"op": {"prg32_draw_pixel": "pixel", "prg32_draw_pixel_indexed": "pixel_indexed", "prg32_draw_rect_indexed": "rect_indexed"}[btype],
+                  "x": c_expr(field_value(block, "X", 0)), "y": c_expr(field_value(block, "Y", 0))}
+        if btype == "prg32_draw_pixel":
+            result["color"] = str(field_value(block, "COLOR", "WHITE")).upper()
+        else:
+            result["index"] = c_expr(field_value(block, "INDEX", 1))
+        if btype == "prg32_draw_rect_indexed":
+            result["w"] = c_expr(field_value(block, "W", 16))
+            result["h"] = c_expr(field_value(block, "H", 16))
+        return result
+    if btype == "prg32_palette_set":
+        return {"op": "palette_set", "index": c_expr(field_value(block, "INDEX", 1)), "color": str(field_value(block, "COLOR", "WHITE")).upper()}
+    if btype == "prg32_clear_indexed":
+        return {"op": "clear_indexed", "index": c_expr(field_value(block, "INDEX", 0))}
     if btype == "prg32_draw_text":
         return {
             "op": "text",
@@ -216,6 +234,8 @@ def parse_statement(block: dict[str, Any], ctx: ParseContext) -> dict[str, Any] 
         }
     if btype == "prg32_play_beep":
         return {"op": "beep", "freq": c_expr(field_value(block, "FREQ", 880)), "ms": c_expr(field_value(block, "MS", 80))}
+    if btype == "prg32_audio_note":
+        return {"op": "note", "note": c_expr(field_value(block, "NOTE", 60)), "channel": c_expr(field_value(block, "CHANNEL", 0)), "ms": c_expr(field_value(block, "MS", 250))}
     if btype == "prg32_comment":
         return {"op": "comment", "text": str(field_value(block, "TEXT", "comment"))}
     ctx.warnings.append(f"Skipped unsupported block type: {btype}")
@@ -255,6 +275,8 @@ def blocks_to_ir(blocks_json: Any, project: dict[str, Any] | None = None) -> dic
     if not ctx.variables:
         ctx.variables.update({"player_x": 150, "player_y": 180, "score": 0})
     if not draw:
+        ctx.variables.setdefault("player_x", 150)
+        ctx.variables.setdefault("player_y", 180)
         draw = [
             {"op": "clear", "color": "BLACK"},
             {"op": "rect", "x": "player_x", "y": "player_y", "w": "16", "h": "16", "color": "YELLOW"},
@@ -288,6 +310,8 @@ def _emit_statement(stmt: dict[str, Any], phase: str, indent: str = "    ") -> l
         var = stmt["var"]
         lines.append(f"{indent}if ({var} < {stmt['low']}) {{ {var} = {stmt['low']}; }}")
         lines.append(f"{indent}if ({var} > {stmt['high']}) {{ {var} = {stmt['high']}; }}")
+    elif op == "random":
+        lines.append(f"{indent}{stmt['var']} = (int)prg32_random_number({stmt['low']}, {stmt['high']});")
     elif op == "if_button":
         lines.append(f"{indent}if (input & {button_macro(stmt.get('button'))}) {{")
         for child in stmt.get("then", []):
@@ -307,6 +331,16 @@ def _emit_statement(stmt: dict[str, Any], phase: str, indent: str = "    ") -> l
         lines.append(
             f"{indent}prg32_gfx_rect({stmt['x']}, {stmt['y']}, {stmt['w']}, {stmt['h']}, {color_macro(stmt.get('color'))});"
         )
+    elif op == "pixel":
+        lines.append(f"{indent}prg32_gfx_pixel({stmt['x']}, {stmt['y']}, {color_macro(stmt.get('color'))});")
+    elif op == "palette_set":
+        lines.append(f"{indent}prg32_palette_set({stmt['index']}, {color_macro(stmt.get('color'))});")
+    elif op == "clear_indexed":
+        lines.append(f"{indent}prg32_gfx_clear_indexed({stmt['index']});")
+    elif op == "rect_indexed":
+        lines.append(f"{indent}prg32_gfx_rect_indexed({stmt['x']}, {stmt['y']}, {stmt['w']}, {stmt['h']}, {stmt['index']});")
+    elif op == "pixel_indexed":
+        lines.append(f"{indent}prg32_gfx_pixel_indexed({stmt['x']}, {stmt['y']}, {stmt['index']});")
     elif op == "text":
         lines.append(
             f"{indent}prg32_gfx_text8({stmt['x']}, {stmt['y']}, \"{c_string(stmt.get('text'))}\", "
@@ -314,6 +348,8 @@ def _emit_statement(stmt: dict[str, Any], phase: str, indent: str = "    ") -> l
         )
     elif op == "beep":
         lines.append(f"{indent}prg32_audio_note(0, 0, prg32_kit_note_from_hz({stmt['freq']}), 255, {stmt['ms']});")
+    elif op == "note":
+        lines.append(f"{indent}prg32_audio_note({stmt['channel']}, 0, {stmt['note']}, 255, {stmt['ms']});")
     elif op == "comment":
         lines.append(f"{indent}/* {c_string(stmt.get('text'))} */")
     else:

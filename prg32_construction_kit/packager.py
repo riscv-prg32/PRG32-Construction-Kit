@@ -66,7 +66,7 @@ def project_manifest(project: dict[str, Any], game_ir: dict[str, Any], architect
     }
 
 
-def run_prg32_build(build_command: str, source_path: Path, out_path: Path, entry_prefix: str, name: str, architecture: str) -> tuple[bool, str]:
+def run_prg32_build(build_command: str, source_path: Path, out_path: Path, entry_prefix: str, name: str, architecture: str, required_features: list[str] | None = None) -> tuple[bool, str]:
     out_path.parent.mkdir(parents=True, exist_ok=True)
     command = shlex.split(build_command) + [
         str(source_path),
@@ -80,6 +80,8 @@ def run_prg32_build(build_command: str, source_path: Path, out_path: Path, entry
         "--out",
         str(out_path),
     ]
+    for feature in required_features or []:
+        command.extend(["--required-feature", feature])
     try:
         result = subprocess.run(command, check=False, capture_output=True, text=True, timeout=60)
     except FileNotFoundError as exc:
@@ -116,7 +118,8 @@ def prepare_package(
     for arch in ["esp32c6", "qemu"]:
         out_name = f"{slug}-{arch}.prg32"
         out_path = work_dir / out_name
-        ok, log = run_prg32_build(build_command, source_path, out_path, str(entry_prefix), slug, arch)
+        ok, log = run_prg32_build(build_command, source_path, out_path, str(entry_prefix), slug, arch,
+                                  game_ir.get("required_features", []))
         logs.append(f"[{arch}]\n{log}")
         if ok:
             architectures.append({"id": arch, "file": out_name})

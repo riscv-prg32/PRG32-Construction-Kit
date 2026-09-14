@@ -12,6 +12,8 @@ Students can:
 - edit sprites and imported images in a browser pixel editor;
 - play and debug games in an online JavaScript PRG32-like simulator;
 - convert block programs to real PRG32-style C source;
+- author advanced C cartridges against the portable PRG32 ABI when a feature
+  is beyond the Blocks toolbox;
 - prepare Cartridge Store publishing bundles;
 - publish bundles to a PRG32 Cartridge Store instance.
 
