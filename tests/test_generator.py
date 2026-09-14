@@ -19,6 +19,13 @@ def test_blocks_to_c_contains_prg32_calls():
     assert "prg32_input_read" in c_source
     assert "prg32_gfx_rect" in c_source
     assert ir["entry_prefix"] == "hello_blocks"
+    assert "prg32_audio_beep" not in c_source
+
+
+def test_beep_uses_current_audio_abi():
+    blocks = {"blocks": {"blocks": [{"type": "prg32_play_beep", "fields": {"FREQ": "880", "MS": "80"}}]}}
+    _, c_source = blocks_to_c(blocks, {"title": "Tone"})
+    assert "prg32_audio_note(0, 0, prg32_kit_note_from_hz(880), 255, 80);" in c_source
 
 
 def test_every_upstream_example_has_convertible_blocks():

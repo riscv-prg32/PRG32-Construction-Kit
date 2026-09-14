@@ -70,7 +70,9 @@ def test_upstream_blocks_examples_can_be_listed_and_imported(client):
 
 
 def test_package_exposes_downloadable_prg32_cartridges(client, monkeypatch):
+    commands = []
     def fake_run(command, **_kwargs):
+        commands.append(command)
         out_path = command[command.index("--out") + 1]
         with open(out_path, "wb") as cartridge:
             cartridge.write(b"PRG32-test")
@@ -87,6 +89,7 @@ def test_package_exposes_downloadable_prg32_cartridges(client, monkeypatch):
     cartridges = response.get_json()["cartridge_artifacts"]
     assert {item["metadata"]["architecture"] for item in cartridges} == {"esp32c6", "qemu"}
     assert all(item["kind"] == "prg32_cartridge" for item in cartridges)
+    assert {command[command.index("--architecture") + 1] for command in commands} == {"esp32c6", "qemu"}
 
     download = client.get(f"/api/artifacts/{cartridges[0]['id']}/download")
     assert download.status_code == 200

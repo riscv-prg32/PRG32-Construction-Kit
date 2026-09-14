@@ -40,7 +40,7 @@ python3 -m prg32 cartridge build
 The app appends:
 
 ```text
-game.c --portable --entry-prefix <prefix> --name <slug> --out <slug>-<architecture>.prg32
+game.c --portable --architecture <esp32c6|qemu> --entry-prefix <prefix> --name <slug> --out <slug>-<architecture>.prg32
 ```
 
 Override the command:

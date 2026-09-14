@@ -54,7 +54,7 @@ projects.blocks_json
 
 | Block | C behavior |
 | --- | --- |
-| `play beep freq 880 ms 80` | `prg32_audio_beep(880, 80);` |
+| `play beep freq 880 ms 80` | Converts 880 Hz to the nearest MIDI note and calls `prg32_audio_note` for 80 ms. Frequencies are clamped to the C3–C6 range. |
 
 ## Expression rules
 
