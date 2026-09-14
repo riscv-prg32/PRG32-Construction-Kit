@@ -1,6 +1,9 @@
 from __future__ import annotations
 
 from types import SimpleNamespace
+import io
+import json
+import zipfile
 
 from prg32_construction_kit.sample_data import default_blocks
 
@@ -94,3 +97,56 @@ def test_package_exposes_downloadable_prg32_cartridges(client, monkeypatch):
     download = client.get(f"/api/artifacts/{cartridges[0]['id']}/download")
     assert download.status_code == 200
     assert download.data == b"PRG32-test"
+
+
+def test_advanced_c_project_is_saved_built_and_exported(client, monkeypatch):
+    source = ('#include "prg32.h"\n'
+              'void advanced_game_init(void) {}\n'
+              'void advanced_game_update(void) { (void)prg32_random_number(0, 9); }\n'
+              'void advanced_game_draw(void) { prg32_gfx_clear_indexed(0); }\n')
+    project = client.post('/api/projects', json={
+        'title': 'Advanced Game', 'game_json': {'source_mode': 'c', 'source_c': source,
+                                              'required_features': ['tilemap', 'sprites']}
+    }).get_json()
+
+    commands = []
+    def fake_run(command, **_kwargs):
+        commands.append(command)
+        with open(command[command.index('--out') + 1], 'wb') as cartridge:
+            cartridge.write(b'PRG32-test')
+        return SimpleNamespace(returncode=0, stdout='built\n', stderr='')
+
+    monkeypatch.setattr('prg32_construction_kit.packager.subprocess.run', fake_run)
+    response = client.post(f"/api/projects/{project['id']}/package", json={})
+    assert response.status_code == 200
+    result = response.get_json()
+    assert result['c_artifact']['text_content'] == source
+    assert result['result']['publishable'] is True
+    assert all('--required-feature' in command for command in commands)
+    assert all('tilemap' in command and 'sprites' in command for command in commands)
+    with zipfile.ZipFile(io.BytesIO(client.get(
+        f"/api/artifacts/{result['bundle_artifact']['id']}/download"
+    ).data)) as bundle:
+        assert bundle.read('source/game.c').decode() == source
+    exported = json.loads(client.get(f"/api/projects/{project['id']}/export").data)
+    assert exported['project']['game_json']['source_c'] == source
+
+
+def test_advanced_c_rejects_host_includes_and_wrong_entry_names(client):
+    for source in (
+        '#include "/etc/passwd"\nvoid bad_init(void) {}\nvoid bad_update(void) {}\nvoid bad_draw(void) {}',
+        '#include "prg32.h"\nvoid wrong_init(void) {}\nvoid wrong_update(void) {}\nvoid wrong_draw(void) {}',
+    ):
+        project = client.post('/api/projects', json={
+            'title': 'Bad', 'game_json': {'source_mode': 'c', 'source_c': source}
+        }).get_json()
+        response = client.post(f"/api/projects/{project['id']}/package", json={})
+        assert response.status_code == 400
+
+    source = ('#include "prg32.h"\nvoid bad_init(void) {}\n'
+              'void bad_update(void) {}\nvoid bad_draw(void) {}\n')
+    project = client.post('/api/projects', json={
+        'title': 'Bad', 'game_json': {'source_mode': 'c', 'source_c': source,
+                                    'required_features': ['not_a_feature']}
+    }).get_json()
+    assert client.post(f"/api/projects/{project['id']}/package", json={}).status_code == 400

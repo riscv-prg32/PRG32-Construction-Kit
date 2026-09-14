@@ -14,6 +14,27 @@ void my_game_draw(void);
 
 The function prefix comes from the project title, sanitized as a C identifier.
 
+## Advanced C projects
+
+Choose **Advanced C** in the project editor to write against the full portable
+PRG32 cartridge ABI. `prg32.h` also declares resident-only services; the
+cartridge toolchain reports an undefined symbol if one is used. Use
+[PRG32's ABI specification](https://github.com/riscv-prg32/PRG32/blob/main/prg32/abi/prg32_abi.json)
+to identify the portable functions. **Copy generated Blocks C** provides a
+starting point. Save the C source before compiling. The source remains in the
+project JSON export, and the bundle includes the exact saved file as
+`source/game.c`. Define `<title_prefix>_init`, `<title_prefix>_update`, and
+`<title_prefix>_draw` with `void` arguments; for a project titled "My Game",
+the prefix is `my_game`. Only PRG32 and small freestanding standard headers
+are accepted. The PRG32 compiler checks the actual API calls and types.
+List any firmware features the cartridge needs in **Required PRG32 features**.
+The kit passes those names to PRG32's `--required-feature` option so an
+incompatible runtime rejects the cartridge before execution.
+
+The browser simulator runs Blocks projects. Test Advanced C cartridges in
+PRG32 QEMU or on the physical ESP32-C6 board. The editor does not compile C
+proposed by an AI assistant or silently change saved source.
+
 ## Compile and download a cartridge
 
 When a student clicks **Compile Cartridge**, the app:

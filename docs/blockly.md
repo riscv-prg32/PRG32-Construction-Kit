@@ -69,10 +69,11 @@ The current PRG32 cartridge ABI also includes tiles and scrolling playfields,
 platform actors, sprite assets and animation, samples and tracker audio,
 on-screen keyboard, scores, multiplayer, status bands, RGB LED, performance
 measurement, and other runtime services. These do **not** yet have equivalent
-Blocks and simulator behavior. The kit does not claim complete PRG32 feature
-parity. Use the [PRG32 framework manual](https://github.com/riscv-prg32/PRG32/blob/main/docs/software/framework_manual.md)
-and PRG32 cartridge toolchain for those lessons until dedicated kit support is
-implemented and tested.
+Blocks and simulator behavior. The **Advanced C** editor can build cartridges
+using the full portable cartridge ABI with the current PRG32 toolchain. Some
+`prg32.h` functions are resident-only and cannot be called by a cartridge. Use the
+[PRG32 framework manual](https://github.com/riscv-prg32/PRG32/blob/main/docs/software/framework_manual.md)
+for those lessons. Blocks and simulator parity remains a separate future task.
 
 ## Expression rules
 

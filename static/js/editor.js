@@ -4,6 +4,22 @@
   let simulator = null;
   let dirty = false;
 
+  function isCMode() { return $('#editorMode').val() === 'c'; }
+
+  function showMode() {
+    $('#blocksEditor').toggleClass('d-none', isCMode());
+    $('#sourceEditor').toggleClass('d-none', !isCMode());
+    $('#runGame, #stepGame, #resetGame').prop('disabled', isCMode());
+    if (isCMode()) {
+      simulator.stop();
+      $('#runGame').removeClass('btn-danger').addClass('btn-success').html('<i class="bi bi-play-fill"></i> Play');
+      $('#debugState').text('Advanced C is compiled by PRG32; this browser simulator runs Blocks only.');
+    } else {
+      refreshSimulator();
+      Blockly.svgResize(PRG32Blocks.getWorkspace());
+    }
+  }
+
   function setLog(text) {
     $('#debugLog').text(text);
   }
@@ -20,20 +36,24 @@
       $('#projectTitle').text(project.title);
       $('#projectSummary').text(project.description || 'No summary yet.');
       PRG32Blocks.load(project.blocks_json || {});
-      refreshSimulator();
+      $('#editorMode').val(project.game_json && project.game_json.source_mode === 'c' ? 'c' : 'blocks');
+      $('#customC').val(project.game_json && project.game_json.source_c || '');
+      $('#requiredFeatures').val(project.game_json && (project.game_json.required_features || []).join(', ') || '');
+      showMode();
       setLog('Loaded project ' + project.id);
     });
   }
 
   function saveProject() {
     const blocks = PRG32Blocks.save();
-    const ir = PRG32Simulator.compileBlocks(blocks);
+    const features = $('#requiredFeatures').val().split(',').map(item => item.trim()).filter(Boolean);
+    const ir = isCMode() ? { source_mode: 'c', source_c: $('#customC').val(), required_features: features } : PRG32Simulator.compileBlocks(blocks);
     return Kit.api('/api/projects/' + projectId, { method: 'PUT', body: { blocks_json: blocks, game_json: ir } })
       .then(data => {
         project = data;
         dirty = false;
         Kit.toast('Project saved', 'success');
-        refreshSimulator();
+        if (!isCMode()) refreshSimulator();
       });
   }
 
@@ -82,6 +102,16 @@
   });
 
   $('#saveProject').on('click', () => saveProject().catch(err => Kit.toast(err.message, 'danger')));
+  $('#editorMode').on('change', () => { dirty = true; showMode(); });
+  $('#customC').on('input', () => { dirty = true; });
+  $('#requiredFeatures').on('input', () => { dirty = true; });
+  $('#startFromBlocks').on('click', () => {
+    const blocks = PRG32Blocks.save();
+    Kit.api('/api/projects/' + projectId, { method: 'PUT', body: { blocks_json: blocks, game_json: PRG32Simulator.compileBlocks(blocks) } })
+      .then(() => Kit.api('/api/projects/' + projectId + '/convert', { method: 'POST', body: {} }))
+      .then(result => { $('#customC').val(result.c_source); dirty = true; Kit.toast('Generated C copied. Save to keep your changes.', 'success'); })
+      .catch(err => Kit.toast(err.message, 'danger'));
+  });
   $('#convertProject').on('click', convertProject);
   $('#packageProject').on('click', packageProject);
   $('#runGame').on('click', function () {

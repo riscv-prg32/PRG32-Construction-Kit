@@ -18,6 +18,7 @@ from .generator import blocks_to_c, sprite_to_c
 from .packager import prepare_package
 from .publisher import publish_bundle
 from .sample_data import UPSTREAM_EXAMPLES, upstream_example_projects
+from .source_project import validate_c_source, validate_features
 
 bp = Blueprint("kit", __name__)
 
@@ -191,6 +192,17 @@ def _generate_project(project_id: str) -> tuple[dict[str, Any] | None, dict[str,
     project = get_resource("projects", project_id)
     if project is None:
         return None, None, None, json_error("Project not found", 404)
+    saved = project.get("game_json") or {}
+    if isinstance(saved, dict) and saved.get("source_mode") == "c":
+        source = saved.get("source_c", "")
+        try:
+            prefix = validate_c_source(source, project.get("title") or "")
+            required_features = validate_features(saved.get("required_features", []))
+        except ValueError as exc:
+            return project, None, None, json_error(str(exc))
+        return project, {"abi": "prg32-construction-kit-c-1.0", "entry_prefix": prefix,
+                         "source_mode": "c", "source_c": source,
+                         "required_features": required_features, "warnings": []}, source, None
     try:
         game_ir, c_source = blocks_to_c(project.get("blocks_json") or {}, project)
     except Exception as exc:
