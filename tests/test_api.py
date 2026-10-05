@@ -93,6 +93,10 @@ def test_package_exposes_downloadable_prg32_cartridges(client, monkeypatch):
     assert {item["metadata"]["architecture"] for item in cartridges} == {"esp32c6", "qemu"}
     assert all(item["kind"] == "prg32_cartridge" for item in cartridges)
     assert {command[command.index("--architecture") + 1] for command in commands} == {"esp32c6", "qemu"}
+    assert all(command[command.index("--cart-ram-kib") + 1] == "64" for command in commands)
+    assert response.get_json()["result"]["cart_ram_kib"] == 64
+    assert response.get_json()["build"]["metadata"]["cart_ram_kib"] == 64
+    assert all(item["metadata"]["cart_ram_kib"] == 64 for item in cartridges)
 
     download = client.get(f"/api/artifacts/{cartridges[0]['id']}/download")
     assert download.status_code == 200

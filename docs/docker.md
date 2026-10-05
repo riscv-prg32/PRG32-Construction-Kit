@@ -75,10 +75,14 @@ If your build command is different, set:
 ```yaml
 environment:
   PRG32_BUILD_COMMAND: /path/to/prg32-cart
+  PRG32_CART_RAM_KIB: 64
 ```
 
 The app appends these arguments:
 
 ```text
-<source.c> --portable --entry-prefix <prefix> --name <name> --out <file.prg32>
+<source.c> --portable --architecture <esp32c6|qemu> --cart-ram-kib 64 --entry-prefix <prefix> --name <name> --out <file.prg32>
 ```
+
+Change `PRG32_CART_RAM_KIB` only when the target PRG32 firmware uses a different
+cartridge RAM profile.

@@ -34,6 +34,7 @@ http://127.0.0.1:5090/
 | `PRG32_KIT_PORT` | `5090` | HTTP port. |
 | `PRG32_STORE_URL` | `http://127.0.0.1:5080` | Default Cartridge Store URL. |
 | `PRG32_BUILD_COMMAND` | `python3 -m prg32 cartridge build` | Command used by Compile Cartridge. |
+| `PRG32_CART_RAM_KIB` | `64` | Cartridge RAM profile passed to the current PRG32 builder. Match this to the target firmware profile. |
 | `SECRET_KEY` | development value | Flask session secret. Change for shared deployments. |
 
 ## Initialize or reset data

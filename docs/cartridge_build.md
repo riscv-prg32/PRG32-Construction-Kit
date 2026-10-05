@@ -61,7 +61,7 @@ python3 -m prg32 cartridge build
 The app appends:
 
 ```text
-game.c --portable --architecture <esp32c6|qemu> --entry-prefix <prefix> --name <slug> --out <slug>-<architecture>.prg32
+game.c --portable --architecture <esp32c6|qemu> --cart-ram-kib 64 --entry-prefix <prefix> --name <slug> --out <slug>-<architecture>.prg32
 ```
 
 Override the command:
@@ -69,6 +69,11 @@ Override the command:
 ```bash
 export PRG32_BUILD_COMMAND="python3 -m prg32 cartridge build"
 ```
+
+PRG32's current default firmware profile provides 64 KiB of executable
+cartridge RAM. The kit passes this limit explicitly so the builder catches an
+oversized game before upload. Set `PRG32_CART_RAM_KIB` to the target firmware
+profile's value when it differs from 64.
 
 ## Source-only bundles
 

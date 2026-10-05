@@ -61,6 +61,10 @@ Override the build command when needed:
 export PRG32_BUILD_COMMAND="python3 -m prg32 cartridge build"
 ```
 
+Current PRG32 firmware uses a 64 KiB cartridge RAM profile. The kit passes that
+limit to the builder explicitly; set `PRG32_CART_RAM_KIB` only when targeting a
+firmware profile with a different cartridge RAM size.
+
 Without the PRG32 toolchain, **Compile Cartridge** still creates a source bundle containing generated C, project JSON, game IR JSON, manifest metadata, and build logs. With the toolchain, it also adds `.prg32` architecture artifacts to the Cartridge Store bundle.
 
 ## Repository layout

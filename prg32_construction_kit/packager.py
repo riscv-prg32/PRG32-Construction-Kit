@@ -66,13 +66,15 @@ def project_manifest(project: dict[str, Any], game_ir: dict[str, Any], architect
     }
 
 
-def run_prg32_build(build_command: str, source_path: Path, out_path: Path, entry_prefix: str, name: str, architecture: str, required_features: list[str] | None = None) -> tuple[bool, str]:
+def run_prg32_build(build_command: str, source_path: Path, out_path: Path, entry_prefix: str, name: str, architecture: str, cart_ram_kib: int, required_features: list[str] | None = None) -> tuple[bool, str]:
     out_path.parent.mkdir(parents=True, exist_ok=True)
     command = shlex.split(build_command) + [
         str(source_path),
         "--portable",
         "--architecture",
         architecture,
+        "--cart-ram-kib",
+        str(cart_ram_kib),
         "--entry-prefix",
         entry_prefix,
         "--name",
@@ -100,6 +102,7 @@ def prepare_package(
     c_source: str,
     build_id: str,
     build_command: str,
+    cart_ram_kib: int,
     project_json: dict[str, Any],
 ) -> dict[str, Any]:
     slug = slugify(project.get("title") or game_ir.get("title"), "game")
@@ -118,7 +121,7 @@ def prepare_package(
     for arch in ["esp32c6", "qemu"]:
         out_name = f"{slug}-{arch}.prg32"
         out_path = work_dir / out_name
-        ok, log = run_prg32_build(build_command, source_path, out_path, str(entry_prefix), slug, arch,
+        ok, log = run_prg32_build(build_command, source_path, out_path, str(entry_prefix), slug, arch, cart_ram_kib,
                                   game_ir.get("required_features", []))
         logs.append(f"[{arch}]\n{log}")
         if ok:
@@ -151,6 +154,7 @@ def prepare_package(
         "bundle_path": str(bundle_path),
         "manifest": manifest,
         "architectures": architectures,
+        "cart_ram_kib": cart_ram_kib,
         "log": "\n\n".join(logs),
         "publishable": bool(architectures),
     }

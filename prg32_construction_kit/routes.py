@@ -256,6 +256,7 @@ def api_package_project(project_id: str):
         c_source=c_source,
         build_id=build["id"],
         build_command=current_app.config["PRG32_BUILD_COMMAND"],
+        cart_ram_kib=current_app.config["PRG32_CART_RAM_KIB"],
         project_json=project,
     )
     bundle_artifact = create_resource(
@@ -269,6 +270,7 @@ def api_package_project(project_id: str):
             "metadata": {
                 "manifest": result["manifest"],
                 "architectures": result["architectures"],
+                "cart_ram_kib": result["cart_ram_kib"],
                 "publishable": result["publishable"],
                 "work_dir": result["work_dir"],
             },
@@ -286,7 +288,8 @@ def api_package_project(project_id: str):
                     "name": architecture["file"],
                     "content_type": "application/vnd.prg32.cartridge",
                     "path": str(cartridge_path),
-                    "metadata": {"architecture": architecture["id"], "portable": True, "build_id": build["id"]},
+                    "metadata": {"architecture": architecture["id"], "portable": True, "build_id": build["id"],
+                                 "cart_ram_kib": result["cart_ram_kib"]},
                 },
             )
         )
@@ -300,6 +303,7 @@ def api_package_project(project_id: str):
             "metadata": {
                 "manifest": result["manifest"],
                 "architectures": result["architectures"],
+                "cart_ram_kib": result["cart_ram_kib"],
                 "publishable": result["publishable"],
             },
         },

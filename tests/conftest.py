@@ -17,6 +17,7 @@ def app(tmp_path: Path):
             "BUILD_ROOT": tmp_path / "builds",
             "ARTIFACT_ROOT": tmp_path / "artifacts",
             "PRG32_BUILD_COMMAND": "python3 -m prg32 cartridge build",
+            "PRG32_CART_RAM_KIB": 64,
         }
     )
     yield app
