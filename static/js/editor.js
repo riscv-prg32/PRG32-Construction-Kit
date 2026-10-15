@@ -49,6 +49,13 @@
     });
   }
 
+  // Tell the server exactly what this window saved, so a build notices if
+  // another browser window saved a different version in the meantime.
+  function savedVersion() {
+    if (isCMode()) return { expected_source_c: project.game_json.source_c };
+    return { expected_blocks_json: project.blocks_json };
+  }
+
   function saveProject() {
     const blocks = PRG32Blocks.save();
     const features = $('#requiredFeatures').val().split(',').map(item => item.trim()).filter(Boolean);
@@ -79,7 +86,7 @@
   function packageProject() {
     $('#packageProject').prop('disabled', true);
     return saveProject()
-      .then(() => Kit.api('/api/projects/' + projectId + '/package', { method: 'POST', body: {} }))
+      .then(() => Kit.api('/api/projects/' + projectId + '/package', { method: 'POST', body: savedVersion() }))
       .then(result => {
         $('#generatedC').text(result.c_artifact.text_content || $('#generatedC').text());
         $('#generatedIR').text(JSON.stringify(result.result.manifest, null, 2));
@@ -102,7 +109,7 @@
     const buttons = $('.download-cartridge, .download-cartridge-toggle');
     buttons.prop('disabled', true);
     return saveProject()
-      .then(() => Kit.api('/api/projects/' + projectId + '/package', { method: 'POST', body: { architectures: [architecture] } }))
+      .then(() => Kit.api('/api/projects/' + projectId + '/package', { method: 'POST', body: Object.assign({ architectures: [architecture] }, savedVersion()) }))
       .then(result => {
         setLog(result.build.log || JSON.stringify(result.result, null, 2));
         const cartridge = (result.cartridge_artifacts || []).find(artifact => artifact.metadata.architecture === architecture);

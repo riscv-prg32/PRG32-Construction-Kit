@@ -15,8 +15,11 @@ from .db import (
     delete_resource,
     get_resource,
     list_resources,
+    release_connection,
+    update_if_unchanged,
     update_resource,
 )
+from .build_slots import BuildServerBusy, build_slot
 from .generator import blocks_to_c, sprite_to_c
 from .packager import SUPPORTED_ARCHITECTURES, prepare_package
 from .publisher import publish_bundle
@@ -249,8 +252,29 @@ def _generate_project(project_id: str) -> tuple[dict[str, Any] | None, dict[str,
         game_ir, c_source = blocks_to_c(project.get("blocks_json") or {}, project)
     except Exception as exc:
         return project, None, None, json_error(f"Conversion failed: {exc}")
-    update_resource("projects", project_id, {"game_json": game_ir})
+    # Store the IR only if no other browser saved the project since we read it;
+    # otherwise we would overwrite that newer save (for example Advanced C source).
+    update_if_unchanged("projects", project_id,
+                        {"blocks_json": project.get("blocks_json"), "game_json": project.get("game_json")},
+                        {"game_json": game_ir})
     return project, game_ir, c_source, None
+
+
+def _changed_elsewhere(project: dict[str, Any], payload: dict[str, Any]) -> bool:
+    """True when the browser expected a different saved version than the one on the server.
+
+    The editor saves, then asks for a build. If another browser window (or a
+    classmate sharing the project) saved in between, the cartridge would
+    silently contain their version. The editor sends what it saved so the
+    server can notice and say so instead.
+    """
+    if "expected_blocks_json" in payload and payload["expected_blocks_json"] != project.get("blocks_json"):
+        return True
+    if "expected_source_c" in payload:
+        saved = project.get("game_json") or {}
+        saved_c = saved.get("source_c") if isinstance(saved, dict) and saved.get("source_mode") == "c" else None
+        return payload["expected_source_c"] != saved_c
+    return False
 
 
 @bp.post("/api/projects/<project_id>/convert")
@@ -276,7 +300,8 @@ def api_convert_project(project_id: str):
 @bp.post("/api/projects/<project_id>/package")
 def api_package_project(project_id: str):
     # Optional: {"architectures": ["esp32c6"]} builds only the cartridges a student asked for.
-    requested = request_json().get("architectures")
+    payload = request_json()
+    requested = payload.get("architectures")
     if requested is not None:
         if (not isinstance(requested, list) or not requested
                 or any(arch not in SUPPORTED_ARCHITECTURES for arch in requested)):
@@ -286,6 +311,28 @@ def api_package_project(project_id: str):
     if error:
         return error
     assert project and game_ir is not None and c_source is not None
+    if _changed_elsewhere(project, payload):
+        return json_error("This project was changed in another browser window after you saved it. "
+                          "Reload the project to see the newest version, then compile again.", 409)
+    # Every build gets its own id and its own folder, so many students (or one
+    # student in several browser windows) can build at the same time without
+    # touching each other's files. Build slots keep the number of compilers
+    # running at once under control; the database connection is handed back
+    # while a build waits or compiles so other requests are never starved.
+    release_connection()
+    try:
+        with build_slot(current_app.config["BUILD_ROOT"] / ".slots",
+                        current_app.config["PRG32_MAX_PARALLEL_BUILDS"],
+                        current_app.config["PRG32_BUILD_QUEUE_TIMEOUT"]):
+            return _run_package_build(project_id, project, game_ir, c_source, requested)
+    except BuildServerBusy as exc:
+        response, status = json_error(str(exc), 503)
+        response.headers["Retry-After"] = "10"
+        return response, status
+
+
+def _run_package_build(project_id: str, project: dict[str, Any], game_ir: dict[str, Any], c_source: str,
+                       requested: list[str] | None):
     c_artifact = create_resource(
         "artifacts",
         {
@@ -297,7 +344,9 @@ def api_package_project(project_id: str):
             "metadata": {"entry_prefix": game_ir.get("entry_prefix"), "source": "package"},
         },
     )
-    build = create_resource("builds", {"project_id": project_id, "status": "running", "c_artifact_id": c_artifact["id"], "metadata": {}})
+    build = create_resource("builds", {"project_id": project_id, "status": "running", "c_artifact_id": c_artifact["id"],
+                                       "metadata": {"project_updated_at": project.get("updated_at")}})
+    release_connection()
     try:
         result = prepare_package(
             data_dir=current_app.config["DATA_DIR"],
@@ -361,6 +410,7 @@ def api_package_project(project_id: str):
                 "architectures": result["architectures"],
                 "cart_ram_kib": result["cart_ram_kib"],
                 "publishable": result["publishable"],
+                "project_updated_at": project.get("updated_at"),
             },
         },
     )

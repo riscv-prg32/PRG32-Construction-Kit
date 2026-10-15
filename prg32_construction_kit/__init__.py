@@ -3,7 +3,7 @@ from __future__ import annotations
 from flask import Flask
 
 from .config import Config
-from .db import init_app as init_db_app
+from .db import db, init_app as init_db_app
 from .routes import bp
 from .sample_data import seed_if_empty
 
@@ -26,6 +26,9 @@ def create_app(test_config: dict | None = None) -> Flask:
 
     with app.app_context():
         seed_if_empty(app.config["DEFAULT_STORE_URL"])
+        # gunicorn --preload builds the app once and then forks workers; each
+        # worker must open its own database connections instead of sharing these.
+        db.engine.dispose()
 
     @app.cli.command("init-db")
     def init_db_command():

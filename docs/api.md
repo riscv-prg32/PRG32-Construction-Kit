@@ -21,6 +21,14 @@ To build only some targets, send `{"architectures": ["esp32c6"]}` (or
 **Download .prg32** button uses this to compile one cartridge and download it
 directly.
 
+Many students, or one student in several browser windows, can build at the
+same time; see `concurrent_builds.md`. Two optional fields protect against a
+save from another window: send `"expected_blocks_json"` (Blocks projects) or
+`"expected_source_c"` (Advanced C projects) with the version you just saved,
+and the server answers `409` instead of compiling a different version. When
+every build slot stays busy for `PRG32_BUILD_QUEUE_TIMEOUT` seconds the server
+answers `503` with a `Retry-After` header; try again a little later.
+
 ## Discovery
 
 ```http
@@ -106,7 +114,11 @@ Response fields:
 - `build`
 - `c_artifact`
 - `bundle_artifact`
+- `cartridge_artifacts`
 - `result`
+
+Status codes: `200` built (check `build.status`), `400` invalid project,
+`409` the project changed in another window, `503` all build slots busy.
 
 `result.publishable` is true only when `.prg32` files were created.
 

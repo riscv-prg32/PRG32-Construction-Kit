@@ -23,5 +23,9 @@ class Config:
     DEFAULT_STORE_URL = os.environ.get("PRG32_STORE_URL", "http://127.0.0.1:5080")
     PRG32_BUILD_COMMAND = os.environ.get("PRG32_BUILD_COMMAND", "python3 -m prg32 cartridge build")
     PRG32_CART_RAM_KIB = int(os.environ.get("PRG32_CART_RAM_KIB", "64"))
+    # How many cartridge builds may compile at the same time on this server,
+    # and how long (seconds) a build waits for a free slot before giving up.
+    PRG32_MAX_PARALLEL_BUILDS = int(os.environ.get("PRG32_MAX_PARALLEL_BUILDS", str(os.cpu_count() or 2)))
+    PRG32_BUILD_QUEUE_TIMEOUT = float(os.environ.get("PRG32_BUILD_QUEUE_TIMEOUT", "180"))
     MAX_CONTENT_LENGTH = int(os.environ.get("PRG32_KIT_MAX_UPLOAD", str(32 * 1024 * 1024)))
     JSON_SORT_KEYS = False

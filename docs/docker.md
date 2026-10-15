@@ -28,6 +28,11 @@ The compose file mounts:
 
 That directory stores SQLite data, generated C, packages, uploaded artifacts, and build logs.
 
+The image runs gunicorn (`PRG32_KIT_WORKERS`, default 2, with
+`PRG32_KIT_THREADS`, default 16, threads each) so many students can build
+at once. `PRG32_MAX_PARALLEL_BUILDS` limits how many compilers run together;
+see `concurrent_builds.md`.
+
 SQLite is the convenient single-container default. For a multi-user production
 deployment, run PostgreSQL as a separate managed service or Compose service,
 install `requirements-production.txt`, and provide:

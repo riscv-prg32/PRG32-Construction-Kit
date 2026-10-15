@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 from typing import Any
 
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import event, func, select
+from sqlalchemy import event, func, select, update
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -158,7 +158,8 @@ def _configure_sqlite(dbapi_connection, _connection_record) -> None:
     cursor = dbapi_connection.cursor()
     cursor.execute("PRAGMA foreign_keys = ON")
     cursor.execute("PRAGMA journal_mode = WAL")
-    cursor.execute("PRAGMA busy_timeout = 5000")
+    # Many students saving at once: wait for the writer lock instead of failing.
+    cursor.execute("PRAGMA busy_timeout = 15000")
     cursor.close()
 
 
@@ -255,6 +256,35 @@ def delete_resource(resource: str, item_id: str) -> bool:
         db.session.rollback()
         raise
     return True
+
+
+def update_if_unchanged(resource: str, item_id: str, expected: dict[str, Any], changes: dict[str, Any]) -> bool:
+    """Write ``changes`` only if the columns in ``expected`` still hold those values.
+
+    Two browsers can work on the same project at the same time. This lets the
+    server store a result computed from what it read earlier without
+    overwriting something another browser saved in the meantime.
+    """
+    model = RESOURCE_MODELS.get(resource)
+    if model is None:
+        raise KeyError(resource)
+    statement = update(model).where(model.id == item_id)
+    for column, value in expected.items():
+        statement = statement.where(getattr(model, _attribute(column)) == _encode_value(resource, column, value))
+    values = {_attribute(column): _encode_value(resource, column, value) for column, value in changes.items()}
+    values["updated_at"] = utcnow()
+    try:
+        result = db.session.execute(statement.values(**values))
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        raise
+    return result.rowcount == 1
+
+
+def release_connection() -> None:
+    """Give the database connection back to the pool before slow work (like compiling)."""
+    db.session.close()
 
 
 def count(resource: str) -> int:

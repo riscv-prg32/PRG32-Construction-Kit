@@ -10,6 +10,7 @@ PRG32-Construction-Kit is a classroom web application for building PRG32 games w
 4. `blockly.md` - block vocabulary and JSON storage.
 5. `sprite_editor.md` - sprite/image editor guide.
 6. `cartridge_build.md` - generated C and PRG32 build hooks.
+   - `concurrent_builds.md` - many students building at the same time.
 7. `cartridge_store_publish.md` - publishing bundles.
 8. `api.md` - CRUD and action API.
 9. `tutorials/` - step-by-step lessons.

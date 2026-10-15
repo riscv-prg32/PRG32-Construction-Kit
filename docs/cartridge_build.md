@@ -91,6 +91,9 @@ cartridge RAM. The kit passes this limit explicitly so the builder catches an
 oversized game before upload. Set `PRG32_CART_RAM_KIB` to the target firmware
 profile's value when it differs from 64.
 
+Only `PRG32_MAX_PARALLEL_BUILDS` builds compile at the same time; the others
+wait for a free build slot. See `concurrent_builds.md`.
+
 ## Source-only bundles
 
 If the toolchain is missing, the bundle is marked `source-only` and includes:
