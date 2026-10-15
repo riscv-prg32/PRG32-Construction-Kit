@@ -35,7 +35,7 @@ Blockly workspace JSON
 | Blockly editor | `static/js/blockly_blocks.js` | Custom PRG32 block vocabulary. |
 | Online simulator | `static/js/simulator.js` | Browser execution of the game IR. |
 | C generator | `prg32_construction_kit/generator.py` | Converts saved Blocks JSON into PRG32 C. |
-| Packager | `prg32_construction_kit/packager.py` | Runs PRG32 build command and creates publishing zip bundles. |
+| Packager | `prg32_construction_kit/packager.py` | Runs PRG32 build command for all or selected architectures and creates publishing zip bundles. |
 | Publisher | `prg32_construction_kit/publisher.py` | Sends bundle to Cartridge Store. |
 
 ## Storage model
@@ -72,5 +72,7 @@ JS:    if (keys.LEFT) { state.player_x += -3; }
 Blocks projects create generated C. Advanced C projects build the saved source
 after checking its permitted includes and required lifecycle entry points.
 Both produce real `.prg32` files only when the configured PRG32 build command
-is available and succeeds. C compilation is intended for trusted classroom
+is available and succeeds. The editor's **Download .prg32** button asks the
+package action for a single architecture and downloads the resulting
+`prg32_cartridge` artifact; the C source and build log are still stored. C compilation is intended for trusted classroom
 installations; source validation is not an OS sandbox.

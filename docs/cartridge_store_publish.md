@@ -36,7 +36,7 @@ published; an artifact whose `path` points elsewhere is treated as missing.
 ## Publish flow
 
 1. Open a project.
-2. Click **Compile Cartridge**.
+2. Click **Compile Cartridge** so the bundle contains both architectures (**Download .prg32** builds only one).
 3. Open **Publish**.
 4. Select the store profile.
 5. Click **Publish** on a store bundle.

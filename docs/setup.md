@@ -33,7 +33,7 @@ http://127.0.0.1:5090/
 | `DATABASE_URL` | unset | SQLAlchemy URL; overrides the SQLite path. |
 | `PRG32_KIT_PORT` | `5090` | HTTP port. |
 | `PRG32_STORE_URL` | `http://127.0.0.1:5080` | Default Cartridge Store URL. |
-| `PRG32_BUILD_COMMAND` | `python3 -m prg32 cartridge build` | Command used by Compile Cartridge. |
+| `PRG32_BUILD_COMMAND` | `python3 -m prg32 cartridge build` | Command used by Compile Cartridge and Download .prg32. |
 | `PRG32_CART_RAM_KIB` | `64` | Cartridge RAM profile passed to the current PRG32 builder. Match this to the target firmware profile. |
 | `SECRET_KEY` | development value | Flask session secret. Change for shared deployments. |
 
@@ -76,4 +76,6 @@ The app can generate C without a PRG32 toolchain. To also create real `.prg32` c
 python3 -m prg32 cartridge build --help
 ```
 
-Then open a project and click **Compile Cartridge**.
+Then open a project and click **Download .prg32** to get a cartridge file
+directly, or **Compile Cartridge** to build every target plus the Cartridge
+Store bundle.

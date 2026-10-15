@@ -12,6 +12,10 @@ Click **Compile Cartridge**.
 
 If the PRG32 build toolchain is installed, the result should be a publishable store bundle containing `.prg32` files. If not, the app creates a source-only teaching bundle.
 
+To test a single cartridge before publishing, use **Download .prg32** instead;
+it builds one architecture and downloads that cartridge file. Publish the
+bundle from **Compile Cartridge** so the store gets every architecture.
+
 ## 3. Configure a store profile
 
 1. Open **Publish**.

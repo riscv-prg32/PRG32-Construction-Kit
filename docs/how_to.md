@@ -22,12 +22,23 @@ Below the simulator screen, the classic-style gamepad lets students test games w
 3. Click **Generate C**.
 4. Read the C panel. Match each block to one generated C statement.
 
+## How to download a PRG32 cartridge
+
+1. Open the project editor.
+2. Click **Download .prg32**. The browser saves a file such as `my-game-esp32c6.prg32`.
+3. To test in the emulator instead, open the arrow next to the button and choose **QEMU emulator**.
+4. Upload the PRG32 cartridge to a cartridge slot on the board.
+
+The server needs the PRG32 toolchain for this step. Without it, nothing is
+downloaded and the **Debug Log** tab explains what is missing.
+
 ## How to create an artifact
 
 Artifacts are created by:
 
 - generating C from a project;
 - preparing a cartridge bundle;
+- downloading a `.prg32` cartridge (the cartridge is also kept as an artifact);
 - converting a sprite to C;
 - uploading a file on the Artifacts page.
 

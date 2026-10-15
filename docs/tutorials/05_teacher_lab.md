@@ -29,6 +29,8 @@ Students click **Generate C** and find the C statement produced by one block.
 ## 30-40 minutes: sprites and artifacts
 
 Students draw a sprite, convert it to C, and download the artifact.
+If a PRG32 board or QEMU is available, students click **Download .prg32**
+and load their own PRG32 cartridge.
 
 ## 40-45 minutes: reflection
 
@@ -37,3 +39,4 @@ Ask:
 - What block changed a variable?
 - What C statement did it become?
 - Why does the simulator help before hardware deployment?
+- What is inside a `.prg32` cartridge compared with the generated C?

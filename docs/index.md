@@ -23,6 +23,6 @@ Create project
   -> Save Blocks JSON
   -> Play/debug in browser
   -> Generate PRG32 C
-  -> Prepare cartridge bundle
+  -> Download a .prg32 cartridge or prepare a cartridge bundle
   -> Publish to Cartridge Store
 ```
