@@ -16,6 +16,11 @@ succeeds, the response's `cartridge_artifacts` array contains portable
 `.prg32` files. Download one through
 `GET /api/artifacts/<artifact-id>/download`.
 
+To build only some targets, send `{"architectures": ["esp32c6"]}` (or
+`["qemu"]`, or both). Unknown names are rejected with `400`. The editor's
+**Download .prg32** button uses this to compile one cartridge and download it
+directly.
+
 ## Discovery
 
 ```http

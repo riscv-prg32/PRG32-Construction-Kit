@@ -5,6 +5,8 @@ import io
 import json
 import zipfile
 
+import pytest
+
 from prg32_construction_kit.sample_data import default_blocks
 
 
@@ -101,6 +103,40 @@ def test_package_exposes_downloadable_prg32_cartridges(client, monkeypatch):
     download = client.get(f"/api/artifacts/{cartridges[0]['id']}/download")
     assert download.status_code == 200
     assert download.data == b"PRG32-test"
+
+
+def test_package_can_build_a_single_cartridge_for_direct_download(client, monkeypatch):
+    commands = []
+    def fake_run(command, **_kwargs):
+        commands.append(command)
+        with open(command[command.index("--out") + 1], "wb") as cartridge:
+            cartridge.write(b"PRG32-qemu")
+        return SimpleNamespace(returncode=0, stdout="built\n", stderr="")
+
+    monkeypatch.setattr("prg32_construction_kit.packager.subprocess.run", fake_run)
+    project = client.post("/api/projects", json={"title": "Direct", "blocks_json": default_blocks()}).get_json()
+
+    response = client.post(f"/api/projects/{project['id']}/package", json={"architectures": ["qemu"]})
+    assert response.status_code == 200
+    cartridges = response.get_json()["cartridge_artifacts"]
+    assert [item["metadata"]["architecture"] for item in cartridges] == ["qemu"]
+    assert [command[command.index("--architecture") + 1] for command in commands] == ["qemu"]
+    assert cartridges[0]["name"] == "direct-qemu.prg32"
+    download = client.get(f"/api/artifacts/{cartridges[0]['id']}/download")
+    assert download.data == b"PRG32-qemu"
+    assert "direct-qemu.prg32" in download.headers["Content-Disposition"]
+
+
+@pytest.mark.parametrize("architectures", [[], ["x86"], "qemu", ["qemu", "../evil"]])
+def test_package_rejects_unknown_architectures(client, monkeypatch, architectures):
+    def fail_run(*_args, **_kwargs):
+        raise AssertionError("the toolchain must not run")
+
+    monkeypatch.setattr("prg32_construction_kit.packager.subprocess.run", fail_run)
+    project = client.post("/api/projects", json={"title": "Bad", "blocks_json": default_blocks()}).get_json()
+    response = client.post(f"/api/projects/{project['id']}/package", json={"architectures": architectures})
+    assert response.status_code == 400
+    assert client.get("/api/builds").get_json()["builds"] == []
 
 
 def test_advanced_c_project_is_saved_built_and_exported(client, monkeypatch):

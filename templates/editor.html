@@ -24,7 +24,17 @@
     <button class="btn btn-warning" id="stepGame"><i class="bi bi-skip-forward"></i> Step</button>
     <button class="btn btn-outline-danger" id="resetGame"><i class="bi bi-arrow-counterclockwise"></i> Reset</button>
     <button class="btn btn-primary" id="convertProject"><i class="bi bi-filetype-c"></i> Generate C</button>
-    <button class="btn btn-dark" id="packageProject"><i class="bi bi-download"></i> Compile Cartridge</button>
+    <button class="btn btn-dark" id="packageProject"><i class="bi bi-box-seam"></i> Compile Cartridge</button>
+    <div class="btn-group">
+      <button class="btn btn-success download-cartridge" type="button" data-architecture="esp32c6"><i class="bi bi-sd-card"></i> Download .prg32</button>
+      <button class="btn btn-success dropdown-toggle dropdown-toggle-split download-cartridge-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+        <span class="visually-hidden">Choose cartridge target</span>
+      </button>
+      <ul class="dropdown-menu dropdown-menu-end">
+        <li><button class="dropdown-item download-cartridge" type="button" data-architecture="esp32c6">PRG32 board (ESP32-C6)</button></li>
+        <li><button class="dropdown-item download-cartridge" type="button" data-architecture="qemu">QEMU emulator</button></li>
+      </ul>
+    </div>
   </div>
 </div>
 

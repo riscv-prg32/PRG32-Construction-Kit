@@ -33,3 +33,10 @@ Click **Play**. You should see a yellow square in the simulated PRG32 screen.
 2. Click **Export JSON**.
 
 The downloaded file is a Blocks PRG32 game stored as JSON.
+
+## 6. Get a cartridge for your PRG32
+
+Click **Download .prg32**. The app compiles your blocks and your browser saves
+a file such as `first-square-esp32c6.prg32`. That file is your PRG32 cartridge:
+upload it to a cartridge slot on the board. To try it in the QEMU emulator,
+open the arrow next to the button and choose **QEMU emulator**.

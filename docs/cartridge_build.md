@@ -54,6 +54,18 @@ After a successful build, green download buttons appear above the editor. The
 portable cartridge can be uploaded to a device slot through the PRG32 setup
 page or the upstream `python3 -m prg32 esp32c6 upload` command.
 
+## Download a .prg32 cartridge in one click
+
+Students who only want the finished cartridge do not need to download the C
+source. Click **Download .prg32** in the editor toolbar: the app saves the
+project, generates C, compiles a cartridge for the PRG32 board (ESP32-C6), and
+the browser downloads the `.prg32` file straight away. Use the small arrow next
+to the button to choose **QEMU emulator** instead.
+
+The generated C is still saved as an artifact and shown in the **Generated C**
+tab, so it can always be inspected. If the PRG32 toolchain is not installed on
+the server, no file is downloaded and the **Debug Log** explains why.
+
 ## PRG32 build command
 
 Default:

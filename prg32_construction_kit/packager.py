@@ -12,6 +12,9 @@ from typing import Any
 
 from .generator import c_identifier
 
+# Cartridge targets the kit knows how to build: the real board and the QEMU emulator.
+SUPPORTED_ARCHITECTURES = ["esp32c6", "qemu"]
+
 
 def slugify(value: str | None, fallback: str = "game") -> str:
     slug = c_identifier(value, fallback).replace("_", "-")
@@ -105,6 +108,7 @@ def prepare_package(
     cart_ram_kib: int,
     project_json: dict[str, Any],
     build_root: Path | None = None,
+    architectures: list[str] | None = None,
 ) -> dict[str, Any]:
     slug = slugify(project.get("title") or game_ir.get("title"), "game")
     entry_prefix = game_ir.get("entry_prefix") or c_identifier(slug, "game")
@@ -118,8 +122,9 @@ def prepare_package(
     write_png_icon(icon_path)
 
     logs: list[str] = []
+    targets = architectures or SUPPORTED_ARCHITECTURES
     architectures: list[dict[str, str]] = []
-    for arch in ["esp32c6", "qemu"]:
+    for arch in targets:
         out_name = f"{slug}-{arch}.prg32"
         out_path = work_dir / out_name
         ok, log = run_prg32_build(build_command, source_path, out_path, str(entry_prefix), slug, arch, cart_ram_kib,

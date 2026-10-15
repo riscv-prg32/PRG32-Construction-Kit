@@ -97,6 +97,33 @@
       .finally(() => $('#packageProject').prop('disabled', false));
   }
 
+  // Compile only the chosen target and hand the .prg32 file straight to the browser.
+  function downloadCartridge(architecture) {
+    const buttons = $('.download-cartridge, .download-cartridge-toggle');
+    buttons.prop('disabled', true);
+    return saveProject()
+      .then(() => Kit.api('/api/projects/' + projectId + '/package', { method: 'POST', body: { architectures: [architecture] } }))
+      .then(result => {
+        setLog(result.build.log || JSON.stringify(result.result, null, 2));
+        const cartridge = (result.cartridge_artifacts || []).find(artifact => artifact.metadata.architecture === architecture);
+        if (!cartridge) {
+          $('#cartridgeDownloads').removeClass('d-none alert-success').addClass('alert-warning').text('No .prg32 cartridge was produced. Check the Debug Log: the PRG32 compiler toolchain may be missing on this server.');
+          Kit.toast('Cartridge build failed; see the Debug Log', 'warning');
+          return;
+        }
+        const link = document.createElement('a');
+        link.href = '/api/artifacts/' + encodeURIComponent(cartridge.id) + '/download';
+        link.download = cartridge.name;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        $('#cartridgeDownloads').removeClass('d-none alert-warning').addClass('alert-success').html(`<strong>Cartridge downloaded.</strong> Upload it to a PRG32 cartridge slot. <a href="${link.href}">Download ${Kit.escape(cartridge.name)} again</a>`);
+        Kit.toast('Downloading ' + cartridge.name, 'success');
+      })
+      .catch(err => Kit.toast(err.message, 'danger'))
+      .finally(() => buttons.prop('disabled', false));
+  }
+
   PRG32Blocks.init('blocklyDiv');
   simulator = new PRG32Simulator.Simulator(document.getElementById('gameCanvas'), document.getElementById('debugState'));
   PRG32Blocks.getWorkspace().addChangeListener(event => {
@@ -119,6 +146,7 @@
   });
   $('#convertProject').on('click', convertProject);
   $('#packageProject').on('click', packageProject);
+  $('.download-cartridge').on('click', function () { downloadCartridge($(this).data('architecture')); });
   $('#runGame').on('click', function () {
     const running = simulator.toggle();
     $(this).toggleClass('btn-danger', running).toggleClass('btn-success', !running).html(running ? '<i class="bi bi-pause-fill"></i> Pause' : '<i class="bi bi-play-fill"></i> Play');

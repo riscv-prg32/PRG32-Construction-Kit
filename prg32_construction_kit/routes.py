@@ -18,7 +18,7 @@ from .db import (
     update_resource,
 )
 from .generator import blocks_to_c, sprite_to_c
-from .packager import prepare_package
+from .packager import SUPPORTED_ARCHITECTURES, prepare_package
 from .publisher import publish_bundle
 from .sample_data import UPSTREAM_EXAMPLES, upstream_example_projects
 from .source_project import validate_c_source, validate_features
@@ -275,6 +275,13 @@ def api_convert_project(project_id: str):
 
 @bp.post("/api/projects/<project_id>/package")
 def api_package_project(project_id: str):
+    # Optional: {"architectures": ["esp32c6"]} builds only the cartridges a student asked for.
+    requested = request_json().get("architectures")
+    if requested is not None:
+        if (not isinstance(requested, list) or not requested
+                or any(arch not in SUPPORTED_ARCHITECTURES for arch in requested)):
+            return json_error("architectures must be a non-empty list of: " + ", ".join(SUPPORTED_ARCHITECTURES))
+        requested = list(dict.fromkeys(requested))
     project, game_ir, c_source, error = _generate_project(project_id)
     if error:
         return error
@@ -302,6 +309,7 @@ def api_package_project(project_id: str):
             build_command=current_app.config["PRG32_BUILD_COMMAND"],
             cart_ram_kib=current_app.config["PRG32_CART_RAM_KIB"],
             project_json=project,
+            architectures=requested,
         )
     except Exception as exc:
         current_app.logger.exception("Packaging failed for %s", project_id)
