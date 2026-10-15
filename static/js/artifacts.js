@@ -6,8 +6,8 @@
       <td>${Kit.escape(artifact.content_type)}</td>
       <td class="small text-muted">${Kit.escape(artifact.updated_at)}</td>
       <td class="text-end">
-        <a class="btn btn-outline-primary btn-sm" href="/api/artifacts/${artifact.id}/download"><i class="bi bi-download"></i></a>
-        <button class="btn btn-outline-danger btn-sm delete-artifact" data-id="${artifact.id}"><i class="bi bi-trash"></i></button>
+        <a class="btn btn-outline-primary btn-sm" href="/api/artifacts/${encodeURIComponent(artifact.id)}/download"><i class="bi bi-download"></i></a>
+        <button class="btn btn-outline-danger btn-sm delete-artifact" data-id="${Kit.escape(artifact.id)}"><i class="bi bi-trash"></i></button>
       </td>
     </tr>`;
   }
@@ -20,7 +20,7 @@
 
   $('#artifactRows').on('click', '.delete-artifact', function () {
     if (!confirm('Delete artifact?')) return;
-    Kit.api('/api/artifacts/' + $(this).data('id'), { method: 'DELETE' })
+    Kit.api('/api/artifacts/' + encodeURIComponent($(this).data('id')), { method: 'DELETE' })
       .then(() => { Kit.toast('Artifact deleted', 'success'); load(); })
       .catch(err => Kit.toast(err.message, 'danger'));
   });

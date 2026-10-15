@@ -5,9 +5,9 @@
     return Kit.api('/api/publish_profiles').then(data => {
       if (!selectedProfileId && data.publish_profiles[0]) selectedProfileId = data.publish_profiles[0].id;
       $('#profileList').html(data.publish_profiles.map(profile => `
-        <button class="list-group-item list-group-item-action profile-choice ${profile.id === selectedProfileId ? 'active' : ''}" data-id="${profile.id}">
+        <button class="list-group-item list-group-item-action profile-choice ${profile.id === selectedProfileId ? 'active' : ''}" data-id="${Kit.escape(profile.id)}">
           <div class="fw-semibold">${Kit.escape(profile.name)}</div>
-          <div class="small ${profile.id === selectedProfileId ? '' : 'text-muted'}">${Kit.escape(profile.store_url)}</div>
+          <div class="small ${profile.id === selectedProfileId ? '' : 'text-muted'}">${Kit.escape(profile.store_url)}${profile.has_token ? ' · token saved' : ''}</div>
         </button>`).join('') || '<div class="list-group-item text-muted">No profiles yet.</div>');
     });
   }
@@ -25,8 +25,8 @@
               <div>${publishable ? '<span class="badge text-bg-success">contains .prg32</span>' : '<span class="badge text-bg-warning">source-only</span>'}</div>
             </div>
             <div class="d-flex gap-2">
-              <a class="btn btn-outline-primary btn-sm" href="/api/artifacts/${artifact.id}/download">Download</a>
-              <button class="btn btn-primary btn-sm publish-bundle" data-id="${artifact.id}" ${selectedProfileId ? '' : 'disabled'}>Publish</button>
+              <a class="btn btn-outline-primary btn-sm" href="/api/artifacts/${encodeURIComponent(artifact.id)}/download">Download</a>
+              <button class="btn btn-primary btn-sm publish-bundle" data-id="${Kit.escape(artifact.id)}" ${selectedProfileId ? '' : 'disabled'}>Publish</button>
             </div>
           </div>
         </div>`;

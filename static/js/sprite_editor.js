@@ -27,11 +27,21 @@
     }
   }
 
+  // Copy old pixels into a width x height grid, so short or missing rows never break painting.
+  function fitPixels(source, w, h) {
+    const grid = emptyPixels(w, h);
+    for (let y = 0; y < h; y++) {
+      const row = Array.isArray(source) && Array.isArray(source[y]) ? source[y] : [];
+      for (let x = 0; x < w; x++) if (typeof row[x] === 'string') grid[y][x] = row[x];
+    }
+    return grid;
+  }
+
   function setSprite(sprite) {
     selectedId = sprite.id || null;
     width = Number(sprite.width || 16);
     height = Number(sprite.height || 16);
-    pixels = Array.isArray(sprite.pixels) && sprite.pixels.length ? sprite.pixels : emptyPixels(width, height);
+    pixels = fitPixels(sprite.pixels, width, height);
     $('#spriteId').val(selectedId || '');
     $('#spriteName').val(sprite.name || 'sprite');
     $('#spriteWidth').val(width);
@@ -68,7 +78,7 @@
 
   function loadSprites() {
     return Kit.api('/api/sprites').then(data => {
-      const html = data.sprites.map(sprite => `<button class="list-group-item list-group-item-action sprite-choice ${sprite.id === selectedId ? 'active' : ''}" data-id="${sprite.id}">${Kit.escape(sprite.name)} <span class="small">${sprite.width}x${sprite.height}</span></button>`).join('');
+      const html = data.sprites.map(sprite => `<button class="list-group-item list-group-item-action sprite-choice ${sprite.id === selectedId ? 'active' : ''}" data-id="${Kit.escape(sprite.id)}">${Kit.escape(sprite.name)} <span class="small">${Kit.escape(sprite.width)}x${Kit.escape(sprite.height)}</span></button>`).join('');
       $('#spriteList').html(html || '<div class="list-group-item text-muted">No sprites yet.</div>');
       if (!selectedId && data.sprites[0]) setSprite(data.sprites[0]);
     });
@@ -88,7 +98,7 @@
   function resize() {
     width = Math.max(4, Math.min(64, Number($('#spriteWidth').val() || 16)));
     height = Math.max(4, Math.min(64, Number($('#spriteHeight').val() || 16)));
-    pixels = emptyPixels(width, height);
+    pixels = fitPixels(pixels, width, height);
     draw();
   }
 
@@ -104,7 +114,9 @@
 
   function importImage(file) {
     const img = new Image();
+    const url = URL.createObjectURL(file);
     img.onload = function () {
+      URL.revokeObjectURL(url);
       const tmp = document.createElement('canvas');
       tmp.width = width;
       tmp.height = height;
@@ -120,19 +132,21 @@
       }
       draw();
     };
-    img.src = URL.createObjectURL(file);
+    img.src = url;
   }
 
-  let mouseDown = false;
-  canvas.addEventListener('mousedown', event => { mouseDown = true; paint(event); });
-  canvas.addEventListener('mousemove', event => { if (mouseDown) paint(event); });
-  window.addEventListener('mouseup', () => { mouseDown = false; });
+  // Pointer events work for mouse, pen and classroom tablets alike.
+  let painting = false;
+  canvas.style.touchAction = 'none';
+  canvas.addEventListener('pointerdown', event => { painting = true; canvas.setPointerCapture(event.pointerId); paint(event); });
+  canvas.addEventListener('pointermove', event => { if (painting) paint(event); });
+  ['pointerup', 'pointercancel'].forEach(name => canvas.addEventListener(name, () => { painting = false; }));
 
   $('#newSprite').on('click', () => setSprite({ name: 'new_sprite', width: 16, height: 16, pixels: emptyPixels(16, 16) }));
   $('#resizeSprite').on('click', resize);
   $('#saveSprite').on('click', () => save().catch(err => Kit.toast(err.message, 'danger')));
   $('#eraser').on('click', function () { erase = !erase; $(this).toggleClass('btn-danger', erase); });
-  $('#spriteList').on('click', '.sprite-choice', function () { Kit.api('/api/sprites/' + $(this).data('id')).then(setSprite); });
+  $('#spriteList').on('click', '.sprite-choice', function () { Kit.api('/api/sprites/' + encodeURIComponent($(this).data('id'))).then(setSprite).catch(err => Kit.toast(err.message, 'danger')); });
   $('#imageImport').on('change', function () { if (this.files[0]) importImage(this.files[0]); });
   $('#downloadPng').on('click', () => {
     const a = document.createElement('a');

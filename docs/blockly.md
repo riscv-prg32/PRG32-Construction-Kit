@@ -86,4 +86,22 @@ player_x + 8
 score * 2
 ```
 
-The generator sanitizes expressions and rejects syntax that would inject arbitrary C.
+An expression may use:
+
+- whole numbers (`16`, `-3`, `0x1F`)
+- state variable names (`player_x`) and PRG32 constants (`PRG32_SCREEN_W`)
+- parentheses and the operators `+ - * / % < > <= >= == != && || ! & | ^ ~ << >>`
+
+Anything else is replaced by the block's default value, and the replacement is
+listed under **Warnings** after **Convert**. That includes function calls
+(`rand()`), decimals (`1.5`), quotes, semicolons, braces, comments and `#`
+lines, so a text field can never add hidden C code.
+
+Some details students may notice:
+
+- Names are not case-sensitive: `Player_X` and `player_x` are the same variable.
+- Division works like C integers: `7 / 2` is `3`, and the simulator does the same.
+- Names that C already uses get `_var` added: a variable called `input` or `int`
+  becomes `input_var` or `int_var` in the generated C.
+- Text in **draw text** and **comment** blocks is escaped, so quotes and `*/`
+  stay inside the string or comment.

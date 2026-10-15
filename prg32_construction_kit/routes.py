@@ -1,10 +1,13 @@
 from __future__ import annotations
 
+import io
 import json
+import uuid
 from pathlib import Path
 from typing import Any
 
 from flask import Blueprint, Response, current_app, jsonify, render_template, request, send_file, send_from_directory
+from sqlalchemy.exc import IntegrityError
 
 from .db import (
     RESOURCE_COLUMNS,
@@ -27,12 +30,49 @@ def json_error(message: str, status: int = 400) -> tuple[Response, int]:
     return jsonify({"error": message}), status
 
 
+@bp.errorhandler(ValueError)
+def handle_bad_value(exc: ValueError):
+    return json_error(str(exc), 400)
+
+
+@bp.errorhandler(IntegrityError)
+def handle_integrity_error(_exc: IntegrityError):
+    return json_error("That id already exists, or a linked project/sprite/artifact id does not exist", 409)
+
+
 def request_json() -> dict[str, Any]:
     if request.is_json:
-        return request.get_json(silent=True) or {}
+        data = request.get_json(silent=True)
+        if data is None:
+            if request.get_data():
+                raise ValueError("Request body is not valid JSON")
+            return {}
+        if not isinstance(data, dict):
+            raise ValueError("Request body must be a JSON object")
+        return data
     if request.form:
         return dict(request.form)
     return {}
+
+
+def public(resource: str, item: dict[str, Any] | None) -> dict[str, Any] | None:
+    """Hide secrets before an item leaves the server (bearer tokens are write-only)."""
+    if item is None or resource != "publish_profiles":
+        return item
+    shown = {key: value for key, value in item.items() if key != "bearer_token"}
+    shown["has_token"] = bool(item.get("bearer_token"))
+    return shown
+
+
+def stored_file(path_value: str | None) -> Path | None:
+    """Return an artifact file only if it lives inside the kit's own data folders."""
+    if not path_value:
+        return None
+    path = Path(path_value).resolve()
+    roots = [current_app.config[key] for key in ("DATA_DIR", "BUILD_ROOT", "ARTIFACT_ROOT")]
+    if not any(path.is_relative_to(Path(root).resolve()) for root in roots):
+        return None
+    return path if path.is_file() else None
 
 
 @bp.get("/")
@@ -98,7 +138,7 @@ def api_list(resource: str):
     if resource not in RESOURCE_COLUMNS:
         return json_error(f"Unknown resource: {resource}", 404)
     filters = {key: value for key, value in request.args.items() if key in {"project_id", "sprite_id", "kind", "status"}}
-    return jsonify({resource: list_resources(resource, filters)})
+    return jsonify({resource: [public(resource, item) for item in list_resources(resource, filters)]})
 
 
 @bp.route("/api/<resource>", methods=["POST"])
@@ -106,7 +146,7 @@ def api_create(resource: str):
     if resource not in RESOURCE_COLUMNS:
         return json_error(f"Unknown resource: {resource}", 404)
     item = create_resource(resource, request_json())
-    return jsonify(item), 201
+    return jsonify(public(resource, item)), 201
 
 
 @bp.route("/api/<resource>/<item_id>", methods=["GET", "PUT", "DELETE"])
@@ -117,7 +157,7 @@ def api_item(resource: str, item_id: str):
         item = get_resource(resource, item_id)
         if item is None:
             return json_error("Not found", 404)
-        return jsonify(item)
+        return jsonify(public(resource, item))
     if request.method == "DELETE":
         if not delete_resource(resource, item_id):
             return json_error("Not found", 404)
@@ -125,7 +165,7 @@ def api_item(resource: str, item_id: str):
     item = update_resource(resource, item_id, request_json())
     if item is None:
         return json_error("Not found", 404)
-    return jsonify(item)
+    return jsonify(public(resource, item))
 
 
 @bp.post("/api/projects/import")
@@ -138,8 +178,10 @@ def api_import_project():
             return json_error(f"Could not parse JSON import: {exc}")
     else:
         payload = request_json()
-    if "project" in payload:
+    if isinstance(payload, dict) and "project" in payload:
         payload = payload["project"]
+    if not isinstance(payload, dict):
+        return json_error("Import file must contain a JSON object with a project")
     item = create_resource(
         "projects",
         {
@@ -184,7 +226,7 @@ def api_export_project(project_id: str):
     return Response(
         body,
         mimetype="application/json",
-        headers={"Content-Disposition": f"attachment; filename={project_id}.blocks.json"},
+        headers={"Content-Disposition": f'attachment; filename="{project_id}.blocks.json"'},
     )
 
 
@@ -228,7 +270,7 @@ def api_convert_project(project_id: str):
             "metadata": {"entry_prefix": game_ir.get("entry_prefix"), "warnings": game_ir.get("warnings", [])},
         },
     )
-    return jsonify({"project": update_resource("projects", project_id, {"game_json": game_ir}), "game_ir": game_ir, "c_source": c_source, "artifact": artifact})
+    return jsonify({"project": get_resource("projects", project_id), "game_ir": game_ir, "c_source": c_source, "artifact": artifact})
 
 
 @bp.post("/api/projects/<project_id>/package")
@@ -249,16 +291,22 @@ def api_package_project(project_id: str):
         },
     )
     build = create_resource("builds", {"project_id": project_id, "status": "running", "c_artifact_id": c_artifact["id"], "metadata": {}})
-    result = prepare_package(
-        data_dir=current_app.config["DATA_DIR"],
-        project=project,
-        game_ir=game_ir,
-        c_source=c_source,
-        build_id=build["id"],
-        build_command=current_app.config["PRG32_BUILD_COMMAND"],
-        cart_ram_kib=current_app.config["PRG32_CART_RAM_KIB"],
-        project_json=project,
-    )
+    try:
+        result = prepare_package(
+            data_dir=current_app.config["DATA_DIR"],
+            build_root=current_app.config["BUILD_ROOT"],
+            project=project,
+            game_ir=game_ir,
+            c_source=c_source,
+            build_id=build["id"],
+            build_command=current_app.config["PRG32_BUILD_COMMAND"],
+            cart_ram_kib=current_app.config["PRG32_CART_RAM_KIB"],
+            project_json=project,
+        )
+    except Exception as exc:
+        current_app.logger.exception("Packaging failed for %s", project_id)
+        update_resource("builds", build["id"], {"status": "failed", "log": f"Packaging failed: {exc}"})
+        return json_error(f"Packaging failed: {exc}", 500)
     bundle_artifact = create_resource(
         "artifacts",
         {
@@ -339,10 +387,11 @@ def api_upload_artifact():
     uploaded = request.files["file"]
     if not uploaded.filename:
         return json_error("Missing filename")
-    safe_name = "".join(ch if ch.isalnum() or ch in ".-_" else "_" for ch in uploaded.filename)
+    safe_name = "".join(ch if ch.isalnum() or ch in ".-_" else "_" for ch in uploaded.filename)[-120:].lstrip(".") or "upload"
     artifact_dir = current_app.config["ARTIFACT_ROOT"] / "uploads"
     artifact_dir.mkdir(parents=True, exist_ok=True)
-    path = artifact_dir / safe_name
+    # A short unique prefix keeps two uploads with the same name from overwriting each other.
+    path = artifact_dir / f"{uuid.uuid4().hex[:8]}-{safe_name}"
     uploaded.save(path)
     artifact = create_resource(
         "artifacts",
@@ -363,15 +412,15 @@ def api_download_artifact(artifact_id: str):
     artifact = get_resource("artifacts", artifact_id)
     if artifact is None:
         return json_error("Artifact not found", 404)
-    path = artifact.get("path")
-    if path and Path(path).exists():
-        return send_file(Path(path), mimetype=artifact.get("content_type") or None, as_attachment=True, download_name=artifact.get("name") or Path(path).name)
-    text = artifact.get("text_content", "")
-    return Response(
-        text,
-        mimetype=artifact.get("content_type") or "text/plain",
-        headers={"Content-Disposition": f"attachment; filename={artifact.get('name', artifact_id)}"},
-    )
+    name = artifact.get("name") or artifact_id
+    path = stored_file(artifact.get("path"))
+    if path is not None:
+        return send_file(path, mimetype=artifact.get("content_type") or None, as_attachment=True, download_name=name)
+    if artifact.get("path") and not artifact.get("text_content"):
+        return json_error("Artifact file is missing or outside the kit data folder", 404)
+    text = artifact.get("text_content") or ""
+    return send_file(io.BytesIO(text.encode("utf-8")), mimetype=artifact.get("content_type") or "text/plain",
+                     as_attachment=True, download_name=name)
 
 
 @bp.post("/api/publish")
@@ -385,11 +434,11 @@ def api_publish():
         return json_error("Bundle artifact not found", 404)
     if artifact.get("kind") not in {"store_bundle", "source_bundle"}:
         return json_error("Artifact is not a bundle")
-    path = Path(artifact.get("path") or "")
-    if not path.exists():
+    path = stored_file(artifact.get("path"))
+    if path is None:
         return json_error("Bundle file is missing on disk", 404)
     try:
         result = publish_bundle(profile.get("store_url", ""), profile.get("bearer_token", ""), path)
     except Exception as exc:
         return json_error(f"Publish request failed: {exc}", 502)
-    return jsonify({"profile": {k: v for k, v in profile.items() if k != "bearer_token"}, "artifact": artifact, "result": result})
+    return jsonify({"profile": public("publish_profiles", profile), "artifact": artifact, "result": result})

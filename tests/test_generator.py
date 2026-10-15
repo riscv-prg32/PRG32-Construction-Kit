@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from prg32_construction_kit.generator import blocks_to_c, blocks_to_ir, sprite_to_c
+from prg32_construction_kit.generator import blocks_to_c, blocks_to_ir, check_expr, sprite_to_c
 from prg32_construction_kit.sample_data import default_blocks, upstream_example_projects
 
 
@@ -61,3 +61,53 @@ def test_sprite_to_c_rgb565():
     assert "PLAYER_WIDTH 2" in c_source
     assert "0xFFFF" in c_source
     assert "0x0000" in c_source
+
+
+def _stmt(block_type, **fields):
+    return {"blocks": {"blocks": [{"type": block_type, "fields": fields}]}}
+
+
+def test_dropdown_values_cannot_inject_c():
+    _, source = blocks_to_c(_stmt("prg32_clear_screen", COLOR="PRG32_COLOR_RED); system(\"x\"); (0"), {"title": "Inject"})
+    assert "system" not in source
+    assert "prg32_gfx_clear(PRG32_COLOR_WHITE);" in source
+    blocks = {"blocks": {"blocks": [{"type": "prg32_if_button", "fields": {"BUTTON": "PRG32_BTN_A) { evil(); } if (1"}}]}}
+    _, source = blocks_to_c(blocks, {"title": "Inject"})
+    assert "evil" not in source
+    assert "if (input & PRG32_BTN_A) {" in source
+
+
+def test_comments_and_text_cannot_escape_into_c():
+    _, source = blocks_to_c(_stmt("prg32_comment", TEXT="*/ evil(); /*"), {"title": "Comment"})
+    assert "*/ evil" not in source
+    _, source = blocks_to_c(_stmt("prg32_draw_text", TEXT='a"b\\c??/\r', X="1", Y="2"), {"title": "Text"})
+    assert 'prg32_gfx_text8(1, 2, "a\\"b\\\\c?\\?/\\015",' in source
+    _, source = blocks_to_c({"blocks": {"blocks": [{"type": "*/ evil(); /*"}]}}, {"title": "Type"})
+    assert "*/ evil" not in source
+
+
+def test_expressions_are_validated_with_warnings():
+    ir, source = blocks_to_c(_stmt("prg32_draw_rect", X="exit(0)", Y="1.5", W="Player_X + 2", H="x--3"), {"title": "Expr"})
+    assert "exit" not in source
+    assert "prg32_gfx_rect(0, 0, player_x + 2, x- -3, PRG32_COLOR_WHITE);" in source
+    assert len(ir["warnings"]) == 2
+    for bad in ("1;", "{", "#define", "1 /* x", "a // b", "(1", "1)", "1+", "a b", "3x"):
+        assert check_expr(bad) is None, bad
+    for good in ("-3", "(a + 1) * 2", "a >= 0 && !b", "0x1F", "PRG32_SCREEN_W - 16"):
+        assert check_expr(good) is not None, good
+
+
+def test_reserved_names_become_safe_state_variables():
+    _, source = blocks_to_c({"blocks": {"blocks": [
+        {"type": "prg32_set_state", "fields": {"VAR": "input", "VALUE": "1"}},
+        {"type": "prg32_change_state", "fields": {"VAR": "int", "DELTA": "input"}},
+    ]}}, {"title": "Names"})
+    assert "static int input_var = 1;" in source
+    assert "int_var += input_var;" in source
+
+
+def test_sprite_to_c_tolerates_bad_input():
+    source = sprite_to_c({"name": "odd", "width": "abc", "height": 100000, "pixels": [["#zzzzzz", 7, None, "#fff"], "row"]})
+    assert "ODD_WIDTH 16" in source
+    assert "ODD_HEIGHT 128" in source
+    assert "0xFFFF" in source

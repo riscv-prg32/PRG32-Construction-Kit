@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 import uuid
 from datetime import datetime, timezone
 from typing import Any
@@ -106,6 +107,10 @@ DEFAULTS: dict[str, dict[str, Any]] = {
 }
 
 
+_ID_RE = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
+NUMBER_COLUMNS = {"width", "height"}
+
+
 def _attribute(column: str) -> str:
     return "metadata_json" if column == "metadata" else column
 
@@ -115,7 +120,16 @@ def _encode_value(resource: str, column: str, value: Any) -> Any:
         if value is None:
             value = [] if column in {"tags", "pixels"} else {}
         return json.dumps(value, separators=(",", ":"), sort_keys=False)
-    return value
+    if column in NUMBER_COLUMNS:
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            raise ValueError(f"{column} must be a whole number") from None
+    if value is None:
+        return None if column.endswith("_id") else ""
+    if isinstance(value, (dict, list)):
+        raise ValueError(f"{column} must be text, not a list or object")
+    return str(value)
 
 
 def _decode_value(resource: str, column: str, value: Any) -> Any:
@@ -177,14 +191,25 @@ def get_resource(resource: str, item_id: str) -> dict[str, Any] | None:
     return _as_dict(resource, db.session.get(model, item_id))
 
 
+def _check_payload(payload: Any) -> dict[str, Any]:
+    if payload is None:
+        return {}
+    if not isinstance(payload, dict):
+        raise ValueError("Request body must be a JSON object")
+    return payload
+
+
 def create_resource(resource: str, payload: dict[str, Any]) -> dict[str, Any]:
     model = RESOURCE_MODELS.get(resource)
     if model is None:
         raise KeyError(resource)
-    values = {**DEFAULTS[resource], **(payload or {})}
+    values = {**DEFAULTS[resource], **_check_payload(payload)}
+    item_id = values.get("id") or new_id(resource.rstrip("s"))
+    if not isinstance(item_id, str) or not _ID_RE.match(item_id):
+        raise ValueError("id may only use letters, digits, '-' and '_' (at most 64 characters)")
     now = utcnow()
     attributes = {_attribute(column): _encode_value(resource, column, values.get(column)) for column in RESOURCE_COLUMNS[resource]}
-    instance = model(id=values.get("id") or new_id(resource.rstrip("s")), created_at=now, updated_at=now, **attributes)
+    instance = model(id=item_id, created_at=now, updated_at=now, **attributes)
     try:
         db.session.add(instance)
         db.session.commit()
@@ -200,14 +225,15 @@ def update_resource(resource: str, item_id: str, payload: dict[str, Any]) -> dic
     model = RESOURCE_MODELS.get(resource)
     if model is None:
         raise KeyError(resource)
+    payload = _check_payload(payload)
     instance = db.session.get(model, item_id)
     if instance is None:
         return None
-    for column in RESOURCE_COLUMNS[resource]:
-        if column in (payload or {}):
-            setattr(instance, _attribute(column), _encode_value(resource, column, payload[column]))
-    instance.updated_at = utcnow()
     try:
+        for column in RESOURCE_COLUMNS[resource]:
+            if column in payload:
+                setattr(instance, _attribute(column), _encode_value(resource, column, payload[column]))
+        instance.updated_at = utcnow()
         db.session.commit()
     except Exception:
         db.session.rollback()

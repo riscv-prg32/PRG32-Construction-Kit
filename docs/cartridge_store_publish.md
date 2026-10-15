@@ -26,6 +26,13 @@ URL:  http://127.0.0.1:5080
 Token: optional bearer token
 ```
 
+The token is write-only: after you save it, the kit only shows "token saved"
+and never sends the token back to the browser. To change it, create a new
+profile (or `PUT /api/publish_profiles/<id>` with a new `bearer_token`).
+
+Only bundles stored in the kit's own data folders can be downloaded or
+published; an artifact whose `path` points elsewhere is treated as missing.
+
 ## Publish flow
 
 1. Open a project.
