@@ -39,16 +39,123 @@ window.PRG32Simulator = (function () {
     return out;
   }
 
+  // Same rules as prg32_construction_kit/generator.py, so the simulator and the C agree.
+  const RESERVED = new Set(('auto break case char const continue default do double else enum extern float for goto if inline int long ' +
+    'register restrict return short signed sizeof static struct switch typedef union unsigned void volatile while bool true false asm input').split(' '));
+  const TOKEN = /\s*(?:((?:0[xX][0-9A-Fa-f]+|[0-9]+)(?![A-Za-z0-9_]))|([A-Za-z_][A-Za-z0-9_]*)|(<<|>>|<=|>=|==|!=|&&|\|\||[-+*/%()<>!&|^~]))/y;
+
   function saneIdentifier(name) {
     let out = String(name || 'state').trim().toLowerCase().replace(/[^a-zA-Z0-9_]+/g, '_').replace(/^_+|_+$/g, '');
     if (!out) out = 'state';
     if (/^[0-9]/.test(out)) out = '_' + out;
+    out = out.slice(0, 48);
+    if (RESERVED.has(out) || out.startsWith('prg32_')) out += '_var';
     return out;
   }
 
+  // Split an expression into tokens; returns null when it uses anything outside the Blocks language.
+  function tokenize(expr) {
+    const text = String(expr).trim();
+    if (!text || text.length > 200 || /\/\*|\*\/|\/\//.test(text)) return null;
+    const tokens = [];
+    let depth = 0;
+    TOKEN.lastIndex = 0;
+    while (TOKEN.lastIndex < text.length) {
+      const start = TOKEN.lastIndex;
+      const match = TOKEN.exec(text);
+      if (!match || TOKEN.lastIndex === start) return null;
+      const raw = match[1] !== undefined ? match[1] : match[2] !== undefined ? match[2] : match[3];
+      const lead = match[0].slice(0, match[0].length - raw.length);
+      let token;
+      if (match[1] !== undefined) token = { kind: 'number', text: raw, value: /^0[xX]/.test(raw) ? parseInt(raw, 16) : parseInt(raw, 10) };
+      else if (match[2] !== undefined) token = { kind: 'name', text: raw.startsWith('PRG32_') ? raw : saneIdentifier(raw) };
+      else {
+        token = { kind: 'op', text: raw };
+        if (raw === '(') {
+          const prev = tokens[tokens.length - 1];
+          if (prev && prev.kind !== 'op') return null; // no function calls
+          depth += 1;
+        } else if (raw === ')' && --depth < 0) return null;
+      }
+      token.lead = lead;
+      tokens.push(token);
+    }
+    return depth === 0 ? tokens : null;
+  }
+
   function saneExpr(expr, fallback) {
-    const value = String(expr == null || expr === '' ? fallback : expr).trim();
-    return /^[A-Za-z0-9_\s+\-*/%()<>!=&|]+$/.test(value) ? value : String(fallback || 0);
+    const value = expr == null || expr === '' ? fallback : expr;
+    const tokens = tokenize(value);
+    if (tokens) return tokens.map(t => t.lead + t.text).join('');
+    return fallback === undefined ? '0' : saneExpr(fallback);
+  }
+
+  // A tiny C-style integer expression interpreter: no eval(), 32-bit ints, division truncates like C.
+  const BINARY = [['||'], ['&&'], ['|'], ['^'], ['&'], ['==', '!='], ['<', '>', '<=', '>='], ['<<', '>>'], ['+', '-'], ['*', '/', '%']];
+  const exprCache = new Map();
+
+  function parseExpr(text) {
+    const tokens = tokenize(text);
+    if (!tokens || !tokens.length) return null;
+    let pos = 0;
+    const peek = () => tokens[pos] && tokens[pos].kind === 'op' ? tokens[pos].text : null;
+    function primary() {
+      const token = tokens[pos++];
+      if (!token) throw new Error('missing value');
+      if (token.kind === 'number') return { num: token.value | 0 };
+      if (token.kind === 'name') return { name: token.text };
+      if (token.text === '(') {
+        const inner = binary(0);
+        if (peek() !== ')') throw new Error('missing )');
+        pos += 1;
+        return inner;
+      }
+      if (['-', '+', '!', '~'].includes(token.text)) return { unary: token.text, arg: primary() };
+      throw new Error('unexpected ' + token.text);
+    }
+    function binary(level) {
+      if (level >= BINARY.length) return primary();
+      let left = binary(level + 1);
+      while (BINARY[level].includes(peek())) {
+        const op = tokens[pos++].text;
+        left = { op, left, right: binary(level + 1) };
+      }
+      return left;
+    }
+    const tree = binary(0);
+    if (pos !== tokens.length) throw new Error('extra text');
+    return tree;
+  }
+
+  function evalNode(node, state) {
+    if ('num' in node) return node.num;
+    if ('name' in node) return Number(state[node.name] || 0) | 0;
+    if ('unary' in node) {
+      const v = evalNode(node.arg, state);
+      return node.unary === '-' ? -v | 0 : node.unary === '+' ? v : node.unary === '!' ? (v ? 0 : 1) : ~v;
+    }
+    if (node.op === '&&') return evalNode(node.left, state) && evalNode(node.right, state) ? 1 : 0;
+    if (node.op === '||') return evalNode(node.left, state) || evalNode(node.right, state) ? 1 : 0;
+    const a = evalNode(node.left, state), b = evalNode(node.right, state);
+    switch (node.op) {
+      case '+': return (a + b) | 0;
+      case '-': return (a - b) | 0;
+      case '*': return Math.imul(a, b);
+      case '/': return b === 0 ? 0 : Math.trunc(a / b) | 0;
+      case '%': return b === 0 ? 0 : (a % b) | 0;
+      case '<<': return a << (b & 31);
+      case '>>': return a >> (b & 31);
+      case '&': return a & b;
+      case '|': return a | b;
+      case '^': return a ^ b;
+      case '==': return a === b ? 1 : 0;
+      case '!=': return a !== b ? 1 : 0;
+      case '<': return a < b ? 1 : 0;
+      case '>': return a > b ? 1 : 0;
+      case '<=': return a <= b ? 1 : 0;
+      case '>=': return a >= b ? 1 : 0;
+    }
+    return 0;
   }
 
   function parseStack(block, ctx) {
@@ -57,7 +164,7 @@ window.PRG32Simulator = (function () {
 
   function ensureVar(ctx, raw, initial) {
     const name = saneIdentifier(raw);
-    if (!(name in ctx.vars)) ctx.vars[name] = Number(initial || 0);
+    if (!(name in ctx.vars)) ctx.vars[name] = Math.trunc(Number(initial)) || 0;
     return name;
   }
 
@@ -126,16 +233,15 @@ window.PRG32Simulator = (function () {
   }
 
   function evalExpr(expr, state) {
-    const text = saneExpr(expr, 0);
-    try {
-      const names = Object.keys(state);
-      const values = names.map(name => state[name]);
-      const fn = new Function(...names, '"use strict"; return Number(' + text + ');');
-      const result = fn(...values);
-      return Number.isFinite(result) ? result : 0;
-    } catch (_) {
-      return 0;
+    const text = String(expr == null ? '0' : expr);
+    if (!exprCache.has(text)) {
+      let tree = null;
+      try { tree = parseExpr(text); } catch (_) { tree = null; }
+      if (exprCache.size > 2000) exprCache.clear();
+      exprCache.set(text, tree);
     }
+    const tree = exprCache.get(text);
+    return tree ? evalNode(tree, state) : 0;
   }
 
   function hit(ax, ay, aw, ah, bx, by, bw, bh) {
@@ -248,57 +354,61 @@ window.PRG32Simulator = (function () {
       this.report('Frame ' + this.frame);
     }
 
+    // Runs logic and drawing blocks alike, in order, just like the generated C functions.
     exec(statements) {
-      statements.forEach(stmt => {
-        if (stmt.op === 'set') this.state[stmt.var] = evalExpr(stmt.value, this.state);
-        else if (stmt.op === 'change') this.state[stmt.var] = Number(this.state[stmt.var] || 0) + evalExpr(stmt.delta, this.state);
-        else if (stmt.op === 'clamp') this.state[stmt.var] = Math.max(evalExpr(stmt.low, this.state), Math.min(evalExpr(stmt.high, this.state), Number(this.state[stmt.var] || 0)));
-        else if (stmt.op === 'random') {
-          const low = Math.max(0, Math.trunc(evalExpr(stmt.low, this.state)));
-          const high = Math.max(0, Math.trunc(evalExpr(stmt.high, this.state)));
-          this.state[stmt.var] = high <= low ? low : low + Math.floor(Math.random() * (high - low + 1));
-        }
-        else if (stmt.op === 'palette_set') this.palette[Math.trunc(evalExpr(stmt.index, this.state)) & 255] = COLOR[stmt.color] || COLOR.WHITE;
-        else if (stmt.op === 'if_button' && this.keys[stmt.button]) this.exec(stmt.then || []);
-        else if (stmt.op === 'if_touching') {
-          const values = ['ax', 'ay', 'aw', 'ah', 'bx', 'by', 'bw', 'bh'].map(k => evalExpr(stmt[k], this.state));
-          if (hit(...values)) this.exec(stmt.then || []);
-        } else if (stmt.op === 'beep') this.beep(evalExpr(stmt.freq, this.state), evalExpr(stmt.ms, this.state));
-        else if (stmt.op === 'note') this.beep(440 * Math.pow(2, (evalExpr(stmt.note, this.state) - 69) / 12), evalExpr(stmt.ms, this.state));
-      });
-    }
-
-    draw() {
       const ctx = this.ctx;
+      const value = expr => evalExpr(expr, this.state);
+      const paletteColor = expr => this.palette[value(expr) & 255] || COLOR.BLACK;
       ctx.imageSmoothingEnabled = false;
-      (this.ir.draw || []).forEach(stmt => {
-        if (stmt.op === 'clear') {
+      statements.forEach(stmt => {
+        if (stmt.op === 'set') this.state[stmt.var] = value(stmt.value);
+        else if (stmt.op === 'change') this.state[stmt.var] = (Number(this.state[stmt.var] || 0) + value(stmt.delta)) | 0;
+        else if (stmt.op === 'clamp') {
+          const current = Number(this.state[stmt.var] || 0);
+          const low = value(stmt.low), high = value(stmt.high);
+          this.state[stmt.var] = current < low ? low : current > high ? high : current;
+        } else if (stmt.op === 'random') {
+          const low = Math.max(0, value(stmt.low));
+          const high = Math.max(0, value(stmt.high));
+          this.state[stmt.var] = high <= low ? low : low + Math.floor(Math.random() * (high - low + 1));
+        } else if (stmt.op === 'palette_set') this.palette[value(stmt.index) & 255] = COLOR[stmt.color] || COLOR.WHITE;
+        else if (stmt.op === 'if_button') { if (this.keys[stmt.button]) this.exec(stmt.then || []); }
+        else if (stmt.op === 'if_touching') {
+          const values = ['ax', 'ay', 'aw', 'ah', 'bx', 'by', 'bw', 'bh'].map(k => value(stmt[k]));
+          if (hit(...values)) this.exec(stmt.then || []);
+        } else if (stmt.op === 'beep') this.beep(value(stmt.freq), value(stmt.ms));
+        else if (stmt.op === 'note') this.beep(440 * Math.pow(2, (value(stmt.note) - 69) / 12), value(stmt.ms));
+        else if (stmt.op === 'clear') {
           ctx.fillStyle = COLOR[stmt.color] || '#000';
           ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
         } else if (stmt.op === 'rect') {
           ctx.fillStyle = COLOR[stmt.color] || '#fff';
-          ctx.fillRect(evalExpr(stmt.x, this.state), evalExpr(stmt.y, this.state), evalExpr(stmt.w, this.state), evalExpr(stmt.h, this.state));
+          ctx.fillRect(value(stmt.x), value(stmt.y), value(stmt.w), value(stmt.h));
         } else if (stmt.op === 'pixel') {
           ctx.fillStyle = COLOR[stmt.color] || COLOR.WHITE;
-          ctx.fillRect(evalExpr(stmt.x, this.state), evalExpr(stmt.y, this.state), 1, 1);
-        } else if (stmt.op === 'palette_set') {
-          this.palette[Math.trunc(evalExpr(stmt.index, this.state)) & 255] = COLOR[stmt.color] || COLOR.WHITE;
+          ctx.fillRect(value(stmt.x), value(stmt.y), 1, 1);
         } else if (stmt.op === 'clear_indexed') {
-          ctx.fillStyle = this.palette[Math.trunc(evalExpr(stmt.index, this.state)) & 255] || COLOR.BLACK;
+          ctx.fillStyle = paletteColor(stmt.index);
           ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
         } else if (stmt.op === 'rect_indexed' || stmt.op === 'pixel_indexed') {
-          ctx.fillStyle = this.palette[Math.trunc(evalExpr(stmt.index, this.state)) & 255] || COLOR.BLACK;
-          ctx.fillRect(evalExpr(stmt.x, this.state), evalExpr(stmt.y, this.state), stmt.op === 'pixel_indexed' ? 1 : evalExpr(stmt.w, this.state), stmt.op === 'pixel_indexed' ? 1 : evalExpr(stmt.h, this.state));
+          const pixel = stmt.op === 'pixel_indexed';
+          ctx.fillStyle = paletteColor(stmt.index);
+          ctx.fillRect(value(stmt.x), value(stmt.y), pixel ? 1 : value(stmt.w), pixel ? 1 : value(stmt.h));
         } else if (stmt.op === 'text') {
+          const text = String(stmt.text || '');
+          const x = value(stmt.x), y = value(stmt.y);
           ctx.fillStyle = COLOR[stmt.bg] || '#000';
-          const x = evalExpr(stmt.x, this.state), y = evalExpr(stmt.y, this.state);
-          ctx.fillRect(x - 1, y - 1, stmt.text.length * 8 + 2, 11);
+          ctx.fillRect(x - 1, y - 1, text.length * 8 + 2, 11);
           ctx.fillStyle = COLOR[stmt.fg] || '#fff';
           ctx.font = '8px monospace';
           ctx.textBaseline = 'top';
-          ctx.fillText(stmt.text, x, y);
+          ctx.fillText(text, x, y);
         }
       });
+    }
+
+    draw() {
+      this.exec(this.ir.draw || []);
     }
 
     beep(freq, ms) {
@@ -321,5 +431,5 @@ window.PRG32Simulator = (function () {
     }
   }
 
-  return { compileBlocks, Simulator };
+  return { compileBlocks, evalExpr, saneExpr, Simulator };
 })();

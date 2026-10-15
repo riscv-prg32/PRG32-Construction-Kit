@@ -3,6 +3,7 @@
   let project = null;
   let simulator = null;
   let dirty = false;
+  let loading = false;
 
   function isCMode() { return $('#editorMode').val() === 'c'; }
 
@@ -35,10 +36,14 @@
       project = data;
       $('#projectTitle').text(project.title);
       $('#projectSummary').text(project.description || 'No summary yet.');
+      // Blockly reports the load as change events a moment later; those are not student edits.
+      loading = true;
       PRG32Blocks.load(project.blocks_json || {});
+      setTimeout(() => { loading = false; dirty = false; }, 0);
       $('#editorMode').val(project.game_json && project.game_json.source_mode === 'c' ? 'c' : 'blocks');
       $('#customC').val(project.game_json && project.game_json.source_c || '');
-      $('#requiredFeatures').val(project.game_json && (project.game_json.required_features || []).join(', ') || '');
+      const features = project.game_json && project.game_json.required_features;
+      $('#requiredFeatures').val(Array.isArray(features) ? features.join(', ') : '');
       showMode();
       setLog('Loaded project ' + project.id);
     });
@@ -95,8 +100,8 @@
   PRG32Blocks.init('blocklyDiv');
   simulator = new PRG32Simulator.Simulator(document.getElementById('gameCanvas'), document.getElementById('debugState'));
   PRG32Blocks.getWorkspace().addChangeListener(event => {
-    if (event.type !== Blockly.Events.UI) {
-      dirty = true;
+    if (event.type !== Blockly.Events.UI && !event.isUiEvent) {
+      if (!loading) dirty = true;
       refreshSimulator();
     }
   });

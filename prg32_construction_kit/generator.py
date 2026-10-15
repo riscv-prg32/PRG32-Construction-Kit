@@ -43,14 +43,29 @@ BUTTON_MAP = {
 }
 
 _IDENTIFIER_RE = re.compile(r"[^A-Za-z0-9_]+")
-_EXPR_RE = re.compile(r"^[A-Za-z0-9_\s+\-*/%()<>!=&|.,]+$")
+# One expression token: an integer, a name, or an allowed C operator.
+_EXPR_TOKEN_RE = re.compile(
+    r"\s*(?:(?P<number>(?:0[xX][0-9A-Fa-f]+|[0-9]+)(?![A-Za-z0-9_]))"
+    r"|(?P<name>[A-Za-z_][A-Za-z0-9_]*)"
+    r"|(?P<op><<|>>|<=|>=|==|!=|&&|\|\||[-+*/%()<>!&|^~]))"
+)
+_COLOR_MACROS = set(COLOR_MAP.values())
+_BUTTON_MACROS = set(BUTTON_MAP.values())
+# Names students cannot use for state variables because C already uses them.
+# `input` is the local button mask inside the generated update function.
+RESERVED_NAMES = {
+    "auto", "break", "case", "char", "const", "continue", "default", "do", "double", "else", "enum",
+    "extern", "float", "for", "goto", "if", "inline", "int", "long", "register", "restrict", "return",
+    "short", "signed", "sizeof", "static", "struct", "switch", "typedef", "union", "unsigned", "void",
+    "volatile", "while", "bool", "true", "false", "asm", "input",
+}
 
 
 def as_dict(value: Any) -> dict[str, Any]:
     if isinstance(value, str):
         if not value.strip():
             return {}
-        return json.loads(value)
+        value = json.loads(value)
     if isinstance(value, dict):
         return value
     return {}
@@ -66,16 +81,94 @@ def c_identifier(value: str | None, fallback: str = "game") -> str:
     return raw[:48]
 
 
+def state_name(value: Any) -> str:
+    """Return the C name for a student state variable."""
+    name = c_identifier(str(value) if value is not None else None, "state")
+    if name in RESERVED_NAMES or name.startswith("prg32_"):
+        name = f"{name}_var"
+    return name
+
+
 def c_string(value: Any) -> str:
-    text = str(value if value is not None else "")
-    return text.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n")
+    """Escape text for a C string literal (quotes, backslashes, control characters, trigraphs)."""
+    out = []
+    for ch in str(value if value is not None else ""):
+        if ch == "\\":
+            out.append("\\\\")
+        elif ch == '"':
+            out.append('\\"')
+        elif ch == "\n":
+            out.append("\\n")
+        elif ord(ch) < 32 or ord(ch) == 127:
+            out.append(f"\\{ord(ch):03o}")
+        else:
+            out.append(ch)
+    text = "".join(out)
+    while "??" in text:  # keep C trigraphs such as ??/ from changing the string
+        text = text.replace("??", "?\\?")
+    return text
+
+
+def c_comment(value: Any) -> str:
+    """Make text safe inside a /* ... */ comment: it can never close the comment early."""
+    text = "".join(ch if 32 <= ord(ch) != 127 else " " for ch in str(value if value is not None else ""))
+    while "*/" in text or "/*" in text:
+        text = text.replace("*/", "* /").replace("/*", "/ *")
+    return text.replace("??", "? ?")
+
+
+def check_expr(value: Any) -> str | None:
+    """Return a safe C integer expression, or None when the text is not allowed.
+
+    Allowed: whole numbers, state variable names, PRG32_ constants, parentheses,
+    and arithmetic/comparison/logic operators. Not allowed: function calls,
+    decimals, strings, semicolons, braces, comments, or preprocessor text.
+    """
+    text = str(value).strip()
+    if not text or len(text) > 200 or "/*" in text or "*/" in text or "//" in text:
+        return None
+    out: list[str] = []
+    pos = 0
+    depth = 0
+    want_value = True  # the grammar alternates: value, operator, value, ...
+    while pos < len(text):
+        match = _EXPR_TOKEN_RE.match(text, pos)
+        if not match or match.end() == pos:
+            return None
+        out.append(text[pos:match.start(match.lastgroup)])
+        kind = match.lastgroup
+        token = match.group(kind)
+        if kind in {"name", "number"}:
+            if not want_value:
+                return None
+            if kind == "name":
+                token = token if token.startswith("PRG32_") else state_name(token)
+            want_value = False
+        elif token == "(":
+            if not want_value:
+                return None  # function calls are not part of the Blocks language
+            depth += 1
+        elif token == ")":
+            depth -= 1
+            if depth < 0 or want_value:
+                return None
+        elif want_value:
+            if token not in {"-", "+", "!", "~"}:
+                return None
+        else:
+            want_value = True
+        if token in {"+", "-"} and out and "".join(out).endswith(token):
+            out.append(" ")  # keep "x - -3" from turning into the C operator --
+        out.append(token)
+        pos = match.end()
+    if depth != 0 or want_value:
+        return None
+    return "".join(out)
 
 
 def c_expr(value: Any, fallback: str = "0") -> str:
-    text = str(value if value not in (None, "") else fallback).strip()
-    if not _EXPR_RE.match(text):
-        return fallback
-    return text
+    text = str(value if value not in (None, "") else fallback)
+    return check_expr(text) or check_expr(fallback) or "0"
 
 
 def c_int(value: Any, fallback: int = 0) -> int:
@@ -87,14 +180,14 @@ def c_int(value: Any, fallback: int = 0) -> int:
 
 def color_macro(value: Any) -> str:
     key = str(value or "WHITE").upper().strip()
-    if key.startswith("PRG32_COLOR_"):
+    if key in _COLOR_MACROS:
         return key
     return COLOR_MAP.get(key, "PRG32_COLOR_WHITE")
 
 
 def button_macro(value: Any) -> str:
     key = str(value or "A").upper().strip()
-    if key.startswith("PRG32_BTN_"):
+    if key in _BUTTON_MACROS:
         return key
     return BUTTON_MAP.get(key, "PRG32_BTN_A")
 
@@ -152,30 +245,40 @@ class ParseContext:
     warnings: list[str] = field(default_factory=list)
 
     def ensure_var(self, raw_name: str, initial: int = 0) -> str:
-        name = c_identifier(raw_name, "state")
+        name = state_name(raw_name)
         self.variables.setdefault(name, initial)
         return name
+
+    def expr(self, value: Any, fallback: Any = 0) -> str:
+        """Validate one block field as a C expression, warning when it is replaced."""
+        if value in (None, ""):
+            value = fallback
+        checked = check_expr(value)
+        if checked is None:
+            self.warnings.append(f"Replaced unsupported expression {str(value)[:40]!r} with {fallback}")
+            return c_expr(fallback)
+        return checked
 
 
 def parse_statement(block: dict[str, Any], ctx: ParseContext) -> dict[str, Any] | None:
     btype = block.get("type")
     if btype == "prg32_set_state":
         name = ctx.ensure_var(str(field_value(block, "VAR", "score")), c_int(field_value(block, "VALUE", 0)))
-        return {"op": "set", "var": name, "value": c_expr(field_value(block, "VALUE", 0))}
+        return {"op": "set", "var": name, "value": ctx.expr(field_value(block, "VALUE", 0), 0)}
     if btype == "prg32_change_state":
         name = ctx.ensure_var(str(field_value(block, "VAR", "score")))
-        return {"op": "change", "var": name, "delta": c_expr(field_value(block, "DELTA", 1))}
+        return {"op": "change", "var": name, "delta": ctx.expr(field_value(block, "DELTA", 1), 1)}
     if btype == "prg32_clamp_state":
         name = ctx.ensure_var(str(field_value(block, "VAR", "x")))
         return {
             "op": "clamp",
             "var": name,
-            "low": c_expr(field_value(block, "LOW", 0)),
-            "high": c_expr(field_value(block, "HIGH", 320)),
+            "low": ctx.expr(field_value(block, "LOW", 0), 0),
+            "high": ctx.expr(field_value(block, "HIGH", 320), 320),
         }
     if btype == "prg32_random_state":
         name = ctx.ensure_var(str(field_value(block, "VAR", "target_x")))
-        return {"op": "random", "var": name, "low": c_expr(field_value(block, "LOW", 0)), "high": c_expr(field_value(block, "HIGH", 304))}
+        return {"op": "random", "var": name, "low": ctx.expr(field_value(block, "LOW", 0), 0), "high": ctx.expr(field_value(block, "HIGH", 304), 304)}
     if btype == "prg32_if_button":
         child = input_block(block, "DO")
         return {
@@ -187,14 +290,14 @@ def parse_statement(block: dict[str, Any], ctx: ParseContext) -> dict[str, Any] 
         child = input_block(block, "DO")
         return {
             "op": "if_touching",
-            "ax": c_expr(field_value(block, "AX", "player_x")),
-            "ay": c_expr(field_value(block, "AY", "player_y")),
-            "aw": c_expr(field_value(block, "AW", 16)),
-            "ah": c_expr(field_value(block, "AH", 16)),
-            "bx": c_expr(field_value(block, "BX", "enemy_x")),
-            "by": c_expr(field_value(block, "BY", "enemy_y")),
-            "bw": c_expr(field_value(block, "BW", 16)),
-            "bh": c_expr(field_value(block, "BH", 16)),
+            "ax": ctx.expr(field_value(block, "AX", "player_x"), "player_x"),
+            "ay": ctx.expr(field_value(block, "AY", "player_y"), "player_y"),
+            "aw": ctx.expr(field_value(block, "AW", 16), 16),
+            "ah": ctx.expr(field_value(block, "AH", 16), 16),
+            "bx": ctx.expr(field_value(block, "BX", "enemy_x"), "enemy_x"),
+            "by": ctx.expr(field_value(block, "BY", "enemy_y"), "enemy_y"),
+            "bw": ctx.expr(field_value(block, "BW", 16), 16),
+            "bh": ctx.expr(field_value(block, "BH", 16), 16),
             "then": parse_stack(child, ctx),
         }
     if btype == "prg32_clear_screen":
@@ -202,44 +305,44 @@ def parse_statement(block: dict[str, Any], ctx: ParseContext) -> dict[str, Any] 
     if btype == "prg32_draw_rect":
         return {
             "op": "rect",
-            "x": c_expr(field_value(block, "X", 0)),
-            "y": c_expr(field_value(block, "Y", 0)),
-            "w": c_expr(field_value(block, "W", 16)),
-            "h": c_expr(field_value(block, "H", 16)),
+            "x": ctx.expr(field_value(block, "X", 0), 0),
+            "y": ctx.expr(field_value(block, "Y", 0), 0),
+            "w": ctx.expr(field_value(block, "W", 16), 16),
+            "h": ctx.expr(field_value(block, "H", 16), 16),
             "color": str(field_value(block, "COLOR", "WHITE")).upper(),
         }
     if btype in {"prg32_draw_pixel", "prg32_draw_pixel_indexed", "prg32_draw_rect_indexed"}:
         result = {"op": {"prg32_draw_pixel": "pixel", "prg32_draw_pixel_indexed": "pixel_indexed", "prg32_draw_rect_indexed": "rect_indexed"}[btype],
-                  "x": c_expr(field_value(block, "X", 0)), "y": c_expr(field_value(block, "Y", 0))}
+                  "x": ctx.expr(field_value(block, "X", 0), 0), "y": ctx.expr(field_value(block, "Y", 0), 0)}
         if btype == "prg32_draw_pixel":
             result["color"] = str(field_value(block, "COLOR", "WHITE")).upper()
         else:
-            result["index"] = c_expr(field_value(block, "INDEX", 1))
+            result["index"] = ctx.expr(field_value(block, "INDEX", 1), 1)
         if btype == "prg32_draw_rect_indexed":
-            result["w"] = c_expr(field_value(block, "W", 16))
-            result["h"] = c_expr(field_value(block, "H", 16))
+            result["w"] = ctx.expr(field_value(block, "W", 16), 16)
+            result["h"] = ctx.expr(field_value(block, "H", 16), 16)
         return result
     if btype == "prg32_palette_set":
-        return {"op": "palette_set", "index": c_expr(field_value(block, "INDEX", 1)), "color": str(field_value(block, "COLOR", "WHITE")).upper()}
+        return {"op": "palette_set", "index": ctx.expr(field_value(block, "INDEX", 1), 1), "color": str(field_value(block, "COLOR", "WHITE")).upper()}
     if btype == "prg32_clear_indexed":
-        return {"op": "clear_indexed", "index": c_expr(field_value(block, "INDEX", 0))}
+        return {"op": "clear_indexed", "index": ctx.expr(field_value(block, "INDEX", 0), 0)}
     if btype == "prg32_draw_text":
         return {
             "op": "text",
-            "x": c_expr(field_value(block, "X", 0)),
-            "y": c_expr(field_value(block, "Y", 0)),
+            "x": ctx.expr(field_value(block, "X", 0), 0),
+            "y": ctx.expr(field_value(block, "Y", 0), 0),
             "text": str(field_value(block, "TEXT", "HELLO")),
             "fg": str(field_value(block, "FG", "WHITE")).upper(),
             "bg": str(field_value(block, "BG", "BLACK")).upper(),
         }
     if btype == "prg32_play_beep":
-        return {"op": "beep", "freq": c_expr(field_value(block, "FREQ", 880)), "ms": c_expr(field_value(block, "MS", 80))}
+        return {"op": "beep", "freq": ctx.expr(field_value(block, "FREQ", 880), 880), "ms": ctx.expr(field_value(block, "MS", 80), 80)}
     if btype == "prg32_audio_note":
-        return {"op": "note", "note": c_expr(field_value(block, "NOTE", 60)), "channel": c_expr(field_value(block, "CHANNEL", 0)), "ms": c_expr(field_value(block, "MS", 250))}
+        return {"op": "note", "note": ctx.expr(field_value(block, "NOTE", 60), 60), "channel": ctx.expr(field_value(block, "CHANNEL", 0), 0), "ms": ctx.expr(field_value(block, "MS", 250), 250)}
     if btype == "prg32_comment":
         return {"op": "comment", "text": str(field_value(block, "TEXT", "comment"))}
-    ctx.warnings.append(f"Skipped unsupported block type: {btype}")
-    return {"op": "comment", "text": f"Unsupported block {btype}"}
+    ctx.warnings.append(f"Skipped unsupported block type: {str(btype)[:40]}")
+    return {"op": "comment", "text": f"Unsupported block {str(btype)[:40]}"}
 
 
 def parse_stack(first_block: dict[str, Any] | None, ctx: ParseContext) -> list[dict[str, Any]]:
@@ -351,9 +454,9 @@ def _emit_statement(stmt: dict[str, Any], phase: str, indent: str = "    ") -> l
     elif op == "note":
         lines.append(f"{indent}prg32_audio_note({stmt['channel']}, 0, {stmt['note']}, 255, {stmt['ms']});")
     elif op == "comment":
-        lines.append(f"{indent}/* {c_string(stmt.get('text'))} */")
+        lines.append(f"{indent}/* {c_comment(stmt.get('text'))} */")
     else:
-        lines.append(f"{indent}/* Unsupported op: {c_string(op)} */")
+        lines.append(f"{indent}/* Unsupported op: {c_comment(op)} */")
     return lines
 
 
@@ -389,13 +492,13 @@ def ir_to_c(game_ir: dict[str, Any]) -> str:
         "",
     ])
     for item in game_ir.get("state", []):
-        name = c_identifier(item.get("name"), "state")
+        name = state_name(item.get("name"))
         initial = c_int(item.get("initial"), 0)
         lines.append(f"static int {name} = {initial};")
     lines.append("")
     lines.append(f"void {prefix}_init(void) {{")
     for item in game_ir.get("state", []):
-        name = c_identifier(item.get("name"), "state")
+        name = state_name(item.get("name"))
         initial = c_int(item.get("initial"), 0)
         lines.append(f"    {name} = {initial};")
     for stmt in game_ir.get("init", []):
@@ -421,14 +524,19 @@ def blocks_to_c(blocks_json: Any, project: dict[str, Any] | None = None) -> tupl
     return game_ir, ir_to_c(game_ir)
 
 
-def _rgb565(hex_color: str | None) -> int:
-    if not hex_color or hex_color == "transparent":
+_HEX_COLOR_RE = re.compile(r"^#?([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$")
+MAX_SPRITE_SIDE = 128
+
+
+def _rgb565(hex_color: Any) -> int:
+    if not isinstance(hex_color, str) or hex_color == "transparent":
         return 0
-    text = hex_color.strip().lstrip("#")
+    match = _HEX_COLOR_RE.match(hex_color.strip())
+    if not match:
+        return 0
+    text = match.group(1)
     if len(text) == 3:
         text = "".join(ch * 2 for ch in text)
-    if len(text) != 6:
-        return 0
     r = int(text[0:2], 16)
     g = int(text[2:4], 16)
     b = int(text[4:6], 16)
@@ -437,9 +545,9 @@ def _rgb565(hex_color: str | None) -> int:
 
 def sprite_to_c(sprite: dict[str, Any]) -> str:
     name = c_identifier(sprite.get("name"), "sprite")
-    width = int(sprite.get("width") or 16)
-    height = int(sprite.get("height") or 16)
-    pixels = sprite.get("pixels") or []
+    width = max(1, min(MAX_SPRITE_SIDE, c_int(sprite.get("width"), 16) or 16))
+    height = max(1, min(MAX_SPRITE_SIDE, c_int(sprite.get("height"), 16) or 16))
+    pixels = sprite.get("pixels") if isinstance(sprite.get("pixels"), list) else []
     flat: list[int] = []
     for y in range(height):
         row = pixels[y] if y < len(pixels) and isinstance(pixels[y], list) else []

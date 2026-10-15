@@ -26,7 +26,11 @@ project JSON export, and the bundle includes the exact saved file as
 `source/game.c`. Define `<title_prefix>_init`, `<title_prefix>_update`, and
 `<title_prefix>_draw` with `void` arguments; for a project titled "My Game",
 the prefix is `my_game`. Only PRG32 and small freestanding standard headers
-are accepted. The PRG32 compiler checks the actual API calls and types.
+are accepted. Before building, the kit also rejects tricks that would let C
+read files on the server while it compiles: directives hidden behind comments,
+`%:` digraphs and `??=` trigraphs, inline assembly (`asm`, `__asm__`),
+`_Pragma`, `__has_include`, and the `##` token-pasting operator. The PRG32
+compiler checks the actual API calls and types.
 List any firmware features the cartridge needs in **Required PRG32 features**.
 The kit passes those names to PRG32's `--required-feature` option so an
 incompatible runtime rejects the cartridge before execution.

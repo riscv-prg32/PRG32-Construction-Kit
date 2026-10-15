@@ -154,3 +154,87 @@ def test_advanced_c_rejects_host_includes_and_wrong_entry_names(client):
                                     'required_features': ['not_a_feature']}
     }).get_json()
     assert client.post(f"/api/projects/{project['id']}/package", json={}).status_code == 400
+
+
+def test_publish_profile_tokens_are_write_only(client, monkeypatch, tmp_path):
+    response = client.post("/api/publish_profiles", json={"name": "Store", "store_url": "http://store.test", "bearer_token": "secret-123"})
+    assert response.status_code == 201
+    profile = response.get_json()
+    assert "bearer_token" not in profile and profile["has_token"] is True
+    assert "secret-123" not in client.get("/api/publish_profiles").get_data(as_text=True)
+    assert "secret-123" not in client.get(f"/api/publish_profiles/{profile['id']}").get_data(as_text=True)
+    assert "secret-123" not in client.put(f"/api/publish_profiles/{profile['id']}", json={"name": "Renamed"}).get_data(as_text=True)
+
+    sent = {}
+    def fake_publish(store_url, token, path):
+        sent.update(store_url=store_url, token=token, path=path)
+        return {"ok": True, "status_code": 200, "endpoint": store_url, "response": {}}
+    monkeypatch.setattr("prg32_construction_kit.routes.publish_bundle", fake_publish)
+    bundle = tmp_path / "builds" / "bundle.zip"
+    bundle.parent.mkdir(parents=True, exist_ok=True)
+    bundle.write_bytes(b"zip")
+    artifact = client.post("/api/artifacts", json={"kind": "store_bundle", "name": "b.zip", "path": str(bundle)}).get_json()
+    response = client.post("/api/publish", json={"profile_id": profile["id"], "bundle_artifact_id": artifact["id"]})
+    assert response.status_code == 200
+    assert sent["token"] == "secret-123"
+    assert "secret-123" not in response.get_data(as_text=True)
+
+
+def test_artifacts_cannot_point_outside_the_data_folder(client):
+    artifact = client.post("/api/artifacts", json={"kind": "store_bundle", "name": "passwd", "path": "/etc/passwd"}).get_json()
+    assert client.get(f"/api/artifacts/{artifact['id']}/download").status_code == 404
+    profile = client.get("/api/publish_profiles").get_json()["publish_profiles"][0]
+    response = client.post("/api/publish", json={"profile_id": profile["id"], "bundle_artifact_id": artifact["id"]})
+    assert response.status_code == 404
+
+
+def test_text_artifact_download_uses_a_safe_filename(client):
+    artifact = client.post("/api/artifacts", json={"name": "my file; x=1.c", "text_content": "int x;"}).get_json()
+    response = client.get(f"/api/artifacts/{artifact['id']}/download")
+    assert response.status_code == 200
+    assert response.data == b"int x;"
+    assert "attachment" in response.headers["Content-Disposition"]
+
+
+def test_bad_requests_return_clear_errors(client):
+    assert client.post("/api/projects", json=["not", "an", "object"]).status_code == 400
+    assert client.post("/api/projects", data="{broken", content_type="application/json").status_code == 400
+    assert client.post("/api/projects", json={"id": 'x" onclick="alert(1)'}).status_code == 400
+    assert client.post("/api/projects", json={"title": {"nested": True}}).status_code == 400
+    assert client.post("/api/sprites", json={"width": "wide"}).status_code == 400
+    assert client.post("/api/projects", json={"id": "project_same"}).status_code == 201
+    assert client.post("/api/projects", json={"id": "project_same"}).status_code == 409
+    assert client.post("/api/sprites", json={"project_id": "missing_project"}).status_code == 409
+    assert client.post("/api/projects/import", json=["x"]).status_code == 400
+    project = client.post("/api/projects", json={"title": "Keep"}).get_json()
+    assert client.put(f"/api/projects/{project['id']}", json={"title": "Changed", "tags": [], "author": ["bad"]}).status_code == 400
+    assert client.get(f"/api/projects/{project['id']}").get_json()["title"] == "Keep"
+
+
+def test_uploads_with_the_same_name_do_not_overwrite(client):
+    first = client.post("/api/artifacts/upload", data={"file": (io.BytesIO(b"one"), "game.prg32")}, content_type="multipart/form-data").get_json()
+    second = client.post("/api/artifacts/upload", data={"file": (io.BytesIO(b"two"), "game.prg32")}, content_type="multipart/form-data").get_json()
+    assert first["path"] != second["path"]
+    assert client.get(f"/api/artifacts/{first['id']}/download").data == b"one"
+    dots = client.post("/api/artifacts/upload", data={"file": (io.BytesIO(b"x"), "..")}, content_type="multipart/form-data")
+    assert dots.status_code == 201
+
+
+def test_package_failure_marks_build_failed(client, monkeypatch):
+    def broken(**_kwargs):
+        raise OSError("disk full")
+    monkeypatch.setattr("prg32_construction_kit.routes.prepare_package", broken)
+    project = client.post("/api/projects", json={"title": "Broken", "blocks_json": default_blocks()}).get_json()
+    response = client.post(f"/api/projects/{project['id']}/package", json={})
+    assert response.status_code == 500
+    builds = client.get(f"/api/builds?project_id={project['id']}").get_json()["builds"]
+    assert builds[0]["status"] == "failed"
+
+
+def test_package_uses_configured_build_root(client, app, monkeypatch):
+    monkeypatch.setattr("prg32_construction_kit.packager.subprocess.run",
+                        lambda command, **_kw: SimpleNamespace(returncode=1, stdout="", stderr="no toolchain"))
+    project = client.post("/api/projects", json={"title": "Where", "blocks_json": default_blocks()}).get_json()
+    result = client.post(f"/api/projects/{project['id']}/package", json={}).get_json()["result"]
+    assert result["work_dir"].startswith(str(app.config["BUILD_ROOT"]))
+    assert result["status"] == "source-only"

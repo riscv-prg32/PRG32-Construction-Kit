@@ -60,6 +60,14 @@ Example:
 curl http://127.0.0.1:5090/api/artifacts?kind=c_source
 ```
 
+Request rules and errors:
+
+- The body must be a JSON object; anything else returns `400`.
+- A custom `id` may use letters, digits, `-` and `_` (up to 64 characters).
+- Text fields must be text, and sprite `width`/`height` whole numbers (`400`).
+- A duplicate `id`, or a `project_id`/`sprite_id` that does not exist, returns `409`.
+- `publish_profiles` never return `bearer_token`; they return `has_token: true/false`.
+
 ## Project import/export
 
 ```http

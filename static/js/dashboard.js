@@ -19,8 +19,8 @@
           <p class="text-muted small mb-2">${Kit.escape(project.description || 'No summary yet.')}</p>
           <div class="mb-3">${Kit.tags(project.tags)}</div>
           <div class="d-flex gap-2">
-            <a class="btn btn-primary btn-sm" href="/projects/${project.id}"><i class="bi bi-pencil-square"></i> Open</a>
-            <button class="btn btn-outline-danger btn-sm delete-project" data-id="${project.id}"><i class="bi bi-trash"></i></button>
+            <a class="btn btn-primary btn-sm" href="/projects/${encodeURIComponent(project.id)}"><i class="bi bi-pencil-square"></i> Open</a>
+            <button class="btn btn-outline-danger btn-sm delete-project" data-id="${Kit.escape(project.id)}"><i class="bi bi-trash"></i></button>
           </div>
         </div>
         <div class="card-footer small text-muted">Updated ${Kit.escape(project.updated_at)}</div>
@@ -51,14 +51,14 @@
     const form = new FormData(this);
     const tags = String(form.get('tags') || '').split(',').map(t => t.trim()).filter(Boolean);
     Kit.api('/api/projects', { method: 'POST', body: { title: form.get('title'), author: form.get('author'), description: form.get('description'), tags, blocks_json: starterBlocks(), game_json: {} } })
-      .then(project => { Kit.toast('Project created', 'success'); window.location.href = '/projects/' + project.id; })
+      .then(project => { Kit.toast('Project created', 'success'); window.location.href = '/projects/' + encodeURIComponent(project.id); })
       .catch(err => Kit.toast(err.message, 'danger'));
   });
 
   $('#projectGrid').on('click', '.delete-project', function () {
     const id = $(this).data('id');
     if (!confirm('Delete this project and its dependent resources?')) return;
-    Kit.api('/api/projects/' + id, { method: 'DELETE' }).then(load).catch(err => Kit.toast(err.message, 'danger'));
+    Kit.api('/api/projects/' + encodeURIComponent(id), { method: 'DELETE' }).then(load).catch(err => Kit.toast(err.message, 'danger'));
   });
 
   $('#exampleList').on('click', '.import-example', function () {

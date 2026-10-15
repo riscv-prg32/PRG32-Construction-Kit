@@ -104,10 +104,11 @@ def prepare_package(
     build_command: str,
     cart_ram_kib: int,
     project_json: dict[str, Any],
+    build_root: Path | None = None,
 ) -> dict[str, Any]:
     slug = slugify(project.get("title") or game_ir.get("title"), "game")
     entry_prefix = game_ir.get("entry_prefix") or c_identifier(slug, "game")
-    work_dir = data_dir / "builds" / build_id
+    work_dir = (build_root or data_dir / "builds") / build_id
     work_dir.mkdir(parents=True, exist_ok=True)
     source_path = work_dir / "game.c"
     source_path.write_text(c_source, encoding="utf-8")
