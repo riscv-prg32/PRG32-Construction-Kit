@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540" style="white-space: pre" font-family="Helvetica, Arial, sans-serif">
+  <title>Asteroids: rocks live in a pool of 12 slots and split in two</title>
+  <defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#334155"/></marker></defs>
+  <rect width="960" height="540" fill="#ffffff"/>
+  <text x="30" y="38" font-size="22" font-weight="bold" fill="#0f172a">Rocks: a pool of slots, a size that shrinks, a circle test</text>
+
+  <rect x="40" y="70" width="430" height="230" rx="12" fill="#000"/>
+  <circle cx="110" cy="185" r="52" fill="none" stroke="#fff" stroke-width="2"/>
+  <circle cx="110" cy="185" r="44" fill="none" stroke="#808080" stroke-width="2"/>
+  <text x="110" y="270" text-anchor="middle" font-size="13" fill="#e2e8f0">size 3, r = 13</text>
+  <path d="M170,185 L215,185" stroke="#94a3b8" stroke-width="2" marker-end="url(#a)"/>
+  <circle cx="260" cy="150" r="32" fill="none" stroke="#fff" stroke-width="2"/>
+  <circle cx="260" cy="225" r="32" fill="none" stroke="#fff" stroke-width="2"/>
+  <text x="260" y="280" text-anchor="middle" font-size="13" fill="#e2e8f0">2 x size 2, r = 8</text>
+  <path d="M300,185 L345,185" stroke="#94a3b8" stroke-width="2" marker-end="url(#a)"/>
+  <circle cx="390" cy="130" r="20" fill="none" stroke="#fff" stroke-width="2"/>
+  <circle cx="420" cy="175" r="20" fill="none" stroke="#fff" stroke-width="2"/>
+  <circle cx="380" cy="215" r="20" fill="none" stroke="#fff" stroke-width="2"/>
+  <circle cx="425" cy="245" r="20" fill="none" stroke="#fff" stroke-width="2"/>
+  <text x="400" y="290" text-anchor="middle" font-size="13" fill="#e2e8f0">size 1, r = 5</text>
+  <text x="255" y="92" text-anchor="middle" font-size="13" fill="#e2e8f0">radius = size * size + 4 (drawn at 4x)</text>
+
+  <g font-size="15" fill="#0f172a">
+    <text x="500" y="90" font-weight="bold">Bullet hits rock: compare squares</text>
+    <text x="500" y="115" font-family="Menlo, monospace" font-size="14">dx = (shot_x[s] - rock_x[r]) / 16</text>
+    <text x="500" y="137" font-family="Menlo, monospace" font-size="14">dy = (shot_y[s] - rock_y[r]) / 16</text>
+    <text x="500" y="159" font-family="Menlo, monospace" font-size="14">hit if dx*dx + dy*dy &lt;= r*r</text>
+    <text x="500" y="181" font-size="13" fill="#475569">no square root: Pythagoras with whole numbers</text>
+    <text x="500" y="222" font-weight="bold">Points grow as rocks shrink</text>
+    <text x="500" y="247" font-family="Menlo, monospace" font-size="14">score += 20 * (4 - size)^2</text>
+    <text x="500" y="269" font-size="13" fill="#475569">size 3: 20, size 2: 80, size 1: 180</text>
+  </g>
+
+  <text x="40" y="340" font-size="15" font-weight="bold" fill="#0f172a">Parallel lists: slot r describes one rock (rock_size[r] = 0 means the slot is free)</text>
+  <g font-family="Menlo, monospace" font-size="13">
+    <text x="40" y="372" fill="#475569">slot</text>
+    <text x="40" y="398" fill="#0f172a">rock_size</text>
+    <text x="40" y="424" fill="#0f172a">rock_x</text>
+    <text x="40" y="450" fill="#0f172a">rock_vx</text>
+  </g>
+  <g font-family="Menlo, monospace" font-size="12" text-anchor="middle">
+    <rect x="140" y="384" width="64" height="72" fill="#dcfce7" stroke="#15803d"/><text x="172" y="372" fill="#475569">0</text><text x="172" y="398">3</text><text x="172" y="424">640</text><text x="172" y="450">7</text>
+    <rect x="206" y="384" width="64" height="72" fill="#dcfce7" stroke="#15803d"/><text x="238" y="372" fill="#475569">1</text><text x="238" y="398">2</text><text x="238" y="424">4320</text><text x="238" y="450">-9</text>
+    <rect x="272" y="384" width="64" height="72" fill="#fef9c3" stroke="#a16207"/><text x="304" y="372" fill="#475569">2</text><text x="304" y="398">0</text><text x="304" y="424">-</text><text x="304" y="450">-</text>
+    <rect x="338" y="384" width="64" height="72" fill="#dcfce7" stroke="#15803d"/><text x="370" y="372" fill="#475569">3</text><text x="370" y="398">1</text><text x="370" y="424">2100</text><text x="370" y="450">12</text>
+    <rect x="404" y="384" width="64" height="72" fill="#fef9c3" stroke="#a16207"/><text x="436" y="372" fill="#475569">4</text><text x="436" y="398">0</text><text x="436" y="424">-</text><text x="436" y="450">-</text>
+    <text x="500" y="424" fill="#475569">... up to slot 11</text>
+  </g>
+  <path d="M304,470 C304,500 230,500 230,470" fill="none" stroke="#a16207" stroke-width="2" marker-end="url(#a)"/>
+  <text x="40" y="500" font-size="14" fill="#0f172a">Splitting: rock r shrinks by one size; the first free slot (found with a repeat block)</text>
+  <text x="40" y="520" font-size="14" fill="#0f172a">gets a copy that flies off at a right angle (vx, vy) -> (-vy - 4, vx + 4). No free slot: the rock just shrinks.</text>
+</svg>

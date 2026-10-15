@@ -2,15 +2,15 @@
 
 ## How to use the simulator gamepad
 
-Below the simulator screen, the classic-style gamepad lets students test games with a mouse or touch screen. Its direction pad sends `UP`, `DOWN`, `LEFT`, and `RIGHT`; the red buttons send `A` and `B`; and the middle buttons send `SELECT` and `START`. These are the same names used by the **if button pressed** blocks. Keyboard controls remain available: arrow keys, `Z`/`X`, `Enter`, and `Shift`.
+Below the simulator screen, the classic-style gamepad lets students test games with a mouse or touch screen. Its direction pad sends `UP`, `DOWN`, `LEFT`, and `RIGHT`; the red buttons send `A` and `B`; and the middle buttons send `SELECT` and `START`. These are the same names used by the **if button ... is held** and **if button ... was just pressed** blocks. Player 2 uses the keys `J L I K` (directions) and `U`/`O` (A/B). A tap shorter than one frame is still seen by the game. Keyboard controls remain available: arrow keys, `Z`/`X`, `Enter`, and `Shift`.
 
 ## How to make a moving player
 
 1. Add `when game starts`.
 2. Add `set player_x to 150` and `set player_y to 180`.
 3. Add `every frame update`.
-4. Add `if button LEFT pressed`, then `change player_x by -3`.
-5. Add `if button RIGHT pressed`, then `change player_x by 3`.
+4. Add `if button LEFT is held`, then `change player_x by -3`.
+5. Add `if button RIGHT is held`, then `change player_x by 3`.
 6. Add `keep player_x between 0 and 304`.
 7. Add `every frame draw`.
 8. Add `clear screen BLACK` and `draw rectangle x player_x y player_y w 16 h 16 color YELLOW`.
@@ -31,6 +31,18 @@ Below the simulator screen, the classic-style gamepad lets students test games w
 
 The server needs the PRG32 toolchain for this step. Without it, nothing is
 downloaded and the **Debug Log** tab explains what is missing.
+
+## How to start from a complete game
+
+1. On the dashboard click **Examples**.
+2. Choose an entry marked **complete game** (Pong, Breakout, Space Invaders, Asteroids or Snake) and click **Add**.
+3. Follow its tutorial in `docs/tutorials/games/`, or open the slides at `/docs/presentations/<game>.html`.
+
+## How to check a cartridge on QEMU and PRG32-QT
+
+Run `tools/runtime_check.py` (see `runtime_check.md`). It builds the example
+games for both targets, runs them on the QEMU firmware and in PRG32-QT, and
+saves a screenshot from each.
 
 ## How to create an artifact
 

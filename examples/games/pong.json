@@ -1,0 +1,1457 @@
+{
+ "abi": "prg32-construction-kit-project-1.0",
+ "project": {
+  "title": "Pong",
+  "description": "Classic-inspired Pong: you play the left paddle with UP/DOWN, the computer plays the right paddle. First to 7 wins.",
+  "author": "PRG32 Kit",
+  "tags": [
+   "classic",
+   "pong",
+   "paddle",
+   "computer-player"
+  ],
+  "blocks_json": {
+   "blocks": {
+    "languageVersion": 0,
+    "blocks": [
+     {
+      "type": "prg32_on_start",
+      "id": "pong-136",
+      "inputs": {
+       "DO": {
+        "block": {
+         "type": "prg32_comment",
+         "id": "pong-1",
+         "fields": {
+          "TEXT": "Pong: you are the left paddle, the computer plays the right paddle."
+         },
+         "next": {
+          "block": {
+           "type": "prg32_set_state",
+           "id": "pong-2",
+           "fields": {
+            "VAR": "player_y",
+            "VALUE": "82"
+           },
+           "next": {
+            "block": {
+             "type": "prg32_set_state",
+             "id": "pong-3",
+             "fields": {
+              "VAR": "cpu_y",
+              "VALUE": "82"
+             },
+             "next": {
+              "block": {
+               "type": "prg32_set_state",
+               "id": "pong-4",
+               "fields": {
+                "VAR": "player_score",
+                "VALUE": "0"
+               },
+               "next": {
+                "block": {
+                 "type": "prg32_set_state",
+                 "id": "pong-5",
+                 "fields": {
+                  "VAR": "cpu_score",
+                  "VALUE": "0"
+                 },
+                 "next": {
+                  "block": {
+                   "type": "prg32_set_state",
+                   "id": "pong-6",
+                   "fields": {
+                    "VAR": "ball_dx",
+                    "VALUE": "-3"
+                   },
+                   "next": {
+                    "block": {
+                     "type": "prg32_set_state",
+                     "id": "pong-7",
+                     "fields": {
+                      "VAR": "rally",
+                      "VALUE": "0"
+                     },
+                     "next": {
+                      "block": {
+                       "type": "prg32_set_state",
+                       "id": "pong-8",
+                       "fields": {
+                        "VAR": "winner",
+                        "VALUE": "0"
+                       },
+                       "next": {
+                        "block": {
+                         "type": "prg32_set_state",
+                         "id": "pong-9",
+                         "fields": {
+                          "VAR": "cpu_error",
+                          "VALUE": "0"
+                         },
+                         "next": {
+                          "block": {
+                           "type": "prg32_comment",
+                           "id": "pong-10",
+                           "fields": {
+                            "TEXT": "Serve: the ball starts in the middle with a random slope."
+                           },
+                           "next": {
+                            "block": {
+                             "type": "prg32_set_state",
+                             "id": "pong-11",
+                             "fields": {
+                              "VAR": "ball_x",
+                              "VALUE": "157"
+                             },
+                             "next": {
+                              "block": {
+                               "type": "prg32_set_state",
+                               "id": "pong-12",
+                               "fields": {
+                                "VAR": "ball_y",
+                                "VALUE": "105"
+                               },
+                               "next": {
+                                "block": {
+                                 "type": "prg32_set_state",
+                                 "id": "pong-13",
+                                 "fields": {
+                                  "VAR": "ball_dy",
+                                  "VALUE": "random(-2, 2)"
+                                 },
+                                 "next": {
+                                  "block": {
+                                   "type": "prg32_set_state",
+                                   "id": "pong-14",
+                                   "fields": {
+                                    "VAR": "serve_timer",
+                                    "VALUE": "40"
+                                   },
+                                   "next": {
+                                    "block": {
+                                     "type": "prg32_set_state",
+                                     "id": "pong-15",
+                                     "fields": {
+                                      "VAR": "mode",
+                                      "VALUE": "0"
+                                     }
+                                    }
+                                   }
+                                  }
+                                 }
+                                }
+                               }
+                              }
+                             }
+                            }
+                           }
+                          }
+                         }
+                        }
+                       }
+                      }
+                     }
+                    }
+                   }
+                  }
+                 }
+                }
+               }
+              }
+             }
+            }
+           }
+          }
+         }
+        }
+       }
+      },
+      "x": 20,
+      "y": 20
+     },
+     {
+      "type": "prg32_update",
+      "id": "pong-137",
+      "inputs": {
+       "DO": {
+        "block": {
+         "type": "prg32_comment",
+         "id": "pong-16",
+         "fields": {
+          "TEXT": "Mode 0 = waiting to serve, 1 = playing, 2 = game over."
+         },
+         "next": {
+          "block": {
+           "type": "prg32_if",
+           "id": "pong-28",
+           "fields": {
+            "COND": "mode == 2"
+           },
+           "inputs": {
+            "DO": {
+             "block": {
+              "type": "prg32_if_button_once",
+              "id": "pong-27",
+              "fields": {
+               "BUTTON": "START"
+              },
+              "inputs": {
+               "DO": {
+                "block": {
+                 "type": "prg32_set_state",
+                 "id": "pong-17",
+                 "fields": {
+                  "VAR": "player_score",
+                  "VALUE": "0"
+                 },
+                 "next": {
+                  "block": {
+                   "type": "prg32_set_state",
+                   "id": "pong-18",
+                   "fields": {
+                    "VAR": "cpu_score",
+                    "VALUE": "0"
+                   },
+                   "next": {
+                    "block": {
+                     "type": "prg32_set_state",
+                     "id": "pong-19",
+                     "fields": {
+                      "VAR": "winner",
+                      "VALUE": "0"
+                     },
+                     "next": {
+                      "block": {
+                       "type": "prg32_set_state",
+                       "id": "pong-20",
+                       "fields": {
+                        "VAR": "ball_dx",
+                        "VALUE": "-3"
+                       },
+                       "next": {
+                        "block": {
+                         "type": "prg32_comment",
+                         "id": "pong-21",
+                         "fields": {
+                          "TEXT": "Serve: the ball starts in the middle with a random slope."
+                         },
+                         "next": {
+                          "block": {
+                           "type": "prg32_set_state",
+                           "id": "pong-22",
+                           "fields": {
+                            "VAR": "ball_x",
+                            "VALUE": "157"
+                           },
+                           "next": {
+                            "block": {
+                             "type": "prg32_set_state",
+                             "id": "pong-23",
+                             "fields": {
+                              "VAR": "ball_y",
+                              "VALUE": "105"
+                             },
+                             "next": {
+                              "block": {
+                               "type": "prg32_set_state",
+                               "id": "pong-24",
+                               "fields": {
+                                "VAR": "ball_dy",
+                                "VALUE": "random(-2, 2)"
+                               },
+                               "next": {
+                                "block": {
+                                 "type": "prg32_set_state",
+                                 "id": "pong-25",
+                                 "fields": {
+                                  "VAR": "serve_timer",
+                                  "VALUE": "40"
+                                 },
+                                 "next": {
+                                  "block": {
+                                   "type": "prg32_set_state",
+                                   "id": "pong-26",
+                                   "fields": {
+                                    "VAR": "mode",
+                                    "VALUE": "0"
+                                   }
+                                  }
+                                 }
+                                }
+                               }
+                              }
+                             }
+                            }
+                           }
+                          }
+                         }
+                        }
+                       }
+                      }
+                     }
+                    }
+                   }
+                  }
+                 }
+                }
+               }
+              }
+             }
+            }
+           },
+           "next": {
+            "block": {
+             "type": "prg32_comment",
+             "id": "pong-29",
+             "fields": {
+              "TEXT": "The player moves the left paddle with UP and DOWN."
+             },
+             "next": {
+              "block": {
+               "type": "prg32_if_button",
+               "id": "pong-31",
+               "fields": {
+                "BUTTON": "UP"
+               },
+               "inputs": {
+                "DO": {
+                 "block": {
+                  "type": "prg32_change_state",
+                  "id": "pong-30",
+                  "fields": {
+                   "VAR": "player_y",
+                   "DELTA": "-4"
+                  }
+                 }
+                }
+               },
+               "next": {
+                "block": {
+                 "type": "prg32_if_button",
+                 "id": "pong-33",
+                 "fields": {
+                  "BUTTON": "DOWN"
+                 },
+                 "inputs": {
+                  "DO": {
+                   "block": {
+                    "type": "prg32_change_state",
+                    "id": "pong-32",
+                    "fields": {
+                     "VAR": "player_y",
+                     "DELTA": "4"
+                    }
+                   }
+                  }
+                 },
+                 "next": {
+                  "block": {
+                   "type": "prg32_clamp_state",
+                   "id": "pong-34",
+                   "fields": {
+                    "VAR": "player_y",
+                    "LOW": "20",
+                    "HIGH": "160"
+                   },
+                   "next": {
+                    "block": {
+                     "type": "prg32_comment",
+                     "id": "pong-35",
+                     "fields": {
+                      "TEXT": "The computer follows the ball only while it is coming towards it."
+                     },
+                     "next": {
+                      "block": {
+                       "type": "prg32_if_else",
+                       "id": "pong-38",
+                       "fields": {
+                        "COND": "ball_dx > 0 && ball_x > 100"
+                       },
+                       "inputs": {
+                        "DO": {
+                         "block": {
+                          "type": "prg32_set_state",
+                          "id": "pong-36",
+                          "fields": {
+                           "VAR": "cpu_target",
+                           "VALUE": "ball_y + 3 - 18 + cpu_error"
+                          }
+                         }
+                        },
+                        "ELSE": {
+                         "block": {
+                          "type": "prg32_set_state",
+                          "id": "pong-37",
+                          "fields": {
+                           "VAR": "cpu_target",
+                           "VALUE": "82"
+                          }
+                         }
+                        }
+                       },
+                       "next": {
+                        "block": {
+                         "type": "prg32_if",
+                         "id": "pong-40",
+                         "fields": {
+                          "COND": "cpu_y < cpu_target - 3"
+                         },
+                         "inputs": {
+                          "DO": {
+                           "block": {
+                            "type": "prg32_change_state",
+                            "id": "pong-39",
+                            "fields": {
+                             "VAR": "cpu_y",
+                             "DELTA": "3"
+                            }
+                           }
+                          }
+                         },
+                         "next": {
+                          "block": {
+                           "type": "prg32_if",
+                           "id": "pong-42",
+                           "fields": {
+                            "COND": "cpu_y > cpu_target + 3"
+                           },
+                           "inputs": {
+                            "DO": {
+                             "block": {
+                              "type": "prg32_change_state",
+                              "id": "pong-41",
+                              "fields": {
+                               "VAR": "cpu_y",
+                               "DELTA": "-3"
+                              }
+                             }
+                            }
+                           },
+                           "next": {
+                            "block": {
+                             "type": "prg32_clamp_state",
+                             "id": "pong-43",
+                             "fields": {
+                              "VAR": "cpu_y",
+                              "LOW": "20",
+                              "HIGH": "160"
+                             },
+                             "next": {
+                              "block": {
+                               "type": "prg32_comment",
+                               "id": "pong-44",
+                               "fields": {
+                                "TEXT": "While waiting, count down to the serve."
+                               },
+                               "next": {
+                                "block": {
+                                 "type": "prg32_if",
+                                 "id": "pong-48",
+                                 "fields": {
+                                  "COND": "mode == 0"
+                                 },
+                                 "inputs": {
+                                  "DO": {
+                                   "block": {
+                                    "type": "prg32_change_state",
+                                    "id": "pong-45",
+                                    "fields": {
+                                     "VAR": "serve_timer",
+                                     "DELTA": "-1"
+                                    },
+                                    "next": {
+                                     "block": {
+                                      "type": "prg32_if",
+                                      "id": "pong-47",
+                                      "fields": {
+                                       "COND": "serve_timer <= 0"
+                                      },
+                                      "inputs": {
+                                       "DO": {
+                                        "block": {
+                                         "type": "prg32_set_state",
+                                         "id": "pong-46",
+                                         "fields": {
+                                          "VAR": "mode",
+                                          "VALUE": "1"
+                                         }
+                                        }
+                                       }
+                                      }
+                                     }
+                                    }
+                                   }
+                                  }
+                                 },
+                                 "next": {
+                                  "block": {
+                                   "type": "prg32_comment",
+                                   "id": "pong-49",
+                                   "fields": {
+                                    "TEXT": "Playing: move the ball, bounce it, and check for points."
+                                   },
+                                   "next": {
+                                    "block": {
+                                     "type": "prg32_if",
+                                     "id": "pong-109",
+                                     "fields": {
+                                      "COND": "mode == 1"
+                                     },
+                                     "inputs": {
+                                      "DO": {
+                                       "block": {
+                                        "type": "prg32_comment",
+                                        "id": "pong-50",
+                                        "fields": {
+                                         "TEXT": "Move the ball one step: new position = old position + velocity."
+                                        },
+                                        "next": {
+                                         "block": {
+                                          "type": "prg32_change_state",
+                                          "id": "pong-51",
+                                          "fields": {
+                                           "VAR": "ball_x",
+                                           "DELTA": "ball_dx"
+                                          },
+                                          "next": {
+                                           "block": {
+                                            "type": "prg32_change_state",
+                                            "id": "pong-52",
+                                            "fields": {
+                                             "VAR": "ball_y",
+                                             "DELTA": "ball_dy"
+                                            },
+                                            "next": {
+                                             "block": {
+                                              "type": "prg32_comment",
+                                              "id": "pong-53",
+                                              "fields": {
+                                               "TEXT": "Bounce on the top and bottom walls."
+                                              },
+                                              "next": {
+                                               "block": {
+                                                "type": "prg32_if",
+                                                "id": "pong-57",
+                                                "fields": {
+                                                 "COND": "ball_y < 20"
+                                                },
+                                                "inputs": {
+                                                 "DO": {
+                                                  "block": {
+                                                   "type": "prg32_set_state",
+                                                   "id": "pong-54",
+                                                   "fields": {
+                                                    "VAR": "ball_y",
+                                                    "VALUE": "20"
+                                                   },
+                                                   "next": {
+                                                    "block": {
+                                                     "type": "prg32_set_state",
+                                                     "id": "pong-55",
+                                                     "fields": {
+                                                      "VAR": "ball_dy",
+                                                      "VALUE": "abs(ball_dy)"
+                                                     },
+                                                     "next": {
+                                                      "block": {
+                                                       "type": "prg32_play_beep",
+                                                       "id": "pong-56",
+                                                       "fields": {
+                                                        "FREQ": "440",
+                                                        "MS": "20"
+                                                       }
+                                                      }
+                                                     }
+                                                    }
+                                                   }
+                                                  }
+                                                 }
+                                                },
+                                                "next": {
+                                                 "block": {
+                                                  "type": "prg32_if",
+                                                  "id": "pong-61",
+                                                  "fields": {
+                                                   "COND": "ball_y > 192"
+                                                  },
+                                                  "inputs": {
+                                                   "DO": {
+                                                    "block": {
+                                                     "type": "prg32_set_state",
+                                                     "id": "pong-58",
+                                                     "fields": {
+                                                      "VAR": "ball_y",
+                                                      "VALUE": "192"
+                                                     },
+                                                     "next": {
+                                                      "block": {
+                                                       "type": "prg32_set_state",
+                                                       "id": "pong-59",
+                                                       "fields": {
+                                                        "VAR": "ball_dy",
+                                                        "VALUE": "-abs(ball_dy)"
+                                                       },
+                                                       "next": {
+                                                        "block": {
+                                                         "type": "prg32_play_beep",
+                                                         "id": "pong-60",
+                                                         "fields": {
+                                                          "FREQ": "440",
+                                                          "MS": "20"
+                                                         }
+                                                        }
+                                                       }
+                                                      }
+                                                     }
+                                                    }
+                                                   }
+                                                  },
+                                                  "next": {
+                                                   "block": {
+                                                    "type": "prg32_comment",
+                                                    "id": "pong-62",
+                                                    "fields": {
+                                                     "TEXT": "Paddle hits: only the paddle the ball is moving towards can hit it."
+                                                    },
+                                                    "next": {
+                                                     "block": {
+                                                      "type": "prg32_if",
+                                                      "id": "pong-71",
+                                                      "fields": {
+                                                       "COND": "ball_dx < 0"
+                                                      },
+                                                      "inputs": {
+                                                       "DO": {
+                                                        "block": {
+                                                         "type": "prg32_if_touching",
+                                                         "id": "pong-70",
+                                                         "fields": {
+                                                          "AX": "ball_x",
+                                                          "AY": "ball_y",
+                                                          "AW": "6",
+                                                          "AH": "6",
+                                                          "BX": "10",
+                                                          "BY": "player_y",
+                                                          "BW": "6",
+                                                          "BH": "36"
+                                                         },
+                                                         "inputs": {
+                                                          "DO": {
+                                                           "block": {
+                                                            "type": "prg32_set_state",
+                                                            "id": "pong-63",
+                                                            "fields": {
+                                                             "VAR": "ball_dx",
+                                                             "VALUE": "min(abs(ball_dx) + 1, 7)"
+                                                            },
+                                                            "next": {
+                                                             "block": {
+                                                              "type": "prg32_comment",
+                                                              "id": "pong-64",
+                                                              "fields": {
+                                                               "TEXT": "Where the ball hits the paddle decides the new angle."
+                                                              },
+                                                              "next": {
+                                                               "block": {
+                                                                "type": "prg32_set_state",
+                                                                "id": "pong-65",
+                                                                "fields": {
+                                                                 "VAR": "ball_dy",
+                                                                 "VALUE": "(ball_y + 3 - (player_y + 18)) / 4"
+                                                                },
+                                                                "next": {
+                                                                 "block": {
+                                                                  "type": "prg32_set_state",
+                                                                  "id": "pong-66",
+                                                                  "fields": {
+                                                                   "VAR": "rally",
+                                                                   "VALUE": "rally + 1"
+                                                                  },
+                                                                  "next": {
+                                                                   "block": {
+                                                                    "type": "prg32_comment",
+                                                                    "id": "pong-67",
+                                                                    "fields": {
+                                                                     "TEXT": "The computer guesses where to stand; a bigger guess error makes it miss."
+                                                                    },
+                                                                    "next": {
+                                                                     "block": {
+                                                                      "type": "prg32_set_state",
+                                                                      "id": "pong-68",
+                                                                      "fields": {
+                                                                       "VAR": "cpu_error",
+                                                                       "VALUE": "random(-24, 24)"
+                                                                      },
+                                                                      "next": {
+                                                                       "block": {
+                                                                        "type": "prg32_play_beep",
+                                                                        "id": "pong-69",
+                                                                        "fields": {
+                                                                         "FREQ": "660",
+                                                                         "MS": "40"
+                                                                        }
+                                                                       }
+                                                                      }
+                                                                     }
+                                                                    }
+                                                                   }
+                                                                  }
+                                                                 }
+                                                                }
+                                                               }
+                                                              }
+                                                             }
+                                                            }
+                                                           }
+                                                          }
+                                                         }
+                                                        }
+                                                       }
+                                                      },
+                                                      "next": {
+                                                       "block": {
+                                                        "type": "prg32_if",
+                                                        "id": "pong-80",
+                                                        "fields": {
+                                                         "COND": "ball_dx > 0"
+                                                        },
+                                                        "inputs": {
+                                                         "DO": {
+                                                          "block": {
+                                                           "type": "prg32_if_touching",
+                                                           "id": "pong-79",
+                                                           "fields": {
+                                                            "AX": "ball_x",
+                                                            "AY": "ball_y",
+                                                            "AW": "6",
+                                                            "AH": "6",
+                                                            "BX": "304",
+                                                            "BY": "cpu_y",
+                                                            "BW": "6",
+                                                            "BH": "36"
+                                                           },
+                                                           "inputs": {
+                                                            "DO": {
+                                                             "block": {
+                                                              "type": "prg32_set_state",
+                                                              "id": "pong-72",
+                                                              "fields": {
+                                                               "VAR": "ball_dx",
+                                                               "VALUE": "-min(abs(ball_dx) + 1, 7)"
+                                                              },
+                                                              "next": {
+                                                               "block": {
+                                                                "type": "prg32_comment",
+                                                                "id": "pong-73",
+                                                                "fields": {
+                                                                 "TEXT": "Where the ball hits the paddle decides the new angle."
+                                                                },
+                                                                "next": {
+                                                                 "block": {
+                                                                  "type": "prg32_set_state",
+                                                                  "id": "pong-74",
+                                                                  "fields": {
+                                                                   "VAR": "ball_dy",
+                                                                   "VALUE": "(ball_y + 3 - (cpu_y + 18)) / 4"
+                                                                  },
+                                                                  "next": {
+                                                                   "block": {
+                                                                    "type": "prg32_set_state",
+                                                                    "id": "pong-75",
+                                                                    "fields": {
+                                                                     "VAR": "rally",
+                                                                     "VALUE": "rally + 1"
+                                                                    },
+                                                                    "next": {
+                                                                     "block": {
+                                                                      "type": "prg32_comment",
+                                                                      "id": "pong-76",
+                                                                      "fields": {
+                                                                       "TEXT": "The computer guesses where to stand; a bigger guess error makes it miss."
+                                                                      },
+                                                                      "next": {
+                                                                       "block": {
+                                                                        "type": "prg32_set_state",
+                                                                        "id": "pong-77",
+                                                                        "fields": {
+                                                                         "VAR": "cpu_error",
+                                                                         "VALUE": "random(-24, 24)"
+                                                                        },
+                                                                        "next": {
+                                                                         "block": {
+                                                                          "type": "prg32_play_beep",
+                                                                          "id": "pong-78",
+                                                                          "fields": {
+                                                                           "FREQ": "660",
+                                                                           "MS": "40"
+                                                                          }
+                                                                         }
+                                                                        }
+                                                                       }
+                                                                      }
+                                                                     }
+                                                                    }
+                                                                   }
+                                                                  }
+                                                                 }
+                                                                }
+                                                               }
+                                                              }
+                                                             }
+                                                            }
+                                                           }
+                                                          }
+                                                         }
+                                                        },
+                                                        "next": {
+                                                         "block": {
+                                                          "type": "prg32_comment",
+                                                          "id": "pong-81",
+                                                          "fields": {
+                                                           "TEXT": "A point is scored when the ball leaves the court."
+                                                          },
+                                                          "next": {
+                                                           "block": {
+                                                            "type": "prg32_if",
+                                                            "id": "pong-91",
+                                                            "fields": {
+                                                             "COND": "ball_x < -6"
+                                                            },
+                                                            "inputs": {
+                                                             "DO": {
+                                                              "block": {
+                                                               "type": "prg32_change_state",
+                                                               "id": "pong-82",
+                                                               "fields": {
+                                                                "VAR": "cpu_score",
+                                                                "DELTA": "1"
+                                                               },
+                                                               "next": {
+                                                                "block": {
+                                                                 "type": "prg32_set_state",
+                                                                 "id": "pong-83",
+                                                                 "fields": {
+                                                                  "VAR": "ball_dx",
+                                                                  "VALUE": "-3"
+                                                                 },
+                                                                 "next": {
+                                                                  "block": {
+                                                                   "type": "prg32_audio_note",
+                                                                   "id": "pong-84",
+                                                                   "fields": {
+                                                                    "NOTE": "48",
+                                                                    "CHANNEL": "1",
+                                                                    "MS": "300"
+                                                                   },
+                                                                   "next": {
+                                                                    "block": {
+                                                                     "type": "prg32_comment",
+                                                                     "id": "pong-85",
+                                                                     "fields": {
+                                                                      "TEXT": "Serve: the ball starts in the middle with a random slope."
+                                                                     },
+                                                                     "next": {
+                                                                      "block": {
+                                                                       "type": "prg32_set_state",
+                                                                       "id": "pong-86",
+                                                                       "fields": {
+                                                                        "VAR": "ball_x",
+                                                                        "VALUE": "157"
+                                                                       },
+                                                                       "next": {
+                                                                        "block": {
+                                                                         "type": "prg32_set_state",
+                                                                         "id": "pong-87",
+                                                                         "fields": {
+                                                                          "VAR": "ball_y",
+                                                                          "VALUE": "105"
+                                                                         },
+                                                                         "next": {
+                                                                          "block": {
+                                                                           "type": "prg32_set_state",
+                                                                           "id": "pong-88",
+                                                                           "fields": {
+                                                                            "VAR": "ball_dy",
+                                                                            "VALUE": "random(-2, 2)"
+                                                                           },
+                                                                           "next": {
+                                                                            "block": {
+                                                                             "type": "prg32_set_state",
+                                                                             "id": "pong-89",
+                                                                             "fields": {
+                                                                              "VAR": "serve_timer",
+                                                                              "VALUE": "40"
+                                                                             },
+                                                                             "next": {
+                                                                              "block": {
+                                                                               "type": "prg32_set_state",
+                                                                               "id": "pong-90",
+                                                                               "fields": {
+                                                                                "VAR": "mode",
+                                                                                "VALUE": "0"
+                                                                               }
+                                                                              }
+                                                                             }
+                                                                            }
+                                                                           }
+                                                                          }
+                                                                         }
+                                                                        }
+                                                                       }
+                                                                      }
+                                                                     }
+                                                                    }
+                                                                   }
+                                                                  }
+                                                                 }
+                                                                }
+                                                               }
+                                                              }
+                                                             }
+                                                            },
+                                                            "next": {
+                                                             "block": {
+                                                              "type": "prg32_if",
+                                                              "id": "pong-101",
+                                                              "fields": {
+                                                               "COND": "ball_x > 320"
+                                                              },
+                                                              "inputs": {
+                                                               "DO": {
+                                                                "block": {
+                                                                 "type": "prg32_change_state",
+                                                                 "id": "pong-92",
+                                                                 "fields": {
+                                                                  "VAR": "player_score",
+                                                                  "DELTA": "1"
+                                                                 },
+                                                                 "next": {
+                                                                  "block": {
+                                                                   "type": "prg32_set_state",
+                                                                   "id": "pong-93",
+                                                                   "fields": {
+                                                                    "VAR": "ball_dx",
+                                                                    "VALUE": "3"
+                                                                   },
+                                                                   "next": {
+                                                                    "block": {
+                                                                     "type": "prg32_audio_note",
+                                                                     "id": "pong-94",
+                                                                     "fields": {
+                                                                      "NOTE": "72",
+                                                                      "CHANNEL": "1",
+                                                                      "MS": "300"
+                                                                     },
+                                                                     "next": {
+                                                                      "block": {
+                                                                       "type": "prg32_comment",
+                                                                       "id": "pong-95",
+                                                                       "fields": {
+                                                                        "TEXT": "Serve: the ball starts in the middle with a random slope."
+                                                                       },
+                                                                       "next": {
+                                                                        "block": {
+                                                                         "type": "prg32_set_state",
+                                                                         "id": "pong-96",
+                                                                         "fields": {
+                                                                          "VAR": "ball_x",
+                                                                          "VALUE": "157"
+                                                                         },
+                                                                         "next": {
+                                                                          "block": {
+                                                                           "type": "prg32_set_state",
+                                                                           "id": "pong-97",
+                                                                           "fields": {
+                                                                            "VAR": "ball_y",
+                                                                            "VALUE": "105"
+                                                                           },
+                                                                           "next": {
+                                                                            "block": {
+                                                                             "type": "prg32_set_state",
+                                                                             "id": "pong-98",
+                                                                             "fields": {
+                                                                              "VAR": "ball_dy",
+                                                                              "VALUE": "random(-2, 2)"
+                                                                             },
+                                                                             "next": {
+                                                                              "block": {
+                                                                               "type": "prg32_set_state",
+                                                                               "id": "pong-99",
+                                                                               "fields": {
+                                                                                "VAR": "serve_timer",
+                                                                                "VALUE": "40"
+                                                                               },
+                                                                               "next": {
+                                                                                "block": {
+                                                                                 "type": "prg32_set_state",
+                                                                                 "id": "pong-100",
+                                                                                 "fields": {
+                                                                                  "VAR": "mode",
+                                                                                  "VALUE": "0"
+                                                                                 }
+                                                                                }
+                                                                               }
+                                                                              }
+                                                                             }
+                                                                            }
+                                                                           }
+                                                                          }
+                                                                         }
+                                                                        }
+                                                                       }
+                                                                      }
+                                                                     }
+                                                                    }
+                                                                   }
+                                                                  }
+                                                                 }
+                                                                }
+                                                               }
+                                                              },
+                                                              "next": {
+                                                               "block": {
+                                                                "type": "prg32_comment",
+                                                                "id": "pong-102",
+                                                                "fields": {
+                                                                 "TEXT": "The first player to reach 7 points wins."
+                                                                },
+                                                                "next": {
+                                                                 "block": {
+                                                                  "type": "prg32_if",
+                                                                  "id": "pong-105",
+                                                                  "fields": {
+                                                                   "COND": "player_score == 7"
+                                                                  },
+                                                                  "inputs": {
+                                                                   "DO": {
+                                                                    "block": {
+                                                                     "type": "prg32_set_state",
+                                                                     "id": "pong-103",
+                                                                     "fields": {
+                                                                      "VAR": "winner",
+                                                                      "VALUE": "1"
+                                                                     },
+                                                                     "next": {
+                                                                      "block": {
+                                                                       "type": "prg32_set_state",
+                                                                       "id": "pong-104",
+                                                                       "fields": {
+                                                                        "VAR": "mode",
+                                                                        "VALUE": "2"
+                                                                       }
+                                                                      }
+                                                                     }
+                                                                    }
+                                                                   }
+                                                                  },
+                                                                  "next": {
+                                                                   "block": {
+                                                                    "type": "prg32_if",
+                                                                    "id": "pong-108",
+                                                                    "fields": {
+                                                                     "COND": "cpu_score == 7"
+                                                                    },
+                                                                    "inputs": {
+                                                                     "DO": {
+                                                                      "block": {
+                                                                       "type": "prg32_set_state",
+                                                                       "id": "pong-106",
+                                                                       "fields": {
+                                                                        "VAR": "winner",
+                                                                        "VALUE": "2"
+                                                                       },
+                                                                       "next": {
+                                                                        "block": {
+                                                                         "type": "prg32_set_state",
+                                                                         "id": "pong-107",
+                                                                         "fields": {
+                                                                          "VAR": "mode",
+                                                                          "VALUE": "2"
+                                                                         }
+                                                                        }
+                                                                       }
+                                                                      }
+                                                                     }
+                                                                    }
+                                                                   }
+                                                                  }
+                                                                 }
+                                                                }
+                                                               }
+                                                              }
+                                                             }
+                                                            }
+                                                           }
+                                                          }
+                                                         }
+                                                        }
+                                                       }
+                                                      }
+                                                     }
+                                                    }
+                                                   }
+                                                  }
+                                                 }
+                                                }
+                                               }
+                                              }
+                                             }
+                                            }
+                                           }
+                                          }
+                                         }
+                                        }
+                                       }
+                                      }
+                                     },
+                                     "next": {
+                                      "block": {
+                                       "type": "prg32_comment",
+                                       "id": "pong-110",
+                                       "fields": {
+                                        "TEXT": "Show the player's score in the PRG32 status band."
+                                       },
+                                       "next": {
+                                        "block": {
+                                         "type": "prg32_band_text",
+                                         "id": "pong-111",
+                                         "fields": {
+                                          "TEXT": "YOU",
+                                          "VALUE": "player_score"
+                                         }
+                                        }
+                                       }
+                                      }
+                                     }
+                                    }
+                                   }
+                                  }
+                                 }
+                                }
+                               }
+                              }
+                             }
+                            }
+                           }
+                          }
+                         }
+                        }
+                       }
+                      }
+                     }
+                    }
+                   }
+                  }
+                 }
+                }
+               }
+              }
+             }
+            }
+           }
+          }
+         }
+        }
+       }
+      },
+      "x": 520,
+      "y": 20
+     },
+     {
+      "type": "prg32_draw",
+      "id": "pong-138",
+      "inputs": {
+       "DO": {
+        "block": {
+         "type": "prg32_comment",
+         "id": "pong-112",
+         "fields": {
+          "TEXT": "Painter's algorithm: clear, draw the court, then the moving objects on top."
+         },
+         "next": {
+          "block": {
+           "type": "prg32_clear_screen",
+           "id": "pong-113",
+           "fields": {
+            "COLOR": "BLACK"
+           },
+           "next": {
+            "block": {
+             "type": "prg32_draw_rect",
+             "id": "pong-114",
+             "fields": {
+              "X": "0",
+              "Y": "16",
+              "W": "320",
+              "H": "2",
+              "COLOR": "GRAY"
+             },
+             "next": {
+              "block": {
+               "type": "prg32_draw_rect",
+               "id": "pong-115",
+               "fields": {
+                "X": "0",
+                "Y": "198",
+                "W": "320",
+                "H": "2",
+                "COLOR": "GRAY"
+               },
+               "next": {
+                "block": {
+                 "type": "prg32_comment",
+                 "id": "pong-116",
+                 "fields": {
+                  "TEXT": "The net: a dashed line made of 12 short rectangles."
+                 },
+                 "next": {
+                  "block": {
+                   "type": "prg32_repeat",
+                   "id": "pong-118",
+                   "fields": {
+                    "VAR": "dash",
+                    "FROM": "0",
+                    "TO": "11"
+                   },
+                   "inputs": {
+                    "DO": {
+                     "block": {
+                      "type": "prg32_draw_rect",
+                      "id": "pong-117",
+                      "fields": {
+                       "X": "159",
+                       "Y": "21 + dash * 15",
+                       "W": "2",
+                       "H": "8",
+                       "COLOR": "DARK_GRAY"
+                      }
+                     }
+                    }
+                   },
+                   "next": {
+                    "block": {
+                     "type": "prg32_comment",
+                     "id": "pong-119",
+                     "fields": {
+                      "TEXT": "Scores, labels, paddles and ball."
+                     },
+                     "next": {
+                      "block": {
+                       "type": "prg32_draw_number",
+                       "id": "pong-120",
+                       "fields": {
+                        "VALUE": "player_score",
+                        "X": "120",
+                        "Y": "4",
+                        "FG": "WHITE",
+                        "BG": "BLACK"
+                       },
+                       "next": {
+                        "block": {
+                         "type": "prg32_draw_number",
+                         "id": "pong-121",
+                         "fields": {
+                          "VALUE": "cpu_score",
+                          "X": "192",
+                          "Y": "4",
+                          "FG": "WHITE",
+                          "BG": "BLACK"
+                         },
+                         "next": {
+                          "block": {
+                           "type": "prg32_draw_text",
+                           "id": "pong-122",
+                           "fields": {
+                            "TEXT": "YOU",
+                            "X": "8",
+                            "Y": "4",
+                            "FG": "CYAN",
+                            "BG": "BLACK"
+                           },
+                           "next": {
+                            "block": {
+                             "type": "prg32_draw_text",
+                             "id": "pong-123",
+                             "fields": {
+                              "TEXT": "CPU",
+                              "X": "288",
+                              "Y": "4",
+                              "FG": "ORANGE",
+                              "BG": "BLACK"
+                             },
+                             "next": {
+                              "block": {
+                               "type": "prg32_draw_rect",
+                               "id": "pong-124",
+                               "fields": {
+                                "X": "10",
+                                "Y": "player_y",
+                                "W": "6",
+                                "H": "36",
+                                "COLOR": "CYAN"
+                               },
+                               "next": {
+                                "block": {
+                                 "type": "prg32_draw_rect",
+                                 "id": "pong-125",
+                                 "fields": {
+                                  "X": "304",
+                                  "Y": "cpu_y",
+                                  "W": "6",
+                                  "H": "36",
+                                  "COLOR": "ORANGE"
+                                 },
+                                 "next": {
+                                  "block": {
+                                   "type": "prg32_if",
+                                   "id": "pong-127",
+                                   "fields": {
+                                    "COND": "mode != 2"
+                                   },
+                                   "inputs": {
+                                    "DO": {
+                                     "block": {
+                                      "type": "prg32_draw_rect",
+                                      "id": "pong-126",
+                                      "fields": {
+                                       "X": "ball_x",
+                                       "Y": "ball_y",
+                                       "W": "6",
+                                       "H": "6",
+                                       "COLOR": "WHITE"
+                                      }
+                                     }
+                                    }
+                                   },
+                                   "next": {
+                                    "block": {
+                                     "type": "prg32_comment",
+                                     "id": "pong-128",
+                                     "fields": {
+                                      "TEXT": "Messages for the current mode."
+                                     },
+                                     "next": {
+                                      "block": {
+                                       "type": "prg32_if",
+                                       "id": "pong-130",
+                                       "fields": {
+                                        "COND": "mode == 0"
+                                       },
+                                       "inputs": {
+                                        "DO": {
+                                         "block": {
+                                          "type": "prg32_draw_text",
+                                          "id": "pong-129",
+                                          "fields": {
+                                           "TEXT": "READY",
+                                           "X": "140",
+                                           "Y": "120",
+                                           "FG": "YELLOW",
+                                           "BG": "BLACK"
+                                          }
+                                         }
+                                        }
+                                       },
+                                       "next": {
+                                        "block": {
+                                         "type": "prg32_if",
+                                         "id": "pong-135",
+                                         "fields": {
+                                          "COND": "mode == 2"
+                                         },
+                                         "inputs": {
+                                          "DO": {
+                                           "block": {
+                                            "type": "prg32_if_else",
+                                            "id": "pong-133",
+                                            "fields": {
+                                             "COND": "winner == 1"
+                                            },
+                                            "inputs": {
+                                             "DO": {
+                                              "block": {
+                                               "type": "prg32_draw_text",
+                                               "id": "pong-131",
+                                               "fields": {
+                                                "TEXT": "YOU WIN!",
+                                                "X": "128",
+                                                "Y": "90",
+                                                "FG": "LIME",
+                                                "BG": "BLACK"
+                                               }
+                                              }
+                                             },
+                                             "ELSE": {
+                                              "block": {
+                                               "type": "prg32_draw_text",
+                                               "id": "pong-132",
+                                               "fields": {
+                                                "TEXT": "CPU WINS",
+                                                "X": "128",
+                                                "Y": "90",
+                                                "FG": "RED",
+                                                "BG": "BLACK"
+                                               }
+                                              }
+                                             }
+                                            },
+                                            "next": {
+                                             "block": {
+                                              "type": "prg32_draw_text",
+                                              "id": "pong-134",
+                                              "fields": {
+                                               "TEXT": "PRESS START",
+                                               "X": "116",
+                                               "Y": "110",
+                                               "FG": "WHITE",
+                                               "BG": "BLACK"
+                                              }
+                                             }
+                                            }
+                                           }
+                                          }
+                                         }
+                                        }
+                                       }
+                                      }
+                                     }
+                                    }
+                                   }
+                                  }
+                                 }
+                                }
+                               }
+                              }
+                             }
+                            }
+                           }
+                          }
+                         }
+                        }
+                       }
+                      }
+                     }
+                    }
+                   }
+                  }
+                 }
+                }
+               }
+              }
+             }
+            }
+           }
+          }
+         }
+        }
+       }
+      },
+      "x": 1120,
+      "y": 20
+     }
+    ]
+   }
+  }
+ }
+}

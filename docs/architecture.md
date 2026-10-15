@@ -33,8 +33,12 @@ Blockly workspace JSON
 | Flask app | `prg32_construction_kit/` | Routes, CRUD API, conversion, packaging, publishing. |
 | SQLAlchemy storage | `prg32_construction_kit/db.py` | Database-neutral models and CRUD for projects, sprites, assets, artifacts, builds, and publish profiles. |
 | Blockly editor | `static/js/blockly_blocks.js` | Custom PRG32 block vocabulary. |
-| Online simulator | `static/js/simulator.js` | Browser execution of the game IR. |
-| C generator | `prg32_construction_kit/generator.py` | Converts saved Blocks JSON into PRG32 C. |
+| Online simulator | `static/js/simulator.js` | Browser execution of the game IR on a 320 x 200 RGB565 framebuffer. |
+| Expression checker | `prg32_construction_kit/expressions.py` | Grammar of block text fields: integers, variables, list items, kit functions, PRG32 constants. |
+| C generator | `prg32_construction_kit/generator.py` | Converts saved Blocks JSON into PRG32 C, adding only the helpers a game uses. |
+| Example games | `examples/games/`, `tools/build_example_games.py` | Five complete Blocks games and the script that writes them. |
+| Tutorials | `docs/tutorials/games/`, `tools/build_presentations.py` | Step-by-step decks whose block and C excerpts are generated from the games. |
+| Runtime check | `tools/runtime_check.py`, `tools/simulate.js` | Builds examples and runs them in the simulator, QEMU and PRG32-QT. |
 | Packager | `prg32_construction_kit/packager.py` | Runs PRG32 build command for all or selected architectures and creates publishing zip bundles. |
 | Publisher | `prg32_construction_kit/publisher.py` | Sends bundle to Cartridge Store. |
 
@@ -66,6 +70,22 @@ IR:    {op: "if_button", button: "LEFT", then: [...]}
 C:     if (input & PRG32_BTN_LEFT) { player_x += -3; }
 JS:    if (keys.LEFT) { state.player_x += -3; }
 ```
+
+## Game IR 1.1
+
+The IR (`prg32-construction-kit-game-1.1`) lists the game's variables,
+lists, required PRG32 features and three statement lists. Statements are
+small JSON objects (`set`, `if`, `repeat`, `list_set`, `line`, `playfield_put`,
+...) whose expression fields are already checked and normalized. Python
+(`generator.py`) and JavaScript (`simulator.js`) build the same IR from the
+same Blocks JSON; the tests compare them for every example and for one block of
+every toolbox type.
+
+The generated C is freestanding: no libc, no floating point, no dynamic
+memory. Lists are `static int` arrays accessed through bounds-checked
+helpers, `repeat` loops have a hidden counter capped at 1024 iterations, and
+integer division follows the RISC-V rules (no trap on division by zero) in
+both the C and the simulator.
 
 ## Build behavior
 

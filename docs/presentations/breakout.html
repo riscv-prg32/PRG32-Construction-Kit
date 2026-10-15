@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Breakout with PRG32 Blocks</title>
+<link rel="stylesheet" href="deck.css">
+</head>
+<body>
+<!-- Built by tools/build_presentations.py from docs/tutorials/games/breakout.md; edit that file, not this one. -->
+<main class="deck" data-title="Breakout with PRG32 Blocks">
+<section class="slide title">
+<!-- class: title -->
+<h1>Breakout</h1>
+<h2>Lists as memory: 60 bricks, one ball, and a paddle that aims</h2>
+<p>PRG32-Construction-Kit tutorial deck, step by step, from blocks to a RISC-V cartridge.</p>
+<p><img alt="Breakout running on the PRG32 QEMU firmware" src="../figures/games/breakout-qemu.png" /></p>
+</section>
+<section class="slide">
+<h2>Learning outcomes</h2>
+<ol>
+<li>store a 2-D grid in a <strong>1-D list</strong> and convert between <code>(column, row)</code> and an index with <code>/</code> and <code>%</code>;</li>
+<li>detect which brick the ball touches with <strong>arithmetic instead of a search loop</strong>;</li>
+<li>turn a hit position into a <strong>bounce angle</strong> (a simple control input for the player);</li>
+<li>manage <strong>lives, levels and restarts</strong> with a small state machine;</li>
+<li>read the generated C: lists become <strong>bounds-checked arrays</strong>.</li>
+</ol>
+<p><strong>Prerequisites:</strong> the Pong tutorial (game loop, velocity, collisions). About 90 minutes.</p>
+</section>
+<section class="slide">
+<h2>Context</h2>
+<ul>
+<li>Atari's <strong>Breakout</strong> (1976) turned Pong into a single-player game: the second paddle became a wall of bricks. Its prototype hardware is famously associated with Steve Wozniak and Steve Jobs.</li>
+<li>The wall is the first <strong>data structure</strong> of this course: 60 numbers that remember which bricks are still standing.</li>
+<li>Later games (<em>Arkanoid</em>, 1986) added power-ups; the core loop stayed the same.</li>
+</ul>
+<blockquote>
+<p>A brick wall is an array. Breaking a brick is writing a 0 into memory; drawing the wall is reading the memory back.</p>
+</blockquote>
+<p><em>Original, classic-inspired reimplementation for teaching; not affiliated with the historical products.</em></p>
+</section>
+<section class="slide">
+<h2>Rules and controls</h2><div class="cols"><div class="col"><table>
+<thead>
+<tr>
+<th>Button</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>LEFT / RIGHT</td>
+<td>move the paddle</td>
+</tr>
+<tr>
+<td>A or START</td>
+<td>launch the ball</td>
+</tr>
+<tr>
+<td>START</td>
+<td>play again</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>Top rows are worth more: 60 points for the top row, 10 for the bottom row.</li>
+<li>Three lives; missing the ball costs one.</li>
+<li>After half of the wall is gone the ball gets faster.</li>
+<li>Clearing the wall gives an extra life and a new wall.</li>
+</ul></div><div class="col"><p><img alt="Breakout in the simulator" src="../figures/games/breakout-title.png" /></p></div></div>
+</section>
+<section class="slide">
+<h2>The wall is a list</h2>
+<p><img alt="The wall as a list of 60 numbers" src="../figures/games/breakout_wall.svg" /></p>
+</section>
+<section class="slide">
+<h2>Step 1 - Making the wall</h2><div class="cols"><div class="col"><div class="blocks"><div class="blk comment"><div class="blk-label" style="background:#80a55b">comment <span class="f">The wall: one list item per brick, 1 = still standing.</span></div></div><div class="blk"><div class="blk-label" style="background:#995ba5">make list <span class="f">bricks</span> with <span class="f">60</span> items, all <span class="f">1</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">bricks_left</span> to <span class="f">60</span></div></div></div>
+<div class="blocks"><div class="blk comment"><div class="blk-label" style="background:#80a55b">comment <span class="f">One colour per row, made with rgb(red, green, blue).</span></div></div><div class="blk"><div class="blk-label" style="background:#995ba5">make list <span class="f">row_color</span> with <span class="f">6</span> items, all <span class="f">0</span></div></div><div class="blk"><div class="blk-label" style="background:#995ba5">set item <span class="f">0</span> of <span class="f">row_color</span> to <span class="f">rgb(255, 64, 64)</span></div></div><div class="blk"><div class="blk-label" style="background:#995ba5">set item <span class="f">1</span> of <span class="f">row_color</span> to <span class="f">rgb(255, 150, 40)</span></div></div><div class="blk"><div class="blk-label" style="background:#995ba5">set item <span class="f">2</span> of <span class="f">row_color</span> to <span class="f">rgb(255, 230, 40)</span></div></div><div class="blk"><div class="blk-label" style="background:#995ba5">set item <span class="f">3</span> of <span class="f">row_color</span> to <span class="f">rgb(80, 220, 80)</span></div></div><div class="blk"><div class="blk-label" style="background:#995ba5">set item <span class="f">4</span> of <span class="f">row_color</span> to <span class="f">rgb(60, 200, 255)</span></div></div><div class="blk"><div class="blk-label" style="background:#995ba5">set item <span class="f">5</span> of <span class="f">row_color</span> to <span class="f">rgb(150, 110, 255)</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">paddle_x</span> to <span class="f">140</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">score</span> to <span class="f">0</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">lives</span> to <span class="f">3</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">mode</span> to <span class="f">0</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">ball_dx</span> to <span class="f">2</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">ball_dy</span> to <span class="f">-3</span></div></div></div></div><div class="col"><ul>
+<li><em>make list bricks with 60 items, all 1</em> creates <code>static int bricks[60]</code> and fills it.</li>
+<li><code>row_color</code> holds one <strong>RGB565</strong> colour per row. <code>rgb(255, 64, 64)</code> packs red, green and blue into 16 bits: 5 + 6 + 5.</li>
+<li>Lists are created in <em>when game starts</em> and can be refilled later (a new wall is the same block again).</li>
+</ul></div></div>
+</section>
+<section class="slide">
+<h2>Step 2 - Paddle and the waiting ball</h2><div class="cols"><div class="col"><div class="blocks"><div class="blk comment"><div class="blk-label" style="background:#80a55b">comment <span class="f">The player moves the paddle with LEFT and RIGHT.</span></div></div><div class="blk"><div class="blk-label" style="background:#a5745b">if button <span class="f">left</span> is held</div><div class="blk-body" style="border-color:#a5745b"><div class="blk"><div class="blk-label" style="background:#745ba5">change <span class="f">paddle_x</span> by <span class="f">-5</span></div></div></div></div><div class="blk"><div class="blk-label" style="background:#a5745b">if button <span class="f">right</span> is held</div><div class="blk-body" style="border-color:#a5745b"><div class="blk"><div class="blk-label" style="background:#745ba5">change <span class="f">paddle_x</span> by <span class="f">5</span></div></div></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">keep <span class="f">paddle_x</span> between <span class="f">0</span> and <span class="f">280</span></div></div></div>
+<div class="blocks"><div class="blk comment"><div class="blk-label" style="background:#80a55b">comment <span class="f">While the ball waits, it rides on the paddle; A or START launches it.</span></div></div><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">mode == 0</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">ball_x</span> to <span class="f">paddle_x + 18</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">ball_y</span> to <span class="f">180</span></div></div><div class="blk"><div class="blk-label" style="background:#a5745b">if button <span class="f">a</span> was just pressed</div><div class="blk-body" style="border-color:#a5745b"><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">mode</span> to <span class="f">1</span></div></div></div></div><div class="blk"><div class="blk-label" style="background:#a5745b">if button <span class="f">start</span> was just pressed</div><div class="blk-body" style="border-color:#a5745b"><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">mode</span> to <span class="f">1</span></div></div></div></div></div></div></div></div><div class="col"><p>In mode 0 the ball is <strong>attached</strong> to the paddle: its position is computed from the paddle, not integrated from a velocity.</p>
+<p>Two different <em>just pressed</em> blocks can start the same action: A or START.</p></div></div>
+</section>
+<section class="slide">
+<h2>Step 3 - Ball motion and walls</h2>
+<div class="blocks"><div class="blk comment"><div class="blk-label" style="background:#80a55b">comment <span class="f">Move the ball one step and bounce on the three walls.</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">change <span class="f">ball_x</span> by <span class="f">ball_dx</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">change <span class="f">ball_y</span> by <span class="f">ball_dy</span></div></div><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">ball_x &lt; 0</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">ball_x</span> to <span class="f">0</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">ball_dx</span> to <span class="f">abs(ball_dx)</span></div></div><div class="blk"><div class="blk-label" style="background:#a55ba5">play beep freq <span class="f">300</span> ms <span class="f">15</span></div></div></div></div><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">ball_x &gt; 315</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">ball_x</span> to <span class="f">315</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">ball_dx</span> to <span class="f">-abs(ball_dx)</span></div></div><div class="blk"><div class="blk-label" style="background:#a55ba5">play beep freq <span class="f">300</span> ms <span class="f">15</span></div></div></div></div><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">ball_y &lt; 18</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">ball_y</span> to <span class="f">18</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">ball_dy</span> to <span class="f">abs(ball_dy)</span></div></div><div class="blk"><div class="blk-label" style="background:#a55ba5">play beep freq <span class="f">300</span> ms <span class="f">15</span></div></div></div></div></div>
+</section>
+<section class="slide">
+<h2>Step 4 - Which brick did we hit?</h2><div class="cols"><div class="col"><div class="blocks"><div class="blk comment"><div class="blk-label" style="background:#80a55b">comment <span class="f">Which brick is under the centre of the ball?</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">col</span> to <span class="f">(ball_x + 2 - 5) / 31</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">row</span> to <span class="f">(ball_y + 2 - 30) / 12</span></div></div><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">ball_x + 2 &gt;= 5 &amp;&amp; ball_y + 2 &gt;= 30 &amp;&amp; col &lt; 10 &amp;&amp; row &lt; 6</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">bricks[row * 10 + col] == 1</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#995ba5">set item <span class="f">row * 10 + col</span> of <span class="f">bricks</span> to <span class="f">0</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">change <span class="f">bricks_left</span> by <span class="f">-1</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">change <span class="f">score</span> by <span class="f">(6 - row) * 10</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">ball_dy</span> to <span class="f">-ball_dy</span></div></div><div class="blk"><div class="blk-label" style="background:#a55ba5">play MIDI note <span class="f">84 - row * 3</span> on channel <span class="f">1</span> for <span class="f">60</span> ms</div></div></div></div></div></div></div></div><div class="col"><p>No loop over 60 bricks: integer division finds the <strong>only</strong> brick that can be under the ball's centre.</p>
+<ul>
+<li>Reading <code>bricks[row * 10 + col]</code> outside the list gives 0 (the kit checks bounds), so a ball above the wall is safe.</li>
+<li>The guard <code>ball_x + 2 &gt;= 5 &amp;&amp; ...</code> keeps negative coordinates from rounding towards zero into brick 0.</li>
+</ul>
+<p>Speed is at most 4 px per frame and bricks are 10 px tall, so the ball cannot skip a row.</p></div></div>
+</section>
+<section class="slide">
+<h2>Step 4 - The same step in C</h2>
+<pre class="c"><code>/* Which brick is under the centre of the ball? */
+col = (ball_x + 2 - 5) / 31;
+row = (ball_y + 2 - 30) / 12;
+if (ball_x + 2 &gt;= 5 &amp;&amp; ball_y + 2 &gt;= 30 &amp;&amp; col &lt; 10 &amp;&amp; row &lt; 6) {
+    if (prg32_kit_get(bricks, 60, row * 10 + col) == 1) {
+        prg32_kit_set(bricks, 60, row * 10 + col, 0);
+        bricks_left += -1;
+        score += (6 - row) * 10;
+        ball_dy = -ball_dy;
+        prg32_audio_note(1, 0, 84 - row * 3, 255, 60);
+    }
+}</code></pre>
+<p><code>prg32_kit_get</code> and <code>prg32_kit_set</code> are three-line helpers written into the same C file: out-of-range reads return 0 and out-of-range writes do nothing.</p>
+</section>
+<section class="slide">
+<h2>Step 5 - Aiming with the paddle</h2>
+<p><img alt="The paddle decides the bounce angle" src="../figures/games/breakout_paddle.svg" /></p>
+</section>
+<section class="slide">
+<h2>Step 5 - Paddle hit in blocks</h2>
+<div class="blocks"><div class="blk comment"><div class="blk-label" style="background:#80a55b">comment <span class="f">Paddle hit: the further from the centre, the steeper the bounce.</span></div></div><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">ball_dy &gt; 0</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#a56d5b">if rect <span class="f">ball_x</span> <span class="f">ball_y</span> <span class="f">5</span> <span class="f">5</span> touches rect <span class="f">paddle_x</span> <span class="f">186</span> <span class="f">40</span> <span class="f">6</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">ball_dy</span> to <span class="f">-3 - (bricks_left &lt; 30)</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">ball_dx</span> to <span class="f">clamp((ball_x + 2 - (paddle_x + 20)) / 4, -4, 4)</span></div></div><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">ball_dx == 0</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">ball_dx</span> to <span class="f">1</span></div></div></div></div><div class="blk"><div class="blk-label" style="background:#a55ba5">play beep freq <span class="f">520</span> ms <span class="f">25</span></div></div></div></div></div></div></div>
+<p><code>clamp(v, low, high)</code> is a kit function; <code>(bricks_left &lt; 30)</code> is a comparison used as a number (1 or 0).</p>
+</section>
+<section class="slide tight">
+<h2>Step 6 - Lives, cleared walls, restart</h2>
+<!-- class: tight --><div class="cols"><div class="col"><div class="blocks"><div class="blk comment"><div class="blk-label" style="background:#80a55b">comment <span class="f">Missing the ball costs a life.</span></div></div><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">ball_y &gt; 200</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#745ba5">change <span class="f">lives</span> by <span class="f">-1</span></div></div><div class="blk"><div class="blk-label" style="background:#a55ba5">play MIDI note <span class="f">40</span> on channel <span class="f">1</span> for <span class="f">400</span> ms</div></div><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">lives &gt; 0</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">mode</span> to <span class="f">0</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">ball_dx</span> to <span class="f">2</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">ball_dy</span> to <span class="f">-3</span></div></div></div><div class="blk-label" style="background:#a56d5b">else</div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">mode</span> to <span class="f">2</span></div></div></div></div></div></div></div>
+<div class="blocks"><div class="blk comment"><div class="blk-label" style="background:#80a55b">comment <span class="f">No bricks left: the wall is cleared.</span></div></div><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">bricks_left == 0</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">mode</span> to <span class="f">3</span></div></div><div class="blk"><div class="blk-label" style="background:#a55ba5">play MIDI note <span class="f">88</span> on channel <span class="f">1</span> for <span class="f">500</span> ms</div></div></div></div></div></div><div class="col"><div class="blocks"><div class="blk comment"><div class="blk-label" style="background:#80a55b">comment <span class="f">After a game over or a cleared wall, START plays again.</span></div></div><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">mode &gt;= 2</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#a5745b">if button <span class="f">start</span> was just pressed</div><div class="blk-body" style="border-color:#a5745b"><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">mode == 2</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">score</span> to <span class="f">0</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">lives</span> to <span class="f">3</span></div></div></div><div class="blk-label" style="background:#a56d5b">else</div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#745ba5">change <span class="f">lives</span> by <span class="f">1</span></div></div></div></div><div class="blk"><div class="blk-label" style="background:#995ba5">make list <span class="f">bricks</span> with <span class="f">60</span> items, all <span class="f">1</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">bricks_left</span> to <span class="f">60</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">mode</span> to <span class="f">0</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">ball_dx</span> to <span class="f">2</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">ball_dy</span> to <span class="f">-3</span></div></div></div></div></div></div></div></div></div>
+</section>
+<section class="slide tight">
+<!-- class: tight -->
+<h2>Step 7 - Drawing the wall</h2><div class="cols"><div class="col"><div class="blocks"><div class="blk comment"><div class="blk-label" style="background:#80a55b">comment <span class="f">Brick i is drawn at column i % 10 and row i / 10, in its row colour.</span></div></div><div class="blk"><div class="blk-label" style="background:#a56d5b">repeat with <span class="f">i</span> from <span class="f">0</span> to <span class="f">59</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">bricks[i] == 1</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#5ba58c">draw rectangle x <span class="f">5 + (i % 10) * 31</span> y <span class="f">30 + (i / 10) * 12</span> w <span class="f">29</span> h <span class="f">10</span> color value <span class="f">row_color[i / 10]</span></div></div></div></div></div></div></div></div><div class="col"><ul>
+<li>One <em>repeat</em> draws all 60 bricks: <code>x = 5 + (i % 10) * 31</code>, <code>y = 30 + (i / 10) * 12</code>.</li>
+<li><em>draw rectangle ... color value</em> takes a colour <strong>expression</strong>: <code>row_color[i / 10]</code>.</li>
+<li>Broken bricks are simply not drawn: the list is the single source of truth.</li>
+</ul>
+<pre class="c"><code>/* Brick i is drawn at column i % 10 and row i / 10, in its row colour. */
+{
+    /* repeat i from 0 to 59 (at most 1024 times) */
+    int prg32_kit_step0;
+    int prg32_kit_last0 = 59;
+    int prg32_kit_count0 = 0;
+    for (prg32_kit_step0 = 0; prg32_kit_step0 &lt;= prg32_kit_last0 &amp;&amp; prg32_kit_count0 &lt; 1024; ++prg32_kit_step0, ++prg32_kit_count0) {
+        i = prg32_kit_step0;
+        if (prg32_kit_get(bricks, 60, i) == 1) {
+            prg32_gfx_rect(5 + (i % 10) * 31, 30 + (i / 10) * 12, 29, 10, prg32_kit_get(row_color, 6, i / 10));
+        }
+    }
+}</code></pre></div></div>
+</section>
+<section class="slide">
+<h2>Play it in the browser</h2><div class="cols"><div class="col"><p><img alt="The Breakout project in the editor" src="../figures/games/breakout-editor.jpg" /></p></div><div class="col"><ol>
+<li>Dashboard, <strong>Examples</strong>, <em>Breakout</em> (complete game), <strong>Add</strong>.</li>
+<li><strong>Play</strong>: LEFT/RIGHT, then A to launch.</li>
+<li>Watch <code>bricks_left</code>, <code>score</code> and <code>mode</code> in the debug line under the screen.</li>
+<li><strong>Generate C</strong> and find <code>static int bricks[60];</code>.</li>
+</ol></div></div>
+</section>
+<section class="slide shots">
+<!-- class: shots -->
+<h2>Build and run the cartridge</h2><div class="cols"><div class="col"><p><strong>Download .prg32</strong> builds <code>breakout-esp32c6.prg32</code>; the arrow next to it builds <code>breakout-qemu.prg32</code>.</p>
+<pre><code class="language-bash">python3 -m prg32 qemu upload breakout-qemu.prg32
+python3 -m prg32 qemu run
+</code></pre>
+<p>PRG32-QT: <strong>Import Cartridge</strong>, or</p>
+<pre><code class="language-bash">prg32qt-headless breakout-qemu.prg32 300 --dump-ppm breakout.ppm
+</code></pre></div><div class="col"><p><img alt="Breakout on QEMU" src="../figures/games/breakout-qemu.png" /></p>
+<p><img alt="Breakout on PRG32-QT" src="../figures/games/breakout-prg32qt.png" /></p></div></div>
+</section>
+<section class="slide">
+<h2>What the toolchain produced</h2>
+<table>
+<thead>
+<tr>
+<th>Measure</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Blocks</td>
+<td>3 stacks, 122 blocks</td>
+</tr>
+<tr>
+<td>Generated C</td>
+<td>345 lines</td>
+</tr>
+<tr>
+<td>RISC-V code (rv32imc)</td>
+<td>4784 bytes</td>
+</tr>
+<tr>
+<td>Lists</td>
+<td><code>bricks[60]</code>, <code>row_color[6]</code></td>
+</tr>
+<tr>
+<td>Required PRG32 features</td>
+<td><code>audio</code>, <code>sprites</code></td>
+</tr>
+<tr>
+<td>Verified on</td>
+<td>simulator, QEMU firmware, PRG32-QT</td>
+</tr>
+</tbody>
+</table>
+<p>An autoplay test in the simulator (<code>tools/simulate.js</code> with a scripted player) cleared the wall eleven times in 40 000 frames: the game can always be finished.</p>
+</section>
+<section class="slide">
+<h2>Exercises</h2>
+<ol>
+<li><strong>Hard bricks:</strong> store 2 in the top row and subtract 1 per hit; draw bricks with value 2 darker.</li>
+<li><strong>Score multiplier:</strong> double the points while <code>bricks_left &lt; 10</code>.</li>
+<li><strong>Two balls:</strong> turn <code>ball_x</code>, <code>ball_y</code>, <code>ball_dx</code>, <code>ball_dy</code> into lists of 2 and loop over them.</li>
+<li><strong>Bigger wall:</strong> 12 columns of 25-px bricks. Which numbers in the formulas change?</li>
+<li><strong>Analysis:</strong> why is a ball faster than 10 px per frame a problem for the brick test?</li>
+</ol>
+</section>
+<section class="slide">
+<h2>References</h2>
+<ul>
+<li>PRG32: <a href="https://github.com/riscv-prg32/PRG32">https://github.com/riscv-prg32/PRG32</a>; PRG32-QT: <a href="https://github.com/riscv-prg32/PRG32-QT">https://github.com/riscv-prg32/PRG32-QT</a></li>
+<li>Block reference: <code>docs/blockly.md</code>; lists and expressions are described there.</li>
+<li>N. Wirth, <em>Algorithms + Data Structures = Programs</em>, Prentice-Hall (1976): arrays and index arithmetic.</li>
+<li>R. Nystrom, <em>Game Programming Patterns</em> (2014), "Data Locality".</li>
+</ul>
+</section>
+</main>
+<nav class="deck-bar" aria-label="Slide navigation">
+  <button type="button" data-go="prev" aria-label="Previous slide">&#8592;</button>
+  <span class="deck-title">Breakout with PRG32 Blocks</span>
+  <span class="deck-count"></span>
+  <button type="button" data-go="next" aria-label="Next slide">&#8594;</button>
+</nav>
+<script src="deck.js"></script>
+</body>
+</html>

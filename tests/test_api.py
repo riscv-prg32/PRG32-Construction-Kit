@@ -64,8 +64,13 @@ def test_upstream_blocks_examples_can_be_listed_and_imported(client):
     response = client.get("/api/examples")
     assert response.status_code == 200
     examples = response.get_json()["examples"]
-    assert len(examples) == 22
-    assert {example["slug"] for example in examples} >= {"pong", "raycaster", "audio_synth"}
+    # Five complete games replace four of the 22 upstream sketches: 22 - 4 + 5.
+    assert len(examples) == 23
+    assert {example["slug"] for example in examples} >= {"pong", "raycaster", "audio_synth", "snake"}
+    kinds = {example["slug"]: example["kind"] for example in examples}
+    assert [slug for slug, kind in kinds.items() if kind == "game"] == [
+        "pong", "breakout", "space_invaders", "asteroids", "snake"]
+    assert kinds["raycaster"] == "sketch"
 
     response = client.post("/api/examples/pong/import", json={})
     assert response.status_code == 201

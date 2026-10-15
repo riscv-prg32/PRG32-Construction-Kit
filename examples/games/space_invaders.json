@@ -1,0 +1,2139 @@
+{
+ "abi": "prg32-construction-kit-project-1.0",
+ "project": {
+  "title": "Space Invaders",
+  "description": "Classic-inspired Space Invaders: 40 marching invaders, shields and bombs. LEFT/RIGHT to move, A to fire.",
+  "author": "PRG32 Kit",
+  "tags": [
+   "classic",
+   "space-invaders",
+   "pictures",
+   "lists"
+  ],
+  "blocks_json": {
+   "blocks": {
+    "languageVersion": 0,
+    "blocks": [
+     {
+      "type": "prg32_on_start",
+      "id": "space_invaders-192",
+      "inputs": {
+       "DO": {
+        "block": {
+         "type": "prg32_comment",
+         "id": "space_invaders-1",
+         "fields": {
+          "TEXT": "Space Invaders: 40 invaders march down; A fires the laser cannon."
+         },
+         "next": {
+          "block": {
+           "type": "prg32_list_create",
+           "id": "space_invaders-2",
+           "fields": {
+            "LIST": "shot_x",
+            "SIZE": "3",
+            "VALUE": "0"
+           },
+           "next": {
+            "block": {
+             "type": "prg32_list_create",
+             "id": "space_invaders-3",
+             "fields": {
+              "LIST": "shot_y",
+              "SIZE": "3",
+              "VALUE": "0"
+             },
+             "next": {
+              "block": {
+               "type": "prg32_set_state",
+               "id": "space_invaders-4",
+               "fields": {
+                "VAR": "score",
+                "VALUE": "0"
+               },
+               "next": {
+                "block": {
+                 "type": "prg32_set_state",
+                 "id": "space_invaders-5",
+                 "fields": {
+                  "VAR": "lives",
+                  "VALUE": "3"
+                 },
+                 "next": {
+                  "block": {
+                   "type": "prg32_set_state",
+                   "id": "space_invaders-6",
+                   "fields": {
+                    "VAR": "wave",
+                    "VALUE": "0"
+                   },
+                   "next": {
+                    "block": {
+                     "type": "prg32_set_state",
+                     "id": "space_invaders-7",
+                     "fields": {
+                      "VAR": "cannon_x",
+                      "VALUE": "152"
+                     },
+                     "next": {
+                      "block": {
+                       "type": "prg32_set_state",
+                       "id": "space_invaders-8",
+                       "fields": {
+                        "VAR": "laser_on",
+                        "VALUE": "0"
+                       },
+                       "next": {
+                        "block": {
+                         "type": "prg32_list_create",
+                         "id": "space_invaders-9",
+                         "fields": {
+                          "LIST": "shield",
+                          "SIZE": "24",
+                          "VALUE": "3"
+                         },
+                         "next": {
+                          "block": {
+                           "type": "prg32_list_create",
+                           "id": "space_invaders-10",
+                           "fields": {
+                            "LIST": "alive",
+                            "SIZE": "40",
+                            "VALUE": "1"
+                           },
+                           "next": {
+                            "block": {
+                             "type": "prg32_set_state",
+                             "id": "space_invaders-11",
+                             "fields": {
+                              "VAR": "aliens_left",
+                              "VALUE": "40"
+                             },
+                             "next": {
+                              "block": {
+                               "type": "prg32_set_state",
+                               "id": "space_invaders-12",
+                               "fields": {
+                                "VAR": "fleet_x",
+                                "VALUE": "24"
+                               },
+                               "next": {
+                                "block": {
+                                 "type": "prg32_set_state",
+                                 "id": "space_invaders-13",
+                                 "fields": {
+                                  "VAR": "fleet_y",
+                                  "VALUE": "28 + wave * 8"
+                                 },
+                                 "next": {
+                                  "block": {
+                                   "type": "prg32_set_state",
+                                   "id": "space_invaders-14",
+                                   "fields": {
+                                    "VAR": "fleet_dir",
+                                    "VALUE": "1"
+                                   },
+                                   "next": {
+                                    "block": {
+                                     "type": "prg32_set_state",
+                                     "id": "space_invaders-15",
+                                     "fields": {
+                                      "VAR": "march",
+                                      "VALUE": "0"
+                                     },
+                                     "next": {
+                                      "block": {
+                                       "type": "prg32_set_state",
+                                       "id": "space_invaders-16",
+                                       "fields": {
+                                        "VAR": "march_timer",
+                                        "VALUE": "0"
+                                       },
+                                       "next": {
+                                        "block": {
+                                         "type": "prg32_list_create",
+                                         "id": "space_invaders-17",
+                                         "fields": {
+                                          "LIST": "shot_on",
+                                          "SIZE": "3",
+                                          "VALUE": "0"
+                                         },
+                                         "next": {
+                                          "block": {
+                                           "type": "prg32_set_state",
+                                           "id": "space_invaders-18",
+                                           "fields": {
+                                            "VAR": "mode",
+                                            "VALUE": "1"
+                                           },
+                                           "next": {
+                                            "block": {
+                                             "type": "prg32_set_state",
+                                             "id": "space_invaders-19",
+                                             "fields": {
+                                              "VAR": "mode",
+                                              "VALUE": "0"
+                                             }
+                                            }
+                                           }
+                                          }
+                                         }
+                                        }
+                                       }
+                                      }
+                                     }
+                                    }
+                                   }
+                                  }
+                                 }
+                                }
+                               }
+                              }
+                             }
+                            }
+                           }
+                          }
+                         }
+                        }
+                       }
+                      }
+                     }
+                    }
+                   }
+                  }
+                 }
+                }
+               }
+              }
+             }
+            }
+           }
+          }
+         }
+        }
+       }
+      },
+      "x": 20,
+      "y": 20
+     },
+     {
+      "type": "prg32_update",
+      "id": "space_invaders-193",
+      "inputs": {
+       "DO": {
+        "block": {
+         "type": "prg32_comment",
+         "id": "space_invaders-30",
+         "fields": {
+          "TEXT": "Mode 0 = title, 1 = playing, 2 = game over."
+         },
+         "next": {
+          "block": {
+           "type": "prg32_if",
+           "id": "space_invaders-47",
+           "fields": {
+            "COND": "mode != 1"
+           },
+           "inputs": {
+            "DO": {
+             "block": {
+              "type": "prg32_if_button_once",
+              "id": "space_invaders-46",
+              "fields": {
+               "BUTTON": "START"
+              },
+              "inputs": {
+               "DO": {
+                "block": {
+                 "type": "prg32_set_state",
+                 "id": "space_invaders-31",
+                 "fields": {
+                  "VAR": "score",
+                  "VALUE": "0"
+                 },
+                 "next": {
+                  "block": {
+                   "type": "prg32_set_state",
+                   "id": "space_invaders-32",
+                   "fields": {
+                    "VAR": "lives",
+                    "VALUE": "3"
+                   },
+                   "next": {
+                    "block": {
+                     "type": "prg32_set_state",
+                     "id": "space_invaders-33",
+                     "fields": {
+                      "VAR": "wave",
+                      "VALUE": "0"
+                     },
+                     "next": {
+                      "block": {
+                       "type": "prg32_set_state",
+                       "id": "space_invaders-34",
+                       "fields": {
+                        "VAR": "cannon_x",
+                        "VALUE": "152"
+                       },
+                       "next": {
+                        "block": {
+                         "type": "prg32_set_state",
+                         "id": "space_invaders-35",
+                         "fields": {
+                          "VAR": "laser_on",
+                          "VALUE": "0"
+                         },
+                         "next": {
+                          "block": {
+                           "type": "prg32_list_create",
+                           "id": "space_invaders-36",
+                           "fields": {
+                            "LIST": "shield",
+                            "SIZE": "24",
+                            "VALUE": "3"
+                           },
+                           "next": {
+                            "block": {
+                             "type": "prg32_list_create",
+                             "id": "space_invaders-37",
+                             "fields": {
+                              "LIST": "alive",
+                              "SIZE": "40",
+                              "VALUE": "1"
+                             },
+                             "next": {
+                              "block": {
+                               "type": "prg32_set_state",
+                               "id": "space_invaders-38",
+                               "fields": {
+                                "VAR": "aliens_left",
+                                "VALUE": "40"
+                               },
+                               "next": {
+                                "block": {
+                                 "type": "prg32_set_state",
+                                 "id": "space_invaders-39",
+                                 "fields": {
+                                  "VAR": "fleet_x",
+                                  "VALUE": "24"
+                                 },
+                                 "next": {
+                                  "block": {
+                                   "type": "prg32_set_state",
+                                   "id": "space_invaders-40",
+                                   "fields": {
+                                    "VAR": "fleet_y",
+                                    "VALUE": "28 + wave * 8"
+                                   },
+                                   "next": {
+                                    "block": {
+                                     "type": "prg32_set_state",
+                                     "id": "space_invaders-41",
+                                     "fields": {
+                                      "VAR": "fleet_dir",
+                                      "VALUE": "1"
+                                     },
+                                     "next": {
+                                      "block": {
+                                       "type": "prg32_set_state",
+                                       "id": "space_invaders-42",
+                                       "fields": {
+                                        "VAR": "march",
+                                        "VALUE": "0"
+                                       },
+                                       "next": {
+                                        "block": {
+                                         "type": "prg32_set_state",
+                                         "id": "space_invaders-43",
+                                         "fields": {
+                                          "VAR": "march_timer",
+                                          "VALUE": "0"
+                                         },
+                                         "next": {
+                                          "block": {
+                                           "type": "prg32_list_create",
+                                           "id": "space_invaders-44",
+                                           "fields": {
+                                            "LIST": "shot_on",
+                                            "SIZE": "3",
+                                            "VALUE": "0"
+                                           },
+                                           "next": {
+                                            "block": {
+                                             "type": "prg32_set_state",
+                                             "id": "space_invaders-45",
+                                             "fields": {
+                                              "VAR": "mode",
+                                              "VALUE": "1"
+                                             }
+                                            }
+                                           }
+                                          }
+                                         }
+                                        }
+                                       }
+                                      }
+                                     }
+                                    }
+                                   }
+                                  }
+                                 }
+                                }
+                               }
+                              }
+                             }
+                            }
+                           }
+                          }
+                         }
+                        }
+                       }
+                      }
+                     }
+                    }
+                   }
+                  }
+                 }
+                }
+               }
+              }
+             }
+            }
+           },
+           "next": {
+            "block": {
+             "type": "prg32_comment",
+             "id": "space_invaders-48",
+             "fields": {
+              "TEXT": "Playing: cannon, laser, fleet, bombs, then the end-of-wave checks."
+             },
+             "next": {
+              "block": {
+               "type": "prg32_if",
+               "id": "space_invaders-149",
+               "fields": {
+                "COND": "mode == 1"
+               },
+               "inputs": {
+                "DO": {
+                 "block": {
+                  "type": "prg32_comment",
+                  "id": "space_invaders-49",
+                  "fields": {
+                   "TEXT": "The cannon: LEFT and RIGHT move it, A fires one laser at a time."
+                  },
+                  "next": {
+                   "block": {
+                    "type": "prg32_if_button",
+                    "id": "space_invaders-51",
+                    "fields": {
+                     "BUTTON": "LEFT"
+                    },
+                    "inputs": {
+                     "DO": {
+                      "block": {
+                       "type": "prg32_change_state",
+                       "id": "space_invaders-50",
+                       "fields": {
+                        "VAR": "cannon_x",
+                        "DELTA": "-3"
+                       }
+                      }
+                     }
+                    },
+                    "next": {
+                     "block": {
+                      "type": "prg32_if_button",
+                      "id": "space_invaders-53",
+                      "fields": {
+                       "BUTTON": "RIGHT"
+                      },
+                      "inputs": {
+                       "DO": {
+                        "block": {
+                         "type": "prg32_change_state",
+                         "id": "space_invaders-52",
+                         "fields": {
+                          "VAR": "cannon_x",
+                          "DELTA": "3"
+                         }
+                        }
+                       }
+                      },
+                      "next": {
+                       "block": {
+                        "type": "prg32_clamp_state",
+                        "id": "space_invaders-54",
+                        "fields": {
+                         "VAR": "cannon_x",
+                         "LOW": "4",
+                         "HIGH": "300"
+                        },
+                        "next": {
+                         "block": {
+                          "type": "prg32_if",
+                          "id": "space_invaders-60",
+                          "fields": {
+                           "COND": "laser_on == 0"
+                          },
+                          "inputs": {
+                           "DO": {
+                            "block": {
+                             "type": "prg32_if_button_once",
+                             "id": "space_invaders-59",
+                             "fields": {
+                              "BUTTON": "A"
+                             },
+                             "inputs": {
+                              "DO": {
+                               "block": {
+                                "type": "prg32_set_state",
+                                "id": "space_invaders-55",
+                                "fields": {
+                                 "VAR": "laser_on",
+                                 "VALUE": "1"
+                                },
+                                "next": {
+                                 "block": {
+                                  "type": "prg32_set_state",
+                                  "id": "space_invaders-56",
+                                  "fields": {
+                                   "VAR": "laser_x",
+                                   "VALUE": "cannon_x + 7"
+                                  },
+                                  "next": {
+                                   "block": {
+                                    "type": "prg32_set_state",
+                                    "id": "space_invaders-57",
+                                    "fields": {
+                                     "VAR": "laser_y",
+                                     "VALUE": "172"
+                                    },
+                                    "next": {
+                                     "block": {
+                                      "type": "prg32_play_beep",
+                                      "id": "space_invaders-58",
+                                      "fields": {
+                                       "FREQ": "1200",
+                                       "MS": "30"
+                                      }
+                                     }
+                                    }
+                                   }
+                                  }
+                                 }
+                                }
+                               }
+                              }
+                             }
+                            }
+                           }
+                          },
+                          "next": {
+                           "block": {
+                            "type": "prg32_comment",
+                            "id": "space_invaders-61",
+                            "fields": {
+                             "TEXT": "The laser flies up; it can hit an invader or a shield."
+                            },
+                            "next": {
+                             "block": {
+                              "type": "prg32_if",
+                              "id": "space_invaders-72",
+                              "fields": {
+                               "COND": "laser_on == 1"
+                              },
+                              "inputs": {
+                               "DO": {
+                                "block": {
+                                 "type": "prg32_change_state",
+                                 "id": "space_invaders-62",
+                                 "fields": {
+                                  "VAR": "laser_y",
+                                  "DELTA": "-6"
+                                 },
+                                 "next": {
+                                  "block": {
+                                   "type": "prg32_if",
+                                   "id": "space_invaders-64",
+                                   "fields": {
+                                    "COND": "laser_y < 18"
+                                   },
+                                   "inputs": {
+                                    "DO": {
+                                     "block": {
+                                      "type": "prg32_set_state",
+                                      "id": "space_invaders-63",
+                                      "fields": {
+                                       "VAR": "laser_on",
+                                       "VALUE": "0"
+                                      }
+                                     }
+                                    }
+                                   },
+                                   "next": {
+                                    "block": {
+                                     "type": "prg32_comment",
+                                     "id": "space_invaders-20",
+                                     "fields": {
+                                      "TEXT": "Which invader is the laser inside? Each one sits in a 24 x 18 cell."
+                                     },
+                                     "next": {
+                                      "block": {
+                                       "type": "prg32_set_state",
+                                       "id": "space_invaders-21",
+                                       "fields": {
+                                        "VAR": "col",
+                                        "VALUE": "(laser_x - fleet_x) / 24"
+                                       },
+                                       "next": {
+                                        "block": {
+                                         "type": "prg32_set_state",
+                                         "id": "space_invaders-22",
+                                         "fields": {
+                                          "VAR": "row",
+                                          "VALUE": "(laser_y - fleet_y) / 18"
+                                         },
+                                         "next": {
+                                          "block": {
+                                           "type": "prg32_if",
+                                           "id": "space_invaders-29",
+                                           "fields": {
+                                            "COND": "laser_x >= fleet_x && laser_y >= fleet_y && col < 8 && row < 5 && (laser_x - fleet_x) % 24 < 16 && (laser_y - fleet_y) % 18 < 16"
+                                           },
+                                           "inputs": {
+                                            "DO": {
+                                             "block": {
+                                              "type": "prg32_if",
+                                              "id": "space_invaders-28",
+                                              "fields": {
+                                               "COND": "alive[row * 8 + col] == 1"
+                                              },
+                                              "inputs": {
+                                               "DO": {
+                                                "block": {
+                                                 "type": "prg32_list_set",
+                                                 "id": "space_invaders-23",
+                                                 "fields": {
+                                                  "LIST": "alive",
+                                                  "INDEX": "row * 8 + col",
+                                                  "VALUE": "0"
+                                                 },
+                                                 "next": {
+                                                  "block": {
+                                                   "type": "prg32_change_state",
+                                                   "id": "space_invaders-24",
+                                                   "fields": {
+                                                    "VAR": "aliens_left",
+                                                    "DELTA": "-1"
+                                                   },
+                                                   "next": {
+                                                    "block": {
+                                                     "type": "prg32_change_state",
+                                                     "id": "space_invaders-25",
+                                                     "fields": {
+                                                      "VAR": "score",
+                                                      "DELTA": "(5 - row) * 10"
+                                                     },
+                                                     "next": {
+                                                      "block": {
+                                                       "type": "prg32_set_state",
+                                                       "id": "space_invaders-26",
+                                                       "fields": {
+                                                        "VAR": "laser_on",
+                                                        "VALUE": "0"
+                                                       },
+                                                       "next": {
+                                                        "block": {
+                                                         "type": "prg32_audio_note",
+                                                         "id": "space_invaders-27",
+                                                         "fields": {
+                                                          "NOTE": "96",
+                                                          "CHANNEL": "2",
+                                                          "MS": "60"
+                                                         }
+                                                        }
+                                                       }
+                                                      }
+                                                     }
+                                                    }
+                                                   }
+                                                  }
+                                                 }
+                                                }
+                                               }
+                                              }
+                                             }
+                                            }
+                                           },
+                                           "next": {
+                                            "block": {
+                                             "type": "prg32_comment",
+                                             "id": "space_invaders-66",
+                                             "fields": {
+                                              "TEXT": "Shields: 4 shields x 6 blocks, each block 8 x 6 pixels with 3 hit points."
+                                             },
+                                             "next": {
+                                              "block": {
+                                               "type": "prg32_set_state",
+                                               "id": "space_invaders-67",
+                                               "fields": {
+                                                "VAR": "sx",
+                                                "VALUE": "(laser_x - 40) % 72"
+                                               },
+                                               "next": {
+                                                "block": {
+                                                 "type": "prg32_set_state",
+                                                 "id": "space_invaders-68",
+                                                 "fields": {
+                                                  "VAR": "cell",
+                                                  "VALUE": "((laser_x - 40) / 72) * 6 + ((laser_y - 150) / 6) * 3 + sx / 8"
+                                                 },
+                                                 "next": {
+                                                  "block": {
+                                                   "type": "prg32_if",
+                                                   "id": "space_invaders-71",
+                                                   "fields": {
+                                                    "COND": "laser_x >= 40 && laser_x < 292 && sx < 24 && laser_y >= 150 && laser_y < 162"
+                                                   },
+                                                   "inputs": {
+                                                    "DO": {
+                                                     "block": {
+                                                      "type": "prg32_if",
+                                                      "id": "space_invaders-70",
+                                                      "fields": {
+                                                       "COND": "shield[cell] > 0"
+                                                      },
+                                                      "inputs": {
+                                                       "DO": {
+                                                        "block": {
+                                                         "type": "prg32_list_change",
+                                                         "id": "space_invaders-69",
+                                                         "fields": {
+                                                          "LIST": "shield",
+                                                          "INDEX": "cell",
+                                                          "DELTA": "-1"
+                                                         },
+                                                         "next": {
+                                                          "block": {
+                                                           "type": "prg32_set_state",
+                                                           "id": "space_invaders-65",
+                                                           "fields": {
+                                                            "VAR": "laser_on",
+                                                            "VALUE": "0"
+                                                           }
+                                                          }
+                                                         }
+                                                        }
+                                                       }
+                                                      }
+                                                     }
+                                                    }
+                                                   }
+                                                  }
+                                                 }
+                                                }
+                                               }
+                                              }
+                                             }
+                                            }
+                                           }
+                                          }
+                                         }
+                                        }
+                                       }
+                                      }
+                                     }
+                                    }
+                                   }
+                                  }
+                                 }
+                                }
+                               }
+                              },
+                              "next": {
+                               "block": {
+                                "type": "prg32_comment",
+                                "id": "space_invaders-73",
+                                "fields": {
+                                 "TEXT": "The fleet marches faster when fewer invaders are left."
+                                },
+                                "next": {
+                                 "block": {
+                                  "type": "prg32_change_state",
+                                  "id": "space_invaders-74",
+                                  "fields": {
+                                   "VAR": "march_timer",
+                                   "DELTA": "1"
+                                  },
+                                  "next": {
+                                   "block": {
+                                    "type": "prg32_if",
+                                    "id": "space_invaders-88",
+                                    "fields": {
+                                     "COND": "march_timer >= 2 + aliens_left / 3"
+                                    },
+                                    "inputs": {
+                                     "DO": {
+                                      "block": {
+                                       "type": "prg32_set_state",
+                                       "id": "space_invaders-75",
+                                       "fields": {
+                                        "VAR": "march_timer",
+                                        "VALUE": "0"
+                                       },
+                                       "next": {
+                                        "block": {
+                                         "type": "prg32_change_state",
+                                         "id": "space_invaders-76",
+                                         "fields": {
+                                          "VAR": "march",
+                                          "DELTA": "1"
+                                         },
+                                         "next": {
+                                          "block": {
+                                           "type": "prg32_audio_note",
+                                           "id": "space_invaders-77",
+                                           "fields": {
+                                            "NOTE": "36 + (march % 4)",
+                                            "CHANNEL": "0",
+                                            "MS": "80"
+                                           },
+                                           "next": {
+                                            "block": {
+                                             "type": "prg32_set_state",
+                                             "id": "space_invaders-78",
+                                             "fields": {
+                                              "VAR": "min_col",
+                                              "VALUE": "8"
+                                             },
+                                             "next": {
+                                              "block": {
+                                               "type": "prg32_set_state",
+                                               "id": "space_invaders-79",
+                                               "fields": {
+                                                "VAR": "max_col",
+                                                "VALUE": "-1"
+                                               },
+                                               "next": {
+                                                "block": {
+                                                 "type": "prg32_repeat",
+                                                 "id": "space_invaders-83",
+                                                 "fields": {
+                                                  "VAR": "i",
+                                                  "FROM": "0",
+                                                  "TO": "39"
+                                                 },
+                                                 "inputs": {
+                                                  "DO": {
+                                                   "block": {
+                                                    "type": "prg32_if",
+                                                    "id": "space_invaders-82",
+                                                    "fields": {
+                                                     "COND": "alive[i] == 1"
+                                                    },
+                                                    "inputs": {
+                                                     "DO": {
+                                                      "block": {
+                                                       "type": "prg32_set_state",
+                                                       "id": "space_invaders-80",
+                                                       "fields": {
+                                                        "VAR": "min_col",
+                                                        "VALUE": "min(min_col, i % 8)"
+                                                       },
+                                                       "next": {
+                                                        "block": {
+                                                         "type": "prg32_set_state",
+                                                         "id": "space_invaders-81",
+                                                         "fields": {
+                                                          "VAR": "max_col",
+                                                          "VALUE": "max(max_col, i % 8)"
+                                                         }
+                                                        }
+                                                       }
+                                                      }
+                                                     }
+                                                    }
+                                                   }
+                                                  }
+                                                 },
+                                                 "next": {
+                                                  "block": {
+                                                   "type": "prg32_if_else",
+                                                   "id": "space_invaders-87",
+                                                   "fields": {
+                                                    "COND": "(fleet_dir > 0 && fleet_x + max_col * 24 + 16 >= 314) || (fleet_dir < 0 && fleet_x + min_col * 24 <= 4)"
+                                                   },
+                                                   "inputs": {
+                                                    "DO": {
+                                                     "block": {
+                                                      "type": "prg32_set_state",
+                                                      "id": "space_invaders-84",
+                                                      "fields": {
+                                                       "VAR": "fleet_dir",
+                                                       "VALUE": "-fleet_dir"
+                                                      },
+                                                      "next": {
+                                                       "block": {
+                                                        "type": "prg32_change_state",
+                                                        "id": "space_invaders-85",
+                                                        "fields": {
+                                                         "VAR": "fleet_y",
+                                                         "DELTA": "8"
+                                                        }
+                                                       }
+                                                      }
+                                                     }
+                                                    },
+                                                    "ELSE": {
+                                                     "block": {
+                                                      "type": "prg32_change_state",
+                                                      "id": "space_invaders-86",
+                                                      "fields": {
+                                                       "VAR": "fleet_x",
+                                                       "DELTA": "fleet_dir * 4"
+                                                      }
+                                                     }
+                                                    }
+                                                   }
+                                                  }
+                                                 }
+                                                }
+                                               }
+                                              }
+                                             }
+                                            }
+                                           }
+                                          }
+                                         }
+                                        }
+                                       }
+                                      }
+                                     }
+                                    },
+                                    "next": {
+                                     "block": {
+                                      "type": "prg32_comment",
+                                      "id": "space_invaders-89",
+                                      "fields": {
+                                       "TEXT": "Invader bombs: up to 3 at a time, dropped by the lowest invader of a random column."
+                                      },
+                                      "next": {
+                                       "block": {
+                                        "type": "prg32_if",
+                                        "id": "space_invaders-102",
+                                        "fields": {
+                                         "COND": "random(0, 31) == 0"
+                                        },
+                                        "inputs": {
+                                         "DO": {
+                                          "block": {
+                                           "type": "prg32_set_state",
+                                           "id": "space_invaders-90",
+                                           "fields": {
+                                            "VAR": "col",
+                                            "VALUE": "random(0, 7)"
+                                           },
+                                           "next": {
+                                            "block": {
+                                             "type": "prg32_set_state",
+                                             "id": "space_invaders-91",
+                                             "fields": {
+                                              "VAR": "drop_row",
+                                              "VALUE": "-1"
+                                             },
+                                             "next": {
+                                              "block": {
+                                               "type": "prg32_repeat",
+                                               "id": "space_invaders-94",
+                                               "fields": {
+                                                "VAR": "r",
+                                                "FROM": "0",
+                                                "TO": "4"
+                                               },
+                                               "inputs": {
+                                                "DO": {
+                                                 "block": {
+                                                  "type": "prg32_if",
+                                                  "id": "space_invaders-93",
+                                                  "fields": {
+                                                   "COND": "alive[r * 8 + col] == 1"
+                                                  },
+                                                  "inputs": {
+                                                   "DO": {
+                                                    "block": {
+                                                     "type": "prg32_set_state",
+                                                     "id": "space_invaders-92",
+                                                     "fields": {
+                                                      "VAR": "drop_row",
+                                                      "VALUE": "r"
+                                                     }
+                                                    }
+                                                   }
+                                                  }
+                                                 }
+                                                }
+                                               },
+                                               "next": {
+                                                "block": {
+                                                 "type": "prg32_if",
+                                                 "id": "space_invaders-101",
+                                                 "fields": {
+                                                  "COND": "drop_row >= 0"
+                                                 },
+                                                 "inputs": {
+                                                  "DO": {
+                                                   "block": {
+                                                    "type": "prg32_repeat",
+                                                    "id": "space_invaders-100",
+                                                    "fields": {
+                                                     "VAR": "s",
+                                                     "FROM": "0",
+                                                     "TO": "2"
+                                                    },
+                                                    "inputs": {
+                                                     "DO": {
+                                                      "block": {
+                                                       "type": "prg32_if",
+                                                       "id": "space_invaders-99",
+                                                       "fields": {
+                                                        "COND": "shot_on[s] == 0 && drop_row >= 0"
+                                                       },
+                                                       "inputs": {
+                                                        "DO": {
+                                                         "block": {
+                                                          "type": "prg32_list_set",
+                                                          "id": "space_invaders-95",
+                                                          "fields": {
+                                                           "LIST": "shot_on",
+                                                           "INDEX": "s",
+                                                           "VALUE": "1"
+                                                          },
+                                                          "next": {
+                                                           "block": {
+                                                            "type": "prg32_list_set",
+                                                            "id": "space_invaders-96",
+                                                            "fields": {
+                                                             "LIST": "shot_x",
+                                                             "INDEX": "s",
+                                                             "VALUE": "fleet_x + col * 24 + 7"
+                                                            },
+                                                            "next": {
+                                                             "block": {
+                                                              "type": "prg32_list_set",
+                                                              "id": "space_invaders-97",
+                                                              "fields": {
+                                                               "LIST": "shot_y",
+                                                               "INDEX": "s",
+                                                               "VALUE": "fleet_y + drop_row * 18 + 16"
+                                                              },
+                                                              "next": {
+                                                               "block": {
+                                                                "type": "prg32_set_state",
+                                                                "id": "space_invaders-98",
+                                                                "fields": {
+                                                                 "VAR": "drop_row",
+                                                                 "VALUE": "-1"
+                                                                }
+                                                               }
+                                                              }
+                                                             }
+                                                            }
+                                                           }
+                                                          }
+                                                         }
+                                                        }
+                                                       }
+                                                      }
+                                                     }
+                                                    }
+                                                   }
+                                                  }
+                                                 }
+                                                }
+                                               }
+                                              }
+                                             }
+                                            }
+                                           }
+                                          }
+                                         }
+                                        },
+                                        "next": {
+                                         "block": {
+                                          "type": "prg32_comment",
+                                          "id": "space_invaders-103",
+                                          "fields": {
+                                           "TEXT": "Bombs fall; they can hit a shield or the cannon."
+                                          },
+                                          "next": {
+                                           "block": {
+                                            "type": "prg32_repeat",
+                                            "id": "space_invaders-124",
+                                            "fields": {
+                                             "VAR": "s",
+                                             "FROM": "0",
+                                             "TO": "2"
+                                            },
+                                            "inputs": {
+                                             "DO": {
+                                              "block": {
+                                               "type": "prg32_if",
+                                               "id": "space_invaders-123",
+                                               "fields": {
+                                                "COND": "shot_on[s] == 1"
+                                               },
+                                               "inputs": {
+                                                "DO": {
+                                                 "block": {
+                                                  "type": "prg32_list_change",
+                                                  "id": "space_invaders-104",
+                                                  "fields": {
+                                                   "LIST": "shot_y",
+                                                   "INDEX": "s",
+                                                   "DELTA": "3"
+                                                  },
+                                                  "next": {
+                                                   "block": {
+                                                    "type": "prg32_if",
+                                                    "id": "space_invaders-106",
+                                                    "fields": {
+                                                     "COND": "shot_y[s] > 196"
+                                                    },
+                                                    "inputs": {
+                                                     "DO": {
+                                                      "block": {
+                                                       "type": "prg32_list_set",
+                                                       "id": "space_invaders-105",
+                                                       "fields": {
+                                                        "LIST": "shot_on",
+                                                        "INDEX": "s",
+                                                        "VALUE": "0"
+                                                       }
+                                                      }
+                                                     }
+                                                    },
+                                                    "next": {
+                                                     "block": {
+                                                      "type": "prg32_comment",
+                                                      "id": "space_invaders-108",
+                                                      "fields": {
+                                                       "TEXT": "Shields: 4 shields x 6 blocks, each block 8 x 6 pixels with 3 hit points."
+                                                      },
+                                                      "next": {
+                                                       "block": {
+                                                        "type": "prg32_set_state",
+                                                        "id": "space_invaders-109",
+                                                        "fields": {
+                                                         "VAR": "sx",
+                                                         "VALUE": "(shot_x[s] - 40) % 72"
+                                                        },
+                                                        "next": {
+                                                         "block": {
+                                                          "type": "prg32_set_state",
+                                                          "id": "space_invaders-110",
+                                                          "fields": {
+                                                           "VAR": "cell",
+                                                           "VALUE": "((shot_x[s] - 40) / 72) * 6 + ((shot_y[s] - 150) / 6) * 3 + sx / 8"
+                                                          },
+                                                          "next": {
+                                                           "block": {
+                                                            "type": "prg32_if",
+                                                            "id": "space_invaders-113",
+                                                            "fields": {
+                                                             "COND": "shot_x[s] >= 40 && shot_x[s] < 292 && sx < 24 && shot_y[s] >= 150 && shot_y[s] < 162"
+                                                            },
+                                                            "inputs": {
+                                                             "DO": {
+                                                              "block": {
+                                                               "type": "prg32_if",
+                                                               "id": "space_invaders-112",
+                                                               "fields": {
+                                                                "COND": "shield[cell] > 0"
+                                                               },
+                                                               "inputs": {
+                                                                "DO": {
+                                                                 "block": {
+                                                                  "type": "prg32_list_change",
+                                                                  "id": "space_invaders-111",
+                                                                  "fields": {
+                                                                   "LIST": "shield",
+                                                                   "INDEX": "cell",
+                                                                   "DELTA": "-1"
+                                                                  },
+                                                                  "next": {
+                                                                   "block": {
+                                                                    "type": "prg32_list_set",
+                                                                    "id": "space_invaders-107",
+                                                                    "fields": {
+                                                                     "LIST": "shot_on",
+                                                                     "INDEX": "s",
+                                                                     "VALUE": "0"
+                                                                    }
+                                                                   }
+                                                                  }
+                                                                 }
+                                                                }
+                                                               }
+                                                              }
+                                                             }
+                                                            },
+                                                            "next": {
+                                                             "block": {
+                                                              "type": "prg32_if",
+                                                              "id": "space_invaders-122",
+                                                              "fields": {
+                                                               "COND": "shot_on[s] == 1 && mode == 1"
+                                                              },
+                                                              "inputs": {
+                                                               "DO": {
+                                                                "block": {
+                                                                 "type": "prg32_if_touching",
+                                                                 "id": "space_invaders-121",
+                                                                 "fields": {
+                                                                  "AX": "shot_x[s]",
+                                                                  "AY": "shot_y[s]",
+                                                                  "AW": "2",
+                                                                  "AH": "6",
+                                                                  "BX": "cannon_x",
+                                                                  "BY": "176",
+                                                                  "BW": "16",
+                                                                  "BH": "12"
+                                                                 },
+                                                                 "inputs": {
+                                                                  "DO": {
+                                                                   "block": {
+                                                                    "type": "prg32_list_set",
+                                                                    "id": "space_invaders-114",
+                                                                    "fields": {
+                                                                     "LIST": "shot_on",
+                                                                     "INDEX": "s",
+                                                                     "VALUE": "0"
+                                                                    },
+                                                                    "next": {
+                                                                     "block": {
+                                                                      "type": "prg32_change_state",
+                                                                      "id": "space_invaders-115",
+                                                                      "fields": {
+                                                                       "VAR": "lives",
+                                                                       "DELTA": "-1"
+                                                                      },
+                                                                      "next": {
+                                                                       "block": {
+                                                                        "type": "prg32_audio_note",
+                                                                        "id": "space_invaders-116",
+                                                                        "fields": {
+                                                                         "NOTE": "30",
+                                                                         "CHANNEL": "1",
+                                                                         "MS": "500"
+                                                                        },
+                                                                        "next": {
+                                                                         "block": {
+                                                                          "type": "prg32_set_state",
+                                                                          "id": "space_invaders-117",
+                                                                          "fields": {
+                                                                           "VAR": "cannon_x",
+                                                                           "VALUE": "152"
+                                                                          },
+                                                                          "next": {
+                                                                           "block": {
+                                                                            "type": "prg32_if",
+                                                                            "id": "space_invaders-120",
+                                                                            "fields": {
+                                                                             "COND": "lives <= 0"
+                                                                            },
+                                                                            "inputs": {
+                                                                             "DO": {
+                                                                              "block": {
+                                                                               "type": "prg32_set_state",
+                                                                               "id": "space_invaders-118",
+                                                                               "fields": {
+                                                                                "VAR": "mode",
+                                                                                "VALUE": "2"
+                                                                               },
+                                                                               "next": {
+                                                                                "block": {
+                                                                                 "type": "prg32_score_submit",
+                                                                                 "id": "space_invaders-119",
+                                                                                 "fields": {
+                                                                                  "VALUE": "score"
+                                                                                 }
+                                                                                }
+                                                                               }
+                                                                              }
+                                                                             }
+                                                                            }
+                                                                           }
+                                                                          }
+                                                                         }
+                                                                        }
+                                                                       }
+                                                                      }
+                                                                     }
+                                                                    }
+                                                                   }
+                                                                  }
+                                                                 }
+                                                                }
+                                                               }
+                                                              }
+                                                             }
+                                                            }
+                                                           }
+                                                          }
+                                                         }
+                                                        }
+                                                       }
+                                                      }
+                                                     }
+                                                    }
+                                                   }
+                                                  }
+                                                 }
+                                                }
+                                               }
+                                              }
+                                             }
+                                            },
+                                            "next": {
+                                             "block": {
+                                              "type": "prg32_comment",
+                                              "id": "space_invaders-125",
+                                              "fields": {
+                                               "TEXT": "If the invaders reach the ground, the game is over."
+                                              },
+                                              "next": {
+                                               "block": {
+                                                "type": "prg32_if",
+                                                "id": "space_invaders-135",
+                                                "fields": {
+                                                 "COND": "fleet_y + 5 * 18 >= 176"
+                                                },
+                                                "inputs": {
+                                                 "DO": {
+                                                  "block": {
+                                                   "type": "prg32_comment",
+                                                   "id": "space_invaders-126",
+                                                   "fields": {
+                                                    "TEXT": "Find the lowest row that still has an invader."
+                                                   },
+                                                   "next": {
+                                                    "block": {
+                                                     "type": "prg32_set_state",
+                                                     "id": "space_invaders-127",
+                                                     "fields": {
+                                                      "VAR": "lowest",
+                                                      "VALUE": "-1"
+                                                     },
+                                                     "next": {
+                                                      "block": {
+                                                       "type": "prg32_repeat",
+                                                       "id": "space_invaders-130",
+                                                       "fields": {
+                                                        "VAR": "i",
+                                                        "FROM": "0",
+                                                        "TO": "39"
+                                                       },
+                                                       "inputs": {
+                                                        "DO": {
+                                                         "block": {
+                                                          "type": "prg32_if",
+                                                          "id": "space_invaders-129",
+                                                          "fields": {
+                                                           "COND": "alive[i] == 1"
+                                                          },
+                                                          "inputs": {
+                                                           "DO": {
+                                                            "block": {
+                                                             "type": "prg32_set_state",
+                                                             "id": "space_invaders-128",
+                                                             "fields": {
+                                                              "VAR": "lowest",
+                                                              "VALUE": "max(lowest, i / 8)"
+                                                             }
+                                                            }
+                                                           }
+                                                          }
+                                                         }
+                                                        }
+                                                       },
+                                                       "next": {
+                                                        "block": {
+                                                         "type": "prg32_if",
+                                                         "id": "space_invaders-134",
+                                                         "fields": {
+                                                          "COND": "fleet_y + lowest * 18 + 16 >= 176"
+                                                         },
+                                                         "inputs": {
+                                                          "DO": {
+                                                           "block": {
+                                                            "type": "prg32_set_state",
+                                                            "id": "space_invaders-131",
+                                                            "fields": {
+                                                             "VAR": "mode",
+                                                             "VALUE": "2"
+                                                            },
+                                                            "next": {
+                                                             "block": {
+                                                              "type": "prg32_set_state",
+                                                              "id": "space_invaders-132",
+                                                              "fields": {
+                                                               "VAR": "lives",
+                                                               "VALUE": "0"
+                                                              },
+                                                              "next": {
+                                                               "block": {
+                                                                "type": "prg32_score_submit",
+                                                                "id": "space_invaders-133",
+                                                                "fields": {
+                                                                 "VALUE": "score"
+                                                                }
+                                                               }
+                                                              }
+                                                             }
+                                                            }
+                                                           }
+                                                          }
+                                                         }
+                                                        }
+                                                       }
+                                                      }
+                                                     }
+                                                    }
+                                                   }
+                                                  }
+                                                 }
+                                                },
+                                                "next": {
+                                                 "block": {
+                                                  "type": "prg32_comment",
+                                                  "id": "space_invaders-136",
+                                                  "fields": {
+                                                   "TEXT": "All invaders gone: a new, lower wave starts."
+                                                  },
+                                                  "next": {
+                                                   "block": {
+                                                    "type": "prg32_if",
+                                                    "id": "space_invaders-148",
+                                                    "fields": {
+                                                     "COND": "aliens_left == 0"
+                                                    },
+                                                    "inputs": {
+                                                     "DO": {
+                                                      "block": {
+                                                       "type": "prg32_change_state",
+                                                       "id": "space_invaders-137",
+                                                       "fields": {
+                                                        "VAR": "wave",
+                                                        "DELTA": "1"
+                                                       },
+                                                       "next": {
+                                                        "block": {
+                                                         "type": "prg32_if",
+                                                         "id": "space_invaders-139",
+                                                         "fields": {
+                                                          "COND": "wave > 5"
+                                                         },
+                                                         "inputs": {
+                                                          "DO": {
+                                                           "block": {
+                                                            "type": "prg32_set_state",
+                                                            "id": "space_invaders-138",
+                                                            "fields": {
+                                                             "VAR": "wave",
+                                                             "VALUE": "5"
+                                                            }
+                                                           }
+                                                          }
+                                                         },
+                                                         "next": {
+                                                          "block": {
+                                                           "type": "prg32_list_create",
+                                                           "id": "space_invaders-140",
+                                                           "fields": {
+                                                            "LIST": "alive",
+                                                            "SIZE": "40",
+                                                            "VALUE": "1"
+                                                           },
+                                                           "next": {
+                                                            "block": {
+                                                             "type": "prg32_set_state",
+                                                             "id": "space_invaders-141",
+                                                             "fields": {
+                                                              "VAR": "aliens_left",
+                                                              "VALUE": "40"
+                                                             },
+                                                             "next": {
+                                                              "block": {
+                                                               "type": "prg32_set_state",
+                                                               "id": "space_invaders-142",
+                                                               "fields": {
+                                                                "VAR": "fleet_x",
+                                                                "VALUE": "24"
+                                                               },
+                                                               "next": {
+                                                                "block": {
+                                                                 "type": "prg32_set_state",
+                                                                 "id": "space_invaders-143",
+                                                                 "fields": {
+                                                                  "VAR": "fleet_y",
+                                                                  "VALUE": "28 + wave * 8"
+                                                                 },
+                                                                 "next": {
+                                                                  "block": {
+                                                                   "type": "prg32_set_state",
+                                                                   "id": "space_invaders-144",
+                                                                   "fields": {
+                                                                    "VAR": "fleet_dir",
+                                                                    "VALUE": "1"
+                                                                   },
+                                                                   "next": {
+                                                                    "block": {
+                                                                     "type": "prg32_set_state",
+                                                                     "id": "space_invaders-145",
+                                                                     "fields": {
+                                                                      "VAR": "march",
+                                                                      "VALUE": "0"
+                                                                     },
+                                                                     "next": {
+                                                                      "block": {
+                                                                       "type": "prg32_set_state",
+                                                                       "id": "space_invaders-146",
+                                                                       "fields": {
+                                                                        "VAR": "march_timer",
+                                                                        "VALUE": "0"
+                                                                       },
+                                                                       "next": {
+                                                                        "block": {
+                                                                         "type": "prg32_list_create",
+                                                                         "id": "space_invaders-147",
+                                                                         "fields": {
+                                                                          "LIST": "shot_on",
+                                                                          "SIZE": "3",
+                                                                          "VALUE": "0"
+                                                                         }
+                                                                        }
+                                                                       }
+                                                                      }
+                                                                     }
+                                                                    }
+                                                                   }
+                                                                  }
+                                                                 }
+                                                                }
+                                                               }
+                                                              }
+                                                             }
+                                                            }
+                                                           }
+                                                          }
+                                                         }
+                                                        }
+                                                       }
+                                                      }
+                                                     }
+                                                    }
+                                                   }
+                                                  }
+                                                 }
+                                                }
+                                               }
+                                              }
+                                             }
+                                            }
+                                           }
+                                          }
+                                         }
+                                        }
+                                       }
+                                      }
+                                     }
+                                    }
+                                   }
+                                  }
+                                 }
+                                }
+                               }
+                              }
+                             }
+                            }
+                           }
+                          }
+                         }
+                        }
+                       }
+                      }
+                     }
+                    }
+                   }
+                  }
+                 }
+                }
+               },
+               "next": {
+                "block": {
+                 "type": "prg32_comment",
+                 "id": "space_invaders-150",
+                 "fields": {
+                  "TEXT": "Show the score in the PRG32 status band."
+                 },
+                 "next": {
+                  "block": {
+                   "type": "prg32_band_text",
+                   "id": "space_invaders-151",
+                   "fields": {
+                    "TEXT": "SCORE",
+                    "VALUE": "score"
+                   }
+                  }
+                 }
+                }
+               }
+              }
+             }
+            }
+           }
+          }
+         }
+        }
+       }
+      },
+      "x": 520,
+      "y": 20
+     },
+     {
+      "type": "prg32_draw",
+      "id": "space_invaders-194",
+      "inputs": {
+       "DO": {
+        "block": {
+         "type": "prg32_clear_screen",
+         "id": "space_invaders-152",
+         "fields": {
+          "COLOR": "BLACK"
+         },
+         "next": {
+          "block": {
+           "type": "prg32_draw_text",
+           "id": "space_invaders-153",
+           "fields": {
+            "TEXT": "SCORE",
+            "X": "4",
+            "Y": "4",
+            "FG": "GRAY",
+            "BG": "BLACK"
+           },
+           "next": {
+            "block": {
+             "type": "prg32_draw_number",
+             "id": "space_invaders-154",
+             "fields": {
+              "VALUE": "score",
+              "X": "52",
+              "Y": "4",
+              "FG": "WHITE",
+              "BG": "BLACK"
+             },
+             "next": {
+              "block": {
+               "type": "prg32_draw_text",
+               "id": "space_invaders-155",
+               "fields": {
+                "TEXT": "LIVES",
+                "X": "248",
+                "Y": "4",
+                "FG": "GRAY",
+                "BG": "BLACK"
+               },
+               "next": {
+                "block": {
+                 "type": "prg32_draw_number",
+                 "id": "space_invaders-156",
+                 "fields": {
+                  "VALUE": "lives",
+                  "X": "296",
+                  "Y": "4",
+                  "FG": "WHITE",
+                  "BG": "BLACK"
+                 },
+                 "next": {
+                  "block": {
+                   "type": "prg32_comment",
+                   "id": "space_invaders-157",
+                   "fields": {
+                    "TEXT": "Invader i sits at column i % 8 and row i / 8; two poses make it march."
+                   },
+                   "next": {
+                    "block": {
+                     "type": "prg32_repeat",
+                     "id": "space_invaders-172",
+                     "fields": {
+                      "VAR": "i",
+                      "FROM": "0",
+                      "TO": "39"
+                     },
+                     "inputs": {
+                      "DO": {
+                       "block": {
+                        "type": "prg32_if",
+                        "id": "space_invaders-171",
+                        "fields": {
+                         "COND": "alive[i] == 1"
+                        },
+                        "inputs": {
+                         "DO": {
+                          "block": {
+                           "type": "prg32_set_state",
+                           "id": "space_invaders-158",
+                           "fields": {
+                            "VAR": "ax",
+                            "VALUE": "fleet_x + (i % 8) * 24"
+                           },
+                           "next": {
+                            "block": {
+                             "type": "prg32_set_state",
+                             "id": "space_invaders-159",
+                             "fields": {
+                              "VAR": "ay",
+                              "VALUE": "fleet_y + (i / 8) * 18"
+                             },
+                             "next": {
+                              "block": {
+                               "type": "prg32_if_else",
+                               "id": "space_invaders-170",
+                               "fields": {
+                                "COND": "i < 8"
+                               },
+                               "inputs": {
+                                "DO": {
+                                 "block": {
+                                  "type": "prg32_if_else",
+                                  "id": "space_invaders-162",
+                                  "fields": {
+                                   "COND": "march % 2 == 0"
+                                  },
+                                  "inputs": {
+                                   "DO": {
+                                    "block": {
+                                     "type": "prg32_draw_bitmap",
+                                     "id": "space_invaders-160",
+                                     "fields": {
+                                      "X": "ax",
+                                      "Y": "ay",
+                                      "COLOR": "MAGENTA",
+                                      "SCALE": "2",
+                                      "ROW0": "...##...",
+                                      "ROW1": "..####..",
+                                      "ROW2": ".######.",
+                                      "ROW3": "##.##.##",
+                                      "ROW4": "########",
+                                      "ROW5": "..#..#..",
+                                      "ROW6": ".#.##.#.",
+                                      "ROW7": "#.#..#.#"
+                                     }
+                                    }
+                                   },
+                                   "ELSE": {
+                                    "block": {
+                                     "type": "prg32_draw_bitmap",
+                                     "id": "space_invaders-161",
+                                     "fields": {
+                                      "X": "ax",
+                                      "Y": "ay",
+                                      "COLOR": "MAGENTA",
+                                      "SCALE": "2",
+                                      "ROW0": "...##...",
+                                      "ROW1": "..####..",
+                                      "ROW2": ".######.",
+                                      "ROW3": "##.##.##",
+                                      "ROW4": "########",
+                                      "ROW5": ".#.##.#.",
+                                      "ROW6": "#......#",
+                                      "ROW7": ".#....#."
+                                     }
+                                    }
+                                   }
+                                  }
+                                 }
+                                },
+                                "ELSE": {
+                                 "block": {
+                                  "type": "prg32_if_else",
+                                  "id": "space_invaders-169",
+                                  "fields": {
+                                   "COND": "i < 24"
+                                  },
+                                  "inputs": {
+                                   "DO": {
+                                    "block": {
+                                     "type": "prg32_if_else",
+                                     "id": "space_invaders-165",
+                                     "fields": {
+                                      "COND": "march % 2 == 0"
+                                     },
+                                     "inputs": {
+                                      "DO": {
+                                       "block": {
+                                        "type": "prg32_draw_bitmap",
+                                        "id": "space_invaders-163",
+                                        "fields": {
+                                         "X": "ax",
+                                         "Y": "ay",
+                                         "COLOR": "CYAN",
+                                         "SCALE": "2",
+                                         "ROW0": "..#..#..",
+                                         "ROW1": "...##...",
+                                         "ROW2": "..####..",
+                                         "ROW3": ".##..##.",
+                                         "ROW4": "########",
+                                         "ROW5": "#.####.#",
+                                         "ROW6": "#.#..#.#",
+                                         "ROW7": "...##..."
+                                        }
+                                       }
+                                      },
+                                      "ELSE": {
+                                       "block": {
+                                        "type": "prg32_draw_bitmap",
+                                        "id": "space_invaders-164",
+                                        "fields": {
+                                         "X": "ax",
+                                         "Y": "ay",
+                                         "COLOR": "CYAN",
+                                         "SCALE": "2",
+                                         "ROW0": "..#..#..",
+                                         "ROW1": "#..##..#",
+                                         "ROW2": "#.####.#",
+                                         "ROW3": "###..###",
+                                         "ROW4": "########",
+                                         "ROW5": ".######.",
+                                         "ROW6": "..#..#..",
+                                         "ROW7": ".#....#."
+                                        }
+                                       }
+                                      }
+                                     }
+                                    }
+                                   },
+                                   "ELSE": {
+                                    "block": {
+                                     "type": "prg32_if_else",
+                                     "id": "space_invaders-168",
+                                     "fields": {
+                                      "COND": "march % 2 == 0"
+                                     },
+                                     "inputs": {
+                                      "DO": {
+                                       "block": {
+                                        "type": "prg32_draw_bitmap",
+                                        "id": "space_invaders-166",
+                                        "fields": {
+                                         "X": "ax",
+                                         "Y": "ay",
+                                         "COLOR": "YELLOW",
+                                         "SCALE": "2",
+                                         "ROW0": "..####..",
+                                         "ROW1": ".######.",
+                                         "ROW2": "##.##.##",
+                                         "ROW3": "########",
+                                         "ROW4": ".##..##.",
+                                         "ROW5": "##.##.##",
+                                         "ROW6": "#......#",
+                                         "ROW7": ".#....#."
+                                        }
+                                       }
+                                      },
+                                      "ELSE": {
+                                       "block": {
+                                        "type": "prg32_draw_bitmap",
+                                        "id": "space_invaders-167",
+                                        "fields": {
+                                         "X": "ax",
+                                         "Y": "ay",
+                                         "COLOR": "YELLOW",
+                                         "SCALE": "2",
+                                         "ROW0": "..####..",
+                                         "ROW1": ".######.",
+                                         "ROW2": "##.##.##",
+                                         "ROW3": "########",
+                                         "ROW4": "..#..#..",
+                                         "ROW5": ".#.##.#.",
+                                         "ROW6": "#.#..#.#",
+                                         "ROW7": "........"
+                                        }
+                                       }
+                                      }
+                                     }
+                                    }
+                                   }
+                                  }
+                                 }
+                                }
+                               }
+                              }
+                             }
+                            }
+                           }
+                          }
+                         }
+                        }
+                       }
+                      }
+                     },
+                     "next": {
+                      "block": {
+                       "type": "prg32_comment",
+                       "id": "space_invaders-173",
+                       "fields": {
+                        "TEXT": "Shield blocks get darker as they lose hit points."
+                       },
+                       "next": {
+                        "block": {
+                         "type": "prg32_repeat",
+                         "id": "space_invaders-176",
+                         "fields": {
+                          "VAR": "i",
+                          "FROM": "0",
+                          "TO": "23"
+                         },
+                         "inputs": {
+                          "DO": {
+                           "block": {
+                            "type": "prg32_if",
+                            "id": "space_invaders-175",
+                            "fields": {
+                             "COND": "shield[i] > 0"
+                            },
+                            "inputs": {
+                             "DO": {
+                              "block": {
+                               "type": "prg32_draw_rect_rgb",
+                               "id": "space_invaders-174",
+                               "fields": {
+                                "X": "40 + (i / 6) * 72 + (i % 3) * 8",
+                                "Y": "150 + ((i % 6) / 3) * 6",
+                                "W": "8",
+                                "H": "6",
+                                "RGB": "rgb(0, 80 + shield[i] * 55, 0)"
+                               }
+                              }
+                             }
+                            }
+                           }
+                          }
+                         },
+                         "next": {
+                          "block": {
+                           "type": "prg32_comment",
+                           "id": "space_invaders-177",
+                           "fields": {
+                            "TEXT": "Cannon, laser, bombs and ground."
+                           },
+                           "next": {
+                            "block": {
+                             "type": "prg32_if",
+                             "id": "space_invaders-179",
+                             "fields": {
+                              "COND": "mode == 1"
+                             },
+                             "inputs": {
+                              "DO": {
+                               "block": {
+                                "type": "prg32_draw_bitmap",
+                                "id": "space_invaders-178",
+                                "fields": {
+                                 "X": "cannon_x",
+                                 "Y": "176",
+                                 "COLOR": "LIME",
+                                 "SCALE": "2",
+                                 "ROW0": "...##...",
+                                 "ROW1": "...##...",
+                                 "ROW2": ".######.",
+                                 "ROW3": "########",
+                                 "ROW4": "########",
+                                 "ROW5": "########",
+                                 "ROW6": "........",
+                                 "ROW7": "........"
+                                }
+                               }
+                              }
+                             },
+                             "next": {
+                              "block": {
+                               "type": "prg32_if",
+                               "id": "space_invaders-181",
+                               "fields": {
+                                "COND": "laser_on == 1"
+                               },
+                               "inputs": {
+                                "DO": {
+                                 "block": {
+                                  "type": "prg32_draw_rect",
+                                  "id": "space_invaders-180",
+                                  "fields": {
+                                   "X": "laser_x",
+                                   "Y": "laser_y",
+                                   "W": "2",
+                                   "H": "6",
+                                   "COLOR": "WHITE"
+                                  }
+                                 }
+                                }
+                               },
+                               "next": {
+                                "block": {
+                                 "type": "prg32_repeat",
+                                 "id": "space_invaders-184",
+                                 "fields": {
+                                  "VAR": "s",
+                                  "FROM": "0",
+                                  "TO": "2"
+                                 },
+                                 "inputs": {
+                                  "DO": {
+                                   "block": {
+                                    "type": "prg32_if",
+                                    "id": "space_invaders-183",
+                                    "fields": {
+                                     "COND": "shot_on[s] == 1"
+                                    },
+                                    "inputs": {
+                                     "DO": {
+                                      "block": {
+                                       "type": "prg32_draw_rect",
+                                       "id": "space_invaders-182",
+                                       "fields": {
+                                        "X": "shot_x[s]",
+                                        "Y": "shot_y[s]",
+                                        "W": "2",
+                                        "H": "6",
+                                        "COLOR": "ORANGE"
+                                       }
+                                      }
+                                     }
+                                    }
+                                   }
+                                  }
+                                 },
+                                 "next": {
+                                  "block": {
+                                   "type": "prg32_draw_rect",
+                                   "id": "space_invaders-185",
+                                   "fields": {
+                                    "X": "0",
+                                    "Y": "192",
+                                    "W": "320",
+                                    "H": "1",
+                                    "COLOR": "GREEN"
+                                   },
+                                   "next": {
+                                    "block": {
+                                     "type": "prg32_if",
+                                     "id": "space_invaders-188",
+                                     "fields": {
+                                      "COND": "mode == 0"
+                                     },
+                                     "inputs": {
+                                      "DO": {
+                                       "block": {
+                                        "type": "prg32_draw_text",
+                                        "id": "space_invaders-186",
+                                        "fields": {
+                                         "TEXT": "SPACE INVADERS",
+                                         "X": "104",
+                                         "Y": "100",
+                                         "FG": "LIME",
+                                         "BG": "BLACK"
+                                        },
+                                        "next": {
+                                         "block": {
+                                          "type": "prg32_draw_text",
+                                          "id": "space_invaders-187",
+                                          "fields": {
+                                           "TEXT": "PRESS START",
+                                           "X": "116",
+                                           "Y": "116",
+                                           "FG": "WHITE",
+                                           "BG": "BLACK"
+                                          }
+                                         }
+                                        }
+                                       }
+                                      }
+                                     },
+                                     "next": {
+                                      "block": {
+                                       "type": "prg32_if",
+                                       "id": "space_invaders-191",
+                                       "fields": {
+                                        "COND": "mode == 2"
+                                       },
+                                       "inputs": {
+                                        "DO": {
+                                         "block": {
+                                          "type": "prg32_draw_text",
+                                          "id": "space_invaders-189",
+                                          "fields": {
+                                           "TEXT": "GAME OVER",
+                                           "X": "124",
+                                           "Y": "100",
+                                           "FG": "RED",
+                                           "BG": "BLACK"
+                                          },
+                                          "next": {
+                                           "block": {
+                                            "type": "prg32_draw_text",
+                                            "id": "space_invaders-190",
+                                            "fields": {
+                                             "TEXT": "PRESS START",
+                                             "X": "116",
+                                             "Y": "116",
+                                             "FG": "WHITE",
+                                             "BG": "BLACK"
+                                            }
+                                           }
+                                          }
+                                         }
+                                        }
+                                       }
+                                      }
+                                     }
+                                    }
+                                   }
+                                  }
+                                 }
+                                }
+                               }
+                              }
+                             }
+                            }
+                           }
+                          }
+                         }
+                        }
+                       }
+                      }
+                     }
+                    }
+                   }
+                  }
+                 }
+                }
+               }
+              }
+             }
+            }
+           }
+          }
+         }
+        }
+       }
+      },
+      "x": 1120,
+      "y": 20
+     }
+    ]
+   }
+  }
+ }
+}

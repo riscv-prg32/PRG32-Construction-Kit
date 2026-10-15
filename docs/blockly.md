@@ -13,95 +13,195 @@ Projects save the Blockly workspace serialization in JSON:
 }
 ```
 
-This is stored in:
+This is stored in `projects.blocks_json`. **Generate C** turns it into a
+checked game IR (`prg32-construction-kit-game-1.1`) and then into C; the
+browser simulator reads the same JSON into the same IR.
 
-```text
-projects.blocks_json
-```
+## Game
 
-## Top-level blocks
-
-| Block | Purpose |
+| Block | C behaviour |
 | --- | --- |
-| `when game starts` | Runs once in generated `<prefix>_init`. |
-| `every frame update` | Runs every frame in generated `<prefix>_update`. |
-| `every frame draw` | Runs every frame in generated `<prefix>_draw`. |
+| `when game starts` | Body of `<prefix>_init`, run once. |
+| `every frame update` | Body of `<prefix>_update`, run every frame (about 30 per second). |
+| `every frame draw` | Body of `<prefix>_draw`, run after every update. |
+| `comment` | A `/* ... */` comment in the C. |
+| `show splash title ... for ms` | `prg32_splash_show_game(...)`; use it in *when game starts*. |
 
-## State blocks
+## Variables
 
-| Block | C behavior |
+All variables are whole numbers (`int`). Using a name anywhere creates it.
+
+| Block | C behaviour |
 | --- | --- |
-| `set score to 0` | `score = 0;` |
+| `set score to 0` | `score = 0;` (the first literal value is also the start value) |
 | `change player_x by -3` | `player_x += -3;` |
-| `keep player_x between 0 and 304` | emits two boundary checks. |
+| `keep player_x between 0 and 304` | two boundary checks (a clamp) |
+| `wrap ship_x around 0 to 319` | leaving one end re-enters at the other |
+| `set target_x to random from 0 to 304` | `prg32_kit_random(0, 304)`, both ends included |
 
-## Input and logic blocks
+## Lists
 
-| Block | C behavior |
+| Block | C behaviour |
 | --- | --- |
-| `if button LEFT pressed` | `if (input & PRG32_BTN_LEFT) { ... }` |
-| `if rect touches rect` | `prg32_sprite_hitbox(...)` |
+| `make list bricks with 60 items, all 1` | `static int bricks[60];` filled with 1 |
+| `set item i of bricks to 0` | bounds-checked write |
+| `change item i of bricks by -1` | bounds-checked read and write |
 
-## Drawing blocks
+Read an item in any field with `bricks[i]`; positions start at 0. A list holds
+1 to 1024 items. Reading outside the list gives 0 and writing outside the list
+does nothing, in the simulator and in C (`prg32_kit_get` / `prg32_kit_set`).
 
-| Block | C behavior |
+## Logic
+
+| Block | C behaviour |
 | --- | --- |
-| `clear screen black` | `prg32_gfx_clear(PRG32_COLOR_BLACK);` |
-| `draw rectangle ...` | `prg32_gfx_rect(...);` |
-| `draw text ...` | `prg32_gfx_text8(...);` |
+| `if <condition>` | `if (condition) { ... }` |
+| `if <condition> ... else ...` | `if (...) { ... } else { ... }` |
+| `repeat with i from 0 to 9` | a counted loop; `i` takes every value from the first to the last number. A repeat runs at most 1024 times, so a game can never freeze. |
+| `if rect ... touches rect ...` | `prg32_sprite_hitbox(...)`: x, y, width, height of two rectangles |
 
-## Audio block
+## Input
 
-| Block | C behavior |
+| Block | C behaviour |
 | --- | --- |
-| `play beep freq 880 ms 80` | Converts 880 Hz to the nearest MIDI note and calls `prg32_audio_note` for 80 ms. Frequencies are clamped to the C3–C6 range. |
-| `play MIDI note 60 on channel 0 for 250 ms` | Calls the asynchronous `prg32_audio_note` mixer API with default instrument 0. |
+| `if button LEFT is held` | `if (input & PRG32_BTN_LEFT)`: true on every frame the button is down |
+| `if button A was just pressed` | true only on the first frame of a press (edge detection) |
 
-## Current PRG32 main coverage
+The button list includes the second controller: *player 2 left/right/up/down/A/B*
+(`PRG32_P2_BTN_*`). In the simulator, player 2 uses `J L I K` for the
+directions and `U`/`O` for A/B.
 
-The Blocks editor supports the cartridge lifecycle, one local controller,
-integer state, rectangle collision, RGB565 clear/rectangle/pixel/text,
-palette and indexed clear/rectangle/pixel, inclusive random numbers, and
-simple mixer notes. The JavaScript simulator approximates these operations;
-physical audio and random-number sequences may differ.
+## Drawing
 
-The current PRG32 cartridge ABI also includes tiles and scrolling playfields,
-platform actors, sprite assets and animation, samples and tracker audio,
-on-screen keyboard, scores, multiplayer, status bands, RGB LED, performance
-measurement, and other runtime services. These do **not** yet have equivalent
-Blocks and simulator behavior. The **Advanced C** editor can build cartridges
-using the full portable cartridge ABI with the current PRG32 toolchain. Some
-`prg32.h` functions are resident-only and cannot be called by a cartridge. Use the
-[PRG32 framework manual](https://github.com/riscv-prg32/PRG32/blob/main/docs/software/framework_manual.md)
-for those lessons. Blocks and simulator parity remains a separate future task.
+| Block | C behaviour |
+| --- | --- |
+| `clear screen BLACK` | `prg32_gfx_clear` |
+| `draw rectangle x y w h color` | `prg32_gfx_rect` |
+| `draw outline x y w h color` | four one-pixel rectangles |
+| `draw rectangle ... color value <expr>` | `prg32_gfx_rect` with an RGB565 expression, e.g. `rgb(255, 128, 0)` or `row_color[r]` |
+| `draw pixel` | `prg32_gfx_pixel` |
+| `draw line from x y to x y` | Bresenham's line algorithm (`prg32_kit_draw_line`) |
+| `draw outline/filled circle` | midpoint circle algorithm (`prg32_kit_draw_circle`) |
+| `draw text` | `prg32_gfx_text8` with the PRG32 8 x 8 font |
+| `draw number` | the value as decimal text (`prg32_kit_draw_number`) |
+| `draw picture x y color size` | an 8 x 8 picture typed as eight rows of `#` and `.`; `size 2` draws it 16 x 16; `.` is see-through |
 
-## Expression rules
+Colours: black, white, red, green, blue, yellow, cyan, magenta, orange, pink,
+gray, dark gray, brown, purple, navy, lime.
 
-Text fields for coordinates and values accept simple integer expressions such as:
+## Sprites and tiles
+
+| Block | C behaviour |
+| --- | --- |
+| `draw 8x8 sprite x y fg bg` | `prg32_sprite_draw_8x8` (PRG32 sprite API, opaque background) |
+| `define tile 1 fg bg` + eight rows | `prg32_tile_define` |
+| `fill playfield layer 0 with tile 0` | `prg32_playfield_clear` |
+| `put tile 3 on layer 0 at column x row y` | `prg32_playfield_put` |
+| `scroll playfield layer 0 to x y` | `prg32_playfield_scroll` |
+| `move playfield camera to x y` | `prg32_playfield_camera` |
+| `draw playfield layer 0 opaque / tile 0 see-through` | `prg32_playfield_draw` |
+
+Read a tile back with `tile(layer, column, row)`. Playfields are 64 x 32
+tiles; 40 x 25 are visible. Define tile 0 explicitly: the ESP32 firmware
+paints an undefined tile with black, PRG32-QT skips it.
+
+## Palette
+
+| Block | C behaviour |
+| --- | --- |
+| `palette index 1 color RED` | `prg32_palette_set` |
+| `clear screen with palette index` | `prg32_gfx_clear_indexed` |
+| `draw indexed rectangle` / `draw indexed pixel` | `prg32_gfx_rect_indexed` / `prg32_gfx_pixel_indexed` |
+
+## Sound
+
+| Block | C behaviour |
+| --- | --- |
+| `play beep freq 880 ms 80` | nearest MIDI note on channel 0 (`prg32_audio_note`), C3-C6 range |
+| `play MIDI note 60 on channel 0 for 250 ms` | `prg32_audio_note` with the default instrument |
+| `stop sound on channel 0` | `prg32_audio_note_off` |
+| `set master volume to 200` | `prg32_audio_set_master_volume` (0-255) |
+
+## Scores and status
+
+| Block | C behaviour |
+| --- | --- |
+| `show in status band SCORE number score` | text in the firmware game-info band under the game; redrawn only when it changes |
+| `save high score score` | `prg32_score_submit_current_player` |
+| `show scoreboard titled ...` | `prg32_scoreboard_show` (waits for A, B or START) |
+| `ask the player's name` | `prg32_score_player_prompt` (on-screen keyboard) |
+
+## Multiplayer
+
+| Block | C behaviour |
+| --- | --- |
+| `join multiplayer game` | `prg32_multiplayer_join` (Cartridge Store relay) |
+| `share my position x y look` | `prg32_multiplayer_set_local_state` and `prg32_multiplayer_tick` |
+
+Read other players with `peers()`, `peer_x(i)`, `peer_y(i)`, `peer_look(i)`.
+The simulator and QEMU are offline: `peers()` is 0 there.
+
+## Expressions
+
+Text fields accept small integer expressions:
 
 ```text
-150
-player_x
-player_x + 8
-score * 2
+150        player_x + 8        score * 2        bricks[row * 10 + col]
+abs(dx) < 4        sin(angle) * 9 / 256        random(1, 6)        frame() % 8 < 5
 ```
 
 An expression may use:
 
-- whole numbers (`16`, `-3`, `0x1F`)
-- state variable names (`player_x`) and PRG32 constants (`PRG32_SCREEN_W`)
-- parentheses and the operators `+ - * / % < > <= >= == != && || ! & | ^ ~ << >>`
+- whole numbers (`16`, `-3`, `0x1F`) and variable names;
+- list items `name[position]`;
+- PRG32 constants: `PRG32_GAME_W`, `PRG32_GAME_H`, `PRG32_SCREEN_W`, `PRG32_SCREEN_H`,
+  `PRG32_TILE_*`, `PRG32_PLAYFIELD_*`, `PRG32_BTN_*`, `PRG32_P2_BTN_*`, `PRG32_COLOR_*`;
+- parentheses and the C operators `+ - * / % < > <= >= == != && || ! & | ^ ~ << >>`;
+- these kit functions:
+
+| Function | Result |
+| --- | --- |
+| `abs(x)`, `sign(x)` | absolute value; -1, 0 or 1 |
+| `min(a, b)`, `max(a, b)`, `clamp(x, low, high)` | smaller, larger, limited value |
+| `sin(deg)`, `cos(deg)` | -256..256 (256 means 1.0), angle in degrees |
+| `rgb(r, g, b)` | an RGB565 colour from 0-255 parts |
+| `random(low, high)` | a random whole number, both ends included |
+| `frame()` | frames finished since the game started |
+| `tile(layer, column, row)` | the tile number in a playfield |
+| `peers()`, `peer_x(i)`, `peer_y(i)`, `peer_look(i)` | other multiplayer players |
 
 Anything else is replaced by the block's default value, and the replacement is
-listed under **Warnings** after **Convert**. That includes function calls
-(`rand()`), decimals (`1.5`), quotes, semicolons, braces, comments and `#`
-lines, so a text field can never add hidden C code.
+listed under **Warnings** after **Generate C**. That includes unknown
+functions (`rand()`), decimals (`1.5`), quotes, semicolons, braces,
+assignments, comments and `#` lines, so a text field can never add hidden C
+code.
 
 Some details students may notice:
 
 - Names are not case-sensitive: `Player_X` and `player_x` are the same variable.
-- Division works like C integers: `7 / 2` is `3`, and the simulator does the same.
+- Division works like C integers on RISC-V: `7 / 2` is `3`, `-7 / 2` is `-3`,
+  and dividing by zero gives `-1` (the remainder gives the dividend) instead
+  of crashing. The simulator does the same.
 - Names that C already uses get `_var` added: a variable called `input` or `int`
   becomes `input_var` or `int_var` in the generated C.
 - Text in **draw text** and **comment** blocks is escaped, so quotes and `*/`
   stay inside the string or comment.
+
+## Helpers in the generated C
+
+Blocks such as *draw line* or list items need a few lines of support code. The
+generator writes those helpers (`prg32_kit_get`, `prg32_kit_draw_line`,
+`prg32_kit_sin`, ...) at the top of the same C file, and only the ones the
+game uses, so students can read every line that runs. No library, no
+`malloc`, no floating point.
+
+## Simulator fidelity
+
+The simulator draws into a 320 x 200 RGB565 framebuffer with the PRG32
+firmware's 8 x 8 font and drawing rules, and runs at 30 frames per second.
+For the example games, title screens rendered by the simulator are identical,
+pixel for pixel, to the framebuffer read from the PRG32 QEMU firmware. Audio
+is approximated with the browser's oscillator; random numbers differ.
+
+See [prg32_feature_coverage.md](prg32_feature_coverage.md) for which PRG32
+services are available in Blocks, in the simulator and in Advanced C.

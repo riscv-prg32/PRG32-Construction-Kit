@@ -42,7 +42,10 @@
 
   function loadExamples() {
     Kit.api('/api/examples').then(data => {
-      $('#exampleList').html(data.examples.map(example => `<div class="list-group-item d-flex gap-3 align-items-center justify-content-between"><div><strong>${Kit.escape(example.title)}</strong><div class="small text-muted">${Kit.escape(example.description)}</div></div><button class="btn btn-primary btn-sm import-example" data-slug="${Kit.escape(example.slug)}">Add</button></div>`).join(''));
+      const badge = example => example.kind === 'game'
+        ? '<span class="badge text-bg-success ms-2">complete game</span>'
+        : '<span class="badge text-bg-secondary ms-2">sketch</span>';
+      $('#exampleList').html(data.examples.map(example => `<div class="list-group-item d-flex gap-3 align-items-center justify-content-between"><div><strong>${Kit.escape(example.title)}</strong>${badge(example)}<div class="small text-muted">${Kit.escape(example.description)}</div></div><button class="btn btn-primary btn-sm import-example" data-slug="${Kit.escape(example.slug)}">Add</button></div>`).join(''));
     }).catch(err => $('#exampleList').html(`<div class="alert alert-danger">${Kit.escape(err.message)}</div>`));
   }
 

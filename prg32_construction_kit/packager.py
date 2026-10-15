@@ -87,6 +87,9 @@ def run_prg32_build(build_command: str, source_path: Path, out_path: Path, entry
     ]
     for feature in required_features or []:
         command.extend(["--required-feature", feature])
+    if "multiplayer" in (required_features or []):
+        # Also sets the cartridge header's multiplayer flag (PRG32 builder option).
+        command.append("--multiplayer")
     try:
         result = subprocess.run(command, check=False, capture_output=True, text=True, timeout=60)
     except FileNotFoundError as exc:

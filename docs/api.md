@@ -4,9 +4,12 @@ All responses are JSON unless a download endpoint is used.
 
 ## Built-in Blocks examples
 
-`GET /api/examples` lists the editable Blocks adaptations of the upstream
-PRG32 example games and feature demos. `POST /api/examples/<slug>/import`
-creates a new project from one of them; it never changes the built-in example.
+`GET /api/examples` lists the built-in Blocks examples. Each entry has a
+`slug`, `title`, `description` and `kind`: `"game"` for the five complete games
+(`pong`, `breakout`, `space_invaders`, `asteroids`, `snake`, read from
+`examples/games/`) and `"sketch"` for the short adaptations of the other
+upstream PRG32 examples. `POST /api/examples/<slug>/import` creates a new
+project from one of them; it never changes the built-in example.
 
 ## Compile and download a cartridge
 

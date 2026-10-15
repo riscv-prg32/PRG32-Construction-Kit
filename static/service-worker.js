@@ -1,4 +1,4 @@
-const CACHE_NAME = 'prg32-kit-v2';
+const CACHE_NAME = 'prg32-kit-v3';
 const APP_SHELL = [
   '/',
   '/sprites',

@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Space Invaders with PRG32 Blocks</title>
+<link rel="stylesheet" href="deck.css">
+</head>
+<body>
+<!-- Built by tools/build_presentations.py from docs/tutorials/games/space_invaders.md; edit that file, not this one. -->
+<main class="deck" data-title="Space Invaders with PRG32 Blocks">
+<section class="slide title">
+<!-- class: title -->
+<h1>Space Invaders</h1>
+<h2>Pixel pictures, a marching fleet, and many objects at once</h2>
+<p>PRG32-Construction-Kit tutorial deck, step by step, from blocks to a RISC-V cartridge.</p>
+<p><img alt="Space Invaders running on the PRG32 QEMU firmware" src="../figures/games/space_invaders-qemu.png" /></p>
+</section>
+<section class="slide">
+<h2>Learning outcomes</h2>
+<ol>
+<li>encode <strong>8 x 8 pictures as bytes</strong> (one bit per pixel) and animate them with two poses;</li>
+<li>manage a <strong>fleet of 40 objects</strong> with one list and grid arithmetic;</li>
+<li>design <strong>collective motion</strong>: the whole fleet steps, reverses at the edges and descends;</li>
+<li>use <strong>object pools</strong> (three bomb slots) instead of creating objects at run time;</li>
+<li>balance difficulty with <strong>time</strong>: the fleet speeds up as it shrinks.</li>
+</ol>
+<p><strong>Prerequisites:</strong> Pong and Breakout tutorials. About 2 hours.</p>
+</section>
+<section class="slide">
+<h2>Context</h2>
+<ul>
+<li><strong>Space Invaders</strong> (Taito, 1978, designed by Tomohiro Nishikado) ran on an Intel 8080 with a 1-bit framebuffer; colours came from cellophane strips on the screen.</li>
+<li>Its famous acceleration was a side effect: with fewer invaders to draw, each frame finished sooner. Here we make it a <strong>design rule</strong>: march every <code>2 + aliens_left / 3</code> frames.</li>
+<li>It popularised targets that <strong>shoot back</strong>, shields that wear down, and the high-score chase.</li>
+</ul>
+<blockquote>
+<p>A 1-bit 8 x 8 picture is eight bytes. The same format is used by the PRG32 firmware for sprites and tiles.</p>
+</blockquote>
+<p><em>Original, classic-inspired reimplementation for teaching; not affiliated with the historical products.</em></p>
+</section>
+<section class="slide">
+<h2>Rules and controls</h2><div class="cols"><div class="col"><table>
+<thead>
+<tr>
+<th>Button</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>LEFT / RIGHT</td>
+<td>move the laser cannon</td>
+</tr>
+<tr>
+<td>A</td>
+<td>fire (one laser at a time)</td>
+</tr>
+<tr>
+<td>START</td>
+<td>start / play again</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>40 invaders in 5 rows: 50 points for the top row, 10 for the bottom rows.</li>
+<li>Up to three bombs fall at once; four shields absorb hits.</li>
+<li>The game ends when lives run out or the invaders reach the ground.</li>
+<li>Each new wave starts lower.</li>
+</ul></div><div class="col"><p><img alt="Space Invaders title screen" src="../figures/games/space_invaders-title.png" /></p></div></div>
+</section>
+<section class="slide">
+<h2>Pictures are bytes</h2>
+<p><img alt="An 8 x 8 picture is eight bytes" src="../figures/games/invaders_bitmap.svg" /></p>
+</section>
+<section class="slide">
+<h2>Step 1 - Fleet, shields and pools</h2><div class="cols"><div class="col"><div class="blocks"><div class="blk"><div class="blk-label" style="background:#a58c5b">when game starts</div><div class="blk-body" style="border-color:#a58c5b"><div class="blk comment"><div class="blk-label" style="background:#80a55b">comment <span class="f">Space Invaders: 40 invaders march down; A fires the laser cannon.</span></div></div><div class="blk"><div class="blk-label" style="background:#995ba5">make list <span class="f">shot_x</span> with <span class="f">3</span> items, all <span class="f">0</span></div></div><div class="blk"><div class="blk-label" style="background:#995ba5">make list <span class="f">shot_y</span> with <span class="f">3</span> items, all <span class="f">0</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">score</span> to <span class="f">0</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">lives</span> to <span class="f">3</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">wave</span> to <span class="f">0</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">cannon_x</span> to <span class="f">152</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">laser_on</span> to <span class="f">0</span></div></div><div class="blk"><div class="blk-label" style="background:#995ba5">make list <span class="f">shield</span> with <span class="f">24</span> items, all <span class="f">3</span></div></div><div class="blk"><div class="blk-label" style="background:#995ba5">make list <span class="f">alive</span> with <span class="f">40</span> items, all <span class="f">1</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">aliens_left</span> to <span class="f">40</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">fleet_x</span> to <span class="f">24</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">fleet_y</span> to <span class="f">28 + wave * 8</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">fleet_dir</span> to <span class="f">1</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">march</span> to <span class="f">0</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">march_timer</span> to <span class="f">0</span></div></div><div class="blk"><div class="blk-label" style="background:#995ba5">make list <span class="f">shot_on</span> with <span class="f">3</span> items, all <span class="f">0</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">mode</span> to <span class="f">1</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">mode</span> to <span class="f">0</span></div></div></div></div></div></div><div class="col"><ul>
+<li><code>alive[40]</code>: one item per invader, 1 = alive.</li>
+<li><code>shield[24]</code>: 4 shields x 6 blocks, 3 hit points each.</li>
+<li><code>shot_on[3]</code>, <code>shot_x[3]</code>, <code>shot_y[3]</code>: <strong>parallel lists</strong> describing three bomb slots. A bomb is "created" by switching a free slot on: no memory is allocated while the game runs.</li>
+</ul></div></div>
+</section>
+<section class="slide">
+<h2>The fleet as a grid</h2>
+<p><img alt="The fleet grid and the laser hit test" src="../figures/games/invaders_fleet.svg" /></p>
+</section>
+<section class="slide tight">
+<h2>Step 2 - The cannon and the laser</h2>
+<!-- class: tight --><div class="cols"><div class="col"><div class="blocks"><div class="blk comment"><div class="blk-label" style="background:#80a55b">comment <span class="f">The cannon: LEFT and RIGHT move it, A fires one laser at a time.</span></div></div><div class="blk"><div class="blk-label" style="background:#a5745b">if button <span class="f">left</span> is held</div><div class="blk-body" style="border-color:#a5745b"><div class="blk"><div class="blk-label" style="background:#745ba5">change <span class="f">cannon_x</span> by <span class="f">-3</span></div></div></div></div><div class="blk"><div class="blk-label" style="background:#a5745b">if button <span class="f">right</span> is held</div><div class="blk-body" style="border-color:#a5745b"><div class="blk"><div class="blk-label" style="background:#745ba5">change <span class="f">cannon_x</span> by <span class="f">3</span></div></div></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">keep <span class="f">cannon_x</span> between <span class="f">4</span> and <span class="f">300</span></div></div><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">laser_on == 0</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#a5745b">if button <span class="f">a</span> was just pressed</div><div class="blk-body" style="border-color:#a5745b"><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">laser_on</span> to <span class="f">1</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">laser_x</span> to <span class="f">cannon_x + 7</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">laser_y</span> to <span class="f">172</span></div></div><div class="blk"><div class="blk-label" style="background:#a55ba5">play beep freq <span class="f">1200</span> ms <span class="f">30</span></div></div></div></div></div></div></div></div><div class="col"><div class="blocks"><div class="blk comment"><div class="blk-label" style="background:#80a55b">comment <span class="f">The laser flies up; it can hit an invader or a shield.</span></div></div><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">laser_on == 1</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk more">&hellip;</div></div></div></div></div></div>
+</section>
+<section class="slide">
+<h2>Step 3 - Hitting an invader</h2><div class="cols"><div class="col"><div class="blocks"><div class="blk comment"><div class="blk-label" style="background:#80a55b">comment <span class="f">Which invader is the laser inside? Each one sits in a 24 x 18 cell.</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">col</span> to <span class="f">(laser_x - fleet_x) / 24</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">row</span> to <span class="f">(laser_y - fleet_y) / 18</span></div></div><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">laser_x &gt;= fleet_x &amp;&amp; laser_y &gt;= fleet_y &amp;&amp; col &lt; 8 &amp;&amp; row &lt; 5 &amp;&amp; (laser_x - fleet_x) % 24 &lt; 16 &amp;&amp; (laser_y - fleet_y) % 18 &lt; 16</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">alive[row * 8 + col] == 1</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#995ba5">set item <span class="f">row * 8 + col</span> of <span class="f">alive</span> to <span class="f">0</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">change <span class="f">aliens_left</span> by <span class="f">-1</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">change <span class="f">score</span> by <span class="f">(5 - row) * 10</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">laser_on</span> to <span class="f">0</span></div></div><div class="blk"><div class="blk-label" style="background:#a55ba5">play MIDI note <span class="f">96</span> on channel <span class="f">2</span> for <span class="f">60</span> ms</div></div></div></div></div></div></div></div><div class="col"><p>Like the brick test in Breakout, the laser's position is turned into a <strong>cell</strong> with division, and the remainder checks the gap between invaders.</p>
+<pre class="c"><code>/* Which invader is the laser inside? Each one sits in a 24 x 18 cell. */
+col = (laser_x - fleet_x) / 24;
+row = (laser_y - fleet_y) / 18;
+if (laser_x &gt;= fleet_x &amp;&amp; laser_y &gt;= fleet_y &amp;&amp; col &lt; 8 &amp;&amp; row &lt; 5 &amp;&amp; (laser_x - fleet_x) % 24 &lt; 16 &amp;&amp; (laser_y - fleet_y) % 18 &lt; 16) {
+    if (prg32_kit_get(alive, 40, row * 8 + col) == 1) {
+        prg32_kit_set(alive, 40, row * 8 + col, 0);
+        aliens_left += -1;
+        score += (5 - row) * 10;
+        laser_on = 0;
+        prg32_audio_note(2, 0, 96, 255, 60);
+    }
+}</code></pre></div></div>
+</section>
+<section class="slide">
+<h2>Step 4 - Shields wear down</h2><div class="cols"><div class="col"><div class="blocks"><div class="blk comment"><div class="blk-label" style="background:#80a55b">comment <span class="f">Shields: 4 shields x 6 blocks, each block 8 x 6 pixels with 3 hit points.</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">sx</span> to <span class="f">(laser_x - 40) % 72</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">cell</span> to <span class="f">((laser_x - 40) / 72) * 6 + ((laser_y - 150) / 6) * 3 + sx / 8</span></div></div><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">laser_x &gt;= 40 &amp;&amp; laser_x &lt; 292 &amp;&amp; sx &lt; 24 &amp;&amp; laser_y &gt;= 150 &amp;&amp; laser_y &lt; 162</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">shield[cell] &gt; 0</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#995ba5">change item <span class="f">cell</span> of <span class="f">shield</span> by <span class="f">-1</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">laser_on</span> to <span class="f">0</span></div></div></div></div></div></div></div></div><div class="col"><ul>
+<li>Shield <code>k</code> starts at <code>x = 40 + 72 k</code>; inside it, <code>sx / 8</code> is the column and <code>(y - 150) / 6</code> the row of the 8 x 6 block.</li>
+<li>The same blocks are used for the laser and for bombs: only the "stop the shot" block differs.</li>
+<li>Drawing uses <code>rgb(0, 80 + shield[i] * 55, 0)</code>: a damaged block is darker.</li>
+</ul></div></div>
+</section>
+<section class="slide tight">
+<h2>Step 5 - The march</h2>
+<!-- class: tight --><div class="cols"><div class="col"><div class="blocks"><div class="blk comment"><div class="blk-label" style="background:#80a55b">comment <span class="f">The fleet marches faster when fewer invaders are left.</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">change <span class="f">march_timer</span> by <span class="f">1</span></div></div><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">march_timer &gt;= 2 + aliens_left / 3</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">march_timer</span> to <span class="f">0</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">change <span class="f">march</span> by <span class="f">1</span></div></div><div class="blk"><div class="blk-label" style="background:#a55ba5">play MIDI note <span class="f">36 + (march % 4)</span> on channel <span class="f">0</span> for <span class="f">80</span> ms</div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">min_col</span> to <span class="f">8</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">max_col</span> to <span class="f">-1</span></div></div><div class="blk"><div class="blk-label" style="background:#a56d5b">repeat with <span class="f">i</span> from <span class="f">0</span> to <span class="f">39</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">alive[i] == 1</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">min_col</span> to <span class="f">min(min_col, i % 8)</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">max_col</span> to <span class="f">max(max_col, i % 8)</span></div></div></div></div></div></div><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">(fleet_dir &gt; 0 &amp;&amp; fleet_x + max_col * 24 + 16 &gt;= 314) || (fleet_dir &lt; 0 &amp;&amp; fleet_x + min_col * 24 &lt;= 4)</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">fleet_dir</span> to <span class="f">-fleet_dir</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">change <span class="f">fleet_y</span> by <span class="f">8</span></div></div></div><div class="blk-label" style="background:#a56d5b">else</div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#745ba5">change <span class="f">fleet_x</span> by <span class="f">fleet_dir * 4</span></div></div></div></div></div></div></div></div><div class="col"><ol>
+<li>Wait <code>2 + aliens_left / 3</code> frames (15 frames with 40 invaders, 2 with the last one).</li>
+<li>Find the leftmost and rightmost <strong>live</strong> columns.</li>
+<li>At an edge: reverse and drop 8 px; otherwise step 4 px.</li>
+<li>Play one of four low notes: the march is also a soundtrack.</li>
+</ol>
+<p><code>march % 2</code> selects the picture pose, so the invaders "walk" in step with the sound.</p></div></div>
+</section>
+<section class="slide">
+<h2>Step 6 - Bombs: an object pool</h2><div class="cols"><div class="col"><div class="blocks"><div class="blk comment"><div class="blk-label" style="background:#80a55b">comment <span class="f">Invader bombs: up to 3 at a time, dropped by the lowest invader of a random column.</span></div></div><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">random(0, 31) == 0</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">col</span> to <span class="f">random(0, 7)</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">drop_row</span> to <span class="f">-1</span></div></div><div class="blk"><div class="blk-label" style="background:#a56d5b">repeat with <span class="f">r</span> from <span class="f">0</span> to <span class="f">4</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">alive[r * 8 + col] == 1</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">drop_row</span> to <span class="f">r</span></div></div></div></div></div></div><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">drop_row &gt;= 0</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#a56d5b">repeat with <span class="f">s</span> from <span class="f">0</span> to <span class="f">2</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">shot_on[s] == 0 &amp;&amp; drop_row &gt;= 0</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#995ba5">set item <span class="f">s</span> of <span class="f">shot_on</span> to <span class="f">1</span></div></div><div class="blk"><div class="blk-label" style="background:#995ba5">set item <span class="f">s</span> of <span class="f">shot_x</span> to <span class="f">fleet_x + col * 24 + 7</span></div></div><div class="blk"><div class="blk-label" style="background:#995ba5">set item <span class="f">s</span> of <span class="f">shot_y</span> to <span class="f">fleet_y + drop_row * 18 + 16</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">drop_row</span> to <span class="f">-1</span></div></div></div></div></div></div></div></div></div></div></div></div><div class="col"><ol>
+<li>One chance in 32 per frame: <code>random(0, 31) == 0</code>.</li>
+<li>Pick a random column and scan its five rows; the <strong>last</strong> alive row is the lowest invader.</li>
+<li>Find a free slot (<code>shot_on[s] == 0</code>) and switch it on; <code>drop_row = -1</code> makes sure only one slot is used.</li>
+</ol>
+<p>The pool has a fixed size: at most three bombs, no memory allocation, constant cost per frame.</p></div></div>
+</section>
+<section class="slide tight">
+<!-- class: tight -->
+<h2>Step 6 - Bombs fall</h2>
+<div class="blocks"><div class="blk comment"><div class="blk-label" style="background:#80a55b">comment <span class="f">Bombs fall; they can hit a shield or the cannon.</span></div></div><div class="blk"><div class="blk-label" style="background:#a56d5b">repeat with <span class="f">s</span> from <span class="f">0</span> to <span class="f">2</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">shot_on[s] == 1</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#995ba5">change item <span class="f">s</span> of <span class="f">shot_y</span> by <span class="f">3</span></div></div><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">shot_y[s] &gt; 196</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk more">&hellip;</div></div></div><div class="blk comment"><div class="blk-label" style="background:#80a55b">comment <span class="f">Shields: 4 shields x 6 blocks, each block 8 x 6 pixels with 3 hit points.</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">sx</span> to <span class="f">(shot_x[s] - 40) % 72</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">cell</span> to <span class="f">((shot_x[s] - 40) / 72) * 6 + ((shot_y[s] - 150) / 6) * 3 + sx / 8</span></div></div><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">shot_x[s] &gt;= 40 &amp;&amp; shot_x[s] &lt; 292 &amp;&amp; sx &lt; 24 &amp;&amp; shot_y[s] &gt;= 150 &amp;&amp; shot_y[s] &lt; 162</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk more">&hellip;</div></div></div><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">shot_on[s] == 1 &amp;&amp; mode == 1</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk more">&hellip;</div></div></div></div></div></div></div></div>
+<p>The shield test is the same group of blocks as for the laser (Step 4), collapsed here as <code>...</code>.</p>
+</section>
+<section class="slide">
+<h2>Step 7 - End of the wave, end of the game</h2><div class="cols"><div class="col"><div class="blocks"><div class="blk comment"><div class="blk-label" style="background:#80a55b">comment <span class="f">If the invaders reach the ground, the game is over.</span></div></div><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">fleet_y + 5 * 18 &gt;= 176</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk comment"><div class="blk-label" style="background:#80a55b">comment <span class="f">Find the lowest row that still has an invader.</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">lowest</span> to <span class="f">-1</span></div></div><div class="blk"><div class="blk-label" style="background:#a56d5b">repeat with <span class="f">i</span> from <span class="f">0</span> to <span class="f">39</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">alive[i] == 1</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">lowest</span> to <span class="f">max(lowest, i / 8)</span></div></div></div></div></div></div><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">fleet_y + lowest * 18 + 16 &gt;= 176</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">mode</span> to <span class="f">2</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">lives</span> to <span class="f">0</span></div></div><div class="blk"><div class="blk-label" style="background:#a5a55b">save high score <span class="f">score</span></div></div></div></div></div></div></div></div><div class="col"><div class="blocks"><div class="blk comment"><div class="blk-label" style="background:#80a55b">comment <span class="f">All invaders gone: a new, lower wave starts.</span></div></div><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">aliens_left == 0</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#745ba5">change <span class="f">wave</span> by <span class="f">1</span></div></div><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">wave &gt; 5</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">wave</span> to <span class="f">5</span></div></div></div></div><div class="blk"><div class="blk-label" style="background:#995ba5">make list <span class="f">alive</span> with <span class="f">40</span> items, all <span class="f">1</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">aliens_left</span> to <span class="f">40</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">fleet_x</span> to <span class="f">24</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">fleet_y</span> to <span class="f">28 + wave * 8</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">fleet_dir</span> to <span class="f">1</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">march</span> to <span class="f">0</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">march_timer</span> to <span class="f">0</span></div></div><div class="blk"><div class="blk-label" style="background:#995ba5">make list <span class="f">shot_on</span> with <span class="f">3</span> items, all <span class="f">0</span></div></div></div></div></div>
+<p><em>save high score</em> calls <code>prg32_score_submit_current_player</code>: the firmware keeps a score table per game.</p></div></div>
+</section>
+<section class="slide tight">
+<h2>Step 8 - Drawing 40 animated invaders</h2>
+<!-- class: tight -->
+
+<div class="blocks"><div class="blk comment"><div class="blk-label" style="background:#80a55b">comment <span class="f">Invader i sits at column i % 8 and row i / 8; two poses make it march.</span></div></div><div class="blk"><div class="blk-label" style="background:#a56d5b">repeat with <span class="f">i</span> from <span class="f">0</span> to <span class="f">39</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">alive[i] == 1</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">ax</span> to <span class="f">fleet_x + (i % 8) * 24</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">ay</span> to <span class="f">fleet_y + (i / 8) * 18</span></div></div><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">i &lt; 8</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">march % 2 == 0</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk more">&hellip;</div></div><div class="blk-label" style="background:#a56d5b">else</div><div class="blk-body" style="border-color:#a56d5b"><div class="blk more">&hellip;</div></div></div></div><div class="blk-label" style="background:#a56d5b">else</div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">i &lt; 24</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk more">&hellip;</div></div><div class="blk-label" style="background:#a56d5b">else</div><div class="blk-body" style="border-color:#a56d5b"><div class="blk more">&hellip;</div></div></div></div></div></div></div></div></div></div>
+</section>
+<section class="slide">
+<h2>The pictures in C</h2>
+<pre class="c"><code>/* ...##...  ..####..  .######.  ##.##.##  ########  ..#..#..  .#.##.#.  #.#..#.# */
+static const uint8_t prg32_kit_bitmap_0[8] = {0x18, 0x3C, 0x7E, 0xDB, 0xFF, 0x24, 0x5A, 0xA5};
+/* ...##...  ..####..  .######.  ##.##.##  ########  .#.##.#.  #......#  .#....#. */
+static const uint8_t prg32_kit_bitmap_1[8] = {0x18, 0x3C, 0x7E, 0xDB, 0xFF, 0x5A, 0x81, 0x42};
+/* ..#..#..  ...##...  ..####..  .##..##.  ########  #.####.#  #.#..#.#  ...##... */
+static const uint8_t prg32_kit_bitmap_2[8] = {0x24, 0x18, 0x3C, 0x66, 0xFF, 0xBD, 0xA5, 0x18};
+/* ..#..#..  #..##..#  #.####.#  ###..###  ########  .######.  ..#..#..  .#....#. */
+static const uint8_t prg32_kit_bitmap_3[8] = {0x24, 0x99, 0xBD, 0xE7, 0xFF, 0x7E, 0x24, 0x42};
+/* ..####..  .######.  ##.##.##  ########  .##..##.  ##.##.##  #......#  .#....#. */
+static const uint8_t prg32_kit_bitmap_4[8] = {0x3C, 0x7E, 0xDB, 0xFF, 0x66, 0xDB, 0x81, 0x42};
+/* ..####..  .######.  ##.##.##  ########  ..#..#..  .#.##.#.  #.#..#.#  ........ */
+static const uint8_t prg32_kit_bitmap_5[8] = {0x3C, 0x7E, 0xDB, 0xFF, 0x24, 0x5A, 0xA5, 0x00};
+/* ...##...  ...##...  .######.  ########  ########  ########  ........  ........ */
+static const uint8_t prg32_kit_bitmap_6[8] = {0x18, 0x18, 0x7E, 0xFF, 0xFF, 0xFF, 0x00, 0x00};</code></pre>
+<p>Each picture block becomes a constant array of eight bytes; the comment above it shows the rows as text. The generator stores identical pictures only once.</p>
+</section>
+<section class="slide">
+<h2>Play it in the browser</h2><div class="cols"><div class="col"><p><img alt="The Space Invaders project in the editor" src="../figures/games/space_invaders-editor.jpg" /></p></div><div class="col"><ol>
+<li>Dashboard, <strong>Examples</strong>, <em>Space Invaders</em> (complete game), <strong>Add</strong>.</li>
+<li><strong>Play</strong>, then START; Z fires.</li>
+<li>Edit a picture block: change a <code>.</code> into <code>#</code> and watch the invader change at once.</li>
+<li><strong>Generate C</strong>: each different picture becomes one <code>static const uint8_t ...[8]</code>.</li>
+</ol></div></div>
+</section>
+<section class="slide shots">
+<!-- class: shots -->
+<h2>Build and run the cartridge</h2><div class="cols"><div class="col"><p><strong>Download .prg32</strong> builds <code>space-invaders-esp32c6.prg32</code>; the arrow next to it builds the QEMU file.</p>
+<pre><code class="language-bash">python3 -m prg32 qemu upload space-invaders-qemu.prg32
+python3 -m prg32 qemu run
+</code></pre>
+<p>PRG32-QT: <strong>Import Cartridge</strong>, or</p>
+<pre><code class="language-bash">prg32qt-headless space-invaders-qemu.prg32 300 --dump-ppm si.ppm
+</code></pre></div><div class="col"><p><img alt="Space Invaders on QEMU" src="../figures/games/space_invaders-qemu.png" /></p>
+<p><img alt="Space Invaders on PRG32-QT" src="../figures/games/space_invaders-prg32qt.png" /></p></div></div>
+</section>
+<section class="slide">
+<h2>What the toolchain produced</h2>
+<table>
+<thead>
+<tr>
+<th>Measure</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Blocks</td>
+<td>3 stacks, 194 blocks</td>
+</tr>
+<tr>
+<td>Generated C</td>
+<td>566 lines, 7 distinct pictures</td>
+</tr>
+<tr>
+<td>RISC-V code (rv32imc)</td>
+<td>6420 bytes</td>
+</tr>
+<tr>
+<td>Lists</td>
+<td><code>alive[40]</code>, <code>shield[24]</code>, <code>shot_on/x/y[3]</code></td>
+</tr>
+<tr>
+<td>Required PRG32 features</td>
+<td><code>audio</code>, <code>sprites</code></td>
+</tr>
+<tr>
+<td>Verified on</td>
+<td>simulator (pixel-identical title screen to the QEMU framebuffer), QEMU, PRG32-QT</td>
+</tr>
+</tbody>
+</table>
+<p>The title screen rendered by the browser simulator and the one read from the QEMU firmware framebuffer differ in <strong>0 of 64 000 pixels</strong>.</p>
+</section>
+<section class="slide">
+<h2>Exercises</h2>
+<ol>
+<li><strong>Mystery ship:</strong> add a UFO that crosses the top row every 20 seconds (<code>frame() % 600</code>).</li>
+<li><strong>Two lasers:</strong> turn the laser into a pool of two slots, like the bombs.</li>
+<li><strong>Shield shapes:</strong> give each shield 12 blocks in a 4 x 3 arch. Which formulas change?</li>
+<li><strong>Fairness:</strong> bombs never fall from a column with no invaders. Explain how the <em>repeat</em> over rows guarantees it.</li>
+<li><strong>Hardware sprites:</strong> replace <em>draw picture</em> with <em>draw 8x8 sprite</em> and compare the look (no scaling, opaque background).</li>
+</ol>
+</section>
+<section class="slide">
+<h2>References</h2>
+<ul>
+<li>PRG32 sprite and tile API (<code>prg32_sprite_draw_8x8</code>, <code>prg32_tile_define</code>): <a href="https://github.com/riscv-prg32/PRG32">https://github.com/riscv-prg32/PRG32</a></li>
+<li>Block reference, pictures and lists: <code>docs/blockly.md</code></li>
+<li>R. Nystrom, <em>Game Programming Patterns</em> (2014), "Object Pool" and "Sequencing Patterns".</li>
+<li>C. Kohler, <em>Power-Up: How Japanese Video Games Gave the World an Extra Life</em>, BradyGames (2004).</li>
+</ul>
+</section>
+</main>
+<nav class="deck-bar" aria-label="Slide navigation">
+  <button type="button" data-go="prev" aria-label="Previous slide">&#8592;</button>
+  <span class="deck-title">Space Invaders with PRG32 Blocks</span>
+  <span class="deck-count"></span>
+  <button type="button" data-go="next" aria-label="Next slide">&#8594;</button>
+</nav>
+<script src="deck.js"></script>
+</body>
+</html>

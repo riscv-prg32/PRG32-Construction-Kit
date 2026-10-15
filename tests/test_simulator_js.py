@@ -21,4 +21,5 @@ def test_simulator_uses_c_integer_rules_and_no_eval():
         f"console.log(JSON.stringify({json.dumps(cases)}.map(e => S.evalExpr(S.saneExpr(e, 0), {{ x: 10 }}))));"
     )
     output = subprocess.run(["node", "-e", script], check=True, capture_output=True, text=True).stdout
-    assert json.loads(output) == [3, -3, -1, 21, 1, 1, 11, 0, 16, 0, 0, 0]
+    # 1/0 is -1, exactly like the RISC-V DIV instruction on PRG32 (no trap).
+    assert json.loads(output) == [3, -3, -1, 21, 1, 1, 11, -1, 16, 0, 0, 0]

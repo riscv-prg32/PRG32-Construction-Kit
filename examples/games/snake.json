@@ -1,0 +1,1662 @@
+{
+ "abi": "prg32-construction-kit-project-1.0",
+ "project": {
+  "title": "Snake",
+  "description": "Classic-inspired Snake on a PRG32 tile playfield: eat apples, grow, avoid walls and your tail.",
+  "author": "PRG32 Kit",
+  "tags": [
+   "classic",
+   "snake",
+   "tiles",
+   "playfield"
+  ],
+  "blocks_json": {
+   "blocks": {
+    "languageVersion": 0,
+    "blocks": [
+     {
+      "type": "prg32_on_start",
+      "id": "snake-149",
+      "inputs": {
+       "DO": {
+        "block": {
+         "type": "prg32_comment",
+         "id": "snake-1",
+         "fields": {
+          "TEXT": "Snake: eat the apples, avoid the walls and your own tail."
+         },
+         "next": {
+          "block": {
+           "type": "prg32_comment",
+           "id": "snake-2",
+           "fields": {
+            "TEXT": "Tile 0 is the empty floor. Defining it keeps every PRG32 runtime drawing it the same way."
+           },
+           "next": {
+            "block": {
+             "type": "prg32_tile_define",
+             "id": "snake-3",
+             "fields": {
+              "ID": "0",
+              "FG": "BLACK",
+              "BG": "BLACK",
+              "ROW0": "........",
+              "ROW1": "........",
+              "ROW2": "........",
+              "ROW3": "........",
+              "ROW4": "........",
+              "ROW5": "........",
+              "ROW6": "........",
+              "ROW7": "........"
+             },
+             "next": {
+              "block": {
+               "type": "prg32_comment",
+               "id": "snake-4",
+               "fields": {
+                "TEXT": "Tiles 1-4: wall, body, head and apple, each an 8 x 8 picture with two colours."
+               },
+               "next": {
+                "block": {
+                 "type": "prg32_tile_define",
+                 "id": "snake-5",
+                 "fields": {
+                  "ID": "1",
+                  "FG": "BROWN",
+                  "BG": "DARK_GRAY",
+                  "ROW0": "#######.",
+                  "ROW1": "#######.",
+                  "ROW2": "#######.",
+                  "ROW3": "........",
+                  "ROW4": "###.####",
+                  "ROW5": "###.####",
+                  "ROW6": "###.####",
+                  "ROW7": "........"
+                 },
+                 "next": {
+                  "block": {
+                   "type": "prg32_tile_define",
+                   "id": "snake-6",
+                   "fields": {
+                    "ID": "2",
+                    "FG": "GREEN",
+                    "BG": "BLACK",
+                    "ROW0": ".######.",
+                    "ROW1": "########",
+                    "ROW2": "##.##.##",
+                    "ROW3": "########",
+                    "ROW4": "########",
+                    "ROW5": "#.##.##.",
+                    "ROW6": "########",
+                    "ROW7": ".######."
+                   },
+                   "next": {
+                    "block": {
+                     "type": "prg32_tile_define",
+                     "id": "snake-7",
+                     "fields": {
+                      "ID": "3",
+                      "FG": "LIME",
+                      "BG": "BLACK",
+                      "ROW0": ".######.",
+                      "ROW1": "########",
+                      "ROW2": "#.####.#",
+                      "ROW3": "########",
+                      "ROW4": "########",
+                      "ROW5": "##....##",
+                      "ROW6": "########",
+                      "ROW7": ".######."
+                     },
+                     "next": {
+                      "block": {
+                       "type": "prg32_tile_define",
+                       "id": "snake-8",
+                       "fields": {
+                        "ID": "4",
+                        "FG": "RED",
+                        "BG": "BLACK",
+                        "ROW0": "....#...",
+                        "ROW1": "...#....",
+                        "ROW2": ".##.##..",
+                        "ROW3": "#######.",
+                        "ROW4": "#######.",
+                        "ROW5": "#######.",
+                        "ROW6": ".#####..",
+                        "ROW7": "..#.#..."
+                       },
+                       "next": {
+                        "block": {
+                         "type": "prg32_list_create",
+                         "id": "snake-9",
+                         "fields": {
+                          "LIST": "body_x",
+                          "SIZE": "512",
+                          "VALUE": "0"
+                         },
+                         "next": {
+                          "block": {
+                           "type": "prg32_list_create",
+                           "id": "snake-10",
+                           "fields": {
+                            "LIST": "body_y",
+                            "SIZE": "512",
+                            "VALUE": "0"
+                           },
+                           "next": {
+                            "block": {
+                             "type": "prg32_comment",
+                             "id": "snake-11",
+                             "fields": {
+                              "TEXT": "New board: clear the playfield, then put wall tiles (1) all around it."
+                             },
+                             "next": {
+                              "block": {
+                               "type": "prg32_playfield_clear",
+                               "id": "snake-12",
+                               "fields": {
+                                "LAYER": "0",
+                                "ID": "0"
+                               },
+                               "next": {
+                                "block": {
+                                 "type": "prg32_repeat",
+                                 "id": "snake-15",
+                                 "fields": {
+                                  "VAR": "i",
+                                  "FROM": "0",
+                                  "TO": "39"
+                                 },
+                                 "inputs": {
+                                  "DO": {
+                                   "block": {
+                                    "type": "prg32_playfield_put",
+                                    "id": "snake-13",
+                                    "fields": {
+                                     "ID": "1",
+                                     "LAYER": "0",
+                                     "TX": "i",
+                                     "TY": "2"
+                                    },
+                                    "next": {
+                                     "block": {
+                                      "type": "prg32_playfield_put",
+                                      "id": "snake-14",
+                                      "fields": {
+                                       "ID": "1",
+                                       "LAYER": "0",
+                                       "TX": "i",
+                                       "TY": "24"
+                                      }
+                                     }
+                                    }
+                                   }
+                                  }
+                                 },
+                                 "next": {
+                                  "block": {
+                                   "type": "prg32_repeat",
+                                   "id": "snake-18",
+                                   "fields": {
+                                    "VAR": "i",
+                                    "FROM": "2",
+                                    "TO": "24"
+                                   },
+                                   "inputs": {
+                                    "DO": {
+                                     "block": {
+                                      "type": "prg32_playfield_put",
+                                      "id": "snake-16",
+                                      "fields": {
+                                       "ID": "1",
+                                       "LAYER": "0",
+                                       "TX": "0",
+                                       "TY": "i"
+                                      },
+                                      "next": {
+                                       "block": {
+                                        "type": "prg32_playfield_put",
+                                        "id": "snake-17",
+                                        "fields": {
+                                         "ID": "1",
+                                         "LAYER": "0",
+                                         "TX": "39",
+                                         "TY": "i"
+                                        }
+                                       }
+                                      }
+                                     }
+                                    }
+                                   },
+                                   "next": {
+                                    "block": {
+                                     "type": "prg32_comment",
+                                     "id": "snake-19",
+                                     "fields": {
+                                      "TEXT": "The body is a ring buffer: head is the newest cell, length cells back is the tail."
+                                     },
+                                     "next": {
+                                      "block": {
+                                       "type": "prg32_set_state",
+                                       "id": "snake-20",
+                                       "fields": {
+                                        "VAR": "head",
+                                        "VALUE": "3"
+                                       },
+                                       "next": {
+                                        "block": {
+                                         "type": "prg32_set_state",
+                                         "id": "snake-21",
+                                         "fields": {
+                                          "VAR": "length",
+                                          "VALUE": "4"
+                                         },
+                                         "next": {
+                                          "block": {
+                                           "type": "prg32_repeat",
+                                           "id": "snake-25",
+                                           "fields": {
+                                            "VAR": "i",
+                                            "FROM": "0",
+                                            "TO": "3"
+                                           },
+                                           "inputs": {
+                                            "DO": {
+                                             "block": {
+                                              "type": "prg32_list_set",
+                                              "id": "snake-22",
+                                              "fields": {
+                                               "LIST": "body_x",
+                                               "INDEX": "i",
+                                               "VALUE": "17 + i"
+                                              },
+                                              "next": {
+                                               "block": {
+                                                "type": "prg32_list_set",
+                                                "id": "snake-23",
+                                                "fields": {
+                                                 "LIST": "body_y",
+                                                 "INDEX": "i",
+                                                 "VALUE": "13"
+                                                },
+                                                "next": {
+                                                 "block": {
+                                                  "type": "prg32_playfield_put",
+                                                  "id": "snake-24",
+                                                  "fields": {
+                                                   "ID": "2",
+                                                   "LAYER": "0",
+                                                   "TX": "17 + i",
+                                                   "TY": "13"
+                                                  }
+                                                 }
+                                                }
+                                               }
+                                              }
+                                             }
+                                            }
+                                           },
+                                           "next": {
+                                            "block": {
+                                             "type": "prg32_playfield_put",
+                                             "id": "snake-26",
+                                             "fields": {
+                                              "ID": "3",
+                                              "LAYER": "0",
+                                              "TX": "20",
+                                              "TY": "13"
+                                             },
+                                             "next": {
+                                              "block": {
+                                               "type": "prg32_set_state",
+                                               "id": "snake-27",
+                                               "fields": {
+                                                "VAR": "dir_x",
+                                                "VALUE": "1"
+                                               },
+                                               "next": {
+                                                "block": {
+                                                 "type": "prg32_set_state",
+                                                 "id": "snake-28",
+                                                 "fields": {
+                                                  "VAR": "dir_y",
+                                                  "VALUE": "0"
+                                                 },
+                                                 "next": {
+                                                  "block": {
+                                                   "type": "prg32_set_state",
+                                                   "id": "snake-29",
+                                                   "fields": {
+                                                    "VAR": "next_x",
+                                                    "VALUE": "1"
+                                                   },
+                                                   "next": {
+                                                    "block": {
+                                                     "type": "prg32_set_state",
+                                                     "id": "snake-30",
+                                                     "fields": {
+                                                      "VAR": "next_y",
+                                                      "VALUE": "0"
+                                                     },
+                                                     "next": {
+                                                      "block": {
+                                                       "type": "prg32_set_state",
+                                                       "id": "snake-31",
+                                                       "fields": {
+                                                        "VAR": "score",
+                                                        "VALUE": "0"
+                                                       },
+                                                       "next": {
+                                                        "block": {
+                                                         "type": "prg32_set_state",
+                                                         "id": "snake-32",
+                                                         "fields": {
+                                                          "VAR": "move_timer",
+                                                          "VALUE": "0"
+                                                         },
+                                                         "next": {
+                                                          "block": {
+                                                           "type": "prg32_set_state",
+                                                           "id": "snake-33",
+                                                           "fields": {
+                                                            "VAR": "speed",
+                                                            "VALUE": "6"
+                                                           },
+                                                           "next": {
+                                                            "block": {
+                                                             "type": "prg32_comment",
+                                                             "id": "snake-34",
+                                                             "fields": {
+                                                              "TEXT": "Try random cells until an empty one is found."
+                                                             },
+                                                             "next": {
+                                                              "block": {
+                                                               "type": "prg32_set_state",
+                                                               "id": "snake-35",
+                                                               "fields": {
+                                                                "VAR": "placed",
+                                                                "VALUE": "0"
+                                                               },
+                                                               "next": {
+                                                                "block": {
+                                                                 "type": "prg32_repeat",
+                                                                 "id": "snake-42",
+                                                                 "fields": {
+                                                                  "VAR": "attempt",
+                                                                  "FROM": "1",
+                                                                  "TO": "200"
+                                                                 },
+                                                                 "inputs": {
+                                                                  "DO": {
+                                                                   "block": {
+                                                                    "type": "prg32_if",
+                                                                    "id": "snake-41",
+                                                                    "fields": {
+                                                                     "COND": "placed == 0"
+                                                                    },
+                                                                    "inputs": {
+                                                                     "DO": {
+                                                                      "block": {
+                                                                       "type": "prg32_set_state",
+                                                                       "id": "snake-36",
+                                                                       "fields": {
+                                                                        "VAR": "food_x",
+                                                                        "VALUE": "random(1, 38)"
+                                                                       },
+                                                                       "next": {
+                                                                        "block": {
+                                                                         "type": "prg32_set_state",
+                                                                         "id": "snake-37",
+                                                                         "fields": {
+                                                                          "VAR": "food_y",
+                                                                          "VALUE": "random(3, 23)"
+                                                                         },
+                                                                         "next": {
+                                                                          "block": {
+                                                                           "type": "prg32_if",
+                                                                           "id": "snake-40",
+                                                                           "fields": {
+                                                                            "COND": "tile(0, food_x, food_y) == 0"
+                                                                           },
+                                                                           "inputs": {
+                                                                            "DO": {
+                                                                             "block": {
+                                                                              "type": "prg32_playfield_put",
+                                                                              "id": "snake-38",
+                                                                              "fields": {
+                                                                               "ID": "4",
+                                                                               "LAYER": "0",
+                                                                               "TX": "food_x",
+                                                                               "TY": "food_y"
+                                                                              },
+                                                                              "next": {
+                                                                               "block": {
+                                                                                "type": "prg32_set_state",
+                                                                                "id": "snake-39",
+                                                                                "fields": {
+                                                                                 "VAR": "placed",
+                                                                                 "VALUE": "1"
+                                                                                }
+                                                                               }
+                                                                              }
+                                                                             }
+                                                                            }
+                                                                           }
+                                                                          }
+                                                                         }
+                                                                        }
+                                                                       }
+                                                                      }
+                                                                     }
+                                                                    }
+                                                                   }
+                                                                  }
+                                                                 },
+                                                                 "next": {
+                                                                  "block": {
+                                                                   "type": "prg32_set_state",
+                                                                   "id": "snake-43",
+                                                                   "fields": {
+                                                                    "VAR": "mode",
+                                                                    "VALUE": "0"
+                                                                   }
+                                                                  }
+                                                                 }
+                                                                }
+                                                               }
+                                                              }
+                                                             }
+                                                            }
+                                                           }
+                                                          }
+                                                         }
+                                                        }
+                                                       }
+                                                      }
+                                                     }
+                                                    }
+                                                   }
+                                                  }
+                                                 }
+                                                }
+                                               }
+                                              }
+                                             }
+                                            }
+                                           }
+                                          }
+                                         }
+                                        }
+                                       }
+                                      }
+                                     }
+                                    }
+                                   }
+                                  }
+                                 }
+                                }
+                               }
+                              }
+                             }
+                            }
+                           }
+                          }
+                         }
+                        }
+                       }
+                      }
+                     }
+                    }
+                   }
+                  }
+                 }
+                }
+               }
+              }
+             }
+            }
+           }
+          }
+         }
+        }
+       }
+      },
+      "x": 20,
+      "y": 20
+     },
+     {
+      "type": "prg32_update",
+      "id": "snake-150",
+      "inputs": {
+       "DO": {
+        "block": {
+         "type": "prg32_comment",
+         "id": "snake-44",
+         "fields": {
+          "TEXT": "Mode 0 = title, 1 = playing, 2 = game over."
+         },
+         "next": {
+          "block": {
+           "type": "prg32_if",
+           "id": "snake-79",
+           "fields": {
+            "COND": "mode != 1"
+           },
+           "inputs": {
+            "DO": {
+             "block": {
+              "type": "prg32_if_button_once",
+              "id": "snake-78",
+              "fields": {
+               "BUTTON": "START"
+              },
+              "inputs": {
+               "DO": {
+                "block": {
+                 "type": "prg32_comment",
+                 "id": "snake-45",
+                 "fields": {
+                  "TEXT": "New board: clear the playfield, then put wall tiles (1) all around it."
+                 },
+                 "next": {
+                  "block": {
+                   "type": "prg32_playfield_clear",
+                   "id": "snake-46",
+                   "fields": {
+                    "LAYER": "0",
+                    "ID": "0"
+                   },
+                   "next": {
+                    "block": {
+                     "type": "prg32_repeat",
+                     "id": "snake-49",
+                     "fields": {
+                      "VAR": "i",
+                      "FROM": "0",
+                      "TO": "39"
+                     },
+                     "inputs": {
+                      "DO": {
+                       "block": {
+                        "type": "prg32_playfield_put",
+                        "id": "snake-47",
+                        "fields": {
+                         "ID": "1",
+                         "LAYER": "0",
+                         "TX": "i",
+                         "TY": "2"
+                        },
+                        "next": {
+                         "block": {
+                          "type": "prg32_playfield_put",
+                          "id": "snake-48",
+                          "fields": {
+                           "ID": "1",
+                           "LAYER": "0",
+                           "TX": "i",
+                           "TY": "24"
+                          }
+                         }
+                        }
+                       }
+                      }
+                     },
+                     "next": {
+                      "block": {
+                       "type": "prg32_repeat",
+                       "id": "snake-52",
+                       "fields": {
+                        "VAR": "i",
+                        "FROM": "2",
+                        "TO": "24"
+                       },
+                       "inputs": {
+                        "DO": {
+                         "block": {
+                          "type": "prg32_playfield_put",
+                          "id": "snake-50",
+                          "fields": {
+                           "ID": "1",
+                           "LAYER": "0",
+                           "TX": "0",
+                           "TY": "i"
+                          },
+                          "next": {
+                           "block": {
+                            "type": "prg32_playfield_put",
+                            "id": "snake-51",
+                            "fields": {
+                             "ID": "1",
+                             "LAYER": "0",
+                             "TX": "39",
+                             "TY": "i"
+                            }
+                           }
+                          }
+                         }
+                        }
+                       },
+                       "next": {
+                        "block": {
+                         "type": "prg32_comment",
+                         "id": "snake-53",
+                         "fields": {
+                          "TEXT": "The body is a ring buffer: head is the newest cell, length cells back is the tail."
+                         },
+                         "next": {
+                          "block": {
+                           "type": "prg32_set_state",
+                           "id": "snake-54",
+                           "fields": {
+                            "VAR": "head",
+                            "VALUE": "3"
+                           },
+                           "next": {
+                            "block": {
+                             "type": "prg32_set_state",
+                             "id": "snake-55",
+                             "fields": {
+                              "VAR": "length",
+                              "VALUE": "4"
+                             },
+                             "next": {
+                              "block": {
+                               "type": "prg32_repeat",
+                               "id": "snake-59",
+                               "fields": {
+                                "VAR": "i",
+                                "FROM": "0",
+                                "TO": "3"
+                               },
+                               "inputs": {
+                                "DO": {
+                                 "block": {
+                                  "type": "prg32_list_set",
+                                  "id": "snake-56",
+                                  "fields": {
+                                   "LIST": "body_x",
+                                   "INDEX": "i",
+                                   "VALUE": "17 + i"
+                                  },
+                                  "next": {
+                                   "block": {
+                                    "type": "prg32_list_set",
+                                    "id": "snake-57",
+                                    "fields": {
+                                     "LIST": "body_y",
+                                     "INDEX": "i",
+                                     "VALUE": "13"
+                                    },
+                                    "next": {
+                                     "block": {
+                                      "type": "prg32_playfield_put",
+                                      "id": "snake-58",
+                                      "fields": {
+                                       "ID": "2",
+                                       "LAYER": "0",
+                                       "TX": "17 + i",
+                                       "TY": "13"
+                                      }
+                                     }
+                                    }
+                                   }
+                                  }
+                                 }
+                                }
+                               },
+                               "next": {
+                                "block": {
+                                 "type": "prg32_playfield_put",
+                                 "id": "snake-60",
+                                 "fields": {
+                                  "ID": "3",
+                                  "LAYER": "0",
+                                  "TX": "20",
+                                  "TY": "13"
+                                 },
+                                 "next": {
+                                  "block": {
+                                   "type": "prg32_set_state",
+                                   "id": "snake-61",
+                                   "fields": {
+                                    "VAR": "dir_x",
+                                    "VALUE": "1"
+                                   },
+                                   "next": {
+                                    "block": {
+                                     "type": "prg32_set_state",
+                                     "id": "snake-62",
+                                     "fields": {
+                                      "VAR": "dir_y",
+                                      "VALUE": "0"
+                                     },
+                                     "next": {
+                                      "block": {
+                                       "type": "prg32_set_state",
+                                       "id": "snake-63",
+                                       "fields": {
+                                        "VAR": "next_x",
+                                        "VALUE": "1"
+                                       },
+                                       "next": {
+                                        "block": {
+                                         "type": "prg32_set_state",
+                                         "id": "snake-64",
+                                         "fields": {
+                                          "VAR": "next_y",
+                                          "VALUE": "0"
+                                         },
+                                         "next": {
+                                          "block": {
+                                           "type": "prg32_set_state",
+                                           "id": "snake-65",
+                                           "fields": {
+                                            "VAR": "score",
+                                            "VALUE": "0"
+                                           },
+                                           "next": {
+                                            "block": {
+                                             "type": "prg32_set_state",
+                                             "id": "snake-66",
+                                             "fields": {
+                                              "VAR": "move_timer",
+                                              "VALUE": "0"
+                                             },
+                                             "next": {
+                                              "block": {
+                                               "type": "prg32_set_state",
+                                               "id": "snake-67",
+                                               "fields": {
+                                                "VAR": "speed",
+                                                "VALUE": "6"
+                                               },
+                                               "next": {
+                                                "block": {
+                                                 "type": "prg32_comment",
+                                                 "id": "snake-68",
+                                                 "fields": {
+                                                  "TEXT": "Try random cells until an empty one is found."
+                                                 },
+                                                 "next": {
+                                                  "block": {
+                                                   "type": "prg32_set_state",
+                                                   "id": "snake-69",
+                                                   "fields": {
+                                                    "VAR": "placed",
+                                                    "VALUE": "0"
+                                                   },
+                                                   "next": {
+                                                    "block": {
+                                                     "type": "prg32_repeat",
+                                                     "id": "snake-76",
+                                                     "fields": {
+                                                      "VAR": "attempt",
+                                                      "FROM": "1",
+                                                      "TO": "200"
+                                                     },
+                                                     "inputs": {
+                                                      "DO": {
+                                                       "block": {
+                                                        "type": "prg32_if",
+                                                        "id": "snake-75",
+                                                        "fields": {
+                                                         "COND": "placed == 0"
+                                                        },
+                                                        "inputs": {
+                                                         "DO": {
+                                                          "block": {
+                                                           "type": "prg32_set_state",
+                                                           "id": "snake-70",
+                                                           "fields": {
+                                                            "VAR": "food_x",
+                                                            "VALUE": "random(1, 38)"
+                                                           },
+                                                           "next": {
+                                                            "block": {
+                                                             "type": "prg32_set_state",
+                                                             "id": "snake-71",
+                                                             "fields": {
+                                                              "VAR": "food_y",
+                                                              "VALUE": "random(3, 23)"
+                                                             },
+                                                             "next": {
+                                                              "block": {
+                                                               "type": "prg32_if",
+                                                               "id": "snake-74",
+                                                               "fields": {
+                                                                "COND": "tile(0, food_x, food_y) == 0"
+                                                               },
+                                                               "inputs": {
+                                                                "DO": {
+                                                                 "block": {
+                                                                  "type": "prg32_playfield_put",
+                                                                  "id": "snake-72",
+                                                                  "fields": {
+                                                                   "ID": "4",
+                                                                   "LAYER": "0",
+                                                                   "TX": "food_x",
+                                                                   "TY": "food_y"
+                                                                  },
+                                                                  "next": {
+                                                                   "block": {
+                                                                    "type": "prg32_set_state",
+                                                                    "id": "snake-73",
+                                                                    "fields": {
+                                                                     "VAR": "placed",
+                                                                     "VALUE": "1"
+                                                                    }
+                                                                   }
+                                                                  }
+                                                                 }
+                                                                }
+                                                               }
+                                                              }
+                                                             }
+                                                            }
+                                                           }
+                                                          }
+                                                         }
+                                                        }
+                                                       }
+                                                      }
+                                                     },
+                                                     "next": {
+                                                      "block": {
+                                                       "type": "prg32_set_state",
+                                                       "id": "snake-77",
+                                                       "fields": {
+                                                        "VAR": "mode",
+                                                        "VALUE": "1"
+                                                       }
+                                                      }
+                                                     }
+                                                    }
+                                                   }
+                                                  }
+                                                 }
+                                                }
+                                               }
+                                              }
+                                             }
+                                            }
+                                           }
+                                          }
+                                         }
+                                        }
+                                       }
+                                      }
+                                     }
+                                    }
+                                   }
+                                  }
+                                 }
+                                }
+                               }
+                              }
+                             }
+                            }
+                           }
+                          }
+                         }
+                        }
+                       }
+                      }
+                     }
+                    }
+                   }
+                  }
+                 }
+                }
+               }
+              }
+             }
+            }
+           },
+           "next": {
+            "block": {
+             "type": "prg32_comment",
+             "id": "snake-80",
+             "fields": {
+              "TEXT": "Playing: steer, then move one cell at a time."
+             },
+             "next": {
+              "block": {
+               "type": "prg32_if",
+               "id": "snake-135",
+               "fields": {
+                "COND": "mode == 1"
+               },
+               "inputs": {
+                "DO": {
+                 "block": {
+                  "type": "prg32_comment",
+                  "id": "snake-81",
+                  "fields": {
+                   "TEXT": "Turning is allowed only sideways: the snake cannot reverse into itself."
+                  },
+                  "next": {
+                   "block": {
+                    "type": "prg32_if_button",
+                    "id": "snake-85",
+                    "fields": {
+                     "BUTTON": "LEFT"
+                    },
+                    "inputs": {
+                     "DO": {
+                      "block": {
+                       "type": "prg32_if",
+                       "id": "snake-84",
+                       "fields": {
+                        "COND": "dir_x == 0"
+                       },
+                       "inputs": {
+                        "DO": {
+                         "block": {
+                          "type": "prg32_set_state",
+                          "id": "snake-82",
+                          "fields": {
+                           "VAR": "next_x",
+                           "VALUE": "-1"
+                          },
+                          "next": {
+                           "block": {
+                            "type": "prg32_set_state",
+                            "id": "snake-83",
+                            "fields": {
+                             "VAR": "next_y",
+                             "VALUE": "0"
+                            }
+                           }
+                          }
+                         }
+                        }
+                       }
+                      }
+                     }
+                    },
+                    "next": {
+                     "block": {
+                      "type": "prg32_if_button",
+                      "id": "snake-89",
+                      "fields": {
+                       "BUTTON": "RIGHT"
+                      },
+                      "inputs": {
+                       "DO": {
+                        "block": {
+                         "type": "prg32_if",
+                         "id": "snake-88",
+                         "fields": {
+                          "COND": "dir_x == 0"
+                         },
+                         "inputs": {
+                          "DO": {
+                           "block": {
+                            "type": "prg32_set_state",
+                            "id": "snake-86",
+                            "fields": {
+                             "VAR": "next_x",
+                             "VALUE": "1"
+                            },
+                            "next": {
+                             "block": {
+                              "type": "prg32_set_state",
+                              "id": "snake-87",
+                              "fields": {
+                               "VAR": "next_y",
+                               "VALUE": "0"
+                              }
+                             }
+                            }
+                           }
+                          }
+                         }
+                        }
+                       }
+                      },
+                      "next": {
+                       "block": {
+                        "type": "prg32_if_button",
+                        "id": "snake-93",
+                        "fields": {
+                         "BUTTON": "UP"
+                        },
+                        "inputs": {
+                         "DO": {
+                          "block": {
+                           "type": "prg32_if",
+                           "id": "snake-92",
+                           "fields": {
+                            "COND": "dir_y == 0"
+                           },
+                           "inputs": {
+                            "DO": {
+                             "block": {
+                              "type": "prg32_set_state",
+                              "id": "snake-90",
+                              "fields": {
+                               "VAR": "next_x",
+                               "VALUE": "0"
+                              },
+                              "next": {
+                               "block": {
+                                "type": "prg32_set_state",
+                                "id": "snake-91",
+                                "fields": {
+                                 "VAR": "next_y",
+                                 "VALUE": "-1"
+                                }
+                               }
+                              }
+                             }
+                            }
+                           }
+                          }
+                         }
+                        },
+                        "next": {
+                         "block": {
+                          "type": "prg32_if_button",
+                          "id": "snake-97",
+                          "fields": {
+                           "BUTTON": "DOWN"
+                          },
+                          "inputs": {
+                           "DO": {
+                            "block": {
+                             "type": "prg32_if",
+                             "id": "snake-96",
+                             "fields": {
+                              "COND": "dir_y == 0"
+                             },
+                             "inputs": {
+                              "DO": {
+                               "block": {
+                                "type": "prg32_set_state",
+                                "id": "snake-94",
+                                "fields": {
+                                 "VAR": "next_x",
+                                 "VALUE": "0"
+                                },
+                                "next": {
+                                 "block": {
+                                  "type": "prg32_set_state",
+                                  "id": "snake-95",
+                                  "fields": {
+                                   "VAR": "next_y",
+                                   "VALUE": "1"
+                                  }
+                                 }
+                                }
+                               }
+                              }
+                             }
+                            }
+                           }
+                          },
+                          "next": {
+                           "block": {
+                            "type": "prg32_comment",
+                            "id": "snake-98",
+                            "fields": {
+                             "TEXT": "The snake moves one cell every 'speed' frames."
+                            },
+                            "next": {
+                             "block": {
+                              "type": "prg32_change_state",
+                              "id": "snake-99",
+                              "fields": {
+                               "VAR": "move_timer",
+                               "DELTA": "1"
+                              },
+                              "next": {
+                               "block": {
+                                "type": "prg32_if",
+                                "id": "snake-134",
+                                "fields": {
+                                 "COND": "move_timer >= speed"
+                                },
+                                "inputs": {
+                                 "DO": {
+                                  "block": {
+                                   "type": "prg32_set_state",
+                                   "id": "snake-100",
+                                   "fields": {
+                                    "VAR": "move_timer",
+                                    "VALUE": "0"
+                                   },
+                                   "next": {
+                                    "block": {
+                                     "type": "prg32_set_state",
+                                     "id": "snake-101",
+                                     "fields": {
+                                      "VAR": "dir_x",
+                                      "VALUE": "next_x"
+                                     },
+                                     "next": {
+                                      "block": {
+                                       "type": "prg32_set_state",
+                                       "id": "snake-102",
+                                       "fields": {
+                                        "VAR": "dir_y",
+                                        "VALUE": "next_y"
+                                       },
+                                       "next": {
+                                        "block": {
+                                         "type": "prg32_comment",
+                                         "id": "snake-103",
+                                         "fields": {
+                                          "TEXT": "Look at the tile in front of the head: a wall or the body ends the game."
+                                         },
+                                         "next": {
+                                          "block": {
+                                           "type": "prg32_set_state",
+                                           "id": "snake-104",
+                                           "fields": {
+                                            "VAR": "new_x",
+                                            "VALUE": "body_x[head] + dir_x"
+                                           },
+                                           "next": {
+                                            "block": {
+                                             "type": "prg32_set_state",
+                                             "id": "snake-105",
+                                             "fields": {
+                                              "VAR": "new_y",
+                                              "VALUE": "body_y[head] + dir_y"
+                                             },
+                                             "next": {
+                                              "block": {
+                                               "type": "prg32_set_state",
+                                               "id": "snake-106",
+                                               "fields": {
+                                                "VAR": "what",
+                                                "VALUE": "tile(0, new_x, new_y)"
+                                               },
+                                               "next": {
+                                                "block": {
+                                                 "type": "prg32_if_else",
+                                                 "id": "snake-133",
+                                                 "fields": {
+                                                  "COND": "what == 1 || what == 2"
+                                                 },
+                                                 "inputs": {
+                                                  "DO": {
+                                                   "block": {
+                                                    "type": "prg32_set_state",
+                                                    "id": "snake-107",
+                                                    "fields": {
+                                                     "VAR": "mode",
+                                                     "VALUE": "2"
+                                                    },
+                                                    "next": {
+                                                     "block": {
+                                                      "type": "prg32_audio_note",
+                                                      "id": "snake-108",
+                                                      "fields": {
+                                                       "NOTE": "36",
+                                                       "CHANNEL": "1",
+                                                       "MS": "600"
+                                                      },
+                                                      "next": {
+                                                       "block": {
+                                                        "type": "prg32_score_submit",
+                                                        "id": "snake-109",
+                                                        "fields": {
+                                                         "VALUE": "score"
+                                                        }
+                                                       }
+                                                      }
+                                                     }
+                                                    }
+                                                   }
+                                                  },
+                                                  "ELSE": {
+                                                   "block": {
+                                                    "type": "prg32_comment",
+                                                    "id": "snake-110",
+                                                    "fields": {
+                                                     "TEXT": "Move: the old head becomes body, the new head is stored and drawn."
+                                                    },
+                                                    "next": {
+                                                     "block": {
+                                                      "type": "prg32_playfield_put",
+                                                      "id": "snake-111",
+                                                      "fields": {
+                                                       "ID": "2",
+                                                       "LAYER": "0",
+                                                       "TX": "body_x[head]",
+                                                       "TY": "body_y[head]"
+                                                      },
+                                                      "next": {
+                                                       "block": {
+                                                        "type": "prg32_set_state",
+                                                        "id": "snake-112",
+                                                        "fields": {
+                                                         "VAR": "head",
+                                                         "VALUE": "(head + 1) % 512"
+                                                        },
+                                                        "next": {
+                                                         "block": {
+                                                          "type": "prg32_list_set",
+                                                          "id": "snake-113",
+                                                          "fields": {
+                                                           "LIST": "body_x",
+                                                           "INDEX": "head",
+                                                           "VALUE": "new_x"
+                                                          },
+                                                          "next": {
+                                                           "block": {
+                                                            "type": "prg32_list_set",
+                                                            "id": "snake-114",
+                                                            "fields": {
+                                                             "LIST": "body_y",
+                                                             "INDEX": "head",
+                                                             "VALUE": "new_y"
+                                                            },
+                                                            "next": {
+                                                             "block": {
+                                                              "type": "prg32_playfield_put",
+                                                              "id": "snake-115",
+                                                              "fields": {
+                                                               "ID": "3",
+                                                               "LAYER": "0",
+                                                               "TX": "new_x",
+                                                               "TY": "new_y"
+                                                              },
+                                                              "next": {
+                                                               "block": {
+                                                                "type": "prg32_comment",
+                                                                "id": "snake-116",
+                                                                "fields": {
+                                                                 "TEXT": "An apple makes the snake longer; otherwise the tail cell is erased."
+                                                                },
+                                                                "next": {
+                                                                 "block": {
+                                                                  "type": "prg32_if_else",
+                                                                  "id": "snake-132",
+                                                                  "fields": {
+                                                                   "COND": "what == 4"
+                                                                  },
+                                                                  "inputs": {
+                                                                   "DO": {
+                                                                    "block": {
+                                                                     "type": "prg32_change_state",
+                                                                     "id": "snake-117",
+                                                                     "fields": {
+                                                                      "VAR": "length",
+                                                                      "DELTA": "1"
+                                                                     },
+                                                                     "next": {
+                                                                      "block": {
+                                                                       "type": "prg32_change_state",
+                                                                       "id": "snake-118",
+                                                                       "fields": {
+                                                                        "VAR": "score",
+                                                                        "DELTA": "10"
+                                                                       },
+                                                                       "next": {
+                                                                        "block": {
+                                                                         "type": "prg32_audio_note",
+                                                                         "id": "snake-119",
+                                                                         "fields": {
+                                                                          "NOTE": "60 + length % 12",
+                                                                          "CHANNEL": "1",
+                                                                          "MS": "80"
+                                                                         },
+                                                                         "next": {
+                                                                          "block": {
+                                                                           "type": "prg32_set_state",
+                                                                           "id": "snake-120",
+                                                                           "fields": {
+                                                                            "VAR": "speed",
+                                                                            "VALUE": "max(2, 6 - score / 60)"
+                                                                           },
+                                                                           "next": {
+                                                                            "block": {
+                                                                             "type": "prg32_comment",
+                                                                             "id": "snake-121",
+                                                                             "fields": {
+                                                                              "TEXT": "Try random cells until an empty one is found."
+                                                                             },
+                                                                             "next": {
+                                                                              "block": {
+                                                                               "type": "prg32_set_state",
+                                                                               "id": "snake-122",
+                                                                               "fields": {
+                                                                                "VAR": "placed",
+                                                                                "VALUE": "0"
+                                                                               },
+                                                                               "next": {
+                                                                                "block": {
+                                                                                 "type": "prg32_repeat",
+                                                                                 "id": "snake-129",
+                                                                                 "fields": {
+                                                                                  "VAR": "attempt",
+                                                                                  "FROM": "1",
+                                                                                  "TO": "200"
+                                                                                 },
+                                                                                 "inputs": {
+                                                                                  "DO": {
+                                                                                   "block": {
+                                                                                    "type": "prg32_if",
+                                                                                    "id": "snake-128",
+                                                                                    "fields": {
+                                                                                     "COND": "placed == 0"
+                                                                                    },
+                                                                                    "inputs": {
+                                                                                     "DO": {
+                                                                                      "block": {
+                                                                                       "type": "prg32_set_state",
+                                                                                       "id": "snake-123",
+                                                                                       "fields": {
+                                                                                        "VAR": "food_x",
+                                                                                        "VALUE": "random(1, 38)"
+                                                                                       },
+                                                                                       "next": {
+                                                                                        "block": {
+                                                                                         "type": "prg32_set_state",
+                                                                                         "id": "snake-124",
+                                                                                         "fields": {
+                                                                                          "VAR": "food_y",
+                                                                                          "VALUE": "random(3, 23)"
+                                                                                         },
+                                                                                         "next": {
+                                                                                          "block": {
+                                                                                           "type": "prg32_if",
+                                                                                           "id": "snake-127",
+                                                                                           "fields": {
+                                                                                            "COND": "tile(0, food_x, food_y) == 0"
+                                                                                           },
+                                                                                           "inputs": {
+                                                                                            "DO": {
+                                                                                             "block": {
+                                                                                              "type": "prg32_playfield_put",
+                                                                                              "id": "snake-125",
+                                                                                              "fields": {
+                                                                                               "ID": "4",
+                                                                                               "LAYER": "0",
+                                                                                               "TX": "food_x",
+                                                                                               "TY": "food_y"
+                                                                                              },
+                                                                                              "next": {
+                                                                                               "block": {
+                                                                                                "type": "prg32_set_state",
+                                                                                                "id": "snake-126",
+                                                                                                "fields": {
+                                                                                                 "VAR": "placed",
+                                                                                                 "VALUE": "1"
+                                                                                                }
+                                                                                               }
+                                                                                              }
+                                                                                             }
+                                                                                            }
+                                                                                           }
+                                                                                          }
+                                                                                         }
+                                                                                        }
+                                                                                       }
+                                                                                      }
+                                                                                     }
+                                                                                    }
+                                                                                   }
+                                                                                  }
+                                                                                 }
+                                                                                }
+                                                                               }
+                                                                              }
+                                                                             }
+                                                                            }
+                                                                           }
+                                                                          }
+                                                                         }
+                                                                        }
+                                                                       }
+                                                                      }
+                                                                     }
+                                                                    }
+                                                                   },
+                                                                   "ELSE": {
+                                                                    "block": {
+                                                                     "type": "prg32_set_state",
+                                                                     "id": "snake-130",
+                                                                     "fields": {
+                                                                      "VAR": "tail",
+                                                                      "VALUE": "(head - length + 512) % 512"
+                                                                     },
+                                                                     "next": {
+                                                                      "block": {
+                                                                       "type": "prg32_playfield_put",
+                                                                       "id": "snake-131",
+                                                                       "fields": {
+                                                                        "ID": "0",
+                                                                        "LAYER": "0",
+                                                                        "TX": "body_x[tail]",
+                                                                        "TY": "body_y[tail]"
+                                                                       }
+                                                                      }
+                                                                     }
+                                                                    }
+                                                                   }
+                                                                  }
+                                                                 }
+                                                                }
+                                                               }
+                                                              }
+                                                             }
+                                                            }
+                                                           }
+                                                          }
+                                                         }
+                                                        }
+                                                       }
+                                                      }
+                                                     }
+                                                    }
+                                                   }
+                                                  }
+                                                 }
+                                                }
+                                               }
+                                              }
+                                             }
+                                            }
+                                           }
+                                          }
+                                         }
+                                        }
+                                       }
+                                      }
+                                     }
+                                    }
+                                   }
+                                  }
+                                 }
+                                }
+                               }
+                              }
+                             }
+                            }
+                           }
+                          }
+                         }
+                        }
+                       }
+                      }
+                     }
+                    }
+                   }
+                  }
+                 }
+                }
+               },
+               "next": {
+                "block": {
+                 "type": "prg32_comment",
+                 "id": "snake-136",
+                 "fields": {
+                  "TEXT": "Show the score in the PRG32 status band."
+                 },
+                 "next": {
+                  "block": {
+                   "type": "prg32_band_text",
+                   "id": "snake-137",
+                   "fields": {
+                    "TEXT": "SCORE",
+                    "VALUE": "score"
+                   }
+                  }
+                 }
+                }
+               }
+              }
+             }
+            }
+           }
+          }
+         }
+        }
+       }
+      },
+      "x": 520,
+      "y": 20
+     },
+     {
+      "type": "prg32_draw",
+      "id": "snake-151",
+      "inputs": {
+       "DO": {
+        "block": {
+         "type": "prg32_comment",
+         "id": "snake-138",
+         "fields": {
+          "TEXT": "One block draws the whole board: 40 x 25 tiles of playfield layer 0."
+         },
+         "next": {
+          "block": {
+           "type": "prg32_playfield_draw",
+           "id": "snake-139",
+           "fields": {
+            "LAYER": "0",
+            "TRANSPARENT": "OPAQUE"
+           },
+           "next": {
+            "block": {
+             "type": "prg32_comment",
+             "id": "snake-140",
+             "fields": {
+              "TEXT": "Text is drawn on top of the tiles."
+             },
+             "next": {
+              "block": {
+               "type": "prg32_draw_text",
+               "id": "snake-141",
+               "fields": {
+                "TEXT": "SNAKE",
+                "X": "4",
+                "Y": "4",
+                "FG": "LIME",
+                "BG": "BLACK"
+               },
+               "next": {
+                "block": {
+                 "type": "prg32_draw_text",
+                 "id": "snake-142",
+                 "fields": {
+                  "TEXT": "SCORE",
+                  "X": "216",
+                  "Y": "4",
+                  "FG": "GRAY",
+                  "BG": "BLACK"
+                 },
+                 "next": {
+                  "block": {
+                   "type": "prg32_draw_number",
+                   "id": "snake-143",
+                   "fields": {
+                    "VALUE": "score",
+                    "X": "264",
+                    "Y": "4",
+                    "FG": "WHITE",
+                    "BG": "BLACK"
+                   },
+                   "next": {
+                    "block": {
+                     "type": "prg32_if",
+                     "id": "snake-145",
+                     "fields": {
+                      "COND": "mode == 0"
+                     },
+                     "inputs": {
+                      "DO": {
+                       "block": {
+                        "type": "prg32_draw_text",
+                        "id": "snake-144",
+                        "fields": {
+                         "TEXT": "PRESS START",
+                         "X": "116",
+                         "Y": "90",
+                         "FG": "YELLOW",
+                         "BG": "DARK_GRAY"
+                        }
+                       }
+                      }
+                     },
+                     "next": {
+                      "block": {
+                       "type": "prg32_if",
+                       "id": "snake-148",
+                       "fields": {
+                        "COND": "mode == 2"
+                       },
+                       "inputs": {
+                        "DO": {
+                         "block": {
+                          "type": "prg32_draw_text",
+                          "id": "snake-146",
+                          "fields": {
+                           "TEXT": "GAME OVER",
+                           "X": "124",
+                           "Y": "80",
+                           "FG": "RED",
+                           "BG": "DARK_GRAY"
+                          },
+                          "next": {
+                           "block": {
+                            "type": "prg32_draw_text",
+                            "id": "snake-147",
+                            "fields": {
+                             "TEXT": "PRESS START",
+                             "X": "116",
+                             "Y": "96",
+                             "FG": "WHITE",
+                             "BG": "DARK_GRAY"
+                            }
+                           }
+                          }
+                         }
+                        }
+                       }
+                      }
+                     }
+                    }
+                   }
+                  }
+                 }
+                }
+               }
+              }
+             }
+            }
+           }
+          }
+         }
+        }
+       }
+      },
+      "x": 1120,
+      "y": 20
+     }
+    ]
+   }
+  }
+ }
+}

@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540" style="white-space: pre" font-family="Helvetica, Arial, sans-serif">
+  <title>Snake: the body is a ring buffer</title>
+  <defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#334155"/></marker></defs>
+  <rect width="960" height="540" fill="#ffffff"/>
+  <text x="30" y="38" font-size="22" font-weight="bold" fill="#0f172a">The body is a ring buffer: moving costs O(1), not O(length)</text>
+  <text x="60" y="110" font-size="15" font-weight="bold" fill="#0f172a">body_x (body_y is a twin list), 512 items</text>
+  <rect x="60" y="150" width="44" height="36" fill="#f1f5f9" stroke="#94a3b8"/><text x="82" y="174" text-anchor="middle" font-family="Menlo, monospace" font-size="13">17</text><text x="82" y="142" text-anchor="middle" font-size="12" fill="#64748b">[0]</text><rect x="106" y="150" width="44" height="36" fill="#f1f5f9" stroke="#94a3b8"/><text x="128" y="174" text-anchor="middle" font-family="Menlo, monospace" font-size="13">18</text><text x="128" y="142" text-anchor="middle" font-size="12" fill="#64748b">[1]</text><rect x="152" y="150" width="44" height="36" fill="#f1f5f9" stroke="#94a3b8"/><text x="174" y="174" text-anchor="middle" font-family="Menlo, monospace" font-size="13">19</text><text x="174" y="142" text-anchor="middle" font-size="12" fill="#64748b">[2]</text><rect x="198" y="150" width="44" height="36" fill="#bbf7d0" stroke="#94a3b8"/><text x="220" y="174" text-anchor="middle" font-family="Menlo, monospace" font-size="13">20</text><text x="220" y="142" text-anchor="middle" font-size="12" fill="#64748b">[3]</text><rect x="244" y="150" width="44" height="36" fill="#bbf7d0" stroke="#94a3b8"/><text x="266" y="174" text-anchor="middle" font-family="Menlo, monospace" font-size="13">20</text><text x="266" y="142" text-anchor="middle" font-size="12" fill="#64748b">[4]</text><rect x="290" y="150" width="44" height="36" fill="#bbf7d0" stroke="#94a3b8"/><text x="312" y="174" text-anchor="middle" font-family="Menlo, monospace" font-size="13">20</text><text x="312" y="142" text-anchor="middle" font-size="12" fill="#64748b">[5]</text><rect x="336" y="150" width="44" height="36" fill="#86efac" stroke="#94a3b8"/><text x="358" y="174" text-anchor="middle" font-family="Menlo, monospace" font-size="13">21</text><text x="358" y="142" text-anchor="middle" font-size="12" fill="#64748b">[6]</text><rect x="382" y="150" width="44" height="36" fill="#f1f5f9" stroke="#94a3b8"/><text x="404" y="174" text-anchor="middle" font-family="Menlo, monospace" font-size="13">..</text><text x="404" y="142" text-anchor="middle" font-size="12" fill="#64748b">[7]</text><rect x="428" y="150" width="44" height="36" fill="#f1f5f9" stroke="#94a3b8"/><text x="450" y="174" text-anchor="middle" font-family="Menlo, monospace" font-size="13">..</text><text x="450" y="142" text-anchor="middle" font-size="12" fill="#64748b">[...]</text>
+  <path d="M358,210 L358,190" stroke="#15803d" stroke-width="2" marker-end="url(#a)"/>
+  <text x="358" y="228" text-anchor="middle" font-size="13" fill="#15803d">head = 6</text>
+  <path d="M220,210 L220,190" stroke="#b91c1c" stroke-width="2" marker-end="url(#a)"/>
+  <text x="220" y="228" text-anchor="middle" font-size="13" fill="#b91c1c">oldest cell</text>
+  <text x="174" y="250" text-anchor="middle" font-size="13" fill="#b91c1c">tail to erase = (head - length + 512) % 512</text>
+  <g font-size="15" fill="#0f172a">
+    <text x="520" y="110" font-weight="bold">One move of the snake</text>
+    <text x="520" y="136" font-family="Menlo, monospace" font-size="14">1. paint the old head as body (tile 2)</text>
+    <text x="520" y="158" font-family="Menlo, monospace" font-size="14">2. head = (head + 1) % 512</text>
+    <text x="520" y="180" font-family="Menlo, monospace" font-size="14">3. body_x[head] = new_x  (same for y)</text>
+    <text x="520" y="202" font-family="Menlo, monospace" font-size="14">4. paint the new head (tile 3)</text>
+    <text x="520" y="224" font-family="Menlo, monospace" font-size="14">5. apple? length += 1</text>
+    <text x="520" y="246" font-family="Menlo, monospace" font-size="14">   else erase the tail (tile 0)</text>
+  </g>
+  <rect x="60" y="300" width="840" height="190" rx="12" fill="#f8fafc" stroke="#cbd5e1"/>
+  <g font-size="15" fill="#0f172a">
+    <text x="85" y="333" font-weight="bold">Why a ring buffer?</text>
+    <text x="85" y="360">Shifting every body cell one place each move would cost one step per cell: slow for a long snake.</text>
+    <text x="85" y="384">A ring buffer only moves an index. The modulo (% 512) makes the end of the list wrap to the start,</text>
+    <text x="85" y="408">so the same 512 slots are reused forever. Only three tiles change per move: old head, new head, tail.</text>
+    <text x="85" y="444" font-weight="bold">Speed</text>
+    <text x="85" y="468">The snake moves every 'speed' frames: speed = max(2, 6 - score / 60), from 5 moves per second up to 15.</text>
+  </g>
+</svg>

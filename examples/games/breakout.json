@@ -1,0 +1,1308 @@
+{
+ "abi": "prg32-construction-kit-project-1.0",
+ "project": {
+  "title": "Breakout",
+  "description": "Classic-inspired Breakout: move the paddle with LEFT/RIGHT, launch with A, clear 60 bricks in six coloured rows.",
+  "author": "PRG32 Kit",
+  "tags": [
+   "classic",
+   "breakout",
+   "lists",
+   "collision"
+  ],
+  "blocks_json": {
+   "blocks": {
+    "languageVersion": 0,
+    "blocks": [
+     {
+      "type": "prg32_on_start",
+      "id": "breakout-120",
+      "inputs": {
+       "DO": {
+        "block": {
+         "type": "prg32_comment",
+         "id": "breakout-1",
+         "fields": {
+          "TEXT": "Breakout: break every brick with the ball. A or START launches it."
+         },
+         "next": {
+          "block": {
+           "type": "prg32_comment",
+           "id": "breakout-2",
+           "fields": {
+            "TEXT": "The wall: one list item per brick, 1 = still standing."
+           },
+           "next": {
+            "block": {
+             "type": "prg32_list_create",
+             "id": "breakout-3",
+             "fields": {
+              "LIST": "bricks",
+              "SIZE": "60",
+              "VALUE": "1"
+             },
+             "next": {
+              "block": {
+               "type": "prg32_set_state",
+               "id": "breakout-4",
+               "fields": {
+                "VAR": "bricks_left",
+                "VALUE": "60"
+               },
+               "next": {
+                "block": {
+                 "type": "prg32_comment",
+                 "id": "breakout-5",
+                 "fields": {
+                  "TEXT": "One colour per row, made with rgb(red, green, blue)."
+                 },
+                 "next": {
+                  "block": {
+                   "type": "prg32_list_create",
+                   "id": "breakout-6",
+                   "fields": {
+                    "LIST": "row_color",
+                    "SIZE": "6",
+                    "VALUE": "0"
+                   },
+                   "next": {
+                    "block": {
+                     "type": "prg32_list_set",
+                     "id": "breakout-7",
+                     "fields": {
+                      "LIST": "row_color",
+                      "INDEX": "0",
+                      "VALUE": "rgb(255, 64, 64)"
+                     },
+                     "next": {
+                      "block": {
+                       "type": "prg32_list_set",
+                       "id": "breakout-8",
+                       "fields": {
+                        "LIST": "row_color",
+                        "INDEX": "1",
+                        "VALUE": "rgb(255, 150, 40)"
+                       },
+                       "next": {
+                        "block": {
+                         "type": "prg32_list_set",
+                         "id": "breakout-9",
+                         "fields": {
+                          "LIST": "row_color",
+                          "INDEX": "2",
+                          "VALUE": "rgb(255, 230, 40)"
+                         },
+                         "next": {
+                          "block": {
+                           "type": "prg32_list_set",
+                           "id": "breakout-10",
+                           "fields": {
+                            "LIST": "row_color",
+                            "INDEX": "3",
+                            "VALUE": "rgb(80, 220, 80)"
+                           },
+                           "next": {
+                            "block": {
+                             "type": "prg32_list_set",
+                             "id": "breakout-11",
+                             "fields": {
+                              "LIST": "row_color",
+                              "INDEX": "4",
+                              "VALUE": "rgb(60, 200, 255)"
+                             },
+                             "next": {
+                              "block": {
+                               "type": "prg32_list_set",
+                               "id": "breakout-12",
+                               "fields": {
+                                "LIST": "row_color",
+                                "INDEX": "5",
+                                "VALUE": "rgb(150, 110, 255)"
+                               },
+                               "next": {
+                                "block": {
+                                 "type": "prg32_set_state",
+                                 "id": "breakout-13",
+                                 "fields": {
+                                  "VAR": "paddle_x",
+                                  "VALUE": "140"
+                                 },
+                                 "next": {
+                                  "block": {
+                                   "type": "prg32_set_state",
+                                   "id": "breakout-14",
+                                   "fields": {
+                                    "VAR": "score",
+                                    "VALUE": "0"
+                                   },
+                                   "next": {
+                                    "block": {
+                                     "type": "prg32_set_state",
+                                     "id": "breakout-15",
+                                     "fields": {
+                                      "VAR": "lives",
+                                      "VALUE": "3"
+                                     },
+                                     "next": {
+                                      "block": {
+                                       "type": "prg32_set_state",
+                                       "id": "breakout-16",
+                                       "fields": {
+                                        "VAR": "mode",
+                                        "VALUE": "0"
+                                       },
+                                       "next": {
+                                        "block": {
+                                         "type": "prg32_set_state",
+                                         "id": "breakout-17",
+                                         "fields": {
+                                          "VAR": "ball_dx",
+                                          "VALUE": "2"
+                                         },
+                                         "next": {
+                                          "block": {
+                                           "type": "prg32_set_state",
+                                           "id": "breakout-18",
+                                           "fields": {
+                                            "VAR": "ball_dy",
+                                            "VALUE": "-3"
+                                           }
+                                          }
+                                         }
+                                        }
+                                       }
+                                      }
+                                     }
+                                    }
+                                   }
+                                  }
+                                 }
+                                }
+                               }
+                              }
+                             }
+                            }
+                           }
+                          }
+                         }
+                        }
+                       }
+                      }
+                     }
+                    }
+                   }
+                  }
+                 }
+                }
+               }
+              }
+             }
+            }
+           }
+          }
+         }
+        }
+       }
+      },
+      "x": 20,
+      "y": 20
+     },
+     {
+      "type": "prg32_update",
+      "id": "breakout-121",
+      "inputs": {
+       "DO": {
+        "block": {
+         "type": "prg32_comment",
+         "id": "breakout-19",
+         "fields": {
+          "TEXT": "Mode 0 = ball on paddle, 1 = playing, 2 = game over, 3 = wall cleared."
+         },
+         "next": {
+          "block": {
+           "type": "prg32_comment",
+           "id": "breakout-20",
+           "fields": {
+            "TEXT": "The player moves the paddle with LEFT and RIGHT."
+           },
+           "next": {
+            "block": {
+             "type": "prg32_if_button",
+             "id": "breakout-22",
+             "fields": {
+              "BUTTON": "LEFT"
+             },
+             "inputs": {
+              "DO": {
+               "block": {
+                "type": "prg32_change_state",
+                "id": "breakout-21",
+                "fields": {
+                 "VAR": "paddle_x",
+                 "DELTA": "-5"
+                }
+               }
+              }
+             },
+             "next": {
+              "block": {
+               "type": "prg32_if_button",
+               "id": "breakout-24",
+               "fields": {
+                "BUTTON": "RIGHT"
+               },
+               "inputs": {
+                "DO": {
+                 "block": {
+                  "type": "prg32_change_state",
+                  "id": "breakout-23",
+                  "fields": {
+                   "VAR": "paddle_x",
+                   "DELTA": "5"
+                  }
+                 }
+                }
+               },
+               "next": {
+                "block": {
+                 "type": "prg32_clamp_state",
+                 "id": "breakout-25",
+                 "fields": {
+                  "VAR": "paddle_x",
+                  "LOW": "0",
+                  "HIGH": "280"
+                 },
+                 "next": {
+                  "block": {
+                   "type": "prg32_comment",
+                   "id": "breakout-26",
+                   "fields": {
+                    "TEXT": "While the ball waits, it rides on the paddle; A or START launches it."
+                   },
+                   "next": {
+                    "block": {
+                     "type": "prg32_if",
+                     "id": "breakout-33",
+                     "fields": {
+                      "COND": "mode == 0"
+                     },
+                     "inputs": {
+                      "DO": {
+                       "block": {
+                        "type": "prg32_set_state",
+                        "id": "breakout-27",
+                        "fields": {
+                         "VAR": "ball_x",
+                         "VALUE": "paddle_x + 18"
+                        },
+                        "next": {
+                         "block": {
+                          "type": "prg32_set_state",
+                          "id": "breakout-28",
+                          "fields": {
+                           "VAR": "ball_y",
+                           "VALUE": "180"
+                          },
+                          "next": {
+                           "block": {
+                            "type": "prg32_if_button_once",
+                            "id": "breakout-30",
+                            "fields": {
+                             "BUTTON": "A"
+                            },
+                            "inputs": {
+                             "DO": {
+                              "block": {
+                               "type": "prg32_set_state",
+                               "id": "breakout-29",
+                               "fields": {
+                                "VAR": "mode",
+                                "VALUE": "1"
+                               }
+                              }
+                             }
+                            },
+                            "next": {
+                             "block": {
+                              "type": "prg32_if_button_once",
+                              "id": "breakout-32",
+                              "fields": {
+                               "BUTTON": "START"
+                              },
+                              "inputs": {
+                               "DO": {
+                                "block": {
+                                 "type": "prg32_set_state",
+                                 "id": "breakout-31",
+                                 "fields": {
+                                  "VAR": "mode",
+                                  "VALUE": "1"
+                                 }
+                                }
+                               }
+                              }
+                             }
+                            }
+                           }
+                          }
+                         }
+                        }
+                       }
+                      }
+                     },
+                     "next": {
+                      "block": {
+                       "type": "prg32_comment",
+                       "id": "breakout-34",
+                       "fields": {
+                        "TEXT": "After a game over or a cleared wall, START plays again."
+                       },
+                       "next": {
+                        "block": {
+                         "type": "prg32_if",
+                         "id": "breakout-45",
+                         "fields": {
+                          "COND": "mode >= 2"
+                         },
+                         "inputs": {
+                          "DO": {
+                           "block": {
+                            "type": "prg32_if_button_once",
+                            "id": "breakout-44",
+                            "fields": {
+                             "BUTTON": "START"
+                            },
+                            "inputs": {
+                             "DO": {
+                              "block": {
+                               "type": "prg32_if_else",
+                               "id": "breakout-38",
+                               "fields": {
+                                "COND": "mode == 2"
+                               },
+                               "inputs": {
+                                "DO": {
+                                 "block": {
+                                  "type": "prg32_set_state",
+                                  "id": "breakout-35",
+                                  "fields": {
+                                   "VAR": "score",
+                                   "VALUE": "0"
+                                  },
+                                  "next": {
+                                   "block": {
+                                    "type": "prg32_set_state",
+                                    "id": "breakout-36",
+                                    "fields": {
+                                     "VAR": "lives",
+                                     "VALUE": "3"
+                                    }
+                                   }
+                                  }
+                                 }
+                                },
+                                "ELSE": {
+                                 "block": {
+                                  "type": "prg32_change_state",
+                                  "id": "breakout-37",
+                                  "fields": {
+                                   "VAR": "lives",
+                                   "DELTA": "1"
+                                  }
+                                 }
+                                }
+                               },
+                               "next": {
+                                "block": {
+                                 "type": "prg32_list_create",
+                                 "id": "breakout-39",
+                                 "fields": {
+                                  "LIST": "bricks",
+                                  "SIZE": "60",
+                                  "VALUE": "1"
+                                 },
+                                 "next": {
+                                  "block": {
+                                   "type": "prg32_set_state",
+                                   "id": "breakout-40",
+                                   "fields": {
+                                    "VAR": "bricks_left",
+                                    "VALUE": "60"
+                                   },
+                                   "next": {
+                                    "block": {
+                                     "type": "prg32_set_state",
+                                     "id": "breakout-41",
+                                     "fields": {
+                                      "VAR": "mode",
+                                      "VALUE": "0"
+                                     },
+                                     "next": {
+                                      "block": {
+                                       "type": "prg32_set_state",
+                                       "id": "breakout-42",
+                                       "fields": {
+                                        "VAR": "ball_dx",
+                                        "VALUE": "2"
+                                       },
+                                       "next": {
+                                        "block": {
+                                         "type": "prg32_set_state",
+                                         "id": "breakout-43",
+                                         "fields": {
+                                          "VAR": "ball_dy",
+                                          "VALUE": "-3"
+                                         }
+                                        }
+                                       }
+                                      }
+                                     }
+                                    }
+                                   }
+                                  }
+                                 }
+                                }
+                               }
+                              }
+                             }
+                            }
+                           }
+                          }
+                         },
+                         "next": {
+                          "block": {
+                           "type": "prg32_comment",
+                           "id": "breakout-46",
+                           "fields": {
+                            "TEXT": "Playing: move the ball, then check bricks, paddle and lives."
+                           },
+                           "next": {
+                            "block": {
+                             "type": "prg32_if",
+                             "id": "breakout-93",
+                             "fields": {
+                              "COND": "mode == 1"
+                             },
+                             "inputs": {
+                              "DO": {
+                               "block": {
+                                "type": "prg32_comment",
+                                "id": "breakout-47",
+                                "fields": {
+                                 "TEXT": "Move the ball one step and bounce on the three walls."
+                                },
+                                "next": {
+                                 "block": {
+                                  "type": "prg32_change_state",
+                                  "id": "breakout-48",
+                                  "fields": {
+                                   "VAR": "ball_x",
+                                   "DELTA": "ball_dx"
+                                  },
+                                  "next": {
+                                   "block": {
+                                    "type": "prg32_change_state",
+                                    "id": "breakout-49",
+                                    "fields": {
+                                     "VAR": "ball_y",
+                                     "DELTA": "ball_dy"
+                                    },
+                                    "next": {
+                                     "block": {
+                                      "type": "prg32_if",
+                                      "id": "breakout-53",
+                                      "fields": {
+                                       "COND": "ball_x < 0"
+                                      },
+                                      "inputs": {
+                                       "DO": {
+                                        "block": {
+                                         "type": "prg32_set_state",
+                                         "id": "breakout-50",
+                                         "fields": {
+                                          "VAR": "ball_x",
+                                          "VALUE": "0"
+                                         },
+                                         "next": {
+                                          "block": {
+                                           "type": "prg32_set_state",
+                                           "id": "breakout-51",
+                                           "fields": {
+                                            "VAR": "ball_dx",
+                                            "VALUE": "abs(ball_dx)"
+                                           },
+                                           "next": {
+                                            "block": {
+                                             "type": "prg32_play_beep",
+                                             "id": "breakout-52",
+                                             "fields": {
+                                              "FREQ": "300",
+                                              "MS": "15"
+                                             }
+                                            }
+                                           }
+                                          }
+                                         }
+                                        }
+                                       }
+                                      },
+                                      "next": {
+                                       "block": {
+                                        "type": "prg32_if",
+                                        "id": "breakout-57",
+                                        "fields": {
+                                         "COND": "ball_x > 315"
+                                        },
+                                        "inputs": {
+                                         "DO": {
+                                          "block": {
+                                           "type": "prg32_set_state",
+                                           "id": "breakout-54",
+                                           "fields": {
+                                            "VAR": "ball_x",
+                                            "VALUE": "315"
+                                           },
+                                           "next": {
+                                            "block": {
+                                             "type": "prg32_set_state",
+                                             "id": "breakout-55",
+                                             "fields": {
+                                              "VAR": "ball_dx",
+                                              "VALUE": "-abs(ball_dx)"
+                                             },
+                                             "next": {
+                                              "block": {
+                                               "type": "prg32_play_beep",
+                                               "id": "breakout-56",
+                                               "fields": {
+                                                "FREQ": "300",
+                                                "MS": "15"
+                                               }
+                                              }
+                                             }
+                                            }
+                                           }
+                                          }
+                                         }
+                                        },
+                                        "next": {
+                                         "block": {
+                                          "type": "prg32_if",
+                                          "id": "breakout-61",
+                                          "fields": {
+                                           "COND": "ball_y < 18"
+                                          },
+                                          "inputs": {
+                                           "DO": {
+                                            "block": {
+                                             "type": "prg32_set_state",
+                                             "id": "breakout-58",
+                                             "fields": {
+                                              "VAR": "ball_y",
+                                              "VALUE": "18"
+                                             },
+                                             "next": {
+                                              "block": {
+                                               "type": "prg32_set_state",
+                                               "id": "breakout-59",
+                                               "fields": {
+                                                "VAR": "ball_dy",
+                                                "VALUE": "abs(ball_dy)"
+                                               },
+                                               "next": {
+                                                "block": {
+                                                 "type": "prg32_play_beep",
+                                                 "id": "breakout-60",
+                                                 "fields": {
+                                                  "FREQ": "300",
+                                                  "MS": "15"
+                                                 }
+                                                }
+                                               }
+                                              }
+                                             }
+                                            }
+                                           }
+                                          },
+                                          "next": {
+                                           "block": {
+                                            "type": "prg32_comment",
+                                            "id": "breakout-62",
+                                            "fields": {
+                                             "TEXT": "Which brick is under the centre of the ball?"
+                                            },
+                                            "next": {
+                                             "block": {
+                                              "type": "prg32_set_state",
+                                              "id": "breakout-63",
+                                              "fields": {
+                                               "VAR": "col",
+                                               "VALUE": "(ball_x + 2 - 5) / 31"
+                                              },
+                                              "next": {
+                                               "block": {
+                                                "type": "prg32_set_state",
+                                                "id": "breakout-64",
+                                                "fields": {
+                                                 "VAR": "row",
+                                                 "VALUE": "(ball_y + 2 - 30) / 12"
+                                                },
+                                                "next": {
+                                                 "block": {
+                                                  "type": "prg32_if",
+                                                  "id": "breakout-71",
+                                                  "fields": {
+                                                   "COND": "ball_x + 2 >= 5 && ball_y + 2 >= 30 && col < 10 && row < 6"
+                                                  },
+                                                  "inputs": {
+                                                   "DO": {
+                                                    "block": {
+                                                     "type": "prg32_if",
+                                                     "id": "breakout-70",
+                                                     "fields": {
+                                                      "COND": "bricks[row * 10 + col] == 1"
+                                                     },
+                                                     "inputs": {
+                                                      "DO": {
+                                                       "block": {
+                                                        "type": "prg32_list_set",
+                                                        "id": "breakout-65",
+                                                        "fields": {
+                                                         "LIST": "bricks",
+                                                         "INDEX": "row * 10 + col",
+                                                         "VALUE": "0"
+                                                        },
+                                                        "next": {
+                                                         "block": {
+                                                          "type": "prg32_change_state",
+                                                          "id": "breakout-66",
+                                                          "fields": {
+                                                           "VAR": "bricks_left",
+                                                           "DELTA": "-1"
+                                                          },
+                                                          "next": {
+                                                           "block": {
+                                                            "type": "prg32_change_state",
+                                                            "id": "breakout-67",
+                                                            "fields": {
+                                                             "VAR": "score",
+                                                             "DELTA": "(6 - row) * 10"
+                                                            },
+                                                            "next": {
+                                                             "block": {
+                                                              "type": "prg32_set_state",
+                                                              "id": "breakout-68",
+                                                              "fields": {
+                                                               "VAR": "ball_dy",
+                                                               "VALUE": "-ball_dy"
+                                                              },
+                                                              "next": {
+                                                               "block": {
+                                                                "type": "prg32_audio_note",
+                                                                "id": "breakout-69",
+                                                                "fields": {
+                                                                 "NOTE": "84 - row * 3",
+                                                                 "CHANNEL": "1",
+                                                                 "MS": "60"
+                                                                }
+                                                               }
+                                                              }
+                                                             }
+                                                            }
+                                                           }
+                                                          }
+                                                         }
+                                                        }
+                                                       }
+                                                      }
+                                                     }
+                                                    }
+                                                   }
+                                                  },
+                                                  "next": {
+                                                   "block": {
+                                                    "type": "prg32_comment",
+                                                    "id": "breakout-72",
+                                                    "fields": {
+                                                     "TEXT": "Paddle hit: the further from the centre, the steeper the bounce."
+                                                    },
+                                                    "next": {
+                                                     "block": {
+                                                      "type": "prg32_if",
+                                                      "id": "breakout-79",
+                                                      "fields": {
+                                                       "COND": "ball_dy > 0"
+                                                      },
+                                                      "inputs": {
+                                                       "DO": {
+                                                        "block": {
+                                                         "type": "prg32_if_touching",
+                                                         "id": "breakout-78",
+                                                         "fields": {
+                                                          "AX": "ball_x",
+                                                          "AY": "ball_y",
+                                                          "AW": "5",
+                                                          "AH": "5",
+                                                          "BX": "paddle_x",
+                                                          "BY": "186",
+                                                          "BW": "40",
+                                                          "BH": "6"
+                                                         },
+                                                         "inputs": {
+                                                          "DO": {
+                                                           "block": {
+                                                            "type": "prg32_set_state",
+                                                            "id": "breakout-73",
+                                                            "fields": {
+                                                             "VAR": "ball_dy",
+                                                             "VALUE": "-3 - (bricks_left < 30)"
+                                                            },
+                                                            "next": {
+                                                             "block": {
+                                                              "type": "prg32_set_state",
+                                                              "id": "breakout-74",
+                                                              "fields": {
+                                                               "VAR": "ball_dx",
+                                                               "VALUE": "clamp((ball_x + 2 - (paddle_x + 20)) / 4, -4, 4)"
+                                                              },
+                                                              "next": {
+                                                               "block": {
+                                                                "type": "prg32_if",
+                                                                "id": "breakout-76",
+                                                                "fields": {
+                                                                 "COND": "ball_dx == 0"
+                                                                },
+                                                                "inputs": {
+                                                                 "DO": {
+                                                                  "block": {
+                                                                   "type": "prg32_set_state",
+                                                                   "id": "breakout-75",
+                                                                   "fields": {
+                                                                    "VAR": "ball_dx",
+                                                                    "VALUE": "1"
+                                                                   }
+                                                                  }
+                                                                 }
+                                                                },
+                                                                "next": {
+                                                                 "block": {
+                                                                  "type": "prg32_play_beep",
+                                                                  "id": "breakout-77",
+                                                                  "fields": {
+                                                                   "FREQ": "520",
+                                                                   "MS": "25"
+                                                                  }
+                                                                 }
+                                                                }
+                                                               }
+                                                              }
+                                                             }
+                                                            }
+                                                           }
+                                                          }
+                                                         }
+                                                        }
+                                                       }
+                                                      },
+                                                      "next": {
+                                                       "block": {
+                                                        "type": "prg32_comment",
+                                                        "id": "breakout-80",
+                                                        "fields": {
+                                                         "TEXT": "Missing the ball costs a life."
+                                                        },
+                                                        "next": {
+                                                         "block": {
+                                                          "type": "prg32_if",
+                                                          "id": "breakout-88",
+                                                          "fields": {
+                                                           "COND": "ball_y > 200"
+                                                          },
+                                                          "inputs": {
+                                                           "DO": {
+                                                            "block": {
+                                                             "type": "prg32_change_state",
+                                                             "id": "breakout-81",
+                                                             "fields": {
+                                                              "VAR": "lives",
+                                                              "DELTA": "-1"
+                                                             },
+                                                             "next": {
+                                                              "block": {
+                                                               "type": "prg32_audio_note",
+                                                               "id": "breakout-82",
+                                                               "fields": {
+                                                                "NOTE": "40",
+                                                                "CHANNEL": "1",
+                                                                "MS": "400"
+                                                               },
+                                                               "next": {
+                                                                "block": {
+                                                                 "type": "prg32_if_else",
+                                                                 "id": "breakout-87",
+                                                                 "fields": {
+                                                                  "COND": "lives > 0"
+                                                                 },
+                                                                 "inputs": {
+                                                                  "DO": {
+                                                                   "block": {
+                                                                    "type": "prg32_set_state",
+                                                                    "id": "breakout-83",
+                                                                    "fields": {
+                                                                     "VAR": "mode",
+                                                                     "VALUE": "0"
+                                                                    },
+                                                                    "next": {
+                                                                     "block": {
+                                                                      "type": "prg32_set_state",
+                                                                      "id": "breakout-84",
+                                                                      "fields": {
+                                                                       "VAR": "ball_dx",
+                                                                       "VALUE": "2"
+                                                                      },
+                                                                      "next": {
+                                                                       "block": {
+                                                                        "type": "prg32_set_state",
+                                                                        "id": "breakout-85",
+                                                                        "fields": {
+                                                                         "VAR": "ball_dy",
+                                                                         "VALUE": "-3"
+                                                                        }
+                                                                       }
+                                                                      }
+                                                                     }
+                                                                    }
+                                                                   }
+                                                                  },
+                                                                  "ELSE": {
+                                                                   "block": {
+                                                                    "type": "prg32_set_state",
+                                                                    "id": "breakout-86",
+                                                                    "fields": {
+                                                                     "VAR": "mode",
+                                                                     "VALUE": "2"
+                                                                    }
+                                                                   }
+                                                                  }
+                                                                 }
+                                                                }
+                                                               }
+                                                              }
+                                                             }
+                                                            }
+                                                           }
+                                                          },
+                                                          "next": {
+                                                           "block": {
+                                                            "type": "prg32_comment",
+                                                            "id": "breakout-89",
+                                                            "fields": {
+                                                             "TEXT": "No bricks left: the wall is cleared."
+                                                            },
+                                                            "next": {
+                                                             "block": {
+                                                              "type": "prg32_if",
+                                                              "id": "breakout-92",
+                                                              "fields": {
+                                                               "COND": "bricks_left == 0"
+                                                              },
+                                                              "inputs": {
+                                                               "DO": {
+                                                                "block": {
+                                                                 "type": "prg32_set_state",
+                                                                 "id": "breakout-90",
+                                                                 "fields": {
+                                                                  "VAR": "mode",
+                                                                  "VALUE": "3"
+                                                                 },
+                                                                 "next": {
+                                                                  "block": {
+                                                                   "type": "prg32_audio_note",
+                                                                   "id": "breakout-91",
+                                                                   "fields": {
+                                                                    "NOTE": "88",
+                                                                    "CHANNEL": "1",
+                                                                    "MS": "500"
+                                                                   }
+                                                                  }
+                                                                 }
+                                                                }
+                                                               }
+                                                              }
+                                                             }
+                                                            }
+                                                           }
+                                                          }
+                                                         }
+                                                        }
+                                                       }
+                                                      }
+                                                     }
+                                                    }
+                                                   }
+                                                  }
+                                                 }
+                                                }
+                                               }
+                                              }
+                                             }
+                                            }
+                                           }
+                                          }
+                                         }
+                                        }
+                                       }
+                                      }
+                                     }
+                                    }
+                                   }
+                                  }
+                                 }
+                                }
+                               }
+                              }
+                             },
+                             "next": {
+                              "block": {
+                               "type": "prg32_comment",
+                               "id": "breakout-94",
+                               "fields": {
+                                "TEXT": "Show the score in the PRG32 status band."
+                               },
+                               "next": {
+                                "block": {
+                                 "type": "prg32_band_text",
+                                 "id": "breakout-95",
+                                 "fields": {
+                                  "TEXT": "SCORE",
+                                  "VALUE": "score"
+                                 }
+                                }
+                               }
+                              }
+                             }
+                            }
+                           }
+                          }
+                         }
+                        }
+                       }
+                      }
+                     }
+                    }
+                   }
+                  }
+                 }
+                }
+               }
+              }
+             }
+            }
+           }
+          }
+         }
+        }
+       }
+      },
+      "x": 520,
+      "y": 20
+     },
+     {
+      "type": "prg32_draw",
+      "id": "breakout-122",
+      "inputs": {
+       "DO": {
+        "block": {
+         "type": "prg32_comment",
+         "id": "breakout-96",
+         "fields": {
+          "TEXT": "Painter's algorithm: background, score line, bricks, paddle, ball, messages."
+         },
+         "next": {
+          "block": {
+           "type": "prg32_clear_screen",
+           "id": "breakout-97",
+           "fields": {
+            "COLOR": "BLACK"
+           },
+           "next": {
+            "block": {
+             "type": "prg32_draw_text",
+             "id": "breakout-98",
+             "fields": {
+              "TEXT": "SCORE",
+              "X": "4",
+              "Y": "4",
+              "FG": "GRAY",
+              "BG": "BLACK"
+             },
+             "next": {
+              "block": {
+               "type": "prg32_draw_number",
+               "id": "breakout-99",
+               "fields": {
+                "VALUE": "score",
+                "X": "52",
+                "Y": "4",
+                "FG": "WHITE",
+                "BG": "BLACK"
+               },
+               "next": {
+                "block": {
+                 "type": "prg32_draw_text",
+                 "id": "breakout-100",
+                 "fields": {
+                  "TEXT": "LIVES",
+                  "X": "248",
+                  "Y": "4",
+                  "FG": "GRAY",
+                  "BG": "BLACK"
+                 },
+                 "next": {
+                  "block": {
+                   "type": "prg32_draw_number",
+                   "id": "breakout-101",
+                   "fields": {
+                    "VALUE": "lives",
+                    "X": "296",
+                    "Y": "4",
+                    "FG": "WHITE",
+                    "BG": "BLACK"
+                   },
+                   "next": {
+                    "block": {
+                     "type": "prg32_draw_rect",
+                     "id": "breakout-102",
+                     "fields": {
+                      "X": "0",
+                      "Y": "16",
+                      "W": "320",
+                      "H": "1",
+                      "COLOR": "DARK_GRAY"
+                     },
+                     "next": {
+                      "block": {
+                       "type": "prg32_comment",
+                       "id": "breakout-103",
+                       "fields": {
+                        "TEXT": "Brick i is drawn at column i % 10 and row i / 10, in its row colour."
+                       },
+                       "next": {
+                        "block": {
+                         "type": "prg32_repeat",
+                         "id": "breakout-106",
+                         "fields": {
+                          "VAR": "i",
+                          "FROM": "0",
+                          "TO": "59"
+                         },
+                         "inputs": {
+                          "DO": {
+                           "block": {
+                            "type": "prg32_if",
+                            "id": "breakout-105",
+                            "fields": {
+                             "COND": "bricks[i] == 1"
+                            },
+                            "inputs": {
+                             "DO": {
+                              "block": {
+                               "type": "prg32_draw_rect_rgb",
+                               "id": "breakout-104",
+                               "fields": {
+                                "X": "5 + (i % 10) * 31",
+                                "Y": "30 + (i / 10) * 12",
+                                "W": "29",
+                                "H": "10",
+                                "RGB": "row_color[i / 10]"
+                               }
+                              }
+                             }
+                            }
+                           }
+                          }
+                         },
+                         "next": {
+                          "block": {
+                           "type": "prg32_comment",
+                           "id": "breakout-107",
+                           "fields": {
+                            "TEXT": "Paddle, ball and messages."
+                           },
+                           "next": {
+                            "block": {
+                             "type": "prg32_draw_rect",
+                             "id": "breakout-108",
+                             "fields": {
+                              "X": "paddle_x",
+                              "Y": "186",
+                              "W": "40",
+                              "H": "6",
+                              "COLOR": "WHITE"
+                             },
+                             "next": {
+                              "block": {
+                               "type": "prg32_draw_rect",
+                               "id": "breakout-109",
+                               "fields": {
+                                "X": "paddle_x + 2",
+                                "Y": "187",
+                                "W": "36",
+                                "H": "1",
+                                "COLOR": "GRAY"
+                               },
+                               "next": {
+                                "block": {
+                                 "type": "prg32_if",
+                                 "id": "breakout-111",
+                                 "fields": {
+                                  "COND": "mode < 2"
+                                 },
+                                 "inputs": {
+                                  "DO": {
+                                   "block": {
+                                    "type": "prg32_draw_rect",
+                                    "id": "breakout-110",
+                                    "fields": {
+                                     "X": "ball_x",
+                                     "Y": "ball_y",
+                                     "W": "5",
+                                     "H": "5",
+                                     "COLOR": "YELLOW"
+                                    }
+                                   }
+                                  }
+                                 },
+                                 "next": {
+                                  "block": {
+                                   "type": "prg32_if",
+                                   "id": "breakout-113",
+                                   "fields": {
+                                    "COND": "mode == 0"
+                                   },
+                                   "inputs": {
+                                    "DO": {
+                                     "block": {
+                                      "type": "prg32_draw_text",
+                                      "id": "breakout-112",
+                                      "fields": {
+                                       "TEXT": "PRESS A",
+                                       "X": "132",
+                                       "Y": "150",
+                                       "FG": "CYAN",
+                                       "BG": "BLACK"
+                                      }
+                                     }
+                                    }
+                                   },
+                                   "next": {
+                                    "block": {
+                                     "type": "prg32_if",
+                                     "id": "breakout-116",
+                                     "fields": {
+                                      "COND": "mode == 2"
+                                     },
+                                     "inputs": {
+                                      "DO": {
+                                       "block": {
+                                        "type": "prg32_draw_text",
+                                        "id": "breakout-114",
+                                        "fields": {
+                                         "TEXT": "GAME OVER",
+                                         "X": "124",
+                                         "Y": "120",
+                                         "FG": "RED",
+                                         "BG": "BLACK"
+                                        },
+                                        "next": {
+                                         "block": {
+                                          "type": "prg32_draw_text",
+                                          "id": "breakout-115",
+                                          "fields": {
+                                           "TEXT": "PRESS START",
+                                           "X": "116",
+                                           "Y": "136",
+                                           "FG": "WHITE",
+                                           "BG": "BLACK"
+                                          }
+                                         }
+                                        }
+                                       }
+                                      }
+                                     },
+                                     "next": {
+                                      "block": {
+                                       "type": "prg32_if",
+                                       "id": "breakout-119",
+                                       "fields": {
+                                        "COND": "mode == 3"
+                                       },
+                                       "inputs": {
+                                        "DO": {
+                                         "block": {
+                                          "type": "prg32_draw_text",
+                                          "id": "breakout-117",
+                                          "fields": {
+                                           "TEXT": "WALL CLEARED!",
+                                           "X": "108",
+                                           "Y": "120",
+                                           "FG": "LIME",
+                                           "BG": "BLACK"
+                                          },
+                                          "next": {
+                                           "block": {
+                                            "type": "prg32_draw_text",
+                                            "id": "breakout-118",
+                                            "fields": {
+                                             "TEXT": "PRESS START",
+                                             "X": "116",
+                                             "Y": "136",
+                                             "FG": "WHITE",
+                                             "BG": "BLACK"
+                                            }
+                                           }
+                                          }
+                                         }
+                                        }
+                                       }
+                                      }
+                                     }
+                                    }
+                                   }
+                                  }
+                                 }
+                                }
+                               }
+                              }
+                             }
+                            }
+                           }
+                          }
+                         }
+                        }
+                       }
+                      }
+                     }
+                    }
+                   }
+                  }
+                 }
+                }
+               }
+              }
+             }
+            }
+           }
+          }
+         }
+        }
+       }
+      },
+      "x": 1120,
+      "y": 20
+     }
+    ]
+   }
+  }
+ }
+}

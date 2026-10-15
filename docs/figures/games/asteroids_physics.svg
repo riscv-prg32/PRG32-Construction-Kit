@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540" style="white-space: pre" font-family="Helvetica, Arial, sans-serif">
+  <title>Asteroids: fixed-point physics with integer sine and cosine</title>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#334155"/></marker>
+    <marker id="y" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#ea580c"/></marker>
+  </defs>
+  <rect width="960" height="540" fill="#ffffff"/>
+  <text x="30" y="38" font-size="22" font-weight="bold" fill="#0f172a">Physics with whole numbers only: no floating point on the cartridge</text>
+
+  <!-- heading circle -->
+  <circle cx="200" cy="250" r="130" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2"/>
+  <line x1="200" y1="250" x2="200" y2="105" stroke="#94a3b8" stroke-dasharray="4 4"/>
+  <line x1="200" y1="250" x2="345" y2="250" stroke="#94a3b8" stroke-dasharray="4 4"/>
+  <text x="200" y="98" text-anchor="middle" font-size="13" fill="#475569">angle 0 (up)</text>
+  <text x="352" y="254" font-size="13" fill="#475569">90</text>
+  <text x="200" y="398" text-anchor="middle" font-size="13" fill="#475569">180</text>
+  <text x="44" y="254" font-size="13" fill="#475569">270</text>
+  <line x1="200" y1="250" x2="292" y2="158" stroke="#ea580c" stroke-width="4" marker-end="url(#y)"/>
+  <path d="M200,190 A60,60 0 0,1 242,208" fill="none" stroke="#ea580c" stroke-width="2"/>
+  <text x="228" y="188" font-size="13" fill="#ea580c">angle</text>
+  <line x1="292" y1="158" x2="292" y2="250" stroke="#0e7490" stroke-dasharray="5 4" stroke-width="2"/>
+  <text x="298" y="210" font-size="13" fill="#0e7490">-cos(angle)</text>
+  <line x1="200" y1="262" x2="292" y2="262" stroke="#7c3aed" stroke-width="2"/>
+  <text x="215" y="282" font-size="13" fill="#7c3aed">sin(angle)</text>
+  <text x="200" y="440" text-anchor="middle" font-size="14" fill="#0f172a">screen y grows downwards, so "up" is -cos</text>
+
+  <!-- right column -->
+  <g font-size="15" fill="#0f172a">
+    <text x="400" y="95" font-weight="bold">Q8 trigonometry: 256 means 1.0</text>
+    <text x="400" y="120" font-family="Menlo, monospace" font-size="14">sin(30) = 128   sin(90) = 256   cos(180) = -256</text>
+    <text x="400" y="142" font-size="13" fill="#475569">a 91-entry quarter-wave table, mirrored for the other quadrants</text>
+
+    <text x="400" y="185" font-weight="bold">Q4 positions: 16 units per pixel</text>
+    <text x="400" y="210" font-family="Menlo, monospace" font-size="14">ship_x = 160 * 16    pixel = ship_x / 16</text>
+    <text x="400" y="232" font-size="13" fill="#475569">a velocity of 5 units moves 5/16 of a pixel per frame: smooth drift</text>
+
+    <text x="400" y="275" font-weight="bold">One frame of the ship</text>
+    <text x="400" y="300" font-family="Menlo, monospace" font-size="14">thrust:   vx += sin(angle) / 48</text>
+    <text x="400" y="322" font-family="Menlo, monospace" font-size="14">limit:    keep vx between -64 and 64</text>
+    <text x="400" y="344" font-family="Menlo, monospace" font-size="14">friction: vx -= vx / 40</text>
+    <text x="400" y="366" font-family="Menlo, monospace" font-size="14">move:     x += vx</text>
+    <text x="400" y="388" font-family="Menlo, monospace" font-size="14">wrap:     x around 0 .. 320*16-1</text>
+    <text x="400" y="410" font-size="13" fill="#475569">semi-implicit Euler integration with a drag term</text>
+  </g>
+  <!-- torus -->
+  <rect x="400" y="440" width="150" height="80" fill="#0f172a"/>
+  <path d="M410,480 L540,480" stroke="#22d3ee" stroke-width="2" marker-end="url(#a)"/>
+  <text x="475" y="470" text-anchor="middle" font-size="12" fill="#e2e8f0">leave right ...</text>
+  <text x="475" y="506" text-anchor="middle" font-size="12" fill="#e2e8f0">... enter left</text>
+  <text x="565" y="475" font-size="14" fill="#0f172a">The screen is a torus: wrap adds or subtracts the width,</text>
+  <text x="565" y="495" font-size="14" fill="#0f172a">so ships, rocks and bullets never leave the playfield.</text>
+</svg>

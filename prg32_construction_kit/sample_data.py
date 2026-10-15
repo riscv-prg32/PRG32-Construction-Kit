@@ -1,6 +1,51 @@
 from __future__ import annotations
 
+import json
+from pathlib import Path
+
 from .db import count, create_resource
+
+# Complete, playable Blocks games. Each file is a normal exported project
+# (examples/games/<slug>.json); tools/build_example_games.py regenerates them.
+GAMES_DIR = Path(__file__).resolve().parent.parent / "examples" / "games"
+CLASSIC_GAMES = ("pong", "breakout", "space_invaders", "asteroids", "snake")
+
+
+def classic_game_project(slug: str) -> dict:
+    """Load one complete example game as a project payload."""
+    data = json.loads((GAMES_DIR / f"{slug}.json").read_text(encoding="utf-8"))
+    project = data.get("project", data)
+    return {
+        "title": project["title"],
+        "description": project.get("description", ""),
+        "author": project.get("author", "PRG32 Kit"),
+        "tags": project.get("tags", []),
+        "blocks_json": project["blocks_json"],
+        "game_json": {},
+    }
+
+
+def classic_game_projects() -> list[dict]:
+    return [classic_game_project(slug) for slug in CLASSIC_GAMES if (GAMES_DIR / f"{slug}.json").exists()]
+
+
+def example_catalog() -> list[dict]:
+    """Every example offered by the dashboard: complete games first, then short sketches.
+
+    A sketch whose game now exists as a complete game is replaced by it.
+    """
+    catalog = []
+    for slug in CLASSIC_GAMES:
+        if (GAMES_DIR / f"{slug}.json").exists():
+            project = classic_game_project(slug)
+            catalog.append({"slug": slug, "title": project["title"], "description": project["description"],
+                            "kind": "game", "project": project})
+    complete = {item["slug"] for item in catalog}
+    for example, project in zip(UPSTREAM_EXAMPLES, upstream_example_projects()):
+        if example[0] not in complete:
+            catalog.append({"slug": example[0], "title": example[1], "description": example[2],
+                            "kind": "sketch", "project": project})
+    return catalog
 
 
 # These match the public examples in riscv-prg32/PRG32.  They are deliberately
@@ -192,8 +237,12 @@ def seed_if_empty(default_store_url: str = "http://127.0.0.1:5080") -> None:
                 "game_json": {},
             },
         )
-        for project in upstream_example_projects():
+        for project in classic_game_projects():
             create_resource("projects", project)
+        complete = set(CLASSIC_GAMES)
+        for example, project in zip(UPSTREAM_EXAMPLES, upstream_example_projects()):
+            if example[0] not in complete:
+                create_resource("projects", project)
     if count("sprites") == 0:
         pixels = []
         for y in range(16):

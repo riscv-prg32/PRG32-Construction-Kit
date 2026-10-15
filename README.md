@@ -7,10 +7,14 @@ PRG32-Construction-Kit is a Flask, Bootstrap, jQuery, JavaScript, and Blockly pr
 
 Students can:
 
-- create Scratch-inspired block programs;
+- create Scratch-inspired block programs with variables, lists, loops,
+  pictures, tiles, sound, scores and multiplayer;
+- start from five complete classic-inspired games (Pong, Breakout, Space
+  Invaders, Asteroids, Snake), each with a step-by-step tutorial deck;
 - save PRG32 block games as JSON;
 - edit sprites and imported images in a browser pixel editor;
-- play and debug games in an online JavaScript PRG32-like simulator;
+- play and debug games in an online JavaScript simulator that draws like the
+  PRG32 firmware (same font, RGB565 colours, 30 frames per second);
 - convert block programs to real PRG32-style C source;
 - author advanced C cartridges against the portable PRG32 ABI when a feature
   is beyond the Blocks toolbox;
@@ -49,7 +53,7 @@ The compose file mounts `./data` to `/data` inside the container.
 
 ## Optional PRG32 cartridge build toolchain
 
-The app always generates C source. To produce real `.prg32` files, install the PRG32 Python build module/tooling in the runtime environment and make this command work:
+The app always generates C source. To produce real `.prg32` files, install the PRG32 Python build module/tooling in the runtime environment (for example `pip install -e ../PRG32`, with ESP-IDF 5.4's `riscv32-esp-elf-gcc` on `PATH`) and make this command work:
 
 ```bash
 python3 -m prg32 cartridge build --help
@@ -75,12 +79,14 @@ prg32_construction_kit/        Flask app package, CRUD API, generator, packager,
 templates/                     Bootstrap/Jinja pages
 static/                        PWA assets, JavaScript, CSS, Blockly integration
 examples/                      Example Blocks JSON and sprite JSON
+examples/games/                Five complete Blocks games
+tools/                         Example game and tutorial builders, simulator CLI, runtime check
 docs/                          Setup, API, architecture, Docker, tutorials, how-to guides
 tests/                         pytest tests
-.github/workflows/ci.yml       GitHub Actions CI
+.github/workflows/tests.yml    GitHub Actions CI
 Dockerfile                     Container image
 docker-compose.yml             Local persistent deployment
-AGENT.md                       Formal development constraints
+AGENTS.md                      Formal development constraints
 LICENSE                        MIT License
 ```
 
@@ -93,6 +99,8 @@ Start with:
 - `docs/architecture.md`
 - `docs/api.md`
 - `docs/tutorials/01_first_project.md`
+- `docs/tutorials/games/README.md` (classic games and slide decks)
+- `docs/prg32_feature_coverage.md`
 
 ## License
 

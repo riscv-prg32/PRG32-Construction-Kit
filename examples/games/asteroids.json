@@ -1,0 +1,2283 @@
+{
+ "abi": "prg32-construction-kit-project-1.0",
+ "project": {
+  "title": "Asteroids",
+  "description": "Classic-inspired Asteroids: rotate with LEFT/RIGHT, thrust with UP, fire with A. Rocks split in two.",
+  "author": "PRG32 Kit",
+  "tags": [
+   "classic",
+   "asteroids",
+   "fixed-point",
+   "trigonometry"
+  ],
+  "blocks_json": {
+   "blocks": {
+    "languageVersion": 0,
+    "blocks": [
+     {
+      "type": "prg32_on_start",
+      "id": "asteroids-209",
+      "inputs": {
+       "DO": {
+        "block": {
+         "type": "prg32_comment",
+         "id": "asteroids-1",
+         "fields": {
+          "TEXT": "Asteroids: positions are in 1/16 pixel steps so the ship can drift smoothly."
+         },
+         "next": {
+          "block": {
+           "type": "prg32_list_create",
+           "id": "asteroids-2",
+           "fields": {
+            "LIST": "rock_x",
+            "SIZE": "12",
+            "VALUE": "0"
+           },
+           "next": {
+            "block": {
+             "type": "prg32_list_create",
+             "id": "asteroids-3",
+             "fields": {
+              "LIST": "rock_y",
+              "SIZE": "12",
+              "VALUE": "0"
+             },
+             "next": {
+              "block": {
+               "type": "prg32_list_create",
+               "id": "asteroids-4",
+               "fields": {
+                "LIST": "rock_vx",
+                "SIZE": "12",
+                "VALUE": "0"
+               },
+               "next": {
+                "block": {
+                 "type": "prg32_list_create",
+                 "id": "asteroids-5",
+                 "fields": {
+                  "LIST": "rock_vy",
+                  "SIZE": "12",
+                  "VALUE": "0"
+                 },
+                 "next": {
+                  "block": {
+                   "type": "prg32_list_create",
+                   "id": "asteroids-6",
+                   "fields": {
+                    "LIST": "shot_x",
+                    "SIZE": "4",
+                    "VALUE": "0"
+                   },
+                   "next": {
+                    "block": {
+                     "type": "prg32_list_create",
+                     "id": "asteroids-7",
+                     "fields": {
+                      "LIST": "shot_y",
+                      "SIZE": "4",
+                      "VALUE": "0"
+                     },
+                     "next": {
+                      "block": {
+                       "type": "prg32_list_create",
+                       "id": "asteroids-8",
+                       "fields": {
+                        "LIST": "shot_vx",
+                        "SIZE": "4",
+                        "VALUE": "0"
+                       },
+                       "next": {
+                        "block": {
+                         "type": "prg32_list_create",
+                         "id": "asteroids-9",
+                         "fields": {
+                          "LIST": "shot_vy",
+                          "SIZE": "4",
+                          "VALUE": "0"
+                         },
+                         "next": {
+                          "block": {
+                           "type": "prg32_comment",
+                           "id": "asteroids-10",
+                           "fields": {
+                            "TEXT": "Restart: score, lives, a new ship and the first wave; then show the title."
+                           },
+                           "next": {
+                            "block": {
+                             "type": "prg32_set_state",
+                             "id": "asteroids-11",
+                             "fields": {
+                              "VAR": "score",
+                              "VALUE": "0"
+                             },
+                             "next": {
+                              "block": {
+                               "type": "prg32_set_state",
+                               "id": "asteroids-12",
+                               "fields": {
+                                "VAR": "lives",
+                                "VALUE": "3"
+                               },
+                               "next": {
+                                "block": {
+                                 "type": "prg32_set_state",
+                                 "id": "asteroids-13",
+                                 "fields": {
+                                  "VAR": "wave",
+                                  "VALUE": "1"
+                                 },
+                                 "next": {
+                                  "block": {
+                                   "type": "prg32_list_create",
+                                   "id": "asteroids-14",
+                                   "fields": {
+                                    "LIST": "shot_life",
+                                    "SIZE": "4",
+                                    "VALUE": "0"
+                                   },
+                                   "next": {
+                                    "block": {
+                                     "type": "prg32_set_state",
+                                     "id": "asteroids-15",
+                                     "fields": {
+                                      "VAR": "ship_x",
+                                      "VALUE": "2560"
+                                     },
+                                     "next": {
+                                      "block": {
+                                       "type": "prg32_set_state",
+                                       "id": "asteroids-16",
+                                       "fields": {
+                                        "VAR": "ship_y",
+                                        "VALUE": "1600"
+                                       },
+                                       "next": {
+                                        "block": {
+                                         "type": "prg32_set_state",
+                                         "id": "asteroids-17",
+                                         "fields": {
+                                          "VAR": "ship_vx",
+                                          "VALUE": "0"
+                                         },
+                                         "next": {
+                                          "block": {
+                                           "type": "prg32_set_state",
+                                           "id": "asteroids-18",
+                                           "fields": {
+                                            "VAR": "ship_vy",
+                                            "VALUE": "0"
+                                           },
+                                           "next": {
+                                            "block": {
+                                             "type": "prg32_set_state",
+                                             "id": "asteroids-19",
+                                             "fields": {
+                                              "VAR": "angle",
+                                              "VALUE": "0"
+                                             },
+                                             "next": {
+                                              "block": {
+                                               "type": "prg32_set_state",
+                                               "id": "asteroids-20",
+                                               "fields": {
+                                                "VAR": "safe_timer",
+                                                "VALUE": "60"
+                                               },
+                                               "next": {
+                                                "block": {
+                                                 "type": "prg32_list_create",
+                                                 "id": "asteroids-21",
+                                                 "fields": {
+                                                  "LIST": "rock_size",
+                                                  "SIZE": "12",
+                                                  "VALUE": "0"
+                                                 },
+                                                 "next": {
+                                                  "block": {
+                                                   "type": "prg32_repeat",
+                                                   "id": "asteroids-30",
+                                                   "fields": {
+                                                    "VAR": "i",
+                                                    "FROM": "0",
+                                                    "TO": "min(2 + wave, 7)"
+                                                   },
+                                                   "inputs": {
+                                                    "DO": {
+                                                     "block": {
+                                                      "type": "prg32_list_set",
+                                                      "id": "asteroids-22",
+                                                      "fields": {
+                                                       "LIST": "rock_size",
+                                                       "INDEX": "i",
+                                                       "VALUE": "3"
+                                                      },
+                                                      "next": {
+                                                       "block": {
+                                                        "type": "prg32_comment",
+                                                        "id": "asteroids-23",
+                                                        "fields": {
+                                                         "TEXT": "Big rocks start near the left or right edge with a random drift."
+                                                        },
+                                                        "next": {
+                                                         "block": {
+                                                          "type": "prg32_list_set",
+                                                          "id": "asteroids-24",
+                                                          "fields": {
+                                                           "LIST": "rock_x",
+                                                           "INDEX": "i",
+                                                           "VALUE": "(random(0, 1) * 260 + random(0, 40)) * 16"
+                                                          },
+                                                          "next": {
+                                                           "block": {
+                                                            "type": "prg32_list_set",
+                                                            "id": "asteroids-25",
+                                                            "fields": {
+                                                             "LIST": "rock_y",
+                                                             "INDEX": "i",
+                                                             "VALUE": "random(20, 180) * 16"
+                                                            },
+                                                            "next": {
+                                                             "block": {
+                                                              "type": "prg32_list_set",
+                                                              "id": "asteroids-26",
+                                                              "fields": {
+                                                               "LIST": "rock_vx",
+                                                               "INDEX": "i",
+                                                               "VALUE": "random(-12, 12)"
+                                                              },
+                                                              "next": {
+                                                               "block": {
+                                                                "type": "prg32_list_set",
+                                                                "id": "asteroids-27",
+                                                                "fields": {
+                                                                 "LIST": "rock_vy",
+                                                                 "INDEX": "i",
+                                                                 "VALUE": "random(-12, 12)"
+                                                                },
+                                                                "next": {
+                                                                 "block": {
+                                                                  "type": "prg32_if",
+                                                                  "id": "asteroids-29",
+                                                                  "fields": {
+                                                                   "COND": "rock_vx[i] == 0"
+                                                                  },
+                                                                  "inputs": {
+                                                                   "DO": {
+                                                                    "block": {
+                                                                     "type": "prg32_list_set",
+                                                                     "id": "asteroids-28",
+                                                                     "fields": {
+                                                                      "LIST": "rock_vx",
+                                                                      "INDEX": "i",
+                                                                      "VALUE": "7"
+                                                                     }
+                                                                    }
+                                                                   }
+                                                                  }
+                                                                 }
+                                                                }
+                                                               }
+                                                              }
+                                                             }
+                                                            }
+                                                           }
+                                                          }
+                                                         }
+                                                        }
+                                                       }
+                                                      }
+                                                     }
+                                                    }
+                                                   },
+                                                   "next": {
+                                                    "block": {
+                                                     "type": "prg32_set_state",
+                                                     "id": "asteroids-31",
+                                                     "fields": {
+                                                      "VAR": "mode",
+                                                      "VALUE": "1"
+                                                     },
+                                                     "next": {
+                                                      "block": {
+                                                       "type": "prg32_set_state",
+                                                       "id": "asteroids-32",
+                                                       "fields": {
+                                                        "VAR": "mode",
+                                                        "VALUE": "0"
+                                                       }
+                                                      }
+                                                     }
+                                                    }
+                                                   }
+                                                  }
+                                                 }
+                                                }
+                                               }
+                                              }
+                                             }
+                                            }
+                                           }
+                                          }
+                                         }
+                                        }
+                                       }
+                                      }
+                                     }
+                                    }
+                                   }
+                                  }
+                                 }
+                                }
+                               }
+                              }
+                             }
+                            }
+                           }
+                          }
+                         }
+                        }
+                       }
+                      }
+                     }
+                    }
+                   }
+                  }
+                 }
+                }
+               }
+              }
+             }
+            }
+           }
+          }
+         }
+        }
+       }
+      },
+      "x": 20,
+      "y": 20
+     },
+     {
+      "type": "prg32_update",
+      "id": "asteroids-210",
+      "inputs": {
+       "DO": {
+        "block": {
+         "type": "prg32_comment",
+         "id": "asteroids-51",
+         "fields": {
+          "TEXT": "Mode 0 = title, 1 = playing, 2 = game over."
+         },
+         "next": {
+          "block": {
+           "type": "prg32_if",
+           "id": "asteroids-74",
+           "fields": {
+            "COND": "mode != 1"
+           },
+           "inputs": {
+            "DO": {
+             "block": {
+              "type": "prg32_if_button_once",
+              "id": "asteroids-73",
+              "fields": {
+               "BUTTON": "START"
+              },
+              "inputs": {
+               "DO": {
+                "block": {
+                 "type": "prg32_set_state",
+                 "id": "asteroids-52",
+                 "fields": {
+                  "VAR": "score",
+                  "VALUE": "0"
+                 },
+                 "next": {
+                  "block": {
+                   "type": "prg32_set_state",
+                   "id": "asteroids-53",
+                   "fields": {
+                    "VAR": "lives",
+                    "VALUE": "3"
+                   },
+                   "next": {
+                    "block": {
+                     "type": "prg32_set_state",
+                     "id": "asteroids-54",
+                     "fields": {
+                      "VAR": "wave",
+                      "VALUE": "1"
+                     },
+                     "next": {
+                      "block": {
+                       "type": "prg32_list_create",
+                       "id": "asteroids-55",
+                       "fields": {
+                        "LIST": "shot_life",
+                        "SIZE": "4",
+                        "VALUE": "0"
+                       },
+                       "next": {
+                        "block": {
+                         "type": "prg32_set_state",
+                         "id": "asteroids-56",
+                         "fields": {
+                          "VAR": "ship_x",
+                          "VALUE": "2560"
+                         },
+                         "next": {
+                          "block": {
+                           "type": "prg32_set_state",
+                           "id": "asteroids-57",
+                           "fields": {
+                            "VAR": "ship_y",
+                            "VALUE": "1600"
+                           },
+                           "next": {
+                            "block": {
+                             "type": "prg32_set_state",
+                             "id": "asteroids-58",
+                             "fields": {
+                              "VAR": "ship_vx",
+                              "VALUE": "0"
+                             },
+                             "next": {
+                              "block": {
+                               "type": "prg32_set_state",
+                               "id": "asteroids-59",
+                               "fields": {
+                                "VAR": "ship_vy",
+                                "VALUE": "0"
+                               },
+                               "next": {
+                                "block": {
+                                 "type": "prg32_set_state",
+                                 "id": "asteroids-60",
+                                 "fields": {
+                                  "VAR": "angle",
+                                  "VALUE": "0"
+                                 },
+                                 "next": {
+                                  "block": {
+                                   "type": "prg32_set_state",
+                                   "id": "asteroids-61",
+                                   "fields": {
+                                    "VAR": "safe_timer",
+                                    "VALUE": "60"
+                                   },
+                                   "next": {
+                                    "block": {
+                                     "type": "prg32_list_create",
+                                     "id": "asteroids-62",
+                                     "fields": {
+                                      "LIST": "rock_size",
+                                      "SIZE": "12",
+                                      "VALUE": "0"
+                                     },
+                                     "next": {
+                                      "block": {
+                                       "type": "prg32_repeat",
+                                       "id": "asteroids-71",
+                                       "fields": {
+                                        "VAR": "i",
+                                        "FROM": "0",
+                                        "TO": "min(2 + wave, 7)"
+                                       },
+                                       "inputs": {
+                                        "DO": {
+                                         "block": {
+                                          "type": "prg32_list_set",
+                                          "id": "asteroids-63",
+                                          "fields": {
+                                           "LIST": "rock_size",
+                                           "INDEX": "i",
+                                           "VALUE": "3"
+                                          },
+                                          "next": {
+                                           "block": {
+                                            "type": "prg32_comment",
+                                            "id": "asteroids-64",
+                                            "fields": {
+                                             "TEXT": "Big rocks start near the left or right edge with a random drift."
+                                            },
+                                            "next": {
+                                             "block": {
+                                              "type": "prg32_list_set",
+                                              "id": "asteroids-65",
+                                              "fields": {
+                                               "LIST": "rock_x",
+                                               "INDEX": "i",
+                                               "VALUE": "(random(0, 1) * 260 + random(0, 40)) * 16"
+                                              },
+                                              "next": {
+                                               "block": {
+                                                "type": "prg32_list_set",
+                                                "id": "asteroids-66",
+                                                "fields": {
+                                                 "LIST": "rock_y",
+                                                 "INDEX": "i",
+                                                 "VALUE": "random(20, 180) * 16"
+                                                },
+                                                "next": {
+                                                 "block": {
+                                                  "type": "prg32_list_set",
+                                                  "id": "asteroids-67",
+                                                  "fields": {
+                                                   "LIST": "rock_vx",
+                                                   "INDEX": "i",
+                                                   "VALUE": "random(-12, 12)"
+                                                  },
+                                                  "next": {
+                                                   "block": {
+                                                    "type": "prg32_list_set",
+                                                    "id": "asteroids-68",
+                                                    "fields": {
+                                                     "LIST": "rock_vy",
+                                                     "INDEX": "i",
+                                                     "VALUE": "random(-12, 12)"
+                                                    },
+                                                    "next": {
+                                                     "block": {
+                                                      "type": "prg32_if",
+                                                      "id": "asteroids-70",
+                                                      "fields": {
+                                                       "COND": "rock_vx[i] == 0"
+                                                      },
+                                                      "inputs": {
+                                                       "DO": {
+                                                        "block": {
+                                                         "type": "prg32_list_set",
+                                                         "id": "asteroids-69",
+                                                         "fields": {
+                                                          "LIST": "rock_vx",
+                                                          "INDEX": "i",
+                                                          "VALUE": "7"
+                                                         }
+                                                        }
+                                                       }
+                                                      }
+                                                     }
+                                                    }
+                                                   }
+                                                  }
+                                                 }
+                                                }
+                                               }
+                                              }
+                                             }
+                                            }
+                                           }
+                                          }
+                                         }
+                                        }
+                                       },
+                                       "next": {
+                                        "block": {
+                                         "type": "prg32_set_state",
+                                         "id": "asteroids-72",
+                                         "fields": {
+                                          "VAR": "mode",
+                                          "VALUE": "1"
+                                         }
+                                        }
+                                       }
+                                      }
+                                     }
+                                    }
+                                   }
+                                  }
+                                 }
+                                }
+                               }
+                              }
+                             }
+                            }
+                           }
+                          }
+                         }
+                        }
+                       }
+                      }
+                     }
+                    }
+                   }
+                  }
+                 }
+                }
+               }
+              }
+             }
+            }
+           },
+           "next": {
+            "block": {
+             "type": "prg32_comment",
+             "id": "asteroids-75",
+             "fields": {
+              "TEXT": "Playing: ship, bullets, rocks and collisions."
+             },
+             "next": {
+              "block": {
+               "type": "prg32_if",
+               "id": "asteroids-177",
+               "fields": {
+                "COND": "mode == 1"
+               },
+               "inputs": {
+                "DO": {
+                 "block": {
+                  "type": "prg32_comment",
+                  "id": "asteroids-76",
+                  "fields": {
+                   "TEXT": "Rotate with LEFT and RIGHT: the angle is in degrees, 0 points up."
+                  },
+                  "next": {
+                   "block": {
+                    "type": "prg32_if_button",
+                    "id": "asteroids-78",
+                    "fields": {
+                     "BUTTON": "LEFT"
+                    },
+                    "inputs": {
+                     "DO": {
+                      "block": {
+                       "type": "prg32_change_state",
+                       "id": "asteroids-77",
+                       "fields": {
+                        "VAR": "angle",
+                        "DELTA": "-8"
+                       }
+                      }
+                     }
+                    },
+                    "next": {
+                     "block": {
+                      "type": "prg32_if_button",
+                      "id": "asteroids-80",
+                      "fields": {
+                       "BUTTON": "RIGHT"
+                      },
+                      "inputs": {
+                       "DO": {
+                        "block": {
+                         "type": "prg32_change_state",
+                         "id": "asteroids-79",
+                         "fields": {
+                          "VAR": "angle",
+                          "DELTA": "8"
+                         }
+                        }
+                       }
+                      },
+                      "next": {
+                       "block": {
+                        "type": "prg32_wrap_state",
+                        "id": "asteroids-81",
+                        "fields": {
+                         "VAR": "angle",
+                         "LOW": "0",
+                         "HIGH": "359"
+                        },
+                        "next": {
+                         "block": {
+                          "type": "prg32_comment",
+                          "id": "asteroids-82",
+                          "fields": {
+                           "TEXT": "Thrust: sin and cos give the direction, 256 means 1.0."
+                          },
+                          "next": {
+                           "block": {
+                            "type": "prg32_if_button",
+                            "id": "asteroids-85",
+                            "fields": {
+                             "BUTTON": "UP"
+                            },
+                            "inputs": {
+                             "DO": {
+                              "block": {
+                               "type": "prg32_change_state",
+                               "id": "asteroids-83",
+                               "fields": {
+                                "VAR": "ship_vx",
+                                "DELTA": "sin(angle) / 48"
+                               },
+                               "next": {
+                                "block": {
+                                 "type": "prg32_change_state",
+                                 "id": "asteroids-84",
+                                 "fields": {
+                                  "VAR": "ship_vy",
+                                  "DELTA": "-cos(angle) / 48"
+                                 }
+                                }
+                               }
+                              }
+                             }
+                            },
+                            "next": {
+                             "block": {
+                              "type": "prg32_comment",
+                              "id": "asteroids-86",
+                              "fields": {
+                               "TEXT": "Speed limit and friction, then move and wrap around the screen."
+                              },
+                              "next": {
+                               "block": {
+                                "type": "prg32_clamp_state",
+                                "id": "asteroids-87",
+                                "fields": {
+                                 "VAR": "ship_vx",
+                                 "LOW": "-64",
+                                 "HIGH": "64"
+                                },
+                                "next": {
+                                 "block": {
+                                  "type": "prg32_clamp_state",
+                                  "id": "asteroids-88",
+                                  "fields": {
+                                   "VAR": "ship_vy",
+                                   "LOW": "-64",
+                                   "HIGH": "64"
+                                  },
+                                  "next": {
+                                   "block": {
+                                    "type": "prg32_change_state",
+                                    "id": "asteroids-89",
+                                    "fields": {
+                                     "VAR": "ship_vx",
+                                     "DELTA": "-ship_vx / 40"
+                                    },
+                                    "next": {
+                                     "block": {
+                                      "type": "prg32_change_state",
+                                      "id": "asteroids-90",
+                                      "fields": {
+                                       "VAR": "ship_vy",
+                                       "DELTA": "-ship_vy / 40"
+                                      },
+                                      "next": {
+                                       "block": {
+                                        "type": "prg32_change_state",
+                                        "id": "asteroids-91",
+                                        "fields": {
+                                         "VAR": "ship_x",
+                                         "DELTA": "ship_vx"
+                                        },
+                                        "next": {
+                                         "block": {
+                                          "type": "prg32_change_state",
+                                          "id": "asteroids-92",
+                                          "fields": {
+                                           "VAR": "ship_y",
+                                           "DELTA": "ship_vy"
+                                          },
+                                          "next": {
+                                           "block": {
+                                            "type": "prg32_wrap_state",
+                                            "id": "asteroids-93",
+                                            "fields": {
+                                             "VAR": "ship_x",
+                                             "LOW": "0",
+                                             "HIGH": "5119"
+                                            },
+                                            "next": {
+                                             "block": {
+                                              "type": "prg32_wrap_state",
+                                              "id": "asteroids-94",
+                                              "fields": {
+                                               "VAR": "ship_y",
+                                               "LOW": "0",
+                                               "HIGH": "3199"
+                                              },
+                                              "next": {
+                                               "block": {
+                                                "type": "prg32_if",
+                                                "id": "asteroids-96",
+                                                "fields": {
+                                                 "COND": "safe_timer > 0"
+                                                },
+                                                "inputs": {
+                                                 "DO": {
+                                                  "block": {
+                                                   "type": "prg32_change_state",
+                                                   "id": "asteroids-95",
+                                                   "fields": {
+                                                    "VAR": "safe_timer",
+                                                    "DELTA": "-1"
+                                                   }
+                                                  }
+                                                 }
+                                                },
+                                                "next": {
+                                                 "block": {
+                                                  "type": "prg32_comment",
+                                                  "id": "asteroids-97",
+                                                  "fields": {
+                                                   "TEXT": "Fire: find a free bullet slot (up to 4 bullets)."
+                                                  },
+                                                  "next": {
+                                                   "block": {
+                                                    "type": "prg32_if_button_once",
+                                                    "id": "asteroids-109",
+                                                    "fields": {
+                                                     "BUTTON": "A"
+                                                    },
+                                                    "inputs": {
+                                                     "DO": {
+                                                      "block": {
+                                                       "type": "prg32_set_state",
+                                                       "id": "asteroids-98",
+                                                       "fields": {
+                                                        "VAR": "free",
+                                                        "VALUE": "-1"
+                                                       },
+                                                       "next": {
+                                                        "block": {
+                                                         "type": "prg32_repeat",
+                                                         "id": "asteroids-101",
+                                                         "fields": {
+                                                          "VAR": "j",
+                                                          "FROM": "0",
+                                                          "TO": "3"
+                                                         },
+                                                         "inputs": {
+                                                          "DO": {
+                                                           "block": {
+                                                            "type": "prg32_if",
+                                                            "id": "asteroids-100",
+                                                            "fields": {
+                                                             "COND": "free < 0 && shot_life[j] == 0"
+                                                            },
+                                                            "inputs": {
+                                                             "DO": {
+                                                              "block": {
+                                                               "type": "prg32_set_state",
+                                                               "id": "asteroids-99",
+                                                               "fields": {
+                                                                "VAR": "free",
+                                                                "VALUE": "j"
+                                                               }
+                                                              }
+                                                             }
+                                                            }
+                                                           }
+                                                          }
+                                                         },
+                                                         "next": {
+                                                          "block": {
+                                                           "type": "prg32_if",
+                                                           "id": "asteroids-108",
+                                                           "fields": {
+                                                            "COND": "free >= 0"
+                                                           },
+                                                           "inputs": {
+                                                            "DO": {
+                                                             "block": {
+                                                              "type": "prg32_list_set",
+                                                              "id": "asteroids-102",
+                                                              "fields": {
+                                                               "LIST": "shot_life",
+                                                               "INDEX": "free",
+                                                               "VALUE": "36"
+                                                              },
+                                                              "next": {
+                                                               "block": {
+                                                                "type": "prg32_list_set",
+                                                                "id": "asteroids-103",
+                                                                "fields": {
+                                                                 "LIST": "shot_x",
+                                                                 "INDEX": "free",
+                                                                 "VALUE": "ship_x + sin(angle) * 8 * 16 / 256"
+                                                                },
+                                                                "next": {
+                                                                 "block": {
+                                                                  "type": "prg32_list_set",
+                                                                  "id": "asteroids-104",
+                                                                  "fields": {
+                                                                   "LIST": "shot_y",
+                                                                   "INDEX": "free",
+                                                                   "VALUE": "ship_y - cos(angle) * 8 * 16 / 256"
+                                                                  },
+                                                                  "next": {
+                                                                   "block": {
+                                                                    "type": "prg32_list_set",
+                                                                    "id": "asteroids-105",
+                                                                    "fields": {
+                                                                     "LIST": "shot_vx",
+                                                                     "INDEX": "free",
+                                                                     "VALUE": "ship_vx + sin(angle) * 3 / 8"
+                                                                    },
+                                                                    "next": {
+                                                                     "block": {
+                                                                      "type": "prg32_list_set",
+                                                                      "id": "asteroids-106",
+                                                                      "fields": {
+                                                                       "LIST": "shot_vy",
+                                                                       "INDEX": "free",
+                                                                       "VALUE": "ship_vy - cos(angle) * 3 / 8"
+                                                                      },
+                                                                      "next": {
+                                                                       "block": {
+                                                                        "type": "prg32_play_beep",
+                                                                        "id": "asteroids-107",
+                                                                        "fields": {
+                                                                         "FREQ": "1400",
+                                                                         "MS": "20"
+                                                                        }
+                                                                       }
+                                                                      }
+                                                                     }
+                                                                    }
+                                                                   }
+                                                                  }
+                                                                 }
+                                                                }
+                                                               }
+                                                              }
+                                                             }
+                                                            }
+                                                           }
+                                                          }
+                                                         }
+                                                        }
+                                                       }
+                                                      }
+                                                     }
+                                                    },
+                                                    "next": {
+                                                     "block": {
+                                                      "type": "prg32_comment",
+                                                      "id": "asteroids-110",
+                                                      "fields": {
+                                                       "TEXT": "Bullets fly for 36 frames and wrap around the screen."
+                                                      },
+                                                      "next": {
+                                                       "block": {
+                                                        "type": "prg32_repeat",
+                                                        "id": "asteroids-123",
+                                                        "fields": {
+                                                         "VAR": "s",
+                                                         "FROM": "0",
+                                                         "TO": "3"
+                                                        },
+                                                        "inputs": {
+                                                         "DO": {
+                                                          "block": {
+                                                           "type": "prg32_if",
+                                                           "id": "asteroids-122",
+                                                           "fields": {
+                                                            "COND": "shot_life[s] > 0"
+                                                           },
+                                                           "inputs": {
+                                                            "DO": {
+                                                             "block": {
+                                                              "type": "prg32_list_change",
+                                                              "id": "asteroids-111",
+                                                              "fields": {
+                                                               "LIST": "shot_life",
+                                                               "INDEX": "s",
+                                                               "DELTA": "-1"
+                                                              },
+                                                              "next": {
+                                                               "block": {
+                                                                "type": "prg32_list_change",
+                                                                "id": "asteroids-112",
+                                                                "fields": {
+                                                                 "LIST": "shot_x",
+                                                                 "INDEX": "s",
+                                                                 "DELTA": "shot_vx[s]"
+                                                                },
+                                                                "next": {
+                                                                 "block": {
+                                                                  "type": "prg32_list_change",
+                                                                  "id": "asteroids-113",
+                                                                  "fields": {
+                                                                   "LIST": "shot_y",
+                                                                   "INDEX": "s",
+                                                                   "DELTA": "shot_vy[s]"
+                                                                  },
+                                                                  "next": {
+                                                                   "block": {
+                                                                    "type": "prg32_if",
+                                                                    "id": "asteroids-115",
+                                                                    "fields": {
+                                                                     "COND": "shot_x[s] < 0"
+                                                                    },
+                                                                    "inputs": {
+                                                                     "DO": {
+                                                                      "block": {
+                                                                       "type": "prg32_list_change",
+                                                                       "id": "asteroids-114",
+                                                                       "fields": {
+                                                                        "LIST": "shot_x",
+                                                                        "INDEX": "s",
+                                                                        "DELTA": "5120"
+                                                                       }
+                                                                      }
+                                                                     }
+                                                                    },
+                                                                    "next": {
+                                                                     "block": {
+                                                                      "type": "prg32_if",
+                                                                      "id": "asteroids-117",
+                                                                      "fields": {
+                                                                       "COND": "shot_x[s] >= 320 * 16"
+                                                                      },
+                                                                      "inputs": {
+                                                                       "DO": {
+                                                                        "block": {
+                                                                         "type": "prg32_list_change",
+                                                                         "id": "asteroids-116",
+                                                                         "fields": {
+                                                                          "LIST": "shot_x",
+                                                                          "INDEX": "s",
+                                                                          "DELTA": "-5120"
+                                                                         }
+                                                                        }
+                                                                       }
+                                                                      },
+                                                                      "next": {
+                                                                       "block": {
+                                                                        "type": "prg32_if",
+                                                                        "id": "asteroids-119",
+                                                                        "fields": {
+                                                                         "COND": "shot_y[s] < 0"
+                                                                        },
+                                                                        "inputs": {
+                                                                         "DO": {
+                                                                          "block": {
+                                                                           "type": "prg32_list_change",
+                                                                           "id": "asteroids-118",
+                                                                           "fields": {
+                                                                            "LIST": "shot_y",
+                                                                            "INDEX": "s",
+                                                                            "DELTA": "3200"
+                                                                           }
+                                                                          }
+                                                                         }
+                                                                        },
+                                                                        "next": {
+                                                                         "block": {
+                                                                          "type": "prg32_if",
+                                                                          "id": "asteroids-121",
+                                                                          "fields": {
+                                                                           "COND": "shot_y[s] >= 200 * 16"
+                                                                          },
+                                                                          "inputs": {
+                                                                           "DO": {
+                                                                            "block": {
+                                                                             "type": "prg32_list_change",
+                                                                             "id": "asteroids-120",
+                                                                             "fields": {
+                                                                              "LIST": "shot_y",
+                                                                              "INDEX": "s",
+                                                                              "DELTA": "-3200"
+                                                                             }
+                                                                            }
+                                                                           }
+                                                                          }
+                                                                         }
+                                                                        }
+                                                                       }
+                                                                      }
+                                                                     }
+                                                                    }
+                                                                   }
+                                                                  }
+                                                                 }
+                                                                }
+                                                               }
+                                                              }
+                                                             }
+                                                            }
+                                                           }
+                                                          }
+                                                         }
+                                                        },
+                                                        "next": {
+                                                         "block": {
+                                                          "type": "prg32_comment",
+                                                          "id": "asteroids-124",
+                                                          "fields": {
+                                                           "TEXT": "Rocks drift and wrap; count how many are left."
+                                                          },
+                                                          "next": {
+                                                           "block": {
+                                                            "type": "prg32_set_state",
+                                                            "id": "asteroids-125",
+                                                            "fields": {
+                                                             "VAR": "rocks_left",
+                                                             "VALUE": "0"
+                                                            },
+                                                            "next": {
+                                                             "block": {
+                                                              "type": "prg32_repeat",
+                                                              "id": "asteroids-162",
+                                                              "fields": {
+                                                               "VAR": "r",
+                                                               "FROM": "0",
+                                                               "TO": "11"
+                                                              },
+                                                              "inputs": {
+                                                               "DO": {
+                                                                "block": {
+                                                                 "type": "prg32_if",
+                                                                 "id": "asteroids-161",
+                                                                 "fields": {
+                                                                  "COND": "rock_size[r] > 0"
+                                                                 },
+                                                                 "inputs": {
+                                                                  "DO": {
+                                                                   "block": {
+                                                                    "type": "prg32_change_state",
+                                                                    "id": "asteroids-126",
+                                                                    "fields": {
+                                                                     "VAR": "rocks_left",
+                                                                     "DELTA": "1"
+                                                                    },
+                                                                    "next": {
+                                                                     "block": {
+                                                                      "type": "prg32_list_change",
+                                                                      "id": "asteroids-127",
+                                                                      "fields": {
+                                                                       "LIST": "rock_x",
+                                                                       "INDEX": "r",
+                                                                       "DELTA": "rock_vx[r]"
+                                                                      },
+                                                                      "next": {
+                                                                       "block": {
+                                                                        "type": "prg32_list_change",
+                                                                        "id": "asteroids-128",
+                                                                        "fields": {
+                                                                         "LIST": "rock_y",
+                                                                         "INDEX": "r",
+                                                                         "DELTA": "rock_vy[r]"
+                                                                        },
+                                                                        "next": {
+                                                                         "block": {
+                                                                          "type": "prg32_if",
+                                                                          "id": "asteroids-130",
+                                                                          "fields": {
+                                                                           "COND": "rock_x[r] < 0"
+                                                                          },
+                                                                          "inputs": {
+                                                                           "DO": {
+                                                                            "block": {
+                                                                             "type": "prg32_list_change",
+                                                                             "id": "asteroids-129",
+                                                                             "fields": {
+                                                                              "LIST": "rock_x",
+                                                                              "INDEX": "r",
+                                                                              "DELTA": "5120"
+                                                                             }
+                                                                            }
+                                                                           }
+                                                                          },
+                                                                          "next": {
+                                                                           "block": {
+                                                                            "type": "prg32_if",
+                                                                            "id": "asteroids-132",
+                                                                            "fields": {
+                                                                             "COND": "rock_x[r] >= 320 * 16"
+                                                                            },
+                                                                            "inputs": {
+                                                                             "DO": {
+                                                                              "block": {
+                                                                               "type": "prg32_list_change",
+                                                                               "id": "asteroids-131",
+                                                                               "fields": {
+                                                                                "LIST": "rock_x",
+                                                                                "INDEX": "r",
+                                                                                "DELTA": "-5120"
+                                                                               }
+                                                                              }
+                                                                             }
+                                                                            },
+                                                                            "next": {
+                                                                             "block": {
+                                                                              "type": "prg32_if",
+                                                                              "id": "asteroids-134",
+                                                                              "fields": {
+                                                                               "COND": "rock_y[r] < 0"
+                                                                              },
+                                                                              "inputs": {
+                                                                               "DO": {
+                                                                                "block": {
+                                                                                 "type": "prg32_list_change",
+                                                                                 "id": "asteroids-133",
+                                                                                 "fields": {
+                                                                                  "LIST": "rock_y",
+                                                                                  "INDEX": "r",
+                                                                                  "DELTA": "3200"
+                                                                                 }
+                                                                                }
+                                                                               }
+                                                                              },
+                                                                              "next": {
+                                                                               "block": {
+                                                                                "type": "prg32_if",
+                                                                                "id": "asteroids-136",
+                                                                                "fields": {
+                                                                                 "COND": "rock_y[r] >= 200 * 16"
+                                                                                },
+                                                                                "inputs": {
+                                                                                 "DO": {
+                                                                                  "block": {
+                                                                                   "type": "prg32_list_change",
+                                                                                   "id": "asteroids-135",
+                                                                                   "fields": {
+                                                                                    "LIST": "rock_y",
+                                                                                    "INDEX": "r",
+                                                                                    "DELTA": "-3200"
+                                                                                   }
+                                                                                  }
+                                                                                 }
+                                                                                },
+                                                                                "next": {
+                                                                                 "block": {
+                                                                                  "type": "prg32_set_state",
+                                                                                  "id": "asteroids-137",
+                                                                                  "fields": {
+                                                                                   "VAR": "radius",
+                                                                                   "VALUE": "rock_size[r] * rock_size[r] + 4"
+                                                                                  },
+                                                                                  "next": {
+                                                                                   "block": {
+                                                                                    "type": "prg32_comment",
+                                                                                    "id": "asteroids-138",
+                                                                                    "fields": {
+                                                                                     "TEXT": "Bullet hits: compare squared distances, no square root needed."
+                                                                                    },
+                                                                                    "next": {
+                                                                                     "block": {
+                                                                                      "type": "prg32_repeat",
+                                                                                      "id": "asteroids-144",
+                                                                                      "fields": {
+                                                                                       "VAR": "s",
+                                                                                       "FROM": "0",
+                                                                                       "TO": "3"
+                                                                                      },
+                                                                                      "inputs": {
+                                                                                       "DO": {
+                                                                                        "block": {
+                                                                                         "type": "prg32_if",
+                                                                                         "id": "asteroids-143",
+                                                                                         "fields": {
+                                                                                          "COND": "shot_life[s] > 0 && rock_size[r] > 0"
+                                                                                         },
+                                                                                         "inputs": {
+                                                                                          "DO": {
+                                                                                           "block": {
+                                                                                            "type": "prg32_set_state",
+                                                                                            "id": "asteroids-139",
+                                                                                            "fields": {
+                                                                                             "VAR": "dx",
+                                                                                             "VALUE": "(shot_x[s] - rock_x[r]) / 16"
+                                                                                            },
+                                                                                            "next": {
+                                                                                             "block": {
+                                                                                              "type": "prg32_set_state",
+                                                                                              "id": "asteroids-140",
+                                                                                              "fields": {
+                                                                                               "VAR": "dy",
+                                                                                               "VALUE": "(shot_y[s] - rock_y[r]) / 16"
+                                                                                              },
+                                                                                              "next": {
+                                                                                               "block": {
+                                                                                                "type": "prg32_if",
+                                                                                                "id": "asteroids-142",
+                                                                                                "fields": {
+                                                                                                 "COND": "dx * dx + dy * dy <= radius * radius"
+                                                                                                },
+                                                                                                "inputs": {
+                                                                                                 "DO": {
+                                                                                                  "block": {
+                                                                                                   "type": "prg32_list_set",
+                                                                                                   "id": "asteroids-141",
+                                                                                                   "fields": {
+                                                                                                    "LIST": "shot_life",
+                                                                                                    "INDEX": "s",
+                                                                                                    "VALUE": "0"
+                                                                                                   },
+                                                                                                   "next": {
+                                                                                                    "block": {
+                                                                                                     "type": "prg32_comment",
+                                                                                                     "id": "asteroids-33",
+                                                                                                     "fields": {
+                                                                                                      "TEXT": "Split: smaller rocks give more points, then the rock becomes one size smaller."
+                                                                                                     },
+                                                                                                     "next": {
+                                                                                                      "block": {
+                                                                                                       "type": "prg32_set_state",
+                                                                                                       "id": "asteroids-34",
+                                                                                                       "fields": {
+                                                                                                        "VAR": "score",
+                                                                                                        "VALUE": "score + 20 * (4 - rock_size[r]) * (4 - rock_size[r])"
+                                                                                                       },
+                                                                                                       "next": {
+                                                                                                        "block": {
+                                                                                                         "type": "prg32_list_change",
+                                                                                                         "id": "asteroids-35",
+                                                                                                         "fields": {
+                                                                                                          "LIST": "rock_size",
+                                                                                                          "INDEX": "r",
+                                                                                                          "DELTA": "-1"
+                                                                                                         },
+                                                                                                         "next": {
+                                                                                                          "block": {
+                                                                                                           "type": "prg32_audio_note",
+                                                                                                           "id": "asteroids-36",
+                                                                                                           "fields": {
+                                                                                                            "NOTE": "50 + rock_size[r] * 6",
+                                                                                                            "CHANNEL": "1",
+                                                                                                            "MS": "120"
+                                                                                                           },
+                                                                                                           "next": {
+                                                                                                            "block": {
+                                                                                                             "type": "prg32_if",
+                                                                                                             "id": "asteroids-50",
+                                                                                                             "fields": {
+                                                                                                              "COND": "rock_size[r] > 0"
+                                                                                                             },
+                                                                                                             "inputs": {
+                                                                                                              "DO": {
+                                                                                                               "block": {
+                                                                                                                "type": "prg32_comment",
+                                                                                                                "id": "asteroids-37",
+                                                                                                                "fields": {
+                                                                                                                 "TEXT": "Find a free slot for the second half of the rock."
+                                                                                                                },
+                                                                                                                "next": {
+                                                                                                                 "block": {
+                                                                                                                  "type": "prg32_set_state",
+                                                                                                                  "id": "asteroids-38",
+                                                                                                                  "fields": {
+                                                                                                                   "VAR": "free",
+                                                                                                                   "VALUE": "-1"
+                                                                                                                  },
+                                                                                                                  "next": {
+                                                                                                                   "block": {
+                                                                                                                    "type": "prg32_repeat",
+                                                                                                                    "id": "asteroids-41",
+                                                                                                                    "fields": {
+                                                                                                                     "VAR": "j",
+                                                                                                                     "FROM": "0",
+                                                                                                                     "TO": "11"
+                                                                                                                    },
+                                                                                                                    "inputs": {
+                                                                                                                     "DO": {
+                                                                                                                      "block": {
+                                                                                                                       "type": "prg32_if",
+                                                                                                                       "id": "asteroids-40",
+                                                                                                                       "fields": {
+                                                                                                                        "COND": "free < 0 && rock_size[j] == 0"
+                                                                                                                       },
+                                                                                                                       "inputs": {
+                                                                                                                        "DO": {
+                                                                                                                         "block": {
+                                                                                                                          "type": "prg32_set_state",
+                                                                                                                          "id": "asteroids-39",
+                                                                                                                          "fields": {
+                                                                                                                           "VAR": "free",
+                                                                                                                           "VALUE": "j"
+                                                                                                                          }
+                                                                                                                         }
+                                                                                                                        }
+                                                                                                                       }
+                                                                                                                      }
+                                                                                                                     }
+                                                                                                                    },
+                                                                                                                    "next": {
+                                                                                                                     "block": {
+                                                                                                                      "type": "prg32_if",
+                                                                                                                      "id": "asteroids-49",
+                                                                                                                      "fields": {
+                                                                                                                       "COND": "free >= 0"
+                                                                                                                      },
+                                                                                                                      "inputs": {
+                                                                                                                       "DO": {
+                                                                                                                        "block": {
+                                                                                                                         "type": "prg32_list_set",
+                                                                                                                         "id": "asteroids-42",
+                                                                                                                         "fields": {
+                                                                                                                          "LIST": "rock_size",
+                                                                                                                          "INDEX": "free",
+                                                                                                                          "VALUE": "rock_size[r]"
+                                                                                                                         },
+                                                                                                                         "next": {
+                                                                                                                          "block": {
+                                                                                                                           "type": "prg32_list_set",
+                                                                                                                           "id": "asteroids-43",
+                                                                                                                           "fields": {
+                                                                                                                            "LIST": "rock_x",
+                                                                                                                            "INDEX": "free",
+                                                                                                                            "VALUE": "rock_x[r]"
+                                                                                                                           },
+                                                                                                                           "next": {
+                                                                                                                            "block": {
+                                                                                                                             "type": "prg32_list_set",
+                                                                                                                             "id": "asteroids-44",
+                                                                                                                             "fields": {
+                                                                                                                              "LIST": "rock_y",
+                                                                                                                              "INDEX": "free",
+                                                                                                                              "VALUE": "rock_y[r]"
+                                                                                                                             },
+                                                                                                                             "next": {
+                                                                                                                              "block": {
+                                                                                                                               "type": "prg32_list_set",
+                                                                                                                               "id": "asteroids-45",
+                                                                                                                               "fields": {
+                                                                                                                                "LIST": "rock_vx",
+                                                                                                                                "INDEX": "free",
+                                                                                                                                "VALUE": "-rock_vy[r] - 4"
+                                                                                                                               },
+                                                                                                                               "next": {
+                                                                                                                                "block": {
+                                                                                                                                 "type": "prg32_list_set",
+                                                                                                                                 "id": "asteroids-46",
+                                                                                                                                 "fields": {
+                                                                                                                                  "LIST": "rock_vy",
+                                                                                                                                  "INDEX": "free",
+                                                                                                                                  "VALUE": "rock_vx[r] + 4"
+                                                                                                                                 },
+                                                                                                                                 "next": {
+                                                                                                                                  "block": {
+                                                                                                                                   "type": "prg32_list_set",
+                                                                                                                                   "id": "asteroids-47",
+                                                                                                                                   "fields": {
+                                                                                                                                    "LIST": "rock_vx",
+                                                                                                                                    "INDEX": "r",
+                                                                                                                                    "VALUE": "rock_vy[r] + 4"
+                                                                                                                                   },
+                                                                                                                                   "next": {
+                                                                                                                                    "block": {
+                                                                                                                                     "type": "prg32_list_set",
+                                                                                                                                     "id": "asteroids-48",
+                                                                                                                                     "fields": {
+                                                                                                                                      "LIST": "rock_vy",
+                                                                                                                                      "INDEX": "r",
+                                                                                                                                      "VALUE": "-rock_vx[free] - 4"
+                                                                                                                                     }
+                                                                                                                                    }
+                                                                                                                                   }
+                                                                                                                                  }
+                                                                                                                                 }
+                                                                                                                                }
+                                                                                                                               }
+                                                                                                                              }
+                                                                                                                             }
+                                                                                                                            }
+                                                                                                                           }
+                                                                                                                          }
+                                                                                                                         }
+                                                                                                                        }
+                                                                                                                       }
+                                                                                                                      }
+                                                                                                                     }
+                                                                                                                    }
+                                                                                                                   }
+                                                                                                                  }
+                                                                                                                 }
+                                                                                                                }
+                                                                                                               }
+                                                                                                              }
+                                                                                                             }
+                                                                                                            }
+                                                                                                           }
+                                                                                                          }
+                                                                                                         }
+                                                                                                        }
+                                                                                                       }
+                                                                                                      }
+                                                                                                     }
+                                                                                                    }
+                                                                                                   }
+                                                                                                  }
+                                                                                                 }
+                                                                                                }
+                                                                                               }
+                                                                                              }
+                                                                                             }
+                                                                                            }
+                                                                                           }
+                                                                                          }
+                                                                                         }
+                                                                                        }
+                                                                                       }
+                                                                                      },
+                                                                                      "next": {
+                                                                                       "block": {
+                                                                                        "type": "prg32_comment",
+                                                                                        "id": "asteroids-145",
+                                                                                        "fields": {
+                                                                                         "TEXT": "Ship collision: the ship counts as a circle of radius 4."
+                                                                                        },
+                                                                                        "next": {
+                                                                                         "block": {
+                                                                                          "type": "prg32_if",
+                                                                                          "id": "asteroids-160",
+                                                                                          "fields": {
+                                                                                           "COND": "mode == 1 && safe_timer == 0 && rock_size[r] > 0"
+                                                                                          },
+                                                                                          "inputs": {
+                                                                                           "DO": {
+                                                                                            "block": {
+                                                                                             "type": "prg32_set_state",
+                                                                                             "id": "asteroids-146",
+                                                                                             "fields": {
+                                                                                              "VAR": "dx",
+                                                                                              "VALUE": "(ship_x - rock_x[r]) / 16"
+                                                                                             },
+                                                                                             "next": {
+                                                                                              "block": {
+                                                                                               "type": "prg32_set_state",
+                                                                                               "id": "asteroids-147",
+                                                                                               "fields": {
+                                                                                                "VAR": "dy",
+                                                                                                "VALUE": "(ship_y - rock_y[r]) / 16"
+                                                                                               },
+                                                                                               "next": {
+                                                                                                "block": {
+                                                                                                 "type": "prg32_if",
+                                                                                                 "id": "asteroids-159",
+                                                                                                 "fields": {
+                                                                                                  "COND": "dx * dx + dy * dy <= (radius + 4) * (radius + 4)"
+                                                                                                 },
+                                                                                                 "inputs": {
+                                                                                                  "DO": {
+                                                                                                   "block": {
+                                                                                                    "type": "prg32_change_state",
+                                                                                                    "id": "asteroids-148",
+                                                                                                    "fields": {
+                                                                                                     "VAR": "lives",
+                                                                                                     "DELTA": "-1"
+                                                                                                    },
+                                                                                                    "next": {
+                                                                                                     "block": {
+                                                                                                      "type": "prg32_audio_note",
+                                                                                                      "id": "asteroids-149",
+                                                                                                      "fields": {
+                                                                                                       "NOTE": "30",
+                                                                                                       "CHANNEL": "1",
+                                                                                                       "MS": "600"
+                                                                                                      },
+                                                                                                      "next": {
+                                                                                                       "block": {
+                                                                                                        "type": "prg32_if_else",
+                                                                                                        "id": "asteroids-158",
+                                                                                                        "fields": {
+                                                                                                         "COND": "lives > 0"
+                                                                                                        },
+                                                                                                        "inputs": {
+                                                                                                         "DO": {
+                                                                                                          "block": {
+                                                                                                           "type": "prg32_set_state",
+                                                                                                           "id": "asteroids-150",
+                                                                                                           "fields": {
+                                                                                                            "VAR": "ship_x",
+                                                                                                            "VALUE": "2560"
+                                                                                                           },
+                                                                                                           "next": {
+                                                                                                            "block": {
+                                                                                                             "type": "prg32_set_state",
+                                                                                                             "id": "asteroids-151",
+                                                                                                             "fields": {
+                                                                                                              "VAR": "ship_y",
+                                                                                                              "VALUE": "1600"
+                                                                                                             },
+                                                                                                             "next": {
+                                                                                                              "block": {
+                                                                                                               "type": "prg32_set_state",
+                                                                                                               "id": "asteroids-152",
+                                                                                                               "fields": {
+                                                                                                                "VAR": "ship_vx",
+                                                                                                                "VALUE": "0"
+                                                                                                               },
+                                                                                                               "next": {
+                                                                                                                "block": {
+                                                                                                                 "type": "prg32_set_state",
+                                                                                                                 "id": "asteroids-153",
+                                                                                                                 "fields": {
+                                                                                                                  "VAR": "ship_vy",
+                                                                                                                  "VALUE": "0"
+                                                                                                                 },
+                                                                                                                 "next": {
+                                                                                                                  "block": {
+                                                                                                                   "type": "prg32_set_state",
+                                                                                                                   "id": "asteroids-154",
+                                                                                                                   "fields": {
+                                                                                                                    "VAR": "angle",
+                                                                                                                    "VALUE": "0"
+                                                                                                                   },
+                                                                                                                   "next": {
+                                                                                                                    "block": {
+                                                                                                                     "type": "prg32_set_state",
+                                                                                                                     "id": "asteroids-155",
+                                                                                                                     "fields": {
+                                                                                                                      "VAR": "safe_timer",
+                                                                                                                      "VALUE": "60"
+                                                                                                                     }
+                                                                                                                    }
+                                                                                                                   }
+                                                                                                                  }
+                                                                                                                 }
+                                                                                                                }
+                                                                                                               }
+                                                                                                              }
+                                                                                                             }
+                                                                                                            }
+                                                                                                           }
+                                                                                                          }
+                                                                                                         },
+                                                                                                         "ELSE": {
+                                                                                                          "block": {
+                                                                                                           "type": "prg32_set_state",
+                                                                                                           "id": "asteroids-156",
+                                                                                                           "fields": {
+                                                                                                            "VAR": "mode",
+                                                                                                            "VALUE": "2"
+                                                                                                           },
+                                                                                                           "next": {
+                                                                                                            "block": {
+                                                                                                             "type": "prg32_score_submit",
+                                                                                                             "id": "asteroids-157",
+                                                                                                             "fields": {
+                                                                                                              "VALUE": "score"
+                                                                                                             }
+                                                                                                            }
+                                                                                                           }
+                                                                                                          }
+                                                                                                         }
+                                                                                                        }
+                                                                                                       }
+                                                                                                      }
+                                                                                                     }
+                                                                                                    }
+                                                                                                   }
+                                                                                                  }
+                                                                                                 }
+                                                                                                }
+                                                                                               }
+                                                                                              }
+                                                                                             }
+                                                                                            }
+                                                                                           }
+                                                                                          }
+                                                                                         }
+                                                                                        }
+                                                                                       }
+                                                                                      }
+                                                                                     }
+                                                                                    }
+                                                                                   }
+                                                                                  }
+                                                                                 }
+                                                                                }
+                                                                               }
+                                                                              }
+                                                                             }
+                                                                            }
+                                                                           }
+                                                                          }
+                                                                         }
+                                                                        }
+                                                                       }
+                                                                      }
+                                                                     }
+                                                                    }
+                                                                   }
+                                                                  }
+                                                                 }
+                                                                }
+                                                               }
+                                                              },
+                                                              "next": {
+                                                               "block": {
+                                                                "type": "prg32_comment",
+                                                                "id": "asteroids-163",
+                                                                "fields": {
+                                                                 "TEXT": "All rocks destroyed: a bigger wave starts."
+                                                                },
+                                                                "next": {
+                                                                 "block": {
+                                                                  "type": "prg32_if",
+                                                                  "id": "asteroids-176",
+                                                                  "fields": {
+                                                                   "COND": "rocks_left == 0"
+                                                                  },
+                                                                  "inputs": {
+                                                                   "DO": {
+                                                                    "block": {
+                                                                     "type": "prg32_change_state",
+                                                                     "id": "asteroids-164",
+                                                                     "fields": {
+                                                                      "VAR": "wave",
+                                                                      "DELTA": "1"
+                                                                     },
+                                                                     "next": {
+                                                                      "block": {
+                                                                       "type": "prg32_list_create",
+                                                                       "id": "asteroids-165",
+                                                                       "fields": {
+                                                                        "LIST": "rock_size",
+                                                                        "SIZE": "12",
+                                                                        "VALUE": "0"
+                                                                       },
+                                                                       "next": {
+                                                                        "block": {
+                                                                         "type": "prg32_repeat",
+                                                                         "id": "asteroids-174",
+                                                                         "fields": {
+                                                                          "VAR": "i",
+                                                                          "FROM": "0",
+                                                                          "TO": "min(2 + wave, 7)"
+                                                                         },
+                                                                         "inputs": {
+                                                                          "DO": {
+                                                                           "block": {
+                                                                            "type": "prg32_list_set",
+                                                                            "id": "asteroids-166",
+                                                                            "fields": {
+                                                                             "LIST": "rock_size",
+                                                                             "INDEX": "i",
+                                                                             "VALUE": "3"
+                                                                            },
+                                                                            "next": {
+                                                                             "block": {
+                                                                              "type": "prg32_comment",
+                                                                              "id": "asteroids-167",
+                                                                              "fields": {
+                                                                               "TEXT": "Big rocks start near the left or right edge with a random drift."
+                                                                              },
+                                                                              "next": {
+                                                                               "block": {
+                                                                                "type": "prg32_list_set",
+                                                                                "id": "asteroids-168",
+                                                                                "fields": {
+                                                                                 "LIST": "rock_x",
+                                                                                 "INDEX": "i",
+                                                                                 "VALUE": "(random(0, 1) * 260 + random(0, 40)) * 16"
+                                                                                },
+                                                                                "next": {
+                                                                                 "block": {
+                                                                                  "type": "prg32_list_set",
+                                                                                  "id": "asteroids-169",
+                                                                                  "fields": {
+                                                                                   "LIST": "rock_y",
+                                                                                   "INDEX": "i",
+                                                                                   "VALUE": "random(20, 180) * 16"
+                                                                                  },
+                                                                                  "next": {
+                                                                                   "block": {
+                                                                                    "type": "prg32_list_set",
+                                                                                    "id": "asteroids-170",
+                                                                                    "fields": {
+                                                                                     "LIST": "rock_vx",
+                                                                                     "INDEX": "i",
+                                                                                     "VALUE": "random(-12, 12)"
+                                                                                    },
+                                                                                    "next": {
+                                                                                     "block": {
+                                                                                      "type": "prg32_list_set",
+                                                                                      "id": "asteroids-171",
+                                                                                      "fields": {
+                                                                                       "LIST": "rock_vy",
+                                                                                       "INDEX": "i",
+                                                                                       "VALUE": "random(-12, 12)"
+                                                                                      },
+                                                                                      "next": {
+                                                                                       "block": {
+                                                                                        "type": "prg32_if",
+                                                                                        "id": "asteroids-173",
+                                                                                        "fields": {
+                                                                                         "COND": "rock_vx[i] == 0"
+                                                                                        },
+                                                                                        "inputs": {
+                                                                                         "DO": {
+                                                                                          "block": {
+                                                                                           "type": "prg32_list_set",
+                                                                                           "id": "asteroids-172",
+                                                                                           "fields": {
+                                                                                            "LIST": "rock_vx",
+                                                                                            "INDEX": "i",
+                                                                                            "VALUE": "7"
+                                                                                           }
+                                                                                          }
+                                                                                         }
+                                                                                        }
+                                                                                       }
+                                                                                      }
+                                                                                     }
+                                                                                    }
+                                                                                   }
+                                                                                  }
+                                                                                 }
+                                                                                }
+                                                                               }
+                                                                              }
+                                                                             }
+                                                                            }
+                                                                           }
+                                                                          }
+                                                                         },
+                                                                         "next": {
+                                                                          "block": {
+                                                                           "type": "prg32_set_state",
+                                                                           "id": "asteroids-175",
+                                                                           "fields": {
+                                                                            "VAR": "safe_timer",
+                                                                            "VALUE": "60"
+                                                                           }
+                                                                          }
+                                                                         }
+                                                                        }
+                                                                       }
+                                                                      }
+                                                                     }
+                                                                    }
+                                                                   }
+                                                                  }
+                                                                 }
+                                                                }
+                                                               }
+                                                              }
+                                                             }
+                                                            }
+                                                           }
+                                                          }
+                                                         }
+                                                        }
+                                                       }
+                                                      }
+                                                     }
+                                                    }
+                                                   }
+                                                  }
+                                                 }
+                                                }
+                                               }
+                                              }
+                                             }
+                                            }
+                                           }
+                                          }
+                                         }
+                                        }
+                                       }
+                                      }
+                                     }
+                                    }
+                                   }
+                                  }
+                                 }
+                                }
+                               }
+                              }
+                             }
+                            }
+                           }
+                          }
+                         }
+                        }
+                       }
+                      }
+                     }
+                    }
+                   }
+                  }
+                 }
+                }
+               },
+               "next": {
+                "block": {
+                 "type": "prg32_comment",
+                 "id": "asteroids-178",
+                 "fields": {
+                  "TEXT": "Show the score in the PRG32 status band."
+                 },
+                 "next": {
+                  "block": {
+                   "type": "prg32_band_text",
+                   "id": "asteroids-179",
+                   "fields": {
+                    "TEXT": "SCORE",
+                    "VALUE": "score"
+                   }
+                  }
+                 }
+                }
+               }
+              }
+             }
+            }
+           }
+          }
+         }
+        }
+       }
+      },
+      "x": 520,
+      "y": 20
+     },
+     {
+      "type": "prg32_draw",
+      "id": "asteroids-211",
+      "inputs": {
+       "DO": {
+        "block": {
+         "type": "prg32_comment",
+         "id": "asteroids-180",
+         "fields": {
+          "TEXT": "Rocks are two circles; bullets are 2 x 2 squares (positions divided by 16)."
+         },
+         "next": {
+          "block": {
+           "type": "prg32_clear_screen",
+           "id": "asteroids-181",
+           "fields": {
+            "COLOR": "BLACK"
+           },
+           "next": {
+            "block": {
+             "type": "prg32_repeat",
+             "id": "asteroids-185",
+             "fields": {
+              "VAR": "r",
+              "FROM": "0",
+              "TO": "11"
+             },
+             "inputs": {
+              "DO": {
+               "block": {
+                "type": "prg32_if",
+                "id": "asteroids-184",
+                "fields": {
+                 "COND": "rock_size[r] > 0"
+                },
+                "inputs": {
+                 "DO": {
+                  "block": {
+                   "type": "prg32_draw_circle",
+                   "id": "asteroids-182",
+                   "fields": {
+                    "X": "rock_x[r] / 16",
+                    "Y": "rock_y[r] / 16",
+                    "R": "rock_size[r] * rock_size[r] + 4",
+                    "COLOR": "WHITE",
+                    "FILL": "OUTLINE"
+                   },
+                   "next": {
+                    "block": {
+                     "type": "prg32_draw_circle",
+                     "id": "asteroids-183",
+                     "fields": {
+                      "X": "rock_x[r] / 16",
+                      "Y": "rock_y[r] / 16",
+                      "R": "rock_size[r] * rock_size[r] + 2",
+                      "COLOR": "GRAY",
+                      "FILL": "OUTLINE"
+                     }
+                    }
+                   }
+                  }
+                 }
+                }
+               }
+              }
+             },
+             "next": {
+              "block": {
+               "type": "prg32_repeat",
+               "id": "asteroids-188",
+               "fields": {
+                "VAR": "s",
+                "FROM": "0",
+                "TO": "3"
+               },
+               "inputs": {
+                "DO": {
+                 "block": {
+                  "type": "prg32_if",
+                  "id": "asteroids-187",
+                  "fields": {
+                   "COND": "shot_life[s] > 0"
+                  },
+                  "inputs": {
+                   "DO": {
+                    "block": {
+                     "type": "prg32_draw_rect",
+                     "id": "asteroids-186",
+                     "fields": {
+                      "X": "shot_x[s] / 16",
+                      "Y": "shot_y[s] / 16",
+                      "W": "2",
+                      "H": "2",
+                      "COLOR": "YELLOW"
+                     }
+                    }
+                   }
+                  }
+                 }
+                }
+               },
+               "next": {
+                "block": {
+                 "type": "prg32_comment",
+                 "id": "asteroids-189",
+                 "fields": {
+                  "TEXT": "The ship is a triangle of three lines, rotated with sin and cos; it blinks while safe."
+                 },
+                 "next": {
+                  "block": {
+                   "type": "prg32_if",
+                   "id": "asteroids-197",
+                   "fields": {
+                    "COND": "mode == 1 && (safe_timer == 0 || frame() % 8 < 5)"
+                   },
+                   "inputs": {
+                    "DO": {
+                     "block": {
+                      "type": "prg32_draw_line",
+                      "id": "asteroids-190",
+                      "fields": {
+                       "X1": "ship_x / 16 + sin(angle) * 9 / 256",
+                       "Y1": "ship_y / 16 - cos(angle) * 9 / 256",
+                       "X2": "ship_x / 16 + sin(angle + 140) * 7 / 256",
+                       "Y2": "ship_y / 16 - cos(angle + 140) * 7 / 256",
+                       "COLOR": "CYAN"
+                      },
+                      "next": {
+                       "block": {
+                        "type": "prg32_draw_line",
+                        "id": "asteroids-191",
+                        "fields": {
+                         "X1": "ship_x / 16 + sin(angle) * 9 / 256",
+                         "Y1": "ship_y / 16 - cos(angle) * 9 / 256",
+                         "X2": "ship_x / 16 + sin(angle + 220) * 7 / 256",
+                         "Y2": "ship_y / 16 - cos(angle + 220) * 7 / 256",
+                         "COLOR": "CYAN"
+                        },
+                        "next": {
+                         "block": {
+                          "type": "prg32_draw_line",
+                          "id": "asteroids-192",
+                          "fields": {
+                           "X1": "ship_x / 16 + sin(angle + 140) * 7 / 256",
+                           "Y1": "ship_y / 16 - cos(angle + 140) * 7 / 256",
+                           "X2": "ship_x / 16 + sin(angle + 220) * 7 / 256",
+                           "Y2": "ship_y / 16 - cos(angle + 220) * 7 / 256",
+                           "COLOR": "CYAN"
+                          },
+                          "next": {
+                           "block": {
+                            "type": "prg32_if_button",
+                            "id": "asteroids-196",
+                            "fields": {
+                             "BUTTON": "UP"
+                            },
+                            "inputs": {
+                             "DO": {
+                              "block": {
+                               "type": "prg32_if",
+                               "id": "asteroids-195",
+                               "fields": {
+                                "COND": "frame() % 4 < 2"
+                               },
+                               "inputs": {
+                                "DO": {
+                                 "block": {
+                                  "type": "prg32_draw_line",
+                                  "id": "asteroids-193",
+                                  "fields": {
+                                   "X1": "ship_x / 16 + sin(angle + 140) * 7 / 256",
+                                   "Y1": "ship_y / 16 - cos(angle + 140) * 7 / 256",
+                                   "X2": "ship_x / 16 - sin(angle) * 9 / 256",
+                                   "Y2": "ship_y / 16 + cos(angle) * 9 / 256",
+                                   "COLOR": "ORANGE"
+                                  },
+                                  "next": {
+                                   "block": {
+                                    "type": "prg32_draw_line",
+                                    "id": "asteroids-194",
+                                    "fields": {
+                                     "X1": "ship_x / 16 + sin(angle + 220) * 7 / 256",
+                                     "Y1": "ship_y / 16 - cos(angle + 220) * 7 / 256",
+                                     "X2": "ship_x / 16 - sin(angle) * 9 / 256",
+                                     "Y2": "ship_y / 16 + cos(angle) * 9 / 256",
+                                     "COLOR": "ORANGE"
+                                    }
+                                   }
+                                  }
+                                 }
+                                }
+                               }
+                              }
+                             }
+                            }
+                           }
+                          }
+                         }
+                        }
+                       }
+                      }
+                     }
+                    }
+                   },
+                   "next": {
+                    "block": {
+                     "type": "prg32_comment",
+                     "id": "asteroids-198",
+                     "fields": {
+                      "TEXT": "Score, ships left and messages."
+                     },
+                     "next": {
+                      "block": {
+                       "type": "prg32_draw_text",
+                       "id": "asteroids-199",
+                       "fields": {
+                        "TEXT": "SCORE",
+                        "X": "4",
+                        "Y": "4",
+                        "FG": "GRAY",
+                        "BG": "BLACK"
+                       },
+                       "next": {
+                        "block": {
+                         "type": "prg32_draw_number",
+                         "id": "asteroids-200",
+                         "fields": {
+                          "VALUE": "score",
+                          "X": "52",
+                          "Y": "4",
+                          "FG": "WHITE",
+                          "BG": "BLACK"
+                         },
+                         "next": {
+                          "block": {
+                           "type": "prg32_draw_text",
+                           "id": "asteroids-201",
+                           "fields": {
+                            "TEXT": "SHIPS",
+                            "X": "248",
+                            "Y": "4",
+                            "FG": "GRAY",
+                            "BG": "BLACK"
+                           },
+                           "next": {
+                            "block": {
+                             "type": "prg32_draw_number",
+                             "id": "asteroids-202",
+                             "fields": {
+                              "VALUE": "lives",
+                              "X": "296",
+                              "Y": "4",
+                              "FG": "WHITE",
+                              "BG": "BLACK"
+                             },
+                             "next": {
+                              "block": {
+                               "type": "prg32_if",
+                               "id": "asteroids-205",
+                               "fields": {
+                                "COND": "mode == 0"
+                               },
+                               "inputs": {
+                                "DO": {
+                                 "block": {
+                                  "type": "prg32_draw_text",
+                                  "id": "asteroids-203",
+                                  "fields": {
+                                   "TEXT": "ASTEROIDS",
+                                   "X": "124",
+                                   "Y": "90",
+                                   "FG": "CYAN",
+                                   "BG": "BLACK"
+                                  },
+                                  "next": {
+                                   "block": {
+                                    "type": "prg32_draw_text",
+                                    "id": "asteroids-204",
+                                    "fields": {
+                                     "TEXT": "PRESS START",
+                                     "X": "116",
+                                     "Y": "106",
+                                     "FG": "WHITE",
+                                     "BG": "BLACK"
+                                    }
+                                   }
+                                  }
+                                 }
+                                }
+                               },
+                               "next": {
+                                "block": {
+                                 "type": "prg32_if",
+                                 "id": "asteroids-208",
+                                 "fields": {
+                                  "COND": "mode == 2"
+                                 },
+                                 "inputs": {
+                                  "DO": {
+                                   "block": {
+                                    "type": "prg32_draw_text",
+                                    "id": "asteroids-206",
+                                    "fields": {
+                                     "TEXT": "GAME OVER",
+                                     "X": "124",
+                                     "Y": "90",
+                                     "FG": "RED",
+                                     "BG": "BLACK"
+                                    },
+                                    "next": {
+                                     "block": {
+                                      "type": "prg32_draw_text",
+                                      "id": "asteroids-207",
+                                      "fields": {
+                                       "TEXT": "PRESS START",
+                                       "X": "116",
+                                       "Y": "106",
+                                       "FG": "WHITE",
+                                       "BG": "BLACK"
+                                      }
+                                     }
+                                    }
+                                   }
+                                  }
+                                 }
+                                }
+                               }
+                              }
+                             }
+                            }
+                           }
+                          }
+                         }
+                        }
+                       }
+                      }
+                     }
+                    }
+                   }
+                  }
+                 }
+                }
+               }
+              }
+             }
+            }
+           }
+          }
+         }
+        }
+       }
+      },
+      "x": 1120,
+      "y": 20
+     }
+    ]
+   }
+  }
+ }
+}

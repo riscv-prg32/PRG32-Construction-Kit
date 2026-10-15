@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540" style="white-space: pre" font-family="Helvetica, Arial, sans-serif">
+  <title>Pong: game modes and the computer player as a feedback controller</title>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#334155"/></marker>
+  </defs>
+  <rect width="960" height="540" fill="#ffffff"/>
+  <text x="30" y="38" font-size="22" font-weight="bold" fill="#0f172a">A finite-state machine and a feedback controller</text>
+
+  <!-- FSM -->
+  <text x="40" y="80" font-size="16" font-weight="bold" fill="#334155">Variable mode</text>
+  <circle cx="110" cy="190" r="62" fill="#fef3c7" stroke="#b45309" stroke-width="2"/>
+  <text x="110" y="185" text-anchor="middle" font-size="17" font-weight="bold" fill="#78350f">0 serve</text>
+  <text x="110" y="207" text-anchor="middle" font-size="13" fill="#78350f">40 frames</text>
+  <circle cx="330" cy="190" r="62" fill="#dbeafe" stroke="#1d4ed8" stroke-width="2"/>
+  <text x="330" y="185" text-anchor="middle" font-size="17" font-weight="bold" fill="#1e3a8a">1 play</text>
+  <text x="330" y="207" text-anchor="middle" font-size="13" fill="#1e3a8a">ball moves</text>
+  <circle cx="220" cy="400" r="62" fill="#fee2e2" stroke="#b91c1c" stroke-width="2"/>
+  <text x="220" y="395" text-anchor="middle" font-size="17" font-weight="bold" fill="#7f1d1d">2 game over</text>
+  <text x="220" y="417" text-anchor="middle" font-size="13" fill="#7f1d1d">winner shown</text>
+  <path d="M170,165 C210,130 250,130 270,160" fill="none" stroke="#334155" stroke-width="2.2" marker-end="url(#a)"/>
+  <text x="220" y="125" text-anchor="middle" font-size="13" fill="#334155">serve_timer = 0</text>
+  <path d="M272,215 C250,250 200,250 168,218" fill="none" stroke="#334155" stroke-width="2.2" marker-end="url(#a)"/>
+  <text x="220" y="268" text-anchor="middle" font-size="13" fill="#334155">ball leaves the court</text>
+  <path d="M320,252 C310,320 300,360 282,380" fill="none" stroke="#334155" stroke-width="2.2" marker-end="url(#a)"/>
+  <text x="318" y="330" font-size="13" fill="#334155">score = 7</text>
+  <path d="M160,380 C120,340 100,300 102,255" fill="none" stroke="#334155" stroke-width="2.2" marker-end="url(#a)"/>
+  <text x="40" y="330" font-size="13" fill="#334155">START just</text>
+  <text x="40" y="347" font-size="13" fill="#334155">pressed</text>
+
+  <!-- controller -->
+  <line x1="470" y1="70" x2="470" y2="500" stroke="#e2e8f0" stroke-width="2"/>
+  <text x="500" y="80" font-size="16" font-weight="bold" fill="#334155">The computer paddle: target, error, saturation</text>
+  <rect x="500" y="110" width="170" height="64" rx="10" fill="#f1f5f9" stroke="#64748b"/>
+  <text x="585" y="137" text-anchor="middle" font-size="14" fill="#0f172a">ball centre</text>
+  <text x="585" y="158" text-anchor="middle" font-size="13" fill="#0f172a" font-family="Menlo, monospace">ball_y + 3 - 18</text>
+  <circle cx="735" cy="142" r="20" fill="#fff" stroke="#334155" stroke-width="2"/>
+  <text x="735" y="148" text-anchor="middle" font-size="18" fill="#0f172a">+</text>
+  <line x1="670" y1="142" x2="713" y2="142" stroke="#334155" stroke-width="2" marker-end="url(#a)"/>
+  <rect x="680" y="200" width="110" height="52" rx="10" fill="#fef9c3" stroke="#a16207"/>
+  <text x="735" y="222" text-anchor="middle" font-size="13" fill="#713f12">cpu_error</text>
+  <text x="735" y="240" text-anchor="middle" font-size="12" fill="#713f12" font-family="Menlo, monospace">random(-24, 24)</text>
+  <line x1="735" y1="200" x2="735" y2="164" stroke="#334155" stroke-width="2" marker-end="url(#a)"/>
+  <line x1="755" y1="142" x2="800" y2="142" stroke="#334155" stroke-width="2" marker-end="url(#a)"/>
+  <text x="805" y="135" font-size="13" fill="#0f172a">cpu_target</text>
+  <rect x="560" y="300" width="330" height="80" rx="10" fill="#dcfce7" stroke="#15803d"/>
+  <text x="725" y="326" text-anchor="middle" font-size="14" fill="#14532d">if cpu_y &lt; target - 3: move +3</text>
+  <text x="725" y="346" text-anchor="middle" font-size="14" fill="#14532d">if cpu_y &gt; target + 3: move -3</text>
+  <text x="725" y="366" text-anchor="middle" font-size="12" fill="#14532d">dead zone 3 px, speed limit 3 px per frame</text>
+  <path d="M850,150 C900,180 900,260 830,296" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#a)"/>
+  <rect x="610" y="420" width="230" height="52" rx="10" fill="#ffedd5" stroke="#c2410c"/>
+  <text x="725" y="451" text-anchor="middle" font-size="14" fill="#7c2d12">cpu_y (paddle position)</text>
+  <line x1="725" y1="380" x2="725" y2="416" stroke="#334155" stroke-width="2" marker-end="url(#a)"/>
+  <path d="M610,446 L530,446 L530,340 L556,340" fill="none" stroke="#334155" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#a)"/>
+  <text x="488" y="400" font-size="12" fill="#334155">feedback</text>
+  <text x="500" y="500" font-size="13" fill="#475569">The error is drawn again at every hit: a perfect controller</text>
+  <text x="500" y="518" font-size="13" fill="#475569">would never miss, and the game would never end.</text>
+</svg>

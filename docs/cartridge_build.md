@@ -33,7 +33,11 @@ read files on the server while it compiles: directives hidden behind comments,
 compiler checks the actual API calls and types.
 List any firmware features the cartridge needs in **Required PRG32 features**.
 The kit passes those names to PRG32's `--required-feature` option so an
-incompatible runtime rejects the cartridge before execution.
+incompatible runtime rejects the cartridge before execution. For Blocks
+projects the kit works the features out from the blocks (sound blocks need
+`audio`, tile blocks `tilemap`, and so on); projects that use multiplayer also
+get the builder's `--multiplayer` option, which marks the cartridge header.
+See `prg32_feature_coverage.md`.
 
 The browser simulator runs Blocks projects. Test Advanced C cartridges in
 PRG32 QEMU or on the physical ESP32-C6 board. The editor does not compile C
@@ -78,7 +82,13 @@ The app appends:
 
 ```text
 game.c --portable --architecture <esp32c6|qemu> --cart-ram-kib 64 --entry-prefix <prefix> --name <slug> --out <slug>-<architecture>.prg32
+       [--required-feature <feature> ...] [--multiplayer]
 ```
+
+The PRG32 tooling can be installed into the kit's Python environment from a
+PRG32 checkout (`pip install -e ../PRG32`), or run from that checkout with
+`PYTHONPATH`. The RISC-V compiler `riscv32-esp-elf-gcc` from ESP-IDF 5.4 must
+be on `PATH`.
 
 Override the command:
 
@@ -93,6 +103,19 @@ profile's value when it differs from 64.
 
 Only `PRG32_MAX_PARALLEL_BUILDS` builds compile at the same time; the others
 wait for a free build slot. See `concurrent_builds.md`.
+
+## Run a cartridge on QEMU or PRG32-QT
+
+```bash
+python3 -m prg32 qemu upload my-game-qemu.prg32
+python3 -m prg32 qemu run
+```
+
+PRG32-QT runs both the `qemu` and the `esp32c6` cartridge: use **Import
+Cartridge** in the app, or the headless runner
+`prg32qt-headless my-game-qemu.prg32 300 --dump-ppm frame.ppm`.
+`tools/runtime_check.py` automates both for the example games
+(`runtime_check.md`).
 
 ## Source-only bundles
 

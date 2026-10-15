@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Asteroids with PRG32 Blocks</title>
+<link rel="stylesheet" href="deck.css">
+</head>
+<body>
+<!-- Built by tools/build_presentations.py from docs/tutorials/games/asteroids.md; edit that file, not this one. -->
+<main class="deck" data-title="Asteroids with PRG32 Blocks">
+<section class="slide title">
+<!-- class: title -->
+<h1>Asteroids</h1>
+<h2>Physics without floating point: angles, inertia and a wrap-around universe</h2>
+<p>PRG32-Construction-Kit tutorial deck, step by step, from blocks to a RISC-V cartridge.</p>
+<p><img alt="Asteroids running on the PRG32 QEMU firmware" src="../figures/games/asteroids-qemu.png" /></p>
+</section>
+<section class="slide">
+<h2>Learning outcomes</h2>
+<ol>
+<li>represent fractions with <strong>fixed-point integers</strong> (Q4 positions, Q8 trigonometry);</li>
+<li>turn an angle into a direction with <strong>integer sine and cosine</strong>;</li>
+<li>simulate <strong>inertia, thrust and drag</strong> with semi-implicit Euler integration;</li>
+<li>use a <strong>torus topology</strong>: objects leaving one edge enter on the other;</li>
+<li>test circle collisions with <strong>squared distances</strong> and manage objects in <strong>slot pools</strong>.</li>
+</ol>
+<p><strong>Prerequisites:</strong> Pong and Space Invaders tutorials. About 2 hours.</p>
+</section>
+<section class="slide">
+<h2>Context</h2>
+<ul>
+<li>Atari's <strong>Asteroids</strong> (1979, Lyle Rains and Ed Logg) drew with a <strong>vector display</strong>: the electron beam traced lines instead of scanning a raster.</li>
+<li>Its ship obeyed Newton's first law: no brakes, only rotation and thrust. Players had to think in <strong>velocities</strong>, not positions.</li>
+<li>On a 320 x 200 raster screen we draw the same look with <strong>Bresenham lines</strong> and <strong>midpoint circles</strong>, two classic integer algorithms the kit writes into the generated C.</li>
+</ul>
+<blockquote>
+<p>The ESP32-C6 core has no floating-point unit. Fixed-point arithmetic gives smooth motion with whole numbers only.</p>
+</blockquote>
+<p><em>Original, classic-inspired reimplementation for teaching; not affiliated with the historical products.</em></p>
+</section>
+<section class="slide">
+<h2>Rules and controls</h2><div class="cols"><div class="col"><table>
+<thead>
+<tr>
+<th>Button</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>LEFT / RIGHT</td>
+<td>rotate the ship</td>
+</tr>
+<tr>
+<td>UP</td>
+<td>thrust</td>
+</tr>
+<tr>
+<td>A</td>
+<td>fire (up to 4 bullets)</td>
+</tr>
+<tr>
+<td>START</td>
+<td>start / play again</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>Big rocks split into two medium rocks, medium into two small ones.</li>
+<li>Smaller rocks give more points: 20, 80, 180.</li>
+<li>After losing a ship you are safe (blinking) for two seconds.</li>
+<li>Clearing all rocks starts a bigger wave.</li>
+</ul></div><div class="col"><p><img alt="Asteroids title screen" src="../figures/games/asteroids-title.png" /></p></div></div>
+</section>
+<section class="slide">
+<h2>Whole-number physics</h2>
+<p><img alt="Fixed-point physics" src="../figures/games/asteroids_physics.svg" /></p>
+</section>
+<section class="slide">
+<h2>Step 1 - Lists for rocks and bullets</h2><div class="cols"><div class="col"><div class="blocks"><div class="blk comment"><div class="blk-label" style="background:#80a55b">comment <span class="f">Asteroids: positions are in 1/16 pixel steps so the ship can drift smoothly.</span></div></div><div class="blk"><div class="blk-label" style="background:#995ba5">make list <span class="f">rock_x</span> with <span class="f">12</span> items, all <span class="f">0</span></div></div><div class="blk"><div class="blk-label" style="background:#995ba5">make list <span class="f">rock_y</span> with <span class="f">12</span> items, all <span class="f">0</span></div></div><div class="blk"><div class="blk-label" style="background:#995ba5">make list <span class="f">rock_vx</span> with <span class="f">12</span> items, all <span class="f">0</span></div></div><div class="blk"><div class="blk-label" style="background:#995ba5">make list <span class="f">rock_vy</span> with <span class="f">12</span> items, all <span class="f">0</span></div></div><div class="blk"><div class="blk-label" style="background:#995ba5">make list <span class="f">shot_x</span> with <span class="f">4</span> items, all <span class="f">0</span></div></div><div class="blk"><div class="blk-label" style="background:#995ba5">make list <span class="f">shot_y</span> with <span class="f">4</span> items, all <span class="f">0</span></div></div><div class="blk"><div class="blk-label" style="background:#995ba5">make list <span class="f">shot_vx</span> with <span class="f">4</span> items, all <span class="f">0</span></div></div><div class="blk"><div class="blk-label" style="background:#995ba5">make list <span class="f">shot_vy</span> with <span class="f">4</span> items, all <span class="f">0</span></div></div></div></div><div class="col"><ul>
+<li>12 rock slots and 4 bullet slots, each described by <strong>parallel lists</strong> (<code>rock_x[r]</code>, <code>rock_vx[r]</code>, ...).</li>
+<li>A slot is free when <code>rock_size[r] == 0</code> or <code>shot_life[s] == 0</code>.</li>
+<li>Positions are stored <strong>x 16</strong>: <code>ship_x = 160 * 16</code> is the centre of the screen.</li>
+</ul></div></div>
+</section>
+<section class="slide">
+<h2>Step 2 - Rotation and thrust</h2><div class="cols"><div class="col"><div class="blocks"><div class="blk comment"><div class="blk-label" style="background:#80a55b">comment <span class="f">Rotate with LEFT and RIGHT: the angle is in degrees, 0 points up.</span></div></div><div class="blk"><div class="blk-label" style="background:#a5745b">if button <span class="f">left</span> is held</div><div class="blk-body" style="border-color:#a5745b"><div class="blk"><div class="blk-label" style="background:#745ba5">change <span class="f">angle</span> by <span class="f">-8</span></div></div></div></div><div class="blk"><div class="blk-label" style="background:#a5745b">if button <span class="f">right</span> is held</div><div class="blk-body" style="border-color:#a5745b"><div class="blk"><div class="blk-label" style="background:#745ba5">change <span class="f">angle</span> by <span class="f">8</span></div></div></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">wrap <span class="f">angle</span> around <span class="f">0</span> to <span class="f">359</span></div></div></div>
+<div class="blocks"><div class="blk comment"><div class="blk-label" style="background:#80a55b">comment <span class="f">Thrust: sin and cos give the direction, 256 means 1.0.</span></div></div><div class="blk"><div class="blk-label" style="background:#a5745b">if button <span class="f">up</span> is held</div><div class="blk-body" style="border-color:#a5745b"><div class="blk"><div class="blk-label" style="background:#745ba5">change <span class="f">ship_vx</span> by <span class="f">sin(angle) / 48</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">change <span class="f">ship_vy</span> by <span class="f">-cos(angle) / 48</span></div></div></div></div></div></div><div class="col"><ul>
+<li><code>angle</code> is in degrees; <em>wrap</em> keeps it in 0..359.</li>
+<li><code>sin(angle)</code> is between -256 and 256. Divided by 48 it adds at most 5/16 of a pixel per frame to the velocity: a gentle <strong>acceleration</strong>.</li>
+<li>Screen y grows downwards, so "forward" is <code>-cos(angle)</code>.</li>
+</ul></div></div>
+</section>
+<section class="slide">
+<h2>Step 3 - Drag, speed limit, wrap-around</h2><div class="cols"><div class="col"><div class="blocks"><div class="blk comment"><div class="blk-label" style="background:#80a55b">comment <span class="f">Speed limit and friction, then move and wrap around the screen.</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">keep <span class="f">ship_vx</span> between <span class="f">-64</span> and <span class="f">64</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">keep <span class="f">ship_vy</span> between <span class="f">-64</span> and <span class="f">64</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">change <span class="f">ship_vx</span> by <span class="f">-ship_vx / 40</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">change <span class="f">ship_vy</span> by <span class="f">-ship_vy / 40</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">change <span class="f">ship_x</span> by <span class="f">ship_vx</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">change <span class="f">ship_y</span> by <span class="f">ship_vy</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">wrap <span class="f">ship_x</span> around <span class="f">0</span> to <span class="f">5119</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">wrap <span class="f">ship_y</span> around <span class="f">0</span> to <span class="f">3199</span></div></div><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">safe_timer &gt; 0</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#745ba5">change <span class="f">safe_timer</span> by <span class="f">-1</span></div></div></div></div></div></div><div class="col"><ol>
+<li><strong>Limit:</strong> at most 64/16 = 4 pixels per frame.</li>
+<li><strong>Drag:</strong> lose 1/40 of the speed each frame (an exponential decay).</li>
+<li><strong>Integrate:</strong> position += velocity.</li>
+<li><strong>Wrap:</strong> leave right, enter left; the screen is a torus.</li>
+</ol>
+<pre class="c"><code>/* Speed limit and friction, then move and wrap around the screen. */
+if (ship_vx &lt; -64) { ship_vx = -64; }
+if (ship_vx &gt; 64) { ship_vx = 64; }
+if (ship_vy &lt; -64) { ship_vy = -64; }
+if (ship_vy &gt; 64) { ship_vy = 64; }
+ship_vx += -ship_vx / 40;
+ship_vy += -ship_vy / 40;
+ship_x += ship_vx;
+ship_y += ship_vy;
+if (ship_x &lt; 0) { ship_x += (5119) - (0) + 1; }
+else if (ship_x &gt; 5119) { ship_x -= (5119) - (0) + 1; }
+if (ship_y &lt; 0) { ship_y += (3199) - (0) + 1; }
+else if (ship_y &gt; 3199) { ship_y -= (3199) - (0) + 1; }
+if (safe_timer &gt; 0) {
+    safe_timer += -1;
+}</code></pre></div></div>
+</section>
+<section class="slide tight">
+<h2>Step 4 - Firing from a bullet pool</h2>
+<!-- class: tight --><div class="cols"><div class="col"><div class="blocks"><div class="blk comment"><div class="blk-label" style="background:#80a55b">comment <span class="f">Fire: find a free bullet slot (up to 4 bullets).</span></div></div><div class="blk"><div class="blk-label" style="background:#a5745b">if button <span class="f">a</span> was just pressed</div><div class="blk-body" style="border-color:#a5745b"><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">free</span> to <span class="f">-1</span></div></div><div class="blk"><div class="blk-label" style="background:#a56d5b">repeat with <span class="f">j</span> from <span class="f">0</span> to <span class="f">3</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">free &lt; 0 &amp;&amp; shot_life[j] == 0</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">free</span> to <span class="f">j</span></div></div></div></div></div></div><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">free &gt;= 0</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#995ba5">set item <span class="f">free</span> of <span class="f">shot_life</span> to <span class="f">36</span></div></div><div class="blk"><div class="blk-label" style="background:#995ba5">set item <span class="f">free</span> of <span class="f">shot_x</span> to <span class="f">ship_x + sin(angle) * 8 * 16 / 256</span></div></div><div class="blk"><div class="blk-label" style="background:#995ba5">set item <span class="f">free</span> of <span class="f">shot_y</span> to <span class="f">ship_y - cos(angle) * 8 * 16 / 256</span></div></div><div class="blk"><div class="blk-label" style="background:#995ba5">set item <span class="f">free</span> of <span class="f">shot_vx</span> to <span class="f">ship_vx + sin(angle) * 3 / 8</span></div></div><div class="blk"><div class="blk-label" style="background:#995ba5">set item <span class="f">free</span> of <span class="f">shot_vy</span> to <span class="f">ship_vy - cos(angle) * 3 / 8</span></div></div><div class="blk"><div class="blk-label" style="background:#a55ba5">play beep freq <span class="f">1400</span> ms <span class="f">20</span></div></div></div></div></div></div></div></div><div class="col"><div class="blocks"><div class="blk comment"><div class="blk-label" style="background:#80a55b">comment <span class="f">Bullets fly for 36 frames and wrap around the screen.</span></div></div><div class="blk"><div class="blk-label" style="background:#a56d5b">repeat with <span class="f">s</span> from <span class="f">0</span> to <span class="f">3</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">shot_life[s] &gt; 0</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk more">&hellip;</div></div></div></div></div></div>
+<p>A bullet starts at the nose (8 px ahead) and moves 6 px per frame <strong>plus</strong> the ship's velocity: Galilean relativity in two blocks.</p></div></div>
+</section>
+<section class="slide">
+<h2>Step 5 - Rocks and collisions</h2>
+<div class="blocks"><div class="blk comment"><div class="blk-label" style="background:#80a55b">comment <span class="f">Rocks drift and wrap; count how many are left.</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">rocks_left</span> to <span class="f">0</span></div></div><div class="blk"><div class="blk-label" style="background:#a56d5b">repeat with <span class="f">r</span> from <span class="f">0</span> to <span class="f">11</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">rock_size[r] &gt; 0</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk more">&hellip;</div></div></div></div></div></div>
+</section>
+<section class="slide tight">
+<h2>Step 5 - Circles without square roots</h2>
+<!-- class: tight --><div class="cols"><div class="col"><div class="blocks"><div class="blk comment"><div class="blk-label" style="background:#80a55b">comment <span class="f">Bullet hits: compare squared distances, no square root needed.</span></div></div><div class="blk"><div class="blk-label" style="background:#a56d5b">repeat with <span class="f">s</span> from <span class="f">0</span> to <span class="f">3</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">shot_life[s] &gt; 0 &amp;&amp; rock_size[r] &gt; 0</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">dx</span> to <span class="f">(shot_x[s] - rock_x[r]) / 16</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">dy</span> to <span class="f">(shot_y[s] - rock_y[r]) / 16</span></div></div><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">dx * dx + dy * dy &lt;= radius * radius</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk more">&hellip;</div></div></div></div></div></div></div></div></div><div class="col"><p>A point is inside a circle when <code>dx*dx + dy*dy &lt;= r*r</code>. Comparing <strong>squares</strong> avoids the square root, which a microcontroller would compute slowly.</p>
+<p>Distances are divided by 16 first, so the squares stay small and cannot overflow a 32-bit <code>int</code>.</p></div></div>
+</section>
+<section class="slide">
+<h2>Rocks split in two</h2>
+<p><img alt="Rock pool and splitting" src="../figures/games/asteroids_rocks.svg" /></p>
+</section>
+<section class="slide tight">
+<h2>Step 6 - The split, in blocks</h2>
+<!-- class: tight -->
+
+<div class="blocks"><div class="blk comment"><div class="blk-label" style="background:#80a55b">comment <span class="f">Split: smaller rocks give more points, then the rock becomes one size smaller.</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">score</span> to <span class="f">score + 20 * (4 - rock_size[r]) * (4 - rock_size[r])</span></div></div><div class="blk"><div class="blk-label" style="background:#995ba5">change item <span class="f">r</span> of <span class="f">rock_size</span> by <span class="f">-1</span></div></div><div class="blk"><div class="blk-label" style="background:#a55ba5">play MIDI note <span class="f">50 + rock_size[r] * 6</span> on channel <span class="f">1</span> for <span class="f">120</span> ms</div></div><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">rock_size[r] &gt; 0</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk comment"><div class="blk-label" style="background:#80a55b">comment <span class="f">Find a free slot for the second half of the rock.</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">free</span> to <span class="f">-1</span></div></div><div class="blk"><div class="blk-label" style="background:#a56d5b">repeat with <span class="f">j</span> from <span class="f">0</span> to <span class="f">11</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">free &lt; 0 &amp;&amp; rock_size[j] == 0</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk more">&hellip;</div></div></div></div></div><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">free &gt;= 0</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#995ba5">set item <span class="f">free</span> of <span class="f">rock_size</span> to <span class="f">rock_size[r]</span></div></div><div class="blk"><div class="blk-label" style="background:#995ba5">set item <span class="f">free</span> of <span class="f">rock_x</span> to <span class="f">rock_x[r]</span></div></div><div class="blk"><div class="blk-label" style="background:#995ba5">set item <span class="f">free</span> of <span class="f">rock_y</span> to <span class="f">rock_y[r]</span></div></div><div class="blk"><div class="blk-label" style="background:#995ba5">set item <span class="f">free</span> of <span class="f">rock_vx</span> to <span class="f">-rock_vy[r] - 4</span></div></div><div class="blk"><div class="blk-label" style="background:#995ba5">set item <span class="f">free</span> of <span class="f">rock_vy</span> to <span class="f">rock_vx[r] + 4</span></div></div><div class="blk"><div class="blk-label" style="background:#995ba5">set item <span class="f">r</span> of <span class="f">rock_vx</span> to <span class="f">rock_vy[r] + 4</span></div></div><div class="blk"><div class="blk-label" style="background:#995ba5">set item <span class="f">r</span> of <span class="f">rock_vy</span> to <span class="f">-rock_vx[free] - 4</span></div></div></div></div></div></div></div>
+</section>
+<section class="slide">
+<h2>Step 7 - Losing a ship, next wave</h2><div class="cols"><div class="col"><div class="blocks"><div class="blk comment"><div class="blk-label" style="background:#80a55b">comment <span class="f">Ship collision: the ship counts as a circle of radius 4.</span></div></div><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">mode == 1 &amp;&amp; safe_timer == 0 &amp;&amp; rock_size[r] &gt; 0</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">dx</span> to <span class="f">(ship_x - rock_x[r]) / 16</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">dy</span> to <span class="f">(ship_y - rock_y[r]) / 16</span></div></div><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">dx * dx + dy * dy &lt;= (radius + 4) * (radius + 4)</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#745ba5">change <span class="f">lives</span> by <span class="f">-1</span></div></div><div class="blk"><div class="blk-label" style="background:#a55ba5">play MIDI note <span class="f">30</span> on channel <span class="f">1</span> for <span class="f">600</span> ms</div></div><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">lives &gt; 0</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">ship_x</span> to <span class="f">2560</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">ship_y</span> to <span class="f">1600</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">ship_vx</span> to <span class="f">0</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">ship_vy</span> to <span class="f">0</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">angle</span> to <span class="f">0</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">safe_timer</span> to <span class="f">60</span></div></div></div><div class="blk-label" style="background:#a56d5b">else</div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">mode</span> to <span class="f">2</span></div></div><div class="blk"><div class="blk-label" style="background:#a5a55b">save high score <span class="f">score</span></div></div></div></div></div></div></div></div></div></div><div class="col"><div class="blocks"><div class="blk comment"><div class="blk-label" style="background:#80a55b">comment <span class="f">All rocks destroyed: a bigger wave starts.</span></div></div><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">rocks_left == 0</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#745ba5">change <span class="f">wave</span> by <span class="f">1</span></div></div><div class="blk"><div class="blk-label" style="background:#995ba5">make list <span class="f">rock_size</span> with <span class="f">12</span> items, all <span class="f">0</span></div></div><div class="blk"><div class="blk-label" style="background:#a56d5b">repeat with <span class="f">i</span> from <span class="f">0</span> to <span class="f">min(2 + wave, 7)</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#995ba5">set item <span class="f">i</span> of <span class="f">rock_size</span> to <span class="f">3</span></div></div><div class="blk comment"><div class="blk-label" style="background:#80a55b">comment <span class="f">Big rocks start near the left or right edge with a random drift.</span></div></div><div class="blk"><div class="blk-label" style="background:#995ba5">set item <span class="f">i</span> of <span class="f">rock_x</span> to <span class="f">(random(0, 1) * 260 + random(0, 40)) * 16</span></div></div><div class="blk"><div class="blk-label" style="background:#995ba5">set item <span class="f">i</span> of <span class="f">rock_y</span> to <span class="f">random(20, 180) * 16</span></div></div><div class="blk"><div class="blk-label" style="background:#995ba5">set item <span class="f">i</span> of <span class="f">rock_vx</span> to <span class="f">random(-12, 12)</span></div></div><div class="blk"><div class="blk-label" style="background:#995ba5">set item <span class="f">i</span> of <span class="f">rock_vy</span> to <span class="f">random(-12, 12)</span></div></div><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">rock_vx[i] == 0</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#995ba5">set item <span class="f">i</span> of <span class="f">rock_vx</span> to <span class="f">7</span></div></div></div></div></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">safe_timer</span> to <span class="f">60</span></div></div></div></div></div>
+<p><code>safe_timer</code> counts down 60 frames after a new ship appears: a short <strong>invulnerability window</strong>, visible as blinking.</p></div></div>
+</section>
+<section class="slide tight">
+<!-- class: tight -->
+<h2>Step 8 - Drawing with lines and circles</h2>
+<div class="blocks"><div class="blk comment"><div class="blk-label" style="background:#80a55b">comment <span class="f">The ship is a triangle of three lines, rotated with sin and cos; it blinks while safe.</span></div></div><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">mode == 1 &amp;&amp; (safe_timer == 0 || frame() % 8 &lt; 5)</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#5ba58c">draw line from x <span class="f">ship_x / 16 + sin(angle) * 9 / 256</span> y <span class="f">ship_y / 16 - cos(angle) * 9 / 256</span> to x <span class="f">ship_x / 16 + sin(angle + 140) * 7 / 256</span> y <span class="f">ship_y / 16 - cos(angle + 140) * 7 / 256</span> color <span class="f">cyan</span></div></div><div class="blk"><div class="blk-label" style="background:#5ba58c">draw line from x <span class="f">ship_x / 16 + sin(angle) * 9 / 256</span> y <span class="f">ship_y / 16 - cos(angle) * 9 / 256</span> to x <span class="f">ship_x / 16 + sin(angle + 220) * 7 / 256</span> y <span class="f">ship_y / 16 - cos(angle + 220) * 7 / 256</span> color <span class="f">cyan</span></div></div><div class="blk"><div class="blk-label" style="background:#5ba58c">draw line from x <span class="f">ship_x / 16 + sin(angle + 140) * 7 / 256</span> y <span class="f">ship_y / 16 - cos(angle + 140) * 7 / 256</span> to x <span class="f">ship_x / 16 + sin(angle + 220) * 7 / 256</span> y <span class="f">ship_y / 16 - cos(angle + 220) * 7 / 256</span> color <span class="f">cyan</span></div></div><div class="blk"><div class="blk-label" style="background:#a5745b">if button <span class="f">up</span> is held</div><div class="blk-body" style="border-color:#a5745b"><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">frame() % 4 &lt; 2</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#5ba58c">draw line from x <span class="f">ship_x / 16 + sin(angle + 140) * 7 / 256</span> y <span class="f">ship_y / 16 - cos(angle + 140) * 7 / 256</span> to x <span class="f">ship_x / 16 - sin(angle) * 9 / 256</span> y <span class="f">ship_y / 16 + cos(angle) * 9 / 256</span> color <span class="f">orange</span></div></div><div class="blk"><div class="blk-label" style="background:#5ba58c">draw line from x <span class="f">ship_x / 16 + sin(angle + 220) * 7 / 256</span> y <span class="f">ship_y / 16 - cos(angle + 220) * 7 / 256</span> to x <span class="f">ship_x / 16 - sin(angle) * 9 / 256</span> y <span class="f">ship_y / 16 + cos(angle) * 9 / 256</span> color <span class="f">orange</span></div></div></div></div></div></div></div></div></div>
+<p>The three corners are computed with <code>sin</code> and <code>cos</code> of <code>angle</code>, <code>angle + 140</code> and <code>angle + 220</code>: rotating a triangle <strong>is</strong> computing three points.</p>
+<p><code>frame() % 8 &lt; 5</code> makes the ship blink; <code>frame() % 4 &lt; 2</code> flickers the flame.</p>
+</section>
+<section class="slide tight">
+<!-- class: tight -->
+<h2>Lines in C: Bresenham's algorithm</h2>
+<pre class="c"><code>/* The ship is a triangle of three lines, rotated with sin and cos; it blinks while safe. */
+if (mode == 1 &amp;&amp; (safe_timer == 0 || prg32_kit_frame() % 8 &lt; 5)) {
+    prg32_kit_draw_line(ship_x / 16 + prg32_kit_sin(angle) * 9 / 256, ship_y / 16 - prg32_kit_cos(angle) * 9 / 256, ship_x / 16 + prg32_kit_sin(angle + 140) * 7 / 256, ship_y / 16 - prg32_kit_cos(angle + 140) * 7 / 256, PRG32_COLOR_CYAN);
+    prg32_kit_draw_line(ship_x / 16 + prg32_kit_sin(angle) * 9 / 256, ship_y / 16 - prg32_kit_cos(angle) * 9 / 256, ship_x / 16 + prg32_kit_sin(angle + 220) * 7 / 256, ship_y / 16 - prg32_kit_cos(angle + 220) * 7 / 256, PRG32_COLOR_CYAN);
+    prg32_kit_draw_line(ship_x / 16 + prg32_kit_sin(angle + 140) * 7 / 256, ship_y / 16 - prg32_kit_cos(angle + 140) * 7 / 256, ship_x / 16 + prg32_kit_sin(angle + 220) * 7 / 256, ship_y / 16 - prg32_kit_cos(angle + 220) * 7 / 256, PRG32_COLOR_CYAN);
+    if (input &amp; PRG32_BTN_UP) {
+        if (prg32_kit_frame() % 4 &lt; 2) {
+            prg32_kit_draw_line(ship_x / 16 + prg32_kit_sin(angle + 140) * 7 / 256, ship_y / 16 - prg32_kit_cos(angle + 140) * 7 / 256, ship_x / 16 - prg32_kit_sin(angle) * 9 / 256, ship_y / 16 + prg32_kit_cos(angle) * 9 / 256, PRG32_COLOR_ORANGE);
+            prg32_kit_draw_line(ship_x / 16 + prg32_kit_sin(angle + 220) * 7 / 256, ship_y / 16 - prg32_kit_cos(angle + 220) * 7 / 256, ship_x / 16 - prg32_kit_sin(angle) * 9 / 256, ship_y / 16 + prg32_kit_cos(angle) * 9 / 256, PRG32_COLOR_ORANGE);
+        }
+    }
+}</code></pre>
+<p><code>prg32_kit_draw_line</code> steps one pixel at a time using only additions and comparisons (J. E. Bresenham, 1965).</p>
+</section>
+<section class="slide">
+<h2>Play it in the browser</h2><div class="cols"><div class="col"><p><img alt="The Asteroids project in the editor" src="../figures/games/asteroids-editor.jpg" /></p></div><div class="col"><ol>
+<li>Dashboard, <strong>Examples</strong>, <em>Asteroids</em> (complete game), <strong>Add</strong>.</li>
+<li><strong>Play</strong>, START, then arrows to fly and Z to fire.</li>
+<li>Try the friction: change <code>-ship_vx / 40</code> to <code>-ship_vx / 10</code> and feel the difference.</li>
+<li>Watch <code>ship_x</code> in the debug line: it is 16 times the pixel position.</li>
+</ol></div></div>
+</section>
+<section class="slide shots">
+<!-- class: shots -->
+<h2>Build and run the cartridge</h2><div class="cols"><div class="col"><p><strong>Download .prg32</strong> builds <code>asteroids-esp32c6.prg32</code>; the arrow next to it builds <code>asteroids-qemu.prg32</code>.</p>
+<pre><code class="language-bash">python3 -m prg32 qemu upload asteroids-qemu.prg32
+python3 -m prg32 qemu run
+</code></pre>
+<p>PRG32-QT: <strong>Import Cartridge</strong>, or</p>
+<pre><code class="language-bash">prg32qt-headless asteroids-qemu.prg32 300 --dump-ppm asteroids.ppm
+</code></pre></div><div class="col"><p><img alt="Asteroids on QEMU" src="../figures/games/asteroids-qemu.png" /></p>
+<p><img alt="Asteroids on PRG32-QT" src="../figures/games/asteroids-prg32qt.png" /></p></div></div>
+</section>
+<section class="slide">
+<h2>What the toolchain produced</h2>
+<table>
+<thead>
+<tr>
+<th>Measure</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Blocks</td>
+<td>3 stacks, 211 blocks</td>
+</tr>
+<tr>
+<td>Generated C</td>
+<td>629 lines, with sine table, line and circle helpers</td>
+</tr>
+<tr>
+<td>RISC-V code (rv32imc)</td>
+<td>9308 bytes</td>
+</tr>
+<tr>
+<td>Lists</td>
+<td>12 rock slots x 4 lists, 4 bullet slots x 5 lists</td>
+</tr>
+<tr>
+<td>Floating point</td>
+<td>none: the whole game uses <code>int</code></td>
+</tr>
+<tr>
+<td>Required PRG32 features</td>
+<td><code>audio</code></td>
+</tr>
+<tr>
+<td>Verified on</td>
+<td>simulator, QEMU firmware, PRG32-QT</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section class="slide">
+<h2>Exercises</h2>
+<ol>
+<li><strong>Hyperspace:</strong> B moves the ship to a random place (and sometimes into a rock).</li>
+<li><strong>Real drag:</strong> replace the linear speed limit with a stronger drag only above 48 units. Plot speed against time.</li>
+<li><strong>Precision:</strong> change positions from x 16 to x 4. What do you notice when the ship moves slowly? Explain with quantisation.</li>
+<li><strong>Polygonal rocks:</strong> draw each rock as a hexagon with six <em>draw line</em> blocks and a <code>rock_angle</code> list.</li>
+<li><strong>Analysis:</strong> find the largest <code>dx</code> that keeps <code>dx * dx + dy * dy</code> inside a 32-bit <code>int</code>.</li>
+</ol>
+</section>
+<section class="slide">
+<h2>References</h2>
+<ul>
+<li>J. E. Bresenham, "Algorithm for computer control of a digital plotter", <em>IBM Systems Journal</em> 4(1), 1965.</li>
+<li>J. D. Foley, A. van Dam et al., <em>Computer Graphics: Principles and Practice</em>, Addison-Wesley: scan conversion of lines and circles.</li>
+<li>PRG32: <a href="https://github.com/riscv-prg32/PRG32">https://github.com/riscv-prg32/PRG32</a>; PRG32-QT: <a href="https://github.com/riscv-prg32/PRG32-QT">https://github.com/riscv-prg32/PRG32-QT</a></li>
+<li>Block reference and kit functions (<code>sin</code>, <code>cos</code>, <code>frame</code>): <code>docs/blockly.md</code></li>
+</ul>
+</section>
+</main>
+<nav class="deck-bar" aria-label="Slide navigation">
+  <button type="button" data-go="prev" aria-label="Previous slide">&#8592;</button>
+  <span class="deck-title">Asteroids with PRG32 Blocks</span>
+  <span class="deck-count"></span>
+  <button type="button" data-go="next" aria-label="Next slide">&#8594;</button>
+</nav>
+<script src="deck.js"></script>
+</body>
+</html>

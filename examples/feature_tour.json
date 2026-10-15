@@ -1,0 +1,850 @@
+{
+ "abi": "prg32-construction-kit-project-1.0",
+ "project": {
+  "title": "Feature Tour",
+  "description": "One screen that uses every family of blocks: tiles, scrolling playfield, sprites, palette, lines, circles, lists, sound, status band, multiplayer and player 2.",
+  "author": "PRG32 Kit",
+  "tags": [
+   "tour",
+   "all-blocks",
+   "reference"
+  ],
+  "blocks_json": {
+   "blocks": {
+    "languageVersion": 0,
+    "blocks": [
+     {
+      "type": "prg32_on_start",
+      "id": "feature_tour-71",
+      "inputs": {
+       "DO": {
+        "block": {
+         "type": "prg32_comment",
+         "id": "feature_tour-1",
+         "fields": {
+          "TEXT": "Feature Tour: every family of Construction Kit blocks on one screen."
+         },
+         "next": {
+          "block": {
+           "type": "prg32_splash",
+           "id": "feature_tour-2",
+           "fields": {
+            "TITLE": "FEATURE TOUR",
+            "SUBTITLE": "PRG32 BLOCKS",
+            "MS": "1200",
+            "BG": "NAVY",
+            "FG": "WHITE",
+            "ACCENT": "YELLOW"
+           },
+           "next": {
+            "block": {
+             "type": "prg32_audio_volume",
+             "id": "feature_tour-3",
+             "fields": {
+              "VOLUME": "200"
+             },
+             "next": {
+              "block": {
+               "type": "prg32_mp_join",
+               "id": "feature_tour-4",
+               "next": {
+                "block": {
+                 "type": "prg32_comment",
+                 "id": "feature_tour-5",
+                 "fields": {
+                  "TEXT": "Tiles and a scrolling playfield (layer 0) for the starry background."
+                 },
+                 "next": {
+                  "block": {
+                   "type": "prg32_tile_define",
+                   "id": "feature_tour-6",
+                   "fields": {
+                    "ID": "0",
+                    "FG": "BLACK",
+                    "BG": "NAVY",
+                    "ROW0": "........",
+                    "ROW1": "........",
+                    "ROW2": "........",
+                    "ROW3": "........",
+                    "ROW4": "........",
+                    "ROW5": "........",
+                    "ROW6": "........",
+                    "ROW7": "........"
+                   },
+                   "next": {
+                    "block": {
+                     "type": "prg32_tile_define",
+                     "id": "feature_tour-7",
+                     "fields": {
+                      "ID": "1",
+                      "FG": "YELLOW",
+                      "BG": "NAVY",
+                      "ROW0": "...#....",
+                      "ROW1": "...#....",
+                      "ROW2": ".#####..",
+                      "ROW3": "..###...",
+                      "ROW4": ".##.##..",
+                      "ROW5": "........",
+                      "ROW6": "........",
+                      "ROW7": "........"
+                     },
+                     "next": {
+                      "block": {
+                       "type": "prg32_playfield_clear",
+                       "id": "feature_tour-8",
+                       "fields": {
+                        "LAYER": "0",
+                        "ID": "0"
+                       },
+                       "next": {
+                        "block": {
+                         "type": "prg32_repeat",
+                         "id": "feature_tour-10",
+                         "fields": {
+                          "VAR": "i",
+                          "FROM": "0",
+                          "TO": "40"
+                         },
+                         "inputs": {
+                          "DO": {
+                           "block": {
+                            "type": "prg32_playfield_put",
+                            "id": "feature_tour-9",
+                            "fields": {
+                             "ID": "1",
+                             "LAYER": "0",
+                             "TX": "random(0, 63)",
+                             "TY": "random(0, 31)"
+                            }
+                           }
+                          }
+                         },
+                         "next": {
+                          "block": {
+                           "type": "prg32_comment",
+                           "id": "feature_tour-11",
+                           "fields": {
+                            "TEXT": "Palette entries 16..19 make an indexed colour ramp."
+                           },
+                           "next": {
+                            "block": {
+                             "type": "prg32_palette_set",
+                             "id": "feature_tour-12",
+                             "fields": {
+                              "INDEX": "16",
+                              "COLOR": "RED"
+                             },
+                             "next": {
+                              "block": {
+                               "type": "prg32_palette_set",
+                               "id": "feature_tour-13",
+                               "fields": {
+                                "INDEX": "17",
+                                "COLOR": "ORANGE"
+                               },
+                               "next": {
+                                "block": {
+                                 "type": "prg32_palette_set",
+                                 "id": "feature_tour-14",
+                                 "fields": {
+                                  "INDEX": "18",
+                                  "COLOR": "YELLOW"
+                                 },
+                                 "next": {
+                                  "block": {
+                                   "type": "prg32_palette_set",
+                                   "id": "feature_tour-15",
+                                   "fields": {
+                                    "INDEX": "19",
+                                    "COLOR": "LIME"
+                                   },
+                                   "next": {
+                                    "block": {
+                                     "type": "prg32_list_create",
+                                     "id": "feature_tour-16",
+                                     "fields": {
+                                      "LIST": "trail_x",
+                                      "SIZE": "16",
+                                      "VALUE": "160"
+                                     },
+                                     "next": {
+                                      "block": {
+                                       "type": "prg32_list_create",
+                                       "id": "feature_tour-17",
+                                       "fields": {
+                                        "LIST": "trail_y",
+                                        "SIZE": "16",
+                                        "VALUE": "100"
+                                       },
+                                       "next": {
+                                        "block": {
+                                         "type": "prg32_set_state",
+                                         "id": "feature_tour-18",
+                                         "fields": {
+                                          "VAR": "hero_x",
+                                          "VALUE": "152"
+                                         },
+                                         "next": {
+                                          "block": {
+                                           "type": "prg32_set_state",
+                                           "id": "feature_tour-19",
+                                           "fields": {
+                                            "VAR": "hero_y",
+                                            "VALUE": "120"
+                                           },
+                                           "next": {
+                                            "block": {
+                                             "type": "prg32_set_state",
+                                             "id": "feature_tour-20",
+                                             "fields": {
+                                              "VAR": "p2_x",
+                                              "VALUE": "40"
+                                             },
+                                             "next": {
+                                              "block": {
+                                               "type": "prg32_set_state",
+                                               "id": "feature_tour-21",
+                                               "fields": {
+                                                "VAR": "angle",
+                                                "VALUE": "0"
+                                               },
+                                               "next": {
+                                                "block": {
+                                                 "type": "prg32_set_state",
+                                                 "id": "feature_tour-22",
+                                                 "fields": {
+                                                  "VAR": "beeps",
+                                                  "VALUE": "0"
+                                                 }
+                                                }
+                                               }
+                                              }
+                                             }
+                                            }
+                                           }
+                                          }
+                                         }
+                                        }
+                                       }
+                                      }
+                                     }
+                                    }
+                                   }
+                                  }
+                                 }
+                                }
+                               }
+                              }
+                             }
+                            }
+                           }
+                          }
+                         }
+                        }
+                       }
+                      }
+                     }
+                    }
+                   }
+                  }
+                 }
+                }
+               }
+              }
+             }
+            }
+           }
+          }
+         }
+        }
+       }
+      },
+      "x": 20,
+      "y": 20
+     },
+     {
+      "type": "prg32_update",
+      "id": "feature_tour-72",
+      "inputs": {
+       "DO": {
+        "block": {
+         "type": "prg32_if_button",
+         "id": "feature_tour-24",
+         "fields": {
+          "BUTTON": "LEFT"
+         },
+         "inputs": {
+          "DO": {
+           "block": {
+            "type": "prg32_change_state",
+            "id": "feature_tour-23",
+            "fields": {
+             "VAR": "hero_x",
+             "DELTA": "-3"
+            }
+           }
+          }
+         },
+         "next": {
+          "block": {
+           "type": "prg32_if_button",
+           "id": "feature_tour-26",
+           "fields": {
+            "BUTTON": "RIGHT"
+           },
+           "inputs": {
+            "DO": {
+             "block": {
+              "type": "prg32_change_state",
+              "id": "feature_tour-25",
+              "fields": {
+               "VAR": "hero_x",
+               "DELTA": "3"
+              }
+             }
+            }
+           },
+           "next": {
+            "block": {
+             "type": "prg32_if_button",
+             "id": "feature_tour-28",
+             "fields": {
+              "BUTTON": "UP"
+             },
+             "inputs": {
+              "DO": {
+               "block": {
+                "type": "prg32_change_state",
+                "id": "feature_tour-27",
+                "fields": {
+                 "VAR": "hero_y",
+                 "DELTA": "-3"
+                }
+               }
+              }
+             },
+             "next": {
+              "block": {
+               "type": "prg32_if_button",
+               "id": "feature_tour-30",
+               "fields": {
+                "BUTTON": "DOWN"
+               },
+               "inputs": {
+                "DO": {
+                 "block": {
+                  "type": "prg32_change_state",
+                  "id": "feature_tour-29",
+                  "fields": {
+                   "VAR": "hero_y",
+                   "DELTA": "3"
+                  }
+                 }
+                }
+               },
+               "next": {
+                "block": {
+                 "type": "prg32_wrap_state",
+                 "id": "feature_tour-31",
+                 "fields": {
+                  "VAR": "hero_x",
+                  "LOW": "0",
+                  "HIGH": "304"
+                 },
+                 "next": {
+                  "block": {
+                   "type": "prg32_clamp_state",
+                   "id": "feature_tour-32",
+                   "fields": {
+                    "VAR": "hero_y",
+                    "LOW": "40",
+                    "HIGH": "176"
+                   },
+                   "next": {
+                    "block": {
+                     "type": "prg32_if_button",
+                     "id": "feature_tour-34",
+                     "fields": {
+                      "BUTTON": "P2_LEFT"
+                     },
+                     "inputs": {
+                      "DO": {
+                       "block": {
+                        "type": "prg32_change_state",
+                        "id": "feature_tour-33",
+                        "fields": {
+                         "VAR": "p2_x",
+                         "DELTA": "-3"
+                        }
+                       }
+                      }
+                     },
+                     "next": {
+                      "block": {
+                       "type": "prg32_if_button",
+                       "id": "feature_tour-36",
+                       "fields": {
+                        "BUTTON": "P2_RIGHT"
+                       },
+                       "inputs": {
+                        "DO": {
+                         "block": {
+                          "type": "prg32_change_state",
+                          "id": "feature_tour-35",
+                          "fields": {
+                           "VAR": "p2_x",
+                           "DELTA": "3"
+                          }
+                         }
+                        }
+                       },
+                       "next": {
+                        "block": {
+                         "type": "prg32_clamp_state",
+                         "id": "feature_tour-37",
+                         "fields": {
+                          "VAR": "p2_x",
+                          "LOW": "0",
+                          "HIGH": "304"
+                         },
+                         "next": {
+                          "block": {
+                           "type": "prg32_if_button_once",
+                           "id": "feature_tour-40",
+                           "fields": {
+                            "BUTTON": "A"
+                           },
+                           "inputs": {
+                            "DO": {
+                             "block": {
+                              "type": "prg32_change_state",
+                              "id": "feature_tour-38",
+                              "fields": {
+                               "VAR": "beeps",
+                               "DELTA": "1"
+                              },
+                              "next": {
+                               "block": {
+                                "type": "prg32_audio_note",
+                                "id": "feature_tour-39",
+                                "fields": {
+                                 "NOTE": "60 + beeps % 12",
+                                 "CHANNEL": "1",
+                                 "MS": "120"
+                                }
+                               }
+                              }
+                             }
+                            }
+                           },
+                           "next": {
+                            "block": {
+                             "type": "prg32_if_button_once",
+                             "id": "feature_tour-42",
+                             "fields": {
+                              "BUTTON": "B"
+                             },
+                             "inputs": {
+                              "DO": {
+                               "block": {
+                                "type": "prg32_audio_stop",
+                                "id": "feature_tour-41",
+                                "fields": {
+                                 "CHANNEL": "1"
+                                }
+                               }
+                              }
+                             },
+                             "next": {
+                              "block": {
+                               "type": "prg32_change_state",
+                               "id": "feature_tour-43",
+                               "fields": {
+                                "VAR": "angle",
+                                "DELTA": "4"
+                               },
+                               "next": {
+                                "block": {
+                                 "type": "prg32_wrap_state",
+                                 "id": "feature_tour-44",
+                                 "fields": {
+                                  "VAR": "angle",
+                                  "LOW": "0",
+                                  "HIGH": "359"
+                                 },
+                                 "next": {
+                                  "block": {
+                                   "type": "prg32_list_set",
+                                   "id": "feature_tour-45",
+                                   "fields": {
+                                    "LIST": "trail_x",
+                                    "INDEX": "frame() % 16",
+                                    "VALUE": "hero_x + 8"
+                                   },
+                                   "next": {
+                                    "block": {
+                                     "type": "prg32_list_set",
+                                     "id": "feature_tour-46",
+                                     "fields": {
+                                      "LIST": "trail_y",
+                                      "INDEX": "frame() % 16",
+                                      "VALUE": "hero_y + 8"
+                                     },
+                                     "next": {
+                                      "block": {
+                                       "type": "prg32_playfield_scroll",
+                                       "id": "feature_tour-47",
+                                       "fields": {
+                                        "LAYER": "0",
+                                        "X": "frame() / 2",
+                                        "Y": "0"
+                                       },
+                                       "next": {
+                                        "block": {
+                                         "type": "prg32_playfield_camera",
+                                         "id": "feature_tour-48",
+                                         "fields": {
+                                          "X": "0",
+                                          "Y": "0"
+                                         },
+                                         "next": {
+                                          "block": {
+                                           "type": "prg32_mp_share",
+                                           "id": "feature_tour-49",
+                                           "fields": {
+                                            "X": "hero_x",
+                                            "Y": "hero_y",
+                                            "LOOK": "1"
+                                           },
+                                           "next": {
+                                            "block": {
+                                             "type": "prg32_band_text",
+                                             "id": "feature_tour-50",
+                                             "fields": {
+                                              "TEXT": "BEEPS",
+                                              "VALUE": "beeps"
+                                             },
+                                             "next": {
+                                              "block": {
+                                               "type": "prg32_if_touching",
+                                               "id": "feature_tour-52",
+                                               "fields": {
+                                                "AX": "hero_x",
+                                                "AY": "hero_y",
+                                                "AW": "16",
+                                                "AH": "16",
+                                                "BX": "p2_x",
+                                                "BY": "176",
+                                                "BW": "16",
+                                                "BH": "8"
+                                               },
+                                               "inputs": {
+                                                "DO": {
+                                                 "block": {
+                                                  "type": "prg32_set_state",
+                                                  "id": "feature_tour-51",
+                                                  "fields": {
+                                                   "VAR": "hero_y",
+                                                   "VALUE": "150"
+                                                  }
+                                                 }
+                                                }
+                                               }
+                                              }
+                                             }
+                                            }
+                                           }
+                                          }
+                                         }
+                                        }
+                                       }
+                                      }
+                                     }
+                                    }
+                                   }
+                                  }
+                                 }
+                                }
+                               }
+                              }
+                             }
+                            }
+                           }
+                          }
+                         }
+                        }
+                       }
+                      }
+                     }
+                    }
+                   }
+                  }
+                 }
+                }
+               }
+              }
+             }
+            }
+           }
+          }
+         }
+        }
+       }
+      },
+      "x": 520,
+      "y": 20
+     },
+     {
+      "type": "prg32_draw",
+      "id": "feature_tour-73",
+      "inputs": {
+       "DO": {
+        "block": {
+         "type": "prg32_playfield_draw",
+         "id": "feature_tour-53",
+         "fields": {
+          "LAYER": "0",
+          "TRANSPARENT": "OPAQUE"
+         },
+         "next": {
+          "block": {
+           "type": "prg32_draw_text",
+           "id": "feature_tour-54",
+           "fields": {
+            "TEXT": "FEATURE TOUR",
+            "X": "4",
+            "Y": "4",
+            "FG": "WHITE",
+            "BG": "NAVY"
+           },
+           "next": {
+            "block": {
+             "type": "prg32_draw_text",
+             "id": "feature_tour-55",
+             "fields": {
+              "TEXT": "PEERS",
+              "X": "232",
+              "Y": "4",
+              "FG": "GRAY",
+              "BG": "NAVY"
+             },
+             "next": {
+              "block": {
+               "type": "prg32_draw_number",
+               "id": "feature_tour-56",
+               "fields": {
+                "VALUE": "peers()",
+                "X": "280",
+                "Y": "4",
+                "FG": "WHITE",
+                "BG": "NAVY"
+               },
+               "next": {
+                "block": {
+                 "type": "prg32_repeat",
+                 "id": "feature_tour-58",
+                 "fields": {
+                  "VAR": "i",
+                  "FROM": "0",
+                  "TO": "3"
+                 },
+                 "inputs": {
+                  "DO": {
+                   "block": {
+                    "type": "prg32_draw_rect_indexed",
+                    "id": "feature_tour-57",
+                    "fields": {
+                     "X": "8 + i * 12",
+                     "Y": "20",
+                     "W": "10",
+                     "H": "10",
+                     "INDEX": "16 + i"
+                    }
+                   }
+                  }
+                 },
+                 "next": {
+                  "block": {
+                   "type": "prg32_draw_pixel_indexed",
+                   "id": "feature_tour-59",
+                   "fields": {
+                    "X": "60",
+                    "Y": "25",
+                    "INDEX": "18"
+                   },
+                   "next": {
+                    "block": {
+                     "type": "prg32_draw_pixel",
+                     "id": "feature_tour-60",
+                     "fields": {
+                      "X": "64",
+                      "Y": "25",
+                      "COLOR": "WHITE"
+                     },
+                     "next": {
+                      "block": {
+                       "type": "prg32_draw_frame",
+                       "id": "feature_tour-61",
+                       "fields": {
+                        "X": "70",
+                        "Y": "18",
+                        "W": "60",
+                        "H": "14",
+                        "COLOR": "CYAN"
+                       },
+                       "next": {
+                        "block": {
+                         "type": "prg32_draw_rect_rgb",
+                         "id": "feature_tour-62",
+                         "fields": {
+                          "X": "72",
+                          "Y": "20",
+                          "W": "(frame() * 2) % 56",
+                          "H": "10",
+                          "RGB": "rgb(frame() % 256, 128, 255 - frame() % 256)"
+                         },
+                         "next": {
+                          "block": {
+                           "type": "prg32_draw_circle",
+                           "id": "feature_tour-63",
+                           "fields": {
+                            "X": "270",
+                            "Y": "60",
+                            "R": "14",
+                            "COLOR": "LIME",
+                            "FILL": "FILLED"
+                           },
+                           "next": {
+                            "block": {
+                             "type": "prg32_draw_circle",
+                             "id": "feature_tour-64",
+                             "fields": {
+                              "X": "270",
+                              "Y": "60",
+                              "R": "18",
+                              "COLOR": "WHITE",
+                              "FILL": "OUTLINE"
+                             },
+                             "next": {
+                              "block": {
+                               "type": "prg32_draw_line",
+                               "id": "feature_tour-65",
+                               "fields": {
+                                "X1": "270",
+                                "Y1": "60",
+                                "X2": "270 + cos(angle) * 18 / 256",
+                                "Y2": "60 + sin(angle) * 18 / 256",
+                                "COLOR": "RED"
+                               },
+                               "next": {
+                                "block": {
+                                 "type": "prg32_repeat",
+                                 "id": "feature_tour-67",
+                                 "fields": {
+                                  "VAR": "i",
+                                  "FROM": "0",
+                                  "TO": "15"
+                                 },
+                                 "inputs": {
+                                  "DO": {
+                                   "block": {
+                                    "type": "prg32_draw_rect",
+                                    "id": "feature_tour-66",
+                                    "fields": {
+                                     "X": "trail_x[i] - 1",
+                                     "Y": "trail_y[i] - 1",
+                                     "W": "2",
+                                     "H": "2",
+                                     "COLOR": "ORANGE"
+                                    }
+                                   }
+                                  }
+                                 },
+                                 "next": {
+                                  "block": {
+                                   "type": "prg32_draw_bitmap",
+                                   "id": "feature_tour-68",
+                                   "fields": {
+                                    "X": "hero_x",
+                                    "Y": "hero_y",
+                                    "COLOR": "YELLOW",
+                                    "SCALE": "2",
+                                    "ROW0": "...#....",
+                                    "ROW1": "...#....",
+                                    "ROW2": ".#####..",
+                                    "ROW3": "..###...",
+                                    "ROW4": ".##.##..",
+                                    "ROW5": "........",
+                                    "ROW6": "........",
+                                    "ROW7": "........"
+                                   },
+                                   "next": {
+                                    "block": {
+                                     "type": "prg32_draw_sprite8",
+                                     "id": "feature_tour-69",
+                                     "fields": {
+                                      "X": "p2_x",
+                                      "Y": "176",
+                                      "FG": "MAGENTA",
+                                      "BG": "BLACK",
+                                      "ROW0": "...#....",
+                                      "ROW1": "...#....",
+                                      "ROW2": ".#####..",
+                                      "ROW3": "..###...",
+                                      "ROW4": ".##.##..",
+                                      "ROW5": "........",
+                                      "ROW6": "........",
+                                      "ROW7": "........"
+                                     },
+                                     "next": {
+                                      "block": {
+                                       "type": "prg32_draw_text",
+                                       "id": "feature_tour-70",
+                                       "fields": {
+                                        "TEXT": "A: NOTE  B: STOP  P2: J/L",
+                                        "X": "64",
+                                        "Y": "188",
+                                        "FG": "GRAY",
+                                        "BG": "NAVY"
+                                       }
+                                      }
+                                     }
+                                    }
+                                   }
+                                  }
+                                 }
+                                }
+                               }
+                              }
+                             }
+                            }
+                           }
+                          }
+                         }
+                        }
+                       }
+                      }
+                     }
+                    }
+                   }
+                  }
+                 }
+                }
+               }
+              }
+             }
+            }
+           }
+          }
+         }
+        }
+       }
+      },
+      "x": 1120,
+      "y": 20
+     }
+    ]
+   }
+  }
+ }
+}

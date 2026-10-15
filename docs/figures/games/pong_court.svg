@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540" style="white-space: pre" font-family="Helvetica, Arial, sans-serif">
+  <title>Pong court geometry in PRG32 screen coordinates</title>
+  <defs>
+    <marker id="v" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#facc15"/></marker>
+    <marker id="d" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#475569"/></marker>
+  </defs>
+  <rect width="960" height="540" fill="#ffffff"/>
+  <text x="30" y="38" font-size="22" font-weight="bold" fill="#0f172a">The court: 320 x 200 pixels, y grows downwards (drawn at 2x)</text>
+  <!-- screen at 2x: origin (40,70) -->
+  <rect x="40" y="70" width="640" height="400" fill="#000"/>
+  <rect x="40" y="102" width="640" height="4" fill="#808080"/>
+  <rect x="40" y="466" width="640" height="4" fill="#808080"/>
+  <g fill="#404040">
+    <rect x="358" y="112" width="4" height="16"/><rect x="358" y="142" width="4" height="16"/><rect x="358" y="172" width="4" height="16"/>
+    <rect x="358" y="202" width="4" height="16"/><rect x="358" y="232" width="4" height="16"/><rect x="358" y="262" width="4" height="16"/>
+    <rect x="358" y="292" width="4" height="16"/><rect x="358" y="322" width="4" height="16"/><rect x="358" y="352" width="4" height="16"/>
+    <rect x="358" y="382" width="4" height="16"/><rect x="358" y="412" width="4" height="16"/><rect x="358" y="442" width="4" height="16"/>
+  </g>
+  <rect x="60" y="234" width="12" height="72" fill="#00ffff"/>
+  <rect x="648" y="190" width="12" height="72" fill="#ff8c00"/>
+  <rect x="400" y="300" width="12" height="12" fill="#fff"/>
+  <line x1="412" y1="306" x2="470" y2="276" stroke="#facc15" stroke-width="3" marker-end="url(#v)"/>
+  <text x="474" y="270" font-size="14" fill="#facc15">(ball_dx, ball_dy)</text>
+  <text x="96" y="92" font-size="14" fill="#ffffff">YOU 0</text>
+  <text x="560" y="92" font-size="14" fill="#ffffff">0 CPU</text>
+  <text x="48" y="88" font-size="11" fill="#94a3b8">(0,0)</text>
+  <!-- labels -->
+  <g font-size="13" fill="#0f172a">
+    <text x="700" y="108">top wall y = 16..17</text>
+    <text x="700" y="470">bottom wall y = 198</text>
+    <text x="700" y="232">CPU paddle x = 304</text>
+    <text x="700" y="250">6 x 36 pixels, speed 3</text>
+    <text x="700" y="320">ball 6 x 6 at (ball_x, ball_y)</text>
+    <text x="700" y="338">|ball_dx| from 3 up to 7</text>
+    <text x="700" y="400">player paddle x = 10, y = player_y</text>
+    <text x="700" y="418">clamped to 20..160, speed 4</text>
+  </g>
+  <line x1="78" y1="270" x2="96" y2="270" stroke="#475569"/>
+  <line x1="74" y1="270" x2="697" y2="400" stroke="#cbd5e1" stroke-dasharray="4 4"/>
+  <line x1="660" y1="226" x2="697" y2="228" stroke="#cbd5e1" stroke-dasharray="4 4"/>
+  <line x1="412" y1="312" x2="697" y2="318" stroke="#cbd5e1" stroke-dasharray="4 4"/>
+  <!-- angle rule -->
+  <rect x="40" y="488" width="880" height="40" rx="8" fill="#f8fafc" stroke="#cbd5e1"/>
+  <text x="480" y="514" text-anchor="middle" font-size="16" fill="#0f172a" font-family="Menlo, monospace">new ball_dy = (ball centre - paddle centre) / 4  =  (ball_y + 3 - (paddle_y + 18)) / 4</text>
+</svg>

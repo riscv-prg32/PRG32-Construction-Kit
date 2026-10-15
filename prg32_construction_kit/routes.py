@@ -23,7 +23,7 @@ from .build_slots import BuildServerBusy, build_slot
 from .generator import blocks_to_c, sprite_to_c
 from .packager import SUPPORTED_ARCHITECTURES, prepare_package
 from .publisher import publish_bundle
-from .sample_data import UPSTREAM_EXAMPLES, upstream_example_projects
+from .sample_data import example_catalog
 from .source_project import validate_c_source, validate_features
 
 bp = Blueprint("kit", __name__)
@@ -201,12 +201,12 @@ def api_import_project():
 
 @bp.get("/api/examples")
 def api_list_examples():
-    """List built-in Blocks adaptations of the upstream PRG32 examples."""
+    """List the complete Blocks games and the short Blocks sketches of the upstream PRG32 examples."""
     return jsonify(
         {
             "examples": [
-                {"slug": slug, "title": title, "description": description}
-                for slug, title, description, _color, _x_name, _y_name in UPSTREAM_EXAMPLES
+                {"slug": item["slug"], "title": item["title"], "description": item["description"], "kind": item["kind"]}
+                for item in example_catalog()
             ]
         }
     )
@@ -214,9 +214,9 @@ def api_list_examples():
 
 @bp.post("/api/examples/<slug>/import")
 def api_import_example(slug: str):
-    for example, project in zip(UPSTREAM_EXAMPLES, upstream_example_projects()):
-        if example[0] == slug:
-            return jsonify(create_resource("projects", project)), 201
+    for item in example_catalog():
+        if item["slug"] == slug:
+            return jsonify(create_resource("projects", item["project"])), 201
     return json_error("Example not found", 404)
 
 

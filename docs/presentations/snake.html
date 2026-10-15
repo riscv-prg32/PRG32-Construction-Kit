@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Snake with PRG32 Blocks</title>
+<link rel="stylesheet" href="deck.css">
+</head>
+<body>
+<!-- Built by tools/build_presentations.py from docs/tutorials/games/snake.md; edit that file, not this one. -->
+<main class="deck" data-title="Snake with PRG32 Blocks">
+<section class="slide title">
+<!-- class: title -->
+<h1>Snake</h1>
+<h2>A grid world: tiles, playfields and a ring buffer</h2>
+<p>PRG32-Construction-Kit tutorial deck, step by step, from blocks to a RISC-V cartridge.</p>
+<p><img alt="Snake running on PRG32-QT" src="../figures/games/snake-prg32qt.png" /></p>
+</section>
+<section class="slide">
+<h2>Learning outcomes</h2>
+<ol>
+<li>design a game on a <strong>discrete grid</strong> where the screen is also the data structure;</li>
+<li>use the PRG32 <strong>tile and playfield API</strong> (<code>prg32_tile_define</code>, <code>prg32_playfield_put</code>, <code>prg32_playfield_get</code>, <code>prg32_playfield_draw</code>);</li>
+<li>store a growing body in a <strong>ring buffer</strong> with constant-time moves;</li>
+<li>separate <strong>input timing</strong> (every frame) from <strong>game timing</strong> (one move every N frames);</li>
+<li>place items with <strong>randomised retries</strong> and reason about their cost.</li>
+</ol>
+<p><strong>Prerequisites:</strong> the Breakout tutorial (lists). About 90 minutes.</p>
+</section>
+<section class="slide">
+<h2>Context</h2>
+<ul>
+<li>The idea comes from <strong>Blockade</strong> (Gremlin, 1976), a two-player arcade game in which trails became walls.</li>
+<li>It reached hundreds of millions of people as <strong>Snake</strong> on Nokia phones from 1997 (Taneli Armanto's version for the Nokia 6110).</li>
+<li>Snake is a <strong>cellular</strong> game: the world is a grid, time advances in steps, and every rule is a local look-up.</li>
+</ul>
+<blockquote>
+<p>Tile-based worlds power most 8-bit and 16-bit games. PRG32 provides them in firmware: two playfield layers of 64 x 32 tiles with scrolling.</p>
+</blockquote>
+<p><em>Original, classic-inspired reimplementation for teaching; not affiliated with the historical products.</em></p>
+</section>
+<section class="slide">
+<h2>Rules and controls</h2><div class="cols"><div class="col"><table>
+<thead>
+<tr>
+<th>Button</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>arrows</td>
+<td>turn (never straight back)</td>
+</tr>
+<tr>
+<td>START</td>
+<td>start / play again</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>Eat apples to grow by one cell and score 10 points.</li>
+<li>Hitting a wall or your own body ends the game.</li>
+<li>Every 60 points the snake gets faster: from 5 to 15 moves per second.</li>
+</ul></div><div class="col"><p><img alt="Snake title screen" src="../figures/games/snake-title.png" /></p></div></div>
+</section>
+<section class="slide">
+<h2>The board is a playfield</h2>
+<p><img alt="Tiles and the playfield" src="../figures/games/snake_tiles.svg" /></p>
+</section>
+<section class="slide tight">
+<h2>Step 1 - Defining tiles</h2>
+<!-- class: tight -->
+
+<div class="blocks"><div class="blk comment"><div class="blk-label" style="background:#80a55b">comment <span class="f">Tiles 1-4: wall, body, head and apple, each an 8 x 8 picture with two colours.</span></div></div><div class="blk"><div class="blk-label" style="background:#a55b80">define tile <span class="f">1</span> fg <span class="f">brown</span> bg <span class="f">dark gray</span><span class="pic"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class=""></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class=""></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class="on"></i><i class="on"></i><i class=""></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class=""></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class=""></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i></span></div></div><div class="blk"><div class="blk-label" style="background:#a55b80">define tile <span class="f">2</span> fg <span class="f">green</span> bg <span class="f">black</span><span class="pic"><i class=""></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class=""></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class=""></i><i class="on"></i><i class="on"></i><i class=""></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class=""></i><i class="on"></i><i class="on"></i><i class=""></i><i class="on"></i><i class="on"></i><i class=""></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class=""></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class=""></i></span></div></div><div class="blk"><div class="blk-label" style="background:#a55b80">define tile <span class="f">3</span> fg <span class="f">lime</span> bg <span class="f">black</span><span class="pic"><i class=""></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class=""></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class=""></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class=""></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class=""></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class=""></i></span></div></div><div class="blk"><div class="blk-label" style="background:#a55b80">define tile <span class="f">4</span> fg <span class="f">red</span> bg <span class="f">black</span><span class="pic"><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class="on"></i><i class=""></i><i class="on"></i><i class="on"></i><i class=""></i><i class=""></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class=""></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class=""></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class=""></i><i class=""></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i></span></div></div><div class="blk"><div class="blk-label" style="background:#995ba5">make list <span class="f">body_x</span> with <span class="f">512</span> items, all <span class="f">0</span></div></div><div class="blk"><div class="blk-label" style="background:#995ba5">make list <span class="f">body_y</span> with <span class="f">512</span> items, all <span class="f">0</span></div></div></div>
+</section>
+<section class="slide">
+<h2>Step 1 - Tiles, explained</h2><div class="cols"><div class="col"><div class="blocks"><div class="blk comment"><div class="blk-label" style="background:#80a55b">comment <span class="f">Tile 0 is the empty floor. Defining it keeps every PRG32 runtime drawing it the same way.</span></div></div><div class="blk"><div class="blk-label" style="background:#a55b80">define tile <span class="f">0</span> fg <span class="f">black</span> bg <span class="f">black</span><span class="pic"><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i></span></div></div></div></div><div class="col"><ul>
+<li>A tile is an 8 x 8 picture with a foreground and a background colour: eight bytes plus two colours in firmware memory.</li>
+<li><strong>Tile 0</strong> is the floor. Define it explicitly: the ESP32 firmware paints an undefined tile with black, but other PRG32 runtimes may skip it.</li>
+<li>Tiles are defined once in <em>when game starts</em>; the board only stores tile <strong>numbers</strong>.</li>
+</ul>
+<pre class="c"><code>/* Tiles 1-4: wall, body, head and apple, each an 8 x 8 picture with two colours. */
+prg32_tile_define(1, prg32_kit_bitmap_1, PRG32_COLOR_BROWN, PRG32_COLOR_DARK_GRAY);
+prg32_tile_define(2, prg32_kit_bitmap_2, PRG32_COLOR_GREEN, PRG32_COLOR_BLACK);
+prg32_tile_define(3, prg32_kit_bitmap_3, PRG32_COLOR_LIME, PRG32_COLOR_BLACK);
+prg32_tile_define(4, prg32_kit_bitmap_4, PRG32_COLOR_RED, PRG32_COLOR_BLACK);
+prg32_kit_fill(body_x, 512, 0);
+prg32_kit_fill(body_y, 512, 0);</code></pre></div></div>
+</section>
+<section class="slide">
+<h2>Step 2 - A new board</h2><div class="cols"><div class="col"><div class="blocks"><div class="blk comment"><div class="blk-label" style="background:#80a55b">comment <span class="f">New board: clear the playfield, then put wall tiles (1) all around it.</span></div></div><div class="blk"><div class="blk-label" style="background:#a55b80">fill playfield layer <span class="f">0</span> with tile <span class="f">0</span></div></div><div class="blk"><div class="blk-label" style="background:#a56d5b">repeat with <span class="f">i</span> from <span class="f">0</span> to <span class="f">39</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#a55b80">put tile <span class="f">1</span> on layer <span class="f">0</span> at column <span class="f">i</span> row <span class="f">2</span></div></div><div class="blk"><div class="blk-label" style="background:#a55b80">put tile <span class="f">1</span> on layer <span class="f">0</span> at column <span class="f">i</span> row <span class="f">24</span></div></div></div></div><div class="blk"><div class="blk-label" style="background:#a56d5b">repeat with <span class="f">i</span> from <span class="f">2</span> to <span class="f">24</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#a55b80">put tile <span class="f">1</span> on layer <span class="f">0</span> at column <span class="f">0</span> row <span class="f">i</span></div></div><div class="blk"><div class="blk-label" style="background:#a55b80">put tile <span class="f">1</span> on layer <span class="f">0</span> at column <span class="f">39</span> row <span class="f">i</span></div></div></div></div></div></div><div class="col"><ul>
+<li><em>fill playfield</em> writes tile 0 into all 64 x 32 cells.</li>
+<li>Two <em>repeat</em> blocks draw the walls: rows 2 and 24, columns 0 and 39 (the visible board is 40 x 25 tiles).</li>
+<li>Rows 0-1 stay empty for the score.</li>
+</ul></div></div>
+</section>
+<section class="slide">
+<h2>The body is a ring buffer</h2>
+<p><img alt="Ring buffer" src="../figures/games/snake_ring.svg" /></p>
+</section>
+<section class="slide tight">
+<h2>Step 3 - The snake and the first apple</h2>
+<!-- class: tight --><div class="cols"><div class="col"><div class="blocks"><div class="blk comment"><div class="blk-label" style="background:#80a55b">comment <span class="f">The body is a ring buffer: head is the newest cell, length cells back is the tail.</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">head</span> to <span class="f">3</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">length</span> to <span class="f">4</span></div></div><div class="blk"><div class="blk-label" style="background:#a56d5b">repeat with <span class="f">i</span> from <span class="f">0</span> to <span class="f">3</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#995ba5">set item <span class="f">i</span> of <span class="f">body_x</span> to <span class="f">17 + i</span></div></div><div class="blk"><div class="blk-label" style="background:#995ba5">set item <span class="f">i</span> of <span class="f">body_y</span> to <span class="f">13</span></div></div><div class="blk"><div class="blk-label" style="background:#a55b80">put tile <span class="f">2</span> on layer <span class="f">0</span> at column <span class="f">17 + i</span> row <span class="f">13</span></div></div></div></div><div class="blk"><div class="blk-label" style="background:#a55b80">put tile <span class="f">3</span> on layer <span class="f">0</span> at column <span class="f">20</span> row <span class="f">13</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">dir_x</span> to <span class="f">1</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">dir_y</span> to <span class="f">0</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">next_x</span> to <span class="f">1</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">next_y</span> to <span class="f">0</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">score</span> to <span class="f">0</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">move_timer</span> to <span class="f">0</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">speed</span> to <span class="f">6</span></div></div></div></div><div class="col"><div class="blocks"><div class="blk comment"><div class="blk-label" style="background:#80a55b">comment <span class="f">Try random cells until an empty one is found.</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">placed</span> to <span class="f">0</span></div></div><div class="blk"><div class="blk-label" style="background:#a56d5b">repeat with <span class="f">attempt</span> from <span class="f">1</span> to <span class="f">200</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">placed == 0</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk more">&hellip;</div></div></div></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">mode</span> to <span class="f">0</span></div></div></div>
+<p>Random retries are simple and almost always fast: with an empty board nearly every try succeeds. The <em>repeat</em> stops after 200 tries, so a full board can never freeze the game.</p></div></div>
+</section>
+<section class="slide">
+<h2>Step 4 - Steering</h2><div class="cols"><div class="col"><div class="blocks"><div class="blk comment"><div class="blk-label" style="background:#80a55b">comment <span class="f">Turning is allowed only sideways: the snake cannot reverse into itself.</span></div></div><div class="blk"><div class="blk-label" style="background:#a5745b">if button <span class="f">left</span> is held</div><div class="blk-body" style="border-color:#a5745b"><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">dir_x == 0</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">next_x</span> to <span class="f">-1</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">next_y</span> to <span class="f">0</span></div></div></div></div></div></div><div class="blk"><div class="blk-label" style="background:#a5745b">if button <span class="f">right</span> is held</div><div class="blk-body" style="border-color:#a5745b"><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">dir_x == 0</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">next_x</span> to <span class="f">1</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">next_y</span> to <span class="f">0</span></div></div></div></div></div></div><div class="blk"><div class="blk-label" style="background:#a5745b">if button <span class="f">up</span> is held</div><div class="blk-body" style="border-color:#a5745b"><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">dir_y == 0</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">next_x</span> to <span class="f">0</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">next_y</span> to <span class="f">-1</span></div></div></div></div></div></div><div class="blk"><div class="blk-label" style="background:#a5745b">if button <span class="f">down</span> is held</div><div class="blk-body" style="border-color:#a5745b"><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">dir_y == 0</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">next_x</span> to <span class="f">0</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">next_y</span> to <span class="f">1</span></div></div></div></div></div></div></div></div><div class="col"><ul>
+<li>Input is read <strong>every frame</strong>, but the snake moves only every few frames. <code>next_x</code>, <code>next_y</code> remember the last valid choice until the next move.</li>
+<li>A turn is accepted only across the current direction (<code>dir_x == 0</code> for left/right): the snake can never reverse into its own neck.</li>
+</ul></div></div>
+</section>
+<section class="slide tight">
+<h2>Step 5 - Timing the moves</h2>
+<!-- class: tight -->
+
+<div class="blocks"><div class="blk comment"><div class="blk-label" style="background:#80a55b">comment <span class="f">The snake moves one cell every &#x27;speed&#x27; frames.</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">change <span class="f">move_timer</span> by <span class="f">1</span></div></div><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">move_timer &gt;= speed</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">move_timer</span> to <span class="f">0</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">dir_x</span> to <span class="f">next_x</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">dir_y</span> to <span class="f">next_y</span></div></div><div class="blk comment"><div class="blk-label" style="background:#80a55b">comment <span class="f">Look at the tile in front of the head: a wall or the body ends the game.</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">new_x</span> to <span class="f">body_x[head] + dir_x</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">new_y</span> to <span class="f">body_y[head] + dir_y</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">what</span> to <span class="f">tile(0, new_x, new_y)</span></div></div><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">what == 1 || what == 2</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk more">&hellip;</div></div><div class="blk-label" style="background:#a56d5b">else</div><div class="blk-body" style="border-color:#a56d5b"><div class="blk more">&hellip;</div></div></div></div></div></div>
+<p><code>move_timer</code> counts frames; at <code>speed</code> frames the snake moves one cell. At 30 FPS a speed of 6 is 5 moves per second.</p>
+</section>
+<section class="slide">
+<h2>Step 6 - Look before you move</h2><div class="cols"><div class="col"><div class="blocks"><div class="blk comment"><div class="blk-label" style="background:#80a55b">comment <span class="f">Look at the tile in front of the head: a wall or the body ends the game.</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">new_x</span> to <span class="f">body_x[head] + dir_x</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">new_y</span> to <span class="f">body_y[head] + dir_y</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">what</span> to <span class="f">tile(0, new_x, new_y)</span></div></div><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">what == 1 || what == 2</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk more">&hellip;</div></div><div class="blk-label" style="background:#a56d5b">else</div><div class="blk-body" style="border-color:#a56d5b"><div class="blk more">&hellip;</div></div></div></div></div><div class="col"><p><code>tile(0, new_x, new_y)</code> reads the playfield: <strong>collision detection is one memory read</strong>, whatever the length of the snake.</p>
+<pre class="c"><code>/* Look at the tile in front of the head: a wall or the body ends the game. */
+new_x = prg32_kit_get(body_x, 512, head) + dir_x;
+new_y = prg32_kit_get(body_y, 512, head) + dir_y;
+what = prg32_kit_tile(0, new_x, new_y);
+if (what == 1 || what == 2) {
+    mode = 2;
+    prg32_audio_note(1, 0, 36, 255, 600);
+    prg32_score_submit_current_player(&quot;Snake&quot;, score);
+...</code></pre></div></div>
+</section>
+<section class="slide tight">
+<h2>Step 7 - Moving and growing</h2>
+<!-- class: tight --><div class="cols"><div class="col"><div class="blocks"><div class="blk comment"><div class="blk-label" style="background:#80a55b">comment <span class="f">Move: the old head becomes body, the new head is stored and drawn.</span></div></div><div class="blk"><div class="blk-label" style="background:#a55b80">put tile <span class="f">2</span> on layer <span class="f">0</span> at column <span class="f">body_x[head]</span> row <span class="f">body_y[head]</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">head</span> to <span class="f">(head + 1) % 512</span></div></div><div class="blk"><div class="blk-label" style="background:#995ba5">set item <span class="f">head</span> of <span class="f">body_x</span> to <span class="f">new_x</span></div></div><div class="blk"><div class="blk-label" style="background:#995ba5">set item <span class="f">head</span> of <span class="f">body_y</span> to <span class="f">new_y</span></div></div><div class="blk"><div class="blk-label" style="background:#a55b80">put tile <span class="f">3</span> on layer <span class="f">0</span> at column <span class="f">new_x</span> row <span class="f">new_y</span></div></div></div></div><div class="col"><div class="blocks"><div class="blk comment"><div class="blk-label" style="background:#80a55b">comment <span class="f">An apple makes the snake longer; otherwise the tail cell is erased.</span></div></div><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">what == 4</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#745ba5">change <span class="f">length</span> by <span class="f">1</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">change <span class="f">score</span> by <span class="f">10</span></div></div><div class="blk"><div class="blk-label" style="background:#a55ba5">play MIDI note <span class="f">60 + length % 12</span> on channel <span class="f">1</span> for <span class="f">80</span> ms</div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">speed</span> to <span class="f">max(2, 6 - score / 60)</span></div></div><div class="blk comment"><div class="blk-label" style="background:#80a55b">comment <span class="f">Try random cells until an empty one is found.</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">placed</span> to <span class="f">0</span></div></div><div class="blk"><div class="blk-label" style="background:#a56d5b">repeat with <span class="f">attempt</span> from <span class="f">1</span> to <span class="f">200</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">placed == 0</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">food_x</span> to <span class="f">random(1, 38)</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">food_y</span> to <span class="f">random(3, 23)</span></div></div><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">tile(0, food_x, food_y) == 0</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#a55b80">put tile <span class="f">4</span> on layer <span class="f">0</span> at column <span class="f">food_x</span> row <span class="f">food_y</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">placed</span> to <span class="f">1</span></div></div></div></div></div></div></div></div></div><div class="blk-label" style="background:#a56d5b">else</div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">tail</span> to <span class="f">(head - length + 512) % 512</span></div></div><div class="blk"><div class="blk-label" style="background:#a55b80">put tile <span class="f">0</span> on layer <span class="f">0</span> at column <span class="f">body_x[tail]</span> row <span class="f">body_y[tail]</span></div></div></div></div></div>
+<p>Only three cells change per move (old head, new head, tail), so the update costs the same for a snake of 4 or 400.</p></div></div>
+</section>
+<section class="slide">
+<h2>Step 8 - Drawing a whole world with one block</h2><div class="cols"><div class="col"><div class="blocks"><div class="blk comment"><div class="blk-label" style="background:#80a55b">comment <span class="f">One block draws the whole board: 40 x 25 tiles of playfield layer 0.</span></div></div><div class="blk"><div class="blk-label" style="background:#a55b80">draw playfield layer <span class="f">0</span> <span class="f">opaque</span></div></div></div>
+<div class="blocks"><div class="blk comment"><div class="blk-label" style="background:#80a55b">comment <span class="f">Text is drawn on top of the tiles.</span></div></div><div class="blk"><div class="blk-label" style="background:#5ba58c">draw text <span class="f">SNAKE</span> at x <span class="f">4</span> y <span class="f">4</span> fg <span class="f">lime</span> bg <span class="f">black</span></div></div><div class="blk"><div class="blk-label" style="background:#5ba58c">draw text <span class="f">SCORE</span> at x <span class="f">216</span> y <span class="f">4</span> fg <span class="f">gray</span> bg <span class="f">black</span></div></div><div class="blk"><div class="blk-label" style="background:#5ba58c">draw number <span class="f">score</span> at x <span class="f">264</span> y <span class="f">4</span> fg <span class="f">white</span> bg <span class="f">black</span></div></div><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">mode == 0</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#5ba58c">draw text <span class="f">PRESS START</span> at x <span class="f">116</span> y <span class="f">90</span> fg <span class="f">yellow</span> bg <span class="f">dark gray</span></div></div></div></div><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">mode == 2</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#5ba58c">draw text <span class="f">GAME OVER</span> at x <span class="f">124</span> y <span class="f">80</span> fg <span class="f">red</span> bg <span class="f">dark gray</span></div></div><div class="blk"><div class="blk-label" style="background:#5ba58c">draw text <span class="f">PRESS START</span> at x <span class="f">116</span> y <span class="f">96</span> fg <span class="f">white</span> bg <span class="f">dark gray</span></div></div></div></div></div></div><div class="col"><p><code>prg32_playfield_draw</code> is firmware code: it draws the 1000 visible tiles from the map. The cartridge only keeps the rules.</p>
+<p>Text is drawn <strong>after</strong> the tiles (painter's algorithm), on a dark-gray background so it stays readable.</p></div></div>
+</section>
+<section class="slide">
+<h2>Play it in the browser</h2><div class="cols"><div class="col"><p><img alt="The Snake project in the editor" src="../figures/games/snake-editor.jpg" /></p></div><div class="col"><ol>
+<li>Dashboard, <strong>Examples</strong>, <em>Snake</em> (complete game), <strong>Add</strong>.</li>
+<li><strong>Play</strong>, START, then steer with the arrows.</li>
+<li>Redraw the apple tile: edit the rows of <em>define tile 4</em>.</li>
+<li>Set <code>speed</code> to 2 in <em>when game starts</em> for an expert mode.</li>
+</ol></div></div>
+</section>
+<section class="slide shots">
+<!-- class: shots -->
+<h2>Build and run the cartridge</h2><div class="cols"><div class="col"><p><strong>Download .prg32</strong> builds <code>snake-esp32c6.prg32</code>; the arrow next to it builds <code>snake-qemu.prg32</code>.</p>
+<pre><code class="language-bash">python3 -m prg32 qemu upload snake-qemu.prg32
+python3 -m prg32 qemu run
+</code></pre>
+<p>PRG32-QT: <strong>Import Cartridge</strong>, or</p>
+<pre><code class="language-bash">prg32qt-headless snake-qemu.prg32 300 --dump-ppm snake.ppm
+</code></pre></div><div class="col"><p><img alt="Snake on QEMU" src="../figures/games/snake-qemu.png" /></p>
+<p><img alt="Snake on PRG32-QT" src="../figures/games/snake-prg32qt.png" /></p></div></div>
+</section>
+<section class="slide">
+<h2>What the toolchain produced</h2>
+<table>
+<thead>
+<tr>
+<th>Measure</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Blocks</td>
+<td>3 stacks, 151 blocks</td>
+</tr>
+<tr>
+<td>Generated C</td>
+<td>446 lines</td>
+</tr>
+<tr>
+<td>RISC-V code (rv32imc)</td>
+<td>5120 bytes (+ 4 KiB for the two 512-item lists)</td>
+</tr>
+<tr>
+<td>Firmware services</td>
+<td>tiles and playfield (<code>tilemap</code> feature), audio</td>
+</tr>
+<tr>
+<td>Verified on</td>
+<td>simulator, QEMU firmware, PRG32-QT</td>
+</tr>
+</tbody>
+</table>
+<p>PRG32-QT found a portability detail: it skips tiles that were never defined, while the ESP32 firmware paints them black. Defining tile 0 makes the game identical everywhere.</p>
+</section>
+<section class="slide">
+<h2>Exercises</h2>
+<ol>
+<li><strong>Wrap-around arena:</strong> remove the walls and let the snake leave one side and enter on the other.</li>
+<li><strong>Obstacles:</strong> add wall tiles at random places each time an apple is eaten.</li>
+<li><strong>Two snakes:</strong> a second snake on the <em>player 2</em> buttons, with its own ring buffer.</li>
+<li><strong>Scrolling world:</strong> make the board 64 x 32 and follow the head with <em>move playfield camera</em>.</li>
+<li><strong>Analysis:</strong> estimate the average number of retries to place an apple when half the board is full.</li>
+</ol>
+</section>
+<section class="slide">
+<h2>References</h2>
+<ul>
+<li>PRG32 tiles and playfields (framework manual): <a href="https://github.com/riscv-prg32/PRG32">https://github.com/riscv-prg32/PRG32</a></li>
+<li>PRG32-QT: <a href="https://github.com/riscv-prg32/PRG32-QT">https://github.com/riscv-prg32/PRG32-QT</a></li>
+<li>T. H. Cormen et al., <em>Introduction to Algorithms</em>, MIT Press: queues and circular buffers.</li>
+<li>Block reference (tiles, playfields, lists): <code>docs/blockly.md</code></li>
+</ul>
+</section>
+</main>
+<nav class="deck-bar" aria-label="Slide navigation">
+  <button type="button" data-go="prev" aria-label="Previous slide">&#8592;</button>
+  <span class="deck-title">Snake with PRG32 Blocks</span>
+  <span class="deck-count"></span>
+  <button type="button" data-go="next" aria-label="Next slide">&#8594;</button>
+</nav>
+<script src="deck.js"></script>
+</body>
+</html>

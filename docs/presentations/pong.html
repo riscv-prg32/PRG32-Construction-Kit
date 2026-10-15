@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pong with PRG32 Blocks</title>
+<link rel="stylesheet" href="deck.css">
+</head>
+<body>
+<!-- Built by tools/build_presentations.py from docs/tutorials/games/pong.md; edit that file, not this one. -->
+<main class="deck" data-title="Pong with PRG32 Blocks">
+<section class="slide title">
+<!-- class: title -->
+<h1>Pong</h1>
+<h2>A first real-time game: state, motion, collision and a feedback controller</h2>
+<p>PRG32-Construction-Kit tutorial deck, step by step, from blocks to a RISC-V cartridge.</p>
+<p><img alt="Pong running on the PRG32 QEMU firmware" src="../figures/games/pong-qemu.png" /></p>
+</section>
+<section class="slide">
+<h2>Learning outcomes</h2>
+<p>By the end of this tutorial you can:</p>
+<ol>
+<li>describe a video game as a <strong>discrete-time system</strong>: a state that an update rule advances once per frame;</li>
+<li>use <strong>variables, conditions and comparisons</strong> to model motion and bounces;</li>
+<li>detect collisions between <strong>axis-aligned rectangles</strong> (AABB);</li>
+<li>build a computer opponent as a <strong>feedback controller</strong> with saturation and noise;</li>
+<li>follow the same program from <strong>blocks to IR to C to a PRG32 cartridge</strong>, and run it on QEMU and PRG32-QT.</li>
+</ol>
+<p><strong>Prerequisites:</strong> the first-project tutorial (<code>docs/tutorials/01_first_project.md</code>). About 90 minutes.</p>
+</section>
+<section class="slide">
+<h2>Why Pong?</h2>
+<ul>
+<li><em>Tennis for Two</em> (1958) ran on an analogue computer and an oscilloscope; Atari's <strong>Pong</strong> (1972, engineered by Allan Alcorn) turned the idea into the first commercially successful arcade video game.</li>
+<li>The original had no CPU: its "program" was a circuit of logic chips. Our version is a few hundred lines of C running on a 32-bit RISC-V core.</li>
+<li>Pong is the smallest game that still contains the core ideas of interactive simulation: <strong>state, time step, input, collision, scoring, an opponent</strong>.</li>
+</ul>
+<blockquote>
+<p>Every element of the court is a rectangle and every rule is an <code>if</code>. That makes Pong the "hello world" of game physics.</p>
+</blockquote>
+<p><em>This is an original, classic-inspired reimplementation made for teaching; it is not affiliated with the historical products.</em></p>
+</section>
+<section class="slide">
+<h2>From blocks to cartridge</h2>
+<p><img alt="The Construction Kit pipeline" src="../figures/pipeline.svg" /></p>
+</section>
+<section class="slide">
+<h2>The game loop</h2>
+<p><img alt="init, update, draw: the firmware calls pong_init once, then pong_update and pong_draw about 30 times per second" src="../figures/game_loop.svg" /></p>
+</section>
+<section class="slide">
+<h2>Rules and controls</h2><div class="cols"><div class="col"><table>
+<thead>
+<tr>
+<th>Button</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>UP / DOWN</td>
+<td>move your paddle (left)</td>
+</tr>
+<tr>
+<td>START</td>
+<td>play again after a game over</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>The computer plays the right paddle.</li>
+<li>The ball bounces on the top and bottom walls.</li>
+<li>A point is scored when the ball leaves the court; the first to <strong>7</strong> wins.</li>
+<li>The ball gets faster at every paddle hit (up to 7 pixels per frame).</li>
+</ul></div><div class="col"><p><img alt="Pong title screen in the simulator" src="../figures/games/pong-title.png" /></p></div></div>
+</section>
+<section class="slide">
+<h2>The court in numbers</h2>
+<p><img alt="Court geometry" src="../figures/games/pong_court.svg" /></p>
+</section>
+<section class="slide">
+<h2>Step 1 - The state</h2>
+<p>Everything the game remembers lives in <strong>variables</strong>: whole numbers set in <em>when game starts</em>.</p><div class="cols"><div class="col"><div class="blocks"><div class="blk"><div class="blk-label" style="background:#a58c5b">when game starts</div><div class="blk-body" style="border-color:#a58c5b"><div class="blk comment"><div class="blk-label" style="background:#80a55b">comment <span class="f">Pong: you are the left paddle, the computer plays the right paddle.</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">player_y</span> to <span class="f">82</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">cpu_y</span> to <span class="f">82</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">player_score</span> to <span class="f">0</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">cpu_score</span> to <span class="f">0</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">ball_dx</span> to <span class="f">-3</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">rally</span> to <span class="f">0</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">winner</span> to <span class="f">0</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">cpu_error</span> to <span class="f">0</span></div></div><div class="blk comment"><div class="blk-label" style="background:#80a55b">comment <span class="f">Serve: the ball starts in the middle with a random slope.</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">ball_x</span> to <span class="f">157</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">ball_y</span> to <span class="f">105</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">ball_dy</span> to <span class="f">random(-2, 2)</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">serve_timer</span> to <span class="f">40</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">mode</span> to <span class="f">0</span></div></div></div></div></div></div><div class="col"><ul>
+<li><code>player_y</code>, <code>cpu_y</code>: the paddle tops.</li>
+<li><code>ball_x</code>, <code>ball_y</code>: the ball position; <code>ball_dx</code>, <code>ball_dy</code>: its <strong>velocity</strong> in pixels per frame.</li>
+<li><code>mode</code>: which phase of the game we are in.</li>
+<li>The <em>serve</em> comment group is reused after every point.</li>
+</ul>
+<p>In C, each variable becomes a <code>static int</code> and <code>pong_init</code> gives it its first value.</p></div></div>
+</section>
+<section class="slide">
+<h2>Step 2 - Modes: a finite-state machine</h2>
+<p><img alt="Modes and the computer player" src="../figures/games/pong_modes.svg" /></p>
+</section>
+<section class="slide">
+<h2>Step 2 - Modes in blocks</h2>
+<div class="blocks"><div class="blk comment"><div class="blk-label" style="background:#80a55b">comment <span class="f">Mode 0 = waiting to serve, 1 = playing, 2 = game over.</span></div></div><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">mode == 2</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#a5745b">if button <span class="f">start</span> was just pressed</div><div class="blk-body" style="border-color:#a5745b"><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">player_score</span> to <span class="f">0</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">cpu_score</span> to <span class="f">0</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">winner</span> to <span class="f">0</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">ball_dx</span> to <span class="f">-3</span></div></div><div class="blk comment"><div class="blk-label" style="background:#80a55b">comment <span class="f">Serve: the ball starts in the middle with a random slope.</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">ball_x</span> to <span class="f">157</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">ball_y</span> to <span class="f">105</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">ball_dy</span> to <span class="f">random(-2, 2)</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">serve_timer</span> to <span class="f">40</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">mode</span> to <span class="f">0</span></div></div></div></div></div></div></div>
+<p><em>if button START was just pressed</em> fires <strong>once per press</strong> (edge detection): the kit remembers the buttons of the previous frame.</p>
+</section>
+<section class="slide">
+<h2>Step 3 - The player's paddle</h2><div class="cols"><div class="col"><div class="blocks"><div class="blk comment"><div class="blk-label" style="background:#80a55b">comment <span class="f">The player moves the left paddle with UP and DOWN.</span></div></div><div class="blk"><div class="blk-label" style="background:#a5745b">if button <span class="f">up</span> is held</div><div class="blk-body" style="border-color:#a5745b"><div class="blk"><div class="blk-label" style="background:#745ba5">change <span class="f">player_y</span> by <span class="f">-4</span></div></div></div></div><div class="blk"><div class="blk-label" style="background:#a5745b">if button <span class="f">down</span> is held</div><div class="blk-body" style="border-color:#a5745b"><div class="blk"><div class="blk-label" style="background:#745ba5">change <span class="f">player_y</span> by <span class="f">4</span></div></div></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">keep <span class="f">player_y</span> between <span class="f">20</span> and <span class="f">160</span></div></div></div></div><div class="col"><ul>
+<li><em>is held</em> is true on every frame the button is down: 4 pixels per frame is 120 pixels per second.</li>
+<li><em>keep ... between</em> is a <strong>clamp</strong>: the paddle cannot leave the court.</li>
+</ul>
+<pre class="c"><code>/* The player moves the left paddle with UP and DOWN. */
+if (input &amp; PRG32_BTN_UP) {
+    player_y += -4;
+}
+if (input &amp; PRG32_BTN_DOWN) {
+    player_y += 4;
+}
+if (player_y &lt; 20) { player_y = 20; }
+if (player_y &gt; 160) { player_y = 160; }</code></pre></div></div>
+</section>
+<section class="slide">
+<h2>Step 4 - Moving the ball</h2><div class="cols"><div class="col"><div class="blocks"><div class="blk comment"><div class="blk-label" style="background:#80a55b">comment <span class="f">Move the ball one step: new position = old position + velocity.</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">change <span class="f">ball_x</span> by <span class="f">ball_dx</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">change <span class="f">ball_y</span> by <span class="f">ball_dy</span></div></div></div>
+<div class="blocks"><div class="blk comment"><div class="blk-label" style="background:#80a55b">comment <span class="f">Bounce on the top and bottom walls.</span></div></div><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">ball_y &lt; 20</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">ball_y</span> to <span class="f">20</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">ball_dy</span> to <span class="f">abs(ball_dy)</span></div></div><div class="blk"><div class="blk-label" style="background:#a55ba5">play beep freq <span class="f">440</span> ms <span class="f">20</span></div></div></div></div><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">ball_y &gt; 192</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">ball_y</span> to <span class="f">192</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">ball_dy</span> to <span class="f">-abs(ball_dy)</span></div></div><div class="blk"><div class="blk-label" style="background:#a55ba5">play beep freq <span class="f">440</span> ms <span class="f">20</span></div></div></div></div></div></div><div class="col"><p><strong>Euler integration</strong> with a time step of one frame:</p>
+<p><code>x(t+1) = x(t) + dx</code></p>
+<p>A bounce is a <strong>reflection</strong>: the vertical velocity changes sign. Using <code>abs(ball_dy)</code> instead of <code>-ball_dy</code> is more robust: the ball can never get stuck inside a wall flipping back and forth.</p></div></div>
+</section>
+<section class="slide">
+<h2>Step 5 - Paddle collisions</h2>
+<div class="blocks"><div class="blk comment"><div class="blk-label" style="background:#80a55b">comment <span class="f">Paddle hits: only the paddle the ball is moving towards can hit it.</span></div></div><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">ball_dx &lt; 0</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#a56d5b">if rect <span class="f">ball_x</span> <span class="f">ball_y</span> <span class="f">6</span> <span class="f">6</span> touches rect <span class="f">10</span> <span class="f">player_y</span> <span class="f">6</span> <span class="f">36</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">ball_dx</span> to <span class="f">min(abs(ball_dx) + 1, 7)</span></div></div><div class="blk comment"><div class="blk-label" style="background:#80a55b">comment <span class="f">Where the ball hits the paddle decides the new angle.</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">ball_dy</span> to <span class="f">(ball_y + 3 - (player_y + 18)) / 4</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">rally</span> to <span class="f">rally + 1</span></div></div><div class="blk comment"><div class="blk-label" style="background:#80a55b">comment <span class="f">The computer guesses where to stand; a bigger guess error makes it miss.</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">cpu_error</span> to <span class="f">random(-24, 24)</span></div></div><div class="blk"><div class="blk-label" style="background:#a55ba5">play beep freq <span class="f">660</span> ms <span class="f">40</span></div></div></div></div></div></div><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">ball_dx &gt; 0</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#a56d5b">if rect <span class="f">ball_x</span> <span class="f">ball_y</span> <span class="f">6</span> <span class="f">6</span> touches rect <span class="f">304</span> <span class="f">cpu_y</span> <span class="f">6</span> <span class="f">36</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">ball_dx</span> to <span class="f">-min(abs(ball_dx) + 1, 7)</span></div></div><div class="blk comment"><div class="blk-label" style="background:#80a55b">comment <span class="f">Where the ball hits the paddle decides the new angle.</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">ball_dy</span> to <span class="f">(ball_y + 3 - (cpu_y + 18)) / 4</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">rally</span> to <span class="f">rally + 1</span></div></div><div class="blk comment"><div class="blk-label" style="background:#80a55b">comment <span class="f">The computer guesses where to stand; a bigger guess error makes it miss.</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">cpu_error</span> to <span class="f">random(-24, 24)</span></div></div><div class="blk"><div class="blk-label" style="background:#a55ba5">play beep freq <span class="f">660</span> ms <span class="f">40</span></div></div></div></div></div></div></div>
+</section>
+<section class="slide">
+<h2>Step 5 - Collision and angle, explained</h2><div class="cols"><div class="col"><ul>
+<li><em>if rect ... touches rect</em> calls the PRG32 sprite API <code>prg32_sprite_hitbox</code>: two rectangles overlap when they overlap on <strong>both</strong> axes.</li>
+<li>Only the paddle the ball is moving <strong>towards</strong> is tested, so the ball cannot be hit twice.</li>
+<li><code>min(abs(ball_dx) + 1, 7)</code> speeds the ball up but keeps it slower than 7 px: a faster ball could jump over the 6-pixel paddle (<strong>tunnelling</strong>).</li>
+</ul></div><div class="col"><pre class="c"><code>/* Where the ball hits the paddle decides the new angle. */
+ball_dy = (ball_y + 3 - (player_y + 18)) / 4;
+rally = rally + 1;</code></pre>
+<p>The farther from the paddle centre the ball lands, the steeper it leaves: the player can aim.</p></div></div>
+</section>
+<section class="slide">
+<h2>Step 6 - The computer player</h2><div class="cols"><div class="col"><div class="blocks"><div class="blk comment"><div class="blk-label" style="background:#80a55b">comment <span class="f">The computer follows the ball only while it is coming towards it.</span></div></div><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">ball_dx &gt; 0 &amp;&amp; ball_x &gt; 100</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">cpu_target</span> to <span class="f">ball_y + 3 - 18 + cpu_error</span></div></div></div><div class="blk-label" style="background:#a56d5b">else</div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">cpu_target</span> to <span class="f">82</span></div></div></div></div><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">cpu_y &lt; cpu_target - 3</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#745ba5">change <span class="f">cpu_y</span> by <span class="f">3</span></div></div></div></div><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">cpu_y &gt; cpu_target + 3</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#745ba5">change <span class="f">cpu_y</span> by <span class="f">-3</span></div></div></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">keep <span class="f">cpu_y</span> between <span class="f">20</span> and <span class="f">160</span></div></div></div></div><div class="col"><p>A <strong>proportional controller with saturation</strong>: move towards the target at most 3 px per frame, with a dead zone of 3 px so the paddle does not jitter.</p>
+<p>The target includes <code>cpu_error</code>, a random offset drawn at every hit. The <strong>difficulty</strong> is a single number: try <code>random(-10, 10)</code> (hard) or <code>random(-40, 40)</code> (easy).</p></div></div>
+</section>
+<section class="slide tight">
+<!-- class: tight -->
+<h2>Step 7 - Points and the end of the game</h2><div class="cols"><div class="col"><div class="blocks"><div class="blk comment"><div class="blk-label" style="background:#80a55b">comment <span class="f">A point is scored when the ball leaves the court.</span></div></div><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">ball_x &lt; -6</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#745ba5">change <span class="f">cpu_score</span> by <span class="f">1</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">ball_dx</span> to <span class="f">-3</span></div></div><div class="blk"><div class="blk-label" style="background:#a55ba5">play MIDI note <span class="f">48</span> on channel <span class="f">1</span> for <span class="f">300</span> ms</div></div><div class="blk comment"><div class="blk-label" style="background:#80a55b">comment <span class="f">Serve: the ball starts in the middle with a random slope.</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">ball_x</span> to <span class="f">157</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">ball_y</span> to <span class="f">105</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">ball_dy</span> to <span class="f">random(-2, 2)</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">serve_timer</span> to <span class="f">40</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">mode</span> to <span class="f">0</span></div></div></div></div><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">ball_x &gt; 320</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#745ba5">change <span class="f">player_score</span> by <span class="f">1</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">ball_dx</span> to <span class="f">3</span></div></div><div class="blk"><div class="blk-label" style="background:#a55ba5">play MIDI note <span class="f">72</span> on channel <span class="f">1</span> for <span class="f">300</span> ms</div></div><div class="blk comment"><div class="blk-label" style="background:#80a55b">comment <span class="f">Serve: the ball starts in the middle with a random slope.</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">ball_x</span> to <span class="f">157</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">ball_y</span> to <span class="f">105</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">ball_dy</span> to <span class="f">random(-2, 2)</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">serve_timer</span> to <span class="f">40</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">mode</span> to <span class="f">0</span></div></div></div></div></div></div><div class="col"><div class="blocks"><div class="blk comment"><div class="blk-label" style="background:#80a55b">comment <span class="f">The first player to reach 7 points wins.</span></div></div><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">player_score == 7</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">winner</span> to <span class="f">1</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">mode</span> to <span class="f">2</span></div></div></div></div><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">cpu_score == 7</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">winner</span> to <span class="f">2</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">mode</span> to <span class="f">2</span></div></div></div></div></div>
+<div class="blocks"><div class="blk comment"><div class="blk-label" style="background:#80a55b">comment <span class="f">Show the player&#x27;s score in the PRG32 status band.</span></div></div><div class="blk"><div class="blk-label" style="background:#a5a55b">show in status band <span class="f">YOU</span> number <span class="f">player_score</span></div></div></div>
+<p>The status band is the strip the PRG32 firmware draws under the 320 x 200 game area.</p></div></div>
+</section>
+<section class="slide">
+<h2>Step 8 - Drawing the frame</h2><div class="cols"><div class="col"><div class="blocks"><div class="blk comment"><div class="blk-label" style="background:#80a55b">comment <span class="f">Painter&#x27;s algorithm: clear, draw the court, then the moving objects on top.</span></div></div><div class="blk"><div class="blk-label" style="background:#5ba58c">clear screen <span class="f">black</span></div></div><div class="blk"><div class="blk-label" style="background:#5ba58c">draw rectangle x <span class="f">0</span> y <span class="f">16</span> w <span class="f">320</span> h <span class="f">2</span> color <span class="f">gray</span></div></div><div class="blk"><div class="blk-label" style="background:#5ba58c">draw rectangle x <span class="f">0</span> y <span class="f">198</span> w <span class="f">320</span> h <span class="f">2</span> color <span class="f">gray</span></div></div></div>
+<div class="blocks"><div class="blk comment"><div class="blk-label" style="background:#80a55b">comment <span class="f">The net: a dashed line made of 12 short rectangles.</span></div></div><div class="blk"><div class="blk-label" style="background:#a56d5b">repeat with <span class="f">dash</span> from <span class="f">0</span> to <span class="f">11</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#5ba58c">draw rectangle x <span class="f">159</span> y <span class="f">21 + dash * 15</span> w <span class="f">2</span> h <span class="f">8</span> color <span class="f">dark gray</span></div></div></div></div></div></div><div class="col"><p><strong>Painter's algorithm:</strong> draw from back to front; later blocks cover earlier ones.</p>
+<p>The dashed net is one <em>repeat</em> block: dash <code>n</code> is drawn at <code>y = 21 + n * 15</code>.</p>
+<pre class="c"><code>/* The net: a dashed line made of 12 short rectangles. */
+{
+    /* repeat dash from 0 to 11 (at most 1024 times) */
+    int prg32_kit_step0;
+    int prg32_kit_last0 = 11;
+    int prg32_kit_count0 = 0;
+    for (prg32_kit_step0 = 0; prg32_kit_step0 &lt;= prg32_kit_last0 &amp;&amp; prg32_kit_count0 &lt; 1024; ++prg32_kit_step0, ++prg32_kit_count0) {
+        dash = prg32_kit_step0;
+        prg32_gfx_rect(159, 21 + dash * 15, 2, 8, PRG32_COLOR_DARK_GRAY);
+    }
+}</code></pre></div></div>
+</section>
+<section class="slide tight">
+<!-- class: tight -->
+<h2>Blocks and C side by side</h2><div class="cols"><div class="col"><div class="blocks"><div class="blk comment"><div class="blk-label" style="background:#80a55b">comment <span class="f">Paddle hits: only the paddle the ball is moving towards can hit it.</span></div></div><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">ball_dx &lt; 0</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#a56d5b">if rect <span class="f">ball_x</span> <span class="f">ball_y</span> <span class="f">6</span> <span class="f">6</span> touches rect <span class="f">10</span> <span class="f">player_y</span> <span class="f">6</span> <span class="f">36</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">ball_dx</span> to <span class="f">min(abs(ball_dx) + 1, 7)</span></div></div><div class="blk comment"><div class="blk-label" style="background:#80a55b">comment <span class="f">Where the ball hits the paddle decides the new angle.</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">ball_dy</span> to <span class="f">(ball_y + 3 - (player_y + 18)) / 4</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">rally</span> to <span class="f">rally + 1</span></div></div><div class="blk comment"><div class="blk-label" style="background:#80a55b">comment <span class="f">The computer guesses where to stand; a bigger guess error makes it miss.</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">cpu_error</span> to <span class="f">random(-24, 24)</span></div></div><div class="blk"><div class="blk-label" style="background:#a55ba5">play beep freq <span class="f">660</span> ms <span class="f">40</span></div></div></div></div></div></div><div class="blk"><div class="blk-label" style="background:#a56d5b">if <span class="f">ball_dx &gt; 0</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#a56d5b">if rect <span class="f">ball_x</span> <span class="f">ball_y</span> <span class="f">6</span> <span class="f">6</span> touches rect <span class="f">304</span> <span class="f">cpu_y</span> <span class="f">6</span> <span class="f">36</span></div><div class="blk-body" style="border-color:#a56d5b"><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">ball_dx</span> to <span class="f">-min(abs(ball_dx) + 1, 7)</span></div></div><div class="blk comment"><div class="blk-label" style="background:#80a55b">comment <span class="f">Where the ball hits the paddle decides the new angle.</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">ball_dy</span> to <span class="f">(ball_y + 3 - (cpu_y + 18)) / 4</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">rally</span> to <span class="f">rally + 1</span></div></div><div class="blk comment"><div class="blk-label" style="background:#80a55b">comment <span class="f">The computer guesses where to stand; a bigger guess error makes it miss.</span></div></div><div class="blk"><div class="blk-label" style="background:#745ba5">set <span class="f">cpu_error</span> to <span class="f">random(-24, 24)</span></div></div><div class="blk"><div class="blk-label" style="background:#a55ba5">play beep freq <span class="f">660</span> ms <span class="f">40</span></div></div></div></div></div></div></div></div><div class="col"><pre class="c"><code>/* Paddle hits: only the paddle the ball is moving towards can hit it. */
+if (ball_dx &lt; 0) {
+    if (prg32_sprite_hitbox(ball_x, ball_y, 6, 6, 10, player_y, 6, 36)) {
+        ball_dx = prg32_kit_min(prg32_kit_abs(ball_dx) + 1, 7);
+        /* Where the ball hits the paddle decides the new angle. */
+        ball_dy = (ball_y + 3 - (player_y + 18)) / 4;
+        rally = rally + 1;
+        /* The computer guesses where to stand; a bigger guess error makes it miss. */
+        cpu_error = prg32_kit_random(-24, 24);
+        prg32_audio_note(0, 0, prg32_kit_note_from_hz(660), 255, 40);
+    }
+}
+if (ball_dx &gt; 0) {
+    if (prg32_sprite_hitbox(ball_x, ball_y, 6, 6, 304, cpu_y, 6, 36)) {
+        ball_dx = -prg32_kit_min(prg32_kit_abs(ball_dx) + 1, 7);
+        /* Where the ball hits the paddle decides the new angle. */
+        ball_dy = (ball_y + 3 - (cpu_y + 18)) / 4;
+        rally = rally + 1;
+        /* The computer guesses where to stand; a bigger guess error makes it miss. */
+        cpu_error = prg32_kit_random(-24, 24);
+        prg32_audio_note(0, 0, prg32_kit_note_from_hz(660), 255, 40);
+    }
+}</code></pre></div></div>
+</section>
+<section class="slide">
+<h2>Play it in the browser</h2><div class="cols"><div class="col"><p><img alt="The Pong project in the Construction Kit editor" src="../figures/games/pong-editor.jpg" /></p></div><div class="col"><ol>
+<li>Dashboard, <strong>Examples</strong>, <em>Pong</em> (complete game), <strong>Add</strong>.</li>
+<li><strong>Play</strong>; use the arrow keys or the on-screen pad.</li>
+<li>Change a number (paddle speed, <code>cpu_error</code>), press <strong>Play</strong> again.</li>
+<li><strong>Generate C</strong> shows the C above; <strong>Game IR</strong> shows the checked program.</li>
+</ol>
+<p>The simulator draws with the same 8 x 8 font and the same RGB565 colours as the firmware.</p></div></div>
+</section>
+<section class="slide shots">
+<!-- class: shots -->
+<h2>Build and run the cartridge</h2><div class="cols"><div class="col"><p><strong>Download .prg32</strong> builds <code>pong-esp32c6.prg32</code>; the arrow next to it builds <code>pong-qemu.prg32</code>.</p>
+<pre><code class="language-bash">python3 -m prg32 qemu upload pong-qemu.prg32
+python3 -m prg32 qemu run
+</code></pre>
+<p>PRG32-QT: <strong>Import Cartridge</strong> and choose either file, or headless:</p>
+<pre><code class="language-bash">prg32qt-headless pong-qemu.prg32 300 --dump-ppm pong.ppm
+</code></pre></div><div class="col"><p><img alt="Pong on QEMU" src="../figures/games/pong-qemu.png" /></p>
+<p><img alt="Pong on PRG32-QT" src="../figures/games/pong-prg32qt.png" /></p></div></div>
+</section>
+<section class="slide">
+<h2>What the toolchain produced</h2>
+<table>
+<thead>
+<tr>
+<th>Measure</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Blocks</td>
+<td>3 stacks, 138 blocks</td>
+</tr>
+<tr>
+<td>Generated C</td>
+<td>349 lines, deterministic</td>
+</tr>
+<tr>
+<td>RISC-V code (rv32imc)</td>
+<td>4644 bytes, same for <code>esp32c6</code> and <code>qemu</code></td>
+</tr>
+<tr>
+<td>Required PRG32 features</td>
+<td><code>audio</code>, <code>sprites</code> (auto-detected)</td>
+</tr>
+<tr>
+<td>Verified on</td>
+<td>browser simulator, QEMU firmware, PRG32-QT (<code>tools/runtime_check.py</code>)</td>
+</tr>
+</tbody>
+</table>
+<p>The cartridge calls the firmware through the <strong>portable ABI table</strong>, so the same machine code runs on the board and in both emulators.</p>
+</section>
+<section class="slide">
+<h2>Exercises</h2>
+<ol>
+<li><strong>Two players:</strong> replace the computer with the <em>player 2 up / down</em> buttons (PRG32 controller bits 8-14).</li>
+<li><strong>Difficulty levels:</strong> choose <code>cpu_error</code>'s range from a variable set by A (easy) or B (hard) on the title screen.</li>
+<li><strong>Speed physics:</strong> what happens if the maximum speed is 9? Explain the result with the paddle width (tunnelling).</li>
+<li><strong>Sound design:</strong> play a different MIDI note for wall bounces, paddle hits and points.</li>
+<li><strong>Measure:</strong> count frames in a long rally with <code>frame()</code>; how many seconds is that at 30 FPS?</li>
+</ol>
+<p><strong>Check your understanding:</strong> why does the bounce use <code>abs(ball_dy)</code> rather than <code>-ball_dy</code>?</p>
+</section>
+<section class="slide">
+<h2>References</h2>
+<ul>
+<li>PRG32 project and portable cartridge ABI: <a href="https://github.com/riscv-prg32/PRG32">https://github.com/riscv-prg32/PRG32</a></li>
+<li>PRG32-QT runtime and debugger: <a href="https://github.com/riscv-prg32/PRG32-QT">https://github.com/riscv-prg32/PRG32-QT</a></li>
+<li>Construction Kit block reference: <code>docs/blockly.md</code>; feature coverage: <code>docs/prg32_feature_coverage.md</code></li>
+<li>R. Nystrom, <em>Game Programming Patterns</em>, "Game Loop" and "Update Method" chapters (2014).</li>
+<li>K. Salen, E. Zimmerman, <em>Rules of Play: Game Design Fundamentals</em>, MIT Press (2003).</li>
+</ul>
+</section>
+</main>
+<nav class="deck-bar" aria-label="Slide navigation">
+  <button type="button" data-go="prev" aria-label="Previous slide">&#8592;</button>
+  <span class="deck-title">Pong with PRG32 Blocks</span>
+  <span class="deck-count"></span>
+  <button type="button" data-go="next" aria-label="Next slide">&#8594;</button>
+</nav>
+<script src="deck.js"></script>
+</body>
+</html>

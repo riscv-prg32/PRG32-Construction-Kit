@@ -11,10 +11,10 @@ Open your project or create a new one.
 In `every frame update`, add:
 
 ```text
-if button LEFT pressed
+if button LEFT is held
   change player_x by -3
 
-if button RIGHT pressed
+if button RIGHT is held
   change player_x by 3
 
 keep player_x between 0 and 304

@@ -40,3 +40,12 @@ Ask:
 - What C statement did it become?
 - Why does the simulator help before hardware deployment?
 - What is inside a `.prg32` cartridge compared with the generated C?
+
+## Next: a unit on classic games
+
+The five complete games in `examples/games/` each come with a 90-120 minute
+tutorial and slide deck (`docs/tutorials/games/`, slides at
+`/docs/presentations/<game>.html`). Pong introduces the game loop and
+collisions; Breakout lists; Space Invaders pictures and object pools;
+Asteroids fixed-point physics; Snake tiles and ring buffers. Each deck ends
+with exercises and a check-your-understanding question.
