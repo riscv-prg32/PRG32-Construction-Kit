@@ -96,11 +96,40 @@ def c_expr(value: Any, fallback: str = "0") -> str:
     return check_expr(text) or check_expr(fallback) or "0"
 
 
+_DECIMAL_RE = re.compile(r"[+-]?(?:[0-9]+\.?[0-9]*|\.[0-9]+)(?:[eE][+-]?[0-9]+)?")
+_WHOLE_NUMBER_RE = re.compile(r"(-?)\s*(0[xX][0-9A-Fa-f]+|[0-9]+)")
+
+
 def c_int(value: Any, fallback: int = 0) -> int:
-    try:
-        return int(float(str(value).strip()))
-    except Exception:
+    """Read a plain decimal number such as 10 or 2.5 (cut to 10 and 2); anything else gives the fallback.
+
+    simulator.js ``cInt`` accepts exactly the same text.
+    """
+    text = str(value).strip()
+    if not _DECIMAL_RE.fullmatch(text):
         return fallback
+    try:
+        return int(float(text))
+    except (OverflowError, ValueError):
+        return fallback
+
+
+def int32(value: int) -> int:
+    """Wrap a whole number to a 32-bit C int, like `value | 0` in JavaScript."""
+    value &= 0xFFFFFFFF
+    return value - 0x100000000 if value & 0x80000000 else value
+
+
+def initial_value(value: Any) -> int:
+    """The starting value of a variable: a plain whole number (like -3 or 0x10), otherwise 0."""
+    match = _WHOLE_NUMBER_RE.fullmatch(str(value if value is not None else "").strip())
+    if not match:
+        return 0
+    digits = match.group(2)
+    number = int(digits, 16) if digits[:2].lower() == "0x" else int(digits, 10)
+    if number > 0x7FFFFFFF:
+        return 0
+    return -number if match.group(1) else number
 
 
 def color_name(value: Any, fallback: str = "WHITE") -> str:
@@ -245,14 +274,16 @@ def _field_expr(ctx: ParseContext, block: dict[str, Any], name: str, fallback: A
 
 
 def _text(block: dict[str, Any], name: str, fallback: str, limit: int = 64) -> str:
-    return str(field_value(block, name, fallback))[:limit]
+    """Text for the PRG32 8x8 font, which only has printable ASCII: other characters become '?'."""
+    raw = str(field_value(block, name, fallback))[:limit]
+    return "".join(ch if 32 <= ord(ch) <= 126 else "?" for ch in raw)
 
 
 def parse_statement(block: dict[str, Any], ctx: ParseContext) -> dict[str, Any] | None:
     btype = block.get("type")
     f = lambda name, fallback: _field_expr(ctx, block, name, fallback)  # noqa: E731
     if btype in {"prg32_set_state", "prg32_change_state", "prg32_clamp_state", "prg32_random_state", "prg32_wrap_state"}:
-        initial = c_int(field_value(block, "VALUE", 0)) if btype == "prg32_set_state" else 0
+        initial = initial_value(field_value(block, "VALUE", 0)) if btype == "prg32_set_state" else 0
         name = ctx.ensure_var(field_value(block, "VAR", "score"), initial)
         if name is None:
             return {"op": "comment", "text": f"skipped: {btype} cannot change a list"}
@@ -474,17 +505,39 @@ def blocks_to_ir(blocks_json: Any, project: dict[str, Any] | None = None) -> dic
 
 # Helper C functions, written into the game file only when the game needs them.
 HELPERS: dict[str, list[str]] = {
-    "list": [
-        "/* Lists: reading or writing outside the list does nothing (reads give 0). */",
+    "list_get": [
+        "/* Lists: reading outside a list gives 0. */",
         "static int prg32_kit_get(const int *list, int size, int index) {",
         "    return (index >= 0 && index < size) ? list[index] : 0;",
         "}",
+    ],
+    "list_set": [
+        "/* Lists: writing outside a list does nothing. */",
         "static void prg32_kit_set(int *list, int size, int index, int value) {",
         "    if (index >= 0 && index < size) list[index] = value;",
         "}",
+    ],
+    "list_fill": [
+        "/* Lists: give every item the same value. */",
         "static void prg32_kit_fill(int *list, int size, int value) {",
         "    int index;",
         "    for (index = 0; index < size; ++index) list[index] = value;",
+        "}",
+    ],
+    "div": [
+        "/* Division like the RISC-V DIV instruction: x / 0 is -1 (no crash). */",
+        "static int prg32_kit_div(int a, int b) {",
+        "    if (b == 0) return -1;",
+        "    if (b == -1) return (int)(0u - (unsigned int)a);",
+        "    return a / b;",
+        "}",
+    ],
+    "mod": [
+        "/* Remainder like the RISC-V REM instruction: x % 0 is x (no crash). */",
+        "static int prg32_kit_mod(int a, int b) {",
+        "    if (b == 0) return a;",
+        "    if (b == -1) return 0;",
+        "    return a % b;",
         "}",
     ],
     "abs": ["static int prg32_kit_abs(int value) { return value < 0 ? -value : value; }"],
@@ -696,7 +749,7 @@ HELPERS: dict[str, list[str]] = {
 # Helpers that call other helpers.
 _HELPER_NEEDS = {"cos": {"sin"}, "band": {"number"}, "peer_x": {"peer_value"}, "peer_y": {"peer_value"},
                  "peer_look": {"peer_value"}}
-_HELPER_ORDER = ["list", "abs", "sign", "min", "max", "clamp", "sin", "cos", "rgb", "random", "frame", "tile",
+_HELPER_ORDER = ["list_get", "list_set", "list_fill", "div", "mod", "abs", "sign", "min", "max", "clamp", "sin", "cos", "rgb", "random", "frame", "tile",
                  "peer_value", "peers", "peer_x", "peer_y", "peer_look", "once", "beep", "number", "band", "frame_rect", "line", "circle", "bitmap"]
 
 
@@ -770,13 +823,15 @@ class _Emitter:
         if op in {"list_fill", "list_set", "list_change"}:
             if lst not in self.lists:
                 return [f"{indent}/* unknown list {c_comment(lst)} */"]
-            self.needs.add("list")
             size = self.lists[lst]
             if op == "list_fill":
+                self.needs.add("list_fill")
                 return [f"{indent}prg32_kit_fill({lst}, {size}, {x(stmt.get('value'))});"]
             index = x(stmt.get("index"))
+            self.needs.add("list_set")
             if op == "list_set":
                 return [f"{indent}prg32_kit_set({lst}, {size}, {index}, {x(stmt.get('value'))});"]
+            self.needs.add("list_get")
             return [f"{indent}prg32_kit_set({lst}, {size}, {index}, prg32_kit_get({lst}, {size}, {index}) + {x(stmt.get('delta'))});"]
         if op == "if_button":
             return [f"{indent}if (input & {button_macro(stmt.get('button'))}) {{",
@@ -887,21 +942,21 @@ def _helper_lines(needs: set[str]) -> list[str]:
 
 
 def _reads_input(body: list[str]) -> bool:
-    """Button blocks read the local `input` mask; update always declares it."""
+    """Button blocks read the local `input` mask; a function declares it only when it is used."""
     return any("(input & " in line or "((input & " in line for line in body)
 
 
 def ir_to_c(game_ir: dict[str, Any]) -> str:
     prefix = c_identifier(game_ir.get("entry_prefix"), "prg32_game")
     emitter = _Emitter(game_ir)
-    state = [(state_name(item.get("name")), c_int(item.get("initial"), 0))
+    state = [(state_name(item.get("name")), int32(c_int(item.get("initial"), 0)))
              for item in game_ir.get("state", []) if isinstance(item, dict)]
     init_body = emitter.block(game_ir.get("init", []), "    ", 0)
     update_body = emitter.block(game_ir.get("update", []), "    ", 0)
     draw_body = emitter.block(game_ir.get("draw", []), "    ", 0)
     needs = emitter.needs
     if emitter.lists:
-        needs.add("list")  # init clears every list with prg32_kit_fill
+        needs.add("list_fill")  # init clears every list with prg32_kit_fill
 
     lines: list[str] = [
         "/*",
@@ -946,7 +1001,8 @@ def ir_to_c(game_ir: dict[str, Any]) -> str:
     lines.append("}")
     lines.append("")
     lines.append(f"void {prefix}_update(void) {{")
-    lines.append("    uint32_t input = prg32_input_read();")
+    if _reads_input(update_body) or "once" in needs:
+        lines.append("    uint32_t input = prg32_input_read();")
     lines.extend(update_body)
     if "once" in needs:
         lines.append("    prg32_kit_previous_input = input;")

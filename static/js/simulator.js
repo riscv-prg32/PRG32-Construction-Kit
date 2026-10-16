@@ -85,7 +85,10 @@ window.PRG32Simulator = (function () {
   ];
 
   const RESERVED = new Set(('auto break case char const continue default do double else enum extern float for goto if inline int long ' +
-    'register restrict return short signed sizeof static struct switch typedef union unsigned void volatile while bool true false asm input').split(' '));
+    'register restrict return short signed sizeof static struct switch typedef union unsigned void volatile while bool true false asm input ' +
+    'int8_t int16_t int32_t int64_t uint8_t uint16_t uint32_t uint64_t intptr_t uintptr_t size_t main').split(' '));
+  // `name in object` would also find names such as `constructor` on every plain object.
+  const has = (object, key) => Object.prototype.hasOwnProperty.call(object, key);
   const BINARY = [['||'], ['&&'], ['|'], ['^'], ['&'], ['==', '!='], ['<', '>', '<=', '>='], ['<<', '>>'], ['+', '-'], ['*', '/', '%']];
   const TOKEN = /\s*(?:((?:0[xX][0-9A-Fa-f]+|[0-9]+)(?![A-Za-z0-9_]))|([A-Za-z_][A-Za-z0-9_]*)|(<<|>>|<=|>=|==|!=|&&|\|\||[-+*/%()<>!&|^~\[\],]))/y;
 
@@ -153,7 +156,7 @@ window.PRG32Simulator = (function () {
       const after = peekOp();
       if (after === '(') {
         const fname = text.toLowerCase();
-        if (!(fname in FUNCTIONS)) throw new Error('unknown function ' + text);
+        if (!has(FUNCTIONS, fname)) throw new Error('unknown function ' + text);
         pos += 1;
         const args = [];
         if (peekOp() !== ')') {
@@ -166,18 +169,18 @@ window.PRG32Simulator = (function () {
         return { k: 'call', name: fname, args };
       }
       if (text.startsWith('PRG32_')) {
-        if (!(text in CONSTANTS)) throw new Error('unknown constant ' + text);
+        if (!has(CONSTANTS, text)) throw new Error('unknown constant ' + text);
         return { k: 'const', text, value: CONSTANTS[text] };
       }
       const id = saneIdentifier(text);
       if (after === '[') {
-        if (!(id in lists)) throw new Error(id + ' is not a list');
+        if (!has(lists, id)) throw new Error(id + ' is not a list');
         pos += 1;
         const index = binary(0);
         expect(']');
         return { k: 'index', name: id, arg: index };
       }
-      if (id in lists) throw new Error(id + ' is a list');
+      if (has(lists, id)) throw new Error(id + ' is a list');
       names.add(id);
       return { k: 'name', text: id };
     }
@@ -302,7 +305,7 @@ window.PRG32Simulator = (function () {
   // Evaluate an expression. `env` may be a plain {name: value} state object.
   function evalExpr(expr, env) {
     const full = env && env.state ? env : { state: env || {}, lists: {}, frame: 0 };
-    const listSizes = {};
+    const listSizes = Object.create(null);
     Object.keys(full.lists || {}).forEach(name => { listSizes[name] = full.lists[name].length; });
     const tree = cachedTree(String(expr == null ? '0' : expr), listSizes);
     return tree ? evalNode(tree, full) : 0;
@@ -362,9 +365,29 @@ window.PRG32Simulator = (function () {
     return out;
   }
 
+  // Same rules as generator.c_int: a plain decimal number such as 10 or 2.5, else the fallback.
   function cInt(value, fallback) {
-    const n = Math.trunc(Number(String(value).trim()));
+    const text = String(value).trim();
+    if (!/^[+-]?(?:[0-9]+\.?[0-9]*|\.[0-9]+)(?:[eE][+-]?[0-9]+)?$/.test(text)) return fallback;
+    const n = Math.trunc(Number(text));
     return Number.isFinite(n) ? n : fallback;
+  }
+
+  // Same rules as generator.initial_value: a plain whole number such as -3 or 0x10, else 0.
+  function initialValue(value) {
+    const match = /^(-?)\s*(0[xX][0-9A-Fa-f]+|[0-9]+)$/.exec(String(value == null ? '' : value).trim());
+    if (!match) return 0;
+    const number = /^0[xX]/.test(match[2]) ? parseInt(match[2], 16) : parseInt(match[2], 10);
+    if (number > 0x7FFFFFFF) return 0;
+    return match[1] ? -number : number;
+  }
+
+  // Same rules as generator._text: the 8x8 font only has printable ASCII; other characters become '?'.
+  function fontText(value, limit) {
+    return Array.from(String(value)).slice(0, limit).map(ch => {
+      const code = ch.codePointAt(0);
+      return code >= 32 && code <= 126 ? ch : '?';
+    }).join('');
   }
 
   function colorName(value, fallback) {
@@ -386,16 +409,16 @@ window.PRG32Simulator = (function () {
 
   function makeContext() {
     return {
-      vars: {}, lists: {}, features: new Set(), warnings: [],
+      vars: Object.create(null), lists: Object.create(null), features: new Set(), warnings: [],
       ensureVar(raw, initial) {
         const name = saneIdentifier(raw);
-        if (name in this.lists) { this.warnings.push(name + ' is a list; use the list blocks to change it'); return null; }
-        if (!(name in this.vars)) this.vars[name] = initial || 0;
+        if (has(this.lists, name)) { this.warnings.push(name + ' is a list; use the list blocks to change it'); return null; }
+        if (!has(this.vars, name)) this.vars[name] = initial || 0;
         return name;
       },
       ensureList(raw) {
         const name = saneIdentifier(raw);
-        if (!(name in this.lists)) { this.warnings.push('List ' + name + " is used but never made with a 'make list' block"); return null; }
+        if (!has(this.lists, name)) { this.warnings.push('List ' + name + " is used but never made with a 'make list' block"); return null; }
         return name;
       },
       expr(value, fallback) {
@@ -405,7 +428,7 @@ window.PRG32Simulator = (function () {
           this.warnings.push('Replaced unsupported expression ' + JSON.stringify(String(value).slice(0, 40)) + ' with ' + fallback);
           parsed = parseTree(saneExpr(fallback, '0'), this.lists);
         }
-        parsed.names.forEach(name => { if (!(name in this.vars)) this.vars[name] = 0; });
+        parsed.names.forEach(name => { if (!has(this.vars, name)) this.vars[name] = 0; });
         parsed.features.forEach(feature => this.features.add(feature));
         return render(parsed.tree);
       }
@@ -419,9 +442,9 @@ window.PRG32Simulator = (function () {
   function parseStatement(block, ctx) {
     const type = block.type;
     const f = (name, fallback) => ctx.expr(field(block, name, fallback), fallback);
-    const text = (name, fallback, limit) => String(field(block, name, fallback)).slice(0, limit || 64);
+    const text = (name, fallback, limit) => fontText(field(block, name, fallback), limit || 64);
     if (['prg32_set_state', 'prg32_change_state', 'prg32_clamp_state', 'prg32_random_state', 'prg32_wrap_state'].includes(type)) {
-      const initial = type === 'prg32_set_state' ? cInt(field(block, 'VALUE', 0), 0) : 0;
+      const initial = type === 'prg32_set_state' ? initialValue(field(block, 'VALUE', 0)) : 0;
       const name = ctx.ensureVar(field(block, 'VAR', 'score'), initial);
       if (name === null) return { op: 'comment', text: 'skipped: ' + type + ' cannot change a list' };
       if (type === 'prg32_set_state') return { op: 'set', var: name, value: f('VALUE', 0) };
@@ -449,7 +472,7 @@ window.PRG32Simulator = (function () {
     }
     if (type === 'prg32_if_button' || type === 'prg32_if_button_once') {
       let button = String(field(block, 'BUTTON', 'A')).toUpperCase();
-      if (!(button in BUTTON_BITS)) button = 'A';
+      if (!has(BUTTON_BITS, button)) button = 'A';
       return { op: type === 'prg32_if_button' ? 'if_button' : 'if_button_once', button, then: parseStack(child(block, 'DO'), ctx) };
     }
     if (type === 'prg32_if_touching') {
@@ -510,7 +533,7 @@ window.PRG32Simulator = (function () {
       if (block.type !== 'prg32_list_create') return;
       const name = saneIdentifier(field(block, 'LIST', 'items'));
       const size = Math.max(1, Math.min(MAX_LIST_SIZE, cInt(field(block, 'SIZE', 10), 10)));
-      if (name in ctx.lists && ctx.lists[name] !== size) ctx.warnings.push('List ' + name + ' is made twice with different sizes; using the larger one');
+      if (has(ctx.lists, name) && ctx.lists[name] !== size) ctx.warnings.push('List ' + name + ' is made twice with different sizes; using the larger one');
       ctx.lists[name] = Math.max(size, ctx.lists[name] || 0);
     });
     tops.forEach(top => {
@@ -524,8 +547,8 @@ window.PRG32Simulator = (function () {
     });
     if (Object.keys(ctx.vars).length === 0 && Object.keys(ctx.lists).length === 0) ctx.vars = { player_x: 150, player_y: 180, score: 0 };
     if (ir.draw.length === 0) {
-      if (!('player_x' in ctx.vars)) ctx.vars.player_x = 150;
-      if (!('player_y' in ctx.vars)) ctx.vars.player_y = 180;
+      if (!has(ctx.vars, 'player_x')) ctx.vars.player_x = 150;
+      if (!has(ctx.vars, 'player_y')) ctx.vars.player_y = 180;
       ir.draw = [{ op: 'clear', color: 'BLACK' }, { op: 'rect', x: 'player_x', y: 'player_y', w: '16', h: '16', color: 'YELLOW' },
         { op: 'text', x: '8', y: '8', text: 'PRG32', fg: 'GREEN', bg: 'BLACK' }];
     }
@@ -645,8 +668,8 @@ window.PRG32Simulator = (function () {
     }
 
     reset() {
-      this.state = {};
-      this.lists = {};
+      this.state = Object.create(null);
+      this.lists = Object.create(null);
       this.palette = defaultPalette();
       this.tiles = Array.from({ length: 256 }, () => ({ rows: [0, 0, 0, 0, 0, 0, 0, 0], fg: 0, bg: 0 }));
       this.playfield = [new Uint8Array(32 * 64), new Uint8Array(32 * 64)];

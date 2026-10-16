@@ -181,11 +181,20 @@ Some details students may notice:
 - Names are not case-sensitive: `Player_X` and `player_x` are the same variable.
 - Division works like C integers on RISC-V: `7 / 2` is `3`, `-7 / 2` is `-3`,
   and dividing by zero gives `-1` (the remainder gives the dividend) instead
-  of crashing. The simulator does the same.
-- Names that C already uses get `_var` added: a variable called `input` or `int`
-  becomes `input_var` or `int_var` in the generated C.
+  of crashing. The simulator does the same. In plain C, dividing by zero is
+  not allowed, so when the number on the right of `/` or `%` is not a fixed
+  number like `2`, the generated C calls the small helpers `prg32_kit_div` and
+  `prg32_kit_mod` that give these answers on purpose.
+- Names that C already uses get `_var` added: a variable called `input`, `int`
+  or `uint32_t` becomes `input_var`, `int_var` or `uint32_t_var` in the generated C.
+- The PRG32 8x8 font only has the printable ASCII characters (space to `~`).
+  Any other character in a **draw text**, **status band**, **splash** or
+  **scoreboard** block, such as `é` or an emoji, becomes `?`, in the simulator
+  and on the console alike.
 - Text in **draw text** and **comment** blocks is escaped, so quotes and `*/`
   stay inside the string or comment.
+- The first **set** block for a variable also gives the variable its starting
+  value, when that value is a plain whole number such as `150`, `-3` or `0x10`.
 
 ## Helpers in the generated C
 

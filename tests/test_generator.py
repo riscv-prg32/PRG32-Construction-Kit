@@ -81,7 +81,8 @@ def test_comments_and_text_cannot_escape_into_c():
     _, source = blocks_to_c(_stmt("prg32_comment", TEXT="*/ evil(); /*"), {"title": "Comment"})
     assert "*/ evil" not in source
     _, source = blocks_to_c(_stmt("prg32_draw_text", TEXT='a"b\\c??/\r', X="1", Y="2"), {"title": "Text"})
-    assert 'prg32_gfx_text8(1, 2, "a\\"b\\\\c?\\?/\\015",' in source
+    # Control characters are not in the 8x8 font, so they become '?' (and trigraphs stay escaped).
+    assert 'prg32_gfx_text8(1, 2, "a\\"b\\\\c?\\?/?",' in source
     _, source = blocks_to_c({"blocks": {"blocks": [{"type": "*/ evil(); /*"}]}}, {"title": "Type"})
     assert "*/ evil" not in source
 

@@ -229,6 +229,19 @@ def test_artifacts_cannot_point_outside_the_data_folder(client):
     assert response.status_code == 404
 
 
+def test_artifacts_cannot_serve_the_database(client, app):
+    # The database holds publish bearer tokens; an artifact row must never expose it.
+    client.post("/api/publish_profiles", json={"name": "Store", "store_url": "http://store.test", "bearer_token": "secret-123"})
+    database = str(app.config["DB_PATH"])
+    for path in (database, database + "-wal"):
+        artifact = client.post("/api/artifacts", json={"kind": "store_bundle", "name": "db", "path": path}).get_json()
+        response = client.get(f"/api/artifacts/{artifact['id']}/download")
+        assert response.status_code == 404
+        assert b"secret-123" not in response.data
+        profile = client.get("/api/publish_profiles").get_json()["publish_profiles"][0]
+        assert client.post("/api/publish", json={"profile_id": profile["id"], "bundle_artifact_id": artifact["id"]}).status_code == 404
+
+
 def test_text_artifact_download_uses_a_safe_filename(client):
     artifact = client.post("/api/artifacts", json={"name": "my file; x=1.c", "text_content": "int x;"}).get_json()
     response = client.get(f"/api/artifacts/{artifact['id']}/download")

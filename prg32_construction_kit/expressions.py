@@ -36,6 +36,9 @@ RESERVED_NAMES = {
     "extern", "float", "for", "goto", "if", "inline", "int", "long", "register", "restrict", "return",
     "short", "signed", "sizeof", "static", "struct", "switch", "typedef", "union", "unsigned", "void",
     "volatile", "while", "bool", "true", "false", "asm", "input",
+    # Type names from <stdint.h> and <stddef.h> that the generated C uses or includes.
+    "int8_t", "int16_t", "int32_t", "int64_t", "uint8_t", "uint16_t", "uint32_t", "uint64_t",
+    "intptr_t", "uintptr_t", "size_t", "main",
 }
 
 # Kit functions a student may call: name -> (number of arguments, C helper).
@@ -236,6 +239,14 @@ def parse_expr(value: Any, lists: dict[str, int] | None = None) -> Expression:
     return Expression(tree, parser.names, parser.features)
 
 
+def _is_nonzero_number(tree: tuple) -> bool:
+    """True for a plain number like 2 or 0x10 (dividing by it is always safe)."""
+    if tree[0] != "num":
+        return False
+    text = tree[1]
+    return (int(text, 16) if text[:2].lower() == "0x" else int(text, 10)) != 0
+
+
 def render(tree: tuple, c_lists: dict[str, int] | None = None, needs: set[str] | None = None) -> str:
     """Write a tree back as text.
 
@@ -254,13 +265,21 @@ def render(tree: tuple, c_lists: dict[str, int] | None = None, needs: set[str] |
         space = " " if inner[:1] in {"-", "+"} else ""
         return f"{tree[1]}{space}{inner}"
     if kind == "bin":
-        return f"{render(tree[2], c_lists, needs)} {tree[1]} {render(tree[3], c_lists, needs)}"
+        left, right = render(tree[2], c_lists, needs), render(tree[3], c_lists, needs)
+        if to_c and tree[1] in {"/", "%"} and not _is_nonzero_number(tree[3]):
+            # In C, x / 0 is undefined. The helper gives the RISC-V answer
+            # (x / 0 is -1, x % 0 is x), the same as the browser simulator.
+            helper = "div" if tree[1] == "/" else "mod"
+            if needs is not None:
+                needs.add(helper)
+            return f"prg32_kit_{helper}({left}, {right})"
+        return f"{left} {tree[1]} {right}"
     if kind == "index":
         index = render(tree[2], c_lists, needs)
         if not to_c:
             return f"{tree[1]}[{index}]"
         if needs is not None:
-            needs.add("list")
+            needs.add("list_get")
         return f"prg32_kit_get({tree[1]}, {c_lists[tree[1]]}, {index})"
     if kind == "call":
         args = ", ".join(render(arg, c_lists, needs) for arg in tree[2])

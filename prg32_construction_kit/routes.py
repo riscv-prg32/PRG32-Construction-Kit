@@ -68,13 +68,21 @@ def public(resource: str, item: dict[str, Any] | None) -> dict[str, Any] | None:
 
 
 def stored_file(path_value: str | None) -> Path | None:
-    """Return an artifact file only if it lives inside the kit's own data folders."""
+    """Return an artifact file only if it lives in the build or artifact folders.
+
+    Anyone can create an artifact row with any ``path``, so the SQLite database
+    (which holds publish bearer tokens) must never be served, even when an
+    administrator points BUILD_ROOT or ARTIFACT_ROOT at the data folder.
+    """
     if not path_value:
         return None
     path = Path(path_value).resolve()
-    roots = [current_app.config[key] for key in ("DATA_DIR", "BUILD_ROOT", "ARTIFACT_ROOT")]
+    roots = [current_app.config[key] for key in ("BUILD_ROOT", "ARTIFACT_ROOT")]
     if not any(path.is_relative_to(Path(root).resolve()) for root in roots):
         return None
+    database = Path(current_app.config["DB_PATH"]).resolve()
+    if path.name.startswith(database.name) and path.parent == database.parent:
+        return None  # the database and its -wal / -shm / -journal files
     return path if path.is_file() else None
 
 

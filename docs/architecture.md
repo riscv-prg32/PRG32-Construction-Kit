@@ -85,7 +85,14 @@ The generated C is freestanding: no libc, no floating point, no dynamic
 memory. Lists are `static int` arrays accessed through bounds-checked
 helpers, `repeat` loops have a hidden counter capped at 1024 iterations, and
 integer division follows the RISC-V rules (no trap on division by zero) in
-both the C and the simulator.
+both the C and the simulator: division by anything other than a fixed number
+goes through the `prg32_kit_div` / `prg32_kit_mod` helpers, so the C never
+relies on undefined behaviour. Helpers are emitted only when the game uses
+them, so the generated C compiles cleanly with `-Wall -Wextra`.
+
+Artifact downloads and publishing only read files inside `BUILD_ROOT` and
+`ARTIFACT_ROOT`, and never the SQLite database (it holds publish bearer
+tokens), even if an artifact row points at it.
 
 ## Build behavior
 

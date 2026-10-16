@@ -86,10 +86,12 @@ def test_every_toolbox_block_is_understood_by_the_generator():
 
 
 @pytest.mark.skipif(HOST_CC is None, reason="no host C compiler")
-@pytest.mark.parametrize("name", [p.stem for p in EXAMPLE_FILES] + ["every_block"])
+@pytest.mark.parametrize("name", [p.stem for p in EXAMPLE_FILES] + ["every_block", "edge_values"])
 def test_generated_c_compiles_without_warnings(tmp_path, name):
     if name == "every_block":
         project = {"title": "Every Block", "blocks_json": every_block_project()}
+    elif name == "edge_values":  # no button blocks, odd names, division by variables
+        project = {"title": "Edge", "blocks_json": EDGE_PROJECT}
     else:
         project = next(load_project(p) for p in EXAMPLE_FILES if p.stem == name)
     _, source = blocks_to_c(project["blocks_json"], project)
@@ -146,3 +148,64 @@ def test_expression_normalization_matches_python():
     assert expected[0] == "x - -3"
     assert expected[2] == "bricks[i * 10 + col]"
     assert expected[13:] == [None] * (len(cases) - 13) or expected[13] is None
+
+
+# Tricky field values that the generator and the simulator must read the same way.
+EDGE_PROJECT = {"blocks": {"blocks": [
+    {"type": "prg32_on_start", "inputs": {"DO": {"block": {
+        "type": "prg32_list_create", "fields": {"LIST": "empty_size", "SIZE": ""}, "next": {"block": {
+            "type": "prg32_list_create", "fields": {"LIST": "hex_size", "SIZE": "0x10"}, "next": {"block": {
+                "type": "prg32_set_state", "fields": {"VAR": "constructor", "VALUE": "7"}, "next": {"block": {
+                    "type": "prg32_set_state", "fields": {"VAR": "uint32_t", "VALUE": "0x10"}, "next": {"block": {
+                        "type": "prg32_set_state", "fields": {"VAR": "big", "VALUE": "1e3"}, "next": {"block": {
+                            "type": "prg32_set_state", "fields": {"VAR": "neg", "VALUE": "-3"}}}}}}}}}}}}}}},
+    {"type": "prg32_draw", "inputs": {"DO": {"block": {
+        "type": "prg32_draw_text", "fields": {"TEXT": "Caf\u00e9 \U0001F600 ok", "X": "constructor / neg", "Y": "uint32_t % 0"}}}}},
+]}}
+
+
+def test_edge_values_generate_safe_c():
+    ir, source = blocks_to_c(EDGE_PROJECT, {"title": "Edge"})
+    state = {item["name"]: item["initial"] for item in ir["state"]}
+    assert state == {"constructor": 7, "uint32_t_var": 16, "big": 0, "neg": -3}
+    assert {item["name"]: item["size"] for item in ir["lists"]} == {"empty_size": 10, "hex_size": 10}
+    assert '"Caf? ? ok"' in source
+    assert "prg32_kit_div(constructor, neg)" in source and "prg32_kit_mod(uint32_t_var, 0)" in source
+    assert "static int uint32_t_var = 16;" in source
+
+
+@pytest.mark.skipif(not HAS_NODE, reason="Node.js is not installed")
+def test_simulator_reads_edge_values_like_the_generator():
+    ir = blocks_to_ir(EDGE_PROJECT, {"title": "Edge"})
+    output = run_node(
+        f"const ir = window.PRG32Simulator.compileBlocks({json.dumps(EDGE_PROJECT)});"
+        "console.log(JSON.stringify({state: ir.state, lists: ir.lists, init: ir.init, draw: ir.draw}));"
+    )
+    js = json.loads(output)
+    assert js["state"] == ir["state"]
+    assert js["lists"] == ir["lists"]
+    assert js["init"] == ir["init"]
+    assert js["draw"] == ir["draw"]
+
+
+@pytest.mark.skipif(HOST_CC is None, reason="no host C compiler")
+def test_c_division_helpers_match_the_simulator(tmp_path):
+    from prg32_construction_kit.generator import HELPERS
+    cases = [("7", "2"), ("-7", "2"), ("-7", "3"), ("7", "0"), ("-7", "0"), ("-2147483647 - 1", "-1"), ("5", "-1")]
+    program = "\n".join([
+        "#include <stdio.h>", *HELPERS["div"], *HELPERS["mod"],
+        "int main(void) {",
+        *(f'    printf("%d %d\\n", prg32_kit_div({a}, {b}), prg32_kit_mod({a}, {b}));' for a, b in cases),
+        "    return 0;", "}",
+    ])
+    c_file, exe = tmp_path / "div.c", tmp_path / "div"
+    c_file.write_text(program)
+    subprocess.run([HOST_CC, "-std=c99", "-Wall", "-Wextra", "-Werror", "-o", str(exe), str(c_file)], check=True)
+    in_c = [tuple(map(int, line.split())) for line in subprocess.run([str(exe)], check=True, capture_output=True, text=True).stdout.splitlines()]
+    assert in_c == [(3, 1), (-3, -1), (-2, -1), (-1, 7), (-1, -7), (-2147483648, 0), (-5, 0)]
+    if HAS_NODE:
+        exprs = [(f"({a}) / ({b})", f"({a}) % ({b})") for a, b in cases]
+        in_js = json.loads(run_node(
+            f"const S = window.PRG32Simulator; console.log(JSON.stringify({json.dumps(exprs)}.map(([d, m]) => [S.evalExpr(d, {{}}), S.evalExpr(m, {{}})])));"
+        ))
+        assert [tuple(pair) for pair in in_js] == in_c

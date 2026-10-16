@@ -1,5 +1,5 @@
 (function () {
-  const projectId = $('#projectId').val();
+  const projectId = encodeURIComponent($('#projectId').val());
   let project = null;
   let simulator = null;
   let dirty = false;
