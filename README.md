@@ -87,7 +87,7 @@ examples/games/                Five complete Blocks games
 tools/                         Example game and tutorial builders, simulator CLI, runtime and build checks
 docs/                          Setup, API, architecture, Docker, tutorials, how-to guides
 tests/                         pytest tests
-.github/workflows/tests.yml    GitHub Actions CI
+.github/workflows/tests.yml    GitHub Actions CI and GHCR container delivery
 Dockerfile                     Container image (with the PRG32 cartridge toolchain)
 docker/                        Container entrypoint
 examples/deploy/               Classroom env file, systemd unit, start script
@@ -103,6 +103,7 @@ Start with:
 - `docs/setup.md`
 - `docs/docker.md`
 - `docs/install_cartridge_build.md` (install with cartridge builds switched on)
+- `docs/ci_cd.md` (CI checks and published container images)
 - `docs/architecture.md`
 - `docs/api.md`
 - `docs/generated_code.md` (reading the generated C and RISC-V assembly)

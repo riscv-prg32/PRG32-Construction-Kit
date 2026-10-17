@@ -1,43 +1,230 @@
-name: tests
+name: CI and container delivery
 
 on:
   push:
+    branches:
+      - "**"
+    tags:
+      - "v*"
   pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref_type != 'tag' }}
+
+env:
+  CI_IMAGE: prg32-construction-kit:ci
 
 jobs:
-  pytest:
+  test:
+    name: Python ${{ matrix.python-version }} tests
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     strategy:
+      fail-fast: false
       matrix:
         python-version: ["3.11", "3.12"]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - uses: actions/setup-node@v4
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: "20"
-      - run: pip install -r requirements.txt
-      - name: Install a RISC-V assembler (tests that generated assembly does what the C does)
-        run: sudo apt-get update && sudo apt-get install -y gcc-riscv64-unknown-elf
-      - name: Check JavaScript syntax
-        run: for f in static/js/*.js static/service-worker.js; do node --check "$f"; done
-      - run: python -m pytest -q
 
-  docker:
-    # Builds the full image (RISC-V compiler + PRG32 tools) and compiles real
-    # cartridges inside it, as several students at once.
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Build the image with the cartridge toolchain
-        run: docker build --build-arg PRG32_TOOLCHAIN=1 -t prg32-construction-kit:ci .
-      - name: Compile cartridges inside the container
-        run: docker run --rm --entrypoint python prg32-construction-kit:ci tools/check_build.py --students 2 --windows 2
-      - name: Container starts and reports cartridge builds
+      - name: Install Python dependencies
+        run: python -m pip install --disable-pip-version-check -r requirements.txt
+
+      - name: Install the RISC-V assembler
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends gcc-riscv64-unknown-elf
+
+      - name: Check Python syntax
+        run: python -m compileall -q app.py prg32_construction_kit tests tools
+
+      - name: Check JavaScript syntax
         run: |
-          docker run -d --name kit -p 5090:5090 prg32-construction-kit:ci
-          for i in $(seq 1 30); do curl -fs http://127.0.0.1:5090/.well-known/prg32-construction-kit.json > discovery.json && break; sleep 2; done
-          docker logs kit
-          python3 -c "import json; assert json.load(open('discovery.json'))['cartridge_builds']['available'] is True"
+          for file in static/js/*.js static/service-worker.js; do
+            node --check "$file"
+          done
+
+      - name: Run the test suite
+        run: python -m pytest -q --junitxml="test-results-${{ matrix.python-version }}.xml"
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-python-${{ matrix.python-version }}
+          path: test-results-${{ matrix.python-version }}.xml
+          retention-days: 14
+
+  dependency-review:
+    name: Dependency review
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+      - name: Reject newly introduced vulnerable dependencies
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: high
+
+  container-smoke-test:
+    name: Toolchain container and real cartridges
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build the full toolchain image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          load: true
+          push: false
+          tags: ${{ env.CI_IMAGE }}
+          build-args: PRG32_TOOLCHAIN=1
+          cache-from: type=gha,scope=toolchain-image
+          cache-to: type=gha,mode=max,scope=toolchain-image
+
+      - name: Compile real cartridges concurrently
+        run: >-
+          docker run --rm --entrypoint python ${{ env.CI_IMAGE }}
+          tools/check_build.py --students 2 --windows 2
+
+      - name: Start the production container
+        run: docker run -d --name prg32-kit-ci -p 5090:5090 ${{ env.CI_IMAGE }}
+
+      - name: Check health and discovery
+        run: |
+          ready=0
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent --show-error \
+              http://127.0.0.1:5090/.well-known/prg32-construction-kit.json \
+              > discovery.json; then
+              ready=1
+              break
+            fi
+            sleep 2
+          done
+          if [ "$ready" -ne 1 ]; then
+            docker logs prg32-kit-ci
+            exit 1
+          fi
+          python3 - <<'PY'
+          import json
+
+          with open("discovery.json", encoding="utf-8") as stream:
+              discovery = json.load(stream)
+          assert discovery["cartridge_builds"]["available"] is True
+          assert discovery["cartridge_builds"]["architectures"] == ["esp32c6", "qemu"]
+          PY
+
+      - name: Show container logs
+        if: always()
+        run: docker logs prg32-kit-ci || true
+
+      - name: Stop the test container
+        if: always()
+        run: docker rm --force prg32-kit-ci || true
+
+  publish-container:
+    name: Publish deployable container
+    if: >-
+      github.event_name == 'push' &&
+      (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
+    needs: container-smoke-test
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      packages: write
+      attestations: write
+      id-token: write
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Normalize the GHCR image name
+        id: image
+        shell: bash
+        run: echo "name=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create image tags and labels
+        id: metadata
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ steps.image.outputs.name }}
+          tags: |
+            type=raw,value=edge,enable=${{ github.ref == 'refs/heads/main' }}
+            type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/v') }}
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha,prefix=sha-
+
+      - name: Build and publish the image
+        id: publish
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.metadata.outputs.tags }}
+          labels: ${{ steps.metadata.outputs.labels }}
+          build-args: PRG32_TOOLCHAIN=1
+          cache-from: type=gha,scope=toolchain-image
+          cache-to: type=gha,mode=max,scope=published-image
+
+      - name: Attest image provenance
+        uses: actions/attest@v4
+        with:
+          subject-name: ${{ steps.image.outputs.name }}
+          subject-digest: ${{ steps.publish.outputs.digest }}
+          push-to-registry: true
+
+      - name: Write delivery summary
+        run: |
+          {
+            echo "## Published container"
+            echo
+            echo "Digest: \`${{ steps.publish.outputs.digest }}\`"
+            echo
+            echo '```text'
+            echo '${{ steps.metadata.outputs.tags }}'
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
