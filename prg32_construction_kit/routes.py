@@ -126,17 +126,32 @@ def handle_forbidden(exc: PermissionError):
 
 
 def public(resource: str, item: dict[str, Any] | None) -> dict[str, Any] | None:
-    """Hide secrets before an item leaves the server (bearer tokens are write-only)."""
+    """Hide server-only values before an item leaves the server.
+
+    Artifact paths are implementation details, just like publish bearer tokens.
+    Browsers use the artifact download route and never need to learn the host's
+    directory layout.
+    """
     if item is None:
         return item
     shown = dict(item)
     shown["can_edit"] = can_write(item)
+    if resource == "artifacts":
+        shown.pop("path", None)
+        metadata = shown.get("metadata")
+        if isinstance(metadata, dict):
+            shown["metadata"] = {key: value for key, value in metadata.items() if key != "work_dir"}
     if resource == "publish_profiles":
         shown.pop("bearer_token", None)
         shown["has_token"] = bool(item.get("bearer_token"))
         # Publishing to the synced Cartridge Store needs no token: it happens as the signed-in user.
         shown["uses_sso"] = not item.get("bearer_token") and sso.same_service(item.get("store_url", ""))
     return shown
+
+
+def public_build_result(result: dict[str, Any]) -> dict[str, Any]:
+    """Return package details useful to a browser without host filesystem paths."""
+    return {key: value for key, value in result.items() if key not in {"bundle_path", "work_dir"}}
 
 
 def stored_file(path_value: str | None) -> Path | None:
@@ -388,7 +403,8 @@ def api_convert_project(project_id: str):
             "metadata": {"entry_prefix": game_ir.get("entry_prefix"), "warnings": game_ir.get("warnings", [])},
         }),
     )
-    return jsonify({"project": public("projects", get_resource("projects", project_id)), "game_ir": game_ir, "c_source": c_source, "artifact": artifact})
+    return jsonify({"project": public("projects", get_resource("projects", project_id)), "game_ir": game_ir,
+                    "c_source": c_source, "artifact": public("artifacts", artifact)})
 
 
 @bp.post("/api/projects/<project_id>/package")
@@ -508,7 +524,13 @@ def _run_package_build(project_id: str, project: dict[str, Any], game_ir: dict[s
             },
         },
     )
-    return jsonify({"build": build, "c_artifact": c_artifact, "bundle_artifact": bundle_artifact, "cartridge_artifacts": cartridge_artifacts, "result": result})
+    return jsonify({
+        "build": public("builds", build),
+        "c_artifact": public("artifacts", c_artifact),
+        "bundle_artifact": public("artifacts", bundle_artifact),
+        "cartridge_artifacts": [public("artifacts", artifact) for artifact in cartridge_artifacts],
+        "result": public_build_result(result),
+    })
 
 
 @bp.post("/api/sprites/<sprite_id>/convert")
@@ -530,7 +552,8 @@ def api_convert_sprite(sprite_id: str):
             "metadata": {"width": sprite.get("width"), "height": sprite.get("height")},
         }),
     )
-    return jsonify({"sprite": sprite, "c_source": c_source, "artifact": artifact})
+    return jsonify({"sprite": public("sprites", sprite), "c_source": c_source,
+                    "artifact": public("artifacts", artifact)})
 
 
 @bp.post("/api/artifacts/upload")
@@ -560,7 +583,7 @@ def api_upload_artifact():
             "metadata": {"uploaded": True},
         }),
     )
-    return jsonify(artifact), 201
+    return jsonify(public("artifacts", artifact)), 201
 
 
 @bp.get("/api/artifacts/<artifact_id>/download")

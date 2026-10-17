@@ -63,12 +63,13 @@ def test_parallel_builds_from_many_browsers_stay_separate(app, monkeypatch):
 
     build_ids = {item[1]["id"] for item in results}
     assert len(build_ids) == 12
-    assert len({item[2]["path"] for item in results}) == 12
+    assert len({item[2]["id"] for item in results}) == 12
+    assert len({item[3] for item in results}) == 12
     for project_id, build, cartridge, data in results:
         assert build["project_id"] == project_id
         assert build["status"] == "ready"
-        assert data == cartridge["path"].encode("utf-8")
-        assert build["id"] in cartridge["path"]
+        assert "path" not in cartridge
+        assert build["id"].encode("utf-8") in data
     assert compiler.most_at_once <= 3
 
 

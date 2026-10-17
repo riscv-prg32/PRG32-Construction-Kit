@@ -7,6 +7,7 @@ import zipfile
 
 import pytest
 
+from prg32_construction_kit.db import get_resource
 from prg32_construction_kit.sample_data import default_blocks
 
 
@@ -268,7 +269,8 @@ def test_bad_requests_return_clear_errors(client):
 def test_uploads_with_the_same_name_do_not_overwrite(client):
     first = client.post("/api/artifacts/upload", data={"file": (io.BytesIO(b"one"), "game.prg32")}, content_type="multipart/form-data").get_json()
     second = client.post("/api/artifacts/upload", data={"file": (io.BytesIO(b"two"), "game.prg32")}, content_type="multipart/form-data").get_json()
-    assert first["path"] != second["path"]
+    assert "path" not in first and "path" not in second
+    assert first["id"] != second["id"]
     assert client.get(f"/api/artifacts/{first['id']}/download").data == b"one"
     dots = client.post("/api/artifacts/upload", data={"file": (io.BytesIO(b"x"), "..")}, content_type="multipart/form-data")
     assert dots.status_code == 201
@@ -289,6 +291,12 @@ def test_package_uses_configured_build_root(client, app, monkeypatch):
     monkeypatch.setattr("prg32_construction_kit.packager.subprocess.run",
                         lambda command, **_kw: SimpleNamespace(returncode=1, stdout="", stderr="no toolchain"))
     project = client.post("/api/projects", json={"title": "Where", "blocks_json": default_blocks()}).get_json()
-    result = client.post(f"/api/projects/{project['id']}/package", json={}).get_json()["result"]
-    assert result["work_dir"].startswith(str(app.config["BUILD_ROOT"]))
+    response = client.post(f"/api/projects/{project['id']}/package", json={}).get_json()
+    result = response["result"]
+    assert "work_dir" not in result and "bundle_path" not in result
+    assert "path" not in response["bundle_artifact"]
+    assert "work_dir" not in response["bundle_artifact"]["metadata"]
+    with app.app_context():
+        stored = get_resource("artifacts", response["bundle_artifact"]["id"])
+        assert stored["path"].startswith(str(app.config["BUILD_ROOT"]))
     assert result["status"] == "source-only"

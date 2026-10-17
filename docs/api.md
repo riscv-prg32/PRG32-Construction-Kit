@@ -129,6 +129,9 @@ Request rules and errors:
 - Text fields must be text, and sprite `width`/`height` whole numbers (`400`).
 - A duplicate `id`, or a `project_id`/`sprite_id` that does not exist, returns `409`.
 - `publish_profiles` never return `bearer_token`; they return `has_token: true/false`.
+- `artifacts` never return their server-side `path`; use
+  `GET /api/artifacts/<id>/download` to retrieve artifact contents.
+- Packaging responses omit internal build and bundle directory paths.
 
 ## Project import/export
 

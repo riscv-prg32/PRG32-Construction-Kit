@@ -119,7 +119,7 @@ def test_students_cannot_point_artifacts_at_files(app, client):
     target = app.config["BUILD_ROOT"] / "someone-elses-build.prg32"
     target.write_bytes(b"secret cartridge")
     artifact = ada.post("/api/artifacts", json={"name": "x", "path": str(target)}).get_json()
-    assert artifact["path"] == ""
+    assert "path" not in artifact
     assert ada.get(f"/api/artifacts/{artifact['id']}/download").data == b""
 
 
