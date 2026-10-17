@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Users - PRG32-Construction-Kit{% endblock %}
+{% block content %}
+<div class="row g-4">
+  <div class="col-lg-4">
+    <div class="card shadow-sm mb-4">
+      <div class="card-header"><strong id="userFormTitle"><i class="bi bi-person-plus"></i> New user</strong></div>
+      <div class="card-body">
+        <form id="userForm" class="vstack gap-2">
+          <input type="hidden" name="id">
+          <input class="form-control" name="username" placeholder="Username" required>
+          <input class="form-control" name="email" type="email" placeholder="Email" required>
+          <input class="form-control" name="password" type="password" autocomplete="new-password" placeholder="Password (empty = keep / single sign-on only)">
+          <select class="form-select" name="role">
+            {% for role in roles %}<option value="{{ role }}" {% if role == 'user' %}selected{% endif %}>{{ role }}</option>{% endfor %}
+          </select>
+          <input class="form-control" name="groups" placeholder="Groups, comma separated (e.g. editors, class-3b)">
+          <div class="d-flex gap-2">
+            <button class="btn btn-primary" type="submit">Save user</button>
+            <button class="btn btn-outline-secondary" type="reset" id="resetUserForm">New</button>
+          </div>
+        </form>
+      </div>
+    </div>
+    <div class="card shadow-sm">
+      <div class="card-header"><strong><i class="bi bi-arrow-left-right"></i> Cartridge Store sync</strong></div>
+      <div class="card-body">
+        {% if sso.enabled %}
+        <p class="small">Users are kept in sync with <strong>{{ sso.peer_url }}</strong>. Changes waiting to be sent: <span id="ssoPending">{{ sso.pending }}</span>.</p>
+        <button class="btn btn-outline-primary" id="syncNow"><i class="bi bi-arrow-repeat"></i> Sync now</button>
+        <pre class="small mt-2 mb-0 d-none" id="syncResult"></pre>
+        {% else %}
+        <p class="small text-muted mb-0">Off. Set <code>PRG32_SSO_SECRET</code> and <code>PRG32_SSO_PEER_URL</code> on this kit and on the Cartridge Store to share accounts. See <a href="/docs/accounts_and_sso.md">Accounts and single sign-on</a>.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-8">
+    <div class="card shadow-sm">
+      <div class="card-header"><strong><i class="bi bi-people"></i> Users</strong></div>
+      <div class="table-responsive">
+        <table class="table table-sm align-middle mb-0">
+          <thead><tr><th>Username</th><th>Email</th><th>Role</th><th>Groups</th><th>Last sign-in</th><th></th></tr></thead>
+          <tbody id="userRows"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/admin_users.js') }}"></script>
+{% endblock %}

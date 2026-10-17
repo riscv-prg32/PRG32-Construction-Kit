@@ -4,6 +4,13 @@ import os
 from pathlib import Path
 
 
+def _flag(name: str, default: bool) -> bool:
+    value = os.environ.get(name)
+    if value is None or value.strip() == "":
+        return default
+    return value.strip().lower() not in {"0", "false", "no", "off"}
+
+
 class Config:
     """Runtime configuration for PRG32-Construction-Kit.
 
@@ -12,7 +19,9 @@ class Config:
     `/data` and set PRG32_KIT_DATA=/data.
     """
 
-    SECRET_KEY = os.environ.get("SECRET_KEY", "dev-prg32-construction-kit-change-me")
+    # Signs the sign-in cookie. When unset, a random key is created once and
+    # kept in DATA_DIR/secret_key so restarts do not sign everybody out.
+    SECRET_KEY = os.environ.get("SECRET_KEY") or None
     DATA_DIR = Path(os.environ.get("PRG32_KIT_DATA", "data")).resolve()
     DB_PATH = Path(os.environ.get("PRG32_KIT_DB", DATA_DIR / "construction_kit.sqlite")).resolve()
     SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL")
@@ -29,3 +38,27 @@ class Config:
     PRG32_BUILD_QUEUE_TIMEOUT = float(os.environ.get("PRG32_BUILD_QUEUE_TIMEOUT", "180"))
     MAX_CONTENT_LENGTH = int(os.environ.get("PRG32_KIT_MAX_UPLOAD", str(32 * 1024 * 1024)))
     JSON_SORT_KEYS = False
+
+    # Sign-in cookie. The name differs from Cartridge Store's, so both can run on one host.
+    SESSION_COOKIE_NAME = "prg32_kit_session"
+    SESSION_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_SAMESITE = "Lax"
+    SESSION_COOKIE_SECURE = _flag("PRG32_KIT_SECURE_COOKIES", False)
+    PERMANENT_SESSION_LIFETIME = int(os.environ.get("PRG32_KIT_SESSION_HOURS", "12")) * 3600
+
+    # Accounts (same model as PRG32 Cartridge Store).
+    ADMIN_PASSWORD = os.environ.get("PRG32_ADMIN_PASSWORD") or "password"
+    ALLOW_REGISTRATION = _flag("PRG32_KIT_ALLOW_REGISTRATION", True)
+    REQUIRE_EMAIL_DOMAIN = os.environ.get("PRG32_KIT_REQUIRE_EMAIL_DOMAIN", "")
+    DEFAULT_ROLE = os.environ.get("PRG32_KIT_DEFAULT_ROLE", "user")
+    SMTP_HOST = os.environ.get("PRG32_SMTP_HOST", "")
+    SMTP_PORT = int(os.environ.get("PRG32_SMTP_PORT", "587"))
+    SMTP_FROM = os.environ.get("PRG32_SMTP_FROM", "noreply@localhost")
+    SMTP_USER = os.environ.get("PRG32_SMTP_USER", "")
+    SMTP_PASSWORD = os.environ.get("PRG32_SMTP_PASSWORD", "")
+    SMTP_TLS = _flag("PRG32_SMTP_TLS", True)
+
+    # Single sign-on and user sync with one Cartridge Store (see docs/accounts_and_sso.md).
+    SSO_SECRET = os.environ.get("PRG32_SSO_SECRET", "")
+    SSO_PEER_URL = os.environ.get("PRG32_SSO_PEER_URL", "")
+    SSO_TIMEOUT = float(os.environ.get("PRG32_SSO_TIMEOUT", "5"))

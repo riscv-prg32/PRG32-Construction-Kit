@@ -1,4 +1,4 @@
-const CACHE_NAME = 'prg32-kit-v3';
+const CACHE_NAME = 'prg32-kit-v4';
 const APP_SHELL = [
   '/',
   '/sprites',
@@ -26,7 +26,8 @@ self.addEventListener('activate', event => {
 
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
-  if (event.request.method !== 'GET' || url.pathname.startsWith('/api/')) return;
+  // Never keep API answers or account pages: they belong to whoever is signed in.
+  if (event.request.method !== 'GET' || /^\/(api|auth|admin|account)(\/|$)/.test(url.pathname)) return;
   // Network first, so classrooms get updates right away; the cache is the offline fallback.
   event.respondWith(fetch(event.request).then(response => {
     if (response.ok || response.type === 'opaque') {

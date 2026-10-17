@@ -7,6 +7,10 @@ services:
       PRG32_KIT_DATA: /data
       PRG32_KIT_PORT: 5090
       PRG32_STORE_URL: http://host.docker.internal:5080
+      PRG32_ADMIN_PASSWORD: ${PRG32_ADMIN_PASSWORD:-password}
+      # Share accounts with a Cartridge Store (same secret on both sides):
+      PRG32_SSO_SECRET: ${PRG32_SSO_SECRET:-}
+      PRG32_SSO_PEER_URL: ${PRG32_SSO_PEER_URL:-}
     volumes:
       - ./data:/data
     restart: unless-stopped

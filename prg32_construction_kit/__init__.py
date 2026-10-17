@@ -1,7 +1,12 @@
 from __future__ import annotations
 
+import os
+import secrets
+from pathlib import Path
+
 from flask import Flask
 
+from . import auth, sso
 from .config import Config
 from .db import db, init_app as init_db_app
 from .routes import bp
@@ -21,10 +26,18 @@ def create_app(test_config: dict | None = None) -> Flask:
     app.config["BUILD_ROOT"].mkdir(parents=True, exist_ok=True)
     app.config["ARTIFACT_ROOT"].mkdir(parents=True, exist_ok=True)
 
+    if not app.config.get("SECRET_KEY"):
+        app.config["SECRET_KEY"] = _stored_secret_key(Path(app.config["DATA_DIR"]) / "secret_key")
+    if app.config.get("SSO_SECRET") and len(str(app.config["SSO_SECRET"])) < 32:
+        app.logger.warning("PRG32_SSO_SECRET is shorter than 32 characters; single sign-on stays off")
+
     init_db_app(app)
+    auth.init_app(app)
+    sso.init_app(app)
     app.register_blueprint(bp)
 
     with app.app_context():
+        auth.ensure_default_admin(app.config["ADMIN_PASSWORD"])
         seed_if_empty(app.config["DEFAULT_STORE_URL"])
         # gunicorn --preload builds the app once and then forks workers; each
         # worker must open its own database connections instead of sharing these.
@@ -35,7 +48,20 @@ def create_app(test_config: dict | None = None) -> Flask:
         from .db import init_db
 
         init_db()
+        auth.ensure_default_admin(app.config["ADMIN_PASSWORD"])
         seed_if_empty(app.config["DEFAULT_STORE_URL"])
         print("Initialized PRG32-Construction-Kit database.")
 
     return app
+
+
+def _stored_secret_key(path: Path) -> str:
+    """Read the cookie-signing key, creating a random one the first time."""
+    try:
+        fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+    except FileExistsError:
+        return path.read_text(encoding="utf-8").strip()
+    key = secrets.token_hex(32)
+    with os.fdopen(fd, "w", encoding="utf-8") as fp:
+        fp.write(key)
+    return key

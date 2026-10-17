@@ -45,9 +45,27 @@
       const features = project.game_json && project.game_json.required_features;
       $('#requiredFeatures').val(Array.isArray(features) ? features.join(', ') : '');
       showMode();
+      showSharedNotice();
       setLog('Loaded project ' + project.id);
     });
   }
+
+  // Shared classroom projects (like the starter games) are read-only for students:
+  // offer a personal copy, which they can then change, run and build.
+  function showSharedNotice() {
+    if (project.can_edit !== false) return;
+    $('#sharedNotice').remove();
+    $('#projectTitle').closest('div').append(`<div id="sharedNotice" class="alert alert-info py-2 mt-2 mb-0 small">
+      This is a shared classroom project, so you cannot change it. <button class="btn btn-primary btn-sm ms-2" id="copyProject">Make my copy</button></div>`);
+  }
+
+  $(document).on('click', '#copyProject', () => {
+    const copy = { title: project.title + ' (my copy)', description: project.description, author: project.author,
+                   tags: project.tags, blocks_json: PRG32Blocks.save(), game_json: project.game_json };
+    Kit.api('/api/projects', { method: 'POST', body: copy })
+      .then(created => { window.location.href = '/projects/' + encodeURIComponent(created.id); })
+      .catch(err => Kit.toast(err.message, 'danger'));
+  });
 
   // Tell the server exactly what this window saved, so a build notices if
   // another browser window saved a different version in the meantime.

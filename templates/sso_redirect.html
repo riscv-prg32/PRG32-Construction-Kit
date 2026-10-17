@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Opening Cartridge Store - PRG32-Construction-Kit{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-6 text-center">
+    {# The ticket travels in a POST body, not the address bar, and works only once. #}
+    <form method="post" action="{{ action }}" id="ssoForm">
+      <input type="hidden" name="ticket" value="{{ ticket }}">
+      <input type="hidden" name="next" value="{{ next }}">
+      <p>Opening the Cartridge Store and signing you in&hellip;</p>
+      <button class="btn btn-primary" type="submit">Continue</button>
+    </form>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>document.getElementById('ssoForm').submit();</script>
+{% endblock %}

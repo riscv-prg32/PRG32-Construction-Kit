@@ -2,6 +2,51 @@
 
 All responses are JSON unless a download endpoint is used.
 
+## Signing in
+
+Every `/api/` route needs a signed-in user (see `accounts_and_sso.md`).
+Browsers use the session cookie set by `POST /auth/login`; scripts send an API
+token as `Authorization: Bearer prg32_...`. Without either, the API answers
+`401`. Browser `POST` requests must be JSON or carry the header
+`X-PRG32-Kit: 1` (the kit's pages add it); this stops other web sites from
+posting forms with a student's cookie.
+
+| Method | Path | Purpose |
+|---|---|---|
+| `GET/POST` | `/auth/login` | Sign-in page / sign in (`username`, `password`, `next`) |
+| `POST` | `/auth/logout` | Sign out |
+| `GET` | `/auth/me` | Current user and single sign-on status |
+| `GET/POST` | `/auth/register` | Ask for a registration link by email |
+| `GET/POST` | `/auth/register/complete` | Choose a password from the emailed link |
+| `POST` | `/auth/password` | Change your password (`current_password`, `new_password`) |
+| `GET/POST` | `/auth/tokens` | List / create your API tokens (a new token is shown once) |
+| `PATCH/DELETE` | `/auth/tokens/<id>` | Rename / revoke one of your tokens |
+| `GET/POST` | `/api/users` | Admins: list / create users |
+| `GET/PUT/DELETE` | `/api/users/<id>` | Admins: read / change / delete a user |
+| `GET` | `/auth/oidc/login`, `/auth/saml/login` | School sign-in, when configured |
+
+Each item has an `owner_id` and a `can_edit` flag. Users see their own items
+and shared items (`owner_id` empty); admins see everything.
+
+## Single sign-on with a Cartridge Store
+
+Only when `PRG32_SSO_SECRET` and `PRG32_SSO_PEER_URL` are set:
+
+| Method | Path | Purpose |
+|---|---|---|
+| `GET/POST` | `/api/sso/users` | Signed requests from the linked store: list / apply user records |
+| `POST` | `/api/sso/sync` | Admins: send waiting changes, then merge all users both ways |
+| `GET` | `/auth/sso/peer?next=/path` | Open the linked store already signed in |
+| `POST` | `/auth/sso/accept` | Receives a one-time login ticket from the store |
+
+A user record looks like this:
+
+```json
+{"email": "ada@school.test", "username": "ada", "password_hash": "scrypt:...",
+ "role": "user", "groups": ["class-3b"], "updated_at": "2026-10-17T09:30:00.000000Z",
+ "deleted": false, "previous_email": null}
+```
+
 ## Built-in Blocks examples
 
 `GET /api/examples` lists the built-in Blocks examples. Each entry has a
@@ -38,7 +83,8 @@ answers `503` with a `Retry-After` header; try again a little later.
 GET /.well-known/prg32-construction-kit.json
 ```
 
-Returns service URLs for projects, sprites, assets, artifacts, builds, publish profiles, and publish action.
+Returns service URLs for projects, sprites, assets, artifacts, builds, publish profiles, and publish action,
+plus `auth` (sign-in is required) and `sso` (`{"enabled": true|false, "abi": "prg32-sso-1.0"}`).
 
 ## CRUD resources
 

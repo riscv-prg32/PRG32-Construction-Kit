@@ -29,8 +29,21 @@
         <li class="nav-item"><a class="nav-link" href="/artifacts"><i class="bi bi-box-seam"></i> Artifacts</a></li>
         <li class="nav-item"><a class="nav-link" href="/publish"><i class="bi bi-cloud-upload"></i> Publish</a></li>
         <li class="nav-item"><a class="nav-link" href="/documentation"><i class="bi bi-book"></i> Docs</a></li>
+        {% if current_user.is_admin %}
+        <li class="nav-item"><a class="nav-link" href="/admin/users"><i class="bi bi-people"></i> Users</a></li>
+        {% endif %}
       </ul>
-      <span class="navbar-text small">Blocks to C to Cartridge</span>
+      {% if current_user.authenticated %}
+      <div class="d-flex align-items-center gap-2">
+        {% if sso_enabled %}
+        <a class="btn btn-outline-light btn-sm" href="/auth/sso/peer" title="Open the Cartridge Store already signed in"><i class="bi bi-shop"></i> Cartridge Store</a>
+        {% endif %}
+        <a class="nav-link text-light small" href="/account"><i class="bi bi-person-circle"></i> {{ current_user.username }}</a>
+        <form method="post" action="/auth/logout" class="m-0"><button class="btn btn-outline-light btn-sm" type="submit">Sign out</button></form>
+      </div>
+      {% else %}
+      <a class="btn btn-outline-light btn-sm" href="/auth/login">Sign in</a>
+      {% endif %}
     </div>
   </div>
 </nav>

@@ -14,6 +14,7 @@ PRG32-Construction-Kit is a classroom web application for building PRG32 games w
    - `concurrent_builds.md` - many students building at the same time.
 7. `cartridge_store_publish.md` - publishing bundles.
 8. `api.md` - CRUD and action API.
+   - `accounts_and_sso.md` - accounts, who sees what, and sharing users with a Cartridge Store.
 9. `tutorials/` - step-by-step lessons.
    - `tutorials/games/` - five complete classic-inspired games with slide decks
      (`presentations/*.html`).

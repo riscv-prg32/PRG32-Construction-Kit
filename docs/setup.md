@@ -35,7 +35,12 @@ http://127.0.0.1:5090/
 | `PRG32_STORE_URL` | `http://127.0.0.1:5080` | Default Cartridge Store URL. |
 | `PRG32_BUILD_COMMAND` | `python3 -m prg32 cartridge build` | Command used by Compile Cartridge and Download .prg32. |
 | `PRG32_CART_RAM_KIB` | `64` | Cartridge RAM profile passed to the current PRG32 builder. Match this to the target firmware profile. |
-| `SECRET_KEY` | development value | Flask session secret. Change for shared deployments. |
+| `SECRET_KEY` | random, saved in `$PRG32_KIT_DATA/secret_key` | Signs the sign-in cookie. |
+| `PRG32_ADMIN_PASSWORD` | `password` | Password of the first `admin` account. Change it after the first sign-in. |
+| `PRG32_SSO_SECRET`, `PRG32_SSO_PEER_URL` | unset | Share accounts with a Cartridge Store. |
+
+Accounts, registration email and single sign-on settings are listed in
+`accounts_and_sso.md`.
 
 ## Initialize or reset data
 

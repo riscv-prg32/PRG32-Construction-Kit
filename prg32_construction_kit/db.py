@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 from typing import Any
 
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import event, func, select, update
+from sqlalchemy import event, func, inspect, or_, select, text, update
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -27,6 +27,9 @@ class TimestampedModel(db.Model):
     id: Mapped[str] = mapped_column(db.Text, primary_key=True)
     created_at: Mapped[str] = mapped_column(db.Text, nullable=False)
     updated_at: Mapped[str] = mapped_column(db.Text, nullable=False)
+    # The user who made it. Empty (NULL) means a shared classroom item that
+    # every signed-in user can read and only admins can change.
+    owner_id: Mapped[int | None] = mapped_column(db.Integer, index=True)
 
 
 class Project(TimestampedModel):
@@ -88,21 +91,21 @@ class PublishProfile(TimestampedModel):
 
 
 RESOURCE_COLUMNS: dict[str, list[str]] = {
-    "projects": ["title", "description", "author", "tags", "blocks_json", "game_json"],
-    "sprites": ["project_id", "name", "width", "height", "pixels", "data_url"],
-    "assets": ["project_id", "name", "kind", "content_type", "data"],
-    "artifacts": ["project_id", "sprite_id", "kind", "name", "content_type", "path", "text_content", "metadata"],
-    "builds": ["project_id", "status", "log", "c_artifact_id", "bundle_artifact_id", "metadata"],
-    "publish_profiles": ["name", "store_url", "bearer_token"],
+    "projects": ["title", "description", "author", "tags", "blocks_json", "game_json", "owner_id"],
+    "sprites": ["project_id", "name", "width", "height", "pixels", "data_url", "owner_id"],
+    "assets": ["project_id", "name", "kind", "content_type", "data", "owner_id"],
+    "artifacts": ["project_id", "sprite_id", "kind", "name", "content_type", "path", "text_content", "metadata", "owner_id"],
+    "builds": ["project_id", "status", "log", "c_artifact_id", "bundle_artifact_id", "metadata", "owner_id"],
+    "publish_profiles": ["name", "store_url", "bearer_token", "owner_id"],
 }
 RESOURCE_MODELS = {"projects": Project, "sprites": Sprite, "assets": Asset, "artifacts": Artifact, "builds": Build, "publish_profiles": PublishProfile}
 JSON_COLUMNS = {"projects": {"tags", "blocks_json", "game_json"}, "sprites": {"pixels"}, "assets": {"data"}, "artifacts": {"metadata"}, "builds": {"metadata"}, "publish_profiles": set()}
 DEFAULTS: dict[str, dict[str, Any]] = {
-    "projects": {"title": "Untitled PRG32 Game", "description": "", "author": "Student", "tags": [], "blocks_json": {}, "game_json": {}},
-    "sprites": {"project_id": None, "name": "sprite", "width": 16, "height": 16, "pixels": [], "data_url": ""},
-    "assets": {"project_id": None, "name": "asset", "kind": "text", "content_type": "text/plain", "data": {}},
-    "artifacts": {"project_id": None, "sprite_id": None, "kind": "note", "name": "artifact", "content_type": "text/plain", "path": "", "text_content": "", "metadata": {}},
-    "builds": {"project_id": None, "status": "created", "log": "", "c_artifact_id": None, "bundle_artifact_id": None, "metadata": {}},
+    "projects": {"title": "Untitled PRG32 Game", "description": "", "author": "Student", "tags": [], "blocks_json": {}, "game_json": {}, "owner_id": None},
+    "sprites": {"project_id": None, "name": "sprite", "width": 16, "height": 16, "pixels": [], "data_url": "", "owner_id": None},
+    "assets": {"project_id": None, "name": "asset", "kind": "text", "content_type": "text/plain", "data": {}, "owner_id": None},
+    "artifacts": {"project_id": None, "sprite_id": None, "kind": "note", "name": "artifact", "content_type": "text/plain", "path": "", "text_content": "", "metadata": {}, "owner_id": None},
+    "builds": {"project_id": None, "status": "created", "log": "", "c_artifact_id": None, "bundle_artifact_id": None, "metadata": {}, "owner_id": None},
     "publish_profiles": {"name": "Local Cartridge Store", "store_url": "http://127.0.0.1:5080", "bearer_token": ""},
 }
 
@@ -116,6 +119,13 @@ def _attribute(column: str) -> str:
 
 
 def _encode_value(resource: str, column: str, value: Any) -> Any:
+    if column == "owner_id":
+        if value in (None, ""):
+            return None
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            raise ValueError("owner_id must be a user id") from None
     if column in JSON_COLUMNS[resource]:
         if value is None:
             value = [] if column in {"tags", "pixels"} else {}
@@ -171,13 +181,31 @@ def init_app(app) -> None:
 
 def init_db() -> None:
     db.create_all()
+    _add_missing_owner_columns()
 
 
-def list_resources(resource: str, filters: dict[str, str] | None = None) -> list[dict[str, Any]]:
+def _add_missing_owner_columns() -> None:
+    """Databases made before accounts existed have no owner_id column yet; add it.
+
+    Their existing rows keep owner_id empty, so they become shared classroom items.
+    """
+    inspector = inspect(db.engine)
+    with db.engine.begin() as connection:
+        for table in RESOURCE_MODELS:
+            columns = {column["name"] for column in inspector.get_columns(table)}
+            if "owner_id" not in columns:
+                connection.execute(text(f"ALTER TABLE {table} ADD COLUMN owner_id INTEGER"))
+            connection.execute(text(f"CREATE INDEX IF NOT EXISTS ix_{table}_owner_id ON {table} (owner_id)"))
+
+
+def list_resources(resource: str, filters: dict[str, str] | None = None, viewer_id: int | None = None) -> list[dict[str, Any]]:
+    """List items. With ``viewer_id`` only that user's items and shared items are listed."""
     model = RESOURCE_MODELS.get(resource)
     if model is None:
         raise KeyError(resource)
     statement = select(model)
+    if viewer_id is not None:
+        statement = statement.where(or_(model.owner_id == viewer_id, model.owner_id.is_(None)))
     for key, value in (filters or {}).items():
         if key in {"project_id", "sprite_id", "kind", "status"} and key in RESOURCE_COLUMNS[resource]:
             statement = statement.where(getattr(model, key) == value)

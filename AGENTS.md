@@ -62,6 +62,14 @@ Preserve these action routes:
 - `POST /api/publish`
 - `GET /.well-known/prg32-construction-kit.json`
 
+## Security constraints
+
+- Every page and `/api/` route except sign-in, static files, docs and discovery requires a signed-in user.
+- Keep the account model aligned with PRG32 Cartridge Store (roles, groups, API tokens, `/auth/*` routes).
+- Items belong to their creator (`owner_id`); items without an owner are shared and read-only for non-admins.
+- `prg32_construction_kit/sso_protocol.py` must stay identical to `cartridge_store/sso_protocol.py` in CartridgeStore.
+- Never store plain-text passwords; synced records carry password hashes only.
+
 ## Frontend constraints
 
 - Use Bootstrap for layout and components.

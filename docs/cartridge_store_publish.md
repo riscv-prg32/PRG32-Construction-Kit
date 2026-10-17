@@ -33,6 +33,10 @@ profile (or `PUT /api/publish_profiles/<id>` with a new `bearer_token`).
 Only bundles stored in the kit's own data folders can be downloaded or
 published; an artifact whose `path` points elsewhere is treated as missing.
 
+When the kit is linked with the Cartridge Store (`accounts_and_sso.md`), a
+profile whose address is `PRG32_SSO_PEER_URL` needs no token: the kit sends a
+one-time ticket and the bundle is published as the signed-in student.
+
 ## Publish flow
 
 1. Open a project.
