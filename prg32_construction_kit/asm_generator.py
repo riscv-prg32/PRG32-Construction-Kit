@@ -1031,6 +1031,8 @@ class _AsmEmitter:
         conversion) or ("addr", symbol, None). Arguments that need real work are
         computed first (into a0, or into stack slots when there are several), then
         every register is filled, then narrow parameters are widened by the ABI rules.
+        Several computed arguments are evaluated right to left, matching the GCC
+        used by the PRG32 toolchain. This matters when two arguments call random().
         """
         work = [i for i, (kind, value, _conv) in enumerate(args) if kind == "expr" and not _leaf(value)]
         if len(work) == 1:
@@ -1039,10 +1041,10 @@ class _AsmEmitter:
             if index:
                 self.emit(f"mv a{index}, a0", f"argument {index + 1} is ready in a{index}")
         elif work:
-            for offset, index in enumerate(work):
+            for offset, index in enumerate(reversed(work)):
                 self.expr(args[index][1], slot + offset)
                 self.emit(f"sw a0, {self.slot(slot + offset)}", f"argument {index + 1} waits in stack slot {slot + offset}")
-            for offset, index in enumerate(work):
+            for offset, index in enumerate(reversed(work)):
                 self.emit(f"lw a{index}, {self.slot(slot + offset)}", f"a{index} = argument {index + 1}")
         for index, (kind, value, conversion) in enumerate(args):
             reg = f"a{index}"

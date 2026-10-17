@@ -5,6 +5,7 @@ import json
 import re
 import shutil
 import subprocess
+from pathlib import Path
 
 import pytest
 
@@ -16,7 +17,9 @@ from test_examples import EDGE_PROJECT, EXAMPLE_FILES, every_block_project, load
 
 RISCV_GCC = find_riscv_gcc()
 needs_riscv = pytest.mark.skipif(RISCV_GCC is None, reason="no RISC-V GCC (set PRG32_RISCV_GCC)")
-needs_both = pytest.mark.skipif(RISCV_GCC is None or HOST_CC is None, reason="needs a RISC-V GCC and a host C compiler")
+HOST_IS_GCC = bool(HOST_CC and "gcc" in Path(HOST_CC).resolve().name.lower())
+needs_both = pytest.mark.skipif(RISCV_GCC is None or not HOST_IS_GCC,
+                                reason="needs a RISC-V GCC and host GCC with the PRG32 argument order")
 
 
 def chain(*blocks: dict) -> dict | None:
@@ -188,6 +191,18 @@ def test_division_uses_the_riscv_instructions():
     assert "call  prg32_kit_div" not in source and "prg32_kit_div:" not in source and "prg32_kit_mod:" not in source
 
 
+def test_call_arguments_with_side_effects_follow_prg32_gcc_order():
+    """Two random arguments must consume random values in the same order as generated C."""
+    blocks = program(draw=[stmt("prg32_playfield_put", LAYER="0", TX="random(0, 63)",
+                                TY="random(0, 31)", ID="1")])
+    _, source = blocks_to_asm(blocks, {"title": "Argument Order"})
+    block = source[source.index('Block "put tile'):]
+    row = block.index("a0 = random(0, 31)")
+    column = block.index("a0 = random(0, 63)")
+    call = block.index("call  prg32_playfield_put")
+    assert row < column < call
+
+
 @needs_riscv
 @pytest.mark.parametrize("name", list(PROJECTS))
 def test_assembly_assembles_for_the_prg32_target(tmp_path, name):
@@ -202,7 +217,7 @@ def test_assembly_assembles_for_the_prg32_target(tmp_path, name):
 @needs_both
 @pytest.mark.parametrize("name", list(PROJECTS))
 def test_assembly_makes_exactly_the_same_firmware_calls_as_the_c(tmp_path, name):
-    """Run both translations for 40 frames with the same buttons: the call logs must match."""
+    """Run both translations through GCC for 40 frames: the call logs must match."""
     project = PROJECTS[name]
     ir = blocks_to_ir(project["blocks_json"], project)
     c_log = run_c(ir_to_c(ir), ir["entry_prefix"], 40, tmp_path)
