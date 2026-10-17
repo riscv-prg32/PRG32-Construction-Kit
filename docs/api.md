@@ -142,6 +142,8 @@ Request rules and errors:
 - `artifacts` never return their server-side `path`; use
   `GET /api/artifacts/<id>/download` to retrieve artifact contents.
 - Packaging responses omit internal build and bundle directory paths.
+- Build logs show the private build folder as `<build>` instead of exposing
+  the server's filesystem layout.
 
 ## Project import/export
 

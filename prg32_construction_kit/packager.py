@@ -85,6 +85,11 @@ def build_environment(work_dir: Path) -> dict[str, str]:
     return env
 
 
+def redact_build_path(log: str, work_dir: Path) -> str:
+    """Keep compiler logs useful without exposing the server's directory layout."""
+    return log.replace(str(work_dir), "<build>")
+
+
 def run_prg32_build(build_command: str, source_path: Path, out_path: Path, entry_prefix: str, name: str, architecture: str, cart_ram_kib: int, required_features: list[str] | None = None, timeout: float = 120) -> tuple[bool, str]:
     out_path.parent.mkdir(parents=True, exist_ok=True)
     command = shlex.split(build_command) + [
@@ -167,7 +172,7 @@ def prepare_package(
         out_path = work_dir / out_name
         ok, log = run_prg32_build(build_command, source_path, out_path, str(entry_prefix), slug, arch, cart_ram_kib,
                                   game_ir.get("required_features", []), build_timeout)
-        logs.append(f"[{arch}]\n{log}")
+        logs.append(f"[{arch}]\n{redact_build_path(log, work_dir)}")
         if ok:
             architectures.append({"id": arch, "file": out_name})
     shutil.rmtree(work_dir / "tmp", ignore_errors=True)

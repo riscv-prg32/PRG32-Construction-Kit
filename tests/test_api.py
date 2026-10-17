@@ -305,11 +305,16 @@ def test_package_uses_configured_build_root(client, app, monkeypatch):
     response = client.post(f"/api/projects/{project['id']}/package", json={}).get_json()
     result = response["result"]
     assert "work_dir" not in result and "bundle_path" not in result
+    assert str(app.config["BUILD_ROOT"]) not in result["log"]
+    assert "<build>/game.c" in result["log"]
     assert "path" not in response["bundle_artifact"]
     assert "work_dir" not in response["bundle_artifact"]["metadata"]
     with app.app_context():
         stored = get_resource("artifacts", response["bundle_artifact"]["id"])
         assert stored["path"].startswith(str(app.config["BUILD_ROOT"]))
+        build = get_resource("builds", response["build"]["id"])
+        assert str(app.config["BUILD_ROOT"]) not in build["log"]
+        assert "<build>/game.c" in build["log"]
     assert result["status"] == "source-only"
 
 
