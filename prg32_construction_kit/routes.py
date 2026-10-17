@@ -19,6 +19,8 @@ from .db import (
     update_if_unchanged,
     update_resource,
 )
+from . import sso
+from .auth import Principal, current_principal
 from .build_slots import BuildServerBusy, build_slot
 from .generator import blocks_to_c, sprite_to_c
 from .packager import SUPPORTED_ARCHITECTURES, prepare_package
@@ -58,12 +60,82 @@ def request_json() -> dict[str, Any]:
     return {}
 
 
+# --- who may see and change what ----------------------------------------------
+# Every item belongs to the user who made it. Items without an owner are shared
+# classroom items (the starter games, the default publish profile): everybody
+# who is signed in can read them, only admins can change them. Admins can see
+# and change everything.
+
+def can_read(item: dict[str, Any] | None, principal: Principal | None = None) -> bool:
+    principal = principal or current_principal()
+    if item is None or not principal.authenticated:
+        return False
+    return principal.is_admin or item.get("owner_id") in (None, principal.id)
+
+
+def can_write(item: dict[str, Any] | None, principal: Principal | None = None) -> bool:
+    principal = principal or current_principal()
+    if item is None or not principal.authenticated:
+        return False
+    return principal.is_admin or item.get("owner_id") == principal.id
+
+
+def readable(resource: str, item_id: Any) -> dict[str, Any] | None:
+    """The item, or None when it does not exist or the user may not see it."""
+    if not item_id:
+        return None
+    item = get_resource(resource, str(item_id))
+    return item if can_read(item) else None
+
+
+def viewer_id() -> int | None:
+    principal = current_principal()
+    return None if principal.is_admin else principal.id
+
+
+def owned(payload: dict[str, Any]) -> dict[str, Any]:
+    """Make a new item belong to the current user."""
+    return {**payload, "owner_id": current_principal().id}
+
+
+LINKS = {"project_id": "projects", "sprite_id": "sprites", "c_artifact_id": "artifacts", "bundle_artifact_id": "artifacts"}
+
+
+def checked_payload(resource: str, payload: dict[str, Any]) -> dict[str, Any]:
+    """Stop students from editing fields that only the server (or an admin) may set."""
+    principal = current_principal()
+    payload = dict(payload)
+    if not principal.is_admin:
+        payload.pop("owner_id", None)
+        # Artifact files are written by the server; a hand-made path could reach another user's build.
+        if resource == "artifacts":
+            payload.pop("path", None)
+    for column, target in LINKS.items():
+        if payload.get(column) and column in RESOURCE_COLUMNS[resource]:
+            linked = get_resource(target, str(payload[column]))
+            if linked is None:
+                continue  # the database refuses links to missing items with a clear 409
+            if not can_read(linked) or (target == "projects" and not can_write(linked)):
+                raise PermissionError(f"You cannot link to {target} {payload[column]}")
+    return payload
+
+
+@bp.errorhandler(PermissionError)
+def handle_forbidden(exc: PermissionError):
+    return json_error(str(exc) or "Forbidden", 403)
+
+
 def public(resource: str, item: dict[str, Any] | None) -> dict[str, Any] | None:
     """Hide secrets before an item leaves the server (bearer tokens are write-only)."""
-    if item is None or resource != "publish_profiles":
+    if item is None:
         return item
-    shown = {key: value for key, value in item.items() if key != "bearer_token"}
-    shown["has_token"] = bool(item.get("bearer_token"))
+    shown = dict(item)
+    shown["can_edit"] = can_write(item)
+    if resource == "publish_profiles":
+        shown.pop("bearer_token", None)
+        shown["has_token"] = bool(item.get("bearer_token"))
+        # Publishing to the synced Cartridge Store needs no token: it happens as the signed-in user.
+        shown["uses_sso"] = not item.get("bearer_token") and sso.same_service(item.get("store_url", ""))
     return shown
 
 
@@ -83,6 +155,8 @@ def stored_file(path_value: str | None) -> Path | None:
     database = Path(current_app.config["DB_PATH"]).resolve()
     if path.name.startswith(database.name) and path.parent == database.parent:
         return None  # the database and its -wal / -shm / -journal files
+    if path == (Path(current_app.config["DATA_DIR"]) / "secret_key").resolve():
+        return None  # the key that signs sign-in cookies
     return path if path.is_file() else None
 
 
@@ -139,7 +213,11 @@ def discovery():
                 "builds": f"{root}/api/builds",
                 "publish_profiles": f"{root}/api/publish_profiles",
                 "publish": f"{root}/api/publish",
+                "login": f"{root}/auth/login",
+                "me": f"{root}/auth/me",
             },
+            "auth": {"required": True, "token_header": "Authorization: Bearer <token>"},
+            "sso": {"enabled": sso.enabled(), "abi": sso.protocol.SSO_ABI},
         }
     )
 
@@ -149,14 +227,18 @@ def api_list(resource: str):
     if resource not in RESOURCE_COLUMNS:
         return json_error(f"Unknown resource: {resource}", 404)
     filters = {key: value for key, value in request.args.items() if key in {"project_id", "sprite_id", "kind", "status"}}
-    return jsonify({resource: [public(resource, item) for item in list_resources(resource, filters)]})
+    items = list_resources(resource, filters, viewer_id=viewer_id())
+    return jsonify({resource: [public(resource, item) for item in items]})
 
 
 @bp.route("/api/<resource>", methods=["POST"])
 def api_create(resource: str):
     if resource not in RESOURCE_COLUMNS:
         return json_error(f"Unknown resource: {resource}", 404)
-    item = create_resource(resource, request_json())
+    payload = checked_payload(resource, request_json())
+    if "owner_id" not in payload or payload["owner_id"] in (None, ""):
+        payload = owned(payload)
+    item = create_resource(resource, payload)
     return jsonify(public(resource, item)), 201
 
 
@@ -164,16 +246,18 @@ def api_create(resource: str):
 def api_item(resource: str, item_id: str):
     if resource not in RESOURCE_COLUMNS:
         return json_error(f"Unknown resource: {resource}", 404)
+    existing = readable(resource, item_id)
+    if existing is None:
+        return json_error("Not found", 404)
     if request.method == "GET":
-        item = get_resource(resource, item_id)
-        if item is None:
-            return json_error("Not found", 404)
-        return jsonify(public(resource, item))
+        return jsonify(public(resource, existing))
+    if not can_write(existing):
+        return json_error("This is a shared classroom item: make your own copy to change it", 403)
     if request.method == "DELETE":
         if not delete_resource(resource, item_id):
             return json_error("Not found", 404)
         return jsonify({"deleted": True, "id": item_id})
-    item = update_resource(resource, item_id, request_json())
+    item = update_resource(resource, item_id, checked_payload(resource, request_json()))
     if item is None:
         return json_error("Not found", 404)
     return jsonify(public(resource, item))
@@ -195,16 +279,16 @@ def api_import_project():
         return json_error("Import file must contain a JSON object with a project")
     item = create_resource(
         "projects",
-        {
+        owned({
             "title": payload.get("title", "Imported PRG32 Game"),
             "description": payload.get("description", "Imported from JSON."),
             "author": payload.get("author", "Student"),
             "tags": payload.get("tags", ["imported"]),
             "blocks_json": payload.get("blocks_json") or payload.get("blocks") or {},
             "game_json": payload.get("game_json") or payload.get("game_ir") or {},
-        },
+        }),
     )
-    return jsonify(item), 201
+    return jsonify(public("projects", item)), 201
 
 
 @bp.get("/api/examples")
@@ -224,13 +308,13 @@ def api_list_examples():
 def api_import_example(slug: str):
     for item in example_catalog():
         if item["slug"] == slug:
-            return jsonify(create_resource("projects", item["project"])), 201
+            return jsonify(public("projects", create_resource("projects", owned(item["project"])))), 201
     return json_error("Example not found", 404)
 
 
 @bp.get("/api/projects/<project_id>/export")
 def api_export_project(project_id: str):
-    project = get_resource("projects", project_id)
+    project = readable("projects", project_id)
     if project is None:
         return json_error("Project not found", 404)
     body = json.dumps({"abi": "prg32-construction-kit-project-1.0", "project": project}, indent=2)
@@ -242,9 +326,11 @@ def api_export_project(project_id: str):
 
 
 def _generate_project(project_id: str) -> tuple[dict[str, Any] | None, dict[str, Any] | None, str | None, tuple[Response, int] | None]:
-    project = get_resource("projects", project_id)
+    project = readable("projects", project_id)
     if project is None:
         return None, None, None, json_error("Project not found", 404)
+    if not can_write(project):
+        return project, None, None, json_error("This is a shared classroom project: make your own copy to build it", 403)
     saved = project.get("game_json") or {}
     if isinstance(saved, dict) and saved.get("source_mode") == "c":
         source = saved.get("source_c", "")
@@ -293,16 +379,16 @@ def api_convert_project(project_id: str):
     assert project and game_ir is not None and c_source is not None
     artifact = create_resource(
         "artifacts",
-        {
+        owned({
             "project_id": project_id,
             "kind": "c_source",
             "name": f"{project['title']} generated C",
             "content_type": "text/x-csrc",
             "text_content": c_source,
             "metadata": {"entry_prefix": game_ir.get("entry_prefix"), "warnings": game_ir.get("warnings", [])},
-        },
+        }),
     )
-    return jsonify({"project": get_resource("projects", project_id), "game_ir": game_ir, "c_source": c_source, "artifact": artifact})
+    return jsonify({"project": public("projects", get_resource("projects", project_id)), "game_ir": game_ir, "c_source": c_source, "artifact": artifact})
 
 
 @bp.post("/api/projects/<project_id>/package")
@@ -343,17 +429,17 @@ def _run_package_build(project_id: str, project: dict[str, Any], game_ir: dict[s
                        requested: list[str] | None):
     c_artifact = create_resource(
         "artifacts",
-        {
+        owned({
             "project_id": project_id,
             "kind": "c_source",
             "name": f"{project['title']} generated C",
             "content_type": "text/x-csrc",
             "text_content": c_source,
             "metadata": {"entry_prefix": game_ir.get("entry_prefix"), "source": "package"},
-        },
+        }),
     )
-    build = create_resource("builds", {"project_id": project_id, "status": "running", "c_artifact_id": c_artifact["id"],
-                                       "metadata": {"project_updated_at": project.get("updated_at")}})
+    build = create_resource("builds", owned({"project_id": project_id, "status": "running", "c_artifact_id": c_artifact["id"],
+                                             "metadata": {"project_updated_at": project.get("updated_at")}}))
     release_connection()
     try:
         result = prepare_package(
@@ -374,7 +460,7 @@ def _run_package_build(project_id: str, project: dict[str, Any], game_ir: dict[s
         return json_error(f"Packaging failed: {exc}", 500)
     bundle_artifact = create_resource(
         "artifacts",
-        {
+        owned({
             "project_id": project_id,
             "kind": "store_bundle" if result["publishable"] else "source_bundle",
             "name": Path(result["bundle_path"]).name,
@@ -387,7 +473,7 @@ def _run_package_build(project_id: str, project: dict[str, Any], game_ir: dict[s
                 "publishable": result["publishable"],
                 "work_dir": result["work_dir"],
             },
-        },
+        }),
     )
     cartridge_artifacts = []
     for architecture in result["architectures"]:
@@ -395,7 +481,7 @@ def _run_package_build(project_id: str, project: dict[str, Any], game_ir: dict[s
         cartridge_artifacts.append(
             create_resource(
                 "artifacts",
-                {
+                owned({
                     "project_id": project_id,
                     "kind": "prg32_cartridge",
                     "name": architecture["file"],
@@ -403,7 +489,7 @@ def _run_package_build(project_id: str, project: dict[str, Any], game_ir: dict[s
                     "path": str(cartridge_path),
                     "metadata": {"architecture": architecture["id"], "portable": True, "build_id": build["id"],
                                  "cart_ram_kib": result["cart_ram_kib"]},
-                },
+                }),
             )
         )
     build = update_resource(
@@ -427,21 +513,22 @@ def _run_package_build(project_id: str, project: dict[str, Any], game_ir: dict[s
 
 @bp.post("/api/sprites/<sprite_id>/convert")
 def api_convert_sprite(sprite_id: str):
-    sprite = get_resource("sprites", sprite_id)
+    sprite = readable("sprites", sprite_id)
     if sprite is None:
         return json_error("Sprite not found", 404)
     c_source = sprite_to_c(sprite)
+    linked_project = readable("projects", sprite.get("project_id"))
     artifact = create_resource(
         "artifacts",
-        {
+        owned({
             "sprite_id": sprite_id,
-            "project_id": sprite.get("project_id"),
+            "project_id": sprite.get("project_id") if can_write(linked_project) else None,
             "kind": "sprite_c_source",
             "name": f"{sprite['name']} sprite C",
             "content_type": "text/x-csrc",
             "text_content": c_source,
             "metadata": {"width": sprite.get("width"), "height": sprite.get("height")},
-        },
+        }),
     )
     return jsonify({"sprite": sprite, "c_source": c_source, "artifact": artifact})
 
@@ -458,24 +545,27 @@ def api_upload_artifact():
     artifact_dir.mkdir(parents=True, exist_ok=True)
     # A short unique prefix keeps two uploads with the same name from overwriting each other.
     path = artifact_dir / f"{uuid.uuid4().hex[:8]}-{safe_name}"
+    project_id = request.form.get("project_id") or None
+    if project_id and not can_write(readable("projects", project_id)):
+        return json_error("You can only add files to your own projects", 403)
     uploaded.save(path)
     artifact = create_resource(
         "artifacts",
-        {
-            "project_id": request.form.get("project_id") or None,
+        owned({
+            "project_id": project_id,
             "kind": request.form.get("kind") or "upload",
             "name": safe_name,
             "content_type": uploaded.mimetype or "application/octet-stream",
             "path": str(path),
             "metadata": {"uploaded": True},
-        },
+        }),
     )
     return jsonify(artifact), 201
 
 
 @bp.get("/api/artifacts/<artifact_id>/download")
 def api_download_artifact(artifact_id: str):
-    artifact = get_resource("artifacts", artifact_id)
+    artifact = readable("artifacts", artifact_id)
     if artifact is None:
         return json_error("Artifact not found", 404)
     name = artifact.get("name") or artifact_id
@@ -492,8 +582,8 @@ def api_download_artifact(artifact_id: str):
 @bp.post("/api/publish")
 def api_publish():
     payload = request_json()
-    profile = get_resource("publish_profiles", payload.get("profile_id", ""))
-    artifact = get_resource("artifacts", payload.get("bundle_artifact_id", ""))
+    profile = readable("publish_profiles", payload.get("profile_id", ""))
+    artifact = readable("artifacts", payload.get("bundle_artifact_id", ""))
     if profile is None:
         return json_error("Publish profile not found", 404)
     if artifact is None:
@@ -503,8 +593,12 @@ def api_publish():
     path = stored_file(artifact.get("path"))
     if path is None:
         return json_error("Bundle file is missing on disk", 404)
+    token = profile.get("bearer_token", "")
+    if not token and sso.same_service(profile.get("store_url", "")):
+        # Single sign-on: publish as the signed-in student with a one-time ticket.
+        token = sso.make_ticket(current_principal().email, "api")
     try:
-        result = publish_bundle(profile.get("store_url", ""), profile.get("bearer_token", ""), path)
+        result = publish_bundle(profile.get("store_url", ""), token, path)
     except Exception as exc:
         return json_error(f"Publish request failed: {exc}", 502)
-    return jsonify({"profile": public("publish_profiles", profile), "artifact": artifact, "result": result})
+    return jsonify({"profile": public("publish_profiles", profile), "artifact": public("artifacts", artifact), "result": result})

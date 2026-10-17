@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}My account - PRG32-Construction-Kit{% endblock %}
+{% block content %}
+<div class="row g-4">
+  <div class="col-lg-5">
+    <div class="card shadow-sm mb-4">
+      <div class="card-header"><strong><i class="bi bi-person-circle"></i> My account</strong></div>
+      <div class="card-body">
+        <dl class="row mb-0">
+          <dt class="col-4">Username</dt><dd class="col-8">{{ current_user.username }}</dd>
+          <dt class="col-4">Email</dt><dd class="col-8">{{ current_user.email }}</dd>
+          <dt class="col-4">Role</dt><dd class="col-8">{{ current_user.role }}</dd>
+          <dt class="col-4">Groups</dt><dd class="col-8">{{ current_user.groups|join(', ') or '-' }}</dd>
+        </dl>
+        {% if sso.enabled %}
+        <div class="alert alert-info small mt-3 mb-0"><i class="bi bi-link-45deg"></i> This account is shared with the Cartridge Store at {{ sso.peer_url }}.
+          Changing your password here changes it there too. <a href="/auth/sso/peer">Open the Cartridge Store</a></div>
+        {% endif %}
+      </div>
+    </div>
+    <div class="card shadow-sm">
+      <div class="card-header"><strong><i class="bi bi-key"></i> Change password</strong></div>
+      <div class="card-body">
+        <form id="passwordForm" class="vstack gap-2">
+          <input class="form-control" type="password" name="current_password" placeholder="Current password" autocomplete="current-password">
+          <input class="form-control" type="password" name="new_password" placeholder="New password (at least 10 characters)" minlength="10" autocomplete="new-password" required>
+          <button class="btn btn-primary" type="submit">Change password</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-7">
+    <div class="card shadow-sm">
+      <div class="card-header"><strong><i class="bi bi-terminal"></i> API tokens</strong></div>
+      <div class="card-body">
+        <p class="text-muted small">Scripts and tools can use the kit as you by sending <code>Authorization: Bearer &lt;token&gt;</code>. A token is shown only once; revoke it if it leaks.</p>
+        <form id="tokenForm" class="d-flex gap-2 mb-3">
+          <input class="form-control" name="label" placeholder="What is this token for?" maxlength="80">
+          <button class="btn btn-primary text-nowrap" type="submit">New token</button>
+        </form>
+        <div id="newToken" class="alert alert-success d-none"></div>
+        <div class="list-group" id="tokenList"></div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/account.js') }}"></script>
+{% endblock %}

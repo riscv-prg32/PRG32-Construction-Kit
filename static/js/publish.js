@@ -7,7 +7,7 @@
       $('#profileList').html(data.publish_profiles.map(profile => `
         <button class="list-group-item list-group-item-action profile-choice ${profile.id === selectedProfileId ? 'active' : ''}" data-id="${Kit.escape(profile.id)}">
           <div class="fw-semibold">${Kit.escape(profile.name)}</div>
-          <div class="small ${profile.id === selectedProfileId ? '' : 'text-muted'}">${Kit.escape(profile.store_url)}${profile.has_token ? ' · token saved' : ''}</div>
+          <div class="small ${profile.id === selectedProfileId ? '' : 'text-muted'}">${Kit.escape(profile.store_url)}${profile.has_token ? ' · token saved' : ''}${profile.uses_sso ? ' · publishes as you (single sign-on)' : ''}</div>
         </button>`).join('') || '<div class="list-group-item text-muted">No profiles yet.</div>');
     });
   }

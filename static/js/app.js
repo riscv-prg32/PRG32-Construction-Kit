@@ -2,6 +2,8 @@ window.Kit = {
   api(path, options) {
     const opts = options || {};
     opts.headers = opts.headers || {};
+    // Tells the server this request comes from the kit's own pages (blocks cross-site form posts).
+    opts.headers['X-PRG32-Kit'] = '1';
     if (opts.body && !(opts.body instanceof FormData)) {
       opts.headers['Content-Type'] = 'application/json';
       opts.body = JSON.stringify(opts.body);
@@ -9,6 +11,9 @@ window.Kit = {
     return fetch(path, opts).then(async response => {
       const contentType = response.headers.get('content-type') || '';
       const data = contentType.includes('application/json') ? await response.json() : await response.text();
+      if (response.status === 401) {
+        window.location.href = '/auth/login?next=' + encodeURIComponent(window.location.pathname);
+      }
       if (!response.ok) {
         const message = data && data.error ? data.error : response.statusText;
         throw new Error(message);

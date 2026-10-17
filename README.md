@@ -32,7 +32,8 @@ pip install -r requirements.txt
 python app.py
 ```
 
-Open <http://127.0.0.1:5090/>.
+Open <http://127.0.0.1:5090/> and sign in as `admin` with the password
+`password` (or `PRG32_ADMIN_PASSWORD`). Change it right away on **My account**.
 
 Data is stored in `data/` by default. To move it:
 
@@ -98,6 +99,7 @@ Start with:
 - `docs/docker.md`
 - `docs/architecture.md`
 - `docs/api.md`
+- `docs/accounts_and_sso.md` (accounts and single sign-on with Cartridge Store)
 - `docs/tutorials/01_first_project.md`
 - `docs/tutorials/games/README.md` (classic games and slide decks)
 - `docs/prg32_feature_coverage.md`
