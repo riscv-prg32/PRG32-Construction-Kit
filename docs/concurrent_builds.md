@@ -12,7 +12,12 @@ browser windows too. The kit is designed for that.
   they come from the same project.
 - **Every cartridge has its own download link.** The download button uses the
   artifact id of *your* build, so you always get the cartridge you compiled.
-- **The PRG32 compiler works in a private temporary folder** for each build.
+- **The PRG32 compiler works in a private temporary folder** for each build:
+  the kit points `TMPDIR` at `data/builds/<build_id>/tmp/` and removes it
+  when the build is done.
+- **Only the owner can download.** A classmate who guesses a download link
+  gets "not found"; only the student who built it (or an admin) can download
+  a cartridge.
 
 ## The waiting line (build slots)
 
@@ -32,10 +37,30 @@ Nothing is broken. Click the button again after a few seconds.
 | --- | --- | --- |
 | `PRG32_MAX_PARALLEL_BUILDS` | number of CPU cores | compilers running at the same time |
 | `PRG32_BUILD_QUEUE_TIMEOUT` | `180` | seconds a build waits for a free slot |
+| `PRG32_BUILD_TIMEOUT` | `120` | seconds one compiler run may take |
 
 The slots are small lock files in `data/builds/.slots/`. They are shared by all
 threads and worker processes of one server, and a crashed process frees its
 slot automatically.
+
+## Two users in one browser
+
+All windows of one browser share one sign-in. If a student signs out and a
+classmate signs in on the same computer while the first student's editor is
+still open in another window, that window would otherwise save and compile
+with the classmate's account. Every page remembers which account it was
+opened as and sends it with each request. When it no longer matches, the
+server refuses and the page shows:
+
+> Somebody signed in as a different user in another window of this browser.
+> Reload this window before saving or compiling.
+
+To work as two users at once (for example a teacher testing a student
+account), use two different browsers, or a normal and a private window.
+
+The offline cache of the installable app only keeps static files (scripts,
+styles, icons), never pages or downloads, so a shared classroom computer
+never shows one student's projects or name to the next student.
 
 ## The same project in two windows
 
@@ -60,3 +85,13 @@ source saved from another window.
   number of students likely to compile at the same moment.
 - SQLite is fine for a classroom. For a larger multi-replica deployment, use
   PostgreSQL (see `docker.md`).
+
+## Test it before class
+
+```bash
+python tools/check_build.py --students 30 --windows 1
+```
+
+This compiles real cartridges for 30 pretend students at the same moment,
+checks that each one got their own game, and that nobody can download a
+classmate's cartridge. See `install_cartridge_build.md`.

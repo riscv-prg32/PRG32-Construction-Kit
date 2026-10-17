@@ -192,3 +192,29 @@ def test_old_databases_get_an_owner_column(tmp_path):
     app = make_app(tmp_path)
     old = app.test_client().get("/api/projects/project_old").get_json()
     assert old["title"] == "Old game" and old["owner_id"] is None
+
+
+def test_a_window_opened_as_another_user_is_stopped(app, client):
+    make_student(client, "ada")
+    ada = student_client(app, "ada")
+    ada_id = ada.get("/auth/me").get_json()["user"]["id"]
+    admin_id = client.get("/auth/me").get_json()["user"]["id"]
+    # This window was opened as the admin, but the browser now holds Ada's sign-in.
+    stale = ada.post("/api/projects", json={"title": "Wrong account"}, headers={"X-PRG32-User": str(admin_id)})
+    assert stale.status_code == 409
+    assert stale.get_json()["code"] == "user_changed"
+    assert ada.get("/api/projects", headers={"X-PRG32-User": str(admin_id)}).status_code == 409
+    assert ada.post("/api/projects", json={"title": "Mine"}, headers={"X-PRG32-User": str(ada_id)}).status_code == 201
+    assert ada.post("/api/projects", json={"title": "Script"}).status_code == 201  # scripts send no header
+
+
+def test_pages_tell_the_browser_which_account_they_were_opened_as(app, client):
+    me = client.get("/auth/me").get_json()["user"]
+    assert f'<meta name="prg32-user" content="{me["id"]}">' in client.get("/").get_data(as_text=True)
+
+
+def test_service_worker_never_caches_signed_in_pages(client):
+    worker = client.get("/static/service-worker.js").get_data(as_text=True)
+    shell = worker.split("const APP_SHELL = [", 1)[1].split("];", 1)[0]
+    assert all(line.strip().startswith("'/static/") for line in shell.strip().splitlines())
+    assert "startsWith('/static/')" in worker

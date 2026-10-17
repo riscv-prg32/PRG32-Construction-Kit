@@ -21,7 +21,9 @@ from .db import (
 )
 from . import sso
 from .auth import Principal, current_principal
+from .build_check import builds_available
 from .build_slots import BuildServerBusy, build_slot
+from .asm_generator import ir_to_asm
 from .generator import blocks_to_c, sprite_to_c
 from .packager import SUPPORTED_ARCHITECTURES, prepare_package
 from .publisher import publish_bundle
@@ -233,6 +235,9 @@ def discovery():
             },
             "auth": {"required": True, "token_header": "Authorization: Bearer <token>"},
             "sso": {"enabled": sso.enabled(), "abi": sso.protocol.SSO_ABI},
+            # False means Compile Cartridge makes source bundles only (docs/install_cartridge_build.md).
+            "cartridge_builds": {"available": builds_available(current_app.config["PRG32_BUILD_COMMAND"]),
+                                 "architectures": list(SUPPORTED_ARCHITECTURES)},
         }
     )
 
@@ -386,25 +391,70 @@ def _changed_elsewhere(project: dict[str, Any], payload: dict[str, Any]) -> bool
     return False
 
 
+# Which generated source files a student asks for: C, RISC-V assembly, or both.
+SOURCE_LANGUAGES = ("c", "asm", "both")
+_SOURCE_KINDS = {
+    "c": ("c_source", "generated C", "text/x-csrc"),
+    "asm": ("asm_source", "generated assembly", "text/x-asm"),
+}
+
+
+def _source_language(payload: dict[str, Any], game_ir: dict[str, Any]) -> tuple[str, tuple[Response, int] | None]:
+    language = payload.get("source_language", "c")
+    if language not in SOURCE_LANGUAGES:
+        return "c", json_error("source_language must be one of: " + ", ".join(SOURCE_LANGUAGES))
+    if language != "c" and game_ir.get("source_mode") == "c":
+        return "c", json_error("Assembly is generated from Blocks. An Advanced C project compiles the C you wrote.")
+    return language, None
+
+
+def _generated_sources(language: str, game_ir: dict[str, Any], c_source: str) -> dict[str, str]:
+    """The source files for one request, C first: {"c": ..., "asm": ...}."""
+    sources: dict[str, str] = {}
+    if language in ("c", "both"):
+        sources["c"] = c_source
+    if language in ("asm", "both"):
+        sources["asm"] = ir_to_asm(game_ir)
+    return sources
+
+
+def _source_artifact(project_id: str, project: dict[str, Any], language: str, text: str,
+                     metadata: dict[str, Any]) -> dict[str, Any]:
+    kind, label, content_type = _SOURCE_KINDS[language]
+    return create_resource("artifacts", owned({
+        "project_id": project_id,
+        "kind": kind,
+        "name": f"{project['title']} {label}",
+        "content_type": content_type,
+        "text_content": text,
+        "metadata": metadata,
+    }))
+
+
 @bp.post("/api/projects/<project_id>/convert")
 def api_convert_project(project_id: str):
+    # Optional: {"source_language": "c" | "asm" | "both"} (default "c").
+    payload = request_json()
     project, game_ir, c_source, error = _generate_project(project_id)
     if error:
         return error
     assert project and game_ir is not None and c_source is not None
-    artifact = create_resource(
-        "artifacts",
-        owned({
-            "project_id": project_id,
-            "kind": "c_source",
-            "name": f"{project['title']} generated C",
-            "content_type": "text/x-csrc",
-            "text_content": c_source,
-            "metadata": {"entry_prefix": game_ir.get("entry_prefix"), "warnings": game_ir.get("warnings", [])},
-        }),
-    )
-    return jsonify({"project": public("projects", get_resource("projects", project_id)), "game_ir": game_ir,
-                    "c_source": c_source, "artifact": public("artifacts", artifact)})
+    language, error = _source_language(payload, game_ir)
+    if error:
+        return error
+    sources = _generated_sources(language, game_ir, c_source)
+    metadata = {"entry_prefix": game_ir.get("entry_prefix"), "warnings": game_ir.get("warnings", [])}
+    artifacts = {lang: _source_artifact(project_id, project, lang, text, metadata) for lang, text in sources.items()}
+    body: dict[str, Any] = {"project": public("projects", get_resource("projects", project_id)), "game_ir": game_ir,
+                            "source_language": language,
+                            "artifact": public("artifacts", next(iter(artifacts.values()))),
+                            "artifacts": [public("artifacts", artifact) for artifact in artifacts.values()]}
+    if "c" in sources:
+        body["c_source"] = sources["c"]
+    if "asm" in sources:
+        body["asm_source"] = sources["asm"]
+        body["asm_artifact"] = public("artifacts", artifacts["asm"])
+    return jsonify(body)
 
 
 @bp.post("/api/projects/<project_id>/package")
@@ -421,6 +471,11 @@ def api_package_project(project_id: str):
     if error:
         return error
     assert project and game_ir is not None and c_source is not None
+    # Optional: {"source_language": "asm"} compiles the generated assembly instead of the
+    # C; "both" compiles the C and puts both files in the bundle.
+    language, error = _source_language(payload, game_ir)
+    if error:
+        return error
     if _changed_elsewhere(project, payload):
         return json_error("This project was changed in another browser window after you saved it. "
                           "Reload the project to see the newest version, then compile again.", 409)
@@ -434,28 +489,25 @@ def api_package_project(project_id: str):
         with build_slot(current_app.config["BUILD_ROOT"] / ".slots",
                         current_app.config["PRG32_MAX_PARALLEL_BUILDS"],
                         current_app.config["PRG32_BUILD_QUEUE_TIMEOUT"]):
-            return _run_package_build(project_id, project, game_ir, c_source, requested)
+            return _run_package_build(project_id, project, game_ir, _generated_sources(language, game_ir, c_source),
+                                      requested)
     except BuildServerBusy as exc:
         response, status = json_error(str(exc), 503)
         response.headers["Retry-After"] = "10"
         return response, status
 
 
-def _run_package_build(project_id: str, project: dict[str, Any], game_ir: dict[str, Any], c_source: str,
+def _run_package_build(project_id: str, project: dict[str, Any], game_ir: dict[str, Any], sources: dict[str, str],
                        requested: list[str] | None):
-    c_artifact = create_resource(
-        "artifacts",
-        owned({
-            "project_id": project_id,
-            "kind": "c_source",
-            "name": f"{project['title']} generated C",
-            "content_type": "text/x-csrc",
-            "text_content": c_source,
-            "metadata": {"entry_prefix": game_ir.get("entry_prefix"), "source": "package"},
-        }),
-    )
-    build = create_resource("builds", owned({"project_id": project_id, "status": "running", "c_artifact_id": c_artifact["id"],
-                                             "metadata": {"project_updated_at": project.get("updated_at")}}))
+    built_from = "c" if "c" in sources else "asm"
+    artifacts = {lang: _source_artifact(project_id, project, lang, text,
+                                        {"entry_prefix": game_ir.get("entry_prefix"), "source": "package"})
+                 for lang, text in sources.items()}
+    c_artifact, asm_artifact = artifacts.get("c"), artifacts.get("asm")
+    build = create_resource("builds", owned({
+        "project_id": project_id, "status": "running", "c_artifact_id": c_artifact["id"] if c_artifact else None,
+        "metadata": {"project_updated_at": project.get("updated_at"), "built_from": built_from,
+                     "asm_artifact_id": asm_artifact["id"] if asm_artifact else None}}))
     release_connection()
     try:
         result = prepare_package(
@@ -463,12 +515,15 @@ def _run_package_build(project_id: str, project: dict[str, Any], game_ir: dict[s
             build_root=current_app.config["BUILD_ROOT"],
             project=project,
             game_ir=game_ir,
-            c_source=c_source,
+            c_source=sources.get("c"),
+            asm_source=sources.get("asm"),
+            build_language=built_from,
             build_id=build["id"],
             build_command=current_app.config["PRG32_BUILD_COMMAND"],
             cart_ram_kib=current_app.config["PRG32_CART_RAM_KIB"],
             project_json=project,
             architectures=requested,
+            build_timeout=current_app.config["PRG32_BUILD_TIMEOUT"],
         )
     except Exception as exc:
         current_app.logger.exception("Packaging failed for %s", project_id)
@@ -521,12 +576,15 @@ def _run_package_build(project_id: str, project: dict[str, Any], game_ir: dict[s
                 "cart_ram_kib": result["cart_ram_kib"],
                 "publishable": result["publishable"],
                 "project_updated_at": project.get("updated_at"),
+                "built_from": built_from,
+                "asm_artifact_id": asm_artifact["id"] if asm_artifact else None,
             },
         },
     )
     return jsonify({
         "build": public("builds", build),
-        "c_artifact": public("artifacts", c_artifact),
+        "c_artifact": public("artifacts", c_artifact) if c_artifact else None,
+        "asm_artifact": public("artifacts", asm_artifact) if asm_artifact else None,
         "bundle_artifact": public("artifacts", bundle_artifact),
         "cartridge_artifacts": [public("artifacts", artifact) for artifact in cartridge_artifacts],
         "result": public_build_result(result),

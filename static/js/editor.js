@@ -7,10 +7,38 @@
 
   function isCMode() { return $('#editorMode').val() === 'c'; }
 
+  // Which generated source Generate and Compile make: C, RISC-V assembly, or both.
+  // Assembly is made from Blocks, so an Advanced C project always uses its own C.
+  const CONVERT_LABELS = { c: 'Generate C', asm: 'Generate Assembly', both: 'Generate C + Assembly' };
+  const languageKey = 'prg32-source-language-' + projectId;
+  function sourceLanguage() { return isCMode() ? 'c' : ($('#sourceLanguage').val() || 'c'); }
+  function codeChoice() { return { source_language: sourceLanguage() }; }
+  function showLanguage() {
+    $('#sourceLanguage').prop('disabled', isCMode());
+    $('#convertLabel').text(CONVERT_LABELS[sourceLanguage()]);
+  }
+  function rememberLanguage() {
+    try { localStorage.setItem(languageKey, $('#sourceLanguage').val()); } catch (err) { /* private window */ }
+  }
+  function restoreLanguage() {
+    let saved = null;
+    try { saved = localStorage.getItem(languageKey); } catch (err) { /* private window */ }
+    if (CONVERT_LABELS[saved]) $('#sourceLanguage').val(saved);
+  }
+
+  // Put generated sources in their tabs and show the first one that arrived.
+  function showSources(cSource, asmSource) {
+    if (typeof cSource === 'string') $('#generatedC').text(cSource);
+    if (typeof asmSource === 'string') $('#generatedAsm').text(asmSource);
+    const target = typeof cSource === 'string' ? '#cPanel' : typeof asmSource === 'string' ? '#asmPanel' : null;
+    if (target) bootstrap.Tab.getOrCreateInstance(document.querySelector(`[data-bs-target="${target}"]`)).show();
+  }
+
   function showMode() {
     $('#blocksEditor').toggleClass('d-none', isCMode());
     $('#sourceEditor').toggleClass('d-none', !isCMode());
     $('#runGame, #stepGame, #resetGame').prop('disabled', isCMode());
+    showLanguage();
     if (isCMode()) {
       simulator.stop();
       $('#runGame').removeClass('btn-danger').addClass('btn-success').html('<i class="bi bi-play-fill"></i> Play');
@@ -90,12 +118,13 @@
   function convertProject() {
     $('#convertProject').prop('disabled', true);
     return saveProject()
-      .then(() => Kit.api('/api/projects/' + projectId + '/convert', { method: 'POST', body: {} }))
+      .then(() => Kit.api('/api/projects/' + projectId + '/convert', { method: 'POST', body: codeChoice() }))
       .then(result => {
-        $('#generatedC').text(result.c_source);
+        showSources(result.c_source, result.asm_source);
         $('#generatedIR').text(JSON.stringify(result.game_ir, null, 2));
-        setLog('Generated C artifact: ' + result.artifact.id + '\nWarnings: ' + (result.game_ir.warnings || []).join(', '));
-        Kit.toast('Generated C artifact', 'success');
+        const names = (result.artifacts || [result.artifact]).map(artifact => artifact.name + ' (' + artifact.id + ')');
+        setLog('Generated artifacts: ' + names.join(', ') + '\nWarnings: ' + (result.game_ir.warnings || []).join(', '));
+        Kit.toast(CONVERT_LABELS[result.source_language || 'c'].replace('Generate', 'Generated'), 'success');
       })
       .catch(err => Kit.toast(err.message, 'danger'))
       .finally(() => $('#convertProject').prop('disabled', false));
@@ -104,9 +133,9 @@
   function packageProject() {
     $('#packageProject').prop('disabled', true);
     return saveProject()
-      .then(() => Kit.api('/api/projects/' + projectId + '/package', { method: 'POST', body: savedVersion() }))
+      .then(() => Kit.api('/api/projects/' + projectId + '/package', { method: 'POST', body: Object.assign(codeChoice(), savedVersion()) }))
       .then(result => {
-        $('#generatedC').text(result.c_artifact.text_content || $('#generatedC').text());
+        showSources(result.c_artifact && result.c_artifact.text_content, result.asm_artifact && result.asm_artifact.text_content);
         $('#generatedIR').text(JSON.stringify(result.result.manifest, null, 2));
         setLog(result.build.log || JSON.stringify(result.result, null, 2));
         const cartridges = result.cartridge_artifacts || [];
@@ -114,7 +143,7 @@
           const links = cartridges.map(artifact => `<a class="btn btn-success btn-sm ms-2" href="/api/artifacts/${encodeURIComponent(artifact.id)}/download"><i class="bi bi-download"></i> ${Kit.escape(artifact.metadata.architecture)} .prg32</a>`).join('');
           $('#cartridgeDownloads').removeClass('d-none alert-warning').addClass('alert-success').html(`<strong>Cartridge ready.</strong> Download it and upload it to a PRG32 cartridge slot.${links}`);
         } else {
-          $('#cartridgeDownloads').removeClass('d-none alert-success').addClass('alert-warning').text('The source bundle is ready, but the PRG32 compiler toolchain is not installed on this server.');
+          $('#cartridgeDownloads').removeClass('d-none alert-success').addClass('alert-warning').text('The source bundle is ready, but this server cannot compile PRG32 cartridges yet. Ask your teacher to start the kit with its Docker image (see docs/install_cartridge_build.md).');
         }
         Kit.toast(cartridges.length ? 'PRG32 cartridge compiled' : 'Source bundle prepared; PRG32 toolchain required for the binary', cartridges.length ? 'success' : 'warning');
       })
@@ -127,12 +156,12 @@
     const buttons = $('.download-cartridge, .download-cartridge-toggle');
     buttons.prop('disabled', true);
     return saveProject()
-      .then(() => Kit.api('/api/projects/' + projectId + '/package', { method: 'POST', body: Object.assign({ architectures: [architecture] }, savedVersion()) }))
+      .then(() => Kit.api('/api/projects/' + projectId + '/package', { method: 'POST', body: Object.assign({ architectures: [architecture] }, codeChoice(), savedVersion()) }))
       .then(result => {
         setLog(result.build.log || JSON.stringify(result.result, null, 2));
         const cartridge = (result.cartridge_artifacts || []).find(artifact => artifact.metadata.architecture === architecture);
         if (!cartridge) {
-          $('#cartridgeDownloads').removeClass('d-none alert-success').addClass('alert-warning').text('No .prg32 cartridge was produced. Check the Debug Log: the PRG32 compiler toolchain may be missing on this server.');
+          $('#cartridgeDownloads').removeClass('d-none alert-success').addClass('alert-warning').text('No .prg32 cartridge was produced. Check the Debug Log: if it says a command or the compiler was not found, ask your teacher to start the kit with its Docker image (see docs/install_cartridge_build.md).');
           Kit.toast('Cartridge build failed; see the Debug Log', 'warning');
           return;
         }
@@ -160,6 +189,8 @@
 
   $('#saveProject').on('click', () => saveProject().catch(err => Kit.toast(err.message, 'danger')));
   $('#editorMode').on('change', () => { dirty = true; showMode(); });
+  $('#sourceLanguage').on('change', () => { rememberLanguage(); showLanguage(); });
+  restoreLanguage();
   $('#customC').on('input', () => { dirty = true; });
   $('#requiredFeatures').on('input', () => { dirty = true; });
   $('#startFromBlocks').on('click', () => {

@@ -16,6 +16,10 @@ Accounts live in the kit's own database: no cloud service is needed.
 - If your teacher linked the kit with the Cartridge Store, your account works
   in both places. The **Cartridge Store** button opens the store already signed
   in, and **Publish** sends your cartridge as you.
+- All windows of one browser share one sign-in. If someone signs in as a
+  different user in another window, the kit shows a yellow banner and refuses
+  to save or compile until you **Reload this window**. To work as two users at
+  once, use two browsers or a private window.
 
 ## For teachers
 

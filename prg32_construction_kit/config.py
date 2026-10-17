@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import os
+import shlex
+import sys
 from pathlib import Path
 
 
@@ -30,12 +32,16 @@ class Config:
     BUILD_ROOT = Path(os.environ.get("PRG32_KIT_BUILD_ROOT", DATA_DIR / "builds")).resolve()
     ARTIFACT_ROOT = Path(os.environ.get("PRG32_KIT_ARTIFACT_ROOT", DATA_DIR / "artifacts")).resolve()
     DEFAULT_STORE_URL = os.environ.get("PRG32_STORE_URL", "http://127.0.0.1:5080")
-    PRG32_BUILD_COMMAND = os.environ.get("PRG32_BUILD_COMMAND", "python3 -m prg32 cartridge build")
+    # The default runs the PRG32 builder with the same Python that runs the kit,
+    # so `pip install -e ../PRG32` inside the kit's virtual environment is enough.
+    PRG32_BUILD_COMMAND = os.environ.get("PRG32_BUILD_COMMAND") or f"{shlex.quote(sys.executable)} -m prg32 cartridge build"
     PRG32_CART_RAM_KIB = int(os.environ.get("PRG32_CART_RAM_KIB", "64"))
     # How many cartridge builds may compile at the same time on this server,
     # and how long (seconds) a build waits for a free slot before giving up.
     PRG32_MAX_PARALLEL_BUILDS = int(os.environ.get("PRG32_MAX_PARALLEL_BUILDS", str(os.cpu_count() or 2)))
     PRG32_BUILD_QUEUE_TIMEOUT = float(os.environ.get("PRG32_BUILD_QUEUE_TIMEOUT", "180"))
+    # Seconds one compiler run (one architecture) may take before it is stopped.
+    PRG32_BUILD_TIMEOUT = float(os.environ.get("PRG32_BUILD_TIMEOUT", "120"))
     MAX_CONTENT_LENGTH = int(os.environ.get("PRG32_KIT_MAX_UPLOAD", str(32 * 1024 * 1024)))
     JSON_SORT_KEYS = False
 

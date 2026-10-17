@@ -550,6 +550,15 @@ def guard_request():
         # us with the student's cookie, but it cannot add this header or send a
         # JSON body; PUT and DELETE cannot be sent from another site at all.
         return jsonify({"error": "This request must come from the Construction Kit pages"}), 403
+    opened_as = str(request.headers.get("X-PRG32-User", "")).strip()
+    if opened_as and not getattr(g, "prg32_auth_by_token", False) and opened_as != str(principal.id):
+        # One browser shares one sign-in cookie between all its windows. This
+        # window was opened as another account, so saving or building now would
+        # use the wrong student's account.
+        return jsonify({"error": "Somebody signed in as a different user in another window of this browser. "
+                                 "Reload this window before saving or compiling. To work as two users at once, "
+                                 "use two browsers or a private window.",
+                        "code": "user_changed"}), 409
     return None
 
 

@@ -69,7 +69,7 @@ def _stmt(block_type, **fields):
 
 def test_dropdown_values_cannot_inject_c():
     _, source = blocks_to_c(_stmt("prg32_clear_screen", COLOR="PRG32_COLOR_RED); system(\"x\"); (0"), {"title": "Inject"})
-    assert "system" not in source
+    assert "system(" not in source  # the header comment mentions an "operating system"
     assert "prg32_gfx_clear(PRG32_COLOR_BLACK);" in source
     blocks = {"blocks": {"blocks": [{"type": "prg32_if_button", "fields": {"BUTTON": "PRG32_BTN_A) { evil(); } if (1"}}]}}
     _, source = blocks_to_c(blocks, {"title": "Inject"})

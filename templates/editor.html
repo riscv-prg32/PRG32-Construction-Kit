@@ -23,7 +23,14 @@
     <button class="btn btn-success" id="runGame"><i class="bi bi-play-fill"></i> Play</button>
     <button class="btn btn-warning" id="stepGame"><i class="bi bi-skip-forward"></i> Step</button>
     <button class="btn btn-outline-danger" id="resetGame"><i class="bi bi-arrow-counterclockwise"></i> Reset</button>
-    <button class="btn btn-primary" id="convertProject"><i class="bi bi-filetype-c"></i> Generate C</button>
+    <label class="visually-hidden" for="sourceLanguage">Generated code</label>
+    <select class="form-select w-auto" id="sourceLanguage" aria-label="Generated code"
+            title="Which source code Generate and Compile Cartridge make from the blocks">
+      <option value="c">C</option>
+      <option value="asm">Assembly (RISC-V)</option>
+      <option value="both">C + Assembly</option>
+    </select>
+    <button class="btn btn-primary" id="convertProject"><i class="bi bi-file-earmark-code"></i> <span id="convertLabel">Generate C</span></button>
     <button class="btn btn-dark" id="packageProject"><i class="bi bi-box-seam"></i> Compile Cartridge</button>
     <div class="btn-group">
       <button class="btn btn-success download-cartridge" type="button" data-architecture="esp32c6"><i class="bi bi-sd-card"></i> Download .prg32</button>
@@ -96,12 +103,14 @@
       <div class="card-header">
         <ul class="nav nav-tabs card-header-tabs" role="tablist">
           <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#cPanel" type="button">Generated C</button></li>
+          <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#asmPanel" type="button">Generated Assembly</button></li>
           <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#irPanel" type="button">Game IR</button></li>
           <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#logPanel" type="button">Debug Log</button></li>
         </ul>
       </div>
       <div class="card-body tab-content p-0">
         <pre class="code-panel tab-pane fade show active" id="cPanel"><code id="generatedC">Click Generate C.</code></pre>
+        <pre class="code-panel tab-pane fade" id="asmPanel"><code id="generatedAsm">Choose Assembly (RISC-V) or C + Assembly, then click Generate.</code></pre>
         <pre class="code-panel tab-pane fade" id="irPanel"><code id="generatedIR">{}</code></pre>
         <pre class="code-panel tab-pane fade" id="logPanel"><code id="debugLog">No log yet.</code></pre>
       </div>

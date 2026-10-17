@@ -17,6 +17,8 @@ from __future__ import annotations
 
 import json
 import re
+import textwrap
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -500,252 +502,555 @@ def blocks_to_ir(blocks_json: Any, project: dict[str, Any] | None = None) -> dic
 
 
 # ---------------------------------------------------------------------------
+# Plain-language narration, shared by the C and the assembly generators
+# ---------------------------------------------------------------------------
+
+_SIMPLE_VALUE = re.compile(r"-?(?:0[xX][0-9A-Fa-f]+|[0-9]+)|[A-Za-z_][A-Za-z0-9_]*")
+
+
+def _colour_words(value: Any, fallback: str = "WHITE") -> str:
+    return color_name(value, fallback).replace("_", " ").lower()
+
+
+def _button_words(value: Any) -> str:
+    key = str(value or "A").upper().strip()
+    if key not in BUTTON_MAP:
+        key = "A"
+    return key.replace("P2_", "player 2 ")
+
+
+def describe_statement(stmt: dict[str, Any], show: Callable[[Any], str] | None = None) -> str:
+    """One plain sentence that says what a block does.
+
+    The C and the assembly generators both print this sentence above the code
+    of every block, so a student can match a block, its C lines and its
+    RISC-V instructions. ``show`` turns an IR expression into the checked text
+    to print (by default it is checked without lists).
+    """
+    show = show or (lambda text: check_expr(text) or "0")
+    op = stmt.get("op")
+
+    def v(key: str, fallback: Any = 0) -> str:
+        value = stmt.get(key)
+        return show(value if value not in (None, "") else fallback)
+
+    var = state_name(stmt.get("var")) if "var" in stmt else ""
+    lst = state_name(stmt.get("list")) if "list" in stmt else ""
+    colour = _colour_words(stmt.get("color"))
+    fg, bg = _colour_words(stmt.get("fg")), _colour_words(stmt.get("bg"), "BLACK")
+    if op == "set":
+        value = v("value")
+        if _SIMPLE_VALUE.fullmatch(value):
+            return f'Block "set {var} to {value}": store {value} in the variable {var}.'
+        return f'Block "set {var} to {value}": work out {value}, then store the result in {var}.'
+    if op == "change":
+        delta = v("delta")
+        if delta.startswith("-"):
+            return f'Block "change {var} by {delta}": add {delta} to {var}; adding a negative number subtracts.'
+        return f'Block "change {var} by {delta}": add {delta} to {var}.'
+    if op == "clamp":
+        return (f'Block "keep {var} between {v("low")} and {v("high")}": raise {var} to {v("low")} when it is smaller, '
+                f'lower it to {v("high")} when it is larger.')
+    if op == "wrap":
+        return (f'Block "wrap {var} from {v("low")} to {v("high")}": a value that leaves one end of the range comes back '
+                f'in at the other end, like a tunnel; the range holds ({v("high")}) - ({v("low")}) + 1 values.')
+    if op == "random":
+        return f'Block "set {var} to a random number": pick a whole number from {v("low")} to {v("high")}, both ends included.'
+    if op == "if":
+        text = f'Block "if {v("cond")}": the inner blocks run only when the condition is true (not 0)'
+        return text + ('; otherwise the "else" blocks run.' if "else" in stmt else ".")
+    if op == "repeat":
+        return (f'Block "repeat {var} from {v("from")} to {v("to")}": run the inner blocks once for every value of {var}, '
+                f'counting up by 1; a hidden counter stops after {MAX_REPEAT} rounds, so a frame always ends.')
+    if op == "list_fill":
+        return f'Block "make list {lst}": give every item of {lst} the value {v("value")}.'
+    if op == "list_set":
+        return (f'Block "set {lst}[{v("index")}] to {v("value")}": a position outside the list is ignored, '
+                f'so a wrong position can never overwrite other memory.')
+    if op == "list_change":
+        return (f'Block "change {lst}[{v("index")}] by {v("delta")}": read the item, add {v("delta")}, write it back '
+                f'(outside the list an item reads as 0 and nothing is written).')
+    if op == "if_button":
+        return f'Block "if button {_button_words(stmt.get("button"))} is held": true on every frame while the button is down.'
+    if op == "if_button_once":
+        return (f'Block "if button {_button_words(stmt.get("button"))} was just pressed": true only on the first frame '
+                f'of a press (down now, up one frame ago).')
+    if op == "if_touching":
+        return (f'Block "if touching": run the inner blocks when box A (x {v("ax")}, y {v("ay")}, {v("aw")} by {v("ah")}) '
+                f'overlaps box B (x {v("bx")}, y {v("by")}, {v("bw")} by {v("bh")}).')
+    if op == "clear":
+        return f'Block "clear screen": paint the whole 320 x 200 game area {_colour_words(stmt.get("color"), "BLACK")}.'
+    if op == "rect":
+        return f'Block "draw rectangle": a filled {v("w")} x {v("h")} rectangle, top-left corner at ({v("x")}, {v("y")}), {colour}.'
+    if op == "rect_rgb":
+        return (f'Block "draw rectangle (RGB565)": a filled {v("w")} x {v("h")} rectangle at ({v("x")}, {v("y")}) '
+                f'whose colour is the number {v("rgb")}.')
+    if op == "frame":
+        return f'Block "draw frame": the 1-pixel outline of a {v("w")} x {v("h")} rectangle at ({v("x")}, {v("y")}), {colour}.'
+    if op == "pixel":
+        return f'Block "draw pixel": light the single pixel at ({v("x")}, {v("y")}) in {colour}.'
+    if op == "line":
+        return f'Block "draw line": a straight line from ({v("x1")}, {v("y1")}) to ({v("x2")}, {v("y2")}), {colour}.'
+    if op == "circle":
+        kind = "filled" if stmt.get("fill") else "outlined"
+        return f'Block "draw circle": a {kind} circle with centre ({v("x")}, {v("y")}) and radius {v("r")}, {colour}.'
+    if op == "bitmap":
+        return (f'Block "draw 8x8 picture": top-left corner at ({v("x")}, {v("y")}); every picture pixel becomes a '
+                f'{v("scale")} x {v("scale")} square of screen pixels, {colour}.')
+    if op == "sprite8":
+        return f'Block "draw 8x8 sprite": the firmware draws the picture at ({v("x")}, {v("y")}), lit pixels {fg}, the others {bg}.'
+    if op == "palette_set":
+        return f'Block "set palette colour": palette entry {v("index")} becomes {colour}; indexed drawing looks colours up here.'
+    if op == "clear_indexed":
+        return f'Block "clear screen with palette colour {v("index")}".'
+    if op == "rect_indexed":
+        return f'Block "draw rectangle with palette colour {v("index")}": {v("w")} x {v("h")} at ({v("x")}, {v("y")}).'
+    if op == "pixel_indexed":
+        return f'Block "draw pixel with palette colour {v("index")}" at ({v("x")}, {v("y")}).'
+    if op == "text":
+        return f'Block "draw text": write "{stmt.get("text", "")}" with the 8x8 font at ({v("x")}, {v("y")}), {fg} on {bg}.'
+    if op == "number":
+        return f'Block "draw number": write the value of {v("value")} in decimal digits at ({v("x")}, {v("y")}), {fg} on {bg}.'
+    if op == "tile_define":
+        return f'Block "define tile {v("id")}": store an 8x8 picture as tile number {v("id")}, {fg} on {bg}, for the playfields.'
+    if op == "playfield_clear":
+        return f'Block "clear playfield {v("layer")}": fill every cell of layer {v("layer")} with tile {v("id")}.'
+    if op == "playfield_put":
+        return f'Block "put tile": tile {v("id")} goes to column {v("tx")}, row {v("ty")} of playfield layer {v("layer")}.'
+    if op == "playfield_scroll":
+        return f'Block "scroll playfield": layer {v("layer")} shows its pixel ({v("x")}, {v("y")}) at the top-left of the screen.'
+    if op == "playfield_camera":
+        return f'Block "move camera": the camera looks at ({v("x")}, {v("y")}) of the playfields.'
+    if op == "playfield_draw":
+        how = "tile 0 is see-through" if stmt.get("transparent") else "every tile is solid"
+        return f'Block "draw playfield {v("layer")}": copy the visible tiles of layer {v("layer")} to the screen ({how}).'
+    if op == "beep":
+        return f'Block "beep": play the musical note nearest to {v("freq")} Hz for {v("ms")} milliseconds on channel 0.'
+    if op == "note":
+        return f'Block "play note": MIDI note {v("note")} (60 is middle C) on channel {v("channel")} for {v("ms")} milliseconds.'
+    if op == "note_off":
+        return f'Block "stop sound": silence channel {v("channel")}.'
+    if op == "volume":
+        return f'Block "set volume": master volume {v("volume")} (0 is silent, 255 is loudest).'
+    if op == "band":
+        shown = f' followed by the value of {v("value")}' if "value" in stmt else ""
+        return f'Block "status band": show "{stmt.get("text", "")}"{shown} in the firmware status band.'
+    if op == "score_submit":
+        return f'Block "submit score": record {v("value")} as the score of the current player of this game.'
+    if op == "scoreboard":
+        return f'Block "show high scores": the firmware shows the score table titled "{stmt.get("title", "")}".'
+    if op == "splash":
+        return (f'Block "splash screen": show "{stmt.get("title", "")}" and "{stmt.get("subtitle", "")}" '
+                f'for {v("ms")} milliseconds.')
+    if op == "player_name":
+        return 'Block "ask player name": the firmware shows its keyboard so the player can type a name.'
+    if op == "mp_join":
+        return 'Block "join multiplayer": connect to other PRG32 players of this game through the Cartridge Store relay.'
+    if op == "mp_share":
+        return (f'Block "share my position": send x {v("x")}, y {v("y")} and look {v("look")} to the other players, '
+                f'then exchange messages with the relay.')
+    return ""
+
+
+# ---------------------------------------------------------------------------
 # C generation
 # ---------------------------------------------------------------------------
 
+# Trailing comments start at this column, so code and explanation read side by side.
+C_COMMENT_COLUMN = 56
+_C_WRAP = 100
+
+
+# The first time each kind of statement appears in a file, the C line gets a note
+# that explains its syntax (later uses rely on that first explanation).
+C_SYNTAX_NOTES = {
+    "set": "C syntax: '=' stores the value on the right in the variable on the left",
+    "change": "C syntax: x += d is short for x = x + d",
+    "clamp": "C syntax: if (test) { ... } runs the braces only when the test is true",
+    "wrap": "C syntax: 'else if' is tested only when the test before it was false",
+    "random": "a function call: the values in brackets are its inputs, in order",
+    "if": "C syntax: if (condition) { ... }; any value except 0 counts as true",
+    "repeat": "C syntax: { ... } groups statements; variables declared inside exist only there",
+    "list_fill": "a list is passed by its address, so the helper can change its items",
+    "list_set": "helpers check the position, so a list can never be written outside its items",
+    "list_change": "the inner call reads the item, the outer call writes the new value back",
+    "if_button": "C syntax: & (bitwise AND) keeps only this button's bit: not 0 exactly when it is held",
+    "if_button_once": "C syntax: && means 'and', ! means 'not'; previous input holds last frame's buttons",
+    "if_touching": "the firmware compares the two boxes and answers 1 (overlap) or 0",
+    "clear": "a firmware call: the PRG32 firmware does the drawing",
+    "text": "text in quotes \"...\" is a C string: its characters followed by a 0 byte",
+    "number": "kit helper: turns the number into text, then draws it",
+    "bitmap": "the picture is passed by its address: the name of an array is its address",
+    "sprite8": "the picture is passed by its address: the name of an array is its address",
+    "beep": "the inner call runs first; its result becomes the third input of the outer call",
+    "band": "1 says 'a number follows'; 0 would show the text alone",
+}
+
+
+def c_comment_block(text: str, indent: str = "", width: int = _C_WRAP) -> list[str]:
+    """A /* ... */ comment, wrapped to ``width`` columns."""
+    body = textwrap.wrap(c_comment(text), max(30, width - len(indent) - 3)) or [""]
+    if len(body) == 1:
+        return [f"{indent}/* {body[0]} */"]
+    return [f"{indent}/* {body[0]}", *(f"{indent} * {line}" for line in body[1:-1]), f"{indent} * {body[-1]} */"]
+
+
+def annotate_c(rows: list[Any], column: int = C_COMMENT_COLUMN) -> list[str]:
+    """Lay out (code, explanation) pairs: the explanation goes after the code, or above a long line.
+
+    A plain string is copied as it is.
+    """
+    out: list[str] = []
+    for row in rows:
+        if isinstance(row, str):
+            out.append(row)
+            continue
+        code, note = row
+        if not note:
+            out.append(code)
+        elif len(code) + 2 <= column:
+            out.append(code.ljust(column) + f"/* {c_comment(note)} */")
+        else:
+            indent = code[:len(code) - len(code.lstrip())]
+            out.extend(c_comment_block(note, indent))
+            out.append(code)
+    return out
+
+
+def _doc(*lines: str) -> list[str]:
+    """A helper's documentation block."""
+    return ["/*", *(f" * {line}".rstrip() for line in lines), " */"]
+
+
 # Helper C functions, written into the game file only when the game needs them.
-HELPERS: dict[str, list[str]] = {
+# Every helper has a documentation block (what, inputs, result, method) and an
+# explanation beside every line. Kit helpers start with prg32_kit_ so they can
+# never clash with a student's variable names (those may not start with prg32_).
+_HELPER_SOURCE: dict[str, list[Any]] = {
     "list_get": [
-        "/* Lists: reading outside a list gives 0. */",
-        "static int prg32_kit_get(const int *list, int size, int index) {",
-        "    return (index >= 0 && index < size) ? list[index] : 0;",
-        "}",
+        *_doc("prg32_kit_get(list, size, index): read one item of a list, safely.",
+              "C never checks array positions: list[-1] or list[size] would quietly read",
+              "memory that belongs to something else. This helper answers 0 instead.",
+              "Inputs: the address of item 0, the number of items, the wanted position.",
+              "Result: list[index] when 0 <= index < size, otherwise 0."),
+        ("static int prg32_kit_get(const int *list, int size, int index) {", ""),
+        ("    return (index >= 0 && index < size) ? list[index] : 0;", "inside the list: the item; outside: 0"),
+        ("}", ""),
     ],
     "list_set": [
-        "/* Lists: writing outside a list does nothing. */",
-        "static void prg32_kit_set(int *list, int size, int index, int value) {",
-        "    if (index >= 0 && index < size) list[index] = value;",
-        "}",
+        *_doc("prg32_kit_set(list, size, index, value): write one item of a list, safely.",
+              "Writing outside an array is the classic C bug (a 'buffer overflow'):",
+              "it overwrites other variables. Here a write outside 0..size-1 does nothing."),
+        ("static void prg32_kit_set(int *list, int size, int index, int value) {", ""),
+        ("    if (index >= 0 && index < size) list[index] = value;", "only positions 0..size-1 are written"),
+        ("}", ""),
     ],
     "list_fill": [
-        "/* Lists: give every item the same value. */",
-        "static void prg32_kit_fill(int *list, int size, int value) {",
-        "    int index;",
-        "    for (index = 0; index < size; ++index) list[index] = value;",
-        "}",
+        *_doc("prg32_kit_fill(list, size, value): give every item of a list the same value.",
+              "A counting loop: index walks 0, 1, ..., size-1."),
+        ("static void prg32_kit_fill(int *list, int size, int value) {", ""),
+        ("    int index;", "the position being written"),
+        ("    for (index = 0; index < size; ++index) list[index] = value;", "start at 0, stop before size, step 1"),
+        ("}", ""),
     ],
     "div": [
-        "/* Division like the RISC-V DIV instruction: x / 0 is -1 (no crash). */",
-        "static int prg32_kit_div(int a, int b) {",
-        "    if (b == 0) return -1;",
-        "    if (b == -1) return (int)(0u - (unsigned int)a);",
-        "    return a / b;",
-        "}",
+        *_doc("prg32_kit_div(a, b): whole-number division a / b, rounded toward zero (7 / 2 = 3).",
+              "In C, dividing by 0 (or -2147483648 / -1) is 'undefined behaviour': anything may",
+              "happen. The RISC-V DIV instruction instead defines every case: x / 0 = -1 and",
+              "-2147483648 / -1 = -2147483648. This helper gives exactly the RISC-V answers,",
+              "the same ones the browser simulator gives."),
+        ("static int prg32_kit_div(int a, int b) {", ""),
+        ("    if (b == 0) return -1;", "RISC-V rule: x / 0 = -1 (no crash)"),
+        ("    if (b == -1) return (int)(0u - (unsigned int)a);", "a / -1 = -a, computed without overflow"),
+        ("    return a / b;", "the normal case"),
+        ("}", ""),
     ],
     "mod": [
-        "/* Remainder like the RISC-V REM instruction: x % 0 is x (no crash). */",
-        "static int prg32_kit_mod(int a, int b) {",
-        "    if (b == 0) return a;",
-        "    if (b == -1) return 0;",
-        "    return a % b;",
-        "}",
+        *_doc("prg32_kit_mod(a, b): the remainder of a / b; its sign follows a (-7 % 2 = -1).",
+              "Like the RISC-V REM instruction: x % 0 = x and x % -1 = 0, never a crash."),
+        ("static int prg32_kit_mod(int a, int b) {", ""),
+        ("    if (b == 0) return a;", "RISC-V rule: x % 0 = x"),
+        ("    if (b == -1) return 0;", "every number divides by -1 exactly"),
+        ("    return a % b;", "the normal case"),
+        ("}", ""),
     ],
-    "abs": ["static int prg32_kit_abs(int value) { return value < 0 ? -value : value; }"],
-    "sign": ["static int prg32_kit_sign(int value) { return (value > 0) - (value < 0); }"],
-    "min": ["static int prg32_kit_min(int a, int b) { return a < b ? a : b; }"],
-    "max": ["static int prg32_kit_max(int a, int b) { return a > b ? a : b; }"],
-    "clamp": ["static int prg32_kit_clamp(int value, int low, int high) { return value < low ? low : value > high ? high : value; }"],
+    "abs": [
+        *_doc("prg32_kit_abs(value): the distance of value from 0 (abs(-5) = 5)."),
+        ("static int prg32_kit_abs(int value) { return value < 0 ? -value : value; }", "negative: flip the sign"),
+    ],
+    "sign": [
+        *_doc("prg32_kit_sign(value): -1 for a negative value, 0 for zero, 1 for a positive value.",
+              "A comparison in C is itself a number, 1 (true) or 0 (false), so",
+              "(value > 0) - (value < 0) is 1 - 0, 0 - 0 or 0 - 1."),
+        ("static int prg32_kit_sign(int value) { return (value > 0) - (value < 0); }", ""),
+    ],
+    "min": [
+        *_doc("prg32_kit_min(a, b): the smaller of two numbers.",
+              "condition ? x : y is C's 'conditional operator': x when the condition is true, otherwise y."),
+        ("static int prg32_kit_min(int a, int b) { return a < b ? a : b; }", ""),
+    ],
+    "max": [
+        *_doc("prg32_kit_max(a, b): the larger of two numbers."),
+        ("static int prg32_kit_max(int a, int b) { return a > b ? a : b; }", ""),
+    ],
+    "clamp": [
+        *_doc("prg32_kit_clamp(value, low, high): value, pushed back inside low..high."),
+        ("static int prg32_kit_clamp(int value, int low, int high) { return value < low ? low : value > high ? high : value; }", ""),
+    ],
     "sin": [
-        "/* sin(degrees) and cos(degrees) return a value from -256 to 256 (256 means 1.0). */",
-        "static const int16_t prg32_kit_sine_table[91] = {",
+        *_doc("prg32_kit_sin(degrees) and prg32_kit_cos(degrees): sine and cosine without floating point.",
+              "The result is scaled by 256: 256 means 1.0 and -128 means -0.5, so",
+              "x + speed * cos(angle) / 256 moves x by 'speed' pixels in the angle's direction.",
+              "The table holds round(256 * sin(d)) for d = 0..90 degrees. The other three",
+              "quarters of the circle are mirror images of the first one:",
+              "  sin(d) = sin(180 - d),  sin(180 + d) = -sin(d),  sin(360 - d) = -sin(d)."),
+        ("static const int16_t prg32_kit_sine_table[91] = {", "91 entries: one per degree, 0..90"),
         *("    " + ", ".join(str(v) for v in SINE_TABLE[i:i + 16]) + ("," if i + 16 < len(SINE_TABLE) else "")
           for i in range(0, len(SINE_TABLE), 16)),
         "};",
-        "static int prg32_kit_sin(int degrees) {",
-        "    int a = degrees % 360;",
-        "    if (a < 0) a += 360;",
-        "    if (a <= 90) return prg32_kit_sine_table[a];",
-        "    if (a <= 180) return prg32_kit_sine_table[180 - a];",
-        "    if (a <= 270) return -prg32_kit_sine_table[a - 180];",
-        "    return -prg32_kit_sine_table[360 - a];",
-        "}",
+        ("static int prg32_kit_sin(int degrees) {", ""),
+        ("    int a = degrees % 360;", "one full turn is 360 degrees; a is now -359..359"),
+        ("    if (a < 0) a += 360;", "bring a into 0..359"),
+        ("    if (a <= 90) return prg32_kit_sine_table[a];", "first quarter: read the table"),
+        ("    if (a <= 180) return prg32_kit_sine_table[180 - a];", "second quarter: mirror around 90"),
+        ("    if (a <= 270) return -prg32_kit_sine_table[a - 180];", "third quarter: same shape, negative"),
+        ("    return -prg32_kit_sine_table[360 - a];", "fourth quarter: mirror and negative"),
+        ("}", ""),
     ],
-    "cos": ["static int prg32_kit_cos(int degrees) { return prg32_kit_sin(degrees % 360 + 90); }"],
+    "cos": [
+        *_doc("prg32_kit_cos(degrees): the cosine is the sine 90 degrees later: cos(d) = sin(d + 90)."),
+        ("static int prg32_kit_cos(int degrees) { return prg32_kit_sin(degrees % 360 + 90); }", ""),
+    ],
     "rgb": [
-        "/* rgb(red, green, blue) packs 0..255 values into one RGB565 colour. */",
-        "static int prg32_kit_rgb(int r, int g, int b) {",
-        "    r = r < 0 ? 0 : r > 255 ? 255 : r;",
-        "    g = g < 0 ? 0 : g > 255 ? 255 : g;",
-        "    b = b < 0 ? 0 : b > 255 ? 255 : b;",
-        "    return ((r & 0xF8) << 8) | ((g & 0xFC) << 3) | (b >> 3);",
-        "}",
+        *_doc("prg32_kit_rgb(red, green, blue): pack three 0..255 values into one RGB565 colour.",
+              "RGB565 keeps the top 5 bits of red, 6 of green (our eyes see green best) and 5 of blue:",
+              "  bit 15..11 red | bit 10..5 green | bit 4..0 blue."),
+        ("static int prg32_kit_rgb(int r, int g, int b) {", ""),
+        ("    r = r < 0 ? 0 : r > 255 ? 255 : r;", "keep red inside 0..255"),
+        ("    g = g < 0 ? 0 : g > 255 ? 255 : g;", "keep green inside 0..255"),
+        ("    b = b < 0 ? 0 : b > 255 ? 255 : b;", "keep blue inside 0..255"),
+        ("    return ((r & 0xF8) << 8) | ((g & 0xFC) << 3) | (b >> 3);",
+         "& keeps the top bits, << and >> move them into place, | joins the three parts"),
+        ("}", ""),
     ],
     "random": [
-        "/* A whole random number from low to high, both included. */",
-        "static int prg32_kit_random(int low, int high) {",
-        "    if (high <= low) return low;",
-        "    return low + (int)prg32_random_number(0u, (uint32_t)(high - low));",
-        "}",
+        *_doc("prg32_kit_random(low, high): a whole random number from low to high, both included.",
+              "The firmware gives a random number from 0 to (high - low); adding low shifts the range."),
+        ("static int prg32_kit_random(int low, int high) {", ""),
+        ("    if (high <= low) return low;", "an empty or one-value range: the answer is low"),
+        ("    return low + (int)prg32_random_number(0u, (uint32_t)(high - low));", "low + (0 .. high-low)"),
+        ("}", ""),
     ],
     "frame": [
-        "/* frame() counts finished frames since the game started. */",
-        "static int prg32_kit_frame_count;",
-        "static int prg32_kit_frame(void) { return prg32_kit_frame_count; }",
+        *_doc("prg32_kit_frame(): how many frames have finished since the game started.",
+              "At 30 frames per second, frame() / 30 counts seconds. The update function adds 1 per frame."),
+        ("static int prg32_kit_frame_count;", "a static variable keeps its value between frames"),
+        ("static int prg32_kit_frame(void) { return prg32_kit_frame_count; }", ""),
     ],
     "tile": [
-        "/* tile(layer, column, row) reads the tile number stored in a playfield. */",
-        "static int prg32_kit_tile(int layer, int tx, int ty) {",
-        "    if (layer < 0 || tx < 0 || ty < 0 || layer > 255 || tx > 255 || ty > 255) return 0;",
-        "    return (int)prg32_playfield_get((uint8_t)layer, (uint8_t)tx, (uint8_t)ty);",
-        "}",
+        *_doc("prg32_kit_tile(layer, column, row): the tile number stored in one playfield cell.",
+              "The firmware takes 8-bit numbers (0..255); anything outside that range answers 0",
+              "instead of being cut down to 8 bits and reading the wrong cell."),
+        ("static int prg32_kit_tile(int layer, int tx, int ty) {", ""),
+        ("    if (layer < 0 || tx < 0 || ty < 0 || layer > 255 || tx > 255 || ty > 255) return 0;", "|| means 'or'"),
+        ("    return (int)prg32_playfield_get((uint8_t)layer, (uint8_t)tx, (uint8_t)ty);", "ask the firmware"),
+        ("}", ""),
     ],
     "peer_value": [
-        "/* Other players on the Cartridge Store relay (0 when playing alone). */",
-        "static int prg32_kit_peer_value(int index, int what) {",
-        "    prg32_player_state_t peer;",
-        "    if (prg32_multiplayer_get_peer(index, &peer) != 0) return 0;",
-        "    return what == 0 ? peer.x : what == 1 ? peer.y : peer.sprite;",
-        "}",
+        *_doc("prg32_kit_peer_value(index, what): one value about another player on the Cartridge Store relay.",
+              "what = 0 gives x, 1 gives y, 2 gives the 'look' (sprite) number. When the player",
+              "does not exist (for example when playing alone) the answer is 0.",
+              "The firmware fills a structure (a group of named values) that lives on the stack."),
+        ("static int prg32_kit_peer_value(int index, int what) {", ""),
+        ("    prg32_player_state_t peer;", "space for the other player's data"),
+        ("    if (prg32_multiplayer_get_peer(index, &peer) != 0) return 0;", "&peer is the address the firmware fills"),
+        ("    return what == 0 ? peer.x : what == 1 ? peer.y : peer.sprite;", "pick one field of the structure"),
+        ("}", ""),
     ],
-    "peers": ["static int prg32_kit_peers(void) { return prg32_multiplayer_get_peer_count(); }"],
-    "peer_x": ["static int prg32_kit_peer_x(int index) { return prg32_kit_peer_value(index, 0); }"],
-    "peer_y": ["static int prg32_kit_peer_y(int index) { return prg32_kit_peer_value(index, 1); }"],
-    "peer_look": ["static int prg32_kit_peer_look(int index) { return prg32_kit_peer_value(index, 2); }"],
+    "peers": [
+        *_doc("prg32_kit_peers(): how many other players are connected (0 when playing alone)."),
+        ("static int prg32_kit_peers(void) { return prg32_multiplayer_get_peer_count(); }", ""),
+    ],
+    "peer_x": [("static int prg32_kit_peer_x(int index) { return prg32_kit_peer_value(index, 0); }", "x of player 'index'")],
+    "peer_y": [("static int prg32_kit_peer_y(int index) { return prg32_kit_peer_value(index, 1); }", "y of player 'index'")],
+    "peer_look": [("static int prg32_kit_peer_look(int index) { return prg32_kit_peer_value(index, 2); }", "look of player 'index'")],
     "once": [
-        "/* Buttons held during the previous frame, for 'just pressed' blocks. */",
-        "static uint32_t prg32_kit_previous_input;",
+        *_doc("The buttons held during the previous frame, for the 'was just pressed' blocks.",
+              "A button was just pressed when its bit is 1 now and was 0 one frame ago."),
+        ("static uint32_t prg32_kit_previous_input;", "one bit per button, like the input value"),
     ],
     "beep": [
-        "/* Convert a classroom frequency to the nearest supported MIDI note. */",
-        "static uint8_t prg32_kit_note_from_hz(int hz) {",
-        "    static const uint16_t frequencies[] = {",
+        *_doc("prg32_kit_note_from_hz(hz): the MIDI note nearest to a frequency, from C3 (48) to C6 (84).",
+              "Each musical semitone multiplies the frequency by about 1.0595. The table lists the",
+              "frequency of notes 48..84; the search stops at the first note whose midpoint with",
+              "the next note is above hz, which is the nearest note."),
+        ("static uint8_t prg32_kit_note_from_hz(int hz) {", ""),
+        ("    static const uint16_t frequencies[] = {", "Hz of MIDI notes 48 (C3) to 84 (C6)"),
         "        131, 139, 147, 156, 165, 175, 185, 196, 208, 220, 233, 247,",
         "        262, 277, 294, 311, 330, 349, 370, 392, 415, 440, 466, 494,",
         "        523, 554, 587, 622, 659, 698, 740, 784, 831, 880, 932, 988, 1047",
         "    };",
-        "    unsigned int index;",
-        "    if (hz <= frequencies[0]) return 48;",
-        "    for (index = 0; index < 36; ++index) {",
-        "        if (hz < (frequencies[index] + frequencies[index + 1]) / 2) return (uint8_t)(48 + index);",
-        "    }",
-        "    return 84;",
-        "}",
+        ("    unsigned int index;", "position in the table"),
+        ("    if (hz <= frequencies[0]) return 48;", "at or below C3: the lowest note"),
+        ("    for (index = 0; index < 36; ++index) {", "try each pair of neighbouring notes"),
+        ("        if (hz < (frequencies[index] + frequencies[index + 1]) / 2) return (uint8_t)(48 + index);",
+         "below the midpoint: this note is the nearest"),
+        ("    }", ""),
+        ("    return 84;", "above every midpoint: the highest note"),
+        ("}", ""),
     ],
     "number": [
-        "/* Write a whole number with the 8x8 PRG32 font (no printf on a cartridge). */",
-        "static int prg32_kit_format_number(char *out, int value) {",
-        "    char digits[11];",
-        "    unsigned int magnitude = value < 0 ? 0u - (unsigned int)value : (unsigned int)value;",
-        "    int count = 0;",
-        "    int length = 0;",
-        "    do {",
-        "        digits[count++] = (char)('0' + magnitude % 10u);",
-        "        magnitude /= 10u;",
-        "    } while (magnitude != 0u && count < 10);",
-        "    if (value < 0) out[length++] = '-';",
-        "    while (count > 0) out[length++] = digits[--count];",
-        "    out[length] = '\\0';",
-        "    return length;",
-        "}",
-        "static void prg32_kit_draw_number(int x, int y, int value, uint16_t fg, uint16_t bg) {",
-        "    char text[12];",
-        "    prg32_kit_format_number(text, value);",
-        "    prg32_gfx_text8(x, y, text, fg, bg);",
-        "}",
+        *_doc("prg32_kit_format_number(out, value): write a whole number as decimal text.",
+              "A cartridge has no printf, so the digits are made by hand: value % 10 is the last",
+              "digit and value / 10 removes it. The digits come out last-first, so they are",
+              "collected in digits[] and then copied in reverse order.",
+              "'0' + d turns a digit 0..9 into its character code ('0' is 48 in ASCII).",
+              "Result: the number of characters written (the text ends with a 0 byte).",
+              "",
+              "prg32_kit_draw_number(x, y, value, fg, bg): format the number, then draw the text."),
+        ("static int prg32_kit_format_number(char *out, int value) {", ""),
+        ("    char digits[11];", "room for the 10 digits of the largest int"),
+        ("    unsigned int magnitude = value < 0 ? 0u - (unsigned int)value : (unsigned int)value;",
+         "the size without the sign; unsigned also works for -2147483648"),
+        ("    int count = 0;", "digits collected so far"),
+        ("    int length = 0;", "characters written to out"),
+        ("    do {", "do ... while runs at least once, so 0 prints as \"0\""),
+        ("        digits[count++] = (char)('0' + magnitude % 10u);", "keep the last digit"),
+        ("        magnitude /= 10u;", "and remove it from the number"),
+        ("    } while (magnitude != 0u && count < 10);", "until no digits are left"),
+        ("    if (value < 0) out[length++] = '-';", "a minus sign first"),
+        ("    while (count > 0) out[length++] = digits[--count];", "copy the digits, last one first"),
+        ("    out[length] = '\\0';", "C text always ends with a 0 byte"),
+        ("    return length;", ""),
+        ("}", ""),
+        ("static void prg32_kit_draw_number(int x, int y, int value, uint16_t fg, uint16_t bg) {", ""),
+        ("    char text[12];", "sign + 10 digits + the final 0 byte"),
+        ("    prg32_kit_format_number(text, value);", "number -> text"),
+        ("    prg32_gfx_text8(x, y, text, fg, bg);", "text -> screen"),
+        ("}", ""),
     ],
     "band": [
-        "/* Show text (and a number) in the firmware status band; only redraw when it changes. */",
-        "static char prg32_kit_band_now[48];",
-        "static char prg32_kit_band_shown[48];",
-        "static void prg32_kit_band(const char *text, int has_value, int value) {",
-        "    int length = 0;",
-        "    int index;",
-        "    while (text[length] != '\\0' && length < 32) {",
-        "        prg32_kit_band_now[length] = text[length];",
-        "        ++length;",
-        "    }",
-        "    if (has_value) {",
-        "        prg32_kit_band_now[length++] = ' ';",
-        "        length += prg32_kit_format_number(prg32_kit_band_now + length, value);",
-        "    }",
-        "    prg32_kit_band_now[length] = '\\0';",
-        "    for (index = 0; index <= length; ++index) {",
-        "        if (prg32_kit_band_now[index] != prg32_kit_band_shown[index]) break;",
-        "    }",
-        "    if (index > length) return;",
-        "    for (index = 0; index <= length; ++index) prg32_kit_band_shown[index] = prg32_kit_band_now[index];",
-        "    prg32_band_set_game_info(prg32_kit_band_now);",
-        "}",
+        *_doc("prg32_kit_band(text, has_value, value): show text (and a number) in the firmware status band.",
+              "Redrawing the band is slow, so the new text is built in band_now and compared",
+              "with band_shown (what is on screen): the firmware is called only when they differ."),
+        ("static char prg32_kit_band_now[48];", "the text wanted this frame"),
+        ("static char prg32_kit_band_shown[48];", "the text currently shown"),
+        ("static void prg32_kit_band(const char *text, int has_value, int value) {", ""),
+        ("    int length = 0;", "characters in band_now"),
+        ("    int index;", "position used by the comparison loops"),
+        ("    while (text[length] != '\\0' && length < 32) {", "copy at most 32 characters of text"),
+        ("        prg32_kit_band_now[length] = text[length];", ""),
+        ("        ++length;", ""),
+        ("    }", ""),
+        ("    if (has_value) {", "a number follows the text"),
+        ("        prg32_kit_band_now[length++] = ' ';", "a space between text and number"),
+        ("        length += prg32_kit_format_number(prg32_kit_band_now + length, value);", "append the digits"),
+        ("    }", ""),
+        ("    prg32_kit_band_now[length] = '\\0';", "end of text"),
+        ("    for (index = 0; index <= length; ++index) {", "compare character by character"),
+        ("        if (prg32_kit_band_now[index] != prg32_kit_band_shown[index]) break;", "first difference: stop"),
+        ("    }", ""),
+        ("    if (index > length) return;", "no difference: the band already shows this text"),
+        ("    for (index = 0; index <= length; ++index) prg32_kit_band_shown[index] = prg32_kit_band_now[index];",
+         "remember what will be shown"),
+        ("    prg32_band_set_game_info(prg32_kit_band_now);", "ask the firmware to redraw the band"),
+        ("}", ""),
     ],
     "frame_rect": [
-        "static void prg32_kit_draw_frame(int x, int y, int w, int h, uint16_t color) {",
-        "    if (w <= 0 || h <= 0) return;",
-        "    prg32_gfx_rect(x, y, w, 1, color);",
-        "    prg32_gfx_rect(x, y + h - 1, w, 1, color);",
-        "    prg32_gfx_rect(x, y, 1, h, color);",
-        "    prg32_gfx_rect(x + w - 1, y, 1, h, color);",
-        "}",
+        *_doc("prg32_kit_draw_frame(x, y, w, h, color): a rectangle outline made of four 1-pixel-thick bars."),
+        ("static void prg32_kit_draw_frame(int x, int y, int w, int h, uint16_t color) {", ""),
+        ("    if (w <= 0 || h <= 0) return;", "nothing to draw"),
+        ("    prg32_gfx_rect(x, y, w, 1, color);", "top edge"),
+        ("    prg32_gfx_rect(x, y + h - 1, w, 1, color);", "bottom edge"),
+        ("    prg32_gfx_rect(x, y, 1, h, color);", "left edge"),
+        ("    prg32_gfx_rect(x + w - 1, y, 1, h, color);", "right edge"),
+        ("}", ""),
     ],
     "line": [
-        "/* Bresenham's line algorithm: only whole-number steps, no division. */",
-        "static void prg32_kit_draw_line(int x1, int y1, int x2, int y2, uint16_t color) {",
-        "    int dx = x2 > x1 ? x2 - x1 : x1 - x2;",
-        "    int dy = y2 > y1 ? y1 - y2 : y2 - y1;",
-        "    int sx = x1 < x2 ? 1 : -1;",
-        "    int sy = y1 < y2 ? 1 : -1;",
-        "    int error = dx + dy;",
-        "    int steps = 0;",
-        "    while (steps++ < 2048) {",
-        "        int twice;",
-        "        prg32_gfx_pixel(x1, y1, color);",
-        "        if (x1 == x2 && y1 == y2) break;",
-        "        twice = 2 * error;",
-        "        if (twice >= dy) { error += dy; x1 += sx; }",
-        "        if (twice <= dx) { error += dx; y1 += sy; }",
-        "    }",
-        "}",
+        *_doc("prg32_kit_draw_line(x1, y1, x2, y2, color): Bresenham's line algorithm (1965).",
+              "The line moves one pixel at a time. 'error' measures how far the drawn pixels are",
+              "from the true line; when twice the error passes dy (or dx) the line steps in x",
+              "(or y). Only additions and comparisons are needed: no division, no fractions.",
+              "dx is the horizontal distance; dy is the vertical distance made negative, which",
+              "lets one error value handle both directions. At most 2048 pixels are drawn."),
+        ("static void prg32_kit_draw_line(int x1, int y1, int x2, int y2, uint16_t color) {", ""),
+        ("    int dx = x2 > x1 ? x2 - x1 : x1 - x2;", "dx = |x2 - x1|"),
+        ("    int dy = y2 > y1 ? y1 - y2 : y2 - y1;", "dy = -|y2 - y1| (negative on purpose)"),
+        ("    int sx = x1 < x2 ? 1 : -1;", "step direction in x"),
+        ("    int sy = y1 < y2 ? 1 : -1;", "step direction in y"),
+        ("    int error = dx + dy;", "starting error"),
+        ("    int steps = 0;", "safety counter"),
+        ("    while (steps++ < 2048) {", "at most 2048 pixels"),
+        ("        int twice;", ""),
+        ("        prg32_gfx_pixel(x1, y1, color);", "draw the current pixel"),
+        ("        if (x1 == x2 && y1 == y2) break;", "reached the end point: stop"),
+        ("        twice = 2 * error;", ""),
+        ("        if (twice >= dy) { error += dy; x1 += sx; }", "time to step in x"),
+        ("        if (twice <= dx) { error += dx; y1 += sy; }", "time to step in y"),
+        ("    }", ""),
+        ("}", ""),
     ],
     "circle": [
-        "/* Midpoint circle algorithm: eight mirrored points per step. */",
-        "static void prg32_kit_draw_circle(int cx, int cy, int r, uint16_t color, int filled) {",
-        "    int x;",
-        "    int y = 0;",
-        "    int error;",
-        "    if (r < 0) return;",
-        "    if (r > 200) r = 200;",
-        "    x = r;",
-        "    error = 1 - r;",
-        "    while (x >= y) {",
-        "        if (filled) {",
-        "            prg32_gfx_rect(cx - x, cy + y, 2 * x + 1, 1, color);",
-        "            prg32_gfx_rect(cx - x, cy - y, 2 * x + 1, 1, color);",
-        "            prg32_gfx_rect(cx - y, cy + x, 2 * y + 1, 1, color);",
-        "            prg32_gfx_rect(cx - y, cy - x, 2 * y + 1, 1, color);",
-        "        } else {",
-        "            prg32_gfx_pixel(cx + x, cy + y, color);",
-        "            prg32_gfx_pixel(cx - x, cy + y, color);",
-        "            prg32_gfx_pixel(cx + x, cy - y, color);",
-        "            prg32_gfx_pixel(cx - x, cy - y, color);",
-        "            prg32_gfx_pixel(cx + y, cy + x, color);",
-        "            prg32_gfx_pixel(cx - y, cy + x, color);",
-        "            prg32_gfx_pixel(cx + y, cy - x, color);",
-        "            prg32_gfx_pixel(cx - y, cy - x, color);",
-        "        }",
-        "        ++y;",
-        "        if (error < 0) {",
-        "            error += 2 * y + 1;",
-        "        } else {",
-        "            --x;",
-        "            error += 2 * (y - x) + 1;",
-        "        }",
-        "    }",
-        "}",
+        *_doc("prg32_kit_draw_circle(cx, cy, r, color, filled): the midpoint circle algorithm.",
+              "A circle is symmetric, so the algorithm walks only one eighth of it (from the",
+              "top going right, while x >= y) and mirrors every point eight times. 'error' tells",
+              "whether the midpoint between two candidate pixels is inside or outside the circle.",
+              "A filled circle draws horizontal bars between mirrored points instead of pixels.",
+              "The radius is limited to 200 pixels."),
+        ("static void prg32_kit_draw_circle(int cx, int cy, int r, uint16_t color, int filled) {", ""),
+        ("    int x;", "horizontal distance from the centre"),
+        ("    int y = 0;", "vertical distance from the centre"),
+        ("    int error;", "inside (< 0) or outside (>= 0) the circle"),
+        ("    if (r < 0) return;", "no circle with a negative radius"),
+        ("    if (r > 200) r = 200;", "keep the work per frame small"),
+        ("    x = r;", "start at the rightmost point"),
+        ("    error = 1 - r;", ""),
+        ("    while (x >= y) {", "one eighth of the circle"),
+        ("        if (filled) {", ""),
+        ("            prg32_gfx_rect(cx - x, cy + y, 2 * x + 1, 1, color);", "bar below the centre"),
+        ("            prg32_gfx_rect(cx - x, cy - y, 2 * x + 1, 1, color);", "bar above the centre"),
+        ("            prg32_gfx_rect(cx - y, cy + x, 2 * y + 1, 1, color);", "bar near the bottom"),
+        ("            prg32_gfx_rect(cx - y, cy - x, 2 * y + 1, 1, color);", "bar near the top"),
+        ("        } else {", ""),
+        ("            prg32_gfx_pixel(cx + x, cy + y, color);", "the eight mirror images of (x, y)"),
+        ("            prg32_gfx_pixel(cx - x, cy + y, color);", ""),
+        ("            prg32_gfx_pixel(cx + x, cy - y, color);", ""),
+        ("            prg32_gfx_pixel(cx - x, cy - y, color);", ""),
+        ("            prg32_gfx_pixel(cx + y, cy + x, color);", ""),
+        ("            prg32_gfx_pixel(cx - y, cy + x, color);", ""),
+        ("            prg32_gfx_pixel(cx + y, cy - x, color);", ""),
+        ("            prg32_gfx_pixel(cx - y, cy - x, color);", ""),
+        ("        }", ""),
+        ("        ++y;", "always one step down"),
+        ("        if (error < 0) {", "midpoint inside: keep x"),
+        ("            error += 2 * y + 1;", ""),
+        ("        } else {", "midpoint outside: also step left"),
+        ("            --x;", ""),
+        ("            error += 2 * (y - x) + 1;", ""),
+        ("        }", ""),
+        ("    }", ""),
+        ("}", ""),
     ],
     "bitmap": [
-        "/* Draw an 8x8 picture: each row is one byte, the left pixel is the high bit. */",
-        "static void prg32_kit_draw_bitmap(int x, int y, const uint8_t *rows, uint16_t color, int scale) {",
-        "    int row;",
-        "    int col;",
-        "    if (scale < 1) scale = 1;",
-        "    if (scale > 8) scale = 8;",
-        "    for (row = 0; row < 8; ++row) {",
-        "        for (col = 0; col < 8; ++col) {",
-        "            if (rows[row] & (0x80u >> col)) prg32_gfx_rect(x + col * scale, y + row * scale, scale, scale, color);",
-        "        }",
-        "    }",
-        "}",
+        *_doc("prg32_kit_draw_bitmap(x, y, rows, color, scale): draw an 8x8 picture.",
+              "Each row is one byte. Bit 7 (value 0x80) is the left pixel and bit 0 the right one,",
+              "so (0x80 >> col) selects column col and & tests whether that pixel is lit.",
+              "Every lit pixel becomes a scale x scale square; scale is kept inside 1..8."),
+        ("static void prg32_kit_draw_bitmap(int x, int y, const uint8_t *rows, uint16_t color, int scale) {", ""),
+        ("    int row;", ""),
+        ("    int col;", ""),
+        ("    if (scale < 1) scale = 1;", ""),
+        ("    if (scale > 8) scale = 8;", ""),
+        ("    for (row = 0; row < 8; ++row) {", "rows from top to bottom"),
+        ("        for (col = 0; col < 8; ++col) {", "columns from left to right"),
+        ("            if (rows[row] & (0x80u >> col)) prg32_gfx_rect(x + col * scale, y + row * scale, scale, scale, color);",
+         "lit pixel: draw its square"),
+        ("        }", ""),
+        ("    }", ""),
+        ("}", ""),
     ],
 }
+HELPERS: dict[str, list[str]] = {name: annotate_c(rows) for name, rows in _HELPER_SOURCE.items()}
 # Helpers that call other helpers.
 _HELPER_NEEDS = {"cos": {"sin"}, "band": {"number"}, "peer_x": {"peer_value"}, "peer_y": {"peer_value"},
                  "peer_look": {"peer_value"}}
@@ -753,18 +1058,54 @@ _HELPER_ORDER = ["list_get", "list_set", "list_fill", "div", "mod", "abs", "sign
                  "peer_value", "peers", "peer_x", "peer_y", "peer_look", "once", "beep", "number", "band", "frame_rect", "line", "circle", "bitmap"]
 
 
+def needed_helpers(needs: set[str]) -> list[str]:
+    """The helpers a game needs, with the helpers they call, in file order."""
+    wanted = set(needs)
+    for name in list(wanted):
+        wanted |= _HELPER_NEEDS.get(name, set())
+    return [name for name in _HELPER_ORDER if name in wanted]
+
+
+def rgb565_words(value: int) -> str:
+    """Explain an RGB565 colour: its 5-bit red, 6-bit green and 5-bit blue parts."""
+    return f"red {value >> 11}/31, green {(value >> 5) & 0x3F}/63, blue {value & 0x1F}/31"
+
+
+def bitmap_picture(rows: tuple[int, ...]) -> list[str]:
+    """Draw an 8x8 picture as text, one row per line: '#' is a lit pixel."""
+    return ["".join("#" if row & (0x80 >> col) else "." for col in range(8)) + f"   0x{row:02X}" for row in rows]
+
+
+def _statements_read_input(statements: Any) -> bool:
+    """True when a statement list (or a nested one) has a button block."""
+    for stmt in statements if isinstance(statements, list) else []:
+        if not isinstance(stmt, dict):
+            continue
+        if stmt.get("op") in {"if_button", "if_button_once"}:
+            return True
+        if any(_statements_read_input(stmt.get(key)) for key in ("then", "else", "body")):
+            return True
+    return False
+
+
 class _Emitter:
-    def __init__(self, game_ir: dict[str, Any]):
+    def __init__(self, game_ir: dict[str, Any], explain: bool = True):
         self.lists = {state_name(item.get("name")): max(1, min(MAX_LIST_SIZE, c_int(item.get("size"), 1)))
                       for item in game_ir.get("lists", []) if isinstance(item, dict)}
         self.needs: set[str] = set()
         self.bitmaps: dict[tuple[int, ...], str] = {}
         self.title = str(game_ir.get("title") or "PRG32 Game")
+        self.explain = explain
+        self.explained: set[str] = set()
 
     def x(self, text: Any) -> str:
         """Translate one IR expression to C."""
         checked = check_expr(text, self.lists) if text not in (None, "") else None
         return expr_to_c(checked, self.lists, self.needs) if checked else "0"
+
+    def show(self, text: Any) -> str:
+        """The checked student form of one IR expression, for explanations."""
+        return (check_expr(text, self.lists) if text not in (None, "") else None) or "0"
 
     def bitmap(self, rows: Any) -> str:
         values = tuple((c_int(v) & 0xFF) for v in (rows if isinstance(rows, list) else [])[:8])
@@ -776,9 +1117,24 @@ class _Emitter:
     def block(self, statements: Any, indent: str, depth: int) -> list[str]:
         lines: list[str] = []
         for stmt in statements if isinstance(statements, list) else []:
-            if isinstance(stmt, dict):
-                lines.extend(self.statement(stmt, indent, depth))
+            if not isinstance(stmt, dict):
+                continue
+            if self.explain:
+                sentence = describe_statement(stmt, self.show)
+                if sentence:
+                    lines.extend(c_comment_block(sentence, indent))
+            code = self.statement(stmt, indent, depth)
+            op = stmt.get("op")
+            if self.explain and code and op in C_SYNTAX_NOTES and op not in self.explained:
+                # The first time a C construct appears, a note beside it explains the syntax.
+                self.explained.add(op)
+                code = annotate_c([(code[0], C_SYNTAX_NOTES[op])]) + code[1:]
+            lines.extend(code)
         return lines
+
+    def note(self, code: str, text: str) -> list[str]:
+        """One code line with its explanation (when explanations are on)."""
+        return annotate_c([(code, text if self.explain else "")])
 
     def statement(self, stmt: dict[str, Any], indent: str, depth: int) -> list[str]:
         op = stmt.get("op")
@@ -802,23 +1158,25 @@ class _Emitter:
             self.needs.add("random")
             return [f"{indent}{var} = prg32_kit_random({x(stmt.get('low'))}, {x(stmt.get('high'))});"]
         if op == "if":
-            lines = [f"{indent}if ({x(stmt.get('cond'))}) {{", *self.block(stmt.get("then"), inner, depth)]
+            cond = x(stmt.get("cond"))
+            lines = [f"{indent}if ({cond}) {{", *self.block(stmt.get("then"), inner, depth)]
             if "else" in stmt:
-                lines += [f"{indent}}} else {{", *self.block(stmt.get("else"), inner, depth)]
-            return lines + [f"{indent}}}"]
+                lines += [*self.note(f"{indent}}} else {{", "otherwise (the condition was 0)"),
+                          *self.block(stmt.get("else"), inner, depth)]
+            return lines + [*self.note(f"{indent}}}", f"end of if ({self.show(stmt.get('cond'))[:40]})")]
         if op == "repeat":
             k, end, n = f"prg32_kit_step{depth}", f"prg32_kit_last{depth}", f"prg32_kit_count{depth}"
             return [
-                f"{indent}{{",
+                *self.note(f"{indent}{{", "a block: the loop's own variables exist only inside it"),
                 f"{inner}/* repeat {var} from {c_comment(stmt.get('from'))} to {c_comment(stmt.get('to'))} (at most {MAX_REPEAT} times) */",
-                f"{inner}int {k};",
-                f"{inner}int {end} = {x(stmt.get('to'))};",
-                f"{inner}int {n} = 0;",
+                *self.note(f"{inner}int {k};", f"the value {var} takes in this round"),
+                *self.note(f"{inner}int {end} = {x(stmt.get('to'))};", "the last value, computed once before the loop"),
+                *self.note(f"{inner}int {n} = 0;", "rounds done so far (the safety limit)"),
                 f"{inner}for ({k} = {x(stmt.get('from'))}; {k} <= {end} && {n} < {MAX_REPEAT}; ++{k}, ++{n}) {{",
-                f"{inner}    {var} = {k};",
+                *self.note(f"{inner}    {var} = {k};", "the block's variable takes this round's value"),
                 *self.block(stmt.get("body"), inner + "    ", depth + 1),
-                f"{inner}}}",
-                f"{indent}}}",
+                *self.note(f"{inner}}}", "end of round: count up, test again"),
+                *self.note(f"{indent}}}", "end of repeat"),
             ]
         if op in {"list_fill", "list_set", "list_change"}:
             if lst not in self.lists:
@@ -835,15 +1193,16 @@ class _Emitter:
             return [f"{indent}prg32_kit_set({lst}, {size}, {index}, prg32_kit_get({lst}, {size}, {index}) + {x(stmt.get('delta'))});"]
         if op == "if_button":
             return [f"{indent}if (input & {button_macro(stmt.get('button'))}) {{",
-                    *self.block(stmt.get("then"), inner, depth), f"{indent}}}"]
+                    *self.block(stmt.get("then"), inner, depth), *self.note(f"{indent}}}", "end of if button")]
         if op == "if_button_once":
             self.needs.add("once")
             button = button_macro(stmt.get("button"))
             return [f"{indent}if ((input & {button}) && !(prg32_kit_previous_input & {button})) {{",
-                    *self.block(stmt.get("then"), inner, depth), f"{indent}}}"]
+                    *self.block(stmt.get("then"), inner, depth), *self.note(f"{indent}}}", "end of if just pressed")]
         if op == "if_touching":
             args = ", ".join(x(stmt.get(k)) for k in ("ax", "ay", "aw", "ah", "bx", "by", "bw", "bh"))
-            return [f"{indent}if (prg32_sprite_hitbox({args})) {{", *self.block(stmt.get("then"), inner, depth), f"{indent}}}"]
+            return [f"{indent}if (prg32_sprite_hitbox({args})) {{", *self.block(stmt.get("then"), inner, depth),
+                    *self.note(f"{indent}}}", "end of if touching")]
         if op == "clear":
             return [f"{indent}prg32_gfx_clear({color_macro(stmt.get('color'))});"]
         if op == "rect":
@@ -930,98 +1289,181 @@ class _Emitter:
 
 
 def _helper_lines(needs: set[str]) -> list[str]:
-    wanted = set(needs)
-    for name in list(wanted):
-        wanted |= _HELPER_NEEDS.get(name, set())
     lines: list[str] = []
-    for name in _HELPER_ORDER:
-        if name in wanted:
-            lines.extend(HELPERS[name])
-            lines.append("")
+    for name in needed_helpers(needs):
+        lines.extend(HELPERS[name])
+        lines.append("")
     return lines
 
 
-def _reads_input(body: list[str]) -> bool:
-    """Button blocks read the local `input` mask; a function declares it only when it is used."""
-    return any("(input & " in line or "((input & " in line for line in body)
+def _section(title: str, *text: str) -> list[str]:
+    """A numbered section banner in the generated C."""
+    rule = "=" * 74
+    return ["/* " + rule, f" * {title}", *(f" * {line}".rstrip() for line in text), " * " + rule + " */"]
 
 
-def ir_to_c(game_ir: dict[str, Any]) -> str:
+def ir_to_c(game_ir: dict[str, Any], explain: bool = True) -> str:
+    """Write the game IR as freestanding C, explained line by line for students.
+
+    ``explain=False`` leaves out the explanations (the slide decks show short excerpts).
+    """
     prefix = c_identifier(game_ir.get("entry_prefix"), "prg32_game")
-    emitter = _Emitter(game_ir)
+    emitter = _Emitter(game_ir, explain)
+
+    def annotate(rows: list[Any]) -> list[str]:
+        if explain:
+            return annotate_c(rows)
+        return [row if isinstance(row, str) else row[0] for row in rows]
+
+    def section(*text: str) -> list[str]:
+        return _section(*text) if explain else []
+
+    def doc(*text: str) -> list[str]:
+        return _doc(*text) if explain else []
     state = [(state_name(item.get("name")), int32(c_int(item.get("initial"), 0)))
              for item in game_ir.get("state", []) if isinstance(item, dict)]
-    init_body = emitter.block(game_ir.get("init", []), "    ", 0)
-    update_body = emitter.block(game_ir.get("update", []), "    ", 0)
-    draw_body = emitter.block(game_ir.get("draw", []), "    ", 0)
+    phases = {phase: game_ir.get(phase, []) for phase in ("init", "update", "draw")}
+    bodies = {phase: emitter.block(statements, "    ", 0) for phase, statements in phases.items()}
+    reads_input = {phase: _statements_read_input(statements) for phase, statements in phases.items()}
     needs = emitter.needs
     if emitter.lists:
         needs.add("list_fill")  # init clears every list with prg32_kit_fill
+    title = c_comment(emitter.title)
 
     lines: list[str] = [
         "/*",
-        f" * {c_comment(emitter.title)}",
+        f" * {title}",
         " * Generated by PRG32-Construction-Kit from the saved Blocks JSON.",
         " * Edit the blocks, then regenerate this file.",
-        " */",
-        "#include <stdint.h>",
-        "#include \"prg32.h\"",
-        "",
     ]
+    guide = [
+        " *",
+        " * HOW TO READ THIS FILE",
+        " * A PRG32 cartridge is a small program that the PRG32 firmware loads into memory",
+        " * and calls through three functions (the 'cartridge lifecycle'):",
+        f" *   {prefix}_init()    once, when the game starts ('when game starts' blocks);",
+        f" *   {prefix}_update()  once per frame, to move things ('every frame' blocks);",
+        f" *   {prefix}_draw()    once per frame, after update, to paint the screen ('draw' blocks).",
+        " * The file has five parts: 1 constants, 2 kit helper functions, 3 pictures,",
+        " * 4 game state (the variables), 5 the three lifecycle functions.",
+        " * Above every block's code a comment repeats the block in words; beside many lines",
+        " * a second comment explains that line.",
+        " *",
+        " * RULES THIS C FOLLOWS",
+        " * - Freestanding C99: no standard library (no printf, no malloc), because a",
+        " *   cartridge runs without an operating system. Everything it needs is either in",
+        " *   the firmware (functions named prg32_...) or written below in part 2.",
+        " * - Every number is a 32-bit whole number (int). There is no floating point:",
+        " *   7 / 2 is 3, and fractions are made with scaled numbers (256 means 1.0).",
+        " * - The same blocks always produce exactly the same file.",
+    ]
+    if explain:
+        lines.extend(guide)
+    lines += [
+        " */",
+        ("#include <stdint.h>", "exact-size types: uint8_t, int16_t, uint32_t, ..."),
+        ("#include \"prg32.h\"", "the PRG32 firmware functions and constants"),
+        "",
+        *section("1. CONSTANTS",
+                  "#define gives a name to a number. #ifndef ... #endif defines the name only when",
+                  "prg32.h has not already done so. Colours are RGB565 numbers: 16 bits holding",
+                  "5 bits of red, 6 of green and 5 of blue."),
+    ]
+    lines = annotate(lines)
     for macro, value in COLOR_DEFINES.items():
-        lines.extend([f"#ifndef {macro}", f"#define {macro} {value}", "#endif"])
-    lines.extend(["#ifndef PRG32_SCREEN_W", "#define PRG32_SCREEN_W PRG32_GAME_W", "#endif",
-                  "#ifndef PRG32_SCREEN_H", "#define PRG32_SCREEN_H PRG32_GAME_H", "#endif", ""])
-    lines.extend(_helper_lines(needs))
-    for rows, name in emitter.bitmaps.items():
-        pattern = "  ".join("".join("#" if row & (0x80 >> col) else "." for col in range(8)) for row in rows)
-        lines.append(f"/* {pattern} */")
-        lines.append(f"static const uint8_t {name}[8] = {{{', '.join(f'0x{row:02X}' for row in rows)}}};")
+        lines.extend(annotate([f"#ifndef {macro}", (f"#define {macro} {value}", rgb565_words(CONSTANTS[macro])), "#endif"]))
+    lines.extend(annotate([
+        "#ifndef PRG32_SCREEN_W",
+        ("#define PRG32_SCREEN_W PRG32_GAME_W", "the game area is 320 pixels wide"),
+        "#endif",
+        "#ifndef PRG32_SCREEN_H",
+        ("#define PRG32_SCREEN_H PRG32_GAME_H", "and 200 pixels high; (0, 0) is the top-left"),
+        "#endif",
+        "",
+    ]))
+    helpers = _helper_lines(needs)
+    if helpers:
+        lines.extend(section("2. KIT HELPER FUNCTIONS",
+                              "Small functions the blocks need, written here so nothing is hidden.",
+                              "Only the helpers this game uses are included. 'static' keeps a name",
+                              "private to this file."))
+        lines.extend(helpers)
     if emitter.bitmaps:
+        lines.extend(section("3. PICTURES",
+                              "Each 8x8 picture is 8 bytes, one per row; a 1 bit is a lit pixel.",
+                              "'const' data never changes, so it can stay in read-only memory."))
+        for rows, name in emitter.bitmaps.items():
+            if explain:
+                lines.append(f"/* {name}:")
+                lines.extend(f" *   {row}" for row in bitmap_picture(rows))
+                lines.append(" */")
+            else:
+                lines.append("/* " + "  ".join(row[:8] for row in bitmap_picture(rows)) + " */")
+            lines.append(f"static const uint8_t {name}[8] = {{{', '.join(f'0x{row:02X}' for row in rows)}}};")
         lines.append("")
-    lines.append("/* Game state: every variable is a whole number (int). */")
+    lines.extend(section("4. GAME STATE",
+                          "Variables declared outside any function keep their values from one frame",
+                          "to the next. Every variable is a whole number (int); a list is an array."))
     for name, initial in state:
-        lines.append(f"static int {name} = {initial};")
+        lines.extend(annotate([(f"static int {name} = {initial};", f"variable {name}, starts at {initial}")]))
     for name, size in emitter.lists.items():
-        lines.append(f"static int {name}[{size}];")
+        lines.extend(annotate([(f"static int {name}[{size}];", f"list {name}: items {name}[0] .. {name}[{size - 1}]")]))
+    lines.append("")
+    lines.extend(section("5. LIFECYCLE FUNCTIONS",
+                          "The firmware calls these three functions; their names must start with",
+                          f"the entry prefix '{prefix}'. 'void' means: no inputs, no result."))
+
+    read_input = ("    uint32_t input = prg32_input_read();",
+                  "every button at once: one bit per button, 1 = held")
+    lines.extend(doc(f"{prefix}_init(): runs once when the cartridge starts (and again on restart).",
+                      "First every variable and list gets its starting value, then the",
+                      "'when game starts' blocks run."))
+    lines.append(f"void {prefix}_init(void) {{")
+    body: list[Any] = []
+    if reads_input["init"]:
+        body.append(read_input)
+    for name, initial in state:
+        body.append((f"    {name} = {initial};", f"{name} starts again from {initial}"))
+    for name, size in emitter.lists.items():
+        body.append((f"    prg32_kit_fill({name}, {size}, 0);", f"every item of {name} starts at 0"))
+    if "frame" in needs:
+        body.append(("    prg32_kit_frame_count = 0;", "no frames have finished yet"))
+    if "once" in needs:
+        body.append(("    prg32_kit_previous_input = prg32_input_read();", "buttons already held do not count as a press"))
+    lines.extend(annotate(body))
+    lines.extend(bodies["init"])
+    lines.append("}")
     lines.append("")
 
-    lines.append(f"void {prefix}_init(void) {{")
-    if _reads_input(init_body):
-        lines.append("    uint32_t input = prg32_input_read();")
-    for name, initial in state:
-        lines.append(f"    {name} = {initial};")
-    for name, size in emitter.lists.items():
-        lines.append(f"    prg32_kit_fill({name}, {size}, 0);")
-    if "frame" in needs:
-        lines.append("    prg32_kit_frame_count = 0;")
-    if "once" in needs:
-        lines.append("    prg32_kit_previous_input = prg32_input_read();")
-    lines.extend(init_body)
-    lines.append("}")
-    lines.append("")
+    lines.extend(doc(f"{prefix}_update(): runs once per frame, before drawing.",
+                      "Game rules go here: read the buttons, move things, test collisions, keep score."))
     lines.append(f"void {prefix}_update(void) {{")
-    if _reads_input(update_body) or "once" in needs:
-        lines.append("    uint32_t input = prg32_input_read();")
-    lines.extend(update_body)
+    if reads_input["update"] or "once" in needs:
+        lines.extend(annotate([read_input]))
+    lines.extend(bodies["update"])
+    tail: list[Any] = []
     if "once" in needs:
-        lines.append("    prg32_kit_previous_input = input;")
+        tail.append(("    prg32_kit_previous_input = input;", "remember this frame's buttons for the next frame"))
     if "frame" in needs:
-        lines.append("    prg32_kit_frame_count++;")
+        tail.append(("    prg32_kit_frame_count++;", "one more frame has finished"))
+    lines.extend(annotate(tail))
     lines.append("}")
     lines.append("")
+
+    lines.extend(doc(f"{prefix}_draw(): runs once per frame, after update.",
+                      "Only painting goes here: the screen shows the state that update computed."))
     lines.append(f"void {prefix}_draw(void) {{")
-    if _reads_input(draw_body):
-        lines.append("    uint32_t input = prg32_input_read();")
-    lines.extend(draw_body)
+    if reads_input["draw"]:
+        lines.extend(annotate([read_input]))
+    lines.extend(bodies["draw"])
     lines.append("}")
     lines.append("")
     return "\n".join(lines)
 
 
-def blocks_to_c(blocks_json: Any, project: dict[str, Any] | None = None) -> tuple[dict[str, Any], str]:
+def blocks_to_c(blocks_json: Any, project: dict[str, Any] | None = None, explain: bool = True) -> tuple[dict[str, Any], str]:
     game_ir = blocks_to_ir(blocks_json, project)
-    return game_ir, ir_to_c(game_ir)
+    return game_ir, ir_to_c(game_ir, explain)
 
 
 _HEX_COLOR_RE = re.compile(r"^#?([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$")

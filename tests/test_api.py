@@ -61,6 +61,17 @@ def test_discovery(client):
     assert response.get_json()["abi"] == "prg32-construction-kit-discovery-1.0"
 
 
+def test_discovery_reports_whether_cartridges_can_be_built(tmp_path):
+    from conftest import make_app
+
+    from prg32_construction_kit.build_check import builds_available
+
+    builds_available.cache_clear()
+    app = make_app(tmp_path, PRG32_BUILD_COMMAND="no-such-prg32-builder cartridge build")
+    builds = app.test_client(login=None).get("/.well-known/prg32-construction-kit.json").get_json()["cartridge_builds"]
+    assert builds == {"available": False, "architectures": ["esp32c6", "qemu"]}
+
+
 def test_upstream_blocks_examples_can_be_listed_and_imported(client):
     response = client.get("/api/examples")
     assert response.status_code == 200
@@ -300,3 +311,13 @@ def test_package_uses_configured_build_root(client, app, monkeypatch):
         stored = get_resource("artifacts", response["bundle_artifact"]["id"])
         assert stored["path"].startswith(str(app.config["BUILD_ROOT"]))
     assert result["status"] == "source-only"
+
+
+def test_default_build_command_uses_the_kit_python():
+    import shlex
+    import sys
+
+    from prg32_construction_kit.config import Config
+
+    if not __import__("os").environ.get("PRG32_BUILD_COMMAND"):
+        assert shlex.split(Config.PRG32_BUILD_COMMAND)[:2] == [sys.executable, "-m"]

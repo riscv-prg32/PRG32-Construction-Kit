@@ -6,12 +6,15 @@ PRG32-Construction-Kit is a classroom web application for building PRG32 games w
 
 1. `setup.md` - local Python setup.
 2. `docker.md` - container execution.
+   - `install_cartridge_build.md` - install with real `.prg32` builds switched on (Docker, macOS, Linux, Windows).
 3. `architecture.md` - how the system is organized.
 4. `blockly.md` - block vocabulary, expressions and JSON storage.
    - `prg32_feature_coverage.md` - which PRG32 services Blocks, the simulator and Advanced C reach.
 5. `sprite_editor.md` - sprite/image editor guide.
 6. `cartridge_build.md` - generated C and PRG32 build hooks.
+   - `generated_code.md` - reading the explained C and RISC-V assembly made from the blocks.
    - `concurrent_builds.md` - many students building at the same time.
+   - `videos/snake-workflow-demo.mov` - short screen recording of the Snake workflow.
 7. `cartridge_store_publish.md` - publishing bundles.
 8. `api.md` - CRUD and action API.
    - `accounts_and_sso.md` - accounts, who sees what, and sharing users with a Cartridge Store.

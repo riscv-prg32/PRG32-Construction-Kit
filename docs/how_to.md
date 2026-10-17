@@ -22,6 +22,18 @@ Below the simulator screen, the classic-style gamepad lets students test games w
 3. Click **Generate C**.
 4. Read the C panel. Match each block to one generated C statement.
 
+## How to inspect generated RISC-V assembly
+
+1. Open the project editor.
+2. In the **Generated code** list next to the Generate button, choose
+   **Assembly (RISC-V)** or **C + Assembly**.
+3. Click **Generate Assembly** (or **Generate C + Assembly**).
+4. Open the **Generated Assembly** tab. Above each group of instructions a
+   comment repeats the block and shows its C line (`C: ...`). Find the same
+   block in the **Generated C** tab and compare.
+5. **Compile Cartridge** with **Assembly (RISC-V)** chosen builds the
+   cartridge from the assembly instead of the C. See `generated_code.md`.
+
 ## How to download a PRG32 cartridge
 
 1. Open the project editor.
@@ -29,8 +41,10 @@ Below the simulator screen, the classic-style gamepad lets students test games w
 3. To test in the emulator instead, open the arrow next to the button and choose **QEMU emulator**.
 4. Upload the PRG32 cartridge to a cartridge slot on the board.
 
-The server needs the PRG32 toolchain for this step. Without it, nothing is
-downloaded and the **Debug Log** tab explains what is missing.
+The server needs the PRG32 toolchain for this step. The Docker image already
+has it. If the editor says "this server cannot compile PRG32 cartridges yet",
+nothing is downloaded: ask your teacher to follow
+`install_cartridge_build.md`, and read the **Debug Log** tab to see what is missing.
 
 ## How to start from a complete game
 

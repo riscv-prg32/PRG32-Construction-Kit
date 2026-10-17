@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import os
 import shlex
+import shutil
 import struct
 import subprocess
 import zlib
@@ -69,7 +70,22 @@ def project_manifest(project: dict[str, Any], game_ir: dict[str, Any], architect
     }
 
 
-def run_prg32_build(build_command: str, source_path: Path, out_path: Path, entry_prefix: str, name: str, architecture: str, cart_ram_kib: int, required_features: list[str] | None = None) -> tuple[bool, str]:
+def build_environment(work_dir: Path) -> dict[str, str]:
+    """Environment for one build: a private temporary folder inside the build's own folder.
+
+    The PRG32 builder already compiles in a fresh temporary folder, but pointing
+    TMPDIR at ``<build_id>/tmp`` means nothing a build writes can ever land next
+    to another student's build, even with a different or older build command.
+    """
+    tmp_dir = work_dir / "tmp"
+    tmp_dir.mkdir(parents=True, exist_ok=True)
+    env = os.environ.copy()
+    for name in ("TMPDIR", "TEMP", "TMP"):
+        env[name] = str(tmp_dir)
+    return env
+
+
+def run_prg32_build(build_command: str, source_path: Path, out_path: Path, entry_prefix: str, name: str, architecture: str, cart_ram_kib: int, required_features: list[str] | None = None, timeout: float = 120) -> tuple[bool, str]:
     out_path.parent.mkdir(parents=True, exist_ok=True)
     command = shlex.split(build_command) + [
         str(source_path),
@@ -91,11 +107,12 @@ def run_prg32_build(build_command: str, source_path: Path, out_path: Path, entry
         # Also sets the cartridge header's multiplayer flag (PRG32 builder option).
         command.append("--multiplayer")
     try:
-        result = subprocess.run(command, check=False, capture_output=True, text=True, timeout=60)
+        result = subprocess.run(command, check=False, capture_output=True, text=True, timeout=timeout,
+                                env=build_environment(out_path.parent))
     except FileNotFoundError as exc:
         return False, f"Build command not found: {exc}\nCommand: {' '.join(command)}"
     except subprocess.TimeoutExpired:
-        return False, f"Build command timed out after 60 seconds.\nCommand: {' '.join(command)}"
+        return False, f"Build command timed out after {timeout:g} seconds.\nCommand: {' '.join(command)}"
     log = "$ " + " ".join(command) + "\n" + result.stdout + result.stderr
     return result.returncode == 0 and out_path.exists(), log
 
@@ -105,20 +122,38 @@ def prepare_package(
     data_dir: Path,
     project: dict[str, Any],
     game_ir: dict[str, Any],
-    c_source: str,
+    c_source: str | None,
     build_id: str,
     build_command: str,
     cart_ram_kib: int,
     project_json: dict[str, Any],
     build_root: Path | None = None,
     architectures: list[str] | None = None,
+    build_timeout: float = 120,
+    asm_source: str | None = None,
+    build_language: str = "c",
 ) -> dict[str, Any]:
+    """Write the sources, compile one cartridge per architecture and zip a Store bundle.
+
+    ``c_source`` and ``asm_source`` are the generated files (either may be None);
+    ``build_language`` ("c" or "asm") says which one the PRG32 builder compiles.
+    Both files are put in the bundle so students can study them side by side.
+    """
     slug = slugify(project.get("title") or game_ir.get("title"), "game")
     entry_prefix = game_ir.get("entry_prefix") or c_identifier(slug, "game")
     work_dir = (build_root or data_dir / "builds") / build_id
     work_dir.mkdir(parents=True, exist_ok=True)
-    source_path = work_dir / "game.c"
-    source_path.write_text(c_source, encoding="utf-8")
+    sources: dict[str, Path] = {}
+    if c_source is not None:
+        sources["c"] = work_dir / "game.c"
+        sources["c"].write_text(c_source, encoding="utf-8")
+    if asm_source is not None:
+        # Capital .S: the PRG32 builder runs the C preprocessor, then assembles.
+        sources["asm"] = work_dir / "game.S"
+        sources["asm"].write_text(asm_source, encoding="utf-8")
+    if build_language not in sources:
+        raise ValueError(f"No {build_language} source to build")
+    source_path = sources[build_language]
     (work_dir / "project.blocks.json").write_text(json.dumps(project_json, indent=2), encoding="utf-8")
     (work_dir / "game.ir.json").write_text(json.dumps(game_ir, indent=2), encoding="utf-8")
     icon_path = work_dir / "icon.png"
@@ -131,10 +166,11 @@ def prepare_package(
         out_name = f"{slug}-{arch}.prg32"
         out_path = work_dir / out_name
         ok, log = run_prg32_build(build_command, source_path, out_path, str(entry_prefix), slug, arch, cart_ram_kib,
-                                  game_ir.get("required_features", []))
+                                  game_ir.get("required_features", []), build_timeout)
         logs.append(f"[{arch}]\n{log}")
         if ok:
             architectures.append({"id": arch, "file": out_name})
+    shutil.rmtree(work_dir / "tmp", ignore_errors=True)
 
     manifest = project_manifest(project, game_ir, architectures)
     manifest_path = work_dir / "manifest.json"
@@ -144,7 +180,8 @@ def prepare_package(
     with zipfile.ZipFile(bundle_path, "w", zipfile.ZIP_DEFLATED) as zf:
         zf.write(manifest_path, "manifest.json")
         zf.write(icon_path, "icon.png")
-        zf.write(source_path, "source/game.c")
+        for path in sources.values():
+            zf.write(path, f"source/{path.name}")
         zf.write(work_dir / "project.blocks.json", "source/project.blocks.json")
         zf.write(work_dir / "game.ir.json", "source/game.ir.json")
         for arch in architectures:
@@ -152,7 +189,9 @@ def prepare_package(
         if not architectures:
             zf.writestr(
                 "BUILD_TOOLCHAIN_REQUIRED.txt",
-                "No .prg32 files were produced. Install the PRG32 Python build module or set PRG32_BUILD_COMMAND, then rebuild.\n",
+                "No .prg32 files were produced: this server cannot compile PRG32 cartridges yet.\n"
+                "Run the kit with its Docker image (docker compose up -d --build), or install the\n"
+                "PRG32 build tools by hand. See docs/install_cartridge_build.md.\n",
             )
 
     status = "ready" if architectures else "source-only"

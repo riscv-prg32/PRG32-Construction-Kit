@@ -13,7 +13,7 @@ Projects save the Blockly workspace serialization in JSON:
 }
 ```
 
-This is stored in `projects.blocks_json`. **Generate C** turns it into a
+This is stored in `projects.blocks_json`. **Generate C** (or **Generate Assembly**, see `generated_code.md`) turns it into a
 checked game IR (`prg32-construction-kit-game-1.1`) and then into C; the
 browser simulator reads the same JSON into the same IR.
 

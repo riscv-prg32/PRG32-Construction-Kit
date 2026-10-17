@@ -1,6 +1,18 @@
 services:
   prg32-construction-kit:
-    build: .
+    image: prg32-construction-kit:latest
+    build:
+      context: .
+      args:
+        # 1 = install the RISC-V compiler and PRG32 tools, so Compile Cartridge
+        # and Download .prg32 make real cartridges. 0 = C and source bundles only.
+        PRG32_TOOLCHAIN: ${PRG32_TOOLCHAIN:-1}
+        # Pin the PRG32 tools for a whole term with a tag or commit id.
+        PRG32_REF: ${PRG32_REF:-main}
+        PRG32_REPO: ${PRG32_REPO:-https://github.com/riscv-prg32/PRG32.git}
+        RISCV_GCC_VERSION: ${RISCV_GCC_VERSION:-esp-14.2.0_20241119}
+    # The container checks the build tools when it starts and stops if they are
+    # broken (see docker/entrypoint.sh). `docker compose logs` shows the check.
     ports:
       - "5090:5090"
     environment:
@@ -8,6 +20,17 @@ services:
       PRG32_KIT_PORT: 5090
       PRG32_STORE_URL: http://host.docker.internal:5080
       PRG32_ADMIN_PASSWORD: ${PRG32_ADMIN_PASSWORD:-password}
+      # Cartridge builds: how many compile at once, how long a build may wait
+      # for a free slot, and how long one compiler run may take (seconds).
+      PRG32_MAX_PARALLEL_BUILDS: ${PRG32_MAX_PARALLEL_BUILDS:-4}
+      PRG32_BUILD_QUEUE_TIMEOUT: ${PRG32_BUILD_QUEUE_TIMEOUT:-180}
+      PRG32_BUILD_TIMEOUT: ${PRG32_BUILD_TIMEOUT:-120}
+      PRG32_CART_RAM_KIB: ${PRG32_CART_RAM_KIB:-64}
+      # 1 = stop the container at start when cartridge builds don't work.
+      PRG32_REQUIRE_TOOLCHAIN: ${PRG32_REQUIRE_TOOLCHAIN:-${PRG32_TOOLCHAIN:-1}}
+      # Web server: worker processes x threads = students served at once.
+      PRG32_KIT_WORKERS: ${PRG32_KIT_WORKERS:-2}
+      PRG32_KIT_THREADS: ${PRG32_KIT_THREADS:-16}
       # Share accounts with a Cartridge Store (same secret on both sides):
       PRG32_SSO_SECRET: ${PRG32_SSO_SECRET:-}
       PRG32_SSO_PEER_URL: ${PRG32_SSO_PEER_URL:-}

@@ -20,7 +20,7 @@ PRG32-Construction-Kit uses a deliberately simple pipeline:
 Blockly workspace JSON
   -> validated PRG32 game IR
   -> JavaScript simulator
-  -> deterministic C generator
+  -> deterministic C generator (and, on request, RISC-V assembly generator)
   -> PRG32 build command
   -> Cartridge Store bundle
   -> Cartridge Store publish endpoint
@@ -36,6 +36,7 @@ Blockly workspace JSON
 | Online simulator | `static/js/simulator.js` | Browser execution of the game IR on a 320 x 200 RGB565 framebuffer. |
 | Expression checker | `prg32_construction_kit/expressions.py` | Grammar of block text fields: integers, variables, list items, kit functions, PRG32 constants. |
 | C generator | `prg32_construction_kit/generator.py` | Converts saved Blocks JSON into PRG32 C, adding only the helpers a game uses. |
+| Assembly generator | `prg32_construction_kit/asm_generator.py` | Converts the same game IR into explained RISC-V (RV32IM) assembly that does exactly what the C does. |
 | Example games | `examples/games/`, `tools/build_example_games.py` | Five complete Blocks games and the script that writes them. |
 | Tutorials | `docs/tutorials/games/`, `tools/build_presentations.py` | Step-by-step decks whose block and C excerpts are generated from the games. |
 | Runtime check | `tools/runtime_check.py`, `tools/simulate.js` | Builds examples and runs them in the simulator, QEMU and PRG32-QT. |

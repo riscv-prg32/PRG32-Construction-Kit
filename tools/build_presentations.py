@@ -231,7 +231,8 @@ def game(name: str) -> tuple[dict, str]:
         if not path.exists():
             path = ROOT / "examples" / f"{name}.json"
         project = json.loads(path.read_text(encoding="utf-8"))["project"]
-        _ir, source = blocks_to_c(project["blocks_json"], project)
+        # Slides show the compact C; the explained C is in the editor and the downloads.
+        _ir, source = blocks_to_c(project["blocks_json"], project, explain=False)
         stacks = {top["type"].removeprefix("prg32_"): top for top in project["blocks_json"]["blocks"]["blocks"]}
         stacks["start"] = stacks.pop("on_start")
         _GAMES[name] = (stacks, source)

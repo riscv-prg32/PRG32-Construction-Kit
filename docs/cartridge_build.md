@@ -3,6 +3,10 @@
 ## What the app generates
 
 When a student clicks **Generate C**, the app converts Blocks JSON to game IR and then deterministic C.
+With **Assembly (RISC-V)** or **C + Assembly** chosen in the **Generated code**
+list, the same game IR also becomes explained RISC-V (RV32IM) assembly, and
+**Compile Cartridge** can build the cartridge from `game.S` instead of
+`game.c`. See `generated_code.md`.
 
 Generated C exports three functions:
 
@@ -51,7 +55,9 @@ When a student clicks **Compile Cartridge**, the app:
 2. regenerates C;
 3. creates a build record;
 4. writes `game.c`, `project.blocks.json`, and `game.ir.json` to `data/builds/<build_id>/`;
-5. runs the configured PRG32 build command for `esp32c6` and `qemu` labels;
+5. runs the configured PRG32 build command for `esp32c6` and `qemu` labels,
+   with a private temporary folder `data/builds/<build_id>/tmp/` (removed
+   afterwards) and a time limit of `PRG32_BUILD_TIMEOUT` seconds;
 6. creates directly downloadable `.prg32` artifacts and a Cartridge Store bundle zip.
 
 After a successful build, green download buttons appear above the editor. The
@@ -72,11 +78,14 @@ the server, no file is downloaded and the **Debug Log** explains why.
 
 ## PRG32 build command
 
-Default:
+Default (with the same Python that runs the kit):
 
 ```bash
-python3 -m prg32 cartridge build
+<kit python> -m prg32 cartridge build
 ```
+
+Installing the tools and the compiler, for Docker, macOS, Linux and Windows,
+is explained step by step in `install_cartridge_build.md`.
 
 The app appends:
 
@@ -86,8 +95,8 @@ game.c --portable --architecture <esp32c6|qemu> --cart-ram-kib 64 --entry-prefix
 ```
 
 The PRG32 tooling can be installed into the kit's Python environment from a
-PRG32 checkout (`pip install -e ../PRG32`), or run from that checkout with
-`PYTHONPATH`. The RISC-V compiler `riscv32-esp-elf-gcc` from ESP-IDF 5.4 must
+PRG32 checkout (`.venv/bin/pip install --no-deps -e ../PRG32`), or run from
+that checkout with `PYTHONPATH`. The RISC-V compiler `riscv32-esp-elf-gcc` from ESP-IDF 5.4 must
 be on `PATH`.
 
 Override the command:

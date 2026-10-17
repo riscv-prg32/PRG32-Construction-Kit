@@ -135,3 +135,70 @@ def test_generated_ir_never_overwrites_a_newer_save(app, client):
                                      {"game_json": {"abi": "old"}})
         assert stored is False
         assert get_resource("projects", project["id"])["game_json"] == newer
+
+
+def test_each_build_gets_a_private_temporary_folder(app, client, monkeypatch):
+    seen = []
+
+    def compiler(command, **kwargs):
+        out_path = Path(command[command.index("--out") + 1])
+        seen.append((out_path.parent, Path(kwargs["env"]["TMPDIR"]), kwargs["timeout"]))
+        out_path.write_bytes(b"cart")
+        return SimpleNamespace(returncode=0, stdout="", stderr="")
+
+    app.config["PRG32_BUILD_TIMEOUT"] = 42
+    monkeypatch.setattr("prg32_construction_kit.packager.subprocess.run", compiler)
+    project = client.post("/api/projects", json={"title": "Temp", "blocks_json": default_blocks()}).get_json()
+    for _ in range(2):
+        assert client.post(f"/api/projects/{project['id']}/package", json={"architectures": ["qemu"]}).status_code == 200
+    (first_dir, first_tmp, timeout), (second_dir, second_tmp, _) = seen
+    assert first_dir != second_dir
+    assert first_tmp == first_dir / "tmp" and second_tmp == second_dir / "tmp"
+    assert timeout == 42
+    assert not first_tmp.exists()  # cleaned up after the build
+
+
+def test_classroom_check_with_many_students_and_windows(app, monkeypatch):
+    from prg32_construction_kit.build_check import classroom_check
+
+    app.config["PRG32_MAX_PARALLEL_BUILDS"] = 4
+    monkeypatch.setattr("prg32_construction_kit.packager.subprocess.run", FakeCompiler(0.02))
+    report = classroom_check(app, students=3, windows=2)
+    assert report["problems"] == []
+    assert report["builds"] == report["cartridges"] == 3 * 2 * 2
+
+
+def test_classroom_check_notices_a_mixed_up_cartridge(app, monkeypatch):
+    from prg32_construction_kit.build_check import _NAME_OFFSET, classroom_check
+
+    def wrong_game(command, **_kwargs):
+        header = b"PRG2" + bytes(_NAME_OFFSET - 4) + b"somebody-else".ljust(32, b"\0")
+        Path(command[command.index("--out") + 1]).write_bytes(header)
+        return SimpleNamespace(returncode=0, stdout="", stderr="")
+
+    monkeypatch.setattr("prg32_construction_kit.packager.subprocess.run", wrong_game)
+    report = classroom_check(app, students=2, windows=1, architectures=["qemu"])
+    assert len(report["problems"]) == 2
+    assert "somebody-else" in report["problems"][0]
+
+
+def _real_toolchain_missing(command: str) -> bool:
+    from prg32_construction_kit.build_check import check_command
+
+    return not all(ok for ok, _ in check_command(command))
+
+
+def test_real_cartridges_for_many_students_and_windows(app):
+    """Uses the real PRG32 toolchain when it is installed (skipped otherwise)."""
+    import pytest
+
+    from prg32_construction_kit.build_check import cartridge_name, classroom_check
+
+    if _real_toolchain_missing(app.config["PRG32_BUILD_COMMAND"]):
+        pytest.skip("PRG32 build toolchain is not installed")
+    app.config["PRG32_MAX_PARALLEL_BUILDS"] = 4
+    report = classroom_check(app, students=3, windows=2)
+    assert report["problems"] == []
+    assert report["cartridges"] == 12
+    assert {cartridge_name(item["data"]) for item in report["results"]} == {
+        "lab-check-student1", "lab-check-student2", "lab-check-student3"}

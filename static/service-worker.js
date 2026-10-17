@@ -1,10 +1,7 @@
-const CACHE_NAME = 'prg32-kit-v4';
+const CACHE_NAME = 'prg32-kit-v5';
+// Only static files are kept. Pages show the signed-in student's name and
+// projects, and a classroom computer is shared, so pages are never cached.
 const APP_SHELL = [
-  '/',
-  '/sprites',
-  '/artifacts',
-  '/publish',
-  '/documentation',
   '/static/css/app.css',
   '/static/js/app.js',
   '/static/js/dashboard.js',
@@ -26,8 +23,8 @@ self.addEventListener('activate', event => {
 
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
-  // Never keep API answers or account pages: they belong to whoever is signed in.
-  if (event.request.method !== 'GET' || /^\/(api|auth|admin|account)(\/|$)/.test(url.pathname)) return;
+  // Never keep pages, API answers or downloads: they belong to whoever is signed in.
+  if (event.request.method !== 'GET' || url.origin !== self.location.origin || !url.pathname.startsWith('/static/')) return;
   // Network first, so classrooms get updates right away; the cache is the offline fallback.
   event.respondWith(fetch(event.request).then(response => {
     if (response.ok || response.type === 'opaque') {

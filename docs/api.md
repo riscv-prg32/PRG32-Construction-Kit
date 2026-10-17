@@ -11,6 +11,12 @@ token as `Authorization: Bearer prg32_...`. Without either, the API answers
 `X-PRG32-Kit: 1` (the kit's pages add it); this stops other web sites from
 posting forms with a student's cookie.
 
+The kit's pages also send `X-PRG32-User: <user id>`, the account the window
+was opened as. If somebody signed in as a different user in another window of
+the same browser, the API answers `409` with `"code": "user_changed"` instead
+of saving or compiling with the wrong account (see `concurrent_builds.md`).
+Requests with an API token skip this check.
+
 | Method | Path | Purpose |
 |---|---|---|
 | `GET/POST` | `/auth/login` | Sign-in page / sign in (`username`, `password`, `next`) |
@@ -84,7 +90,11 @@ GET /.well-known/prg32-construction-kit.json
 ```
 
 Returns service URLs for projects, sprites, assets, artifacts, builds, publish profiles, and publish action,
-plus `auth` (sign-in is required) and `sso` (`{"enabled": true|false, "abi": "prg32-sso-1.0"}`).
+plus `auth` (sign-in is required), `sso` (`{"enabled": true|false, "abi": "prg32-sso-1.0"}`) and
+`cartridge_builds` (`{"available": true|false, "architectures": ["esp32c6", "qemu"]}`).
+`available` is `false` when this server has no working PRG32 build tools, so
+**Compile Cartridge** makes source bundles only (see `install_cartridge_build.md`).
+The check runs once per server process.
 
 ## CRUD resources
 
@@ -142,18 +152,32 @@ GET  /api/projects/<id>/export
 
 Import accepts JSON body or multipart field `file`.
 
-## Convert project to C
+## Convert project to C or RISC-V assembly
 
 ```http
 POST /api/projects/<id>/convert
+Content-Type: application/json
+
+{"source_language": "both"}
 ```
+
+`source_language` is optional: `"c"` (the default), `"asm"` (RISC-V assembly)
+or `"both"`. Anything else is rejected with `400`. Assembly is generated from
+Blocks only: an Advanced C project answers `400` for `"asm"` and `"both"`.
+See `generated_code.md` for how to read the two files.
 
 Response fields:
 
 - `project`
 - `game_ir`
-- `c_source`
-- `artifact`
+- `source_language`
+- `c_source` (when C was asked for)
+- `asm_source` and `asm_artifact` (when assembly was asked for)
+- `artifact` (the first artifact made: C, or assembly for `"asm"`)
+- `artifacts` (every artifact made, C first)
+
+Generated C is stored as a `c_source` artifact (`text/x-csrc`), generated
+assembly as an `asm_source` artifact (`text/x-asm`).
 
 ## Prepare cartridge bundle
 
@@ -161,10 +185,15 @@ Response fields:
 POST /api/projects/<id>/package
 ```
 
+`source_language` works as for convert. `"asm"` compiles the generated
+assembly (`game.S`); `"c"` and `"both"` compile the generated C. With `"both"`
+the bundle holds `source/game.c` and `source/game.S`.
+
 Response fields:
 
-- `build`
-- `c_artifact`
+- `build` (`build.metadata.built_from` is `"c"` or `"asm"`)
+- `c_artifact` (`null` for `"asm"`)
+- `asm_artifact` (`null` unless assembly was asked for)
 - `bundle_artifact`
 - `cartridge_artifacts`
 - `result`

@@ -1,0 +1,26 @@
+# systemd unit for a Linux classroom server without Docker.
+#
+#   sudo cp examples/deploy/prg32-kit.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now prg32-kit
+#   journalctl -u prg32-kit -f
+#
+# Change User, the paths and the compiler folder to match your server.
+# See docs/install_cartridge_build.md, "Linux server with systemd".
+
+[Unit]
+Description=PRG32-Construction-Kit
+After=network.target
+
+[Service]
+User=prg32
+WorkingDirectory=/opt/prg32/PRG32-Construction-Kit
+EnvironmentFile=/opt/prg32/PRG32-Construction-Kit/.env
+Environment=PRG32_KIT_DATA=/var/lib/prg32-kit
+# The RISC-V compiler must be on PATH for the build command.
+Environment=PATH=/opt/riscv32-esp-elf/bin:/opt/prg32/PRG32-Construction-Kit/.venv/bin:/usr/bin:/bin
+ExecStart=/opt/prg32/PRG32-Construction-Kit/.venv/bin/gunicorn --preload --workers 2 --threads 16 --timeout 600 --bind 0.0.0.0:5090 app:app
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

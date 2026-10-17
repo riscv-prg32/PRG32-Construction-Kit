@@ -19,6 +19,25 @@ jobs:
         with:
           node-version: "20"
       - run: pip install -r requirements.txt
+      - name: Install a RISC-V assembler (tests that generated assembly does what the C does)
+        run: sudo apt-get update && sudo apt-get install -y gcc-riscv64-unknown-elf
       - name: Check JavaScript syntax
         run: for f in static/js/*.js static/service-worker.js; do node --check "$f"; done
       - run: python -m pytest -q
+
+  docker:
+    # Builds the full image (RISC-V compiler + PRG32 tools) and compiles real
+    # cartridges inside it, as several students at once.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the image with the cartridge toolchain
+        run: docker build --build-arg PRG32_TOOLCHAIN=1 -t prg32-construction-kit:ci .
+      - name: Compile cartridges inside the container
+        run: docker run --rm --entrypoint python prg32-construction-kit:ci tools/check_build.py --students 2 --windows 2
+      - name: Container starts and reports cartridge builds
+        run: |
+          docker run -d --name kit -p 5090:5090 prg32-construction-kit:ci
+          for i in $(seq 1 30); do curl -fs http://127.0.0.1:5090/.well-known/prg32-construction-kit.json > discovery.json && break; sleep 2; done
+          docker logs kit
+          python3 -c "import json; assert json.load(open('discovery.json'))['cartridge_builds']['available'] is True"

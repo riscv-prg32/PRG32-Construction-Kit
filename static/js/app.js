@@ -4,6 +4,11 @@ window.Kit = {
     opts.headers = opts.headers || {};
     // Tells the server this request comes from the kit's own pages (blocks cross-site form posts).
     opts.headers['X-PRG32-Kit'] = '1';
+    // The account this window was opened as. If somebody signs in as another
+    // user in a different window, the server refuses instead of saving or
+    // building with the wrong account.
+    const user = $('meta[name="prg32-user"]').attr('content');
+    if (user) opts.headers['X-PRG32-User'] = user;
     if (opts.body && !(opts.body instanceof FormData)) {
       opts.headers['Content-Type'] = 'application/json';
       opts.body = JSON.stringify(opts.body);
@@ -14,12 +19,22 @@ window.Kit = {
       if (response.status === 401) {
         window.location.href = '/auth/login?next=' + encodeURIComponent(window.location.pathname);
       }
+      if (response.status === 409 && data && data.code === 'user_changed') {
+        Kit.userChanged(data.error);
+      }
       if (!response.ok) {
         const message = data && data.error ? data.error : response.statusText;
         throw new Error(message);
       }
       return data;
     });
+  },
+  userChanged(message) {
+    if ($('#userChangedBanner').length) return;
+    const banner = $('<div id="userChangedBanner" class="alert alert-warning m-0 rounded-0 text-center" role="alert"></div>');
+    banner.text(message + ' ');
+    banner.append($('<button type="button" class="btn btn-sm btn-warning ms-2">Reload this window</button>').on('click', () => window.location.reload()));
+    $('body').prepend(banner);
   },
   toast(message, variant) {
     const id = 'toast-' + Date.now();

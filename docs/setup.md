@@ -4,13 +4,14 @@
 
 - Python 3.11 or newer.
 - A modern browser.
-- Optional: the PRG32 Python build module/toolchain when real `.prg32` files are required.
+- Optional: the PRG32 build tools and the RISC-V compiler when real `.prg32`
+  files are required. Step by step: `install_cartridge_build.md`.
 - Optional: a PRG32 Cartridge Store instance when publishing from the app.
 
 ## Local Python setup
 
 ```bash
-git clone https://github.com/your-org/PRG32-Construction-Kit.git
+git clone https://github.com/riscv-prg32/PRG32-Construction-Kit.git
 cd PRG32-Construction-Kit
 python3 -m venv .venv
 . .venv/bin/activate
@@ -33,7 +34,10 @@ http://127.0.0.1:5090/
 | `DATABASE_URL` | unset | SQLAlchemy URL; overrides the SQLite path. |
 | `PRG32_KIT_PORT` | `5090` | HTTP port. |
 | `PRG32_STORE_URL` | `http://127.0.0.1:5080` | Default Cartridge Store URL. |
-| `PRG32_BUILD_COMMAND` | `python3 -m prg32 cartridge build` | Command used by Compile Cartridge and Download .prg32. |
+| `PRG32_BUILD_COMMAND` | `<kit python> -m prg32 cartridge build` | Command used by Compile Cartridge and Download .prg32. The default uses the same Python that runs the kit. |
+| `PRG32_MAX_PARALLEL_BUILDS` | CPU cores | Compilers running at the same time (`concurrent_builds.md`). |
+| `PRG32_BUILD_QUEUE_TIMEOUT` | `180` | Seconds a build waits for a free compiler. |
+| `PRG32_BUILD_TIMEOUT` | `120` | Seconds one compiler run may take. |
 | `PRG32_CART_RAM_KIB` | `64` | Cartridge RAM profile passed to the current PRG32 builder. Match this to the target firmware profile. |
 | `SECRET_KEY` | random, saved in `$PRG32_KIT_DATA/secret_key` | Signs the sign-in cookie. |
 | `PRG32_ADMIN_PASSWORD` | `password` | Password of the first `admin` account. Change it after the first sign-in. |
@@ -73,13 +77,20 @@ python app.py
 Do not commit the production password. Inject `DATABASE_URL` through the
 hosting platform's secret or environment configuration.
 
-## PRG32 toolchain check
+## Switching on cartridge builds
 
-The app can generate C without a PRG32 toolchain. To also create real `.prg32` cartridge files, make sure this works in the same shell or container:
+The app can generate C without a PRG32 toolchain. To also create real
+`.prg32` cartridge files, follow `install_cartridge_build.md`. In short, from
+a `PRG32` checkout next to this one:
 
 ```bash
-python3 -m prg32 cartridge build --help
+.venv/bin/pip install --no-deps -e ../PRG32
+export PATH="$HOME/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/bin:$PATH"
+.venv/bin/python tools/check_build.py
 ```
+
+The check compiles real cartridges for several pretend students in several
+browser windows at once, and says what is missing if anything is.
 
 Then open a project and click **Download .prg32** to get a cartridge file
 directly, or **Compile Cartridge** to build every target plus the Cartridge
