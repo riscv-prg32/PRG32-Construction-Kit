@@ -224,6 +224,14 @@ def publish_page():
     return render_template("publish.html", can_publish=role_at_least(current_principal().role, "publisher"))
 
 
+@bp.get("/service-worker.js")
+def service_worker():
+    """The service worker at the root, so its scope covers every page (it caches static files only)."""
+    response = send_from_directory(Path(current_app.static_folder), "service-worker.js", mimetype="text/javascript")
+    response.headers["Service-Worker-Allowed"] = "/"  # Cache-Control: no-store, like every non-static answer
+    return response
+
+
 @bp.get("/documentation")
 def documentation_page():
     docs_dir = Path(current_app.root_path).parent / "docs"

@@ -290,3 +290,10 @@ body {
 .dbg-memory { max-height: 26rem; overflow: auto; font-size: .75rem; }
 body.dbg-mode-beginner .dbg-advanced { display: none !important; }
 body.dbg-mode-advanced .dbg-beginner { display: none !important; }
+
+/* Moved from inline styles so the Content Security Policy needs no inline style attributes. */
+#blocklyDiv { height: 72vh; min-height: 560px; width: 100%; border-radius: 1rem; overflow: hidden; }
+.kit-source-area { min-height: 560px; }
+.kit-w-kind { max-width: 140px; }
+.kit-w-address { width: 9rem; }
+.kit-tiny-close { font-size: .5rem; }

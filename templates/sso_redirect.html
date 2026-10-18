@@ -14,5 +14,6 @@
 </div>
 {% endblock %}
 {% block scripts %}
-<script>document.getElementById('ssoForm').submit();</script>
+{# No inline script (Content Security Policy): the form is sent by a static file. #}
+<script src="{{ url_for('static', filename='js/sso_redirect.js') }}"></script>
 {% endblock %}

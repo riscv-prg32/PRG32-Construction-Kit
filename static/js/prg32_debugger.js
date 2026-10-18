@@ -147,7 +147,7 @@
 
   function renderBreakpoints(state) {
     const badges = state.breakpoints.map(address => `<span class="badge text-bg-danger">● ${hex(address)}
-      <button class="btn-close btn-close-white ms-1 dbg-remove" data-address="${address}" aria-label="Remove breakpoint ${hex(address)}" style="font-size:.5rem"></button></span>`);
+      <button class="btn-close btn-close-white ms-1 dbg-remove kit-tiny-close" data-address="${address}" aria-label="Remove breakpoint ${hex(address)}"></button></span>`);
     $('#dbgBreakpoints').html(state.breakpoints.length
       ? `<span class="text-muted">Breakpoints:</span> ${badges.join(' ')} <button class="btn btn-link btn-sm p-0 ms-1" id="dbgClear">clear all</button>`
       : '<span class="text-muted">No breakpoints.</span>');

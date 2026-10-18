@@ -1,10 +1,5 @@
 {% extends "base.html" %}
 {% block title %}Editor - PRG32-Construction-Kit{% endblock %}
-{% block head %}
-<style>
-  #blocklyDiv { height: 72vh; min-height: 560px; width: 100%; border-radius: 1rem; overflow: hidden; }
-</style>
-{% endblock %}
 {% block content %}
 <input type="hidden" id="projectId" value="{{ project_id }}">
 <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
@@ -78,8 +73,8 @@
         <label for="requiredFeatures" class="form-label mb-0">Required PRG32 features (comma-separated)</label>
         <input class="form-control" id="requiredFeatures" placeholder="audio, tilemap, sprites" aria-describedby="featureHelp">
         <div class="form-text" id="featureHelp">audio, wifi, multiplayer, metrics, audio_plus, keyboard, tilemap, platformer, sprites</div>
-        <textarea class="form-control font-monospace flex-grow-1" id="customC" spellcheck="false" aria-label="PRG32 C source" style="min-height: 560px"></textarea>
-        <textarea class="form-control font-monospace flex-grow-1 d-none" id="customAsm" spellcheck="false" aria-label="PRG32 RISC-V assembly source" style="min-height: 560px"></textarea>
+        <textarea class="form-control font-monospace flex-grow-1 kit-source-area" id="customC" spellcheck="false" aria-label="PRG32 C source"></textarea>
+        <textarea class="form-control font-monospace flex-grow-1 d-none kit-source-area" id="customAsm" spellcheck="false" aria-label="PRG32 RISC-V assembly source"></textarea>
       </div>
     </div>
   </div>
@@ -134,7 +129,7 @@
 </div>
 {% endblock %}
 {% block scripts %}
-<script src="https://unpkg.com/blockly@11.2.1/blockly.min.js"></script>
+<script src="{{ url_for('static', filename='vendor/blockly/11.2.1/blockly.min.js') }}"></script>
 <script src="{{ url_for('static', filename='js/blockly_blocks.js') }}"></script>
 <script src="{{ url_for('static', filename='js/simulator.js') }}"></script>
 <script src="{{ url_for('static', filename='js/editor.js') }}"></script>

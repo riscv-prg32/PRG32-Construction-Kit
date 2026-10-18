@@ -59,5 +59,12 @@ window.Kit = {
 };
 
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => navigator.serviceWorker.register('/static/service-worker.js').catch(() => {}));
+  window.addEventListener('load', () => {
+    // Served from the root so it covers every page (it caches static files only).
+    navigator.serviceWorker.register('/service-worker.js', { scope: '/' }).catch(() => {});
+    // Older versions registered it under /static/, where it could not cover the pages.
+    navigator.serviceWorker.getRegistrations().then(registrations => registrations
+      .filter(registration => new URL(registration.scope).pathname === '/static/')
+      .forEach(registration => registration.unregister())).catch(() => {});
+  });
 }

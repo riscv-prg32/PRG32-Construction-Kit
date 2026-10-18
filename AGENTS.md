@@ -85,7 +85,8 @@ Preserve these action routes:
 - Use Blockly for the block editor.
 - Keep the app installable as a PWA with manifest and service worker.
 - Do not require a cloud account for normal classroom use.
-- The service worker caches static files only, never signed-in pages; bump its cache version when cached files change.
+- The service worker caches static files only, never signed-in pages; bump its cache version when cached files change (`tools/service_worker_lock.py` records it; a test enforces it).
+- Serve every browser library from `static/vendor/` (`tools/vendor_assets.py`, `VENDOR.json`); no CDN. Keep the Content Security Policy strict: no inline scripts, no `unsafe-inline`/`unsafe-eval` (ADR-0012).
 
 ## Documentation constraints
 

@@ -8,7 +8,8 @@ from flask import Flask
 
 from . import auth, security, sso
 from .config import Config
-from .db import db, init_app as init_db_app
+from .db import db
+from .db import init_app as init_db_app
 from .routes import bp
 from .sample_data import seed_if_empty
 
@@ -35,6 +36,7 @@ def create_app(test_config: dict | None = None) -> Flask:
     auth.init_app(app)
     sso.init_app(app)
     app.register_blueprint(bp)
+    app.after_request(browser_security_headers)
 
     with app.app_context():
         auth.bootstrap_admin(app)
@@ -66,3 +68,56 @@ def _stored_secret_key(path: Path) -> str:
     with os.fdopen(fd, "w", encoding="utf-8") as fp:
         fp.write(key)
     return key
+
+
+# The two stylesheets Blockly 11.2.1 writes into the page as <style> elements (its core CSS and
+# its renderer CSS). Allowing exactly these, by hash, keeps 'unsafe-inline' out of style-src.
+# A Blockly upgrade changes them; tests/test_browser_offline.py then reports the CSP violation.
+BLOCKLY_STYLE_HASHES = ("'sha256-13eeyLxDr6pLorEKUUklmpuV8Z1YLs/1MWMLY8Zk3pA='",
+                        "'sha256-0tN7GGHXLmMTzeNJNnrOblI9B4sRETd8GoaYB0Lmw3Q='")
+
+
+def content_security_policy(config) -> str:
+    """The Content Security Policy for every page (docs/adr/0012-offline-frontend-and-csp.md).
+
+    Everything comes from the kit itself: no CDNs, no inline scripts, no eval.
+    'wasm-unsafe-eval' lets the browser compile the PRG32 core (WebAssembly),
+    nothing else. A form may post to the kit, and to the linked Cartridge Store
+    for single sign-on (templates/sso_redirect.html).
+    """
+    from urllib.parse import urlsplit
+
+    form_targets = ["'self'"]
+    peer = urlsplit(str(config.get("SSO_PEER_URL") or ""))
+    if peer.scheme in ("http", "https") and peer.netloc:
+        form_targets.append(f"{peer.scheme}://{peer.netloc}")
+    return "; ".join([
+        "default-src 'self'",
+        "script-src 'self' 'wasm-unsafe-eval'",
+        "style-src 'self' " + " ".join(BLOCKLY_STYLE_HASHES),
+        "img-src 'self' data: blob:",
+        "font-src 'self'",
+        "connect-src 'self'",
+        "media-src 'self' data: blob:",
+        "worker-src 'self'",
+        "manifest-src 'self'",
+        "object-src 'none'",
+        "base-uri 'self'",
+        "frame-ancestors 'none'",
+        "form-action " + " ".join(form_targets),
+    ])
+
+
+def browser_security_headers(response):
+    """CSP and friends on every answer; signed-in pages and API answers are never cached."""
+    from flask import current_app, request
+
+    response.headers.setdefault("Content-Security-Policy", content_security_policy(current_app.config))
+    response.headers.setdefault("X-Content-Type-Options", "nosniff")
+    response.headers.setdefault("Referrer-Policy", "same-origin")
+    if request.path.startswith("/static/vendor/"):
+        # Versioned folders (vendor/<name>/<version>/): a file there never changes.
+        response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+    elif not request.path.startswith("/static/"):
+        response.headers["Cache-Control"] = "no-store"
+    return response

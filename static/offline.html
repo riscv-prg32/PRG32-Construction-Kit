@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#14213d">
+  <title>Offline - PRG32-Construction-Kit</title>
+  <link rel="manifest" href="/static/manifest.webmanifest">
+  <link rel="icon" href="/static/img/prg32-icon.svg" type="image/svg+xml">
+  <link href="/static/vendor/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/static/vendor/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="/static/css/app.css" rel="stylesheet">
+</head>
+<body>
+<!-- The page the service worker shows when the server cannot be reached.
+     It is a static file with no account data (signed-in pages are never cached). -->
+<nav class="navbar navbar-dark kit-navbar shadow-sm">
+  <div class="container-fluid">
+    <span class="navbar-brand d-flex align-items-center gap-2">
+      <img src="/static/img/prg32-icon.svg" alt="" width="32" height="32">
+      <span>PRG32-Construction-Kit</span>
+    </span>
+    <span class="badge text-bg-warning" id="offlineBadge"><i class="bi bi-wifi-off"></i> Offline</span>
+  </div>
+</nav>
+<main class="container-fluid px-3 px-lg-4 py-4">
+  <div class="alert alert-warning" role="status">
+    <strong>The kit's server cannot be reached.</strong> Your projects are on the server, so they open again
+    when the connection is back. Meanwhile you can sketch with blocks here (kept only in this browser) or play
+    a <code>.prg32</code> cartridge file in the <a href="/static/offline-player.html">offline player</a>.
+    <button class="btn btn-sm btn-outline-dark ms-2" id="retryOnline" type="button">Try again</button>
+  </div>
+  <div class="row g-3">
+    <div class="col-xxl-7">
+      <div class="card shadow-sm">
+        <div class="card-header d-flex flex-wrap gap-2 align-items-center">
+          <strong><i class="bi bi-puzzle"></i> Blocks scratchpad</strong>
+          <span class="small text-muted">saved in this browser only</span>
+          <div class="ms-auto d-flex gap-2">
+            <button class="btn btn-success btn-sm" id="offlinePlay" type="button"><i class="bi bi-play-fill"></i> Play</button>
+            <button class="btn btn-warning btn-sm" id="offlineStep" type="button"><i class="bi bi-skip-forward"></i> Step</button>
+            <button class="btn btn-outline-primary btn-sm" id="offlineExport" type="button"><i class="bi bi-download"></i> Save as file</button>
+            <label class="btn btn-outline-secondary btn-sm mb-0"><i class="bi bi-upload"></i> Open file
+              <input class="d-none" type="file" id="offlineImport" accept="application/json,.json"></label>
+          </div>
+        </div>
+        <div class="card-body p-2"><div id="blocklyDiv" aria-label="Blocks workspace"></div></div>
+      </div>
+    </div>
+    <div class="col-xxl-5">
+      <div class="card shadow-sm">
+        <div class="card-header"><strong><i class="bi bi-controller"></i> Blocks preview</strong></div>
+        <div class="card-body text-center">
+          <canvas id="gameCanvas" width="320" height="200" class="game-canvas" aria-label="Blocks preview screen"></canvas>
+          <div class="debug-strip mt-2" id="debugState">Ready.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+<script src="/static/vendor/jquery/3.7.1/jquery.min.js"></script>
+<script src="/static/vendor/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
+<script src="/static/vendor/blockly/11.2.1/blockly.min.js"></script>
+<script src="/static/js/blockly_blocks.js"></script>
+<script src="/static/js/simulator.js"></script>
+<script src="/static/js/offline.js"></script>
+</body>
+</html>

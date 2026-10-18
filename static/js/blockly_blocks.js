@@ -204,6 +204,8 @@ window.PRG32Blocks = (function () {
       trashcan: true,
       scrollbars: true,
       sounds: false,
+      // Blockly's icons from the kit itself, not from a Google server (offline, CSP).
+      media: '/static/vendor/blockly/11.2.1/media/',
       zoom: { controls: true, wheel: true, startScale: 0.75, maxScale: 2.0, minScale: 0.2, scaleSpeed: 1.1 },
       grid: { spacing: 20, length: 3, colour: '#d1d5db', snap: true }
     });

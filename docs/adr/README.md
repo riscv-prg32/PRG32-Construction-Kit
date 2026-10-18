@@ -17,3 +17,4 @@ Short records of decisions for the full-IDE work. Each has a status:
 | [0009](0009-publish-authorization-and-confirmation.md) | Publishing needs the publisher role and a confirmed review (H-02) | Accepted |
 | [0010](0010-build-sandbox.md) | Every compile runs in a bubblewrap sandbox (H-03) | Accepted |
 | [0011](0011-design-baselines.md) | The design baseline and the briefs that refine it | Accepted |
+| [0012](0012-offline-frontend-and-csp.md) | Self-contained frontend, root service worker and CSP | Accepted |

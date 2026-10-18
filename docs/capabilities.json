@@ -134,13 +134,15 @@
       "status": "implemented",
       "audit_score": 3,
       "source": [
-        "static/js/prg32_runtime.js::PRG32CartridgePlayer"
+        "static/js/prg32_runtime.js::PRG32CartridgePlayer",
+        "static/service-worker.js"
       ],
       "tests": [
         "tests/test_wasm_runtime.py::test_audio_calls_reach_the_browser_host",
-        "tests/test_wasm_runtime.py::test_service_worker_caches_the_runtime_for_offline_use"
+        "tests/test_browser_offline.py::test_offline_player_runs_a_real_cartridge",
+        "tests/test_browser_offline.py::test_cold_offline_start_shows_an_editable_scratchpad"
       ],
-      "note": "Audio approximate; app shell still loads CDN assets until refinement Phase 1."
+      "note": "Audio approximate. Offline subset: scratchpad, Blocks preview, local player (ADR-0012); signed-in projects need the server."
     },
     {
       "id": "DBG-01",
@@ -399,11 +401,13 @@
       "source": [
         "prg32_construction_kit/auth.py::bootstrap_admin",
         "prg32_construction_kit/security.py::check",
-        "prg32_construction_kit/security.py::record"
+        "prg32_construction_kit/security.py::record",
+        "prg32_construction_kit/__init__.py::content_security_policy"
       ],
       "tests": [
         "tests/test_admin_bootstrap.py::test_fresh_production_start_makes_a_random_password_file",
-        "tests/test_security_controls.py::test_five_wrong_passwords_lock_that_name_from_that_address"
+        "tests/test_security_controls.py::test_five_wrong_passwords_lock_that_name_from_that_address",
+        "tests/test_frontend_offline.py::test_content_security_policy_is_strict"
       ],
       "note": "No hash-locked dependencies, quotas, retention or broad rate limits."
     },
@@ -446,9 +450,10 @@
       "audit_score": 3,
       "source": [],
       "tests": [
-        "tests/test_capabilities.py::test_rendered_table_is_up_to_date"
+        "tests/test_capabilities.py::test_rendered_table_is_up_to_date",
+        "tests/test_browser_offline.py::test_pages_load_only_from_the_kit_without_csp_violations"
       ],
-      "note": "Large pytest suite; no lint/type/coverage gate, browser E2E, automated a11y or performance budget."
+      "note": "Large pytest suite and first real-browser tests (Playwright); no lint/type/coverage gate, automated a11y or performance budget."
     }
   ]
 }

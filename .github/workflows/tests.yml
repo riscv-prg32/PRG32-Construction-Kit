@@ -132,6 +132,42 @@ jobs:
           cmake --build build/wasm-ci
           python -m pytest -q -rs tests/test_wasm_runtime.py -k "golden or audio or refused"
 
+  browser:
+    name: Real-browser frontend tests (offline, CSP)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v7
+
+      - name: Read the PRG32-QT revision of the browser core
+        id: core
+        run: echo "revision=$(python3 -c 'import json; print(json.load(open("static/wasm/BUILD.json"))["core"]["revision"])')" >> "$GITHUB_OUTPUT"
+
+      - name: Check out PRG32-QT (golden cartridge for the offline player)
+        uses: actions/checkout@v7
+        with:
+          repository: riscv-prg32/PRG32-QT
+          ref: ${{ steps.core.outputs.revision }}
+          path: PRG32-QT
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Install dependencies and Chromium
+        run: |
+          python -m pip install --disable-pip-version-check -r requirements.txt -r requirements-browser.txt
+          python -m playwright install --with-deps chromium
+
+      - name: Run the browser and frontend tests
+        env:
+          PRG32QT_DIR: ${{ github.workspace }}/PRG32-QT
+        run: python -m pytest -q -rs tests/test_browser_offline.py tests/test_frontend_offline.py
+
   dependency-review:
     name: Dependency review
     if: github.event_name == 'pull_request'

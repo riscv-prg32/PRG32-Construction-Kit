@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+### Self-contained frontend, offline page and CSP (refinement phase 1)
+
+- Bootstrap, Bootstrap Icons, jQuery and Blockly (with its media) are served
+  from `static/vendor/` (pinned, integrity-checked, licences recorded); no CDN.
+- Strict Content Security Policy on every response; `no-store` on pages and
+  API answers (ADR-0012).
+- The service worker moved to `/service-worker.js` (scope `/`; the old
+  `/static/` scope never covered the pages). Offline, any page shows the
+  static offline page: blocks scratchpad + local cartridge player.
+- **Upgrade note:** no database change. Browsers replace the old worker on the
+  next visit. Rollback: revert the code; the old `/static/` registration
+  comes back on its own.
+
 ### Security: every compile runs in a sandbox (audit H-03)
 
 - Compiles run under bubblewrap (no network, read-only SDK/compiler, only

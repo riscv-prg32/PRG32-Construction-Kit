@@ -12,5 +12,6 @@ Start here, then follow the links.
 6. **Writing a game directly in RISC-V assembly:** `handwritten_assembly.md`.
 7. **Playing your real cartridge in the browser:** `wasm_runtime.md`;
    stepping through it instruction by instruction: `tutorials/07_debugger.md`.
+   Working without the server: `offline.md`.
 8. **Publishing to a Cartridge Store:** `tutorials/04_publish_to_store.md`.
 9. **Running a lab (teachers):** `tutorials/05_teacher_lab.md`.

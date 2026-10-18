@@ -597,7 +597,7 @@ def _send_registration_email(email: str, link: str) -> None:
 
 # Pages and files anyone may open without signing in.
 PUBLIC_PREFIXES = ("/auth/", "/static/", "/docs/", "/.well-known/")
-PUBLIC_PATHS = {"/documentation", "/favicon.ico", "/api/sso/users"}
+PUBLIC_PATHS = {"/documentation", "/favicon.ico", "/api/sso/users", "/service-worker.js"}
 
 
 def guard_request():

@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Offline player - PRG32-Construction-Kit</title>
+  <link rel="icon" href="/static/img/prg32-icon.svg" type="image/svg+xml">
+  <link href="/static/vendor/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/static/vendor/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="/static/css/app.css" rel="stylesheet">
+</head>
+<body>
+<!-- Plays a .prg32 file from this computer with the PRG32 core (WebAssembly); works without the server. -->
+<main class="container py-4">
+  <h1 class="h4"><i class="bi bi-cpu"></i> Offline cartridge player</h1>
+  <p class="text-muted">Open a <code>.prg32</code> file from this computer. Nothing is sent anywhere.
+    <a href="/static/offline.html">Back to the blocks scratchpad</a></p>
+  <div class="d-flex gap-2 mb-2">
+    <label class="btn btn-primary btn-sm mb-0"><i class="bi bi-folder2-open"></i> Open a .prg32 file
+      <input class="d-none" type="file" id="cartridgeFile" accept=".prg32,application/octet-stream"></label>
+    <button class="btn btn-success btn-sm" id="playPause" type="button" disabled><i class="bi bi-play-fill"></i> Play</button>
+  </div>
+  <canvas id="playerScreen" class="prg32-screen" aria-label="PRG32 screen, 320 by 200 pixels"></canvas>
+  <div class="small mt-2" id="playerStatus" aria-live="polite">No cartridge loaded.</div>
+</main>
+<script src="/static/js/prg32_runtime.js"></script>
+<script src="/static/js/offline_player.js"></script>
+</body>
+</html>
