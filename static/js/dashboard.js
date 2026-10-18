@@ -78,7 +78,12 @@
     const form = new FormData();
     form.append('file', file);
     Kit.api('/api/projects/import', { method: 'POST', body: form })
-      .then(project => { Kit.toast('Project imported', 'success'); window.location.href = '/projects/' + project.id; })
+      .then(project => {
+        const ignored = project.ignored_files || [];
+        Kit.toast(ignored.length ? 'Project imported. Skipped files it does not use: ' + ignored.join(', ') : 'Project imported', 'success');
+        // Leave time to read the list of skipped files before the editor opens.
+        setTimeout(() => { window.location.href = '/projects/' + project.id; }, ignored.length ? 3000 : 0);
+      })
       .catch(err => Kit.toast(err.message, 'danger'));
   });
 

@@ -19,7 +19,7 @@ from .db import (
     update_if_unchanged,
     update_resource,
 )
-from . import sso
+from . import project_format, sso
 from .auth import Principal, current_principal
 from .build_check import builds_available
 from .build_slots import BuildServerBusy, build_slot
@@ -283,16 +283,100 @@ def api_item(resource: str, item_id: str):
     return jsonify(public(resource, item))
 
 
+def _project_children(project_id: str) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    """The sprites and assets of a project that the current user may see.
+
+    They are sorted by name and content, never by id or time, so the archive
+    of a project (and of its imported copy) always lists them in the same order.
+    """
+    def by_content(resource: str) -> list[dict[str, Any]]:
+        rows = list_resources(resource, {"project_id": project_id}, viewer_id=viewer_id())
+        fields = project_format.SPRITE_FIELDS if resource == "sprites" else project_format.ASSET_FIELDS
+        return sorted(rows, key=lambda row: (str(row.get("name") or ""),
+                                             json.dumps([row.get(field) for field in fields], sort_keys=True)))
+    return by_content("sprites"), by_content("assets")
+
+
+def _create_from_contents(contents: dict[str, Any], title: str | None = None) -> dict[str, Any]:
+    """Store an imported (or copied) project with its sprites and assets for the current user.
+
+    Everything was checked before this point; if storing still fails half way,
+    the parts already made are removed again so no half project is left.
+    """
+    fields = dict(contents["project"])
+    if title:
+        fields["title"] = title
+    project = create_resource("projects", owned(fields))
+    made: list[tuple[str, str]] = []
+    try:
+        for resource in ("sprites", "assets"):
+            for row in contents[resource]:
+                child = create_resource(resource, owned({**row, "project_id": project["id"]}))
+                made.append((resource, child["id"]))
+    except Exception:
+        for resource, child_id in reversed(made):
+            delete_resource(resource, child_id)
+        delete_resource("projects", project["id"])
+        raise
+    return project
+
+
+@bp.get("/api/projects/<project_id>/manifest")
+def api_project_manifest(project_id: str):
+    """The project's prg32.project.json, as it would be written into the archive."""
+    project = readable("projects", project_id)
+    if project is None:
+        return json_error("Project not found", 404)
+    sprites, assets = _project_children(project_id)
+    return jsonify(project_format.build_manifest(project, sprites, assets))
+
+
+@bp.get("/api/projects/<project_id>/archive")
+def api_project_archive(project_id: str):
+    """Download the portable project archive (.prg32project.zip)."""
+    project = readable("projects", project_id)
+    if project is None:
+        return json_error("Project not found", 404)
+    sprites, assets = _project_children(project_id)
+    data = project_format.export_archive(project, sprites, assets)
+    return send_file(io.BytesIO(data), mimetype=project_format.ARCHIVE_CONTENT_TYPE, as_attachment=True,
+                     download_name=project_format.archive_filename(project))
+
+
+@bp.post("/api/projects/<project_id>/duplicate")
+def api_duplicate_project(project_id: str):
+    """Make the current user's own copy of a project, including its sprites and assets."""
+    project = readable("projects", project_id)
+    if project is None:
+        return json_error("Project not found", 404)
+    payload = request_json()
+    title = payload.get("title")
+    if title is not None and (not isinstance(title, str) or not title.strip() or len(title) > 200):
+        return json_error("title must be text of at most 200 characters")
+    sprites, assets = _project_children(project_id)
+    contents = project_format.contents_from_files(project_format.project_files(project, sprites, assets))
+    copy = _create_from_contents(contents, title=(title or f"{project['title']} (copy)").strip())
+    return jsonify(public("projects", copy)), 201
+
+
 @bp.post("/api/projects/import")
 def api_import_project():
-    payload: dict[str, Any]
+    payload: Any
     if "file" in request.files:
+        data = request.files["file"].read(project_format.MAX_ARCHIVE_BYTES + 1)
+        if project_format.is_archive(data):
+            contents = project_format.import_archive(data)
+            project = _create_from_contents(contents)
+            return jsonify({**public("projects", project), "ignored_files": contents["ignored"]}), 201
         try:
-            payload = json.loads(request.files["file"].read().decode("utf-8"))
+            payload = json.loads(data.decode("utf-8"))
         except Exception as exc:
             return json_error(f"Could not parse JSON import: {exc}")
     else:
         payload = request_json()
+    if isinstance(payload, dict) and payload.get("abi") == project_format.LEGACY_EXPORT_ABI:
+        # The kit's own older export: read it through the project-format migrations.
+        return jsonify(public("projects", _create_from_contents(project_format.import_legacy_export(payload)))), 201
     if isinstance(payload, dict) and "project" in payload:
         payload = payload["project"]
     if not isinstance(payload, dict):

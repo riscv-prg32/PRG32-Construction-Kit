@@ -19,7 +19,13 @@
       <option value="c">Advanced C</option>
     </select>
     <button class="btn btn-outline-secondary" id="saveProject"><i class="bi bi-save"></i> Save</button>
-    <button class="btn btn-outline-primary" id="exportProject"><i class="bi bi-download"></i> Export JSON</button>
+    <div class="btn-group">
+      <button class="btn btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-download"></i> Export</button>
+      <ul class="dropdown-menu">
+        <li><button class="dropdown-item" id="exportArchive" title="The project, its sprites and assets in one zip file you can import again">Project archive (.zip)</button></li>
+        <li><button class="dropdown-item" id="exportProject" title="The older single JSON file, without sprites and assets">JSON file (older format)</button></li>
+      </ul>
+    </div>
     <button class="btn btn-success" id="runGame"><i class="bi bi-play-fill"></i> Play</button>
     <button class="btn btn-warning" id="stepGame"><i class="bi bi-skip-forward"></i> Step</button>
     <button class="btn btn-outline-danger" id="resetGame"><i class="bi bi-arrow-counterclockwise"></i> Reset</button>

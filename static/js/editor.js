@@ -209,7 +209,13 @@
   });
   $('#stepGame').on('click', () => simulator.step());
   $('#resetGame').on('click', () => simulator.reset());
-  $('#exportProject').on('click', () => { window.location.href = '/api/projects/' + projectId + '/export'; });
+  // Exports read the saved project, so unsaved block changes are not in the file.
+  function exportSaved(path) {
+    if (dirty) Kit.toast('Exporting the last saved version. Save first to include your newest changes.', 'warning');
+    window.location.href = '/api/projects/' + encodeURIComponent(projectId) + path;
+  }
+  $('#exportProject').on('click', () => exportSaved('/export'));
+  $('#exportArchive').on('click', () => exportSaved('/archive'));
 
   window.addEventListener('beforeunload', event => {
     if (dirty) {
