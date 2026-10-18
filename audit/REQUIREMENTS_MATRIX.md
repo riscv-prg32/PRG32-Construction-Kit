@@ -63,3 +63,7 @@ Scale: 0 missing; 1 prototype/stub; 2 partial; 3 implemented with meaningful tes
 - 2026-10-18, Phase 1: H-01 (SSRF) closed with automated adversarial tests
   (`audit/REMEDIATION_STATUS.md`). SEC-01 and STR-02 scores unchanged because
   H-02 and H-03 remain open.
+- 2026-10-18, Phase 2: H-02 closed (publisher role, publishable-only bundles,
+  signed review + explicit confirmation, idempotent attempts). STR-02 could
+  move from 1 to 2 (still no live Store test); left at 1 until an
+  independent re-check. SEC-01 unchanged (H-03 open).

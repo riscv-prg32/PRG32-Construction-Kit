@@ -127,7 +127,9 @@ def test_single_sign_on_both_ways(kit_and_store):
 def test_kit_publishes_to_the_store_as_the_student(kit_and_store, monkeypatch):
     kit, store = kit_and_store
     kit.config["STORE_TRUSTED_LOCAL"] = True  # the peer here is plain http, as on a classroom LAN (ADR-0008)
-    kit.test_client().post("/api/users", json={"username": "ada", "email": "ada@school.test", "password": PASSWORD})
+    # Publishing needs the publisher role (ADR-0009); the role is synced with the Store too.
+    kit.test_client().post("/api/users", json={"username": "ada", "email": "ada@school.test", "password": PASSWORD,
+                                               "role": "publisher"})
     ada = kit.test_client(login=("ada", PASSWORD))
     seen = {}
 
@@ -140,12 +142,10 @@ def test_kit_publishes_to_the_store_as_the_student(kit_and_store, monkeypatch):
 
     monkeypatch.setattr("prg32_construction_kit.routes.publish_bundle", publish_through_store)
     profile = ada.post("/api/publish_profiles", json={"name": "School", "store_url": "http://store.test"}).get_json()
-    bundle = io.BytesIO()
-    with zipfile.ZipFile(bundle, "w") as archive:
-        archive.writestr("manifest.json", "{}")
-    artifact = ada.post("/api/artifacts/upload", data={"file": (io.BytesIO(bundle.getvalue()), "b.zip"), "kind": "store_bundle"},
-                        content_type="multipart/form-data").get_json()
-    ada.post("/api/publish", json={"profile_id": profile["id"], "bundle_artifact_id": artifact["id"]})
+    from conftest import make_store_bundle, review_and_publish
+
+    artifact = make_store_bundle(ada, monkeypatch)
+    review_and_publish(ada, profile["id"], artifact["id"])
     assert seen["user"]["email"] == "ada@school.test" and seen["user"]["authenticated"] is True
     assert seen["reused"] is False  # an API ticket works only once
 

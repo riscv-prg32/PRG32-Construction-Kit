@@ -6,6 +6,7 @@ import json
 import zipfile
 
 import pytest
+from conftest import make_store_bundle, review_and_publish
 
 from prg32_construction_kit.db import get_resource
 from prg32_construction_kit.sample_data import default_blocks
@@ -222,13 +223,10 @@ def test_publish_profile_tokens_are_write_only(app, client, monkeypatch, tmp_pat
     sent = {}
     def fake_publish(store_url, token, path):
         sent.update(store_url=store_url, token=token, path=path)
-        return {"ok": True, "status_code": 200, "endpoint": store_url, "response": {}}
+        return {"ok": True, "status_code": 200, "response": {}}
     monkeypatch.setattr("prg32_construction_kit.routes.publish_bundle", fake_publish)
-    bundle = tmp_path / "builds" / "bundle.zip"
-    bundle.parent.mkdir(parents=True, exist_ok=True)
-    bundle.write_bytes(b"zip")
-    artifact = client.post("/api/artifacts", json={"kind": "store_bundle", "name": "b.zip", "path": str(bundle)}).get_json()
-    response = client.post("/api/publish", json={"profile_id": profile["id"], "bundle_artifact_id": artifact["id"]})
+    artifact = make_store_bundle(client, monkeypatch)
+    response = review_and_publish(client, profile["id"], artifact["id"])
     assert response.status_code == 200
     assert sent["token"] == "secret-123"
     assert "secret-123" not in response.get_data(as_text=True)

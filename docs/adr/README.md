@@ -14,3 +14,4 @@ Short records of decisions for the full-IDE work. Each has a status:
 | [0006](0006-shared-debug-protocol.md) | One debug protocol shared with PRG32-QT | Proposed |
 | [0007](0007-identity-and-roles.md) | OIDC with PKCE, issuer+subject linking, wider roles | Proposed |
 | [0008](0008-store-egress-policy.md) | Store egress policy: admin allow-list, public addresses only, pinned connections (H-01) | Accepted |
+| [0009](0009-publish-authorization-and-confirmation.md) | Publishing needs the publisher role and a confirmed review (H-02) | Accepted |

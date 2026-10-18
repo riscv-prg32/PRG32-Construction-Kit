@@ -24,8 +24,8 @@ from .db import (
     update_if_unchanged,
     update_resource,
 )
-from . import project_format, security, sso
-from .auth import Principal, current_principal
+from . import project_format, publishing, security, sso
+from .auth import Principal, current_principal, role_at_least
 from .build_check import builds_available, toolchain_present
 from .db import utcnow
 from .provenance import build_provenance
@@ -219,7 +219,8 @@ def player_page():
 
 @bp.get("/publish")
 def publish_page():
-    return render_template("publish.html")
+    # Only for showing or hiding buttons; the API checks the role itself (ADR-0009).
+    return render_template("publish.html", can_publish=role_at_least(current_principal().role, "publisher"))
 
 
 @bp.get("/documentation")
@@ -986,48 +987,136 @@ def _audit_publish(outcome: str, payload: dict[str, Any], profile: dict[str, Any
                                                "profile_id": str(payload.get("profile_id") or ""), **extra})
 
 
-@bp.post("/api/publish")
-def api_publish():
-    payload = request_json()
+def _publish_refusal(stage_action: str, payload: dict[str, Any], profile: dict[str, Any] | None,
+                     reason: str, message: str, status: int, outcome: str = "refused"):
+    if stage_action == "publish_review":
+        security.record("publish_review", target_type="artifact", target_id=payload.get("bundle_artifact_id") or "",
+                        outcome=outcome, metadata={"reason": reason, "profile_id": str(payload.get("profile_id") or "")})
+    else:
+        _audit_publish(outcome, payload, profile, stage="refused", reason=reason)
+    return jsonify({"error": message, "reason": reason}), status
+
+
+def _prepare_publish(payload: dict[str, Any], stage_action: str):
+    """Everything the review and the confirm step check, in the same order.
+
+    Returns (summary, profile, artifact, path, target) or (None, ..., error response).
+    """
+    principal = current_principal()
+    if not role_at_least(principal.role, "publisher"):
+        return None, None, None, None, None, _publish_refusal(
+            stage_action, payload, None, "not_publisher", publishing.MESSAGES["not_publisher"], 403, outcome="denied")
     profile = readable("publish_profiles", payload.get("profile_id", ""))
     artifact = readable("artifacts", payload.get("bundle_artifact_id", ""))
     if profile is None:
-        _audit_publish("refused", payload, None, reason="profile not found")
-        return json_error("Publish profile not found", 404)
+        return None, None, None, None, None, _publish_refusal(stage_action, payload, None, "profile_not_found",
+                                                              "Publish profile not found", 404)
     if artifact is None:
-        _audit_publish("refused", payload, profile, reason="bundle not found")
-        return json_error("Bundle artifact not found", 404)
+        return None, profile, None, None, None, _publish_refusal(stage_action, payload, profile, "bundle_not_found",
+                                                                 "Bundle artifact not found", 404)
     if artifact.get("kind") not in {"store_bundle", "source_bundle"}:
-        _audit_publish("refused", payload, profile, reason="not a bundle")
-        return json_error("Artifact is not a bundle")
+        return None, profile, artifact, None, None, _publish_refusal(
+            stage_action, payload, profile, "not_a_bundle", publishing.MESSAGES["not_a_bundle"], 400)
     path = stored_file(artifact.get("path"))
     if path is None:
-        _audit_publish("refused", payload, profile, reason="bundle file missing")
-        return json_error("Bundle file is missing on disk", 404)
-    # The Store must still be approved: the administrator may have changed the list since
-    # the profile was saved (ADR-0008). Checked before any single-sign-on ticket is made.
+        return None, profile, artifact, None, None, _publish_refusal(stage_action, payload, profile, "bundle_missing",
+                                                                     "Bundle file is missing on disk", 404)
+    metadata = artifact.get("metadata") if isinstance(artifact.get("metadata"), dict) else {}
+    if artifact.get("kind") != "store_bundle" or metadata.get("publishable") is not True:
+        return None, profile, artifact, path, None, _publish_refusal(
+            stage_action, payload, profile, "not_publishable", publishing.MESSAGES["not_publishable"], 400)
+    # The Store must be approved now (ADR-0008), not only when the profile was saved.
     try:
-        check_url(profile.get("store_url", ""), policy_from_config(current_app.config))
+        target = check_url(profile.get("store_url", ""), policy_from_config(current_app.config))
     except StoreRefused as refused:
-        _audit_publish("refused", payload, profile, reason=refused.reason)
-        return jsonify({"error": str(refused), "reason": refused.reason}), 400
+        return None, profile, artifact, path, None, _publish_refusal(stage_action, payload, profile,
+                                                                     refused.reason, str(refused), 400)
+    builds = [build for build in list_resources("builds", {"project_id": artifact.get("project_id") or ""})
+              if build.get("bundle_artifact_id") == artifact["id"]] if artifact.get("project_id") else []
+    build = builds[0] if builds else None
+    provenance = (build or {}).get("metadata", {}).get("provenance") if build else None
+    try:
+        inspected = publishing.inspect_bundle(path, provenance)
+    except publishing.PublishRefused as refused:
+        return None, profile, artifact, path, target, _publish_refusal(stage_action, payload, profile,
+                                                                       refused.reason, str(refused), 400)
+    if profile.get("bearer_token"):
+        authentication = "token"
+    elif sso.same_service(profile.get("store_url", "")):
+        authentication = "single_sign_on"
+    else:
+        authentication = "none"
+    summary = publishing.build_summary(target=target, authentication=authentication, profile=profile,
+                                       artifact=artifact, inspected=inspected,
+                                       build_id=build["id"] if build else None)
+    return summary, profile, artifact, path, target, None
+
+
+@bp.post("/api/publish/review")
+def api_publish_review():
+    """Step 1: what would be published, and a review token to confirm it (ADR-0009)."""
+    payload = request_json()
+    summary, profile, _artifact, _path, _target, error = _prepare_publish(payload, "publish_review")
+    if error:
+        return error
+    token = publishing.make_review_token(current_app.config["SECRET_KEY"], summary, current_principal().id)
+    security.record("publish_review", target_type="artifact", target_id=summary["bundle"]["artifact_id"],
+                    metadata={"store_host": summary["store"]["host"], "profile_id": profile["id"],
+                              "cartridge": summary["cartridge"]["id"], "version": summary["cartridge"]["version"]})
+    return jsonify({"summary": summary, "review_token": token, "expires_in": publishing.REVIEW_SECONDS})
+
+
+@bp.post("/api/publish")
+def api_publish():
+    """Step 2: send the reviewed bundle. Needs {"review_token", "confirm": true} from step 1."""
+    payload = request_json()
+    summary, profile, artifact, path, _target, error = _prepare_publish(payload, "publish")
+    if error:
+        return error
+    if not payload.get("review_token") or payload.get("confirm") is not True:
+        _audit_publish("refused", payload, profile, stage="refused", reason="not_confirmed")
+        return jsonify({"error": "Review the bundle first (POST /api/publish/review), then confirm.",
+                        "reason": "not_confirmed"}), 428
+    user_id = current_principal().id
+    problem = publishing.check_review_token(current_app.config["SECRET_KEY"], payload["review_token"], summary, user_id)
+    if problem:
+        _audit_publish("refused", payload, profile, stage="refused", reason="review_mismatch")
+        return jsonify({"error": problem, "reason": "review_mismatch"}), 409
+    digest = publishing.summary_digest(summary)
+    state, previous = publishing.start_attempt(digest, user_id, profile["id"], artifact["id"])
+    if state == "submitted":
+        _audit_publish("success", payload, profile, stage="duplicate")
+        return jsonify({"state": "submitted", "duplicate": True, "summary": summary, "result": previous})
+    if state == "busy":
+        return jsonify({"error": "This bundle is being sent right now. Wait a moment.", "reason": "in_progress",
+                        "state": "uploading"}), 409
+    _audit_publish("success", payload, profile, stage="upload", cartridge=summary["cartridge"]["id"],
+                   version=summary["cartridge"]["version"])
     token = profile.get("bearer_token", "")
-    if not token and sso.same_service(profile.get("store_url", "")):
+    if not token and summary["store"]["authentication"] == "single_sign_on":
         # Single sign-on: publish as the signed-in student with a one-time ticket.
         token = sso.make_ticket(current_principal().email, "api")
     try:
         result = publish_bundle(profile.get("store_url", ""), token, path)
     except StoreRefused as refused:
         # Address checks (private network, DNS) and redirects: refused, nothing more sent.
-        _audit_publish("refused", payload, profile, reason=refused.reason)
-        return jsonify({"error": str(refused), "reason": refused.reason}), 400
+        publishing.finish_attempt(digest, "failed", {"ok": False, "reason": refused.reason})
+        _audit_publish("refused", payload, profile, stage="failed", reason=refused.reason)
+        return jsonify({"error": str(refused), "reason": refused.reason, "state": "failed"}), 400
     except StorePublishFailed as failed:
-        _audit_publish("failed", payload, profile, reason=failed.reason)
-        return jsonify({"error": str(failed), "reason": failed.reason}), 502
+        publishing.finish_attempt(digest, "failed", {"ok": False, "reason": failed.reason})
+        _audit_publish("failed", payload, profile, stage="failed", reason=failed.reason)
+        return jsonify({"error": str(failed), "reason": failed.reason, "state": "failed"}), 502
     except Exception as exc:  # never echo the exception: it may name internal addresses
         current_app.logger.warning("Publishing failed: %s", type(exc).__name__)
-        _audit_publish("failed", payload, profile, reason=type(exc).__name__)
-        return json_error("Publishing failed. Try again later or ask your teacher.", 502)
-    _audit_publish("success" if result.get("ok", True) else "failed", payload, profile,
-                   status_code=result.get("status_code"), bundle_kind=artifact.get("kind"))
-    return jsonify({"profile": public("publish_profiles", profile), "artifact": public("artifacts", artifact), "result": result})
+        publishing.finish_attempt(digest, "failed", {"ok": False, "reason": "error"})
+        _audit_publish("failed", payload, profile, stage="failed", reason=type(exc).__name__)
+        return jsonify({"error": "Publishing failed. Try again later or ask your teacher.", "reason": "error",
+                        "state": "failed"}), 502
+    state = "submitted" if result.get("ok") else "failed"
+    publishing.finish_attempt(digest, state, result)
+    _audit_publish("success" if state == "submitted" else "failed", payload, profile, stage=state,
+                   status_code=result.get("status_code"))
+    return jsonify({"state": state, "duplicate": False, "summary": summary,
+                    "profile": public("publish_profiles", profile), "artifact": public("artifacts", artifact),
+                    "result": result})

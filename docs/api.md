@@ -307,15 +307,36 @@ Upload uses multipart form field `file` and optional fields `kind` and `project_
 
 ## Publish bundle
 
-```http
-POST /api/publish
-Content-Type: application/json
+Publishing is two calls (ADR-0009) and needs the `publisher` or `admin`
+role (`403` otherwise):
 
-{
-  "profile_id": "publish_profile_...",
-  "bundle_artifact_id": "artifact_..."
-}
+```http
+POST /api/publish/review
+{"profile_id": "publish_profile_...", "bundle_artifact_id": "artifact_..."}
+
+-> 200 {"summary": {...}, "review_token": "...", "expires_in": 900}
+
+POST /api/publish
+{"profile_id": "...", "bundle_artifact_id": "...", "review_token": "...", "confirm": true}
 ```
+
+- Only a `store_bundle` with `metadata.publishable` is accepted, with a valid
+  `prg32-metadata-1.0` manifest whose cartridge files exist, start with `PRG2`
+  and (for kit builds) match the build provenance SHA-256 (`400` with
+  `reason`: `not_publishable`, `bad_manifest`, `missing_cartridge`,
+  `not_a_cartridge`, `hash_mismatch`, ...).
+- `summary`: `store` (origin, host, authentication), `profile`, `bundle`
+  (name, SHA-256, size, build id), `cartridge` (id, title, version),
+  `architectures` (id, file, bytes, SHA-256), `after_upload`.
+- `POST /api/publish` without `review_token` and `"confirm": true` answers
+  `428`; a token that is expired, forged, for another user, or for a summary
+  that changed answers `409` (`reason: review_mismatch`).
+- Answer: `{"state": "submitted" | "failed", "duplicate", "summary", "result"}`.
+  Confirming an already submitted review returns the stored result with
+  `"duplicate": true` and uploads nothing; while it is being sent, `409`
+  (`reason: in_progress`). A failed attempt can be confirmed again.
+- **Migration:** the route is unchanged but one-step publishing is gone;
+  scripts must call `/api/publish/review` first.
 
 The backend posts the bundle to the profile's Cartridge Store URL at
 `/api/publish/bundle`, following the Store egress policy (ADR-0008).

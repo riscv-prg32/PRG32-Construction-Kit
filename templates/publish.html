@@ -1,7 +1,10 @@
 {% extends "base.html" %}
 {% block title %}Publish - PRG32-Construction-Kit{% endblock %}
 {% block content %}
-<div class="row g-4">
+{% if not can_publish %}
+<div class="alert alert-info" id="publisherNotice"><i class="bi bi-info-circle"></i> Publishing needs the publisher role. You can still compile and download cartridges; ask your teacher to publish for you or to give you the publisher role.</div>
+{% endif %}
+<div class="row g-4" id="publishPage" data-can-publish="{{ 'true' if can_publish else 'false' }}">
   <div class="col-lg-5">
     <div class="card shadow-sm mb-4">
       <div class="card-header"><strong>Cartridge Store profiles</strong></div>
@@ -24,7 +27,7 @@
         <button class="btn btn-outline-primary btn-sm" id="refreshPublish"><i class="bi bi-arrow-clockwise"></i> Refresh</button>
       </div>
       <div class="card-body">
-        <p class="text-muted">Publish uses the Cartridge Store bundle endpoint. Build or prepare a project first to create a bundle artifact.</p>
+        <p class="text-muted">Publishing has two steps: <strong>Review</strong> shows exactly what will be sent (Store, cartridge, versions, file fingerprints); then you <strong>confirm</strong>. Only bundles with compiled cartridges can be published.</p>
         <div id="bundleList" class="vstack gap-3"></div>
       </div>
     </div>
@@ -34,6 +37,26 @@
 <div class="card shadow-sm mt-4">
   <div class="card-header"><strong>Publish response</strong></div>
   <pre class="code-panel"><code id="publishLog">No publish attempt yet.</code></pre>
+</div>
+
+<div class="modal fade" id="reviewModal" tabindex="-1" aria-labelledby="reviewTitle" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title h5" id="reviewTitle">Review before publishing</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="reviewBody"></div>
+      <div class="modal-footer">
+        <div class="form-check me-auto">
+          <input class="form-check-input" type="checkbox" id="reviewConfirm">
+          <label class="form-check-label" for="reviewConfirm">I checked this summary and want to send this cartridge to the Store.</label>
+        </div>
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" id="confirmPublish" disabled>Publish</button>
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock %}
 {% block scripts %}

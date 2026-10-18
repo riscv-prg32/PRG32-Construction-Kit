@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+### Security: publishing needs the publisher role and a confirmed review (audit H-02)
+
+- `POST /api/publish/review` + `POST /api/publish` with `review_token` and
+  `"confirm": true`; only `publisher`/`admin`; only bundles with real,
+  build-matching cartridges; one upload per review; retries after failures
+  (ADR-0009). The Publish page shows a review dialog.
+- **Migration:** new table `publish_attempts` (created at start-up). One-step
+  `POST /api/publish` now answers `428`. Students who published before need
+  the `publisher` role. Rollback: revert the code; the extra table is ignored.
+
 ### Security: Store egress policy (audit H-01)
 
 - Bundles are only sent to Cartridge Stores the administrator approved

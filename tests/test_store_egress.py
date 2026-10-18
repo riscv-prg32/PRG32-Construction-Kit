@@ -325,12 +325,10 @@ def test_https_store_is_accepted_with_certificate_checks(tmp_path, dns, bundle):
 
 # --- through the API ---------------------------------------------------------------------
 
-def store_bundle_artifact(app, client):
-    path = app.config["BUILD_ROOT"] / "bundle.zip"
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with zipfile.ZipFile(path, "w") as archive:
-        archive.writestr("manifest.json", "{}")
-    return client.post("/api/artifacts", json={"kind": "store_bundle", "name": "b.zip", "path": str(path)}).get_json()
+def store_bundle_artifact(app, client, monkeypatch):
+    from conftest import make_store_bundle
+
+    return make_store_bundle(client, monkeypatch)
 
 
 def audit(client, action="publish"):
@@ -362,7 +360,7 @@ def test_publishing_to_a_profile_that_is_no_longer_approved_is_refused_and_audit
     app.config["STORE_ALLOWED_ORIGINS"] = ["https://store.school.test"]
     profile = client.post("/api/publish_profiles", json={"name": "School", "store_url": "https://store.school.test",
                                                          "bearer_token": TOKEN}).get_json()
-    artifact = store_bundle_artifact(app, client)
+    artifact = store_bundle_artifact(app, client, monkeypatch)
     calls = []
     monkeypatch.setattr("prg32_construction_kit.routes.publish_bundle", lambda *args, **kw: calls.append(args))
     app.config["STORE_ALLOWED_ORIGINS"] = ["https://new-store.school.test"]  # the teacher changed the list
@@ -376,19 +374,23 @@ def test_publishing_to_a_profile_that_is_no_longer_approved_is_refused_and_audit
 
 
 def test_publish_errors_never_contain_the_token_or_addresses(app, client, monkeypatch, caplog, dns):
+    from conftest import review_and_publish
+
     caplog.set_level(logging.DEBUG)
     app.config["STORE_ALLOWED_ORIGINS"] = ["https://store.school.test"]
     dns["store.school.test"] = ["10.20.30.40"]  # resolves inside the school network
     profile = client.post("/api/publish_profiles", json={"name": "School", "store_url": "https://store.school.test",
                                                          "bearer_token": TOKEN}).get_json()
-    artifact = store_bundle_artifact(app, client)
-    response = client.post("/api/publish", json={"profile_id": profile["id"], "bundle_artifact_id": artifact["id"]})
+    artifact = store_bundle_artifact(app, client, monkeypatch)
+    response = review_and_publish(client, profile["id"], artifact["id"])
     assert response.status_code == 400 and response.get_json()["reason"] == "private_address"
     everything = response.get_data(as_text=True) + json.dumps(audit(client)) + caplog.text
     assert TOKEN not in everything and "10.20.30.40" not in response.get_data(as_text=True)
 
 
-def test_local_development_store_works_only_when_explicitly_trusted(app, client, store_server, dns):
+def test_local_development_store_works_only_when_explicitly_trusted(app, client, store_server, dns, monkeypatch):
+    from conftest import review_and_publish
+
     dns["store.test"] = ["127.0.0.1"]
     origin = f"http://store.test:{store_server.server_port}"
     app.config.update(STORE_ALLOWED_ORIGINS=[origin], STORE_TRUSTED_LOCAL=False)
@@ -396,12 +398,12 @@ def test_local_development_store_works_only_when_explicitly_trusted(app, client,
     app.config["STORE_TRUSTED_LOCAL"] = True
     profile = client.post("/api/publish_profiles", json={"name": "Dev", "store_url": origin,
                                                          "bearer_token": TOKEN}).get_json()
-    artifact = store_bundle_artifact(app, client)
-    response = client.post("/api/publish", json={"profile_id": profile["id"], "bundle_artifact_id": artifact["id"]})
+    artifact = store_bundle_artifact(app, client, monkeypatch)
+    response = review_and_publish(client, profile["id"], artifact["id"])
     assert response.status_code == 200, response.get_data(as_text=True)
     assert response.get_json()["result"]["response"]["submission_id"] == 7
     assert TOKEN not in response.get_data(as_text=True)
-    assert audit(client)[0]["outcome"] == "success"
+    assert audit(client)[0]["outcome"] == "success" and audit(client)[0]["metadata"]["stage"] == "submitted"
     app.config["KIT_ENV"] = "production"  # never plain http in production
     response = client.post("/api/publish", json={"profile_id": profile["id"], "bundle_artifact_id": artifact["id"]})
     assert response.status_code == 400 and response.get_json()["reason"] == "insecure"

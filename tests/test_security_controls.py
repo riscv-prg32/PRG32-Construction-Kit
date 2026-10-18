@@ -197,21 +197,19 @@ def test_api_tokens_are_audited_but_never_stored(app, client):
 
 
 def test_publish_attempts_and_results_are_audited(app, client, monkeypatch):
-    from prg32_construction_kit.sample_data import default_blocks
+    from conftest import make_store_bundle, review_and_publish
 
-    monkeypatch.setattr("prg32_construction_kit.packager.subprocess.run",
-                        lambda command, **_kw: __import__("types").SimpleNamespace(returncode=1, stdout="", stderr=""))
-    project = client.post("/api/projects", json={"title": "Pub", "blocks_json": default_blocks()}).get_json()
-    bundle = client.post(f"/api/projects/{project['id']}/package", json={}).get_json()["bundle_artifact"]
+    bundle = make_store_bundle(client, monkeypatch, "Pub")
     app.config["STORE_ALLOWED_ORIGINS"] = ["https://store.school.test"]
     profile = client.post("/api/publish_profiles", json={"name": "Store", "store_url": "https://store.school.test",
                                                          "bearer_token": "prg32_secret_value"}).get_json()
     monkeypatch.setattr("prg32_construction_kit.routes.publish_bundle",
-                        lambda url, token, path: {"ok": True, "status_code": 201, "endpoint": url, "response": {}})
-    client.post("/api/publish", json={"profile_id": profile["id"], "bundle_artifact_id": bundle["id"]})
+                        lambda url, token, path: {"ok": True, "status_code": 201, "response": {}})
+    review_and_publish(client, profile["id"], bundle["id"])
     client.post("/api/publish", json={"profile_id": "nope", "bundle_artifact_id": bundle["id"]})
     published = events(client, action="publish")
-    assert [event["outcome"] for event in published] == ["refused", "success"]
+    assert [(event["outcome"], event["metadata"]["stage"]) for event in published] == [
+        ("refused", "refused"), ("success", "submitted"), ("success", "upload")]
     assert published[1]["metadata"]["store_host"] == "store.school.test"
     assert published[1]["metadata"]["status_code"] == 201
     assert "prg32_secret_value" not in everything_stored(app)

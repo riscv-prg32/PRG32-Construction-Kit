@@ -176,9 +176,9 @@ def test_publishing_to_the_synced_store_uses_a_one_time_ticket(pair, monkeypatch
     client = kit.test_client()
     profile = client.post("/api/publish_profiles", json={"name": "School store", "store_url": "http://other.test/"}).get_json()
     assert profile["uses_sso"] is True
-    bundle = kit.config["BUILD_ROOT"] / "bundle.zip"
-    bundle.write_bytes(b"PK")
-    artifact = client.post("/api/artifacts", json={"kind": "store_bundle", "name": "bundle.zip", "path": str(bundle)}).get_json()
+    from conftest import make_store_bundle, review_and_publish
+
+    artifact = make_store_bundle(client, monkeypatch)
     sent = {}
 
     def fake_publish(store_url, token, path):
@@ -186,7 +186,7 @@ def test_publishing_to_the_synced_store_uses_a_one_time_ticket(pair, monkeypatch
         return {"ok": True}
 
     monkeypatch.setattr("prg32_construction_kit.routes.publish_bundle", fake_publish)
-    client.post("/api/publish", json={"profile_id": profile["id"], "bundle_artifact_id": artifact["id"]})
+    review_and_publish(client, profile["id"], artifact["id"])
     claims = protocol.read_ticket(SECRET, sent["token"], audience="cartridge-store", purpose="api")
     assert claims and claims["email"] == "admin@localhost"
 
