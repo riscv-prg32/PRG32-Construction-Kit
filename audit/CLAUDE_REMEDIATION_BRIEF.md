@@ -10,7 +10,8 @@ Work from the actual repository state and tests. Do not trust summaries without 
 
 The audit baseline is:
 
-- Construction Kit: branch `development`, commit `7c2202c1554f7c7b2e04189f33b67e8bb88d14b4`
+- Construction Kit reassessment: branch `development`, commit `2ea8616f04e1b134d23e786acba2e536e6eef1e7`
+- Original audit baseline: `7c2202c1554f7c7b2e04189f33b67e8bb88d14b4`
 - PRG32: `679dfb58783bd007125de9ca0b75eaa077908739`
 - PRG32-QT: `f6d80addf49d0512c2e4390251a81d797a35b157`
 - CartridgeStore: local commit `820f74bfe9364c8727db92cb0f15f3b9dd85feab`; verify against its current upstream before changing shared contracts
@@ -65,13 +66,15 @@ For every phase:
 
 Do not silently downgrade a requirement or relabel missing behavior as complete. Use these statuses: implemented and verified, implemented but unverified, partial, missing, blocked, or not applicable with justification.
 
-## Phase 1 — Block authenticated SSRF in Store publishing
+## Phase 1 — Block authenticated SSRF in Store publishing — completed and verified
 
 ### Existing problem
 
 Any signed-in user can create a publish profile with an arbitrary `store_url`. `prg32_construction_kit/publisher.py:10-16` then makes a server-side POST to that origin. There is no approved-host policy, HTTPS requirement, private-network rejection, redirect validation, or response-size limit.
 
 ### Required implementation
+
+Implemented at `2ea8616` through ADR-0008, `store_policy.py`, the pinned-address transport in `publisher.py`, route-level validation and 94 passing adversarial tests. Preserve these controls and rerun the suite after any publishing/configuration change.
 
 - Make Store origins administrator-controlled or constrained by an explicit administrator allow-list.
 - Require HTTPS in production. Permit loopback HTTP only through an explicit development/test configuration.

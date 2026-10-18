@@ -1,22 +1,20 @@
 # Findings
 
+## Resolved since the initial audit
+
+### R-01 — Authenticated Store SSRF (formerly H-01) — closed and independently verified
+
+The new `store_policy.py` requires administrator-approved origins, validates URL shape and every resolved address, pins the connection to the checked address, disables redirects, retains TLS hostname verification, bounds responses, and returns safe errors. `publisher.py` applies the policy again at send time. All 94 adversarial Store-egress tests passed in this reassessment, including private/loopback/link-local addresses, ambiguous IP spellings, DNS rebinding, redirects, TLS hostname checks, timeouts and token/address non-disclosure. A live public Store was not used.
+
 ## Critical
 
-No confirmed unauthenticated critical exploit was demonstrated. The following High findings are release blockers under the requested gate.
+No confirmed unauthenticated critical exploit was demonstrated. The following High findings remain release blockers under the requested gate.
 
 ## High
 
-### H-01 — Authenticated SSRF through publish profiles
-
-- Evidence: any signed-in user can create a profile with arbitrary `store_url` (`routes.py:261-280`; `publish.js:41-46`). Publishing joins it with `/api/publish/bundle` and performs a server-side `requests.post` (`publisher.py:10-16`). There is no scheme/host allow-list, DNS/IP revalidation, redirect policy, or private-network rejection.
-- Reproduction: create a publish profile whose URL targets a loopback/RFC1918/link-local service, create/select a bundle, then `POST /api/publish`. The server makes the request and returns status/body metadata.
-- Expected: only administrator-approved HTTPS Cartridge Store origins; reject credentials in URLs, non-HTTPS, private/link-local/loopback destinations and redirect escape.
-- Impact: authenticated students can probe or mutate internal HTTP services from the server's network position.
-- Remedy: administrator-managed Store allow-list, resolved-IP checks before every hop, redirects disabled or revalidated, response-size cap, and negative SSRF tests.
-
 ### H-02 — Publisher role is not enforced and publication lacks confirmation
 
-- Evidence: roles include `publisher` (`auth.py:49-55`), but `api_publish` has no role decorator/check (`routes.py:985-1014`). The UI sends the publication immediately on one click (`publish.js:51-56`). It also lists and permits `source_bundle` (`publish.js:17-29`; `routes.py:996`).
+- Evidence: roles include `publisher` (`auth.py:49-55`), but `api_publish` has no role decorator/check (`routes.py:989-1029`). The UI sends the publication immediately on one click (`publish.js:51-56`). It also lists and permits `source_bundle` (`publish.js:17-29`; `routes.py:1000`).
 - Reproduction: sign in as ordinary `user`, create a profile and bundle, invoke `/api/publish`; the Kit attempts publication.
 - Expected: publisher/admin scope, immutable review summary, explicit confirmation, publishable binary bundle only, idempotency/retry state.
 - Impact: students may publish without the intended academic approval boundary and may upload invalid source-only bundles.

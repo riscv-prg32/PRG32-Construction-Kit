@@ -28,11 +28,11 @@ Scale: 0 missing; 1 prototype/stub; 2 partial; 3 implemented with meaningful tes
 | CLD-01 | 0 | Missing | No Google Drive implementation; traceability says open (`docs/traceability.md:56`). |
 | CLD-02 | 0 | Missing | No OneDrive/Graph implementation; traceability says open. |
 | STR-01 | 2 | Partial | Manifest, SHA-256, source/binary bundle created (`packager.py:211-260`). No independent Store contract validator before upload. |
-| STR-02 | 1 | Prototype | POST integration and error response exist, but no publisher gate, draft/update/visibility workflow, recovery state, or explicit confirmation (`publish.js:51-56`). |
+| STR-02 | 1 | Prototype | POST integration now has a verified egress policy and safe errors, but no publisher gate, draft/update/visibility workflow, recovery state, or explicit confirmation (`publish.js:51-56`). |
 | DEP-01 | 0 | Missing | Download button/instructions only; no verified device transfer, launch, or integrity handshake. |
 | DEP-02 | 2 | Partial | Portable cartridge and Qt differential execution are strong; user-facing Qt import/delivery workflow was not executed. |
 | DEP-03 | 0 | Missing | No PRG32-iOS source/contract or verified handoff. |
-| SEC-01 | 2 | Partial | Security docs and many negative tests exist. SSRF and unsandboxed compiler trust boundaries remain; no complete malicious-build/tenant suite. |
+| SEC-01 | 2 | Partial | The former publish SSRF is closed with 94 adversarial tests (`store_policy.py`, `tests/test_store_egress.py`). The unsandboxed compiler trust boundary remains; no complete malicious-build/tenant suite. |
 | SEC-02 | 2 | Partial | Has hashed tokens/passwords, throttling, secret redaction, and audit log. No dependency lock hashes, retention/deprovisioning, artifact quotas, or broad API/build rate limits. |
 | OPS-01 | 3 | Implemented/tested | CI, Docker, migrations, health/discovery and build smoke job exist. Backup/restore, metrics/SLOs and TLS operational proof are incomplete. |
 | DOC-01 | 3 | Implemented/tested | Strong ADRs/tutorials/traceability/API docs. Named implementation baseline missing; some status claims exceed this audit's executed evidence. |

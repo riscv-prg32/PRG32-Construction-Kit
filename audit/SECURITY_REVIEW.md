@@ -4,7 +4,7 @@
 
 The application has solid baseline controls for a classroom prototype: password hashing, hashed API tokens, secure bootstrap rules, request throttling, owner-scoped CRUD, account-switch refusal, audit events, upload size limits, path redaction, deterministic archive parsing, and signed Store peer synchronization. Automated negative tests substantiate many of these claims.
 
-It is not ready for hostile multi-user deployment because compiler and outbound-network trust boundaries remain open.
+It is not ready for hostile multi-user deployment because the compiler trust boundary and publisher authorization remain open. The former Store-egress SSRF boundary is now substantially hardened and independently verified.
 
 ## Authentication and sessions
 
@@ -31,7 +31,7 @@ Guest storage, Google Drive and OneDrive do not exist, so their consent, refresh
 
 ## SSRF, XSS and dependencies
 
-- H-01: Store URL creates authenticated SSRF (`publisher.py:10-16`).
+- Former H-01 is closed: `store_policy.py` enforces approved origins, URL/address validation and pinned connections; `publisher.py` disables redirects, verifies TLS hostnames and bounds/sanitizes responses. All 94 Store-egress tests passed. Production configuration and a live public Store remain untested.
 - Templates generally use Jinja escaping and dynamic JS commonly calls `Kit.escape`; no exploitable stored XSS was demonstrated. A CSP was not found, and remote scripts/styles lack SRI (`templates/base.html:12-13,60-61`; `editor.html:137`).
 - Python dependencies use ranges rather than hash locks. CI dependency review covers PR diffs, not a scheduled full inventory/SBOM.
 

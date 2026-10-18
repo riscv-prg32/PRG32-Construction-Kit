@@ -4,7 +4,7 @@ Order reflects release risk and dependency flow. Complexity: S/M/L.
 
 | PR | Owner role | Size | Work | Prerequisites | Acceptance tests |
 |---:|---|---:|---|---|---|
-| 1 | Security/backend | M | Harden Store egress: admin allow-list, HTTPS-only, DNS/IP/redirect validation, response cap, timeouts. | Deployment Store origins. | Loopback, RFC1918, link-local, IPv6, rebinding/redirect and credential-URL tests all rejected; approved Store succeeds. |
+| 1 | Security/backend | M | **Completed and verified at `2ea8616`:** admin allow-list, HTTPS policy, DNS/IP validation, pinned address, no redirects, response cap and timeouts. | Deployment Store origins. | 94/94 Store-egress tests passed; live public Store still unverified. |
 | 2 | Auth/backend + UX | M | Enforce publisher scope; binary bundle preflight; draft/review/explicit-confirm/update/error-recovery workflow. | PR 1, shared Store contract. | Ordinary student receives 403; publisher sees immutable hash/version/visibility review; source-only rejected; retry is idempotent. |
 | 3 | Platform/security | L | Execute each build in disposable no-network non-root sandbox with read-only SDK and cgroup/seccomp limits. | Container/runtime choice. | Escape, fork/memory/disk/CPU bombs, file-read and network attempts contained; normal three-mode builds pass concurrently. |
 | 4 | Architecture/Store | M | Extract versioned shared cartridge/bundle schema and conformance fixtures from PRG32/Store; remove duplicated header constants where feasible. | Upstream agreement. | Stale ABI/hash/schema rejected; duplicate/version/visibility error codes match Store. |
