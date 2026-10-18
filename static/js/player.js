@@ -1,6 +1,10 @@
 // The Cartridge Player page: open a .prg32 file (or a compiled artifact) and run it.
 (function () {
-  const player = new PRG32CartridgePlayer(document.getElementById('playerScreen'), { onStatus: showStatus });
+  const player = new PRG32CartridgePlayer(document.getElementById('playerScreen'), {
+    onStatus: showStatus,
+    onDebug: state => window.PRG32Debugger && window.PRG32Debugger.update(state)
+  });
+  window.prg32Player = player; // the debugger panel (prg32_debugger.js) drives the same player
   let muted = false;
 
   function showStatus(status) {
@@ -24,6 +28,7 @@
     return player.load(bytes)
       .then(info => {
         $('#cartridgeName').text(info.name || label);
+        if (window.PRG32Debugger) window.PRG32Debugger.loaded();
         Kit.toast('Cartridge loaded. Press Play.', 'success');
       })
       .catch(err => Kit.toast('This is not a cartridge the PRG32 core can run: ' + err.message, 'danger'));

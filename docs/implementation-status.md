@@ -10,7 +10,7 @@ Status of the full-IDE plan (`implementation-plan.md`). A gate is marked
 | G2 IDE shell | Not started | |
 | G3 Toolchain | In progress | Server builds produce real `.prg32` (pre-existing); build provenance and cartridge SHA-256 done (quality round 1). Browser toolchain and container isolation open. |
 | G4 WASM runtime | **Complete** (core scope) | PRG32-QT core as WebAssembly, `/player`, golden tests WASM = native = `prg32qt-headless`. Multiplayer/Wi-Fi host services and exact audio open. |
-| G5 Debugger | Not started | |
+| G5 Debugger | **In progress** (Qt-parity slice complete) | Player debugger on the WASM core: pause/continue, step instruction/over/out/frame, speeds 0.01×–4×, gutter breakpoints remembered per cartridge SHA-256, registers with change highlighting, disassembly following the PC, memory view, game vs real time, beginner/advanced views; PRG32-QT's `/api/debug` vocabulary (ADR-0006); differential tests WASM = native. DWARF/C locals, watches, conditional breakpoints and Blockly block highlighting open. |
 | G6 Identity/storage | In progress | Secure first-admin bootstrap, sign-in throttling, admin audit log done (quality round 1). OIDC/PKCE, roles, guest policy, cloud sync open. |
 | G7 Delivery | Not started | Store publish exists (pre-existing). |
 | G8 Release | Not started | |
@@ -35,6 +35,9 @@ Status of the full-IDE plan (`implementation-plan.md`). A gate is marked
 | 2026-10-18 | After G4: `python3 -m pytest -q -rs` (Node, CMake, clang++, PRG32-QT `f6d80ad` present) | 328 passed, 14 skipped |
 | 2026-10-18 | same, with the real toolchain and PRG32 SDK | 333 passed, 9 skipped (only the 9 host-GCC differential tests) |
 | 2026-10-18 | Browser check on a local server: Pong compiled with the real toolchain, opened in `/player` | Pass: 151 frames in 5.0 s at 1×; at 0.25× 4 s real = 1 s game time; Enter started the match; no console errors |
+| 2026-10-18 | After G5 (debugger): `python3 -m pytest -q -rs` | 347 passed, 14 skipped |
+| 2026-10-18 | same, with the real toolchain and PRG32 SDK | 352 passed, 9 skipped (only the 9 host-GCC differential tests) |
+| 2026-10-18 | Browser check: Advanced C cartridge compiled by the kit, `/player` debugger | Pass: gutter breakpoint stops once per frame and Continue moves past it; step/step over (whole call, 10 instructions)/step out (lands on draw); changed registers highlighted; 0.01× walks the PC; breakpoint remembered after reload; decimal and invalid memory addresses; no horizontal scroll at 375 px; no console errors |
 
 Skipped and why:
 
@@ -52,7 +55,11 @@ Skipped and why:
   every save that changes the source, not on a timer).
 - Restoring a revision replaces the project's sprites with new rows (new ids);
   artifacts that pointed at the old sprites keep their files but lose the link.
-- The browser simulator still runs the game IR, not RV32 machine code.
+- The editor's Blocks preview still runs the game IR, not RV32 machine code
+  (the Player runs and debugs the real cartridge).
+- Debugger: no C variables, call stack, watches or conditional breakpoints
+  (needs DWARF), no Blockly block highlighting (needs IR source maps); music
+  tracks pause in debug mode, as in PRG32-QT.
 - No hardware, IdP tenant or Emscripten was available; nothing here claims
   hardware, SSO-provider or WASM validation.
 

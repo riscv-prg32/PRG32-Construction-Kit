@@ -10,12 +10,14 @@
 // src/core files from a checkout (see docs/wasm_runtime.md and docs/adr/0003).
 
 #include "Cartridge.h"
+#include "RiscVDisassembler.h"
 #include "Runtime.h"
 
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
 #include <memory>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -135,6 +137,13 @@ struct Session {
     std::string name;
     std::string metadata;
     uint64_t frames = 0;
+    // Debugger state (see "Debugger" below). Breakpoints are guest instruction addresses.
+    std::set<uint32_t> breakpoints;
+    bool ignoreBreakpointOnce = false; // PRG32-QT: resume ignores the current breakpoint once
+    uint64_t breakpointHits = 0;
+    uint32_t lastBreakpoint = 0;
+    bool stoppedAtBreakpoint = false; // stopped and not moved since: stopping again is not a new hit
+    uint64_t lastRunSteps = 0;
 };
 
 std::unique_ptr<Session> session;
@@ -204,19 +213,345 @@ PRG32_EXPORT int prg32_frame(uint32_t input) {
     return 1;
 }
 
-/** Execute exactly one guest RV32IMAC instruction of the current update/draw call (debugger). */
+// --- Debugger -------------------------------------------------------------------------
+//
+// The same rules as PRG32-QT's desktop debugger (src/qt/AppController.cpp):
+//   - the "execution address" is the PC while an update/draw call is active, otherwise the
+//     update entry point (the next instruction a new frame will run);
+//   - breakpoints are checked before an instruction runs; resume ignores the breakpoint at the
+//     current address once, so execution can move on, and the next visit stops again;
+//   - Runtime::debugStep runs exactly one instruction of the current update/draw call.
+// Step over and step out are added here (PRG32-QT has only step); they read the instruction at
+// the PC to recognise calls (jal/jalr that write ra or t0) and returns (jalr x0 through ra/t0).
+
+constexpr int RunError = -1, RunBudget = 0, RunFrameEnd = 1, RunBreakpoint = 2, RunDone = 3;
+
+namespace {
+
+bool inGuestMemory(uint32_t address) {
+    return address >= session->runtime.guestBase() &&
+           uint64_t(address) < uint64_t(session->runtime.guestBase()) + session->runtime.guestMemorySize();
+}
+
+uint32_t entryAddress(int which) {
+    const auto& header = session->runtime.cartridge().header();
+    const uint32_t offset = which == 0 ? header.initOffset : which == 2 ? header.drawOffset : header.updateOffset;
+    return session->runtime.guestBase() + offset;
+}
+
+uint32_t executionAddress() {
+    return session->runtime.debugCallActive() ? session->runtime.programCounter() : entryAddress(1);
+}
+
+// The instruction at `address`: its width in bytes (2 or 4, 0 if unreadable) and its bits.
+unsigned fetch(uint32_t address, uint32_t& instruction) {
+    const auto low = session->runtime.debugMemory(address, 2);
+    if (low.size() != 2)
+        return 0;
+    instruction = uint32_t(low[0]) | uint32_t(low[1]) << 8;
+    if ((instruction & 3u) != 3u)
+        return 2;
+    const auto all = session->runtime.debugMemory(address, 4);
+    if (all.size() != 4)
+        return 0;
+    instruction |= uint32_t(all[2]) << 16 | uint32_t(all[3]) << 24;
+    return 4;
+}
+
+bool isLink(uint32_t reg) {
+    return reg == 1 || reg == 5; // ra or t0, the RISC-V calling convention's link registers
+}
+
+// 1 = a call (jal/jalr/c.jal/c.jalr that saves a return address), -1 = a return, 0 = anything else.
+int callKind(uint32_t instruction, unsigned width) {
+    if (width == 4) {
+        const uint32_t opcode = instruction & 0x7f, rd = (instruction >> 7) & 31, rs1 = (instruction >> 15) & 31;
+        if ((opcode == 0x6f || opcode == 0x67) && isLink(rd))
+            return 1;
+        if (opcode == 0x67 && rd == 0 && isLink(rs1))
+            return -1;
+        return 0;
+    }
+    if (width == 2) {
+        const uint32_t quadrant = instruction & 3, function3 = instruction >> 13;
+        const uint32_t rs1 = (instruction >> 7) & 31, rs2 = (instruction >> 2) & 31, bit12 = (instruction >> 12) & 1;
+        if (quadrant == 1 && function3 == 1)
+            return 1; // c.jal (RV32 only)
+        if (quadrant == 2 && function3 == 4 && rs2 == 0 && rs1 != 0)
+            return bit12 ? 1 : (isLink(rs1) ? -1 : 0); // c.jalr / c.jr ra
+    }
+    return 0;
+}
+
+// One debugStep with frame bookkeeping. Returns false on a guest trap (lastError is set).
+bool stepOnce(uint32_t input, bool& frameEnded) {
+    std::string error;
+    const bool wasActive = session->runtime.debugPhase() != "idle";
+    if (!session->runtime.debugStep(input, error))
+        return fail(error);
+    ++session->lastRunSteps;
+    session->stoppedAtBreakpoint = false;
+    frameEnded = wasActive && session->runtime.debugPhase() == "idle";
+    if (frameEnded)
+        ++session->frames;
+    return true;
+}
+
+// Breakpoint check before an instruction, with PRG32-QT's "ignore once after resume" rule.
+bool atBreakpoint() {
+    const uint32_t address = executionAddress();
+    if (!session->breakpoints.count(address))
+        return false;
+    if (session->ignoreBreakpointOnce) {
+        session->ignoreBreakpointOnce = false;
+        return false;
+    }
+    if (!session->stoppedAtBreakpoint)
+        ++session->breakpointHits;
+    session->stoppedAtBreakpoint = true;
+    session->lastBreakpoint = address;
+    return true;
+}
+
+// Finish a host ABI call the guest has jumped into, so the PC is back in guest code.
+bool leaveHostCall(uint32_t input) {
+    bool frameEnded = false;
+    while (session->runtime.debugCallActive() && !inGuestMemory(session->runtime.programCounter()))
+        if (!stepOnce(input, frameEnded))
+            return false;
+    return true;
+}
+
+enum class Goal { Continue, Over, Out };
+
+// One guest instruction; a jump into a PRG32 ABI call also runs that call, so the PC is in guest code.
+bool stepInstruction(uint32_t input) {
+    bool frameEnded = false;
+    return stepOnce(input, frameEnded) && leaveHostCall(input);
+}
+
+int run(uint32_t input, uint64_t budget, bool stopAtFrameEnd, Goal goal) {
+    if (!session) {
+        fail("no cartridge is loaded");
+        return RunError;
+    }
+    session->lastRunSteps = 0;
+    const std::string startPhase = session->runtime.debugPhase();
+    uint32_t instruction = 0;
+    const uint32_t start = executionAddress();
+    const unsigned width = fetch(start, instruction);
+    // Step over an instruction that is not a call, or step out between frames: just one step.
+    if ((goal == Goal::Over && callKind(instruction, width) != 1) || (goal == Goal::Out && startPhase == "idle"))
+        return stepInstruction(input) ? RunDone : RunError;
+    const uint32_t returnAddress = start + width, stackPointer = session->runtime.registerValue(2);
+    int depth = 0;
+    if (goal != Goal::Continue)
+        session->ignoreBreakpointOnce = session->breakpoints.count(start) > 0; // leave the current breakpoint
+    while (budget--) {
+        if (atBreakpoint())
+            return RunBreakpoint;
+        int kind = 0;
+        if (goal == Goal::Out) {
+            const uint32_t pc = session->runtime.programCounter();
+            if (!inGuestMemory(pc))
+                kind = -1; // a PRG32 ABI call returns straight to ra
+            else {
+                const unsigned size = fetch(pc, instruction);
+                kind = callKind(instruction, size);
+            }
+        }
+        bool frameEnded = false;
+        if (!stepOnce(input, frameEnded))
+            return RunError;
+        if (goal == Goal::Continue) {
+            if (frameEnded && stopAtFrameEnd)
+                return RunFrameEnd;
+            continue;
+        }
+        if (startPhase != "idle" && session->runtime.debugPhase() != startPhase)
+            return RunDone; // the update (or draw) function itself returned
+        if (goal == Goal::Over && session->runtime.programCounter() == returnAddress &&
+            session->runtime.registerValue(2) >= stackPointer)
+            return RunDone;
+        if (goal == Goal::Out && kind == 1)
+            ++depth;
+        else if (goal == Goal::Out && kind == -1 && depth-- == 0)
+            return leaveHostCall(input) ? RunDone : RunError;
+    }
+    return RunBudget;
+}
+
+void refreshPixels() {
+    session->pixels = session->runtime.framebuffer().rgb565Pixels();
+}
+
+void appendNumber(std::string& out, uint32_t value) {
+    char buffer[16];
+    std::snprintf(buffer, sizeof buffer, "%u", value);
+    out += buffer;
+}
+
+} // namespace
+
+/** Execute exactly one guest RV32IMAC instruction of the current update/draw call (PRG32-QT's step). */
 PRG32_EXPORT int prg32_debug_step(uint32_t input) {
     if (!session)
         return fail("no cartridge is loaded");
-    std::string error;
-    if (!session->runtime.debugStep(input, error))
-        return fail(error);
-    session->pixels = session->runtime.framebuffer().rgb565Pixels();
-    return 1;
+    session->lastRunSteps = 0;
+    bool frameEnded = false;
+    const bool ok = stepOnce(input, frameEnded);
+    refreshPixels();
+    return ok ? 1 : 0;
 }
 
 PRG32_EXPORT int prg32_debug_call_active() {
     return session && session->runtime.debugCallActive() ? 1 : 0;
+}
+
+/** The kit's "step instruction": one guest instruction; a jump into a PRG32 ABI call also runs that call. */
+PRG32_EXPORT int prg32_debug_step_instruction(uint32_t input) {
+    if (!session)
+        return fail("no cartridge is loaded");
+    session->lastRunSteps = 0;
+    const bool ok = stepInstruction(input);
+    refreshPixels();
+    return ok ? 1 : 0;
+}
+
+/**
+ * Run instrumented, checking breakpoints before every instruction, for at most `budget` instructions.
+ * mode 0 = continue (stop_at_frame_end chooses whether the end of a frame stops it),
+ *      1 = step over the call at the PC, 2 = step out of the current function.
+ * Returns -1 guest trap, 0 budget used up, 1 frame finished, 2 breakpoint hit, 3 step over/out done.
+ * Step over/out leave a breakpoint at the starting address; a continue stops on it unless
+ * prg32_debug_resume() was called first. The browser runs in slices: one resume, many runs.
+ */
+PRG32_EXPORT int prg32_debug_run(uint32_t input, uint32_t budget, int mode, int stopAtFrameEnd) {
+    const int result = run(input, budget, stopAtFrameEnd != 0, mode == 1 ? Goal::Over : mode == 2 ? Goal::Out : Goal::Continue);
+    if (session)
+        refreshPixels();
+    return result;
+}
+
+/** PRG32-QT's resume: the next continue ignores the breakpoint at the current address once. */
+PRG32_EXPORT void prg32_debug_resume() {
+    if (session)
+        session->ignoreBreakpointOnce = session->breakpoints.count(executionAddress()) > 0;
+}
+
+/** How many instructions the last step/run executed. */
+PRG32_EXPORT uint32_t prg32_debug_last_steps() {
+    return session ? uint32_t(session->lastRunSteps) : 0;
+}
+
+/** 0 idle (between frames), 1 inside update, 2 inside draw. */
+PRG32_EXPORT int prg32_debug_phase() {
+    if (!session)
+        return 0;
+    const std::string phase = session->runtime.debugPhase();
+    return phase == "update" ? 1 : phase == "draw" ? 2 : 0;
+}
+
+/** The next instruction to run: the PC inside a call, otherwise the update entry point (as PRG32-QT). */
+PRG32_EXPORT uint32_t prg32_debug_pc() {
+    return session ? executionAddress() : 0;
+}
+
+/** Guest address of the cartridge's init (0), update (1) or draw (2) function, from the PRG32 header. */
+PRG32_EXPORT uint32_t prg32_entry(int which) {
+    return session ? entryAddress(which) : 0;
+}
+
+/** Set (enabled = 1) or clear a breakpoint. Returns 0 when the address is not guest memory. */
+PRG32_EXPORT int prg32_breakpoint(uint32_t address, int enabled) {
+    if (!session)
+        return fail("no cartridge is loaded");
+    if (session->runtime.debugMemory(address, 2).size() != 2)
+        return fail("invalid breakpoint address");
+    if (enabled)
+        session->breakpoints.insert(address);
+    else
+        session->breakpoints.erase(address);
+    return 1;
+}
+
+PRG32_EXPORT void prg32_breakpoints_clear() {
+    if (session)
+        session->breakpoints.clear();
+}
+
+/**
+ * Disassemble `count` (at most 256) instructions from `address` with PRG32-QT's RiscVDisassembler, as JSON:
+ * [{"address":N,"width":2|4,"word":N,"text":"addi sp, sp, -16"}, ...]. Stops at the end of guest memory.
+ */
+PRG32_EXPORT const char* prg32_disassemble(uint32_t address, uint32_t count) {
+    stateText = "[";
+    if (session) {
+        for (uint32_t line = 0; line < count && line < 256; ++line) {
+            uint32_t instruction = 0;
+            const unsigned width = fetch(address, instruction);
+            if (!width)
+                break;
+            std::string text = prg32::disassembleRv32(address, instruction, width), escaped;
+            for (char c : text)
+                if (c == '"' || c == '\\')
+                    escaped += '\\', escaped += c;
+                else if (uint8_t(c) >= 32)
+                    escaped += c;
+            stateText += line ? ",{\"address\":" : "{\"address\":";
+            appendNumber(stateText, address);
+            stateText += ",\"width\":" + std::to_string(width) + ",\"word\":";
+            appendNumber(stateText, instruction);
+            stateText += ",\"text\":\"" + escaped + "\"}";
+            address += width;
+        }
+    }
+    stateText += "]";
+    return stateText.c_str();
+}
+
+/**
+ * The debugger state as JSON, with PRG32-QT's /api/debug names where they exist (phase, pc,
+ * breakpoints, registers) plus what the kit adds (entries, hits, guest time).
+ */
+PRG32_EXPORT const char* prg32_debug_state_json() {
+    if (!session) {
+        stateText = "{}";
+        return stateText.c_str();
+    }
+    auto& runtime = session->runtime;
+    std::string& out = stateText;
+    out = "{\"phase\":\"" + runtime.debugPhase() + "\",\"pc\":";
+    appendNumber(out, executionAddress());
+    out += ",\"raw_pc\":";
+    appendNumber(out, runtime.programCounter());
+    out += ",\"call_active\":" + std::string(runtime.debugCallActive() ? "true" : "false") + ",\"registers\":[";
+    for (unsigned index = 0; index < 32; ++index) {
+        if (index)
+            out += ",";
+        appendNumber(out, runtime.registerValue(index));
+    }
+    out += "],\"breakpoints\":[";
+    bool first = true;
+    for (uint32_t address : session->breakpoints) {
+        if (!first)
+            out += ",";
+        first = false;
+        appendNumber(out, address);
+    }
+    out += "],\"breakpoint_hits\":" + std::to_string(session->breakpointHits) + ",\"last_breakpoint\":";
+    appendNumber(out, session->lastBreakpoint);
+    out += ",\"entries\":{\"init\":";
+    appendNumber(out, entryAddress(0));
+    out += ",\"update\":";
+    appendNumber(out, entryAddress(1));
+    out += ",\"draw\":";
+    appendNumber(out, entryAddress(2));
+    out += "},\"frames\":" + std::to_string(session->frames) + ",\"retired\":" +
+           std::to_string(runtime.retiredInstructions()) + ",\"cycles\":" + std::to_string(runtime.virtualCycles()) +
+           ",\"guest_ns\":" + std::to_string(runtime.virtualNanoseconds()) +
+           ",\"last_steps\":" + std::to_string(session->lastRunSteps) + "}";
+    return out.c_str();
 }
 
 /** 320 x 200 RGB565 pixels, row by row, valid until the next frame. */

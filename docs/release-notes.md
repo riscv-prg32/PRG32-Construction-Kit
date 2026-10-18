@@ -2,6 +2,24 @@
 
 ## Unreleased
 
+### Debugger in the Player (G5, first slice)
+
+- **Debugger** card on `/player`: Debug mode switch, Continue/Pause, Step
+  (one instruction), Step over, Step out, Step frame, speeds 0.01×–4×
+  (PRG32-QT's list), breakpoints in the disassembly gutter (remembered per
+  cartridge), x0–x31 with ABI names and changed values highlighted, PC and
+  update/draw phase, disassembly following the PC with Init/Update/Draw/PC
+  views and go-to-address, a 128–1024 byte memory view (decimal or `0x`
+  address), game time vs real time. **Beginner** and **Advanced** views
+  share one state. Lesson: `docs/tutorials/07_debugger.md`.
+- The core's C interface gains breakpoints, an instrumented run with an
+  instruction budget, PRG32-QT's resume rule, step over/out and
+  disassembly; native and WebAssembly builds are tested to step identically.
+  `static/wasm/` rebuilt (≈ 145 KB) from the same PRG32-QT commit.
+- JavaScript protocol uses PRG32-QT's `/api/debug` commands and state names
+  (ADR-0006 accepted).
+- Service worker cache `prg32-kit-v11`. No database changes.
+
 ### Browser PRG32 core (G4)
 
 - **Player** page (`/player`) and **Play in browser** after a compile: real

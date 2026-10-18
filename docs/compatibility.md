@@ -24,24 +24,33 @@ SDK disagrees.
 
 ## Debugger parity with PRG32-QT
 
-What PRG32-QT 0.4.1 offers (`docs/DEBUGGING.md`), and what the kit offers.
-The kit's current debugger works on the game IR, not machine code.
+What PRG32-QT 0.4.1 offers (its `docs/DEBUGGING.md`, `/api/debug`), and what
+the kit's **Player** debugger offers on the same machine code (G5). The
+editor's Blocks preview is a separate thing: it runs the game IR, has
+**Step** = one whole frame and shows the first 8 Blockly variables.
 
-| Capability | PRG32-QT | Kit (browser) |
+| Capability | PRG32-QT | Kit Player (browser) |
 | --- | --- | --- |
-| Pause / resume | Yes | Yes, on the game IR |
-| Single instruction step | Yes | No: **Step** runs one whole frame (update + draw) of the IR |
-| Step over / into / out | No | No |
-| Speed 0.01×–4× | Yes | No |
-| Address breakpoints | Yes (no conditions, cleared on load) | No |
-| x0–x31 registers (hex) | Yes | No |
+| Debug mode on/off (bug button) | Yes | Yes (**Debug mode** switch); off = whole-frame execution |
+| Pause / resume | Yes; resume ignores the current breakpoint once | Yes, same rule (`prg32_debug_resume`) |
+| Single instruction step | Yes (stops inside an ABI call's host address) | Yes; **Step** also runs an ABI call the guest jumps into, so the PC stays in guest code. PRG32-QT's exact step is `prg32_debug_step` |
+| Step over / step out | No | **Kit adds** (call/return recognition in the core) |
+| Step frame | No (bug button off + run) | **Kit adds**: to the end of the frame, stopping at breakpoints |
+| Speed 0.01×–4× | Yes, instrumented slices | Yes, same speeds and slicing |
+| Address breakpoints (gutter) | Yes; no conditions; cleared when another cartridge loads | Yes; no conditions; **remembered per cartridge SHA-256** in the browser |
+| Breakpoint hit count | No | **Kit adds** |
+| x0–x31 with ABI names | Yes (hex) | Yes (hex + decimal tooltip; Advanced view); changed values highlighted (**kit adds**) |
+| PC, update/draw phase | Yes | Yes |
+| Disassembly following the PC; Init/Update/Draw/PC views | Yes (PRG32-QT's `RiscVDisassembler`) | Yes, same disassembler; also **go to any address** and machine words (Advanced) |
+| Recently executed instructions in the listing | Yes (64-entry trace) | No: the core's trace is not exposed yet |
+| Memory view, hex + ASCII, decimal or `0x` address | Yes (128 B in UI, ≤1024 B over HTTP) | Yes (128–1024 B) |
+| Guest vs host time | FPS, host µs, instructions, cycles, late frames | Game (virtual) time vs real time, frames, instructions, cycles; no late-frame count or host µs |
+| Input mask, audio waveform telemetry | Yes | No |
+| Remote control | HTTP `/api/debug` | JavaScript `player.debug()` on the page (same commands and state names; no network endpoint) |
+| Beginner / advanced views | No | **Kit adds**: beginner shows argument/return registers in decimal with explanations; both views share one state |
 | CSRs | No | No |
-| Memory view | Yes (≤128 B in UI, ≤1024 B over HTTP) | No |
-| Disassembly, Init/Update/Draw/PC views | Yes | No |
-| C locals / DWARF / call stack / watches | No | No |
-| Blockly variable view | — | Partial: the first 8 variables as text under the screen |
-
-Closing these gaps is G4/G5 (ADR-0003, ADR-0006).
+| C locals / DWARF / call stack / watches / conditional breakpoints | No | No (next G5 step) |
+| Blockly block highlighting | — | No (next G5 step, needs IR source maps) |
 
 ## Browser runtime parity with PRG32-QT
 
@@ -55,7 +64,7 @@ The browser runs PRG32-QT's own core (`docs/wasm_runtime.md`).
 | Buttons (keyboard map, latch of quick taps) | Yes | Yes, same keys; on-screen buttons |
 | Audio | Qt mixer | Approximate: oscillators for tones/notes, PCM as recorded |
 | Multiplayer, Wi-Fi, score upload | Yes | No |
-| Debugger UI | Yes | Not yet (C API ready, G5) |
+| Debugger UI | Yes | Yes (see the parity table above) |
 
 ## Hosts that run cartridges
 

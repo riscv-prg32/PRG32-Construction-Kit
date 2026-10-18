@@ -73,6 +73,24 @@ def wasm_states(node, cartridge, frames=600, every=100):
     return [json.loads(line) for line in result.stdout.splitlines()]
 
 
+def native_debug(harness, cartridge, *commands):
+    result = run([str(harness), "--debug", str(cartridge), *commands])
+    assert result.returncode == 0, result.stderr
+    return [json.loads(line) for line in result.stdout.splitlines()]
+
+
+def wasm_debug(node, cartridge, *commands):
+    result = run([node, str(ROOT / "tools" / "wasm_harness.mjs"), str(MODULE), "--debug", str(cartridge), *commands])
+    assert result.returncode == 0, result.stderr
+    return [json.loads(line) for line in result.stdout.splitlines()]
+
+
+# A debugger session touching every command: single steps, step over/out, breakpoints, frames.
+DEBUG_SCRIPT = ("step:500", "stepi:50", "over:40", "out:3", "break:update", "break:draw+4", "continue:7",
+                "frame:3", "unbreak:draw+4", "continue:2", "disasm:update:16", "out", "over:200",
+                "slice:5000", "slice:5000", "slice:100", "state")
+
+
 # --- the committed module ------------------------------------------------------------
 
 def test_committed_module_matches_its_build_record():
@@ -87,7 +105,8 @@ def test_committed_module_matches_its_build_record():
 
 def test_service_worker_caches_the_runtime_for_offline_use():
     worker = (ROOT / "static" / "service-worker.js").read_text()
-    for path in ("/static/wasm/prg32-core.js", "/static/wasm/prg32-core.wasm", "/static/js/prg32_runtime.js"):
+    for path in ("/static/wasm/prg32-core.js", "/static/wasm/prg32-core.wasm", "/static/js/prg32_runtime.js",
+                 "/static/js/prg32_debugger.js"):
         assert f"'{path}'" in worker
 
 
@@ -131,6 +150,162 @@ def test_native_harness_draws_exactly_like_prg32qt_headless(native_harness, prg3
     assert headless.returncode == 0, headless.stderr
     native_states(native_harness, cartridge, frames=450, every=450, ppm=tmp_path / "kit.ppm")
     assert (tmp_path / "kit.ppm").read_bytes() == (tmp_path / "qt.ppm").read_bytes()
+
+
+# --- the debugger (G5): WebAssembly == native, step by step ----------------------------
+
+@pytest.mark.parametrize("name", GOLDEN)
+def test_debugger_steps_exactly_like_native(node, native_harness, prg32qt, name):
+    cartridge = prg32qt / "tests" / "fixtures" / f"{name}.prg32"
+    native = native_debug(native_harness, cartridge, *DEBUG_SCRIPT)
+    assert len(native) == len(DEBUG_SCRIPT)
+    # pc, x0..x31, phase, breakpoints, hit counts, retired instructions and cycles after every command.
+    assert wasm_debug(node, cartridge, *DEBUG_SCRIPT) == native
+
+
+@pytest.mark.parametrize("name", GOLDEN)
+def test_single_steps_add_up(native_harness, prg32qt, name):
+    cartridge = prg32qt / "tests" / "fixtures" / f"{name}.prg32"
+    at_once = native_debug(native_harness, cartridge, "step:300")[-1]["state"]
+    one_by_one = native_debug(native_harness, cartridge, *["step"] * 300)[-1]["state"]
+    assert at_once == one_by_one
+    start = native_debug(native_harness, cartridge, "state")[0]["state"]
+    # One guest instruction per step; a step that runs a PRG32 ABI call retires no guest instruction.
+    assert 250 < at_once["retired"] - start["retired"] <= 300
+    assert at_once["phase"] in ("update", "draw")
+
+
+@pytest.mark.parametrize("name", GOLDEN)
+def test_breakpoint_stops_once_per_visit(native_harness, prg32qt, name):
+    cartridge = prg32qt / "tests" / "fixtures" / f"{name}.prg32"
+    lines = native_debug(native_harness, cartridge, "break:update", "continue", "continue:4", "break:0x10")
+    first, five = lines[1], lines[2]
+    update = first["state"]["entries"]["update"]
+    assert first["result"] == 2 and first["state"]["pc"] == update and first["state"]["breakpoint_hits"] == 1
+    # Resume ignores the current breakpoint once (PRG32-QT), so every continue runs exactly one frame.
+    assert five["result"] == 2 and five["state"]["breakpoint_hits"] == 5 and five["state"]["last_breakpoint"] == update
+    assert five["state"]["frames"] - first["state"]["frames"] == 4 and five["state"]["phase"] == "idle"
+    assert five["state"]["breakpoints"] == [update]
+    assert lines[3]["result"] == 0  # 0x10 is not guest memory
+
+
+@pytest.mark.parametrize("name", GOLDEN)
+def test_playback_slices_stop_at_every_visit(native_harness, prg32qt, name):
+    """The browser plays in small slices; a breakpoint still stops every frame, and only Resume leaves it."""
+    cartridge = prg32qt / "tests" / "fixtures" / f"{name}.prg32"
+    lines = native_debug(native_harness, cartridge, "break:draw", "continue", "slice:1000000", "continue",
+                         "slice:37", "stepi", *["slice:37"] * 400)
+    hit, again, resumed, parked = lines[1]["state"], lines[2], lines[3]["state"], lines[4]
+    assert again["result"] == 2 and again["state"]["last_steps"] == 0  # no resume: still on the breakpoint
+    assert again["state"]["breakpoint_hits"] == 1  # ... and that is not a new hit
+    assert resumed["breakpoint_hits"] == 2 and resumed["frames"] == hit["frames"] + 1
+    assert parked["result"] == 2 and parked["state"]["last_steps"] == 0
+    # A step moves off the breakpoint; small slices then run on until the next frame's visit.
+    slices = lines[6:]
+    first = next(index for index, line in enumerate(slices) if line["result"] == 2)
+    assert first > 0 and all(line["result"] in (0, 1) for line in slices[:first])
+    assert slices[first]["state"]["breakpoint_hits"] == 3 and slices[first]["state"]["pc"] == hit["entries"]["draw"]
+    assert slices[first]["state"]["frames"] == resumed["frames"] + 1
+    assert all(line["result"] == 2 and line["state"]["last_steps"] == 0 for line in slices[first + 1:])
+
+
+@pytest.mark.parametrize("name", GOLDEN)
+def test_debug_frames_match_normal_frames(native_harness, prg32qt, name):
+    """Running instrumented (checking breakpoints) changes nothing the cartridge can see."""
+    cartridge = prg32qt / "tests" / "fixtures" / f"{name}.prg32"
+    debugged = native_debug(native_harness, cartridge, "frame:29", "state")[-1]["state"]
+    normal = native_states(native_harness, cartridge, frames=29, every=29)[-1]
+    # Music tracks advance only in whole frames (Runtime::frame), as in PRG32-QT's debug mode.
+    debugged.pop("audio_calls"), normal.pop("audio_calls")
+    assert debugged == normal
+
+
+def test_step_over_and_step_out_follow_calls(native_harness, prg32qt):
+    cartridge = prg32qt / "tests" / "fixtures" / "Asteroids.prg32"
+    rows = native_debug(native_harness, cartridge, "disasm:update:12")[0]["disassembly"]
+    assert rows[0]["address"] == native_debug(native_harness, cartridge, "break:0x10")[0]["state"]["entries"]["update"]
+    call = next(row for row in rows if row["text"].startswith(("jal ", "jalr ra")))
+    steps_to_call = rows.index(call)
+    lines = native_debug(native_harness, cartridge, f"stepi:{steps_to_call}", "over", "out")
+    at_call, over, out = (line["state"] for line in lines)
+    assert at_call["pc"] == call["address"]
+    assert over["pc"] == call["address"] + call["width"] and over["phase"] == "update"
+    assert over["retired"] - at_call["retired"] > 1  # the whole called function ran
+    assert out["phase"] == "draw" and out["pc"] == out["entries"]["draw"]  # update returned
+
+
+def test_disassembly_uses_prg32_qt_names(native_harness, prg32qt):
+    cartridge = prg32qt / "tests" / "fixtures" / "Asteroids.prg32"
+    lines = native_debug(native_harness, cartridge, "disasm:update:8", "disasm:0x10:4")
+    rows = lines[0]["disassembly"]
+    assert len(rows) == 8 and all(row["width"] in (2, 4) and row["text"] for row in rows)
+    assert all(rows[i + 1]["address"] == rows[i]["address"] + rows[i]["width"] for i in range(7))
+    assert "sp" in rows[0]["text"]  # ABI register names, as in PRG32-QT's debugger
+    assert lines[1]["disassembly"] == []
+
+
+def test_debugger_javascript_parses(node):
+    for path in ("static/js/prg32_runtime.js", "static/js/prg32_debugger.js", "static/js/player.js",
+                 "tools/wasm_harness.mjs"):
+        result = run([node, "--check", str(ROOT / path)])
+        assert result.returncode == 0, path + result.stderr
+
+
+def test_player_speaks_the_prg32_qt_debug_protocol(node, prg32qt):
+    """PRG32CartridgePlayer.debug() with PRG32-QT's /api/debug commands, in Node with a stub canvas."""
+    script = f"""
+const store = {{}};
+globalThis.window = globalThis;
+window.addEventListener = () => {{}};
+window.localStorage = {{ getItem: k => store[k] ?? null, setItem: (k, v) => {{ store[k] = String(v); }} }};
+window.requestAnimationFrame = () => 0;
+window.createPrg32Core = require({json.dumps(str(MODULE))});
+require({json.dumps(str(ROOT / 'static' / 'js' / 'prg32_runtime.js'))});
+const canvas = {{ getContext: () => ({{ createImageData: (w, h) => ({{ data: new Uint8ClampedArray(w * h * 4) }}),
+                                       putImageData: () => {{}} }}) }};
+const bytes = require('fs').readFileSync({json.dumps(str(prg32qt / 'tests' / 'fixtures' / 'Asteroids.prg32'))});
+(async () => {{
+  const out = {{}};
+  const options = {{ base: {json.dumps(str(MODULE.parent) + '/')} }};
+  let player = new PRG32CartridgePlayer(canvas, options);
+  await player.load(bytes);
+  out.disabled = player.debug({{ command: 'step' }});
+  out.badSpeed = player.debug({{ command: 'speed', speed: 3 }});
+  out.speed = player.debug({{ command: 'speed', speed: 0.01 }}).speed;
+  out.enabled = player.debug({{ command: 'enable', enabled: true }}).enabled;
+  const draw = player.debugState().entries.draw;
+  out.badBreakpoint = player.debug({{ command: 'breakpoint', address: '0x10' }});
+  out.breakpoints = player.debug({{ command: 'breakpoint', address: '0x' + draw.toString(16) }}).breakpoints;
+  out.frame = player.debug({{ command: 'step_frame' }});
+  out.step = player.debug({{ command: 'step' }});
+  out.memory = player.debugState({{ address: draw, length: 16 }}).memory_hex;
+  out.unknown = player.debug({{ command: 'explode' }});
+  // A new player on the same cartridge remembers the breakpoint (same SHA-256).
+  player = new PRG32CartridgePlayer(canvas, options);
+  await player.load(bytes);
+  out.remembered = player.debugState().breakpoints;
+  console.log(JSON.stringify(out));
+}})().catch(error => {{ console.error(error); process.exit(1); }});
+"""
+    result = run([node, "-e", script])
+    assert result.returncode == 0, result.stderr
+    out = json.loads(result.stdout)
+    assert out["disabled"] == {"ok": False, "error": "debug mode is disabled"}
+    assert out["badSpeed"]["ok"] is False and out["speed"] == 0.01 and out["enabled"] is True
+    assert out["badBreakpoint"] == {"ok": False, "error": "invalid breakpoint address"}
+    draw = out["breakpoints"][0]
+    frame = out["frame"]
+    # Qt's state fields, plus the kit's.
+    for key in ("ok", "enabled", "running", "paused", "phase", "speed", "pc", "breakpoints", "registers",
+                "memory_address", "memory_hex", "entries", "breakpoint_hits", "guest_ns", "wall_ms", "sha256"):
+        assert key in frame
+    assert frame["ok"] and frame["paused"] and frame["reason"] == "breakpoint" and frame["pc"] == draw
+    assert frame["phase"] == "draw" and frame["breakpoint_hits"] == 1
+    assert len(frame["registers"]) == 32 and len(frame["sha256"]) == 64
+    assert out["step"]["phase"] == "draw" and out["step"]["pc"] != draw and out["step"]["reason"] == "step"
+    assert len(out["memory"]) == 32
+    assert out["unknown"]["ok"] is False
+    assert out["remembered"] == [draw]
 
 
 def test_audio_calls_reach_the_browser_host(node, prg32qt):
@@ -182,6 +357,8 @@ def test_kit_cartridges_run_the_same_in_the_browser_core(app, client, node, nati
         cartridge.write_bytes(client.get(f"/api/artifacts/{result['cartridge_artifacts'][0]['id']}/download").data)
         native = native_states(native_harness, cartridge, frames=300, every=60)
         assert wasm_states(node, cartridge, frames=300, every=60) == native
+        script = ("step:200", "over:20", "out", "break:update", "continue:3", "frame", "disasm:update:8")
+        assert wasm_debug(node, cartridge, *script) == native_debug(native_harness, cartridge, *script)
         if payload["title"] in ("Pong", "Wasm C", "Hello Asm"):
             assert native[-1]["non_black"] > 0  # it really drew something
 

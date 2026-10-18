@@ -14,12 +14,12 @@
   "emscripten": "emcc (Emscripten gcc/clang-like replacement + linker emulating GNU ld) 6.0.12-git",
   "files": {
     "prg32-core.js": {
-      "sha256": "6079af33079e1983cf6e0ad24fcf2f62363f180a8a1c52a5bf610919cee0c2e6",
-      "bytes": 14895
+      "sha256": "5896c2100b666a4ae0b4f21519764380f360f9ae80180e38b88219e9f83c59fd",
+      "bytes": 16059
     },
     "prg32-core.wasm": {
-      "sha256": "15bd229fb8605b66522770be7e4f889c2bdbfbfd8d1c5f14708f8df2b6085beb",
-      "bytes": 108535
+      "sha256": "3ba378fb805cf9bfcfabe3c0334df7890719139dfed46c560ac137c045262b21",
+      "bytes": 128129
     }
   }
 }

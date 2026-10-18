@@ -41,7 +41,13 @@ that proves it. "—" means not implemented yet. Statuses: **Done**,
 | RT-4 | Browser host: framebuffer, input, timing (guest vs wall), audio, offline | Done (audio approximate) | `static/js/prg32_runtime.js`, `/player`; `test_audio_calls_reach_the_browser_host`, `test_service_worker_caches_the_runtime_for_offline_use`; manual browser check |
 | RT-5 | Deterministic clock and scripted input playback | Done | accurate-mode virtual clock; harness scripted input |
 | RT-6 | Multiplayer, Wi-Fi, score services in the browser | Open | — |
-| DBG-* | Debugger with Qt parity | Open | ADR-0006; parity table in `compatibility.md` |
+| DBG-1 | PRG32-QT debugger parity: pause/resume, instruction step, speed, address breakpoints (resume ignores once), registers, disassembly with Init/Update/Draw/PC views, bounded memory view | Done | `wasm/prg32_core_api.cpp` (`prg32_debug_*`, `prg32_breakpoint`, `prg32_disassemble`), `static/js/prg32_runtime.js` `debug()`, `static/js/prg32_debugger.js`; `test_debugger_steps_exactly_like_native`, `test_breakpoint_stops_once_per_visit`, `test_single_steps_add_up`, `test_player_speaks_the_prg32_qt_debug_protocol`; browser check |
+| DBG-2 | Step over / step out / step frame | Done | core call/return recognition; `test_step_over_and_step_out_follow_calls`, `test_debugger_steps_exactly_like_native` |
+| DBG-3 | Instrumented execution does not change the program | Done | `test_debug_frames_match_normal_frames`, `test_playback_slices_stop_at_every_visit` |
+| DBG-4 | Breakpoints persisted per cartridge; beginner/advanced views on one state | Done | `localStorage` by SHA-256; `test_player_speaks_the_prg32_qt_debug_protocol`; browser check |
+| DBG-5 | Shared protocol (ADR-0006) | Done (main-thread transport) | `docs/adr/0006-shared-debug-protocol.md` |
+| DBG-6 | DWARF: C locals, call stack, watches, conditional breakpoints | Open | needs `-g` build profile |
+| DBG-7 | Blockly block highlighting while stepping | Open | needs IR source maps |
 | ID-* | OIDC+PKCE, roles, guest policy | Open | ADR-0007 |
 | SEC-1 | No network-deployable default admin password | Done | `auth.bootstrap_admin`, `config.KIT_ENV`, Dockerfile `PRG32_KIT_ENV=production`, compose; `tests/test_admin_bootstrap.py` |
 | SEC-2 | Sign-in, registration, link and token throttling | Done | `security.py` limits, `auth.login/register/register_complete/create_token`; `tests/test_security_controls.py` (threshold, expiry, reset, isolation, proxy trust, unlock) |

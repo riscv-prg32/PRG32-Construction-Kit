@@ -273,3 +273,20 @@ body {
   image-rendering: pixelated;
   background: #000;
 }
+
+/* Cartridge Player debugger (static/js/prg32_debugger.js) */
+.dbg-code { max-height: 26rem; overflow-y: auto; }
+.dbg-code table { font-size: .8rem; }
+.dbg-code td { padding: .1rem .4rem; white-space: nowrap; }
+.dbg-code .dbg-gutter { width: 1.6rem; cursor: pointer; text-align: center; background: var(--bs-tertiary-bg); user-select: none; }
+.dbg-code .dbg-gutter:hover { background: var(--bs-secondary-bg); }
+.dbg-code .dbg-bp .dbg-gutter { color: #dc3545; }
+.dbg-code .dbg-current td { background: #075985; color: #fff; font-weight: 700; }
+.dbg-code .dbg-current .dbg-gutter { color: #45c9ff; }
+.dbg-code .dbg-op { color: #a21caf; font-weight: 600; }
+.dbg-code .dbg-current .dbg-op { color: #f5d0fe; }
+.dbg-registers td { padding: .05rem .35rem; }
+.dbg-registers .dbg-changed { background: #fff3cd; color: #664d03; font-weight: 700; }
+.dbg-memory { max-height: 26rem; overflow: auto; font-size: .75rem; }
+body.dbg-mode-beginner .dbg-advanced { display: none !important; }
+body.dbg-mode-advanced .dbg-beginner { display: none !important; }

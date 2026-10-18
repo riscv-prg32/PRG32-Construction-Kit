@@ -78,6 +78,17 @@ Qt's existing set (pause/resume/step/speed/breakpoints/registers/memory/
 disassembly), then add step over/out and watches in the core, then DWARF for
 `-g` builds, then Blockly block highlighting from IR source maps.
 
+| Task | Where | Status |
+| --- | --- | --- |
+| Qt-parity debugger on the WASM core | `wasm/prg32_core_api.cpp`, `static/js/prg32_runtime.js`, `static/js/prg32_debugger.js` | done |
+| Step over / out / frame, hit counts, per-cartridge breakpoints, beginner view | same | done |
+| Differential debug tests WASM = native | `tests/test_wasm_runtime.py` (`--debug` harness mode) | done |
+| Expose the core's recent-instruction trace (Qt's "past" rows) | core C API | open |
+| Watches, conditional breakpoints | core C API | open |
+| DWARF for `-g` builds: C locals, call stack, source lines | build profiles + core | open |
+| Blockly block highlighting from IR source maps | generator + editor | open |
+| Core in a Web Worker (`postMessage` transport) | `prg32_runtime.js` | open |
+
 ## G6 Identity and storage
 
 PKCE and issuer+subject linking (ADR-0007), multi-provider admin UI, wider
