@@ -38,7 +38,33 @@
       $('#buildCount').text(builds.builds.length);
       $('#projectGrid').html(projects.projects.map(card).join('') || '<div class="col"><div class="alert alert-info">Create your first project.</div></div>');
     }).catch(err => Kit.toast(err.message, 'danger'));
+    loadDeleted();
   }
+
+  // "Recently deleted": a deleted project can be restored; only an admin can delete it for good.
+  const isAdmin = $('#deletedSection').data('admin') === true;
+  function deletedRow(project) {
+    const purge = isAdmin ? `<button class="btn btn-outline-danger btn-sm purge-project" data-id="${Kit.escape(project.id)}">Delete for good</button>` : '';
+    return `<div class="list-group-item d-flex gap-2 align-items-center justify-content-between">
+      <div><strong>${Kit.escape(project.title)}</strong><div class="small text-muted">Deleted ${Kit.escape(project.deleted_at)}</div></div>
+      <div class="text-nowrap"><button class="btn btn-outline-primary btn-sm restore-project" data-id="${Kit.escape(project.id)}"><i class="bi bi-arrow-counterclockwise"></i> Restore</button> ${purge}</div>
+    </div>`;
+  }
+  function loadDeleted() {
+    Kit.api('/api/projects?deleted=1').then(data => {
+      $('#deletedList').html(data.projects.map(deletedRow).join('') || '<div class="list-group-item small text-muted">Nothing here.</div>');
+    }).catch(err => Kit.toast(err.message, 'danger'));
+  }
+  $('#deletedList').on('click', '.restore-project', function () {
+    Kit.api('/api/projects/' + encodeURIComponent($(this).data('id')) + '/restore', { method: 'POST', body: {} })
+      .then(() => { Kit.toast('Project restored', 'success'); load(); })
+      .catch(err => Kit.toast(err.message, 'danger'));
+  });
+  $('#deletedList').on('click', '.purge-project', function () {
+    if (!confirm('Delete this project for good? Its history goes too. This cannot be undone.')) return;
+    Kit.api('/api/projects/' + encodeURIComponent($(this).data('id')) + '?purge=1', { method: 'DELETE' })
+      .then(load).catch(err => Kit.toast(err.message, 'danger'));
+  });
 
   function loadExamples() {
     Kit.api('/api/examples').then(data => {
@@ -60,7 +86,7 @@
 
   $('#projectGrid').on('click', '.delete-project', function () {
     const id = $(this).data('id');
-    if (!confirm('Delete this project and its dependent resources?')) return;
+    if (!confirm('Move this project to Recently deleted? You can restore it from there.')) return;
     Kit.api('/api/projects/' + encodeURIComponent(id), { method: 'DELETE' }).then(load).catch(err => Kit.toast(err.message, 'danger'));
   });
 

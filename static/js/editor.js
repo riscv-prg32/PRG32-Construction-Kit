@@ -233,6 +233,38 @@
   $('#exportProject').on('click', () => exportSaved('/export'));
   $('#exportArchive').on('click', () => exportSaved('/archive'));
 
+  // History: every time a save changes the program, the version before it is kept.
+  // Restore goes back to one (the current version is kept first); Download gets it as a .zip.
+  const REASONS = { save: 'before a save', restore: 'before a restore' };
+  function revisionsUrl(path) {
+    return '/api/projects/' + encodeURIComponent(projectId) + '/revisions' + (path || '');
+  }
+  function loadHistory() {
+    $('#historyMenu').html('<li><span class="dropdown-item-text small text-muted">Loading...</span></li>');
+    Kit.api(revisionsUrl()).then(data => {
+      if (!data.revisions.length) {
+        $('#historyMenu').html('<li><span class="dropdown-item-text small text-muted">No earlier versions yet. They appear after you save a change.</span></li>');
+        return;
+      }
+      $('#historyMenu').html(data.revisions.map(rev => `<li class="dropdown-item-text d-flex gap-2 align-items-center justify-content-between">
+        <span class="small"><strong>#${rev.number}</strong> ${Kit.escape(rev.created_at.replace('T', ' ').replace('+00:00', ' UTC'))}
+          <span class="text-muted">(${Kit.escape(REASONS[rev.reason] || rev.reason)}, ${rev.sprite_count} sprites)</span></span>
+        <span class="text-nowrap">
+          <button class="btn btn-outline-primary btn-sm restore-revision" data-id="${Kit.escape(rev.id)}" data-number="${rev.number}">Restore</button>
+          <a class="btn btn-outline-secondary btn-sm" href="${revisionsUrl('/' + encodeURIComponent(rev.id) + '/archive')}" title="Download this version as a project archive"><i class="bi bi-download"></i></a>
+        </span></li>`).join(''));
+    }).catch(err => $('#historyMenu').html(`<li><span class="dropdown-item-text small text-danger">${Kit.escape(err.message)}</span></li>`));
+  }
+  $('#historyGroup').on('show.bs.dropdown', loadHistory);
+  $('#historyMenu').on('click', '.restore-revision', function () {
+    const unsaved = dirty ? ' Your unsaved changes in this window will be lost.' : '';
+    if (!confirm(`Go back to version #${$(this).data('number')}? The current saved version is kept in History.` + unsaved)) return;
+    Kit.api(revisionsUrl('/' + encodeURIComponent($(this).data('id')) + '/restore'), { method: 'POST', body: {} })
+      .then(() => loadProject())
+      .then(() => { bootstrap.Dropdown.getOrCreateInstance(document.getElementById('historyToggle')).hide(); Kit.toast('Version restored', 'success'); })
+      .catch(err => Kit.toast(err.message, 'danger'));
+  });
+
   window.addEventListener('beforeunload', event => {
     if (dirty) {
       event.preventDefault();

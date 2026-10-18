@@ -261,3 +261,6 @@ body {
 .doc-card:hover {
   border-color: var(--kit-blue);
 }
+
+/* History dropdown in the editor: earlier saved versions of a project. */
+.history-menu { min-width: min(30rem, 90vw); max-height: 60vh; overflow-y: auto; }

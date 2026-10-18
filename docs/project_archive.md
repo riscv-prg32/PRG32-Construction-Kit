@@ -70,4 +70,7 @@ and the kit makes exactly the same code every time.
   student why. Files it does not use are skipped and listed.
 - Older `.json` exports still import; they are upgraded automatically.
 
+Earlier versions of a project can be downloaded the same way from
+**History**: see `project_history.md`.
+
 API details: `api.md`, section *Project import/export*.

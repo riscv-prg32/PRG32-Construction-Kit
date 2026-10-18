@@ -38,6 +38,7 @@ http://127.0.0.1:5090/
 | `PRG32_MAX_PARALLEL_BUILDS` | CPU cores | Compilers running at the same time (`concurrent_builds.md`). |
 | `PRG32_BUILD_QUEUE_TIMEOUT` | `180` | Seconds a build waits for a free compiler. |
 | `PRG32_BUILD_TIMEOUT` | `120` | Seconds one compiler run may take. |
+| `PRG32_KIT_MAX_REVISIONS` | `50` | Earlier versions kept per project in History (`project_history.md`). |
 | `PRG32_CART_RAM_KIB` | `64` | Cartridge RAM profile passed to the current PRG32 builder. Match this to the target firmware profile. |
 | `SECRET_KEY` | random, saved in `$PRG32_KIT_DATA/secret_key` | Signs the sign-in cookie. |
 | `PRG32_ADMIN_PASSWORD` | `password` | Password of the first `admin` account. Change it after the first sign-in. |

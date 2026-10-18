@@ -34,8 +34,8 @@ G1 ─► G6 identity/storage ─► G7
 | Server-side duplicate (with sprites/assets) | `POST /api/projects/<id>/duplicate` | done |
 | Handwritten assembly mode (ADR-0004) | `source_project.py`, `routes.py`, `project_format.py`, editor | done |
 | Editor/dashboard buttons | `templates/editor.html`, `templates/index.html`, `static/js/*.js` | done |
-| Revision history (snapshot on save, list, restore) | new `project_revisions` table, routes | next |
-| Soft delete + recovery | `deleted_at` column via idempotent `ALTER TABLE` | next |
+| Revision history (snapshot on save, list, restore) | new `project_revisions` table, routes | done |
+| Soft delete + recovery | `deleted_at` column via idempotent `ALTER TABLE` | done |
 | Guest policy A/B/C config + IndexedDB guest store | `config.py`, `static/js/guest_store.js` | later |
 
 ## G2 IDE shell

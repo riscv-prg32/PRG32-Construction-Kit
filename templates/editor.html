@@ -27,6 +27,12 @@
         <li><button class="dropdown-item" id="exportProject" title="The older single JSON file, without sprites and assets">JSON file (older format)</button></li>
       </ul>
     </div>
+    <div class="btn-group" id="historyGroup">
+      <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="historyToggle" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" title="Earlier saved versions of this project"><i class="bi bi-clock-history"></i> History</button>
+      <ul class="dropdown-menu history-menu" id="historyMenu" aria-labelledby="historyToggle">
+        <li><span class="dropdown-item-text small text-muted">Loading...</span></li>
+      </ul>
+    </div>
     <button class="btn btn-success" id="runGame"><i class="bi bi-play-fill"></i> Play</button>
     <button class="btn btn-warning" id="stepGame"><i class="bi bi-skip-forward"></i> Step</button>
     <button class="btn btn-outline-danger" id="resetGame"><i class="bi bi-arrow-counterclockwise"></i> Reset</button>

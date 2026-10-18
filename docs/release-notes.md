@@ -10,6 +10,14 @@
   project.
 - **Import project** on the dashboard accepts archives as well as JSON.
 - `GET /api/projects/<id>/manifest` and `POST /api/projects/<id>/duplicate`.
+- **History** in the editor: every save that changes the blocks or the
+  Advanced C keeps the version before it. Restore one (the current version
+  is kept first) or download it as a project archive. Newest 50 per project
+  (`PRG32_KIT_MAX_REVISIONS`). API: `/api/projects/<id>/revisions...`.
+- **Recently deleted** on the dashboard: deleting a project hides it instead
+  of removing it; restore it from there (`POST /api/projects/<id>/restore`,
+  `GET /api/projects?deleted=1`). Admins can delete for good
+  (`DELETE /api/projects/<id>?purge=1`).
 - Full-IDE planning documents: current-state matrix, ADRs, plan, status,
   traceability, compatibility, security, deployment, user and admin guides.
 
@@ -25,8 +33,12 @@
 - Importing an old single-file JSON export goes through the project-format
   migration. The game IR stored in that file is no longer copied; it is
   derived and is made again on the next convert or build.
-- Service worker cache `prg32-kit-v6`.
+- `DELETE /api/projects/<id>` keeps its answer but now moves the project to
+  Recently deleted. Project items include `deleted_at`.
+- Service worker cache `prg32-kit-v7`.
 
 ### Migration
 
-No database changes. Old exports keep importing.
+New table `project_revisions` and new column `projects.deleted_at`, added
+automatically and idempotently on start; existing databases keep working.
+Old exports keep importing.

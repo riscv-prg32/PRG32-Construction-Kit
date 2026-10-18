@@ -176,6 +176,44 @@ POST /api/projects/<id>/duplicate
 
 Format details: `project_archive.md` and `adr/0001-project-manifest.md`.
 
+## Project history and Recently deleted
+
+```http
+GET    /api/projects/<id>/revisions
+GET    /api/projects/<id>/revisions/<revision_id>/archive
+POST   /api/projects/<id>/revisions/<revision_id>/restore
+GET    /api/projects?deleted=1
+POST   /api/projects/<id>/restore
+DELETE /api/projects/<id>?purge=1
+```
+
+- When `PUT /api/projects/<id>` changes `blocks_json` or the Advanced C
+  (`game_json.source_mode` / `game_json.source_c`), the version before the
+  change is kept as a revision. A revision holds the same files as the project
+  archive. A revision equal to the newest one is not kept again. The newest
+  `PRG32_KIT_MAX_REVISIONS` (default 50) are kept per project.
+- `revisions` lists them newest first:
+  `{"project_id", "revisions": [{"id", "number", "created_at", "reason", "title",
+  "authoring_mode", "source_bytes", "sprite_count", "asset_count", ...}]}`.
+  `reason` is `save` or `restore`.
+- `.../archive` downloads one revision as `<title>-revision-<n>.prg32project.zip`.
+- `.../restore` keeps the current version as a revision first (`reason: restore`),
+  then puts back the source, title, summary, author, tags, sprites and
+  assets. Answer: `{"project", "restored_revision", "saved_revision"}`
+  (`saved_revision` is `null` when the current version was already kept).
+- History routes are for the project's owner and admins: `404` if you cannot
+  see the project, `403` for a shared classroom project you cannot change.
+- `DELETE /api/projects/<id>` answers `{"deleted": true, "id": ...}` as before,
+  but moves the project to Recently deleted (it sets `deleted_at`). Deleted
+  projects are left out of lists and answer `404` everywhere else.
+- `GET /api/projects?deleted=1` lists your deleted projects (admins: all).
+- `POST /api/projects/<id>/restore` brings one back (owner or admin).
+- `DELETE /api/projects/<id>?purge=1` removes a project for good, deleted or
+  not: admins only (`403` otherwise). Its revisions, assets and builds go too;
+  its sprites and artifacts stay, unlinked.
+- Project items now include `deleted_at` (`null` unless deleted). It cannot be
+  set with `PUT`.
+
 ## Convert project to C or RISC-V assembly
 
 ```http

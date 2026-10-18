@@ -21,7 +21,7 @@ that proves it. "—" means not implemented yet. Statuses: **Done**,
 | PM-10 | Duplicate | Done | `POST /api/projects/<id>/duplicate`, editor "Make my copy" | `test_duplicate_copies_children_and_belongs_to_the_caller` |
 | PM-11 | Ownership: imports belong to the importer; no IDOR on export | Done | `owned()`, `readable()` | `test_imported_archive_belongs_to_the_importer`, `test_duplicate_copies_children_and_belongs_to_the_caller` |
 | PM-12 | Create/open/rename/delete | Done (pre-existing) | CRUD routes | `tests/test_api.py::test_project_crud` |
-| PM-13 | Snapshots/history, autosave, search, soft delete | Open | — | — |
+| PM-13 | Snapshots/history, autosave, search, soft delete | Partial (history and soft delete done; autosave and search open) | `project_revisions` table, `add_revision` (db.py); `/api/projects/<id>/revisions*`, `?deleted=1`, `/restore`, `?purge=1` (routes.py); editor **History**, dashboard **Recently deleted** | `tests/test_project_revisions.py` (snapshot rules, cap, restore, IDOR, hide/restore/purge, old DB upgrade) |
 | PM-14 | Source maps blocks → C → instructions | Open | — | — |
 
 ## Other areas
