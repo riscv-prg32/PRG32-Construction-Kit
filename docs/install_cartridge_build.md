@@ -44,7 +44,13 @@ docker compose logs prg32-construction-kit
 ```text
   OK    build command runs: /usr/local/bin/python3 -m prg32 cartridge build
   OK    RISC-V compiler on PATH: /opt/riscv32-esp-elf/bin/riscv32-esp-elf-gcc
+  OK    build sandbox: bubblewrap (no network, read-only SDK, private build folder)
 ```
+
+Every compile runs isolated in a bubblewrap sandbox (`build_sandbox.md`). The
+compose file starts the container with the kit's seccomp profile
+(`docker/seccomp-kit.json`) so the sandbox can work; without it the check
+fails and the container does not start.
 
 If a line says `FAIL`, the container stops instead of starting a server
 that can't build cartridges. See [Troubleshooting](#troubleshooting).
@@ -102,7 +108,9 @@ docker image inspect prg32-construction-kit:latest --format '{{json .Config.Labe
 ```bash
 docker build -t prg32-construction-kit .
 docker run -d --name prg32-kit -p 5090:5090 -v "$PWD/data:/data" \
-  -e PRG32_ADMIN_PASSWORD=change-me prg32-construction-kit
+  --security-opt seccomp="$PWD/docker/seccomp-kit.json" \
+  --security-opt no-new-privileges:true --cap-drop ALL \
+  prg32-construction-kit
 docker logs prg32-kit
 ```
 
@@ -233,6 +241,7 @@ copes with the whole class clicking at once. Details: `concurrent_builds.md`.
 | `FAIL build command runs ... No module named prg32` | The PRG32 tools are not installed in the Python that runs the kit. Docker: rebuild with `PRG32_TOOLCHAIN=1`. Without Docker: `pip install --no-deps -e ../PRG32` in the kit's `.venv`. |
 | `FAIL RISC-V compiler on PATH` | Add the compiler's `bin` folder to `PATH` for the server process (systemd: the `Environment=PATH=` line). |
 | `docker compose build` fails with "No RISC-V compiler download" | The computer is not amd64 or arm64. Use another computer or `PRG32_TOOLCHAIN=0`. |
+| `FAIL build sandbox: ... bubblewrap does not work` | The container was started without `docker/seccomp-kit.json` (see `build_sandbox.md`). On Ubuntu 24.04 and other AppArmor hosts also read *AppArmor hosts* there. |
 | The container restarts again and again | The start-up check failed. Read `docker compose logs`, or set `PRG32_REQUIRE_TOOLCHAIN=0` to start without builds while you fix it. |
 | "All N cartridge build slots are busy" | The server is working; see `concurrent_builds.md`. |
 | Debug Log shows a C error | The compiler works; the game's C has a problem. See `cartridge_build.md`. |
@@ -252,3 +261,7 @@ These work with and without Docker. Full list: `setup.md`.
 | `PRG32_MAX_PARALLEL_BUILDS` | CPU cores (`4` in `docker-compose.yml`) | Compilers running at the same time. |
 | `PRG32_BUILD_QUEUE_TIMEOUT` | `180` | Seconds a build waits for a free compiler. |
 | `PRG32_BUILD_TIMEOUT` | `120` | Seconds one compiler run may take. |
+| `PRG32_BUILD_SANDBOX` | `auto` (`bwrap` in the Docker image) | `bwrap` = isolate every compile (required), `rlimit` = limits only, not isolated (a trusted laptop), `auto` = bwrap when it works, else rlimit (never on a production server). See `build_sandbox.md`. |
+| `PRG32_BUILD_MEMORY_MB` | `1536` | Memory one compiler run may use. |
+| `PRG32_BUILD_MAX_PROCESSES` | `128` | Extra processes one build may start. |
+| `PRG32_BUILD_RO_PATHS` | empty | Extra read-only folders a custom build command needs inside the sandbox (`:`-separated). |

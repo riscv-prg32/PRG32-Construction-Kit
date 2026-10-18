@@ -59,6 +59,12 @@ class Config:
     # and how long (seconds) a build waits for a free slot before giving up.
     PRG32_MAX_PARALLEL_BUILDS = int(os.environ.get("PRG32_MAX_PARALLEL_BUILDS", str(os.cpu_count() or 2)))
     PRG32_BUILD_QUEUE_TIMEOUT = float(os.environ.get("PRG32_BUILD_QUEUE_TIMEOUT", "180"))
+    # Build sandbox (docs/build_sandbox.md, ADR-0010): bwrap (required), rlimit (limits only,
+    # NOT isolation) or auto (bwrap when it works, else rlimit outside production).
+    PRG32_BUILD_SANDBOX = os.environ.get("PRG32_BUILD_SANDBOX", "auto")
+    PRG32_BUILD_RO_PATHS = os.environ.get("PRG32_BUILD_RO_PATHS", "")
+    PRG32_BUILD_MEMORY_MB = int(os.environ.get("PRG32_BUILD_MEMORY_MB", "1536"))
+    PRG32_BUILD_MAX_PROCESSES = int(os.environ.get("PRG32_BUILD_MAX_PROCESSES", "128"))
     # Seconds one compiler run (one architecture) may take before it is stopped.
     PRG32_BUILD_TIMEOUT = float(os.environ.get("PRG32_BUILD_TIMEOUT", "120"))
     # How many saved versions (revisions) the History menu keeps per project.

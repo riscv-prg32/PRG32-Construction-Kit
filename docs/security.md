@@ -18,6 +18,7 @@ and what is still open. Reporting: contact the maintainers privately.
 | Password guessing, registration and token abuse | Database-backed limits (shared by all workers); `429` + `Retry-After`; same answer for known and unknown names; only hashes of names/addresses stored | `security.py`, `auth.py` |
 | Untraceable admin actions | Audit log of account, role, group, token, bootstrap, publish, SSO-sync and unlock actions; admin-only API; secret-looking metadata dropped | `security.py` `record`, `GET /api/admin/audit` |
 | SSRF through publishing (audit H-01) | Admin allow-list of Store origins; https; strict URL parsing (no credentials, numeric-IP tricks); every resolved address must be public unless `PRG32_STORE_TRUSTED_LOCAL`; connection pinned to the checked address; no redirects; timeouts; 64 KiB answer cap; student-safe errors; audited | `store_policy.py`, `publisher.py`, ADR-0008 |
+| Untrusted compilers (audit H-03) | Every compile in bubblewrap: all namespaces unshared, no network, read-only system/SDK/compiler, only its build folder writable, fresh `/tmp`, no `/proc`, read-only root, cleared environment, no capabilities, kit seccomp filter; guard limits (CPU, memory, processes, file size, open files), timeout kills the whole group; production refuses builds without it | `build_sandbox.py`, `build_guard.py`, `docker/seccomp-kit.json`, ADR-0010 |
 | Publishing without approval (audit H-02) | `publisher`/`admin` role checked in the backend; only publishable bundles with real `PRG2` cartridges matching the build; signed, expiring review token bound to the summary digest, user, profile and bundle; explicit `confirm`; one attempt per review (no double upload); audited by stage | `publishing.py`, `routes.api_publish_review`/`api_publish`, ADR-0009 |
 | Unexplained cartridges | Build provenance with SHA-256 of source and every cartridge | `provenance.py`, `build_provenance.md` |
 | SSO forgery | HMAC-signed requests and one-time tickets | `sso_protocol.py` |
@@ -28,7 +29,7 @@ and what is still open. Reporting: contact the maintainers privately.
 
 | Area | Risk | Plan |
 | --- | --- | --- |
-| Untrusted builds | GCC runs on the server without an OS sandbox | Container-per-build (ADR-0005) before guest or internet use |
+| Build sandbox gaps | No total disk quota per build folder, no per-build UID, AppArmor hosts need `apparmor=unconfined` today | Tailored AppArmor profile; quotas (Phase 7) |
 | WASM runtime | Guest code in the browser | Interpreted in WASM; no host calls except the PRG32 ABI (ADR-0003) |
 | OAuth / OIDC | No PKCE; users linked by provider + `sub`, not issuer | ADR-0007 |
 | Cloud sync | Token storage, scope creep | Server-side tokens, minimal scopes, revocation (G6) |

@@ -13,6 +13,13 @@ services:
         RISCV_GCC_VERSION: ${RISCV_GCC_VERSION:-esp-14.2.0_20241119}
     # The container checks the build tools when it starts and stops if they are
     # broken (see docker/entrypoint.sh). `docker compose logs` shows the check.
+    # Lets bubblewrap isolate each compiler run (docs/build_sandbox.md): Docker's default
+    # seccomp profile plus only the namespace calls bubblewrap needs. No extra capabilities.
+    security_opt:
+      - seccomp=./docker/seccomp-kit.json
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
     ports:
       - "5090:5090"
     environment:

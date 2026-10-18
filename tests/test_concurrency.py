@@ -142,7 +142,9 @@ def test_each_build_gets_a_private_temporary_folder(app, client, monkeypatch):
 
     def compiler(command, **kwargs):
         out_path = Path(command[command.index("--out") + 1])
-        seen.append((out_path.parent, Path(kwargs["env"]["TMPDIR"]), kwargs["timeout"]))
+        # build_guard enforces the build timeout (--timeout); the outer timeout only adds start-up time.
+        seen.append((out_path.parent, Path(kwargs["env"]["TMPDIR"]), float(command[command.index("--timeout") + 1])))
+        assert kwargs["timeout"] >= 42
         out_path.write_bytes(b"cart")
         return SimpleNamespace(returncode=0, stdout="", stderr="")
 

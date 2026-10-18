@@ -8,7 +8,7 @@
 5. **Builds under load:** `concurrent_builds.md`; tune
    `PRG32_MAX_PARALLEL_BUILDS`, `PRG32_BUILD_QUEUE_TIMEOUT` and
    `PRG32_BUILD_TIMEOUT`.
-6. **What made a cartridge:** `build_provenance.md`.
+6. **What made a cartridge:** `build_provenance.md`. **How compiles are isolated:** `build_sandbox.md`.
 7. **Project history and deleted projects:** `project_history.md`; tune
    `PRG32_KIT_MAX_REVISIONS`. Admins can delete a project for good from
    Recently deleted.

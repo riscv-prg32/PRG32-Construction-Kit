@@ -52,6 +52,8 @@ the large cartridge and bundle files themselves.
 ```bash
 docker build -t prg32-construction-kit .
 docker run --rm -it \
+  --security-opt seccomp="$PWD/docker/seccomp-kit.json" \
+  --security-opt no-new-privileges:true --cap-drop ALL \
   -p 5090:5090 \
   --env-file .env \
   -e PRG32_KIT_DATA=/data \

@@ -13,6 +13,7 @@ import zlib
 from pathlib import Path
 from typing import Any
 
+from . import build_guard, build_sandbox
 from .generator import c_identifier
 
 # Cartridge targets the kit knows how to build: the real board and the QEMU emulator.
@@ -73,18 +74,15 @@ def project_manifest(project: dict[str, Any], game_ir: dict[str, Any], architect
 
 
 def build_environment(work_dir: Path) -> dict[str, str]:
-    """Environment for one build: a private temporary folder inside the build's own folder.
+    """Environment for one build: a short allow-list (no secrets) and a private ``<build_id>/tmp``.
 
     The PRG32 builder already compiles in a fresh temporary folder, but pointing
     TMPDIR at ``<build_id>/tmp`` means nothing a build writes can ever land next
-    to another student's build, even with a different or older build command.
+    to another student's build. Nothing else of the server's environment
+    (secret keys, passwords, tokens) is passed on (build_sandbox.ALLOWED_ENV).
     """
-    tmp_dir = work_dir / "tmp"
-    tmp_dir.mkdir(parents=True, exist_ok=True)
-    env = os.environ.copy()
-    for name in ("TMPDIR", "TEMP", "TMP"):
-        env[name] = str(tmp_dir)
-    return env
+    (work_dir / "tmp").mkdir(parents=True, exist_ok=True)
+    return build_sandbox.build_env(work_dir)
 
 
 # An absolute folder path such as /opt/PRG32/components/ (not part of a URL or <build>/).
@@ -114,7 +112,7 @@ def public_command(parts: list[str]) -> str:
     return " ".join(shown)
 
 
-def run_prg32_build(build_command: str, source_path: Path, out_path: Path, entry_prefix: str, name: str, architecture: str, cart_ram_kib: int, required_features: list[str] | None = None, timeout: float = 120) -> tuple[bool, str]:
+def run_prg32_build(build_command: str, source_path: Path, out_path: Path, entry_prefix: str, name: str, architecture: str, cart_ram_kib: int, required_features: list[str] | None = None, timeout: float = 120, sandbox: build_sandbox.SandboxSettings | None = None) -> tuple[bool, str]:
     out_path.parent.mkdir(parents=True, exist_ok=True)
     program = shlex.split(build_command)
     command = program + [
@@ -139,14 +137,26 @@ def run_prg32_build(build_command: str, source_path: Path, out_path: Path, entry
     # The log shows the build command by program name (no server folders or secrets);
     # the build's own paths stay and become <build>/... in redact_build_path.
     shown = " ".join([public_command(program), *command[len(program):]])
+    # Every compiler run goes through the build sandbox (build_sandbox.py, ADR-0010): bubblewrap
+    # isolation plus build_guard.py's limits, timeout and process-group kill.
     try:
-        result = subprocess.run(command, check=False, capture_output=True, text=True, timeout=timeout,
-                                env=build_environment(out_path.parent))
+        prepared = build_sandbox.prepare(sandbox or build_sandbox.SandboxSettings(), command, out_path.parent,
+                                         build_command, timeout)
+    except build_sandbox.SandboxUnavailable as exc:
+        return False, f"{exc}\nCommand: {shown}"
+    try:
+        # The guard stops the build at `timeout`; the extra time only covers starting the sandbox.
+        result = subprocess.run(prepared.argv, check=False, capture_output=True, text=True, timeout=timeout + 30,
+                                env=prepared.env, pass_fds=prepared.pass_fds)
     except FileNotFoundError:
         return False, f"Build command not found: {public_command(program[:1])}\nCommand: {shown}"
     except subprocess.TimeoutExpired:
         return False, f"Build command timed out after {timeout:g} seconds.\nCommand: {shown}"
-    log = "$ " + shown + "\n" + result.stdout + result.stderr
+    finally:
+        prepared.close()
+    log = "$ " + shown + "\n" + (result.stdout or "") + (result.stderr or "")
+    if result.returncode == build_guard.TIMEOUT_EXIT:
+        log += f"\nBuild command timed out after {timeout:g} seconds."
     return result.returncode == 0 and out_path.exists(), log
 
 
@@ -176,6 +186,7 @@ def prepare_package(
     build_timeout: float = 120,
     asm_source: str | None = None,
     build_language: str = "c",
+    sandbox: build_sandbox.SandboxSettings | None = None,
 ) -> dict[str, Any]:
     """Write the sources, compile one cartridge per architecture and zip a Store bundle.
 
@@ -212,7 +223,7 @@ def prepare_package(
         out_name = f"{slug}-{arch}.prg32"
         out_path = work_dir / out_name
         ok, log = run_prg32_build(build_command, source_path, out_path, str(entry_prefix), slug, arch, cart_ram_kib,
-                                  game_ir.get("required_features", []), build_timeout)
+                                  game_ir.get("required_features", []), build_timeout, sandbox)
         logs.append(f"[{arch}]\n{redact_build_path(log, work_dir)}")
         attempts.append({"architecture": arch, "ok": ok})
         if ok:
@@ -257,4 +268,12 @@ def prepare_package(
         "publishable": bool(architectures),
         "attempts": attempts,
         "cartridges": cartridges,
+        "sandbox": _sandbox_mode(sandbox),
     }
+
+
+def _sandbox_mode(sandbox: build_sandbox.SandboxSettings | None) -> str:
+    try:
+        return build_sandbox.effective_mode(sandbox or build_sandbox.SandboxSettings())
+    except build_sandbox.SandboxUnavailable:
+        return "unavailable"

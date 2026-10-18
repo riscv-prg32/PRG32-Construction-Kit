@@ -28,6 +28,7 @@ from . import project_format, publishing, security, sso
 from .auth import Principal, current_principal, role_at_least
 from .build_check import builds_available, toolchain_present
 from .db import utcnow
+from .build_sandbox import settings_from_config
 from .provenance import build_provenance
 from .build_slots import BuildServerBusy, build_slot
 from .asm_generator import ir_to_asm
@@ -815,7 +816,8 @@ def _run_package_build(project_id: str, project: dict[str, Any], game_ir: dict[s
                                 built_from=built_from, requested=targets,
                                 cart_ram_kib=current_app.config["PRG32_CART_RAM_KIB"],
                                 cartridges=(result or {}).get("cartridges", []),
-                                attempts=(result or {}).get("attempts", []))
+                                attempts=(result or {}).get("attempts", []),
+                                sandbox=(result or {}).get("sandbox", "not run"))
 
     started_at = utcnow()
     try:
@@ -833,6 +835,7 @@ def _run_package_build(project_id: str, project: dict[str, Any], game_ir: dict[s
             project_json=project,
             architectures=requested,
             build_timeout=current_app.config["PRG32_BUILD_TIMEOUT"],
+            sandbox=settings_from_config(current_app.config),
         )
     except Exception as exc:
         current_app.logger.exception("Packaging failed for %s", project_id)

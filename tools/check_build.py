@@ -51,6 +51,20 @@ class Browser(FlaskClient):
                 raise SystemExit(f"could not sign in as {login[0]}")
 
 
+def sandbox_check() -> tuple[bool, str]:
+    """Can builds run in the configured sandbox (docs/build_sandbox.md)?"""
+    from prg32_construction_kit.build_sandbox import SandboxSettings, SandboxUnavailable, effective_mode
+
+    settings = SandboxSettings(mode=Config.PRG32_BUILD_SANDBOX.lower(), production=Config.KIT_ENV == "production")
+    try:
+        mode = effective_mode(settings)
+    except SandboxUnavailable as exc:
+        return False, f"build sandbox: {exc}"
+    if mode == "bwrap":
+        return True, "build sandbox: bubblewrap (no network, read-only SDK, private build folder)"
+    return True, "build sandbox: limits only (rlimit) - NOT isolated; use only on a trusted single-user machine"
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--students", type=int, default=3, help="students building at once (default 3)")
@@ -66,6 +80,9 @@ def main() -> int:
     for ok, message in check_command(Config.PRG32_BUILD_COMMAND, args.tool_prefix):
         print(("  OK    " if ok else "  FAIL  ") + message)
         failed |= not ok
+    ok, message = sandbox_check()
+    print(("  OK    " if ok else "  FAIL  ") + message)
+    failed |= not ok
     if failed:
         print("\nFix the lines marked FAIL first. See docs/install_cartridge_build.md.")
         return 1

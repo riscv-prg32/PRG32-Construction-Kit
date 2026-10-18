@@ -15,7 +15,9 @@ if python tools/check_build.py --quick; then
   :
 elif [ "${PRG32_REQUIRE_TOOLCHAIN:-0}" = "1" ]; then
   echo "PRG32 cartridge builds do not work in this container, so it will not start."
-  echo "Rebuild the image: docker compose build --no-cache  (see docs/install_cartridge_build.md)"
+  echo "If the line marked FAIL is the build sandbox, start the container with the kit's"
+  echo "seccomp profile (security_opt: seccomp=./docker/seccomp-kit.json, see docs/build_sandbox.md)."
+  echo "Otherwise rebuild the image: docker compose build --no-cache  (see docs/install_cartridge_build.md)"
   exit 1
 else
   echo "Starting without cartridge builds: students get C and source bundles only."

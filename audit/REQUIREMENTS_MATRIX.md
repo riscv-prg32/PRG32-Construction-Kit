@@ -67,3 +67,7 @@ Scale: 0 missing; 1 prototype/stub; 2 partial; 3 implemented with meaningful tes
   signed review + explicit confirmation, idempotent attempts). STR-02 could
   move from 1 to 2 (still no live Store test); left at 1 until an
   independent re-check. SEC-01 unchanged (H-03 open).
+- 2026-10-18, Phase 3: H-03 addressed (bubblewrap sandbox for every compile,
+  escape and resource tests in a real container). SEC-01 could move from 2 to
+  3; left at 2 until an independent re-check, given the AppArmor and quota
+  gaps recorded in `docs/build_sandbox.md`.

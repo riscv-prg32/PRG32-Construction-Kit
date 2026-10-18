@@ -45,6 +45,14 @@ RUN if [ "$PRG32_TOOLCHAIN" = "1" ]; then \
       rm -rf /var/lib/apt/lists/*; \
     fi
 
+# Every compiler run is isolated with bubblewrap (docs/build_sandbox.md, ADR-0010).
+# The container needs the kit's seccomp profile (docker/seccomp-kit.json) so that
+# bubblewrap may create its namespaces; without it, builds are refused.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends bubblewrap \
+    && rm -rf /var/lib/apt/lists/*
+ENV PRG32_BUILD_SANDBOX=bwrap
+
 WORKDIR /app
 
 COPY requirements.txt requirements-production.txt ./

@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+### Security: every compile runs in a sandbox (audit H-03)
+
+- Compiles run under bubblewrap (no network, read-only SDK/compiler, only
+  their own build folder writable, cleared environment, seccomp filter) with
+  resource limits and a process-group kill at the timeout (ADR-0010,
+  `build_sandbox.md`). Provenance records `sandbox`.
+- The build environment is an allow-list: server secrets no longer reach
+  the compiler.
+- **Upgrade note:** start the container with `docker/seccomp-kit.json` (the
+  compose file does); on AppArmor hosts see `build_sandbox.md`. The image
+  refuses to start without a working sandbox. Outside Docker, `auto` keeps
+  working with limits only (`rlimit`) except in production. No database
+  change; rollback is a code revert.
+
 ### Security: publishing needs the publisher role and a confirmed review (audit H-02)
 
 - `POST /api/publish/review` + `POST /api/publish` with `review_token` and

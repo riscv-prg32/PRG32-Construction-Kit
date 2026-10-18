@@ -128,7 +128,7 @@ def command_identity(build_command: str) -> dict[str, Any]:
 def build_provenance(*, build_id: str, started_at: str, finished_at: str, status: str, build_command: str,
                      game_ir: dict[str, Any], sources: dict[str, str], built_from: str,
                      requested: list[str], cart_ram_kib: int, cartridges: list[dict[str, Any]],
-                     attempts: list[dict[str, Any]]) -> dict[str, Any]:
+                     attempts: list[dict[str, Any]], sandbox: str = "not run") -> dict[str, Any]:
     """Everything needed to explain (and repeat) one build."""
     mode = game_ir.get("source_mode") or "blocks"
     return {
@@ -154,6 +154,8 @@ def build_provenance(*, build_id: str, started_at: str, finished_at: str, status
                     for language, text in sorted(sources.items())},
         "attempts": attempts,
         "cartridges": cartridges,
+        # How the compiler was isolated: "bwrap", "rlimit" (limits only) or "unavailable".
+        "sandbox": sandbox,
     }
 
 
