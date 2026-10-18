@@ -148,3 +148,13 @@ def test_the_assembly_grammar_knows_exactly_the_allowed_directives():
     grammar = (ROOT / "static" / "js" / "ide" / "monaco_setup.js").read_text()
     listed = set(re.findall(r"'(\.[a-z0-9]+)'", grammar.split("const DIRECTIVES = [", 1)[1].split("];", 1)[0]))
     assert listed == ALLOWED_ASM_DIRECTIVES
+
+
+def test_ci_runs_every_browser_suite_and_forbids_skipping():
+    """The browser job runs the offline, IDE and frontend suites, and a missing browser fails it."""
+    workflow = (ROOT / ".github" / "workflows" / "tests.yml").read_text()
+    job = workflow.split("\n  browser:\n", 1)[1].split("\n  dependency-review:\n", 1)[0]
+    for suite in sorted(path.name for path in (ROOT / "tests").glob("test_*browser*.py")) + ["test_frontend_offline.py"]:
+        assert f"tests/{suite}" in job, f"{suite} is not run by the CI browser job"
+    assert 'PRG32_REQUIRE_BROWSER: "1"' in job
+    assert "--junitxml=browser-test-results.xml" in job and "path: browser-test-results.xml" in job

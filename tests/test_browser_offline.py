@@ -2,7 +2,9 @@
 
 These drive Google Chrome (or Playwright's Chromium) through Playwright against
 a live kit on 127.0.0.1. They skip cleanly when Playwright or a browser is not
-installed. What they prove, in a real browser:
+installed, except where PRG32_REQUIRE_BROWSER=1 is set (the CI browser job): there a
+missing browser, Playwright or golden cartridge fails the run instead of hiding it.
+What they prove, in a real browser:
 
 - every page loads only from the kit itself (no CDN, no third-party request);
 - no Content Security Policy violation is reported;
@@ -23,7 +25,23 @@ from urllib.parse import urlsplit
 import pytest
 from conftest import ADMIN_PASSWORD, make_app
 
-playwright_api = pytest.importorskip("playwright.sync_api")
+# The CI browser job sets this, so the browser tests can never pass by skipping there.
+REQUIRE_BROWSER = os.environ.get("PRG32_REQUIRE_BROWSER") == "1"
+
+
+def skip_or_fail(reason: str):
+    """Skip on a learner's laptop; fail in the CI browser job."""
+    if REQUIRE_BROWSER:
+        pytest.fail(f"PRG32_REQUIRE_BROWSER=1 but {reason}", pytrace=False)
+    pytest.skip(reason)
+
+
+try:
+    import playwright.sync_api as playwright_api
+except ImportError:
+    if REQUIRE_BROWSER:
+        raise
+    pytest.skip("Playwright is not installed (pip install -r requirements-browser.txt)", allow_module_level=True)
 ROOT = Path(__file__).resolve().parent.parent
 GOLDEN = Path(os.environ.get("PRG32QT_DIR") or ROOT.parent / "PRG32-QT") / "tests" / "fixtures" / "Asteroids.prg32"
 
@@ -51,7 +69,7 @@ def browser():
             except Exception:  # noqa: BLE001, S112 - this browser is not installed: try the next, then skip
                 continue
         if launched is None:
-            pytest.skip("no Chrome or Playwright Chromium is installed")
+            skip_or_fail("no Chrome or Playwright Chromium is installed")
         yield launched
         launched.close()
 
@@ -169,7 +187,7 @@ def test_cold_offline_start_shows_an_editable_scratchpad(browser, live_kit):
 
 def test_offline_player_runs_a_real_cartridge(browser, live_kit):
     if not GOLDEN.is_file():
-        pytest.skip("no PRG32-QT checkout with tests/fixtures/Asteroids.prg32 (set PRG32QT_DIR)")
+        skip_or_fail("no PRG32-QT checkout with tests/fixtures/Asteroids.prg32 (set PRG32QT_DIR)")
     context = browser.new_context()
     page = context.new_page()
     sign_in(page, live_kit)

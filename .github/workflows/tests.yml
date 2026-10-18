@@ -133,7 +133,7 @@ jobs:
           python -m pytest -q -rs tests/test_wasm_runtime.py -k "golden or audio or refused"
 
   browser:
-    name: Real-browser frontend tests (offline, CSP)
+    name: Real-browser tests (offline, CSP, IDE keyboard and accessibility)
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -163,10 +163,23 @@ jobs:
           python -m pip install --disable-pip-version-check -r requirements.txt -r requirements-browser.txt
           python -m playwright install --with-deps chromium
 
-      - name: Run the browser and frontend tests
+      # The IDE suite (keyboard-only work, Monaco, phone layout, axe) runs here too, and
+      # PRG32_REQUIRE_BROWSER=1 makes a missing browser or fixture a failure, not a skip.
+      - name: Run the browser, IDE and frontend tests
         env:
           PRG32QT_DIR: ${{ github.workspace }}/PRG32-QT
-        run: python -m pytest -q -rs tests/test_browser_offline.py tests/test_frontend_offline.py
+          PRG32_REQUIRE_BROWSER: "1"
+        run: >-
+          python -m pytest -q -rs --junitxml=browser-test-results.xml
+          tests/test_browser_offline.py tests/test_ide_browser.py tests/test_frontend_offline.py
+
+      - name: Upload the browser test results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: browser-test-results
+          path: browser-test-results.xml
+          retention-days: 14
 
   dependency-review:
     name: Dependency review

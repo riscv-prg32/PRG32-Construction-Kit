@@ -52,3 +52,6 @@ application framework.
 - Browser tests (`tests/test_ide_browser.py`) cover the keyboard-only C and
   assembly workflows, Blocks/generated views, small screens and an axe-core
   scan (no serious/critical violations). No screen-reader session has been run.
+  The CI browser job runs them on every push and pull request with
+  `PRG32_REQUIRE_BROWSER=1`, so a missing browser fails the job instead of
+  skipping, and uploads `browser-test-results.xml`.

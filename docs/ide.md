@@ -39,4 +39,17 @@ tab; use F6 to leave the editor (or Ctrl+M, Monaco's own "Tab moves focus").
   sent anywhere else, and no code runs in the browser except the kit's own.
 - On a phone-sized screen the file list opens with the **Files** button.
 
+## For contributors
+
+The IDE is tested in a real browser with the keyboard only, at desktop and phone
+size, with an accessibility scan. On your computer:
+
+```
+python3 -m pip install -r requirements-browser.txt
+python3 -m pytest -q -rs tests/test_ide_browser.py
+```
+
+Without Playwright or Chrome the tests skip. The CI browser job runs them on every
+push and pull request with `PRG32_REQUIRE_BROWSER=1`, where a skip becomes a failure.
+
 Design record: `adr/0013-ide-shell-and-monaco.md`.

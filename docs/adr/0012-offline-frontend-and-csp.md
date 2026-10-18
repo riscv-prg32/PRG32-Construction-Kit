@@ -51,4 +51,5 @@ controlled the kit's pages.
 - Upgrading Blockly needs `tools/vendor_assets.py`, the new style hashes (the
   browser test reports them) and a cache bump.
 - Browser tests (`tests/test_browser_offline.py`) use Playwright with Chrome or
-  Playwright's Chromium and skip without them; CI installs Chromium.
+  Playwright's Chromium and skip without them; CI installs Chromium and sets
+  `PRG32_REQUIRE_BROWSER=1`, which turns those skips into failures.
