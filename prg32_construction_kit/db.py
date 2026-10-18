@@ -71,6 +71,10 @@ class ProjectRevision(db.Model):
     assets: Mapped[str] = mapped_column(db.Text, nullable=False, default="{}")
     # A fingerprint of all the files, to skip saving the same version twice in a row.
     digest: Mapped[str] = mapped_column(db.Text, nullable=False)
+    # Which database row each sprite/asset file came from, as {archive path: row id}.
+    # Restoring puts a file back into that same row, so links to it (for example a
+    # sprite's generated-C artifact) survive. Not part of the digest or the archive.
+    child_ids: Mapped[str] = mapped_column(db.Text, nullable=False, default="{}")
 
 
 class Sprite(TimestampedModel):
@@ -217,6 +221,7 @@ def init_db() -> None:
     db.create_all()
     _add_missing_owner_columns()
     _add_missing_deleted_at_column()
+    _add_missing_revision_child_ids()
 
 
 def _add_missing_owner_columns() -> None:
@@ -240,6 +245,14 @@ def _add_missing_deleted_at_column() -> None:
         if "deleted_at" not in columns:
             connection.execute(text("ALTER TABLE projects ADD COLUMN deleted_at TEXT"))
         connection.execute(text("CREATE INDEX IF NOT EXISTS ix_projects_deleted_at ON projects (deleted_at)"))
+
+
+def _add_missing_revision_child_ids() -> None:
+    """Revisions saved before relationship-safe restore have no child_ids; add it (empty = unknown)."""
+    columns = {column["name"] for column in inspect(db.engine).get_columns("project_revisions")}
+    if "child_ids" not in columns:
+        with db.engine.begin() as connection:
+            connection.execute(text("ALTER TABLE project_revisions ADD COLUMN child_ids TEXT NOT NULL DEFAULT '{}'"))
 
 
 def list_resources(resource: str, filters: dict[str, str] | None = None, viewer_id: int | None = None,
@@ -360,7 +373,16 @@ def set_project_deleted(project_id: str, deleted: bool) -> dict[str, Any] | None
 # --- project revisions ---------------------------------------------------------
 
 def _revision_dict(revision: ProjectRevision, with_files: bool = False) -> dict[str, Any]:
-    manifest = json.loads(revision.manifest)
+    try:
+        manifest = json.loads(revision.manifest)
+        assets = json.loads(revision.assets or "{}")
+        damaged = not isinstance(manifest, dict) or not isinstance(assets, dict) or "source" not in manifest
+    except (TypeError, json.JSONDecodeError):
+        damaged = True
+    if damaged:
+        # A damaged row is still listed (so it can be seen and deleted with its project),
+        # but it has no files: restoring or downloading it gives a clear error.
+        manifest, assets = {"title": "(damaged revision)"}, {}
     item: dict[str, Any] = {
         "id": revision.id,
         "project_id": revision.project_id,
@@ -374,11 +396,25 @@ def _revision_dict(revision: ProjectRevision, with_files: bool = False) -> dict[
         "sprite_count": sum(1 for entry in manifest.get("assets", []) if entry.get("kind") == "sprite"),
         "asset_count": sum(1 for entry in manifest.get("assets", []) if entry.get("kind") == "asset"),
     }
+    item["damaged"] = damaged
     if with_files:
-        files = {"prg32.project.json": revision.manifest, manifest["source"]: revision.source}
-        files.update(json.loads(revision.assets))
+        files = {} if damaged else {"prg32.project.json": revision.manifest, manifest["source"]: revision.source}
+        files.update(assets)
         item["files"] = {path: content.encode("utf-8") for path, content in files.items()}
+        item["child_ids"] = _child_ids(revision.child_ids)
     return item
+
+
+def _child_ids(value: str | None) -> dict[str, str]:
+    """The {path: row id} map of a revision; anything malformed counts as "unknown" ({})."""
+    try:
+        parsed = json.loads(value or "{}")
+    except (TypeError, json.JSONDecodeError):
+        return {}
+    if not isinstance(parsed, dict):
+        return {}
+    return {str(path): str(row_id) for path, row_id in parsed.items()
+            if isinstance(path, str) and isinstance(row_id, str) and _ID_RE.match(row_id)}
 
 
 def list_revisions(project_id: str) -> list[dict[str, Any]]:
@@ -396,7 +432,8 @@ def get_revision(project_id: str, revision_id: str) -> dict[str, Any] | None:
     return _revision_dict(revision, with_files=True)
 
 
-def add_revision(project: dict[str, Any], files: dict[str, bytes], reason: str, keep: int) -> dict[str, Any] | None:
+def add_revision(project: dict[str, Any], files: dict[str, bytes], reason: str, keep: int,
+                 child_ids: dict[str, str] | None = None) -> dict[str, Any] | None:
     """Save the project files as a new revision and keep only the newest ``keep``.
 
     Nothing is saved (and None is returned) when the files are the same as in
@@ -414,7 +451,8 @@ def add_revision(project: dict[str, Any], files: dict[str, bytes], reason: str, 
         return None
     revision = ProjectRevision(id=new_id("rev"), project_id=project["id"], owner_id=project.get("owner_id"),
                                created_at=utcnow(), seq=(newest.seq + 1) if newest else 1, reason=reason,
-                               manifest=manifest_text, source=source, assets=assets_text, digest=digest)
+                               manifest=manifest_text, source=source, assets=assets_text, digest=digest,
+                               child_ids=json.dumps(child_ids or {}, sort_keys=True))
     try:
         db.session.add(revision)
         db.session.flush()
@@ -463,3 +501,46 @@ def count(resource: str) -> int:
     if model is None:
         raise KeyError(resource)
     return int(db.session.scalar(select(func.count()).select_from(model)) or 0)
+
+
+def restore_project_state(project_id: str, project_values: dict[str, Any],
+                          children: dict[str, dict[str, Any]], new_owner_id: int | None) -> dict[str, Any] | None:
+    """Put a project and its sprites/assets back as a revision had them, in ONE transaction.
+
+    ``children`` is {"sprites"|"assets": {"update": [(row id, values)], "create": [values],
+    "delete": [row ids]}}. Rows are changed in place where possible, so their ids (and
+    every link to them) stay the same. Either everything is stored or, if anything goes
+    wrong, nothing is: the project and its children stay exactly as they were.
+    """
+    project = db.session.get(Project, project_id)
+    if project is None:
+        return None
+    now = utcnow()
+    try:
+        for column, value in project_values.items():
+            setattr(project, _attribute(column), _encode_value("projects", column, value))
+        project.updated_at = now
+        for resource in ("sprites", "assets"):
+            model = RESOURCE_MODELS[resource]
+            plan = children.get(resource, {})
+            for row_id in plan.get("delete", []):
+                row = db.session.get(model, row_id)
+                if row is not None and row.project_id == project_id:
+                    db.session.delete(row)
+            for row_id, values in plan.get("update", []):
+                row = db.session.get(model, row_id)
+                if row is None or row.project_id != project_id:
+                    raise ValueError(f"{resource} {row_id} does not belong to project {project_id}")
+                for column, value in values.items():
+                    setattr(row, _attribute(column), _encode_value(resource, column, value))
+                row.updated_at = now
+            for values in plan.get("create", []):
+                attributes = {**DEFAULTS[resource], **values, "project_id": project_id, "owner_id": new_owner_id}
+                db.session.add(model(id=new_id(resource.rstrip("s")), created_at=now, updated_at=now,
+                                     **{_attribute(column): _encode_value(resource, column, attributes.get(column))
+                                        for column in RESOURCE_COLUMNS[resource]}))
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        raise
+    return _as_dict("projects", project)

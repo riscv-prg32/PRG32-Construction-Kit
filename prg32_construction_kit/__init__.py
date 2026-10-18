@@ -6,7 +6,7 @@ from pathlib import Path
 
 from flask import Flask
 
-from . import auth, sso
+from . import auth, security, sso
 from .config import Config
 from .db import db, init_app as init_db_app
 from .routes import bp
@@ -37,7 +37,8 @@ def create_app(test_config: dict | None = None) -> Flask:
     app.register_blueprint(bp)
 
     with app.app_context():
-        auth.ensure_default_admin(app.config["ADMIN_PASSWORD"])
+        auth.bootstrap_admin(app)
+        security.forget_expired()  # old sign-in counters
         seed_if_empty(app.config["DEFAULT_STORE_URL"])
         # gunicorn --preload builds the app once and then forks workers; each
         # worker must open its own database connections instead of sharing these.
@@ -48,7 +49,7 @@ def create_app(test_config: dict | None = None) -> Flask:
         from .db import init_db
 
         init_db()
-        auth.ensure_default_admin(app.config["ADMIN_PASSWORD"])
+        auth.bootstrap_admin(app)
         seed_if_empty(app.config["DEFAULT_STORE_URL"])
         print("Initialized PRG32-Construction-Kit database.")
 

@@ -19,7 +19,9 @@ without changes keeps nothing new. Restoring also keeps the version you had
 just before, so you can always go back again.
 
 Restore puts back the blocks (or the C, or the assembly), the title and summary, and the
-sprites and assets as they were in that version.
+sprites and assets as they were in that version. A sprite you still have is
+changed back *in place*: it keeps its identity, so anything made from it (for
+example its generated C) still belongs to it.
 
 **Get a deleted project back**
 
@@ -38,5 +40,25 @@ its history.
   generated files (artifacts) stay, without a project.
 - A version is the same set of files as a project archive, so a downloaded
   version imports like any hand-in.
+
+### How restore matches sprites and assets
+
+Each saved version also remembers which database row every sprite and asset
+file came from (the `child_ids` column; not part of the downloaded archive).
+On restore, for each sprite/asset of the version, in this order:
+
+1. the row recorded for it, if it still belongs to this project and is the
+   same kind (sprite or asset);
+2. otherwise the first unused current row of the same kind with the same
+   name (this is how versions saved before this feature are matched);
+3. otherwise a new row, owned by the project's owner.
+
+Current rows that no file claims are deleted (artifacts made from a deleted
+sprite keep existing, without a sprite). Rows of other projects are never
+touched, and rows keep their owner. Order needs no storing: a project lists
+sprites and assets by name and content, so the restored project gives the
+same archive, byte for byte, as the version. Everything happens in one
+database transaction: if anything fails, the project stays as it was. A
+damaged version is refused with `422` and changes nothing.
 
 API details: `api.md`, section *Project history and Recently deleted*.

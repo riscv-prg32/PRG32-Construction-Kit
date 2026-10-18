@@ -299,6 +299,8 @@ def test_package_failure_marks_build_failed(client, monkeypatch):
 
 
 def test_package_uses_configured_build_root(client, app, monkeypatch):
+    # As on a server without the build tools, whatever this machine has installed.
+    monkeypatch.setattr("prg32_construction_kit.routes.toolchain_present", lambda _command: False)
     monkeypatch.setattr("prg32_construction_kit.packager.subprocess.run",
                         lambda command, **_kw: SimpleNamespace(returncode=1, stdout="", stderr="no toolchain"))
     project = client.post("/api/projects", json={"title": "Where", "blocks_json": default_blocks()}).get_json()

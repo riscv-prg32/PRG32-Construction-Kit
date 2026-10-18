@@ -107,3 +107,13 @@ is available and succeeds. The editor's **Download .prg32** button asks the
 package action for a single architecture and downloads the resulting
 `prg32_cartridge` artifact; the C source and build log are still stored. C compilation is intended for trusted classroom
 installations; source validation is not an OS sandbox.
+
+## Security and provenance modules
+
+| Module | Role |
+| --- | --- |
+| `prg32_construction_kit/security.py` | Database-backed sign-in limits (`auth_throttle`) and the admin audit log (`audit_events`). |
+| `prg32_construction_kit/provenance.py` | Build provenance: kit/SDK/ABI/compiler identity, normalized build command, SHA-256 of sources and cartridges. |
+| `auth.bootstrap_admin` | First admin without a built-in password; production refuses weak ones. |
+
+Trust boundaries and the threat model are in `security.md`.

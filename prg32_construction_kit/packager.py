@@ -1,13 +1,15 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import os
+import re
 import shlex
 import shutil
 import struct
 import subprocess
-import zlib
 import zipfile
+import zlib
 from pathlib import Path
 from typing import Any
 
@@ -85,14 +87,37 @@ def build_environment(work_dir: Path) -> dict[str, str]:
     return env
 
 
+# An absolute folder path such as /opt/PRG32/components/ (not part of a URL or <build>/).
+_HOST_FOLDER = re.compile(r"(?<![\w>.:/])/(?:[^\s/:'\"()<>]+/)+")
+_SECRET_WORDS = ("token", "password", "secret", "key", "auth")
+
+
 def redact_build_path(log: str, work_dir: Path) -> str:
-    """Keep compiler logs useful without exposing the server's directory layout."""
-    return log.replace(str(work_dir), "<build>")
+    """Keep compiler logs useful without exposing the server's directory layout.
+
+    The build's own folder becomes ``<build>``; any other absolute folder (the
+    SDK, the Python installation) is dropped, keeping the file name.
+    """
+    return _HOST_FOLDER.sub("", log.replace(str(work_dir), "<build>"))
+
+
+def public_command(parts: list[str]) -> str:
+    """A build command as students may see it: program names only, secret-looking options hidden."""
+    shown = []
+    for part in parts:
+        if "=" in part and any(word in part.split("=", 1)[0].lower() for word in _SECRET_WORDS):
+            shown.append(part.split("=", 1)[0] + "=<hidden>")
+        elif "/" in part or "\\" in part:
+            shown.append(Path(part.replace("\\", "/")).name)
+        else:
+            shown.append(part)
+    return " ".join(shown)
 
 
 def run_prg32_build(build_command: str, source_path: Path, out_path: Path, entry_prefix: str, name: str, architecture: str, cart_ram_kib: int, required_features: list[str] | None = None, timeout: float = 120) -> tuple[bool, str]:
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    command = shlex.split(build_command) + [
+    program = shlex.split(build_command)
+    command = program + [
         str(source_path),
         "--portable",
         "--architecture",
@@ -111,15 +136,29 @@ def run_prg32_build(build_command: str, source_path: Path, out_path: Path, entry
     if "multiplayer" in (required_features or []):
         # Also sets the cartridge header's multiplayer flag (PRG32 builder option).
         command.append("--multiplayer")
+    # The log shows the build command by program name (no server folders or secrets);
+    # the build's own paths stay and become <build>/... in redact_build_path.
+    shown = " ".join([public_command(program), *command[len(program):]])
     try:
         result = subprocess.run(command, check=False, capture_output=True, text=True, timeout=timeout,
                                 env=build_environment(out_path.parent))
-    except FileNotFoundError as exc:
-        return False, f"Build command not found: {exc}\nCommand: {' '.join(command)}"
+    except FileNotFoundError:
+        return False, f"Build command not found: {public_command(program[:1])}\nCommand: {shown}"
     except subprocess.TimeoutExpired:
-        return False, f"Build command timed out after {timeout:g} seconds.\nCommand: {' '.join(command)}"
-    log = "$ " + " ".join(command) + "\n" + result.stdout + result.stderr
+        return False, f"Build command timed out after {timeout:g} seconds.\nCommand: {shown}"
+    log = "$ " + shown + "\n" + result.stdout + result.stderr
     return result.returncode == 0 and out_path.exists(), log
+
+
+def sha256_file(path: Path) -> tuple[str, int]:
+    """SHA-256 (hex) and size in bytes of a file."""
+    digest = hashlib.sha256()
+    size = 0
+    with path.open("rb") as stream:
+        for chunk in iter(lambda: stream.read(65536), b""):
+            digest.update(chunk)
+            size += len(chunk)
+    return digest.hexdigest(), size
 
 
 def prepare_package(
@@ -167,14 +206,20 @@ def prepare_package(
     logs: list[str] = []
     targets = architectures or SUPPORTED_ARCHITECTURES
     architectures: list[dict[str, str]] = []
+    attempts: list[dict[str, Any]] = []
+    cartridges: list[dict[str, Any]] = []
     for arch in targets:
         out_name = f"{slug}-{arch}.prg32"
         out_path = work_dir / out_name
         ok, log = run_prg32_build(build_command, source_path, out_path, str(entry_prefix), slug, arch, cart_ram_kib,
                                   game_ir.get("required_features", []), build_timeout)
         logs.append(f"[{arch}]\n{redact_build_path(log, work_dir)}")
+        attempts.append({"architecture": arch, "ok": ok})
         if ok:
             architectures.append({"id": arch, "file": out_name})
+            # The cartridge's fingerprint: the same source and tools give the same SHA-256.
+            digest, size = sha256_file(out_path)
+            cartridges.append({"architecture": arch, "file": out_name, "sha256": digest, "bytes": size})
     shutil.rmtree(work_dir / "tmp", ignore_errors=True)
 
     manifest = project_manifest(project, game_ir, architectures)
@@ -210,4 +255,6 @@ def prepare_package(
         "cart_ram_kib": cart_ram_kib,
         "log": "\n\n".join(logs),
         "publishable": bool(architectures),
+        "attempts": attempts,
+        "cartridges": cartridges,
     }

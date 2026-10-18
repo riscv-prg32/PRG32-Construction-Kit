@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import functools
 import hashlib
+import os
 import re
 import secrets
 import smtplib
@@ -41,6 +42,7 @@ from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Mapped, mapped_column
 from werkzeug.security import check_password_hash, generate_password_hash
 
+from . import security
 from .db import db, utcnow
 from .sso_protocol import timestamp_now
 
@@ -382,6 +384,8 @@ def update_user(user: User, *, username: str | None = None, email: str | None = 
         _write_groups(int(user.id), groups)
     user.updated_at = timestamp_now()
     db.session.commit()
+    if password and user.role == "admin":
+        forget_bootstrap_password()
     _notify_sync(user, previous_email=previous_email if previous_email != user.email else None)
     return user
 
@@ -445,23 +449,83 @@ def upsert_external_user(*, provider: str, external_id: str, email: str, usernam
     return user
 
 
-def ensure_default_admin(password: str) -> None:
+# Passwords nobody may use for the first admin on a production server.
+WEAK_ADMIN_PASSWORDS = {"password", "admin", "administrator", "changeme", "change-me", "change-me-before-class",
+                        "prg32", "prg32-admin", "letmein", "1234567890", "password123", "teacher"}
+BOOTSTRAP_PASSWORD_FILE = "initial_admin_password"
+
+
+class BootstrapError(RuntimeError):
+    """The first admin cannot be created safely with this configuration."""
+
+
+def bootstrap_password_path(app) -> Any:
+    from pathlib import Path
+
+    return Path(app.config["DATA_DIR"]) / BOOTSTRAP_PASSWORD_FILE
+
+
+def weak_admin_password(password: str) -> bool:
+    return len(password) < MIN_PASSWORD_LENGTH or password.strip().lower() in WEAK_ADMIN_PASSWORDS
+
+
+def bootstrap_admin(app) -> str:
     """Create the first ``admin`` account, but only while there is no admin at all.
 
-    Renaming or deleting that account must never bring back a user with the
-    well-known default password, so nothing happens once any admin exists.
+    Returns what happened: ``"exists"``, ``"environment"`` (password from
+    PRG32_ADMIN_PASSWORD) or ``"generated"`` (a random password written to
+    DATA_DIR/initial_admin_password, readable only by the server's user).
+
+    - Renaming or deleting that account never brings it back: nothing happens
+      once any admin exists, or while a user called ``admin`` exists.
+    - There is no built-in well-known password. A weak PRG32_ADMIN_PASSWORD
+      stops a production server (PRG32_KIT_ENV=production) from starting; in
+      development it works with a warning.
+    - Passwords are never logged.
     """
     if admin_count() > 0:
-        return
+        return "exists"
     taken = db.session.scalar(select(User.id).where((User.username == "admin") | (User.email == "admin@localhost")))
     if taken is not None:
-        return
+        return "exists"
+    password = app.config.get("ADMIN_PASSWORD") or ""
+    production = app.config.get("KIT_ENV") == "production"
+    if password:
+        weak = weak_admin_password(password)
+        if weak and production:
+            raise BootstrapError(
+                "PRG32_ADMIN_PASSWORD is too short or a well-known password, so this production server will not "
+                "create its first admin with it. Choose a long random password, or leave PRG32_ADMIN_PASSWORD "
+                f"unset to get a random one in the data folder ({BOOTSTRAP_PASSWORD_FILE}).")
+        if weak:
+            app.logger.warning("INSECURE: the first admin uses a weak PRG32_ADMIN_PASSWORD. This is allowed only "
+                               "because PRG32_KIT_ENV is not 'production'. Never expose this server to a network.")
+        source = "environment"
+    else:
+        password = secrets.token_urlsafe(18)
+        path = bootstrap_password_path(app)
+        path.unlink(missing_ok=True)
+        fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+        with os.fdopen(fd, "w", encoding="utf-8") as stream:
+            stream.write(password + "\n")
+        app.logger.warning("Created the first admin account 'admin' with a random password. Read it from the file "
+                           "%s in the data folder (PRG32_KIT_DATA), sign in, and change it on My account; the file "
+                           "is deleted when you do.", BOOTSTRAP_PASSWORD_FILE)
+        source, weak = "generated", False
     user = User(username="admin", email="admin@localhost", password_hash=generate_password_hash(password),
                 role="admin", updated_at=timestamp_now())
     db.session.add(user)
     db.session.flush()
     _write_groups(int(user.id), ["editors"])
     db.session.commit()
+    security.record("admin_bootstrap", target_type="user", target_id=user.id, actor=None,
+                    metadata={"source": source, "weak": weak, "environment": app.config.get("KIT_ENV")})
+    return source
+
+
+def forget_bootstrap_password() -> None:
+    """The random first-admin password file is not needed once an admin chose a password."""
+    bootstrap_password_path(current_app).unlink(missing_ok=True)
 
 
 def sign_in(principal: Principal) -> None:
@@ -575,16 +639,43 @@ def login_form():
                            external_logins=auth_adapters.enabled_logins(current_app))
 
 
+def too_many(error: security.Throttled, template: str | None = None, **context: Any):
+    """429 with Retry-After. The same answer whether or not an account exists."""
+    minutes = max(1, (error.retry_after + 59) // 60)
+    message = f"Too many attempts. Wait {minutes} minute{'s' if minutes != 1 else ''} and try again, or ask your teacher."
+    if wants_json() or template is None:
+        response = jsonify({"error": message, "retry_after": error.retry_after})
+    else:
+        response = current_app.make_response(render_template(template, error=message, **context))
+    response.status_code = 429
+    response.headers["Retry-After"] = str(error.retry_after)
+    return response
+
+
 @bp.post("/auth/login")
 def login():
-    principal = authenticate_local_user(request.form.get("username", ""), request.form.get("password", ""))
+    from . import auth_adapters, sso
+
+    username = request.form.get("username", "")
+    address = security.client_address()
+    form_context = {"next": safe_next(""), "sso": sso.status(), "external_logins": auth_adapters.enabled_logins(current_app)}
+    try:
+        # Failures are counted per address+name (so one student's typos lock only that name)
+        # and, with a much larger limit, per address.
+        security.check("login_user", address, username)
+        security.check("login_address", address)
+    except security.Throttled as error:
+        security.record("login_throttled", target_type="user", outcome="denied", actor=None,
+                        metadata={"limit": "login"})
+        return too_many(error, "auth_login.html", **form_context)
+    principal = authenticate_local_user(username, request.form.get("password", ""))
     if not principal.authenticated:
+        security.hit("login_user", address, username)
+        security.hit("login_address", address)
         if wants_json():
             return jsonify({"error": "invalid username or password"}), 401
-        from . import auth_adapters, sso
-
-        return render_template("auth_login.html", error="Invalid username or password.", next=safe_next(""),
-                               sso=sso.status(), external_logins=auth_adapters.enabled_logins(current_app)), 401
+        return render_template("auth_login.html", error="Invalid username or password.", **form_context), 401
+    security.reset("login_user", address, username)
     sign_in(principal)
     if wants_json():
         return jsonify({"ok": True, "user": principal.as_dict()})
@@ -626,6 +717,11 @@ def register():
         if wants_json():
             return jsonify({"error": "; ".join(errors)}), 400
         return render_template("auth_register.html", errors=errors, allowed=current_app.config["ALLOW_REGISTRATION"]), 400
+    try:
+        security.check_and_hit("register_address", security.client_address())
+        security.check_and_hit("register_email", email)
+    except security.Throttled as error:
+        return too_many(error, "auth_register.html", allowed=current_app.config["ALLOW_REGISTRATION"])
     # Say the same thing whether or not the account exists, so nobody can test emails.
     if find_user_by_email(email) is None:
         token = _create_registration_token(email)
@@ -648,8 +744,14 @@ def register_complete_form():
 @bp.post("/auth/register/complete")
 def register_complete():
     token = request.form.get("token", "")
+    address = security.client_address()
+    try:
+        security.check("register_complete", address)
+    except security.Throttled as error:
+        return too_many(error)
     record = _load_registration_token(token)
     if record is None:
+        security.hit("register_complete", address)
         if wants_json():
             return jsonify({"error": "registration link is invalid or expired"}), 400
         return render_template("error.html", error="This registration link is invalid or expired."), 400
@@ -671,6 +773,8 @@ def register_complete():
         return render_template("error.html", error="This account already exists. Sign in instead."), 400
     role = current_app.config["DEFAULT_ROLE"]
     user = create_user(unique_username(record.email, record.email), record.email, password, role=role)
+    security.record("user_registered", target_type="user", target_id=user.id, actor=None,
+                    metadata={"role": user.role})
     principal = principal_from_user(user)
     sign_in(principal)
     if wants_json():
@@ -697,6 +801,7 @@ def change_password():
     if user.password_hash and not check_password_hash(user.password_hash, str(data.get("current_password", ""))):
         return jsonify({"error": "current password is wrong"}), 400
     update_user(user, password=str(data.get("new_password", "")) or None)
+    security.record("password_change", target_type="user", target_id=user.id)
     return jsonify({"ok": True})
 
 
@@ -717,10 +822,16 @@ def list_tokens():
 def create_token():
     data = request.get_json(silent=True) or {}
     label = str(data.get("label") or request.form.get("label") or "API token").strip()[:80] or "API token"
+    try:
+        security.check_and_hit("token_create", current_principal().id)
+    except security.Throttled as error:
+        security.record("api_token_create", target_type="api_token", outcome="denied", metadata={"label": label})
+        return too_many(error)
     token = "prg32_" + secrets.token_urlsafe(32)
     row = ApiToken(user_id=current_principal().id, token_hash=token_hash(token), label=label)
     db.session.add(row)
     db.session.commit()
+    security.record("api_token_create", target_type="api_token", target_id=row.id, metadata={"label": label})
     # The token is shown only now; the server keeps just its hash.
     return jsonify({"ok": True, "id": row.id, "label": label, "token": token}), 201
 
@@ -745,6 +856,8 @@ def rename_token(token_id: int):
 def revoke_token(token_id: int):
     result = db.session.execute(delete(ApiToken).where(ApiToken.id == token_id, ApiToken.user_id == current_principal().id))
     db.session.commit()
+    security.record("api_token_revoke", target_type="api_token", target_id=token_id,
+                    outcome="success" if result.rowcount else "not_found")
     return jsonify({"ok": result.rowcount > 0})
 
 
@@ -782,6 +895,8 @@ def api_create_user():
     data = request.get_json(silent=True) or {}
     user = create_user(str(data.get("username") or ""), str(data.get("email") or ""), str(data.get("password") or "") or None,
                        role=str(data.get("role") or "user"), groups=_groups_from(data) or [])
+    security.record("user_create", target_type="user", target_id=user.id,
+                    metadata={"username": user.username, "role": user.role, "groups": list(groups_for_user(user.id))})
     return jsonify(user_as_dict(user)), 201
 
 
@@ -797,11 +912,20 @@ def api_user(user_id: int):
     if request.method == "DELETE":
         if user.id == me.id:
             return jsonify({"error": "you cannot delete your own account"}), 400
-        delete_user(user)
+        username, role = user.username, user.role
+        try:
+            delete_user(user)
+        except ValueError:
+            security.record("user_delete", target_type="user", target_id=user_id, outcome="refused",
+                            metadata={"username": username})
+            raise
+        security.record("user_delete", target_type="user", target_id=user_id,
+                        metadata={"username": username, "role": role})
         return jsonify({"deleted": True, "id": user_id})
     data = request.get_json(silent=True) or {}
     if user.id == me.id and "role" in data and data["role"] != "admin":
         return jsonify({"error": "admins cannot demote themselves"}), 400
+    before = {"username": user.username, "email": user.email, "role": user.role, "groups": list(groups_for_user(user.id))}
     update_user(
         user,
         username=str(data["username"]) if "username" in data else None,
@@ -810,7 +934,38 @@ def api_user(user_id: int):
         role=str(data["role"]) if "role" in data else None,
         groups=_groups_from(data),
     )
+    after = {"username": user.username, "email": user.email, "role": user.role, "groups": list(groups_for_user(user.id))}
+    changes = {f"{key}_before": before[key] for key in before if before[key] != after[key]}
+    changes.update({f"{key}_after": after[key] for key in after if before[key] != after[key]})
+    if data.get("password"):
+        changes["credentials_changed"] = True  # that the password changed, never its value
+    action = ("user_role_change" if "role_after" in changes
+              else "user_groups_change" if "groups_after" in changes else "user_update")
+    security.record(action, target_type="user", target_id=user_id, metadata=changes)
     return jsonify(user_as_dict(user))
+
+
+# --- teacher (admin) security tools ------------------------------------------
+
+@bp.get("/api/admin/audit")
+@admin_required
+def api_audit_events():
+    """The audit log, newest first. Optional: ?limit=100&action=user_create&before=<id>."""
+    try:
+        limit = int(request.args.get("limit", "100"))
+        before = int(request.args["before"]) if request.args.get("before") else None
+    except ValueError:
+        return jsonify({"error": "limit and before must be whole numbers"}), 400
+    return jsonify({"events": security.audit_events(limit, request.args.get("action") or None, before)})
+
+
+@bp.delete("/api/admin/throttles")
+@admin_required
+def api_clear_throttles():
+    """Unlock everybody at once (for example after a class mistyped the shared password)."""
+    cleared = security.clear_all()
+    security.record("throttles_clear", target_type="auth_throttle", metadata={"cleared": cleared})
+    return jsonify({"ok": True, "cleared": cleared})
 
 
 @bp.errorhandler(ValueError)

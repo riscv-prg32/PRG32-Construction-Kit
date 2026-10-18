@@ -105,7 +105,9 @@ jobs:
           load: true
           push: false
           tags: ${{ env.CI_IMAGE }}
-          build-args: PRG32_TOOLCHAIN=1
+          build-args: |
+            PRG32_TOOLCHAIN=1
+            PRG32_KIT_REVISION=${{ github.sha }}
           cache-from: type=gha,scope=toolchain-image
           cache-to: type=gha,mode=max,scope=toolchain-image
 
@@ -206,7 +208,9 @@ jobs:
           push: true
           tags: ${{ steps.metadata.outputs.tags }}
           labels: ${{ steps.metadata.outputs.labels }}
-          build-args: PRG32_TOOLCHAIN=1
+          build-args: |
+            PRG32_TOOLCHAIN=1
+            PRG32_KIT_REVISION=${{ github.sha }}
           cache-from: type=gha,scope=toolchain-image
           cache-to: type=gha,mode=max,scope=published-image
 

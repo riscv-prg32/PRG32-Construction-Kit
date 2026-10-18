@@ -27,6 +27,7 @@ PRG32-Construction-Kit is a classroom web application for building PRG32 games w
 12. `project_archive.md` - saving, sharing and importing a whole project as one zip file.
    - `project_history.md` - History (earlier versions) and Recently deleted.
 13. `handwritten_assembly.md` - writing a cartridge directly in RISC-V assembly.
+14. `build_provenance.md` - what made each cartridge (versions, settings, SHA-256 fingerprints).
 
 ## Full-IDE roadmap
 

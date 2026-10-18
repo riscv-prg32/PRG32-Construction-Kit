@@ -30,6 +30,13 @@ Requests with an API token skip this check.
 | `GET/POST` | `/api/users` | Admins: list / create users |
 | `GET/PUT/DELETE` | `/api/users/<id>` | Admins: read / change / delete a user |
 | `GET` | `/auth/oidc/login`, `/auth/saml/login` | School sign-in, when configured |
+| `GET` | `/api/admin/audit` | Admins: audit log, newest first (`limit`, `action`, `before`) |
+| `DELETE` | `/api/admin/throttles` | Admins: clear all sign-in limits |
+
+Sign-in, registration, registration links and new API tokens are limited
+(`security.md`, *Sign-in limits*). Over the limit they answer `429` with a
+`Retry-After` header (seconds) and `{"error", "retry_after"}`; a known and an
+unknown username get the same answer.
 
 Each item has an `owner_id` and a `can_edit` flag. Users see their own items
 and shared items (`owner_id` empty); admins see everything.
@@ -199,8 +206,12 @@ DELETE /api/projects/<id>?purge=1
 - `.../archive` downloads one revision as `<title>-revision-<n>.prg32project.zip`.
 - `.../restore` keeps the current version as a revision first (`reason: restore`),
   then puts back the source, title, summary, author, tags, sprites and
-  assets. Answer: `{"project", "restored_revision", "saved_revision"}`
-  (`saved_revision` is `null` when the current version was already kept).
+  assets in one transaction. Sprites and assets keep their ids where the
+  version still has them (`project_history.md`, *How restore matches*).
+  Answer: `{"project", "restored_revision", "saved_revision"}`
+  (`saved_revision` is `null` when the current version was already kept);
+  `422` when the saved version is damaged (nothing changes).
+- Each revision in the list has `damaged: true|false`.
 - History routes are for the project's owner and admins: `404` if you cannot
   see the project, `403` for a shared classroom project you cannot change.
 - `DELETE /api/projects/<id>` answers `{"deleted": true, "id": ...}` as before,
@@ -268,7 +279,14 @@ Response fields:
 Status codes: `200` built (check `build.status`), `400` invalid project,
 `409` the project changed in another window, `503` all build slots busy.
 
-`result.publishable` is true only when `.prg32` files were created.
+`build.status` is `ready` (at least one `.prg32`), `failed` (build tools are
+installed but the compiler made no cartridge, or packaging crashed) or
+`source-only` (this server has no build tools). `result.publishable` is true
+only when `.prg32` files were created. `build.metadata.provenance` records
+what made the build, with SHA-256 fingerprints of the source and of every
+cartridge (`build_provenance.md`); each `prg32_cartridge` artifact also has
+`metadata.sha256` and `metadata.bytes`. Responses and logs contain no server
+folders: the build folder appears as `<build>`.
 
 ## Convert sprite to C
 

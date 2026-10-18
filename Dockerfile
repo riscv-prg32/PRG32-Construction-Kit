@@ -12,8 +12,11 @@ ARG PRG32_REF=main
 # RISC-V GCC release of ESP-IDF 5.4.
 ARG RISCV_GCC_VERSION=esp-14.2.0_20241119
 
+# The image is a production server: no weak first-admin password is accepted
+# (see docs/admin-guide.md).
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
+    PRG32_KIT_ENV=production \
     PRG32_KIT_DATA=/data \
     PRG32_KIT_PORT=5090 \
     PRG32_REQUIRE_TOOLCHAIN=$PRG32_TOOLCHAIN \
@@ -52,6 +55,10 @@ LABEL org.opencontainers.image.title="PRG32-Construction-Kit" \
       prg32.ref="$PRG32_REF" \
       prg32.riscv-gcc="$RISCV_GCC_VERSION"
 
+# The kit's commit, recorded in every build's provenance (.git is not copied in).
+# Declared here, after the toolchain layers, so a new commit does not rebuild them.
+ARG PRG32_KIT_REVISION=
+ENV PRG32_KIT_REVISION=$PRG32_KIT_REVISION
 COPY . .
 RUN mkdir -p /data && useradd -ms /bin/bash kit && chown -R kit:kit /data /app
 USER kit

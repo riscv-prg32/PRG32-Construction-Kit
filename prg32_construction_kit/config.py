@@ -6,6 +6,16 @@ import sys
 from pathlib import Path
 
 
+def _throttle_overrides() -> dict[str, tuple[int, int]]:
+    """PRG32_KIT_THROTTLE_LOGIN_USER=5/900 means: 5 attempts per 900 seconds (see security.LIMITS)."""
+    limits: dict[str, tuple[int, int]] = {}
+    for key, value in os.environ.items():
+        if key.startswith("PRG32_KIT_THROTTLE_") and "/" in value:
+            attempts, window = value.split("/", 1)
+            limits[key.removeprefix("PRG32_KIT_THROTTLE_").lower()] = (int(attempts), int(window))
+    return limits
+
+
 def _flag(name: str, default: bool) -> bool:
     value = os.environ.get(name)
     if value is None or value.strip() == "":
@@ -54,8 +64,14 @@ class Config:
     SESSION_COOKIE_SECURE = _flag("PRG32_KIT_SECURE_COOKIES", False)
     PERMANENT_SESSION_LIFETIME = int(os.environ.get("PRG32_KIT_SESSION_HOURS", "12")) * 3600
 
+    # "production" (set by the Docker image) refuses weak first-admin passwords;
+    # "development" (plain `python app.py`) allows them with a loud warning.
+    KIT_ENV = (os.environ.get("PRG32_KIT_ENV") or "development").strip().lower()
+
     # Accounts (same model as PRG32 Cartridge Store).
-    ADMIN_PASSWORD = os.environ.get("PRG32_ADMIN_PASSWORD") or "password"
+    # Password of the first admin. Unset: a random one is written to
+    # DATA_DIR/initial_admin_password on the first start (auth.bootstrap_admin).
+    ADMIN_PASSWORD = os.environ.get("PRG32_ADMIN_PASSWORD") or None
     ALLOW_REGISTRATION = _flag("PRG32_KIT_ALLOW_REGISTRATION", True)
     REQUIRE_EMAIL_DOMAIN = os.environ.get("PRG32_KIT_REQUIRE_EMAIL_DOMAIN", "")
     DEFAULT_ROLE = os.environ.get("PRG32_KIT_DEFAULT_ROLE", "user")
@@ -70,3 +86,9 @@ class Config:
     SSO_SECRET = os.environ.get("PRG32_SSO_SECRET", "")
     SSO_PEER_URL = os.environ.get("PRG32_SSO_PEER_URL", "")
     SSO_TIMEOUT = float(os.environ.get("PRG32_SSO_TIMEOUT", "5"))
+
+    # Number of trusted reverse proxies in front of the kit. 0 (default): the
+    # X-Forwarded-For header is ignored and the connecting address is used.
+    PROXY_COUNT = int(os.environ.get("PRG32_KIT_PROXY_COUNT", "0"))
+    # Overrides of the sign-in limits in security.LIMITS.
+    THROTTLE_LIMITS = _throttle_overrides()

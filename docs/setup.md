@@ -41,7 +41,11 @@ http://127.0.0.1:5090/
 | `PRG32_KIT_MAX_REVISIONS` | `50` | Earlier versions kept per project in History (`project_history.md`). |
 | `PRG32_CART_RAM_KIB` | `64` | Cartridge RAM profile passed to the current PRG32 builder. Match this to the target firmware profile. |
 | `SECRET_KEY` | random, saved in `$PRG32_KIT_DATA/secret_key` | Signs the sign-in cookie. |
-| `PRG32_ADMIN_PASSWORD` | `password` | Password of the first `admin` account. Change it after the first sign-in. |
+| `PRG32_ADMIN_PASSWORD` | unset | Password of the first `admin` account. Unset: a random one is written to `$PRG32_KIT_DATA/initial_admin_password` (mode 600) and deleted when an admin changes it. See `admin-guide.md`. |
+| `PRG32_KIT_ENV` | `development` (`production` in the Docker image) | `production` refuses a short or well-known `PRG32_ADMIN_PASSWORD` and stops the start. |
+| `PRG32_KIT_PROXY_COUNT` | `0` | Trusted reverse proxies in front of the kit; only then is `X-Forwarded-For` used for sign-in limits (`security.md`). |
+| `PRG32_KIT_THROTTLE_<NAME>` | see `security.md` | Change a sign-in limit, e.g. `PRG32_KIT_THROTTLE_LOGIN_USER=5/900` (attempts/seconds). |
+| `PRG32_KIT_REVISION`, `PRG32_SDK_REVISION` | read from `.git` | Commit ids recorded in build provenance when there is no `.git` folder (the Docker image sets the first). |
 | `PRG32_SSO_SECRET`, `PRG32_SSO_PEER_URL` | unset | Share accounts with a Cartridge Store. |
 
 Accounts, registration email and single sign-on settings are listed in

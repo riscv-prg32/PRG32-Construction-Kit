@@ -19,13 +19,16 @@ from .db import (
     list_resources,
     list_revisions,
     release_connection,
+    restore_project_state,
     set_project_deleted,
     update_if_unchanged,
     update_resource,
 )
-from . import project_format, sso
+from . import project_format, security, sso
 from .auth import Principal, current_principal
-from .build_check import builds_available
+from .build_check import builds_available, toolchain_present
+from .db import utcnow
+from .provenance import build_provenance
 from .build_slots import BuildServerBusy, build_slot
 from .asm_generator import ir_to_asm
 from .generator import blocks_to_c, sprite_to_c
@@ -159,7 +162,7 @@ def public(resource: str, item: dict[str, Any] | None) -> dict[str, Any] | None:
 
 def public_build_result(result: dict[str, Any]) -> dict[str, Any]:
     """Return package details useful to a browser without host filesystem paths."""
-    return {key: value for key, value in result.items() if key not in {"bundle_path", "work_dir"}}
+    return {key: value for key, value in result.items() if key not in {"bundle_path", "work_dir", "source_path"}}
 
 
 def stored_file(path_value: str | None) -> Path | None:
@@ -178,8 +181,9 @@ def stored_file(path_value: str | None) -> Path | None:
     database = Path(current_app.config["DB_PATH"]).resolve()
     if path.name.startswith(database.name) and path.parent == database.parent:
         return None  # the database and its -wal / -shm / -journal files
-    if path == (Path(current_app.config["DATA_DIR"]) / "secret_key").resolve():
-        return None  # the key that signs sign-in cookies
+    data_dir = Path(current_app.config["DATA_DIR"])
+    if path in ((data_dir / "secret_key").resolve(), (data_dir / "initial_admin_password").resolve()):
+        return None  # the key that signs sign-in cookies, and the first admin's random password
     return path if path.is_file() else None
 
 
@@ -424,7 +428,51 @@ def save_revision(project: dict[str, Any], reason: str) -> dict[str, Any] | None
     """Keep the project as it is now as a revision (None if it equals the newest one)."""
     sprites, assets = _project_children(project["id"], everyone=True)
     files = project_format.project_files(project, sprites, assets)
-    return add_revision(project, files, reason, keep=current_app.config["PRG32_KIT_MAX_REVISIONS"])
+    # The manifest lists the sprite files, then the asset files, in the order of these rows.
+    entries = json.loads(files[project_format.MANIFEST_NAME])["assets"]
+    child_ids = {entry["path"]: row["id"] for entry, row in zip(entries, [*sprites, *assets])}
+    return add_revision(project, files, reason, keep=current_app.config["PRG32_KIT_MAX_REVISIONS"],
+                        child_ids=child_ids)
+
+
+def restore_plan(revision: dict[str, Any], contents: dict[str, Any], project_id: str) -> dict[str, dict[str, Any]]:
+    """Decide, for each sprite/asset of a revision, which current row it goes back into.
+
+    Identity rules (docs/project_history.md):
+    1. the row the revision recorded for that file (``child_ids``), if it still
+       belongs to this project and is the same kind of item;
+    2. otherwise (older revisions, or the row was deleted) the first unused
+       current row of the same kind with the same name;
+    3. otherwise a new row.
+    Current rows that no file claims are deleted. Rows of other projects are never touched.
+    """
+    entries = [entry for entry in contents["manifest"].get("assets", [])]
+    recorded = revision.get("child_ids", {})
+    current_sprites, current_assets = _project_children(project_id, everyone=True)
+    plan: dict[str, dict[str, Any]] = {}
+    for resource, kind, rows, current in (("sprites", "sprite", contents["sprites"], current_sprites),
+                                          ("assets", "asset", contents["assets"], current_assets)):
+        paths = [entry["path"] for entry in entries if entry.get("kind") == kind]
+        available = {row["id"]: row for row in current}
+        update, create = [], []
+        pending: list[tuple[str, dict[str, Any]]] = []
+        for path, values in zip(paths, rows):
+            row_id = recorded.get(path)
+            if row_id in available:
+                update.append((row_id, values))
+                del available[row_id]
+            else:
+                pending.append((path, values))
+        for _path, values in pending:
+            same_name = next((row_id for row_id, row in available.items() if row.get("name") == values.get("name")),
+                             None)
+            if same_name is not None:
+                update.append((same_name, values))
+                del available[same_name]
+            else:
+                create.append(values)
+        plan[resource] = {"update": update, "create": create, "delete": list(available)}
+    return plan
 
 
 def _own_project(project_id: str) -> tuple[dict[str, Any] | None, tuple[Response, int] | None]:
@@ -469,19 +517,18 @@ def api_restore_revision(project_id: str, revision_id: str):
     revision = get_revision(project_id, revision_id)
     if revision is None:
         return json_error("Revision not found", 404)
-    contents = project_format.contents_from_files(revision["files"])
+    try:
+        contents = project_format.contents_from_files(revision["files"])
+    except project_format.ProjectFormatError as exc:
+        return json_error(f"This saved version cannot be restored: {exc}", 422)
+    plan = restore_plan(revision, contents, project_id)
     saved = save_revision(project, "restore")
     fields = contents["project"]
-    updated = update_resource("projects", project_id, {key: fields[key] for key in
-                                                       ("title", "description", "author", "tags", "blocks_json", "game_json")})
-    # The sprites and assets go back to how they were too. They belong to the project's owner.
-    old_sprites, old_assets = _project_children(project_id, everyone=True)
-    for resource, rows in (("sprites", old_sprites), ("assets", old_assets)):
-        for row in rows:
-            delete_resource(resource, row["id"])
-    for resource in ("sprites", "assets"):
-        for row in contents[resource]:
-            create_resource(resource, {**row, "project_id": project_id, "owner_id": project.get("owner_id")})
+    # Project fields, changed sprites/assets (same rows, same ids), new ones and removed
+    # ones are all stored in one transaction: if anything fails, nothing changes.
+    updated = restore_project_state(
+        project_id, {key: fields[key] for key in ("title", "description", "author", "tags", "blocks_json", "game_json")},
+        plan, new_owner_id=project.get("owner_id"))
     return jsonify({"project": public("projects", updated), "restored_revision": revision_id,
                     "saved_revision": saved["id"] if saved else None})
 
@@ -729,6 +776,13 @@ def api_package_project(project_id: str):
         return response, status
 
 
+def _cartridge_fingerprint(result: dict[str, Any], architecture: str) -> dict[str, Any]:
+    for cartridge in result.get("cartridges", []):
+        if cartridge["architecture"] == architecture:
+            return {"sha256": cartridge["sha256"], "bytes": cartridge["bytes"]}
+    return {}
+
+
 def _run_package_build(project_id: str, project: dict[str, Any], game_ir: dict[str, Any], sources: dict[str, str],
                        requested: list[str] | None):
     built_from = "c" if "c" in sources else "asm"
@@ -741,6 +795,18 @@ def _run_package_build(project_id: str, project: dict[str, Any], game_ir: dict[s
         "metadata": {"project_updated_at": project.get("updated_at"), "built_from": built_from,
                      "asm_artifact_id": asm_artifact["id"] if asm_artifact else None}}))
     release_connection()
+    build_command = current_app.config["PRG32_BUILD_COMMAND"]
+    targets = list(requested or SUPPORTED_ARCHITECTURES)
+
+    def provenance(status: str, result: dict[str, Any] | None) -> dict[str, Any]:
+        return build_provenance(build_id=build["id"], started_at=started_at, finished_at=utcnow(), status=status,
+                                build_command=build_command, game_ir=game_ir, sources=sources,
+                                built_from=built_from, requested=targets,
+                                cart_ram_kib=current_app.config["PRG32_CART_RAM_KIB"],
+                                cartridges=(result or {}).get("cartridges", []),
+                                attempts=(result or {}).get("attempts", []))
+
+    started_at = utcnow()
     try:
         result = prepare_package(
             data_dir=current_app.config["DATA_DIR"],
@@ -751,7 +817,7 @@ def _run_package_build(project_id: str, project: dict[str, Any], game_ir: dict[s
             asm_source=sources.get("asm"),
             build_language=built_from,
             build_id=build["id"],
-            build_command=current_app.config["PRG32_BUILD_COMMAND"],
+            build_command=build_command,
             cart_ram_kib=current_app.config["PRG32_CART_RAM_KIB"],
             project_json=project,
             architectures=requested,
@@ -759,8 +825,14 @@ def _run_package_build(project_id: str, project: dict[str, Any], game_ir: dict[s
         )
     except Exception as exc:
         current_app.logger.exception("Packaging failed for %s", project_id)
-        update_resource("builds", build["id"], {"status": "failed", "log": f"Packaging failed: {exc}"})
+        update_resource("builds", build["id"], {"status": "failed", "log": f"Packaging failed: {exc}",
+                                                "metadata": {**build["metadata"],
+                                                             "provenance": provenance("failed", None)}})
         return json_error(f"Packaging failed: {exc}", 500)
+    # "ready": at least one cartridge. With working build tools but no cartridge, the
+    # compiler refused the source: that is "failed", not a harmless "source-only" bundle.
+    if result["status"] != "ready" and toolchain_present(build_command):
+        result["status"] = "failed"
     bundle_artifact = create_resource(
         "artifacts",
         owned({
@@ -791,7 +863,8 @@ def _run_package_build(project_id: str, project: dict[str, Any], game_ir: dict[s
                     "content_type": "application/vnd.prg32.cartridge",
                     "path": str(cartridge_path),
                     "metadata": {"architecture": architecture["id"], "portable": True, "build_id": build["id"],
-                                 "cart_ram_kib": result["cart_ram_kib"]},
+                                 "cart_ram_kib": result["cart_ram_kib"],
+                                 **_cartridge_fingerprint(result, architecture["id"])},
                 }),
             )
         )
@@ -810,6 +883,7 @@ def _run_package_build(project_id: str, project: dict[str, Any], game_ir: dict[s
                 "project_updated_at": project.get("updated_at"),
                 "built_from": built_from,
                 "asm_artifact_id": asm_artifact["id"] if asm_artifact else None,
+                "provenance": provenance(result["status"], result),
             },
         },
     )
@@ -892,19 +966,33 @@ def api_download_artifact(artifact_id: str):
                      as_attachment=True, download_name=name)
 
 
+def _audit_publish(outcome: str, payload: dict[str, Any], profile: dict[str, Any] | None, **extra: Any) -> None:
+    """Every publish attempt goes in the audit log: which bundle, which store host, what happened."""
+    from urllib.parse import urlparse
+
+    store_host = urlparse(str((profile or {}).get("store_url") or "")).hostname or ""
+    security.record("publish", target_type="artifact", target_id=payload.get("bundle_artifact_id") or "",
+                    outcome=outcome, metadata={"store_host": store_host,
+                                               "profile_id": str(payload.get("profile_id") or ""), **extra})
+
+
 @bp.post("/api/publish")
 def api_publish():
     payload = request_json()
     profile = readable("publish_profiles", payload.get("profile_id", ""))
     artifact = readable("artifacts", payload.get("bundle_artifact_id", ""))
     if profile is None:
+        _audit_publish("refused", payload, None, reason="profile not found")
         return json_error("Publish profile not found", 404)
     if artifact is None:
+        _audit_publish("refused", payload, profile, reason="bundle not found")
         return json_error("Bundle artifact not found", 404)
     if artifact.get("kind") not in {"store_bundle", "source_bundle"}:
+        _audit_publish("refused", payload, profile, reason="not a bundle")
         return json_error("Artifact is not a bundle")
     path = stored_file(artifact.get("path"))
     if path is None:
+        _audit_publish("refused", payload, profile, reason="bundle file missing")
         return json_error("Bundle file is missing on disk", 404)
     token = profile.get("bearer_token", "")
     if not token and sso.same_service(profile.get("store_url", "")):
@@ -913,5 +1001,8 @@ def api_publish():
     try:
         result = publish_bundle(profile.get("store_url", ""), token, path)
     except Exception as exc:
+        _audit_publish("failed", payload, profile, reason=type(exc).__name__)
         return json_error(f"Publish request failed: {exc}", 502)
+    _audit_publish("success" if result.get("ok", True) else "failed", payload, profile,
+                   status_code=result.get("status_code"), bundle_kind=artifact.get("kind"))
     return jsonify({"profile": public("publish_profiles", profile), "artifact": public("artifacts", artifact), "result": result})

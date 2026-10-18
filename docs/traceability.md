@@ -21,6 +21,7 @@ that proves it. "—" means not implemented yet. Statuses: **Done**,
 | PM-10 | Duplicate | Done | `POST /api/projects/<id>/duplicate`, editor "Make my copy" | `test_duplicate_copies_children_and_belongs_to_the_caller` |
 | PM-11 | Ownership: imports belong to the importer; no IDOR on export | Done | `owned()`, `readable()` | `test_imported_archive_belongs_to_the_importer`, `test_duplicate_copies_children_and_belongs_to_the_caller` |
 | PM-12 | Create/open/rename/delete | Done (pre-existing) | CRUD routes | `tests/test_api.py::test_project_crud` |
+| PM-13a | Restore keeps sprite/asset identity and links, transactionally | Done | `ProjectRevision.child_ids`, `routes.restore_plan`, `db.restore_project_state`, idempotent `_add_missing_revision_child_ids` | `tests/test_restore_relationships.py` (in-place, add/remove, reorder, legacy match by name, malformed ids, damaged revision, foreign ids, rollback, owner, IDOR, old DB) |
 | PM-13 | Snapshots/history, autosave, search, soft delete | Partial (history and soft delete done; autosave and search open) | `project_revisions` table, `add_revision` (db.py); `/api/projects/<id>/revisions*`, `?deleted=1`, `/restore`, `?purge=1` (routes.py); editor **History**, dashboard **Recently deleted** | `tests/test_project_revisions.py` (snapshot rules, cap, restore, IDOR, hide/restore/purge, old DB upgrade) |
 | PM-14 | Source maps blocks → C → instructions | Open | — | — |
 
@@ -30,11 +31,17 @@ that proves it. "—" means not implemented yet. Statuses: **Done**,
 | --- | --- | --- | --- |
 | IDE-* | JetBrains-style shell, Monaco, language services | Open | G2 |
 | TC-1 | Real `.prg32` from Blocks and C | Done (pre-existing) | `tests/test_concurrency.py`, CI container job |
-| TC-2 | Provenance and hashes per build | Open | G3 |
+| TC-2 | Provenance and hashes per build | Done | `provenance.py`, `packager.prepare_package` (`cartridges`, `attempts`), `routes._run_package_build`; tests `tests/test_build_provenance.py` (C, generated asm, handwritten asm, both, failed, source-only, crash, deterministic fields, path/secret redaction, real toolchain) |
+| TC-2a | Compiler errors are `failed`, not `source-only` | Done | `build_check.toolchain_present`, `routes._run_package_build`; `test_compiler_errors_are_failed_builds_not_source_only` |
+| TC-2b | No server paths or secrets in build responses and logs | Done | `packager.redact_build_path`, `public_command`, `routes.public_build_result`; `test_no_server_paths_or_secrets_leave_the_server`, `tests/test_api.py::test_package_uses_configured_build_root` |
 | TC-3 | Browser toolchain | Open | G3 spike |
 | RT-* | WASM guest runtime from PRG32-QT core | Open | ADR-0003 |
 | DBG-* | Debugger with Qt parity | Open | ADR-0006; parity table in `compatibility.md` |
 | ID-* | OIDC+PKCE, roles, guest policy | Open | ADR-0007 |
+| SEC-1 | No network-deployable default admin password | Done | `auth.bootstrap_admin`, `config.KIT_ENV`, Dockerfile `PRG32_KIT_ENV=production`, compose; `tests/test_admin_bootstrap.py` |
+| SEC-2 | Sign-in, registration, link and token throttling | Done | `security.py` limits, `auth.login/register/register_complete/create_token`; `tests/test_security_controls.py` (threshold, expiry, reset, isolation, proxy trust, unlock) |
+| SEC-3 | Admin audit log | Done | `security.record`, `GET /api/admin/audit`; `tests/test_security_controls.py` (users, roles, groups, tokens, publish, bootstrap, admin-only, no secrets) |
+| SEC-4 | Audit of configuration/SSO admin actions | Partial | Manual SSO sync and throttle clearing are audited; the kit has no other admin configuration endpoints |
 | CL-* | Drive/OneDrive sync | Open | needs OAuth app registrations |
 | ST-1 | Store bundle publish | Done (pre-existing) | `tests/test_api.py` publish tests |
 | TG-* | Qt / iOS / hardware targets | Partial | download + manual import only |

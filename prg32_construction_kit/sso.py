@@ -292,14 +292,23 @@ def peer_users():
 def sync_now():
     from .auth import current_principal
 
+    from . import security
+
     if not current_principal().is_admin:
+        security.record("sso_sync", target_type="sso", outcome="denied")
         return jsonify({"error": "Only teachers with the admin role can do this"}), 403
     try:
-        return jsonify(full_sync())
+        result = full_sync()
     except ValueError as exc:
+        security.record("sso_sync", target_type="sso", outcome="refused", metadata={"reason": str(exc)})
         return jsonify({"error": str(exc)}), 400
     except Exception as exc:
+        security.record("sso_sync", target_type="sso", outcome="failed", metadata={"reason": type(exc).__name__})
         return jsonify({"error": f"Sync failed: {exc}"}), 502
+    from urllib.parse import urlparse
+
+    security.record("sso_sync", target_type="sso", metadata={"peer_host": urlparse(peer_url()).hostname or ""})
+    return jsonify(result)
 
 
 @bp.get("/auth/sso/peer")

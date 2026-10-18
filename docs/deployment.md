@@ -17,7 +17,14 @@ ties them together.
 
 - Put the kit behind a reverse proxy with TLS; set `SECRET_KEY` (or keep the
   generated `data/secret_key` on a persistent volume).
-- Change the default admin password (`PRG32_ADMIN_PASSWORD`).
+- First admin: leave `PRG32_ADMIN_PASSWORD` unset and read
+  `data/initial_admin_password`, or set a long random one. The Docker image
+  runs with `PRG32_KIT_ENV=production` and refuses weak values
+  (`admin-guide.md`).
+- Behind a reverse proxy, set `PRG32_KIT_PROXY_COUNT` (sign-in limits,
+  `security.md`) and `PRG32_KIT_SECURE_COOKIES=true` for HTTPS.
+- Build the image with `--build-arg PRG32_KIT_REVISION=$(git rev-parse HEAD)`
+  so build provenance names the kit's commit (CI does this).
 - Use PostgreSQL through `DATABASE_URL` when more than one server process
   writes (`architecture.md`, *Persistence*).
 - Back up the data folder (database, `builds/`, `artifacts/`). Students can
@@ -27,5 +34,8 @@ ties them together.
 
 ## Upgrading
 
-The full-IDE work so far needs no database migration. See
-`release-notes.md` for each release's notes.
+Start the new version on the old data folder: missing tables
+(`audit_events`, `auth_throttle`) are created and missing columns
+(`project_revisions.child_ids`) added automatically, and running it twice is
+harmless. Existing admins and passwords are kept. Take a backup first; see
+`release-notes.md` for each release's notes and rollback.

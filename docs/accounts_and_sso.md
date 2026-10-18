@@ -26,8 +26,11 @@ Accounts live in the kit's own database: no cloud service is needed.
 ### First start
 
 The first start creates the account `admin` / `admin@localhost`. Its password
-is `PRG32_ADMIN_PASSWORD`, or `password` when that is not set. **Change it
-right away** on the **My account** page (click your name in the menu).
+is `PRG32_ADMIN_PASSWORD` when you set a long one; otherwise the kit makes a
+random password and writes it to `initial_admin_password` in the data folder
+(readable only by the server's user). Sign in, then **change it** on the **My
+account** page (click your name in the menu); the file is deleted then. There
+is no built-in default password. Details: `admin-guide.md`.
 
 The kit only ever creates this account while there is no admin at all, so
 renaming or deleting it never brings it back.
@@ -62,7 +65,7 @@ id) with `PUT /api/projects/<id>`.
 | Variable | Default | Meaning |
 |---|---|---|
 | `SECRET_KEY` | random, kept in `data/secret_key` | Signs the sign-in cookie |
-| `PRG32_ADMIN_PASSWORD` | `password` | Password of the first `admin` account |
+| `PRG32_ADMIN_PASSWORD` | unset (random password file) | Password of the first `admin` account |
 | `PRG32_KIT_ALLOW_REGISTRATION` | `true` | Let people create their own accounts |
 | `PRG32_KIT_REQUIRE_EMAIL_DOMAIN` | empty | Only allow emails like `name@school.edu` |
 | `PRG32_KIT_DEFAULT_ROLE` | `user` | Role of self-registered accounts |

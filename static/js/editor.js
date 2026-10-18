@@ -152,10 +152,15 @@
         if (cartridges.length) {
           const links = cartridges.map(artifact => `<a class="btn btn-success btn-sm ms-2" href="/api/artifacts/${encodeURIComponent(artifact.id)}/download"><i class="bi bi-download"></i> ${Kit.escape(artifact.metadata.architecture)} .prg32</a>`).join('');
           $('#cartridgeDownloads').removeClass('d-none alert-warning').addClass('alert-success').html(`<strong>Cartridge ready.</strong> Download it and upload it to a PRG32 cartridge slot.${links}`);
+        } else if (result.build.status === 'failed') {
+          // The build tools are installed, so the compiler refused the source.
+          $('#cartridgeDownloads').removeClass('d-none alert-success').addClass('alert-warning').text('The compiler did not make a cartridge. Read the Debug Log to see which line it complains about.');
         } else {
           $('#cartridgeDownloads').removeClass('d-none alert-success').addClass('alert-warning').text('The source bundle is ready, but this server cannot compile PRG32 cartridges yet. Ask your teacher to start the kit with its Docker image (see docs/install_cartridge_build.md).');
         }
-        Kit.toast(cartridges.length ? 'PRG32 cartridge compiled' : 'Source bundle prepared; PRG32 toolchain required for the binary', cartridges.length ? 'success' : 'warning');
+        Kit.toast(cartridges.length ? 'PRG32 cartridge compiled'
+          : result.build.status === 'failed' ? 'Cartridge build failed; see the Debug Log' : 'Source bundle prepared; PRG32 toolchain required for the binary',
+          cartridges.length ? 'success' : 'warning');
       })
       .catch(err => Kit.toast(err.message, 'danger'))
       .finally(() => $('#packageProject').prop('disabled', false));

@@ -33,8 +33,9 @@ pip install -r requirements.txt
 python app.py
 ```
 
-Open <http://127.0.0.1:5090/> and sign in as `admin` with the password
-`password` (or `PRG32_ADMIN_PASSWORD`). Change it right away on **My account**.
+Open <http://127.0.0.1:5090/> and sign in as `admin`. The first start writes a
+random password to `data/initial_admin_password` (or uses `PRG32_ADMIN_PASSWORD`
+if you set a long one). Change it on **My account**; the file is then deleted.
 
 Data is stored in `data/` by default. To move it:
 

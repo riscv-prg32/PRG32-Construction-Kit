@@ -2,6 +2,39 @@
 
 ## Unreleased
 
+### Security and quality (round 1)
+
+- **No default admin password.** The first start writes a random password to
+  `<data>/initial_admin_password` (mode 600, deleted once an admin changes
+  it) unless `PRG32_ADMIN_PASSWORD` is set. With `PRG32_KIT_ENV=production`
+  (the Docker image) a short or well-known password stops the start.
+  Compose no longer defaults to `password`.
+- **Sign-in limits**: wrong passwords (per address+name and per address),
+  registration requests, invalid registration links and new API tokens.
+  `429` + `Retry-After`. `PRG32_KIT_PROXY_COUNT` for reverse proxies;
+  `DELETE /api/admin/throttles` to unlock a class.
+- **Audit log** (`GET /api/admin/audit`, admins only) for accounts, roles,
+  groups, passwords, API tokens, bootstrap, registrations, sign-in locks,
+  publishing, SSO syncs and unlocking. No secrets are stored.
+- **Build provenance** in `build.metadata.provenance` and SHA-256/size on
+  every `.prg32` artifact (`build_provenance.md`).
+- A build whose compiler refused the source is now `failed` (it was shown as
+  `source-only`); the editor says so.
+- **Restore keeps identity**: sprites and assets are restored in place, in
+  one transaction, so artifacts keep their sprite links.
+- Build logs and package responses no longer show server folders (the
+  Python path in the logged command, `result.source_path`) or secret-looking
+  build-command options.
+
+### Migration and rollback
+
+- New tables `audit_events` and `auth_throttle`; new column
+  `project_revisions.child_ids` (default `'{}'`). All created at start-up,
+  idempotently. Older revisions keep working (matched by name).
+- Rollback: the previous release ignores the new tables and column, so
+  downgrading the code is safe. Before rolling back, note that the previous
+  release would again create `admin`/`password` on an empty database.
+
 ### Added
 
 - Portable project archive: **Export → Project archive (.zip)** in the

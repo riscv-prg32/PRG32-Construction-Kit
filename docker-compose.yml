@@ -19,7 +19,11 @@ services:
       PRG32_KIT_DATA: /data
       PRG32_KIT_PORT: 5090
       PRG32_STORE_URL: http://host.docker.internal:5080
-      PRG32_ADMIN_PASSWORD: ${PRG32_ADMIN_PASSWORD:-password}
+      # First admin: leave unset to get a random password in ./data/initial_admin_password
+      # (deleted once you change it), or set a long one in .env. Weak ones stop the start.
+      PRG32_ADMIN_PASSWORD: ${PRG32_ADMIN_PASSWORD:-}
+      # Number of trusted reverse proxies in front of the kit (for sign-in limits).
+      PRG32_KIT_PROXY_COUNT: ${PRG32_KIT_PROXY_COUNT:-0}
       # Cartridge builds: how many compile at once, how long a build may wait
       # for a free slot, and how long one compiler run may take (seconds).
       PRG32_MAX_PARALLEL_BUILDS: ${PRG32_MAX_PARALLEL_BUILDS:-4}

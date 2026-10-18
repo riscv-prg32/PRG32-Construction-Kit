@@ -1,4 +1,4 @@
-const CACHE_NAME = 'prg32-kit-v8';
+const CACHE_NAME = 'prg32-kit-v9';
 // Only static files are kept. Pages show the signed-in student's name and
 // projects, and a classroom computer is shared, so pages are never cached.
 const APP_SHELL = [

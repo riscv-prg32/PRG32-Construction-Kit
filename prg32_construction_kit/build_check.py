@@ -47,6 +47,31 @@ def check_command(build_command: str, tool_prefix: str = "riscv32-esp-elf-") -> 
     return lines
 
 
+def toolchain_present(build_command: str, tool_prefix: str = "riscv32-esp-elf-") -> bool:
+    """A quick look (no program is run): is the compiler on PATH and can the build command start?
+
+    Used after a build that made no cartridge, to tell "this server has no
+    build tools" (a source-only bundle) from "the compiler refused the source"
+    (a failed build).
+    """
+    import importlib.util
+    import sys
+    from pathlib import Path
+
+    if shutil.which(tool_prefix + "gcc") is None:
+        return False
+    try:
+        parts = shlex.split(build_command)
+    except ValueError:
+        return False
+    if not parts or (shutil.which(parts[0]) is None and not Path(parts[0]).is_file()):
+        return False
+    # "<this python> -m prg32 ...": the module must be importable here too.
+    if len(parts) > 2 and parts[1] == "-m" and Path(parts[0]).resolve() == Path(sys.executable).resolve():
+        return importlib.util.find_spec(parts[2].split(".")[0]) is not None
+    return True
+
+
 @lru_cache(maxsize=4)
 def builds_available(build_command: str, tool_prefix: str = "riscv32-esp-elf-") -> bool:
     """True when this server can compile PRG32 cartridges. Checked once per server process."""
