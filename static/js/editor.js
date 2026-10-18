@@ -87,10 +87,10 @@
       This is a shared classroom project, so you cannot change it. <button class="btn btn-primary btn-sm ms-2" id="copyProject">Make my copy</button></div>`);
   }
 
+  // The server copies the saved project together with its sprites and assets.
   $(document).on('click', '#copyProject', () => {
-    const copy = { title: project.title + ' (my copy)', description: project.description, author: project.author,
-                   tags: project.tags, blocks_json: PRG32Blocks.save(), game_json: project.game_json };
-    Kit.api('/api/projects', { method: 'POST', body: copy })
+    Kit.api('/api/projects/' + encodeURIComponent(projectId) + '/duplicate',
+            { method: 'POST', body: { title: project.title + ' (my copy)' } })
       .then(created => { window.location.href = '/projects/' + encodeURIComponent(created.id); })
       .catch(err => Kit.toast(err.message, 'danger'));
   });

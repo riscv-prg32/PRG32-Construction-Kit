@@ -150,9 +150,30 @@ Request rules and errors:
 ```http
 POST /api/projects/import
 GET  /api/projects/<id>/export
+GET  /api/projects/<id>/archive
+GET  /api/projects/<id>/manifest
+POST /api/projects/<id>/duplicate
 ```
 
-Import accepts JSON body or multipart field `file`.
+- `archive` downloads the portable project archive
+  (`<title>.prg32project.zip`): `prg32.project.json`, the source
+  (`src/blocks.json` or `src/game.c`), sprites and assets. The same project
+  always gives the same bytes. Generated C, assembly and cartridges are not
+  included; they are made again from the source.
+- `manifest` returns the `prg32.project.json` that `archive` would write.
+- `duplicate` makes the caller's own copy, with sprites and assets. Optional
+  body: `{"title": "My copy"}`. Works on shared classroom projects too.
+- `import` accepts a JSON body, or the multipart field `file` holding either
+  JSON or a project archive. Archive imports answer `201` with the new project
+  plus `ignored_files` (files in the zip that the manifest does not list), or
+  `400` with a reason: unsafe file names, links, encrypted entries, files over
+  4 MiB, more than 512 files, a newer `schema_version`, or a handwritten
+  assembly project (not supported yet).
+- `export` still writes the older single JSON file
+  (`prg32-construction-kit-project-1.0`). Importing that file goes through the
+  project-format migration (schema version 0 → 1).
+
+Format details: `project_archive.md` and `adr/0001-project-manifest.md`.
 
 ## Convert project to C or RISC-V assembly
 

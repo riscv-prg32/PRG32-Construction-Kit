@@ -24,6 +24,15 @@ PRG32-Construction-Kit is a classroom web application for building PRG32 games w
      (`presentations/*.html`).
    - `runtime_check.md` - building the examples and running them on QEMU and PRG32-QT.
 11. `../examples/textbook/` - 36 C and RISC-V assembly textbook examples.
+12. `project_archive.md` - saving, sharing and importing a whole project as one zip file.
+
+## Full-IDE roadmap
+
+- `user-guide.md` and `admin-guide.md` - where to start as a student/teacher or as an administrator.
+- `architecture/current-state.md` - what the PRG32 repositories contain today (capability matrix).
+- `implementation-plan.md` - phased plan (gates G0-G8); `adr/` - decisions.
+- `implementation-status.md`, `traceability.md` - progress and evidence per requirement.
+- `compatibility.md`, `security.md`, `deployment.md`, `release-notes.md`.
 
 ## Classroom workflow
 
