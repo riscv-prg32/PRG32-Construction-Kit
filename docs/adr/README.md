@@ -16,3 +16,4 @@ Short records of decisions for the full-IDE work. Each has a status:
 | [0008](0008-store-egress-policy.md) | Store egress policy: admin allow-list, public addresses only, pinned connections (H-01) | Accepted |
 | [0009](0009-publish-authorization-and-confirmation.md) | Publishing needs the publisher role and a confirmed review (H-02) | Accepted |
 | [0010](0010-build-sandbox.md) | Every compile runs in a bubblewrap sandbox (H-03) | Accepted |
+| [0011](0011-design-baselines.md) | The design baseline and the briefs that refine it | Accepted |

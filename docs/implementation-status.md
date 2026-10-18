@@ -1,6 +1,7 @@
 # Implementation status
 
-Status of the full-IDE plan (`implementation-plan.md`). A gate is marked
+Status of the full-IDE plan (`implementation-plan.md`). The per-requirement,
+evidence-checked view is `capabilities.md` (from `capabilities.json`). A gate is marked
 **complete** only when its acceptance tests pass. Updated 2026-10-18.
 
 | Gate | State | Summary |
@@ -53,8 +54,8 @@ Skipped and why:
 
 - Autosave snapshots and project search are not done (history is kept on
   every save that changes the source, not on a timer).
-- Restoring a revision replaces the project's sprites with new rows (new ids);
-  artifacts that pointed at the old sprites keep their files but lose the link.
+- (Fixed in quality round 1: restoring a revision now updates sprites and assets
+  in place and keeps artifact links; `tests/test_restore_relationships.py`.)
 - The editor's Blocks preview still runs the game IR, not RV32 machine code
   (the Player runs and debugs the real cartridge).
 - Debugger: no C variables, call stack, watches or conditional breakpoints

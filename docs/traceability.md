@@ -1,5 +1,9 @@
 # Requirement traceability
 
+The audit-aligned, machine-checked summary is `capabilities.md` (from
+`capabilities.json`, verified by `tests/test_capabilities.py`). This page keeps
+the detailed requirement history.
+
 Each requirement from the full-IDE brief, the evidence for it, and the test
 that proves it. "—" means not implemented yet. Statuses: **Done**,
 **Partial**, **Open**, **Blocked**.

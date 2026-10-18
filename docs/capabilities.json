@@ -1,0 +1,454 @@
+{
+  "schema": "prg32-kit-capabilities-1",
+  "statuses": [
+    "missing",
+    "prototype",
+    "partial",
+    "implemented",
+    "reference-verified",
+    "blocked"
+  ],
+  "note": "Self-assessed status with evidence. audit_score is copied from audit/REQUIREMENTS_MATRIX.md and only the auditor changes it.",
+  "capabilities": [
+    {
+      "id": "IDE-01",
+      "title": "IDE shell: project tree, tabs, panels, palette, keyboard",
+      "status": "missing",
+      "audit_score": 0,
+      "source": [],
+      "tests": [],
+      "note": "Editor is a Bootstrap page (templates/editor.html); Phase 2 of the refinement brief."
+    },
+    {
+      "id": "IDE-02",
+      "title": "Blockly editing with deterministic generation and block-to-source maps",
+      "status": "partial",
+      "audit_score": 2,
+      "source": [
+        "prg32_construction_kit/generator.py::blocks_to_c",
+        "static/js/blockly_blocks.js"
+      ],
+      "tests": [
+        "tests/test_examples.py::test_example_projects_generate_clean_deterministic_c",
+        "tests/test_examples.py::test_simulator_reads_blocks_into_the_same_ir"
+      ],
+      "note": "Block id -> IR -> source/address maps missing (Phase 4)."
+    },
+    {
+      "id": "IDE-03",
+      "title": "C editor with language services",
+      "status": "prototype",
+      "audit_score": 1,
+      "source": [
+        "prg32_construction_kit/source_project.py::validate_c_source",
+        "templates/editor.html"
+      ],
+      "tests": [
+        "tests/test_source_project.py::test_host_access_tricks_are_rejected"
+      ],
+      "note": "Plain textarea; server-side validation only (Phases 2-3)."
+    },
+    {
+      "id": "IDE-04",
+      "title": "RISC-V assembly editor with language services",
+      "status": "prototype",
+      "audit_score": 1,
+      "source": [
+        "prg32_construction_kit/source_project.py::validate_asm_source",
+        "templates/editor.html"
+      ],
+      "tests": [
+        "tests/test_handwritten_assembly.py::test_file_reading_and_unknown_directives_are_rejected"
+      ],
+      "note": "Plain textarea; server-side validation only (Phases 2-3)."
+    },
+    {
+      "id": "PRJ-01",
+      "title": "Versioned project model, archive, history, migrations",
+      "status": "implemented",
+      "audit_score": 3,
+      "source": [
+        "prg32_construction_kit/project_format.py::build_manifest",
+        "prg32_construction_kit/project_format.py::upgrade",
+        "prg32_construction_kit/routes.py::save_revision",
+        "prg32_construction_kit/routes.py::restore_plan"
+      ],
+      "tests": [
+        "tests/test_project_format.py::test_archive_round_trip_keeps_blocks_sprites_and_assets",
+        "tests/test_project_format.py::test_legacy_json_export_is_migrated",
+        "tests/test_restore_relationships.py::test_restore_updates_in_place_adds_and_removes"
+      ],
+      "note": "Autosave, search and merge of concurrent edits missing."
+    },
+    {
+      "id": "BLD-01",
+      "title": "Blocks, C and assembly build real PRG32 cartridges",
+      "status": "implemented",
+      "audit_score": 2,
+      "source": [
+        "prg32_construction_kit/packager.py::prepare_package",
+        "prg32_construction_kit/packager.py::run_prg32_build"
+      ],
+      "tests": [
+        "tests/test_wasm_runtime.py::test_kit_cartridges_run_the_same_in_the_browser_core",
+        "tests/test_concurrency.py::test_real_cartridges_for_many_students_and_windows",
+        "tests/test_handwritten_assembly.py::test_handwritten_assembly_builds_a_real_cartridge"
+      ],
+      "note": "Real-build tests need the PRG32 toolchain and skip without it; executed locally and in the Linux container on 2026-10-18."
+    },
+    {
+      "id": "BLD-02",
+      "title": "Isolated, reproducible builds with provenance",
+      "status": "implemented",
+      "audit_score": 3,
+      "source": [
+        "prg32_construction_kit/provenance.py::build_provenance",
+        "prg32_construction_kit/build_sandbox.py::prepare",
+        "prg32_construction_kit/build_guard.py::main"
+      ],
+      "tests": [
+        "tests/test_build_provenance.py::test_same_inputs_give_the_same_provenance",
+        "tests/test_build_sandbox.py::test_timeout_kills_the_whole_process_group",
+        "tests/test_concurrency.py::test_parallel_builds_from_many_browsers_stay_separate"
+      ],
+      "note": "bubblewrap escape tests run only where bubblewrap works (Linux container, CI)."
+    },
+    {
+      "id": "WASM-01",
+      "title": "Browser runtime is the pinned PRG32-QT core",
+      "status": "reference-verified",
+      "audit_score": 4,
+      "source": [
+        "wasm/prg32_core_api.cpp::prg32_frame",
+        "tools/build_wasm.py::build"
+      ],
+      "tests": [
+        "tests/test_wasm_runtime.py::test_wasm_runs_golden_cartridges_exactly_like_native",
+        "tests/test_wasm_runtime.py::test_native_harness_draws_exactly_like_prg32qt_headless"
+      ],
+      "note": "Reference: PRG32-QT prg32qt-headless and native core, revision in static/wasm/BUILD.json."
+    },
+    {
+      "id": "WASM-02",
+      "title": "Browser host: framebuffer, input, timing, audio, offline",
+      "status": "implemented",
+      "audit_score": 3,
+      "source": [
+        "static/js/prg32_runtime.js::PRG32CartridgePlayer"
+      ],
+      "tests": [
+        "tests/test_wasm_runtime.py::test_audio_calls_reach_the_browser_host",
+        "tests/test_wasm_runtime.py::test_service_worker_caches_the_runtime_for_offline_use"
+      ],
+      "note": "Audio approximate; app shell still loads CDN assets until refinement Phase 1."
+    },
+    {
+      "id": "DBG-01",
+      "title": "Pause, continue, restart, speed",
+      "status": "reference-verified",
+      "audit_score": 4,
+      "source": [
+        "wasm/prg32_core_api.cpp::prg32_debug_run",
+        "static/js/prg32_runtime.js::debug"
+      ],
+      "tests": [
+        "tests/test_wasm_runtime.py::test_debugger_steps_exactly_like_native",
+        "tests/test_wasm_runtime.py::test_debug_frames_match_normal_frames"
+      ],
+      "note": ""
+    },
+    {
+      "id": "DBG-02",
+      "title": "Instruction, over, out stepping",
+      "status": "implemented",
+      "audit_score": 3,
+      "source": [
+        "wasm/prg32_core_api.cpp::prg32_debug_step_instruction"
+      ],
+      "tests": [
+        "tests/test_wasm_runtime.py::test_single_steps_add_up",
+        "tests/test_wasm_runtime.py::test_step_over_and_step_out_follow_calls"
+      ],
+      "note": "No dedicated compressed-instruction fixture yet (refinement Phase 4)."
+    },
+    {
+      "id": "DBG-03",
+      "title": "Breakpoints",
+      "status": "implemented",
+      "audit_score": 3,
+      "source": [
+        "wasm/prg32_core_api.cpp::prg32_breakpoint"
+      ],
+      "tests": [
+        "tests/test_wasm_runtime.py::test_breakpoint_stops_once_per_visit"
+      ],
+      "note": "Address breakpoints only; no source/block breakpoints."
+    },
+    {
+      "id": "DBG-04",
+      "title": "Registers, memory, disassembly, CSR, stack, watches",
+      "status": "partial",
+      "audit_score": 2,
+      "source": [
+        "wasm/prg32_core_api.cpp::prg32_read_memory",
+        "wasm/prg32_core_api.cpp::prg32_disassemble"
+      ],
+      "tests": [
+        "tests/test_wasm_runtime.py::test_disassembly_uses_prg32_qt_names"
+      ],
+      "note": "No CSR, explicit stack or watch views."
+    },
+    {
+      "id": "DBG-05",
+      "title": "C locals, call stack, watches (DWARF); active Blockly block",
+      "status": "missing",
+      "audit_score": 0,
+      "source": [],
+      "tests": [],
+      "note": "Refinement Phase 4."
+    },
+    {
+      "id": "DBG-06",
+      "title": "Browser and PRG32-QT state agree",
+      "status": "reference-verified",
+      "audit_score": 4,
+      "source": [],
+      "tests": [
+        "tests/test_wasm_runtime.py::test_debugger_steps_exactly_like_native",
+        "tests/test_wasm_runtime.py::test_native_harness_draws_exactly_like_prg32qt_headless"
+      ],
+      "note": ""
+    },
+    {
+      "id": "ACC-01",
+      "title": "Guest policies and IndexedDB guest projects",
+      "status": "missing",
+      "audit_score": 0,
+      "source": [],
+      "tests": [],
+      "note": "Refinement Phase 6."
+    },
+    {
+      "id": "ACC-02",
+      "title": "Registered storage: ownership, history, quotas, autosave, retention",
+      "status": "partial",
+      "audit_score": 2,
+      "source": [
+        "prg32_construction_kit/routes.py::can_read",
+        "prg32_construction_kit/routes.py::can_write",
+        "prg32_construction_kit/auth.py::guard_request"
+      ],
+      "tests": [
+        "tests/test_auth.py::test_signing_in_is_required",
+        "tests/test_project_format.py::test_duplicate_copies_children_and_belongs_to_the_caller"
+      ],
+      "note": "No quotas, autosave, retention or deprovisioning."
+    },
+    {
+      "id": "SSO-01",
+      "title": "OIDC with PKCE, issuer+subject identity",
+      "status": "prototype",
+      "audit_score": 1,
+      "source": [
+        "prg32_construction_kit/auth_adapters.py::_register_oidc"
+      ],
+      "tests": [],
+      "note": "One env-configured provider, no PKCE, identity key ('oidc', sub). No tests."
+    },
+    {
+      "id": "SSO-02",
+      "title": "Multiple admin-configured IdPs, claim mapping, recovery",
+      "status": "prototype",
+      "audit_score": 1,
+      "source": [
+        "prg32_construction_kit/auth_adapters.py::_register_oidc"
+      ],
+      "tests": [],
+      "note": "Environment-only single provider."
+    },
+    {
+      "id": "SSO-03",
+      "title": "Scoped student/TA/teacher/publisher/admin capabilities",
+      "status": "prototype",
+      "audit_score": 1,
+      "source": [
+        "prg32_construction_kit/auth.py::role_at_least"
+      ],
+      "tests": [
+        "tests/test_publish_authorization.py::test_students_without_the_publisher_role_get_403"
+      ],
+      "note": "Ordinal role ladder shared with CartridgeStore; publisher gate enforced."
+    },
+    {
+      "id": "SSO-04",
+      "title": "Shared accounts with CartridgeStore",
+      "status": "implemented",
+      "audit_score": 3,
+      "source": [
+        "prg32_construction_kit/sso_protocol.py::make_ticket",
+        "prg32_construction_kit/sso_protocol.py::verify_request"
+      ],
+      "tests": [
+        "tests/test_sso_with_cartridge_store.py::test_protocol_file_is_the_same_in_both_repositories",
+        "tests/test_sso.py::test_signed_requests_and_tickets"
+      ],
+      "note": "No live Store test."
+    },
+    {
+      "id": "CLD-01",
+      "title": "Google Drive",
+      "status": "missing",
+      "audit_score": 0,
+      "source": [],
+      "tests": [],
+      "note": "Refinement Phase 8."
+    },
+    {
+      "id": "CLD-02",
+      "title": "OneDrive",
+      "status": "missing",
+      "audit_score": 0,
+      "source": [],
+      "tests": [],
+      "note": "Refinement Phase 8."
+    },
+    {
+      "id": "STR-01",
+      "title": "Store bundle preparation and validation",
+      "status": "partial",
+      "audit_score": 2,
+      "source": [
+        "prg32_construction_kit/packager.py::project_manifest",
+        "prg32_construction_kit/publishing.py::inspect_bundle"
+      ],
+      "tests": [
+        "tests/test_publish_authorization.py::test_cartridges_that_differ_from_the_build_are_refused",
+        "tests/test_publish_authorization.py::test_bad_manifests_are_refused"
+      ],
+      "note": "No shared Store schema or live conformance (refinement Phase 7)."
+    },
+    {
+      "id": "STR-02",
+      "title": "Authorized, reviewed, confirmed publishing",
+      "status": "implemented",
+      "audit_score": 3,
+      "source": [
+        "prg32_construction_kit/routes.py::api_publish_review",
+        "prg32_construction_kit/routes.py::api_publish",
+        "prg32_construction_kit/publishing.py::check_review_token",
+        "prg32_construction_kit/store_policy.py::check_url"
+      ],
+      "tests": [
+        "tests/test_publish_authorization.py::test_publisher_reviews_then_confirms",
+        "tests/test_publish_authorization.py::test_confirming_twice_does_not_upload_twice",
+        "tests/test_store_egress.py::test_dns_rebinding_cannot_move_the_upload"
+      ],
+      "note": "Only local test Stores; no live public Store."
+    },
+    {
+      "id": "DEP-01",
+      "title": "Physical PRG32 transfer and launch",
+      "status": "missing",
+      "audit_score": 0,
+      "source": [],
+      "tests": [],
+      "note": "No hardware available."
+    },
+    {
+      "id": "DEP-02",
+      "title": "PRG32-QT delivery",
+      "status": "partial",
+      "audit_score": 2,
+      "source": [],
+      "tests": [
+        "tests/test_wasm_runtime.py::test_native_harness_draws_exactly_like_prg32qt_headless"
+      ],
+      "note": "Runtime parity verified; user import workflow not executed."
+    },
+    {
+      "id": "DEP-03",
+      "title": "PRG32-iOS handoff",
+      "status": "missing",
+      "audit_score": 0,
+      "source": [],
+      "tests": [],
+      "note": "Contract read (file importer only); no handoff executed."
+    },
+    {
+      "id": "SEC-01",
+      "title": "Threat model, SSRF and build isolation",
+      "status": "implemented",
+      "audit_score": 3,
+      "source": [
+        "prg32_construction_kit/store_policy.py::choose_address",
+        "prg32_construction_kit/build_sandbox.py::bwrap_arguments",
+        "prg32_construction_kit/build_sandbox.py::seccomp_filter"
+      ],
+      "tests": [
+        "tests/test_store_egress.py::test_non_public_destinations_are_refused",
+        "tests/test_build_sandbox.py::test_a_compiler_cannot_read_other_builds_or_the_kit_data",
+        "tests/test_build_sandbox.py::test_seccomp_program_checks_the_architecture_and_blocks_escape_calls"
+      ],
+      "note": "Escape tests need bubblewrap; AppArmor hosts and disk quotas are known gaps."
+    },
+    {
+      "id": "SEC-02",
+      "title": "Credentials, throttling, audit, secrets",
+      "status": "partial",
+      "audit_score": 2,
+      "source": [
+        "prg32_construction_kit/auth.py::bootstrap_admin",
+        "prg32_construction_kit/security.py::check",
+        "prg32_construction_kit/security.py::record"
+      ],
+      "tests": [
+        "tests/test_admin_bootstrap.py::test_fresh_production_start_makes_a_random_password_file",
+        "tests/test_security_controls.py::test_five_wrong_passwords_lock_that_name_from_that_address"
+      ],
+      "note": "No hash-locked dependencies, quotas, retention or broad rate limits."
+    },
+    {
+      "id": "OPS-01",
+      "title": "CI, Docker, migrations, health",
+      "status": "implemented",
+      "audit_score": 3,
+      "source": [
+        "tools/check_build.py::main",
+        "docker/entrypoint.sh",
+        ".github/workflows/tests.yml"
+      ],
+      "tests": [
+        "tests/test_api.py::test_discovery_reports_whether_cartridges_can_be_built",
+        "tests/test_db.py::test_sqlalchemy_creates_the_compatible_resource_schema"
+      ],
+      "note": "No restore drill, metrics/SLO or TLS proof."
+    },
+    {
+      "id": "DOC-01",
+      "title": "Documentation and traceability",
+      "status": "implemented",
+      "audit_score": 3,
+      "source": [
+        "docs/capabilities.json",
+        "docs/traceability.md",
+        "tools/render_capabilities.py::render"
+      ],
+      "tests": [
+        "tests/test_capabilities.py::test_implemented_rows_name_existing_source_and_tests",
+        "tests/test_presentations.py::test_tutorials_and_decks_are_up_to_date"
+      ],
+      "note": ""
+    },
+    {
+      "id": "QLT-01",
+      "title": "Quality gates: tests, lint, E2E, a11y, performance",
+      "status": "partial",
+      "audit_score": 3,
+      "source": [],
+      "tests": [
+        "tests/test_capabilities.py::test_rendered_table_is_up_to_date"
+      ],
+      "note": "Large pytest suite; no lint/type/coverage gate, browser E2E, automated a11y or performance budget."
+    }
+  ]
+}

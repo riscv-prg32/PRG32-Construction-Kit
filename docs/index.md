@@ -37,6 +37,8 @@ PRG32-Construction-Kit is a classroom web application for building PRG32 games w
 - `architecture/current-state.md` - what the PRG32 repositories contain today (capability matrix).
 - `implementation-plan.md` - phased plan (gates G0-G8); `adr/` - decisions.
 - `implementation-status.md`, `traceability.md` - progress and evidence per requirement.
+- `capabilities.md` - machine-checked status table (every claim names its source symbol and test).
+- `briefs/` - the design baseline and the briefs that refine it (ADR-0011).
 - `compatibility.md`, `security.md`, `deployment.md`, `release-notes.md`.
 
 ## Classroom workflow
