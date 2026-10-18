@@ -187,8 +187,8 @@ POST   /api/projects/<id>/restore
 DELETE /api/projects/<id>?purge=1
 ```
 
-- When `PUT /api/projects/<id>` changes `blocks_json` or the Advanced C
-  (`game_json.source_mode` / `game_json.source_c`), the version before the
+- When `PUT /api/projects/<id>` changes `blocks_json`, the Advanced C or the
+  handwritten assembly (`game_json.source_mode` / `source_c` / `source_asm`), the version before the
   change is kept as a revision. A revision holds the same files as the project
   archive. A revision equal to the newest one is not kept again. The newest
   `PRG32_KIT_MAX_REVISIONS` (default 50) are kept per project.

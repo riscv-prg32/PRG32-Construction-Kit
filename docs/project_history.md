@@ -14,11 +14,11 @@ gone straight away. So a wrong change or a wrong click can be undone.
    get it as a project archive (`.zip`, see `project_archive.md`).
 
 When is a version kept? Every time you **Save** and the save changes your
-blocks or your Advanced C, the version *before* the change is kept. Saving
+blocks, your Advanced C or your handwritten assembly, the version *before* the change is kept. Saving
 without changes keeps nothing new. Restoring also keeps the version you had
 just before, so you can always go back again.
 
-Restore puts back the blocks (or the C), the title and summary, and the
+Restore puts back the blocks (or the C, or the assembly), the title and summary, and the
 sprites and assets as they were in that version.
 
 **Get a deleted project back**

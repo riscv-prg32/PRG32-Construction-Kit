@@ -22,7 +22,7 @@ Status of the full-IDE plan (`implementation-plan.md`). A gate is marked
 | 2026-10-18 | `python3 -m pytest -q` (baseline, before changes) | 187 passed, 10 skipped |
 | 2026-10-18 | `python3 -m pytest -q` (after G1 slice) | 212 passed, 11 skipped |
 | 2026-10-18 | same, with `riscv32-esp-elf-gcc` 14.2.0 on `PATH` and `PYTHONPATH=../PRG32` | 214 passed, 9 skipped |
-| 2026-10-18 | `python3 -m pytest -q` (after revisions + soft delete) | 220 passed, 12 skipped |
+| 2026-10-18 | `python3 -m pytest -q` (after revisions + soft delete, on top of assembly mode) | 259 passed, 13 skipped |
 | 2026-10-18 | Browser check on a local server: export Pong archive, re-import, duplicate | Pass (7248-byte archive, 201 on import, no skipped files) |
 | 2026-10-18 | `python3 -m pytest -q` (after handwritten assembly) | 250 passed, 12 skipped |
 | 2026-10-18 | same, with the real toolchain | 253 passed, 9 skipped (incl. a real `.prg32` from handwritten assembly) |

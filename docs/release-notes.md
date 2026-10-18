@@ -10,8 +10,8 @@
   project.
 - **Import project** on the dashboard accepts archives as well as JSON.
 - `GET /api/projects/<id>/manifest` and `POST /api/projects/<id>/duplicate`.
-- **History** in the editor: every save that changes the blocks or the
-  Advanced C keeps the version before it. Restore one (the current version
+- **History** in the editor: every save that changes the blocks, the
+  Advanced C or the handwritten assembly keeps the version before it. Restore one (the current version
   is kept first) or download it as a project archive. Newest 50 per project
   (`PRG32_KIT_MAX_REVISIONS`). API: `/api/projects/<id>/revisions...`.
 - **Recently deleted** on the dashboard: deleting a project hides it instead
@@ -35,7 +35,7 @@
   derived and is made again on the next convert or build.
 - `DELETE /api/projects/<id>` keeps its answer but now moves the project to
   Recently deleted. Project items include `deleted_at`.
-- Service worker cache `prg32-kit-v7`.
+- Service worker cache `prg32-kit-v8`.
 
 ### Migration
 

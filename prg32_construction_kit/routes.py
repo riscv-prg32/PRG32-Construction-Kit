@@ -411,13 +411,13 @@ def _purge_project(project_id: str):
 # revision. A revision holds the same files as a project archive.
 
 def _source_changes(project: dict[str, Any], payload: dict[str, Any]) -> bool:
-    """True when a PUT would change the Blocks program or the Advanced C source."""
-    def source_c(game_json: Any) -> tuple[Any, Any]:
+    """True when a PUT would change the Blocks program, the Advanced C or the handwritten assembly."""
+    def typed_source(game_json: Any) -> tuple[Any, Any, Any]:
         saved = game_json if isinstance(game_json, dict) else {}
-        return saved.get("source_mode"), saved.get("source_c")
+        return saved.get("source_mode"), saved.get("source_c"), saved.get("source_asm")
     if "blocks_json" in payload and payload["blocks_json"] != project.get("blocks_json"):
         return True
-    return "game_json" in payload and source_c(payload["game_json"]) != source_c(project.get("game_json"))
+    return "game_json" in payload and typed_source(payload["game_json"]) != typed_source(project.get("game_json"))
 
 
 def save_revision(project: dict[str, Any], reason: str) -> dict[str, Any] | None:

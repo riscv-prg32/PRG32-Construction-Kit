@@ -97,6 +97,23 @@ def test_advanced_c_source_changes_are_kept(client):
     assert files.read("src/game.c").decode() == C_SOURCE
 
 
+def test_handwritten_assembly_changes_are_kept_and_restored(client):
+    asm_v1 = "    .section .text\n    .globl history_game_init\nhistory_game_init:\n    ret\n"
+    asm_v2 = asm_v1 + "    /* a second version */\n"
+    project = new_project(client)
+    path = f"/api/projects/{project['id']}"
+    client.put(path, json={"game_json": {"source_mode": "asm", "source_asm": asm_v1}})
+    client.put(path, json={"game_json": {"source_mode": "asm", "source_asm": asm_v1}})  # unchanged: nothing kept
+    client.put(path, json={"game_json": {"source_mode": "asm", "source_asm": asm_v2}})
+    history = revisions(client, project["id"])
+    assert [rev["authoring_mode"] for rev in history] == ["assembly", "blocks"]
+    archive = zipfile.ZipFile(io.BytesIO(client.get(f"{path}/revisions/{history[0]['id']}/archive").data))
+    assert archive.read("src/game.S").decode() == asm_v1
+    restored = client.post(f"{path}/revisions/{history[0]['id']}/restore").get_json()["project"]
+    assert restored["game_json"]["source_mode"] == "asm" and restored["game_json"]["source_asm"] == asm_v1
+    assert revisions(client, project["id"])[0]["reason"] == "restore"
+
+
 def test_history_is_capped_per_project(tmp_path: Path):
     app = make_app(tmp_path, PRG32_KIT_MAX_REVISIONS=3)
     client = app.test_client()
