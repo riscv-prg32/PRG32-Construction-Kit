@@ -1,70 +1,79 @@
 # Findings
 
-## Resolved release blockers
+## Resolved in refinement phases 0–2
 
-- **R-01 (former H-01, Store SSRF): closed.** Approved origins, IP/DNS checks, address pinning, no redirects, TLS verification and bounded responses are implemented in `store_policy.py` and `publisher.py`; adversarial tests exist in `tests/test_store_egress.py`.
-- **R-02 (former H-02, unauthorized publishing): closed.** `_prepare_publish` rejects roles below publisher and non-publishable bundles; review tokens bind user/profile/artifact/content; confirmation and attempts are enforced (`routes.py:1004-1125`; `publishing.py:149-228`). Targeted tests passed.
-- **R-03 (former H-03, unsandboxed compilation): closed in design and automated Linux evidence.** Production requires bubblewrap; the build gets isolated namespaces, read-only dependencies, one writable build directory, cleared environment, seccomp and rlimits (`build_sandbox.py:1-20,219-239`; `packager.py:140-160`). Linux escape tests were not independently executable on this macOS host.
+- **IDE shell prototype gap:** closed for shell scope. Chrome demonstrated tree, tabs, panels, palette, keyboard-only editing/save/build command, responsive layout and axe checks.
+- **Offline/CDN/CSP gap:** closed. Runtime libraries are locally vendored, strict CSP is active, the service worker caches static files only, and Chrome demonstrated cold-offline Blockly and real-cartridge execution.
+- **Missing baseline/traceability:** substantially closed by ADR-0011, committed briefs and machine-checked `docs/capabilities.json`.
+- Prior Store SSRF, publish authorization and production sandbox findings remain closed.
+
+## Critical
+
+No exploitable critical issue was confirmed.
 
 ## High
 
-### H-01 — The claimed Full IDE core is absent
+### H-01 — Mandatory source-level debugger functionality is missing
 
-- Evidence: C and assembly remain plain textareas (`templates/editor.html:72-82`); traceability marks the JetBrains-style shell, Monaco and language services open (`docs/traceability.md:32`).
-- Reproduction: open a C or Assembly project; there is no project tree, multi-file tab model, palette, completion, diagnostic navigation or SDK-aware editor.
-- Impact: IDE-01/03/04 are missing and the product cannot accurately ship as the audited Full IDE.
-- Remedy: deliver the shell and vendored editor first, retaining inspectable generated C/assembly and Blockly editability.
+- Evidence: no DWARF locals, call stack, watches, conditional/source breakpoints, CSR/stack view, or Blockly active-block mapping (`docs/implementation-status.md:61-63`; `docs/capabilities.md:20-24`).
+- Reproduction: load a cartridge in Player; machine-address debugging works, but mandatory scenario D's source/block state cannot be performed.
+- Impact: explicit NO-GO release gate for mandatory debugger behavior.
+- Remedy: deterministic block→IR→source→address artifacts, debug/DWARF profile, source breakpoints, variables/call stack/watches and graceful fallback.
 
-### H-02 — Mandatory source-level debugger behavior is missing
+### H-02 — Academic identity, scoped roles and guest policy remain incomplete
 
-- Evidence: DWARF locals/call stack/watches and Blockly active-block mapping are explicitly open (`docs/traceability.md:49-50`; `docs/implementation-status.md:60-63`).
-- Reproduction: load a cartridge in Player; address-level state exists, but scenario D's locals, call stack, watches, source breakpoint and active block checks cannot be performed.
-- Impact: the audit release gate treats broken mandatory debugger functionality as NO-GO.
-- Remedy: deterministic block→source→address maps plus a DWARF debug profile and graceful address-only fallback.
-
-### H-03 — Academic identity and guest access contract is incomplete
-
-- Evidence: OIDC is one environment-configured provider with no explicit PKCE and links `("oidc", sub)` (`auth_adapters.py:41-81`); guest IndexedDB/policy is only planned (`docs/implementation-plan.md:39`).
-- Reproduction: inspect configured login registration and attempt scenario A/E; multi-IdP issuer identity, claim mapping, guest policy and recovery paths do not exist.
-- Impact: required guest classroom use and academic tenant/role assurance are unavailable.
-- Remedy: implement ADR-0007 and guest policies with the full negative IdP and isolation matrix.
+- Evidence: one environment OIDC provider without explicit PKCE or issuer+subject identity; guest IndexedDB/policy is absent (`docs/capabilities.md:25-30`).
+- Reproduction: mandatory scenarios A/E cannot be run as specified.
+- Impact: incomplete tenant isolation/lifecycle model for institutional classroom deployment.
+- Remedy: ADR-0007 implementation, scoped academic RBAC, guest policies and full negative IdP matrix.
 
 ## Medium
 
-### M-01 — Cloud sync is absent
+### M-01 — Monaco language intelligence is incomplete
 
-Google Drive and OneDrive are explicitly open (`docs/traceability.md:59`). Scenario B token expiry, revocation, conflicts and network loss cannot run.
+C and assembly syntax/editing/markers work, but completion, hover, navigation, SDK declarations and register/instruction/ABI completion do not (`docs/capabilities.md:12-13`). This keeps IDE-03/04 partial.
 
-### M-02 — Offline authoring depends on third-party CDNs
+### M-02 — Google Drive and OneDrive are absent
 
-Bootstrap/icons/jQuery and Blockly load remotely (`templates/base.html:12-13,60-61`; `templates/editor.html:137`), while the service worker only caches same-origin static files (`static/service-worker.js:4-18,29-40`). A cold disconnected editor is not demonstrated and there is no CSP/SRI evidence.
+No implementation or provider test environment exists; token lifecycle, scopes, revocation, conflicts and network loss cannot be assessed.
 
-### M-03 — Store validation is local rather than shared-contract conformance
+### M-03 — Registered storage lacks quotas and conflict semantics
 
-The kit duplicates Store manifest constants and checks magic/hashes (`publishing.py:40-45,84-132`). No shared schema, live duplicate/version/visibility test, or public Store conformance run was performed.
+Autosave, search, quotas, retention/deprovisioning and robust concurrent-edit recovery remain absent (`docs/implementation-status.md:55-56`).
 
-### M-04 — Registered storage lacks quotas and robust concurrency policy
+### M-04 — Delivery targets remain unverified
 
-History/soft delete work, but autosave and search remain open (`docs/implementation-status.md:54-57`); quotas, retention/deprovisioning and semantic conflict handling are not enforced.
+No physical PRG32 transfer/launch, end-user PRG32-QT import, or verified iOS handoff was executed.
 
-### M-05 — Delivery targets are unverified
+### M-05 — Store validation is not a shared live contract
 
-No physical board transfer/launch, user-facing PRG32-QT import, or PRG32-iOS handoff was executed. iOS source was unavailable, so no interface is claimed.
+The kit locally checks manifest/magic/hashes, but there is no shared versioned schema or live duplicate/version/update/visibility conformance evidence.
 
-### M-06 — Production sandbox still has documented operational gaps
+### M-06 — Build-sandbox operational gaps remain
 
-There is no total build-directory quota or per-build UID, and AppArmor hosts require an exception (`docs/build_sandbox.md:65-76`). The current boundary is a strong improvement but needs operational hardening and independent x86_64/aarch64 evidence.
+No total build-folder quota or per-build UID; AppArmor hosts require an exception. Linux escape tests were not rerun in this audit environment.
+
+### M-07 — IDE browser regression suite is omitted from CI
+
+- Evidence: `.github/workflows/tests.yml:169` runs only `test_browser_offline.py` and `test_frontend_offline.py`, not `test_ide_browser.py`.
+- Reproduction: inspect the browser job command.
+- Impact: keyboard, Monaco, responsive and axe regressions can merge despite passing locally.
+- Remedy: add `tests/test_ide_browser.py` to the browser job and publish its result.
 
 ## Low
 
-### L-01 — Reproducibility and quality gates are incomplete
+### L-01 — Current-state architecture documentation contradicts shipped code
 
-Dependencies are range-pinned rather than hash-locked (`requirements.txt`, `requirements-production.txt`); CI lacks lint/type/coverage thresholds, browser E2E, automated accessibility and performance budgets.
+`docs/architecture/current-state.md:55-60` still says the IDE shell, Monaco and offline app shell are not implemented, despite phases 1–2. Its Construction Kit SHA at line 13 is also stale. Update it in the same PR as capability changes.
 
-### L-02 — Required baseline and some architecture facts are stale
+### L-02 — Quality/reproducibility gates remain incomplete
 
-`CLAUDE_PRG32_CONSTRUCTION_KIT_IMPLEMENTATION.md` is absent. `docs/architecture/current-state.md:11,43,76-104,113` still describes old commits and capabilities (for example WASM/debug/sandbox as absent or planned), weakening traceability.
+No lint/type/coverage threshold, performance budget, dependency hash lock, complete SBOM/security inventory, or real screen-reader session exists.
+
+### L-03 — Earlier audit totals used the wrong denominator
+
+The required matrix contains 33 rows, not 32. Its denominator is 132 points. This edition corrects the total without changing any individual requirement definition.
 
 ## Release conclusion
 
-No new exploitable critical issue was confirmed. The recommendation remains **NO-GO** because H-01 and H-02 are mandatory product/release-gate failures, not because the resolved security work is discounted.
+Recommendation remains **NO-GO**. The IDE shell/offline work is implemented and demonstrated, but H-01 is a mandatory debugger release-gate failure and H-02 blocks the required classroom identity/guest scenarios.

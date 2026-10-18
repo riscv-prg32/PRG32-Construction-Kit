@@ -1,21 +1,23 @@
 # Security review
 
-## Overall
+## Overall assessment
 
-Baseline security is stronger than the prior audit: the Store SSRF, unauthorized publishing and unsandboxed production compilation findings are addressed. No critical exploit was confirmed. The application is still not proven ready for a hostile multi-tenant Full IDE deployment because academic identity, guest/cloud storage, quotas, browser policy and operational validation are incomplete.
+No new critical exploit was confirmed. Store egress, publishing authorization and production build isolation remain materially improved and covered by negative tests. Refinement phase 1 additionally removes runtime CDN trust, vendors browser dependencies, adds strict CSP and proves static-only offline caching in Chrome.
+
+## Browser security
+
+The browser loaded only same-origin resources in the executed page matrix; no CSP violation was recorded. CSP avoids inline script, `unsafe-inline` and `unsafe-eval`. Vendored manifests record versions, hashes and licenses. The service worker caches only static resources, not authenticated pages or APIs; Chrome verified this. Remaining work includes a complete recurring dependency/SBOM vulnerability process and real screen-reader/performance testing.
 
 ## Authentication and authorization
 
-Passwords and API tokens are hashed; tokens are returned once. Cookie and stale-window controls exist. Owner-scoped CRUD and shared-read-only semantics have negative tests. Publishing now checks `role_at_least(..., "publisher")` before resource access (`routes.py:1004-1011`) and binds explicit confirmation to a time-limited content digest (`publishing.py:149-176`).
-
-OIDC remains below the required profile: one environment-configured provider, no explicit PKCE, issuer is not part of the stored external identity, no multi-provider admin configuration/claim mapping, and no executed issuer/audience/JWKS/logout lifecycle matrix (`auth_adapters.py:41-81`). Generic ordered roles do not provide course-scoped student/TA/teacher administration (`auth.py:49-55`).
+Local credential/token hashing, throttling, ownership checks, stale-window refusal and audit records remain in place. Publishing enforces publisher scope and content-bound explicit confirmation. OIDC still lacks the required explicit PKCE, issuer+subject key, multi-provider administration, academic claim lifecycle and negative IdP execution. Course-scoped student/TA/teacher authorization is absent.
 
 ## Build and upload boundary
 
-Archive validation and C/assembly allow-lists are defense in depth. Production compilation is now designed to run through bubblewrap with isolated namespaces, read-only dependencies, no network, cleared secrets, one writable build directory, seccomp, rlimits and process-group timeout. Production refuses fallback (`build_sandbox.py:17-20`; `packager.py:140-160`). Remaining gaps are total build-directory quota, per-build UID, AppArmor portability, and lack of this audit's independent Linux/container rerun.
+Source allow-lists remain defense in depth. Production configuration requires bubblewrap with isolated namespaces, no network, read-only toolchain/SDK, cleared environment, seccomp and resource limits. The Linux escape suite was not executable here. Known gaps remain: total build-directory quota, per-build UID and AppArmor portability.
 
-## Store, browser and data
+Store SSRF/TLS/DNS/redirect/response-bound tests passed 94/94. No live Store was contacted. Publish tokens remain reversibly stored in the database; encryption or short-lived delegated credentials are preferable.
 
-Store egress is origin/address constrained and publish is reviewed/idempotent. No live Store was contacted. Templates generally escape values, but no CSP was found and CDN scripts/styles lack local pinning/SRI (`templates/base.html:12-13,60-61`; `templates/editor.html:137`). Publish bearer tokens remain reversibly stored in the database; use encryption or delegated short-lived credentials.
+## Privacy and lifecycle gaps
 
-Guest IndexedDB, Drive and OneDrive do not exist, so their scopes, consent, refresh/revoke, conflicts and eviction cannot be assessed. Registered storage lacks quotas and retention/deprovisioning. Audit-log retention/export/tamper resistance is unspecified. Dependencies are bounded but not hash-locked; CI reviews dependency changes but does not produce a full recurring SBOM/vulnerability inventory.
+The offline scratchpad is local and useful, but it is not the requested administrator-controlled guest policy with IndexedDB export/eviction guarantees. Registered quotas, retention/deprovisioning and conflict behavior are missing. Drive/OneDrive are absent, so OAuth scopes, refresh/revoke and provider privacy cannot be evaluated.

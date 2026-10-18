@@ -14,7 +14,7 @@
       "id": "IDE-01",
       "title": "IDE shell: project tree, tabs, panels, palette, keyboard",
       "status": "implemented",
-      "audit_score": 0,
+      "audit_score": 3,
       "source": [
         "templates/ide.html",
         "static/js/ide/shell.js::openPalette",
@@ -50,7 +50,7 @@
       "id": "IDE-03",
       "title": "C editor with language services",
       "status": "partial",
-      "audit_score": 1,
+      "audit_score": 2,
       "source": [
         "static/js/ide/ide.js::openSource",
         "static/js/ide/ide.js::showProblems",
@@ -66,7 +66,7 @@
       "id": "IDE-04",
       "title": "RISC-V assembly editor with language services",
       "status": "partial",
-      "audit_score": 1,
+      "audit_score": 2,
       "source": [
         "static/js/ide/monaco_setup.js::registerAssembly",
         "prg32_construction_kit/source_project.py::validate_asm_source"
@@ -147,7 +147,7 @@
       "id": "WASM-02",
       "title": "Browser host: framebuffer, input, timing, audio, offline",
       "status": "implemented",
-      "audit_score": 3,
+      "audit_score": 4,
       "source": [
         "static/js/prg32_runtime.js::PRG32CartridgePlayer",
         "static/service-worker.js"

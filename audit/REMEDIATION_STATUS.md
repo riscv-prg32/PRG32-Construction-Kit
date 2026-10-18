@@ -1,21 +1,17 @@
 # Remediation status
 
-Status at audited revision `6b7aac93554bcdbbeeb0c7b80fcad576b1a9bea6`.
+Status at `731e378e811744ffecd4bf346d4f48a6715a13d2`.
 
-| Prior finding | Status | Current evidence |
+| Item | Status | Evidence |
 |---|---|---|
-| H-01 Store SSRF | Implemented and verified by source/tests; live Store unverified | ADR-0008, `store_policy.py`, `publisher.py`, `tests/test_store_egress.py`. |
-| H-02 publisher role/confirmation | Implemented and verified locally | ADR-0009, `publishing.py`, `routes.py:1004-1125`, `tests/test_publish_authorization.py`; targeted suite passed. |
-| H-03 unsandboxed builds | Implemented; Linux/container execution not independently repeated in this audit | ADR-0010, `build_sandbox.py`, `build_guard.py`, `packager.py`, `tests/test_build_sandbox.py`; macOS-safe subset passed and Linux cases skipped cleanly. |
-| H-04 Full IDE incomplete | Open and renamed H-01 in the current findings | `templates/editor.html:72-82`; `docs/traceability.md:32`. |
+| Store SSRF | Closed | 94 Store-egress tests passed. |
+| Publish role/review/confirmation | Closed | Publisher suite and signed review implementation remain present. |
+| Production compiler sandbox | Implemented; Linux execution not repeated here | ADR-0010 and sandbox tests; macOS skips expected. |
+| Baseline/traceability | Substantially closed | ADR-0011, committed briefs, capability manifest/tests. |
+| Offline frontend/CSP | Closed for implemented scope | Chrome offline/CSP/static-cache tests passed. |
+| IDE shell | Closed for shell scope | Five IDE Chrome tests passed; language services remain partial. |
+| IDE browser tests in CI | Open | Workflow omits `test_ide_browser.py`. |
+| Source/block debugger | Missing | Required release gate remains open. |
+| Academic identity/guest/cloud/delivery | Missing or partial | See requirements matrix. |
 
-The security remediations raise STR-02 to 3 and SEC-01 to 3. The release remains **NO-GO** because the Full IDE shell/language services and mandatory source-level debugger behavior are still missing.
-
-## Developer updates since this audit (not audited)
-
-- Refinement phase 0: the named design baseline is committed unchanged as
-  `docs/briefs/CLAUDE_PRG32_CONSTRUCTION_KIT_IMPLEMENTATION.md`, with ADR-0011
-  recording its role (baseline, not superseded) and precedence (former L-02).
-  `docs/architecture/current-state.md` rewritten for the current source.
-  `docs/capabilities.json` is the machine-checked status table
-  (`tests/test_capabilities.py`); it copies audit scores without changing them.
+Release recommendation remains **NO-GO** until the mandatory source/block debugger and other approved Full IDE release gates are satisfied.

@@ -2,31 +2,34 @@
 
 ## Environment
 
-- 2026-10-18, Europe/Rome; macOS host with restricted filesystem/network/process access.
-- Python 3.12.10; pytest 8.4.2; Node v26.12.0; npm 11.20.0; Git 2.55.0; Docker CLI 28.5.2; CMake 4.4.3; Emscripten available.
-- No RISC-V GCC/PRG32 cartridge toolchain or bubblewrap on this host. Docker daemon socket access was denied.
+- Date: 2026-10-19, Europe/Rome.
+- macOS; Python 3.12.10; pytest 8.4.2; Node v26.12.0; npm 11.20.0; Git 2.55.0; Playwright 1.64.0; installed Google Chrome.
+- Local reference checkouts: PRG32 `679dfb5`, PRG32-QT `f6d80ad`, CartridgeStore `820f74b`.
+- No local RISC-V/PRG32 build toolchain or bubblewrap; Docker/container execution not repeated.
 
-## Executed commands and results
+## Exact commands and results
 
 1. `python3 -m compileall -q app.py prg32_construction_kit tests tools` — **pass**.
-2. `for file in static/js/*.js static/service-worker.js tools/*.mjs; do node --check "$file"; done` — **pass**.
-3. `python3 -m pytest -q -rs` — broad run executed. Product-independent environment failures were observed: loopback-bound Store test servers received `PermissionError`, and the exact WASM rebuild could not create a lock in `/opt/homebrew/.../emscripten/.../cache`. Toolchain/platform tests skipped cleanly.
-4. `python3 -m pytest -q -rs --ignore=tests/test_store_egress.py -k 'not fresh_build_matches_the_committed_module'` — **380 passed, 21 skipped, 1 deselected** in 49.82 s.
-5. `python3 -m pytest -q -rs tests/test_publish_authorization.py tests/test_build_sandbox.py` — **34 passed, 7 skipped** in 8.93 s. Skips: Linux-only address-space check and six bubblewrap/user-namespace tests.
-6. `PRG32QT_DIR=../PRG32-QT python3 -m pytest -q -rs tests/test_wasm_runtime.py` — **29 passed, 1 skipped, 1 failed**. Skip: missing PRG32 build toolchain. Failure: rebuild reached final link, then Emscripten cache write was denied; no byte mismatch was produced.
-7. `cmp -s prg32_construction_kit/sso_protocol.py ../CartridgeStore/cartridge_store/sso_protocol.py` — **pass**; SHA-256 for both: `611d881247c2ca8bd074320a08e994aaac1db43844dcf7f6e11abd0ae249a593`.
-8. `shasum -a 256 static/wasm/prg32-core.wasm` — `3ba378fb805cf9bfcfabe3c0334df7890719139dfed46c560ac137c045262b21`, matching `BUILD.json`.
+2. `for file in static/js/*.js static/js/ide/*.js static/service-worker.js tools/*.mjs; do node --check "$file"; done` — **pass**.
+3. `python3 tools/service_worker_lock.py --check` — **pass**.
+4. `python3 tools/render_capabilities.py --check` — **pass**.
+5. `python3 -m pytest -q -rs --ignore=tests/test_store_egress.py -k 'not fresh_build_matches_the_committed_module'` — **482 passed, 31 skipped, 1 deselected**, 52.30 s. Ten browser skips were rerun in command 7.
+6. `python3 -m pytest -q -rs tests/test_capabilities.py tests/test_frontend_offline.py tests/test_ide_browser.py tests/test_browser_offline.py` — **102 passed, 10 browser skips** under restricted execution.
+7. `python3 -m pytest -q -rs tests/test_browser_offline.py tests/test_ide_browser.py` with permission to launch Chrome/bind loopback — **10 passed**, 11.46 s.
+8. `python3 -m pytest -q -rs tests/test_store_egress.py` with loopback permission — **94 passed**, 7.81 s.
+9. `PYTHONPATH=../PRG32 python3 -m pytest -q -rs tests/test_project_format.py::test_sdk_abi_matches_the_prg32_sdk_when_installed tests/test_wasm_runtime.py -k 'not fresh_build_matches_the_committed_module'` — **30 passed, 1 skipped, 1 deselected**, 7.26 s. Skip: missing PRG32 toolchain; deselection: exact Emscripten rebuild.
+10. `cmp -s prg32_construction_kit/sso_protocol.py ../CartridgeStore/cartridge_store/sso_protocol.py` — **pass**.
 
-## Mandatory scenarios
+## Mandatory scenario coverage
 
 | Scenario | Result |
 |---|---|
-| A Guest policies | **Missing/blocked:** guest mode not implemented. |
-| B Registered student | CRUD/history/import/export/isolation covered by tests; cloud, autosave conflicts and live network-loss flows missing. |
-| C Three language modes | Generation/validation tested; real local builds blocked by missing toolchain. CI definition is source evidence, not this audit's execution. |
-| D Debugger parity | Machine-level differential tests passed; source/DWARF/block portions missing. No browser GUI automation. |
-| E Academic SSO | Source/unit inspection only; no external IdP and required profile incomplete. |
-| F CartridgeStore | Authorization/review/idempotency tests passed; loopback transport rerun blocked; no live public publication. |
-| G Security/performance/a11y | Negative backend tests partly executed; no browser memory/latency, cold-offline, screen reader or full keyboard run. |
+| A Guest policies | Missing. Offline scratchpad works but is not configurable guest project policy/storage. |
+| B Registered student | CRUD/history/import/export/isolation automated; autosave conflict/cloud/provider cases missing. |
+| C Three language modes | Source validation/generation tested; real local builds blocked by missing toolchain. |
+| D Debugger parity | Machine-level differential suite passes; source/DWARF/block portions missing. |
+| E Academic SSO | Source inspection only; required profile incomplete and no IdP tenant. |
+| F CartridgeStore | 94 egress and publisher-review tests available/passing locally; no live public publication. |
+| G Security/performance/a11y | Chrome CSP/offline/keyboard/axe tests passed; no screen reader, performance/memory budget, or Linux sandbox rerun. |
 
-No coverage percentage, hardware result, screenshot, newly built cartridge, iOS result, or live publication is claimed.
+No hardware, iOS, external IdP/cloud, live Store, new cartridge, exact WASM rebuild or CI-run result is claimed.
