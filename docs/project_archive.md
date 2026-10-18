@@ -36,6 +36,7 @@ my-game.prg32project.zip
 ├── prg32.project.json        the "label" of the project
 ├── src/blocks.json           your blocks   (Blocks projects)
 ├── src/game.c                your C code   (Advanced C projects)
+├── src/game.S                your assembly (Assembly projects)
 └── assets/
     ├── sprites/01-ship.json  one file per sprite
     └── data/01-level.json    one file per asset
@@ -46,17 +47,17 @@ my-game.prg32project.zip
 | Field | Meaning |
 | --- | --- |
 | `schema`, `schema_version` | Which version of this file format it is. |
-| `authoring_mode` | `blocks` or `c`: what you write the game in. |
+| `authoring_mode` | `blocks`, `c` or `assembly`: what you write the game in. |
 | `source` | The file holding your program. |
 | `entry_points` | The names of the cartridge's `init`, `update` and `draw` functions, made from the title. |
-| `required_features` | PRG32 features an Advanced C game needs (for example `sprites`). |
+| `required_features` | PRG32 features an Advanced C or assembly game needs (for example `sprites`). |
 | `sdk` | The PRG32 cartridge ABI the kit builds for (1.6, hash `0x260f6136`). |
 | `targets` | Where cartridges can be built: `esp32c6` (the console) and `qemu`. |
 | `assets` | The list of sprite and asset files. |
 
-The generated C, the generated assembly and the `.prg32` cartridges are
-**not** in the archive. They are made again from your source, and the kit
-makes exactly the same code every time.
+Generated code (the C and assembly made from blocks) and the `.prg32`
+cartridges are **not** in the archive. They are made again from your source,
+and the kit makes exactly the same code every time.
 
 ## For teachers
 

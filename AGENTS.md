@@ -26,9 +26,10 @@ This file applies to the whole repository.
 
 - Do not compile arbitrary unvalidated user C supplied by an LLM.
 - The normal pipeline is: Blockly JSON -> validated game IR -> deterministic C (and, on request, deterministic RISC-V assembly) -> PRG32 toolchain.
-- Generate assembly (`asm_generator.py`) only from the validated game IR, never from user-typed assembly. It must do exactly what the generated C does; keep `tests/test_asm_generator.py` proving that.
+- Generate assembly (`asm_generator.py`) only from the validated game IR. It must do exactly what the generated C does; keep `tests/test_asm_generator.py` proving that.
+- Handwritten assembly projects (`game_json.source_mode: "asm"`, ADR-0004) are assembled as written, never mixed into generated code, and only after `validate_asm_source` passes: a directive allow-list (`ALLOWED_ASM_DIRECTIVES`), no `#include`/`.include`/`.incbin` or other file-reading words, only `#define NAME value` and `#if`-family preprocessor lines, and `.globl` labels `<prefix>_init/update/draw`. Widen the allow-list only with a test proving the new directive cannot read host files; keep `tests/test_handwritten_assembly.py` passing.
 - Generated assembly is RV32IM in a `.S` file for the portable PRG32 cartridge ABI. Full-line comments use `/* ... */` because the file goes through the C preprocessor.
-- `source_language` accepts only `"c"`, `"asm"` or `"both"`; Advanced C projects compile their own C only.
+- `source_language` accepts only `"c"`, `"asm"` or `"both"`; Advanced C projects compile their own C only, handwritten assembly projects their own assembly only.
 - AI assistants, when added, may propose block edits or explain errors, but they must not silently alter projects.
 - Validate expressions used in generated C. Reject or sanitize semicolons, braces, preprocessor directives, and unknown unsafe syntax.
 - Keep generated C freestanding and small. Avoid libc, floating point, dynamic allocation, and hidden network calls.
@@ -40,7 +41,7 @@ This file applies to the whole repository.
 - Keep large bundles on disk and metadata in SQLite.
 - Do not store bearer tokens in logs or public responses.
 - Maintain idempotent SQLite initialization with `CREATE TABLE IF NOT EXISTS`.
-- Generated C is stored as `c_source` artifacts and generated assembly as `asm_source` artifacts.
+- Generated C is stored as `c_source` artifacts and generated assembly as `asm_source` artifacts (handwritten assembly also uses `asm_source`).
 - Every build works only inside its own `<build_id>/` folder (with a private `tmp/`); builds must never share files.
 
 ## API constraints

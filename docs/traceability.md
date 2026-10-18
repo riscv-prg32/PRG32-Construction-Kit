@@ -9,7 +9,8 @@ that proves it. "—" means not implemented yet. Statuses: **Done**,
 | ID | Requirement | Status | Evidence | Test |
 | --- | --- | --- | --- | --- |
 | PM-1 | Versioned `prg32.project.json` with schema version | Done | `prg32_construction_kit/project_format.py` (`build_manifest`) | `test_manifest_describes_a_blocks_project` |
-| PM-2 | Authoring mode `blocks` / `c` / `assembly` | Partial | `AUTHORING_MODES`; assembly refused (ADR-0004) | `test_unsafe_or_broken_archives_are_refused` |
+| PM-2 | Authoring mode `blocks` / `c` / `assembly` | Done | `AUTHORING_MODES`; assembly per ADR-0004 (`validate_asm_source`) | `test_assembly_archive_round_trip`, `tests/test_handwritten_assembly.py` |
+| PM-2a | Handwritten assembly is validated before building, and builds a real cartridge | Done | `source_project.validate_asm_source`, `routes._generate_project` | `test_file_reading_and_unknown_directives_are_rejected`, `test_bad_assembly_is_refused_before_building`, `test_handwritten_assembly_builds_a_real_cartridge` |
 | PM-3 | Entry points, assets, SDK/ABI, targets, build profiles, tests in manifest | Done | `build_manifest` | `test_manifest_describes_a_blocks_project`, `test_sdk_abi_matches_the_prg32_sdk_when_installed` |
 | PM-4 | Canonical source stays in its mode; generated code never overwrites it | Done | Archive holds only `src/*`; generated code excluded | `test_archive_is_deterministic_and_holds_only_source` |
 | PM-5 | Portable archive export/import | Done | `GET /api/projects/<id>/archive`, `POST /api/projects/import` | `test_archive_round_trip_keeps_blocks_sprites_and_assets`, `test_advanced_c_archive_round_trip` |

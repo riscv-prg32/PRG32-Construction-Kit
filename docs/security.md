@@ -15,6 +15,7 @@ and what is still open. Reporting: contact the maintainers privately.
 | Path disclosure | Build logs redacted; artifact paths never returned | `packager.py`, `routes.py` `public` |
 | Secret exposure | Downloads never serve the database or `secret_key`; publish tokens hidden | `routes.py` `stored_file` |
 | SSO forgery | HMAC-signed requests and one-time tickets | `sso_protocol.py` |
+| Host files in handwritten assembly | Directive allow-list; no `include`/`incbin`/`_Pragma` words; only simple `#define` and `#if` lines; entry labels checked | `source_project.py` `validate_asm_source` |
 | Malicious project archives | Size, entry-count and per-file limits; no `..`, absolute paths, backslashes, links or encryption; only manifest-listed files are read; imported project always owned by the importer | `project_format.py` |
 
 ## Threat model — open items

@@ -99,6 +99,9 @@ tokens), even if an artifact row points at it.
 
 Blocks projects create generated C. Advanced C projects build the saved source
 after checking its permitted includes and required lifecycle entry points.
+Handwritten assembly projects (`source_mode: "asm"`, ADR-0004) build their saved
+`.S` after `validate_asm_source` checks the directive allow-list and the
+`.globl` lifecycle labels (`handwritten_assembly.md`).
 Both produce real `.prg32` files only when the configured PRG32 build command
 is available and succeeds. The editor's **Download .prg32** button asks the
 package action for a single architecture and downloads the resulting

@@ -77,7 +77,7 @@ verifiable here.
 | Project model | Portable archive import/export | P | JSON export `prg32-construction-kit-project-1.0`; no sprites/assets, no zip |
 | Project model | Duplicate | P | "Make my copy" is client-side only (`editor.js`) |
 | Project model | Revision history, snapshots, soft delete | A | — |
-| Project model | Handwritten assembly mode | A | Blocked by `AGENTS.md` (ADR-0004) |
+| Project model | Handwritten assembly mode | I (after G0) | ADR-0004 accepted; `validate_asm_source`, `tests/test_handwritten_assembly.py` |
 | Editor | Blockly editor, sprite editor | I | `static/js/blockly_blocks.js`, `sprite_editor.js` |
 | Editor | Advanced C text editing | P | Plain textarea, no language services |
 | Editor | Monaco, LSP, command palette, multi-pane IDE shell | A | — |
@@ -116,9 +116,9 @@ PRG32-QT / PRG32-iOS --(GET /api/games/*/download)----> CartridgeStore
 
 ## Risks
 
-1. **Policy conflict.** The brief asks for a handwritten assembly mode;
-   `AGENTS.md` forbids compiling user-typed assembly. Needs an owner decision
-   (ADR-0004).
+1. **Policy conflict (resolved).** The brief asked for a handwritten assembly
+   mode that `AGENTS.md` forbade; ADR-0004 option 2 was accepted and
+   `AGENTS.md` updated.
 2. **Untrusted native compilation.** C builds run the real GCC on the server
    without an OS sandbox. Opening the kit to guests or the internet requires
    container/seccomp isolation first (ADR-0005).

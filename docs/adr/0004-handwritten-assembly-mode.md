@@ -1,6 +1,6 @@
 # ADR-0004: Handwritten assembly authoring mode
 
-**Status:** Proposed — blocked on a decision by the project owner
+**Status:** Accepted — option 2, decided by the project owner on 2026-10-18
 
 ## Context
 
@@ -24,5 +24,22 @@ arbitrary directives that read host files, so it needs its own validator.
 
 ## Decision
 
-None yet. The manifest reserves `authoring_mode: "assembly"`; the importer
-refuses it with a clear message until this ADR is accepted.
+Option 2. A project may be written in RISC-V assembly
+(`game_json.source_mode: "asm"`, manifest `authoring_mode: "assembly"`,
+archive file `src/game.S`). Before the PRG32 builder runs,
+`source_project.validate_asm_source` checks:
+
+- only allow-listed directives (`ALLOWED_ASM_DIRECTIVES`: sections, symbol
+  visibility, alignment, data, text and `.equ`-style constants); sections are
+  limited to `.text`, `.rodata`, `.data`, `.bss` and their sub-sections;
+- no `include`, `incbin`, `__has_include` or `_Pragma` anywhere in code,
+  whatever the case, so a macro cannot rebuild a file-reading directive;
+- preprocessor lines are only `#define NAME number-expression` (no macro
+  arguments, no `#`/`##`) and `#if`/`#ifdef`/`#ifndef`/`#elif`/`#else`/
+  `#endif`/`#undef`; other `# text` lines are comments;
+- labels `<prefix>_init`, `<prefix>_update`, `<prefix>_draw` exist and are
+  `.globl`; size ≤ 256 KiB, no NUL bytes, no trigraphs.
+
+Like the C check, this is a guard, not an OS sandbox (ADR-0005 still applies).
+`AGENTS.md` was updated. Evidence: `tests/test_handwritten_assembly.py`,
+including a real cartridge build when the toolchain is installed.

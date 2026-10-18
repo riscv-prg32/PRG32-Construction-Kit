@@ -5,17 +5,20 @@
   let dirty = false;
   let loading = false;
 
+  // Blocks, Advanced C, or handwritten RISC-V assembly. C and assembly are typed as text.
   function isCMode() { return $('#editorMode').val() === 'c'; }
+  function isAsmMode() { return $('#editorMode').val() === 'asm'; }
+  function isTextMode() { return isCMode() || isAsmMode(); }
 
   // Which generated source Generate and Compile make: C, RISC-V assembly, or both.
   // Assembly is made from Blocks, so an Advanced C project always uses its own C.
   const CONVERT_LABELS = { c: 'Generate C', asm: 'Generate Assembly', both: 'Generate C + Assembly' };
   const languageKey = 'prg32-source-language-' + projectId;
-  function sourceLanguage() { return isCMode() ? 'c' : ($('#sourceLanguage').val() || 'c'); }
+  function sourceLanguage() { return isCMode() ? 'c' : isAsmMode() ? 'asm' : ($('#sourceLanguage').val() || 'c'); }
   function codeChoice() { return { source_language: sourceLanguage() }; }
   function showLanguage() {
-    $('#sourceLanguage').prop('disabled', isCMode());
-    $('#convertLabel').text(CONVERT_LABELS[sourceLanguage()]);
+    $('#sourceLanguage').prop('disabled', isTextMode());
+    $('#convertLabel').text(isAsmMode() ? 'Check Assembly' : CONVERT_LABELS[sourceLanguage()]);
   }
   function rememberLanguage() {
     try { localStorage.setItem(languageKey, $('#sourceLanguage').val()); } catch (err) { /* private window */ }
@@ -35,14 +38,16 @@
   }
 
   function showMode() {
-    $('#blocksEditor').toggleClass('d-none', isCMode());
-    $('#sourceEditor').toggleClass('d-none', !isCMode());
-    $('#runGame, #stepGame, #resetGame').prop('disabled', isCMode());
+    $('#blocksEditor').toggleClass('d-none', isTextMode());
+    $('#sourceEditor').toggleClass('d-none', !isTextMode());
+    $('#customC, .c-only').toggleClass('d-none', !isCMode());
+    $('#customAsm, .asm-only').toggleClass('d-none', !isAsmMode());
+    $('#runGame, #stepGame, #resetGame').prop('disabled', isTextMode());
     showLanguage();
-    if (isCMode()) {
+    if (isTextMode()) {
       simulator.stop();
       $('#runGame').removeClass('btn-danger').addClass('btn-success').html('<i class="bi bi-play-fill"></i> Play');
-      $('#debugState').text('Advanced C is compiled by PRG32; this browser simulator runs Blocks only.');
+      $('#debugState').text((isCMode() ? 'Advanced C' : 'Assembly') + ' is compiled by PRG32; this browser simulator runs Blocks only.');
     } else {
       refreshSimulator();
       Blockly.svgResize(PRG32Blocks.getWorkspace());
@@ -68,8 +73,10 @@
       loading = true;
       PRG32Blocks.load(project.blocks_json || {});
       setTimeout(() => { loading = false; dirty = false; }, 0);
-      $('#editorMode').val(project.game_json && project.game_json.source_mode === 'c' ? 'c' : 'blocks');
+      const mode = project.game_json && project.game_json.source_mode;
+      $('#editorMode').val(mode === 'c' || mode === 'asm' ? mode : 'blocks');
       $('#customC').val(project.game_json && project.game_json.source_c || '');
+      $('#customAsm').val(project.game_json && project.game_json.source_asm || '');
       const features = project.game_json && project.game_json.required_features;
       $('#requiredFeatures').val(Array.isArray(features) ? features.join(', ') : '');
       showMode();
@@ -99,19 +106,22 @@
   // another browser window saved a different version in the meantime.
   function savedVersion() {
     if (isCMode()) return { expected_source_c: project.game_json.source_c };
+    if (isAsmMode()) return { expected_source_asm: project.game_json.source_asm };
     return { expected_blocks_json: project.blocks_json };
   }
 
   function saveProject() {
     const blocks = PRG32Blocks.save();
     const features = $('#requiredFeatures').val().split(',').map(item => item.trim()).filter(Boolean);
-    const ir = isCMode() ? { source_mode: 'c', source_c: $('#customC').val(), required_features: features } : PRG32Simulator.compileBlocks(blocks);
+    const ir = isCMode() ? { source_mode: 'c', source_c: $('#customC').val(), required_features: features }
+      : isAsmMode() ? { source_mode: 'asm', source_asm: $('#customAsm').val(), required_features: features }
+      : PRG32Simulator.compileBlocks(blocks);
     return Kit.api('/api/projects/' + projectId, { method: 'PUT', body: { blocks_json: blocks, game_json: ir } })
       .then(data => {
         project = data;
         dirty = false;
         Kit.toast('Project saved', 'success');
-        if (!isCMode()) refreshSimulator();
+        if (!isTextMode()) refreshSimulator();
       });
   }
 
@@ -191,13 +201,19 @@
   $('#editorMode').on('change', () => { dirty = true; showMode(); });
   $('#sourceLanguage').on('change', () => { rememberLanguage(); showLanguage(); });
   restoreLanguage();
-  $('#customC').on('input', () => { dirty = true; });
+  $('#customC, #customAsm').on('input', () => { dirty = true; });
   $('#requiredFeatures').on('input', () => { dirty = true; });
+  // Start the C or assembly from what the blocks generate (it overwrites the text box, not the saved project).
   $('#startFromBlocks').on('click', () => {
     const blocks = PRG32Blocks.save();
+    const asm = isAsmMode();
     Kit.api('/api/projects/' + projectId, { method: 'PUT', body: { blocks_json: blocks, game_json: PRG32Simulator.compileBlocks(blocks) } })
-      .then(() => Kit.api('/api/projects/' + projectId + '/convert', { method: 'POST', body: {} }))
-      .then(result => { $('#customC').val(result.c_source); dirty = true; Kit.toast('Generated C copied. Save to keep your changes.', 'success'); })
+      .then(() => Kit.api('/api/projects/' + projectId + '/convert', { method: 'POST', body: { source_language: asm ? 'asm' : 'c' } }))
+      .then(result => {
+        if (asm) $('#customAsm').val(result.asm_source); else $('#customC').val(result.c_source);
+        dirty = true;
+        Kit.toast('Generated ' + (asm ? 'assembly' : 'C') + ' copied. Save to keep your changes.', 'success');
+      })
       .catch(err => Kit.toast(err.message, 'danger'));
   });
   $('#convertProject').on('click', convertProject);

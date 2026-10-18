@@ -7,6 +7,7 @@ teacher and import again on any PRG32-Construction-Kit:
 prg32.project.json          what the project is (the manifest, see below)
 src/blocks.json             the Blockly program   (authoring_mode "blocks")
 src/game.c                  the Advanced C source (authoring_mode "c")
+src/game.S                  handwritten RISC-V assembly (authoring_mode "assembly")
 assets/sprites/01-ship.json one file per sprite
 assets/data/01-level.json   one file per asset
 ```
@@ -41,8 +42,8 @@ ARCHIVE_SUFFIX = ".prg32project.zip"
 ARCHIVE_CONTENT_TYPE = "application/zip"
 LEGACY_EXPORT_ABI = "prg32-construction-kit-project-1.0"
 
-# Which source file each authoring mode keeps. "assembly" is reserved: it is
-# refused until docs/adr/0004-handwritten-assembly-mode.md is accepted.
+# Which source file each authoring mode keeps. In the database the mode is
+# game_json.source_mode: "c", "asm" (handwritten assembly) or absent (Blocks).
 AUTHORING_MODES = ("blocks", "c", "assembly")
 SOURCE_FILES = {"blocks": "src/blocks.json", "c": "src/game.c", "assembly": "src/game.S"}
 
@@ -76,6 +77,8 @@ def authoring_mode(project: dict[str, Any]) -> str:
     saved = project.get("game_json")
     if isinstance(saved, dict) and saved.get("source_mode") == "c":
         return "c"
+    if isinstance(saved, dict) and saved.get("source_mode") == "asm":
+        return "assembly"
     return "blocks"
 
 
@@ -95,7 +98,7 @@ def build_manifest(project: dict[str, Any], sprites: list[dict[str, Any]], asset
     mode = authoring_mode(project)
     prefix = c_identifier(project.get("title") or "", "prg32_game")
     saved = project.get("game_json") if isinstance(project.get("game_json"), dict) else {}
-    features = saved.get("required_features", []) if mode == "c" else []
+    features = saved.get("required_features", []) if mode in ("c", "assembly") else []
     asset_list = [{"kind": "sprite", "name": str(sprite.get("name") or "sprite"),
                    "path": _numbered("sprites", index, sprite.get("name") or "")}
                   for index, sprite in enumerate(sprites, start=1)]
@@ -117,8 +120,8 @@ def build_manifest(project: dict[str, Any], sprites: list[dict[str, Any]], asset
         "required_features": list(features) if isinstance(features, list) else [],
         "sdk": dict(SDK_ABI),
         "targets": list(SUPPORTED_ARCHITECTURES),
-        # "c" is the only choice for Advanced C; Blocks may also build from generated assembly.
-        "build_profiles": {"default": {"source_language": "c"}},
+        # Advanced C builds its C, assembly its assembly; Blocks may also build from generated assembly.
+        "build_profiles": {"default": {"source_language": "asm" if mode == "assembly" else "c"}},
         "assets": asset_list,
         "tests": [],
     }
@@ -135,6 +138,8 @@ def project_files(project: dict[str, Any], sprites: list[dict[str, Any]],
     files = {MANIFEST_NAME: _dumps(manifest)}
     if manifest["authoring_mode"] == "c":
         files[manifest["source"]] = str(project["game_json"].get("source_c") or "").encode("utf-8")
+    elif manifest["authoring_mode"] == "assembly":
+        files[manifest["source"]] = str(project["game_json"].get("source_asm") or "").encode("utf-8")
     else:
         files[manifest["source"]] = _dumps(project.get("blocks_json") or {})
     rows = [*sprites, *assets]
@@ -277,9 +282,6 @@ def _check_manifest(manifest: dict[str, Any]) -> None:
     mode = manifest.get("authoring_mode")
     if mode not in AUTHORING_MODES:
         raise ProjectFormatError("authoring_mode must be one of: " + ", ".join(AUTHORING_MODES))
-    if mode == "assembly":
-        raise ProjectFormatError("Handwritten assembly projects are not supported by this kit yet "
-                                 "(see docs/adr/0004-handwritten-assembly-mode.md)")
     if manifest.get("source") != SOURCE_FILES[mode]:
         raise ProjectFormatError(f"A {mode} project keeps its source in {SOURCE_FILES[mode]}")
     tags = manifest.get("tags", [])
@@ -311,15 +313,16 @@ def contents_from_files(files: dict[str, bytes]) -> dict[str, Any]:
         "tags": list(manifest.get("tags", [])),
     }
     source_path = manifest["source"]
-    if mode == "c":
+    if mode in ("c", "assembly"):
         if source_path not in files:
             raise ProjectFormatError(f"The archive is missing {source_path}")
         try:
-            source_c = files[source_path].decode("utf-8")
+            text = files[source_path].decode("utf-8")
         except UnicodeDecodeError:
             raise ProjectFormatError(f"{source_path} is not UTF-8 text") from None
+        source_mode, field = ("c", "source_c") if mode == "c" else ("asm", "source_asm")
         project["blocks_json"] = {}
-        project["game_json"] = {"source_mode": "c", "source_c": source_c,
+        project["game_json"] = {"source_mode": source_mode, field: text,
                                 "required_features": list(manifest.get("required_features", []))}
     else:
         blocks = _json_file(files, source_path)

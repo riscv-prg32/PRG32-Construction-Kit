@@ -28,7 +28,7 @@ from .generator import blocks_to_c, sprite_to_c
 from .packager import SUPPORTED_ARCHITECTURES, prepare_package
 from .publisher import publish_bundle
 from .sample_data import example_catalog
-from .source_project import validate_c_source, validate_features
+from .source_project import validate_asm_source, validate_c_source, validate_features
 
 bp = Blueprint("kit", __name__)
 
@@ -446,6 +446,17 @@ def _generate_project(project_id: str) -> tuple[dict[str, Any] | None, dict[str,
         return project, {"abi": "prg32-construction-kit-c-1.0", "entry_prefix": prefix,
                          "source_mode": "c", "source_c": source,
                          "required_features": required_features, "warnings": []}, source, None
+    if isinstance(saved, dict) and saved.get("source_mode") == "asm":
+        # Handwritten assembly: checked (docs/adr/0004-handwritten-assembly-mode.md), then built as written.
+        source = saved.get("source_asm", "")
+        try:
+            prefix = validate_asm_source(source, project.get("title") or "")
+            required_features = validate_features(saved.get("required_features", []))
+        except ValueError as exc:
+            return project, None, None, json_error(str(exc))
+        return project, {"abi": "prg32-construction-kit-asm-1.0", "entry_prefix": prefix,
+                         "source_mode": "asm", "source_asm": source,
+                         "required_features": required_features, "warnings": []}, "", None
     try:
         game_ir, c_source = blocks_to_c(project.get("blocks_json") or {}, project)
     except Exception as exc:
@@ -468,6 +479,10 @@ def _changed_elsewhere(project: dict[str, Any], payload: dict[str, Any]) -> bool
     """
     if "expected_blocks_json" in payload and payload["expected_blocks_json"] != project.get("blocks_json"):
         return True
+    if "expected_source_asm" in payload:
+        saved = project.get("game_json") or {}
+        saved_asm = saved.get("source_asm") if isinstance(saved, dict) and saved.get("source_mode") == "asm" else None
+        return payload["expected_source_asm"] != saved_asm
     if "expected_source_c" in payload:
         saved = project.get("game_json") or {}
         saved_c = saved.get("source_c") if isinstance(saved, dict) and saved.get("source_mode") == "c" else None
@@ -484,6 +499,11 @@ _SOURCE_KINDS = {
 
 
 def _source_language(payload: dict[str, Any], game_ir: dict[str, Any]) -> tuple[str, tuple[Response, int] | None]:
+    if game_ir.get("source_mode") == "asm":
+        # An assembly project has no C: it always builds the assembly the student wrote.
+        if payload.get("source_language", "asm") != "asm":
+            return "asm", json_error("An assembly project builds the assembly you wrote; it has no C to generate.")
+        return "asm", None
     language = payload.get("source_language", "c")
     if language not in SOURCE_LANGUAGES:
         return "c", json_error("source_language must be one of: " + ", ".join(SOURCE_LANGUAGES))
@@ -498,7 +518,8 @@ def _generated_sources(language: str, game_ir: dict[str, Any], c_source: str) ->
     if language in ("c", "both"):
         sources["c"] = c_source
     if language in ("asm", "both"):
-        sources["asm"] = ir_to_asm(game_ir)
+        handwritten = game_ir.get("source_mode") == "asm"
+        sources["asm"] = game_ir["source_asm"] if handwritten else ir_to_asm(game_ir)
     return sources
 
 

@@ -102,3 +102,91 @@ def validate_features(value: object) -> list[str]:
     if not isinstance(value, list) or any(not isinstance(item, str) or item not in FEATURES for item in value):
         raise ValueError("Features must be a list of current PRG32 feature names")
     return list(dict.fromkeys(value))
+
+
+# --- handwritten RISC-V assembly (docs/adr/0004-handwritten-assembly-mode.md) ---
+#
+# A .S file goes through the C preprocessor and then the GNU assembler. Both
+# can read files on the server (#include, .include, .incbin), so only the
+# directives below are allowed. Everything else on a line is an instruction,
+# which the assembler checks itself.
+ALLOWED_ASM_DIRECTIVES = {
+    ".option",                                              # .option norelax, ...
+    ".section", ".text", ".data", ".bss", ".rodata",        # where the bytes go
+    ".globl", ".global", ".local", ".type", ".size",        # symbol visibility and debug info
+    ".balign", ".align", ".p2align",                        # alignment
+    ".word", ".half", ".short", ".byte", ".2byte", ".4byte",  # numbers
+    ".zero", ".space", ".skip",                             # reserved bytes
+    ".ascii", ".asciz", ".string",                          # text
+    ".equ", ".set", ".equiv",                               # named constants
+}
+_ASM_SECTION = re.compile(r"^\.(?:text|data|bss|rodata)(?:\.[A-Za-z0-9_.]+)?$")
+_ASM_LABEL = re.compile(r"^\s*(?:[A-Za-z_.$][\w.$]*|\d+)\s*:")
+_ASM_DEFINE = re.compile(r"^\s*#\s*define\s+[A-Za-z_]\w*(?:\s+[\w\s+\-*/%()<>&|^~]*)?$")
+_ASM_CONDITIONAL = re.compile(r"^\s*#\s*(?:ifndef|ifdef|if|elif|else|endif|undef)\b")
+# Every directive the C preprocessor knows. A full-line "# text" whose first
+# word is not one of these is an ordinary assembly comment.
+_CPP_DIRECTIVES = {"define", "undef", "if", "ifdef", "ifndef", "elif", "elifdef", "elifndef", "else", "endif",
+                   "include", "include_next", "import", "embed", "line", "pragma", "error", "warning", "ident",
+                   "sccs", "assert", "unassert"}
+# Words that read a file on the server, however they are spelled or hidden in a macro.
+_ASM_FILE_WORDS = re.compile(r"incbin|include|__has_include|_Pragma", re.IGNORECASE)
+
+
+def _asm_statements(line: str) -> list[str]:
+    """Split one source line into statements: ';' separates them, '#' starts a comment."""
+    return [part.strip() for part in line.split("#", 1)[0].split(";") if part.strip()]
+
+
+def validate_asm_source(source: str, title: str) -> str:
+    """Check handwritten assembly before the PRG32 builder assembles it.
+
+    Like validate_c_source, this is a guard against reading server files and
+    against wrong entry names; it is not an OS sandbox.
+    """
+    if not isinstance(source, str) or not source.strip():
+        raise ValueError("Assembly source is empty")
+    if len(source.encode("utf-8")) > 256 * 1024 or "\x00" in source:
+        raise ValueError("Assembly source exceeds 256 KiB or contains NUL bytes")
+    if "??=" in source or "??/" in source:
+        raise ValueError("Trigraphs (??= and ??/) are not supported")
+    bare = _without_strings(_without_comments(source))
+    # After an instruction '#' starts a comment; a line that starts with '#' is a preprocessor line.
+    code = "\n".join(line if _DIRECTIVE_START.match(line) else line.split("#", 1)[0] for line in bare.splitlines())
+    found = _ASM_FILE_WORDS.search(code)
+    if found:
+        raise ValueError(f"'{found.group(0)}' is not allowed in PRG32 cartridge assembly: it could read files on the server")
+    for number, line in enumerate(bare.splitlines(), start=1):
+        if _DIRECTIVE_START.match(line):
+            directive = re.sub(r"^\s*%:", "#", line)
+            word = re.match(r"^\s*#\s*(\w*)", directive).group(1)
+            if _ASM_CONDITIONAL.match(directive):
+                continue
+            if _ASM_DEFINE.match(directive):
+                continue  # only "#define NAME number-expression": no macros with arguments
+            if word not in _CPP_DIRECTIVES:
+                continue  # "# move the ball": a comment line, the preprocessor leaves it alone
+            raise ValueError(f"Line {number}: only '#define NAME value' and #if/#ifdef/#else/#endif are allowed "
+                             "as preprocessor lines")
+        for statement in _asm_statements(line):
+            while _ASM_LABEL.match(statement):
+                statement = _ASM_LABEL.sub("", statement, count=1).strip()
+            if not statement.startswith("."):
+                continue
+            name, _, rest = statement.partition(" ")
+            name = name.split("\t")[0].lower()
+            if name not in ALLOWED_ASM_DIRECTIVES:
+                raise ValueError(f"Line {number}: the directive {name} is not allowed. Allowed: "
+                                 + ", ".join(sorted(ALLOWED_ASM_DIRECTIVES)))
+            if name == ".section":
+                section = rest.split(",")[0].strip()
+                if not _ASM_SECTION.match(section):
+                    raise ValueError(f"Line {number}: use .text, .rodata, .data or .bss sections, not {section!r}")
+    prefix = c_identifier(title, "prg32_game")
+    for phase in ("init", "update", "draw"):
+        name = re.escape(f"{prefix}_{phase}")
+        if not re.search(rf"^\s*{name}\s*:", bare, re.MULTILINE):
+            raise ValueError(f"Assembly source must define the label {prefix}_{phase}:")
+        if not re.search(rf"^\s*\.glob(?:a)?l\s+{name}\s*(?:[#;]|$)", bare, re.MULTILINE | re.IGNORECASE):
+            raise ValueError(f"Assembly source must make {prefix}_{phase} visible with .globl {prefix}_{phase}")
+    return prefix

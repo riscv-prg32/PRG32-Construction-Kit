@@ -13,6 +13,11 @@
 - Full-IDE planning documents: current-state matrix, ADRs, plan, status,
   traceability, compatibility, security, deployment, user and admin guides.
 
+- **Assembly (RISC-V)** editor mode: write a cartridge in handwritten
+  assembly. It is checked against a directive allow-list and then built by
+  the PRG32 toolchain (ADR-0004, `handwritten_assembly.md`). Archives store it
+  as `src/game.S` with `authoring_mode: "assembly"`.
+
 ### Changed
 
 - **Make my copy** now copies a shared project on the server, including its

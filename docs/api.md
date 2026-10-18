@@ -78,7 +78,8 @@ directly.
 Many students, or one student in several browser windows, can build at the
 same time; see `concurrent_builds.md`. Two optional fields protect against a
 save from another window: send `"expected_blocks_json"` (Blocks projects) or
-`"expected_source_c"` (Advanced C projects) with the version you just saved,
+`"expected_source_c"` (Advanced C projects) or `"expected_source_asm"`
+(handwritten assembly projects) with the version you just saved,
 and the server answers `409` instead of compiling a different version. When
 every build slot stays busy for `PRG32_BUILD_QUEUE_TIMEOUT` seconds the server
 answers `503` with a `Retry-After` header; try again a little later.
@@ -167,8 +168,8 @@ POST /api/projects/<id>/duplicate
   JSON or a project archive. Archive imports answer `201` with the new project
   plus `ignored_files` (files in the zip that the manifest does not list), or
   `400` with a reason: unsafe file names, links, encrypted entries, files over
-  4 MiB, more than 512 files, a newer `schema_version`, or a handwritten
-  assembly project (not supported yet).
+  4 MiB, more than 512 files, or a newer `schema_version`. Projects in all
+  three authoring modes (`blocks`, `c`, `assembly`) import.
 - `export` still writes the older single JSON file
   (`prg32-construction-kit-project-1.0`). Importing that file goes through the
   project-format migration (schema version 0 → 1).
@@ -187,6 +188,11 @@ Content-Type: application/json
 `source_language` is optional: `"c"` (the default), `"asm"` (RISC-V assembly)
 or `"both"`. Anything else is rejected with `400`. Assembly is generated from
 Blocks only: an Advanced C project answers `400` for `"asm"` and `"both"`.
+A handwritten assembly project (`game_json: {"source_mode": "asm", "source_asm": "...",
+"required_features": [...]}`) always uses its own assembly: `source_language`
+may be left out or be `"asm"`; anything else answers `400`. Its source is
+checked first (`handwritten_assembly.md`); a refused source answers `400`
+with the reason, before anything is assembled.
 See `generated_code.md` for how to read the two files.
 
 Response fields:

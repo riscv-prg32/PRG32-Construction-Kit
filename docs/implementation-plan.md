@@ -32,6 +32,7 @@ G1 ─► G6 identity/storage ─► G7
 | Safe archive import | `project_format.py`, `POST /api/projects/import` | done |
 | Manifest view | `GET /api/projects/<id>/manifest` | done |
 | Server-side duplicate (with sprites/assets) | `POST /api/projects/<id>/duplicate` | done |
+| Handwritten assembly mode (ADR-0004) | `source_project.py`, `routes.py`, `project_format.py`, editor | done |
 | Editor/dashboard buttons | `templates/editor.html`, `templates/index.html`, `static/js/*.js` | done |
 | Revision history (snapshot on save, list, restore) | new `project_revisions` table, routes | next |
 | Soft delete + recovery | `deleted_at` column via idempotent `ALTER TABLE` | next |
@@ -95,7 +96,6 @@ container, release notes.
 
 ## Blocked on the project owner
 
-- ADR-0004 handwritten assembly mode.
 - Emscripten and a host GCC for differential assembly tests on the build
   machine.
 - IdP test tenants (institutional OIDC, Google Workspace, Entra ID).
