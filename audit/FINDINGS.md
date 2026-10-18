@@ -1,73 +1,70 @@
 # Findings
 
-## Resolved since the initial audit
+## Resolved release blockers
 
-### R-01 — Authenticated Store SSRF (formerly H-01) — closed and independently verified
-
-The new `store_policy.py` requires administrator-approved origins, validates URL shape and every resolved address, pins the connection to the checked address, disables redirects, retains TLS hostname verification, bounds responses, and returns safe errors. `publisher.py` applies the policy again at send time. All 94 adversarial Store-egress tests passed in this reassessment, including private/loopback/link-local addresses, ambiguous IP spellings, DNS rebinding, redirects, TLS hostname checks, timeouts and token/address non-disclosure. A live public Store was not used.
-
-## Critical
-
-No confirmed unauthenticated critical exploit was demonstrated. The following High findings remain release blockers under the requested gate.
+- **R-01 (former H-01, Store SSRF): closed.** Approved origins, IP/DNS checks, address pinning, no redirects, TLS verification and bounded responses are implemented in `store_policy.py` and `publisher.py`; adversarial tests exist in `tests/test_store_egress.py`.
+- **R-02 (former H-02, unauthorized publishing): closed.** `_prepare_publish` rejects roles below publisher and non-publishable bundles; review tokens bind user/profile/artifact/content; confirmation and attempts are enforced (`routes.py:1004-1125`; `publishing.py:149-228`). Targeted tests passed.
+- **R-03 (former H-03, unsandboxed compilation): closed in design and automated Linux evidence.** Production requires bubblewrap; the build gets isolated namespaces, read-only dependencies, one writable build directory, cleared environment, seccomp and rlimits (`build_sandbox.py:1-20,219-239`; `packager.py:140-160`). Linux escape tests were not independently executable on this macOS host.
 
 ## High
 
-### H-02 — Publisher role is not enforced and publication lacks confirmation
+### H-01 — The claimed Full IDE core is absent
 
-- Evidence: roles include `publisher` (`auth.py:49-55`), but `api_publish` has no role decorator/check (`routes.py:989-1029`). The UI sends the publication immediately on one click (`publish.js:51-56`). It also lists and permits `source_bundle` (`publish.js:17-29`; `routes.py:1000`).
-- Reproduction: sign in as ordinary `user`, create a profile and bundle, invoke `/api/publish`; the Kit attempts publication.
-- Expected: publisher/admin scope, immutable review summary, explicit confirmation, publishable binary bundle only, idempotency/retry state.
-- Impact: students may publish without the intended academic approval boundary and may upload invalid source-only bundles.
-- Remedy: enforce scoped authorization server-side, validate `metadata.publishable`, implement draft/confirm/update states, and test unauthorized rejection.
+- Evidence: C and assembly remain plain textareas (`templates/editor.html:72-82`); traceability marks the JetBrains-style shell, Monaco and language services open (`docs/traceability.md:32`).
+- Reproduction: open a C or Assembly project; there is no project tree, multi-file tab model, palette, completion, diagnostic navigation or SDK-aware editor.
+- Impact: IDE-01/03/04 are missing and the product cannot accurately ship as the audited Full IDE.
+- Remedy: deliver the shell and vendored editor first, retaining inspectable generated C/assembly and Blockly editability.
 
-### H-03 — Untrusted compilers run without an OS sandbox
+### H-02 — Mandatory source-level debugger behavior is missing
 
-- Evidence: build commands execute directly via `subprocess.run` with inherited environment plus private TMPDIR (`packager.py:75-87,117-150`). C/assembly validators state they are not a sandbox (`source_project.py:64-70,141-146`). Timeouts and slots limit duration/concurrency but not filesystem, network, process, memory, or syscall access.
-- Reproduction: submit adversarial but validator-accepted sources and observe compilation under the web-service identity. A compiler/toolchain vulnerability or validator bypass inherits service access.
-- Expected: disposable container/namespace, read-only SDK, no network, non-root UID, cgroup CPU/RAM/PID caps, empty writable build volume, seccomp/AppArmor, killed process group.
-- Impact: unsafe server-side processing of student-controlled compiler inputs; release-gate blocker for multi-user deployment.
-- Remedy: isolate every build and retain validators as defense in depth; add escape/resource-exhaustion tests.
+- Evidence: DWARF locals/call stack/watches and Blockly active-block mapping are explicitly open (`docs/traceability.md:49-50`; `docs/implementation-status.md:60-63`).
+- Reproduction: load a cartridge in Player; address-level state exists, but scenario D's locals, call stack, watches, source breakpoint and active block checks cannot be performed.
+- Impact: the audit release gate treats broken mandatory debugger functionality as NO-GO.
+- Remedy: deterministic block→source→address maps plus a DWARF debug profile and graceful address-only fallback.
 
-### H-04 — Full IDE claim is materially incomplete
+### H-03 — Academic identity and guest access contract is incomplete
 
-- Evidence: C and assembly are plain `<textarea>` controls (`templates/editor.html:72-82`); traceability marks JetBrains shell, Monaco, and language services open (`docs/traceability.md:32`). No command palette, project tree, diagnostic navigation, completion, workspace tabs, or editor accessibility evidence exists.
-- Reproduction: open `/projects/<id>` and choose C or Assembly.
-- Expected: requirements IDE-01/03/04.
-- Impact: release labeling would misrepresent the product and removes essential learning/debug workflows.
-- Remedy: deliver G2 as bounded PRs with vendored/offline Monaco, deterministic SDK indexes, diagnostics, keyboard/focus tests, and responsive shell.
+- Evidence: OIDC is one environment-configured provider with no explicit PKCE and links `("oidc", sub)` (`auth_adapters.py:41-81`); guest IndexedDB/policy is only planned (`docs/implementation-plan.md:39`).
+- Reproduction: inspect configured login registration and attempt scenario A/E; multi-IdP issuer identity, claim mapping, guest policy and recovery paths do not exist.
+- Impact: required guest classroom use and academic tenant/role assurance are unavailable.
+- Remedy: implement ADR-0007 and guest policies with the full negative IdP and isolation matrix.
 
 ## Medium
 
-### M-01 — OIDC contract is below the required academic profile
+### M-01 — Cloud sync is absent
 
-`auth_adapters.py:41-81` configures one Authlib client and links identity as provider `oidc` plus `sub`. The code does not explicitly configure PKCE, issuer+subject storage, multiple providers, admin claim mapping, or disabled-user/group-change behavior. The required negative IdP matrix was not executed. Implement accepted ADR-0007 and provider contract tests.
+Google Drive and OneDrive are explicitly open (`docs/traceability.md:59`). Scenario B token expiry, revocation, conflicts and network loss cannot run.
 
-### M-02 — PWA offline mode depends on uncached third-party assets
+### M-02 — Offline authoring depends on third-party CDNs
 
-Bootstrap CSS/icons/JS and jQuery are remote (`templates/base.html:12-13,60-61`), and Blockly is remote (`templates/editor.html:137`). The service worker caches only same-origin `/static/` files (`service-worker.js:4-18,29-40`). A cold offline start cannot render/run the authoring UI, and CDN assets lack SRI/CSP evidence. Vendor pinned assets, include them in the cache, add CSP/SRI, and run cold/warm offline tests.
+Bootstrap/icons/jQuery and Blockly load remotely (`templates/base.html:12-13,60-61`; `templates/editor.html:137`), while the service worker only caches same-origin static files (`static/service-worker.js:4-18,29-40`). A cold disconnected editor is not demonstrated and there is no CSP/SRI evidence.
 
-### M-03 — Store bundle is not independently validated against Store contract
+### M-03 — Store validation is local rather than shared-contract conformance
 
-The packager constructs metadata locally (`packager.py:53-72,225-260`) and upload forwards Store responses. No preflight validation against the inspected Store schema/endpoints, duplicate version workflow, or recovery transaction was found. Add a shared schema/conformance suite and Store integration fixtures.
+The kit duplicates Store manifest constants and checks magic/hashes (`publishing.py:40-45,84-132`). No shared schema, live duplicate/version/visibility test, or public Store conformance run was performed.
 
-### M-04 — Account/storage requirements are incomplete
+### M-04 — Registered storage lacks quotas and robust concurrency policy
 
-All normal pages require login (`auth.py:598-626`), while guest IndexedDB/policy is absent. Registered storage has ownership/history but lacks quotas, autosave, retention/deprovisioning, and semantic concurrent merges (`implementation-status.md:54-57`). Complete ACC-01/02 with tenant quota and eviction tests.
+History/soft delete work, but autosave and search remain open (`docs/implementation-status.md:54-57`); quotas, retention/deprovisioning and semantic conflict handling are not enforced.
 
-### M-05 — Debugger lacks source-level teaching features
+### M-05 — Delivery targets are unverified
 
-Address-level debugging is strong, but DWARF locals/call stack/watches and Blockly active-block/source maps are explicitly open (`implementation-status.md:60-62`; `traceability.md:49-50`). Add a debug build profile and deterministic source maps; preserve graceful address-only fallback.
+No physical board transfer/launch, user-facing PRG32-QT import, or PRG32-iOS handoff was executed. iOS source was unavailable, so no interface is claimed.
 
-### M-06 — Deployment targets are described, not verified
+### M-06 — Production sandbox still has documented operational gaps
 
-There is no executed hardware transfer/launch, PRG32-QT user import, or iOS handoff evidence. PRG32-iOS source/contract was not available. Label these workflows unverified and add signed artifact/hash handoff tests before release.
+There is no total build-directory quota or per-build UID, and AppArmor hosts require an exception (`docs/build_sandbox.md:65-76`). The current boundary is a strong improvement but needs operational hardening and independent x86_64/aarch64 evidence.
 
 ## Low
 
-### L-01 — Dependency reproducibility and quality gates are incomplete
+### L-01 — Reproducibility and quality gates are incomplete
 
-Python dependencies are bounded but not hash-locked (`pyproject.toml`, `requirements*.txt`); there is no configured lint/type checker, coverage gate, browser E2E, accessibility scanner, or performance budget. CI does have syntax, pytest, WASM, dependency-review, container and real-build jobs.
+Dependencies are range-pinned rather than hash-locked (`requirements.txt`, `requirements-production.txt`); CI lacks lint/type/coverage thresholds, browser E2E, automated accessibility and performance budgets.
 
-### L-02 — The named design baseline is absent
+### L-02 — Required baseline and some architecture facts are stale
 
-`CLAUDE_PRG32_CONSTRUCTION_KIT_IMPLEMENTATION.md` was not found in the repository or immediate sibling repositories. The committed ADRs and implementation plan are useful, but the audit cannot resolve conflicts against the named baseline. Commit the approved baseline or document its supersession.
+`CLAUDE_PRG32_CONSTRUCTION_KIT_IMPLEMENTATION.md` is absent. `docs/architecture/current-state.md:11,43,76-104,113` still describes old commits and capabilities (for example WASM/debug/sandbox as absent or planned), weakening traceability.
+
+## Release conclusion
+
+No new exploitable critical issue was confirmed. The recommendation remains **NO-GO** because H-01 and H-02 are mandatory product/release-gate failures, not because the resolved security work is discounted.

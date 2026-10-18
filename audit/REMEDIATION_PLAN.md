@@ -1,20 +1,19 @@
 # Remediation plan
 
-Order reflects release risk and dependency flow. Complexity: S/M/L.
+Complexity: S/M/L. Completed security phases remain listed because they are prerequisites and need release evidence.
 
-| PR | Owner role | Size | Work | Prerequisites | Acceptance tests |
-|---:|---|---:|---|---|---|
-| 1 | Security/backend | M | **Completed and verified at `2ea8616`:** admin allow-list, HTTPS policy, DNS/IP validation, pinned address, no redirects, response cap and timeouts. | Deployment Store origins. | 94/94 Store-egress tests passed; live public Store still unverified. |
-| 2 | Auth/backend + UX | M | Enforce publisher scope; binary bundle preflight; draft/review/explicit-confirm/update/error-recovery workflow. | PR 1, shared Store contract. | Ordinary student receives 403; publisher sees immutable hash/version/visibility review; source-only rejected; retry is idempotent. |
-| 3 | Platform/security | L | Execute each build in disposable no-network non-root sandbox with read-only SDK and cgroup/seccomp limits. | Container/runtime choice. | Escape, fork/memory/disk/CPU bombs, file-read and network attempts contained; normal three-mode builds pass concurrently. |
-| 4 | Architecture/Store | M | Extract versioned shared cartridge/bundle schema and conformance fixtures from PRG32/Store; remove duplicated header constants where feasible. | Upstream agreement. | Stale ABI/hash/schema rejected; duplicate/version/visibility error codes match Store. |
-| 5 | Frontend/platform | S | Vendor jQuery/Bootstrap/icons/Blockly, add CSP/SRI strategy, update service-worker cache. | License/provenance review. | Cold and warm offline PWA start/edit; no third-party network; cached-files-only invariant retained. |
-| 6 | Identity/security | L | Implement ADR-0007: PKCE, issuer+subject, multiple IdPs, admin config/claim mapping, disabled/group lifecycle, recovery. | IdP test tenants/fixtures. | Full scenario E matrix including JWKS rotation, state/nonce/aud/iss, collisions and lockout recovery. |
-| 7 | Accounts/backend | L | Guest policies A/B/C with IndexedDB, export/eviction; registered quotas, retention, autosave and conflict API. | Policy decisions. | Scenario A/B matrix, no guest server persistence, quota and concurrent-conflict tests. |
-| 8 | IDE frontend | L | Responsive IDE shell: tree, tabs/panels, palette, keyboard/focus model; vendored Monaco. | PR 5. | IDE-01 accessibility/keyboard/mobile E2E suite; Blockly remains editable. |
-| 9 | Language tooling | L | Deterministic C/assembly completion, diagnostics/navigation and SDK/ABI awareness. | PR 4 and 8. | Safe fixtures receive exact diagnostics/completions; unknown/unsafe APIs rejected; offline works. |
-| 10 | Debug/toolchain | L | Debug profile with DWARF, C variables/call stack/watches; deterministic block/source/address maps; compressed-instruction fixture. | PR 4 and 9. | DBG-02/05/06 checkpoints equal Qt; graceful address-only fallback. |
-| 11 | Cloud integrations | L | Drive then OneDrive behind provider interfaces; minimum scopes, refresh/revoke, conflicts. | PR 6/7. | Token expiry/revoke/network-loss/concurrent-edit tests in provider sandboxes. |
-| 12 | Delivery/QA | M | Hardware transfer, Qt import and verified iOS contract/handoff with hashes; browser E2E, a11y/performance budgets, backups/restore and SBOM. | Device/app access and preceding PRs. | Mandatory scenarios C/D/G, restore drill, signed release evidence. |
+| PR | Owner | Size | Work | Acceptance evidence |
+|---:|---|:---:|---|---|
+| 1 | Security/platform | S | Release-evidence pass for completed SSRF, publish authorization and sandbox controls on Linux x86_64/aarch64; close AppArmor documentation drift. | Full Store-egress suite; bubblewrap escape/resource tests; three-mode concurrent real builds; refusal without sandbox. |
+| 2 | Architecture/docs | S | Replace stale current-state facts; commit or formally supersede the missing approved design baseline. | Traceability SHAs/capabilities match source; documentation test. |
+| 3 | Frontend/platform | M | Vendor Bootstrap/jQuery/icons/Blockly, add CSP, update service-worker cache. | Cold/warm offline authoring; no third-party requests; cached-files-only invariant. |
+| 4 | IDE frontend | L | Responsive shell: tree, tabs/panels, palette, keyboard/focus model and vendored Monaco. | IDE-01/03/04 browser E2E, keyboard, screen-reader and mobile checks. |
+| 5 | Language/toolchain | L | Deterministic C/assembly completion, SDK navigation and diagnostics. | Offline fixture suite with exact safe/unsafe diagnostics and completion results. |
+| 6 | Debug/toolchain | L | DWARF profile, locals/call stack/watches, source breakpoints and deterministic Blockly maps. | Full mandatory scenario D including compressed instruction and Qt snapshot parity. |
+| 7 | Identity/security | L | ADR-0007: PKCE, issuer+subject, multi-IdP admin config, claims, lifecycle and recovery; course-scoped roles. | Full scenario E negative matrix and publisher boundaries. |
+| 8 | Accounts/backend | L | Guest policy/IndexedDB/export/eviction; registered quotas, retention, autosave and conflicts. | Scenarios A/B; no unintended guest persistence; quota/conflict/deprovision tests. |
+| 9 | Architecture/Store | M | Shared versioned cartridge/bundle schema and live Store sandbox conformance. | Stale ABI/schema, duplicate/version/visibility, interrupted upload and update behavior. |
+| 10 | Cloud | L | Drive then OneDrive with minimum scopes and provider-neutral conflict model. | Expiry/revoke/network-loss/concurrent-edit tenant tests. |
+| 11 | Delivery/QA | M | Physical board, Qt and verified iOS handoffs; browser performance/a11y; backup/restore; SBOM/hash locks. | Scenarios C/G, device logs/hashes, iOS contract evidence, restore drill and quality gates. |
 
-Do not combine PRs 1-3: each needs focused security review and rollback. Do not begin cloud work before identity/storage semantics stabilize. Continue preserving generated C and assembly as inspectable teaching artifacts throughout PRs 8-10.
+Keep generated C and assembly visible and deterministic throughout PRs 4–6. Do not begin cloud integration before identity and project-conflict semantics stabilize.

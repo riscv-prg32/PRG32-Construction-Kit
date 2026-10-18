@@ -1,29 +1,28 @@
 # Executive summary
 
-Audit date: 2026-10-18 (Europe/Rome)  
-Audited revision: `development` at `2ea8616f04e1b134d23e786acba2e536e6eef1e7`
-Recommendation: **NO-GO for the advertised Full IDE release**
+Audit date: 2026-10-18 (Europe/Rome)
 
-The current repository is a credible classroom construction kit with unusually strong deterministic Blocks generation, project ownership tests, a real PRG32-QT-derived WebAssembly runtime, and useful address-level debugging. It is not the Full IDE described by the audit matrix. The repository's own status page agrees: the IDE shell is not started, identity/storage and toolchain work are in progress, and delivery/release work is not started (`docs/implementation-status.md:8-16`).
+Audited revision: `development` at `6b7aac93554bcdbbeeb0c7b80fcad576b1a9bea6`
 
-The NO-GO is driven by release-gate gaps, not by the raw score:
+Recommendation: **NO-GO for a Full IDE release**
 
-1. Publishing has no publisher-role authorization and no explicit confirmation. The endpoint accepts both `store_bundle` and non-publishable `source_bundle` artifacts (`routes.py:989-1029`); the UI publishes on one click (`static/js/publish.js:51-56`).
-2. Student C/assembly builds invoke a host subprocess with time and concurrency limits but without an OS sandbox, filesystem isolation, syscall/network policy, or per-build UID (`packager.py:117-150`). The validators reduce file-read syntax but explicitly state they are not a sandbox (`source_project.py:64-70,141-146`).
-3. The claimed Full IDE core is absent: no JetBrains-style shell, Monaco, completion/navigation, project tree, command palette, or language services (`templates/editor.html:63-83`; `docs/traceability.md:32`).
-4. Guest policy/IndexedDB, Drive, OneDrive, full academic RBAC, DWARF/source debugging, hardware delivery, and iOS handoff are missing or unverified.
+The repository is a credible, well-tested classroom construction kit, but it is not the Full IDE defined by the audit brief. The central browser runtime is real: the committed WebAssembly module is built from the Qt-free PRG32-QT core, its hashes and pinned revision match, and native/WASM differential tests pass. Deterministic project formats, generated sources, ownership checks, publishing controls, and build isolation also have meaningful automated coverage.
 
-## Verified strengths
+The release gate still fails because mandatory product scope is absent: the editor is a Blockly workspace plus plain C/assembly textareas rather than an IDE shell; guest mode, cloud sync, academic OIDC/RBAC, DWARF/source debugging, and verified hardware/iOS delivery are missing or unverified. Mandatory debugger scenario D cannot be completed because locals, call stack, watches, source breakpoints, and active Blockly mappings do not exist (`docs/implementation-status.md:54-63`).
 
-- The unchanged core suite passed 346 tests with 14 expected toolchain/host-GCC/SDK skips. All 94 new Store-egress tests passed separately with loopback sockets enabled. Syntax checks passed.
-- With `PYTHONPATH=../PRG32`, the SDK ABI check and all feasible committed-WASM/native/PRG32-QT differential tests passed: 30 passed, 1 real-toolchain test skipped, 1 reproducibility test intentionally deselected after its environment-only failure was captured.
-- H-01 is independently closed: approved-origin validation, address classification, DNS pinning, no redirects, TLS hostname verification, bounded responses and safe errors are implemented in `store_policy.py`/`publisher.py` and exercised by the 94-test adversarial suite.
-- The committed WASM JS and binary hashes match `static/wasm/BUILD.json`, pinned to PRG32-QT `f6d80add…` and ABI 1.6 hash `0x260f6136`.
-- The local Construction Kit and PRG32-QT SHAs exactly match the recorded SDK/core inputs. `sso_protocol.py` is byte-identical to the local CartridgeStore copy.
-- Ownership, account-switch refusal, token redaction, archive validation, deterministic archive behavior, history, build-folder separation, throttling, and audit logging have meaningful automated coverage.
+The earlier H-01/H-02/H-03 security blockers are closed at this revision by Store-egress controls, publisher-only signed review/confirmation, and a production-required bubblewrap build sandbox. Source inspection and targeted tests support those closures. The Linux/container escape tests could not be independently rerun on this macOS sandbox, so that portion remains implemented but externally unverified in this run.
+
+## Verified coverage
+
+- Python and JavaScript syntax checks passed.
+- The clean local suite (excluding loopback-only Store tests and the exact WASM rebuild) passed; targeted publish/sandbox tests passed **34**, with **7** platform skips.
+- PRG32-QT is exactly the revision recorded in `static/wasm/BUILD.json`; committed WASM hash matches; native/WASM tests passed except the real-toolchain skip and a cache-permission-only rebuild failure.
+- `prg32_construction_kit/sso_protocol.py` is byte-identical to the local CartridgeStore copy.
+- Store publish now enforces `publisher`, publishable cartridge bundles, signed immutable review, explicit confirmation, and idempotent attempts (`routes.py:1004-1125`).
+- Production builds refuse fallback when bubblewrap is unavailable and constrain namespaces, mounts, environment, syscalls, resources, and process lifetime (`build_sandbox.py:1-20,219-239`; `packager.py:115-160`).
 
 ## Limitations
 
-No physical PRG32 hardware, browser UI automation, external IdP tenant, live public Cartridge Store publication, Drive/OneDrive tenant, PRG32-iOS source, or real local PRG32 build toolchain was used. No claim is made for those scenarios. Store transport was exercised only against local HTTP/TLS test servers. The local CartridgeStore checkout is one commit behind its remote-tracking branch; network refresh was not performed. The named design input `CLAUDE_PRG32_CONSTRUCTION_KIT_IMPLEMENTATION.md` was not found.
+No physical PRG32 hardware, browser automation, screen reader, external IdP, Drive/OneDrive tenant, live CartridgeStore publication, PRG32-iOS checkout, or locally installed PRG32 cartridge toolchain was used. Docker daemon access and loopback socket binding were denied by this audit environment. The exact Emscripten rebuild reached linking but could not write its Homebrew cache. These are recorded as blocked, not passed.
 
-The scored coverage is **61/128 (47.7%)** across 32 applicable rows. Scores are evidence-weighted and do not override the blockers above.
+The scored coverage is **64/128 (50.0%)** across 32 applicable rows. A numeric score does not override the missing mandatory Full IDE and debugger behavior.
