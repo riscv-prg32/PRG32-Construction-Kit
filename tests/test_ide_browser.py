@@ -1,4 +1,5 @@
-"""The IDE in a real browser (refinement phase 2, ADR-0013): keyboard-only work, Monaco, a11y.
+"""The IDE in a real browser (refinement phases 2-3, ADR-0013/0014): keyboard-only work, Monaco,
+language services, a11y.
 
 Uses Playwright with Chrome (or Playwright's Chromium) against a live kit; skips cleanly without
 them. Every workflow below is driven with the keyboard only (no mouse clicks), and axe-core
@@ -10,6 +11,7 @@ from __future__ import annotations
 import json
 import sys
 from pathlib import Path
+from urllib.parse import urlsplit
 
 from test_browser_offline import (  # noqa: F401 - fixtures
     Recorder,
@@ -22,6 +24,8 @@ from test_browser_offline import (  # noqa: F401 - fixtures
 ROOT = Path(__file__).resolve().parent.parent
 # Monaco's "end of file" key: Cmd+Down on a Mac, Ctrl+End elsewhere.
 END_OF_FILE = "Meta+ArrowDown" if sys.platform == "darwin" else "Control+End"
+# Monaco's own modifier for chords such as "show hover" (Ctrl+K Ctrl+I): Cmd on a Mac.
+MOD = "Meta" if sys.platform == "darwin" else "Control"
 AXE = ROOT / "tests" / "vendor" / "axe-core" / "4.10.2" / "axe.min.js"
 C_SOURCE = ('#include "prg32.h"\n'
             "void kb_c_init(void) {}\n"
@@ -123,12 +127,18 @@ def test_assembly_problems_mark_the_line_and_jump_there(browser, live_kit):  # n
     press_until(page, "F6", lambda focus: focus["inMonaco"])
     page.keyboard.press(END_OF_FILE)
     page.keyboard.type("    .fill 4, 1, 0\n")     # a directive the kit does not allow
+    # The live check marks exactly the directive, while typing and before any server round trip.
+    wait_until(page, "monaco.editor.getModelMarkers({owner: 'prg32-live'}).length > 0")
+    live = page.evaluate("monaco.editor.getModelMarkers({owner: 'prg32-live'})"
+                         ".map(m => [m.startLineNumber, m.startColumn, m.endColumn, m.code])")
+    assert live == [[11, 5, 10, "asm-directive"]]
     page.keyboard.press("Control+Shift+G")       # generate = check the source on the server
-    wait_until(page, "document.getElementById('problemCount').textContent !== '0'")
-    problem = page.evaluate("$('#ideProblems').data('problems')[0]")
+    wait_until(page, "PRG32Ide.serverProblems.length > 0")
+    problem = page.evaluate("PRG32Ide.serverProblems[0]")
     assert problem["line"] == 11 and ".fill" in problem["message"]
     markers = page.evaluate("monaco.editor.getModelMarkers({owner: 'prg32'}).map(m => m.startLineNumber)")
     assert markers == [11]
+    assert page.evaluate("PRG32Ide.problems.length") == 1  # the server's copy of the live problem is not repeated
     # Keyboard: F6 to the panel, Tab into it, Tab to the problem, Enter jumps to line 11.
     page.evaluate("PRG32Ide.editors.src.setPosition({lineNumber: 1, column: 1})")
     press_until(page, "F6", lambda focus: focus["region"] == "panel")
@@ -171,4 +181,107 @@ def test_small_screens_show_the_files_on_demand(browser, live_kit):  # noqa: F81
     assert page.get_attribute("#ideTreeToggle", "aria-expanded") == "true"
     no_scroll = page.evaluate("document.documentElement.scrollWidth <= window.innerWidth + 1")
     assert no_scroll, "the IDE scrolls sideways on a phone-sized screen"
+    context.close()
+
+
+def suggestions(page) -> list[str]:
+    """The labels in Monaco's suggestion list that is open now."""
+    wait_until(page, "!!document.querySelector('.monaco-editor .suggest-widget.visible .monaco-list-row')")
+    return page.evaluate("""Array.from(document.querySelectorAll('.monaco-editor .suggest-widget.visible .monaco-list-row'))
+        .map(row => row.getAttribute('aria-label') || row.textContent)""")
+
+
+def hover_text(page) -> str:
+    """Show the hover for the word at the cursor with the keyboard (Ctrl+K Ctrl+I) and read it."""
+    page.keyboard.press(f"{MOD}+k")
+    page.keyboard.press(f"{MOD}+i")
+    wait_until(page, "!!document.querySelector('.monaco-hover:not(.hidden) .hover-contents')")
+    return page.evaluate("document.querySelector('.monaco-hover:not(.hidden)').textContent")
+
+
+def test_c_language_services_work_offline_with_the_keyboard(browser, live_kit):  # noqa: F811
+    context = browser.new_context()
+    record = Recorder(context, live_kit)
+    page, _ = open_ide(context, live_kit, {
+        "title": "Kb C", "game_json": {"source_mode": "c", "source_c": C_SOURCE}})
+    record.watch(page)
+    context.set_offline(True)
+    sent = len(record.requests)
+    press_until(page, "F6", lambda focus: focus["inMonaco"])
+    page.keyboard.press(END_OF_FILE)
+    page.keyboard.type("void helper(void) {\n    prg32_gfx_re")
+    page.keyboard.press("Control+Space")
+    labels = suggestions(page)
+    assert any(label.startswith("prg32_gfx_rect") for label in labels), labels
+    assert not any("prg32_rgb_led" in label for label in labels)
+    page.keyboard.press("Enter")                  # accept: a snippet with the parameter names
+    wait_until(page, "PRG32Ide.editors.src.getValue().includes('prg32_gfx_rect(x, y, w, h, color)')")
+    # Signature help while typing the arguments.
+    page.keyboard.press("Escape")
+    line = page.evaluate("PRG32Ide.editors.src.getPosition().lineNumber")
+    page.evaluate(f"""PRG32Ide.editors.src.executeEdits('test', [{{range: new monaco.Range({line}, 1, {line}, 200),
+        text: ''}}]); PRG32Ide.editors.src.setPosition({{lineNumber: {line}, column: 1}})""")
+    page.keyboard.type("    prg32_gfx_rect(1, 2, ")   # "(" and "," open the signature help
+    wait_until(page, "!!document.querySelector('.parameter-hints-widget.visible')")
+    hint = page.evaluate("document.querySelector('.parameter-hints-widget.visible').textContent")
+    assert "int w" in hint and "prg32_gfx_rect" in hint
+    page.keyboard.press("Escape")
+    page.keyboard.type("3, 4, PRG32_COLOR_RED);\n    prg32_rgb_led_set(1, 2, 3);\n}\n")
+    # Hover on a PRG32 name, with the keyboard.
+    page.evaluate(f"PRG32Ide.editors.src.setPosition({{lineNumber: {line}, column: 10}})")
+    text = hover_text(page)
+    assert "void prg32_gfx_rect(int x, int y, int w, int h, uint16_t color)" in text and "Portable PRG32 ABI" in text
+    page.keyboard.press("Escape")
+    # The resident-firmware call is marked at its exact columns.
+    wait_until(page, "monaco.editor.getModelMarkers({owner: 'prg32-live'}).some(m => m.code === 'c-resident-only')")
+    marker = page.evaluate("monaco.editor.getModelMarkers({owner: 'prg32-live'}).find(m => m.code === 'c-resident-only')")
+    text_line = page.evaluate(f"PRG32Ide.editors.src.getModel().getLineContent({line + 1})")
+    column = text_line.index("prg32_rgb_led_set") + 1
+    assert (marker["startLineNumber"], marker["startColumn"], marker["endColumn"]) == (line + 1, column, column + 17)
+    # F12 goes to the declaration in the read-only prg32.h (portable API).
+    page.evaluate(f"PRG32Ide.editors.src.setPosition({{lineNumber: {line}, column: 10}})")
+    page.keyboard.press("F12")
+    wait_until(page, "!!PRG32Ide.editors['sdk-h'] && document.activeElement.closest('.monaco-editor') !== null")
+    at = page.evaluate("[PRG32Ide.editors['sdk-h'].getPosition().lineNumber, "
+                       "PRG32Ide.editors['sdk-h'].getModel().getLineContent(PRG32Ide.editors['sdk-h'].getPosition().lineNumber)]")
+    assert at[1].startswith("void prg32_gfx_rect(") and at[0] == page.evaluate(
+        "PRG32LanguageIndex.c.functions.find(f => f.name === 'prg32_gfx_rect').line")
+    assert page.evaluate("PRG32Ide.editors['sdk-h'].getOption(monaco.editor.EditorOption.readOnly)")
+    # Nothing asked the server: the only requests are Monaco's own static files (its icon font
+    # loads when the suggestion list first draws); the language services make none.
+    later = [urlsplit(url).path for url in record.requests[sent:]]
+    assert [path for path in later if not path.startswith("/static/vendor/monaco-editor/")] == [], later
+    assert record.csp_violations() == []
+    context.close()
+
+
+def test_assembly_language_services(browser, live_kit):  # noqa: F811
+    from prg32_construction_kit.source_project import ALLOWED_ASM_DIRECTIVES
+
+    context = browser.new_context()
+    page, _ = open_ide(context, live_kit, {
+        "title": "Kb Asm", "game_json": {"source_mode": "asm", "source_asm": ASM_SOURCE}})
+    context.set_offline(True)
+    press_until(page, "F6", lambda focus: focus["inMonaco"])
+    page.keyboard.press(END_OF_FILE)
+    page.keyboard.type("    .s")
+    page.keyboard.press("Control+Space")
+    labels = suggestions(page)
+    assert labels and labels[0].startswith(".s") and set(labels) <= ALLOWED_ASM_DIRECTIVES, json.dumps(labels)
+    offered = page.evaluate("PRG32Language.completions('asm', '    .', {line: 1, column: 6}).items.map(i => i.label)")
+    assert set(offered) == ALLOWED_ASM_DIRECTIVES
+    page.keyboard.press("Escape")
+    source = ASM_SOURCE.replace("kb_asm_draw:\n    ret", "kb_asm_draw:\n    lw a8, 0(sp)\n    call prg32_gfx_clear\n    ret")
+    page.evaluate("source => PRG32Ide.editors.src.setValue(source)", source)
+    wait_until(page, "monaco.editor.getModelMarkers({owner: 'prg32-live'}).length > 0")
+    markers = page.evaluate("monaco.editor.getModelMarkers({owner: 'prg32-live'})")
+    assert len(markers) == 1, json.dumps(markers)
+    marker = markers[0]
+    assert (marker["code"], marker["startLineNumber"], marker["startColumn"], marker["endColumn"]) == ("asm-register", 10, 8, 10)
+    page.evaluate("PRG32Ide.editors.src.setPosition({lineNumber: 11, column: 12})")
+    text = hover_text(page)
+    assert "void prg32_gfx_clear(uint16_t color)" in text and "a0 = color" in text
+    page.keyboard.press("Escape")
+    page.evaluate("PRG32Ide.editors.src.setPosition({lineNumber: 10, column: 15})")
+    assert "stack pointer" in hover_text(page)
     context.close()

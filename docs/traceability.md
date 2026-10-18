@@ -33,7 +33,7 @@ that proves it. "—" means not implemented yet. Statuses: **Done**,
 
 | ID | Requirement | Status | Notes |
 | --- | --- | --- | --- |
-| IDE-* | JetBrains-style shell, Monaco, language services | Partial: shell and Monaco done [IDE-01]; language services open [IDE-03] [IDE-04] | G2, ADR-0013, `capabilities.md` |
+| IDE-* | JetBrains-style shell, Monaco, language services | Shell and Monaco done [IDE-01]; offline language services done [IDE-03] [IDE-04]; block source maps open (phase 4) | G2, ADR-0013, ADR-0014, `capabilities.md` |
 | TC-1 | Real `.prg32` from Blocks and C | Done (pre-existing) | `tests/test_concurrency.py`, CI container job |
 | TC-2 | Provenance and hashes per build | Done | `provenance.py`, `packager.prepare_package` (`cartridges`, `attempts`), `routes._run_package_build`; tests `tests/test_build_provenance.py` (C, generated asm, handwritten asm, both, failed, source-only, crash, deterministic fields, path/secret redaction, real toolchain) |
 | TC-2a | Compiler errors are `failed`, not `source-only` | Done | `build_check.toolchain_present`, `routes._run_package_build`; `test_compiler_errors_are_failed_builds_not_source_only` |

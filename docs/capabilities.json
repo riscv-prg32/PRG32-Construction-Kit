@@ -49,33 +49,53 @@
     {
       "id": "IDE-03",
       "title": "C editor with language services",
-      "status": "partial",
+      "status": "implemented",
       "audit_score": 2,
       "source": [
-        "static/js/ide/ide.js::openSource",
-        "static/js/ide/ide.js::showProblems",
+        "static/js/ide/language.js::cDiagnostics",
+        "static/js/ide/language.js::cCompletions",
+        "static/js/ide/language.js::signatureHelp",
+        "static/js/ide/language.js::definition",
+        "static/js/ide/language.js::normalizeCompilerOutput",
+        "static/js/ide/monaco_language.js::register",
+        "tools/build_language_index.py::build",
         "prg32_construction_kit/source_project.py::validate_c_source"
       ],
       "tests": [
+        "tests/test_language_services.py::test_every_fixture_gives_exactly_the_recorded_answer",
+        "tests/test_language_services.py::test_live_c_checks_agree_with_the_server",
+        "tests/test_language_services.py::test_live_checks_agree_with_the_server_on_generated_sources",
+        "tests/test_language_services.py::test_resident_only_functions_are_never_offered_as_portable",
+        "tests/test_language_services.py::test_compiler_messages_come_back_without_server_paths",
+        "tests/test_ide_browser.py::test_c_language_services_work_offline_with_the_keyboard",
         "tests/test_ide_browser.py::test_keyboard_only_c_workflow",
         "tests/test_source_project.py::test_host_access_tricks_are_rejected"
       ],
-      "note": "Monaco C editing, colours, server/compiler problems as markers. No completion, hover or navigation yet (refinement phase 3)."
+      "note": "Offline completion (portable ABI only), hover, signature help, F12 into a generated prg32.h, live diagnostics at exact ranges that mirror validate_c_source, resident-only calls, compiler messages without paths (ADR-0014). No C type or scope analysis: deeper errors come from the compiler."
     },
     {
       "id": "IDE-04",
       "title": "RISC-V assembly editor with language services",
-      "status": "partial",
+      "status": "implemented",
       "audit_score": 2,
       "source": [
+        "static/js/ide/language.js::asmDiagnostics",
+        "static/js/ide/language.js::asmCompletions",
+        "static/js/ide/language.js::hover",
         "static/js/ide/monaco_setup.js::registerAssembly",
+        "tools/build_language_index.py::build",
         "prg32_construction_kit/source_project.py::validate_asm_source"
       ],
       "tests": [
+        "tests/test_language_services.py::test_every_fixture_gives_exactly_the_recorded_answer",
+        "tests/test_language_services.py::test_live_assembly_checks_agree_with_the_server",
+        "tests/test_language_services.py::test_suggested_headers_and_directives_are_exactly_the_allowed_ones",
+        "tests/test_language_services.py::test_kit_generated_sources_are_clean_in_the_editor",
+        "tests/test_ide_browser.py::test_assembly_language_services",
         "tests/test_ide_browser.py::test_assembly_problems_mark_the_line_and_jump_there",
         "tests/test_frontend_offline.py::test_the_assembly_grammar_knows_exactly_the_allowed_directives"
       ],
-      "note": "Monaco with the prg32-asm grammar (allowed directives only), line-exact problems. No completion yet (phase 3)."
+      "note": "RV32IMC + Zicsr instruction, register and allowed-directive completion, PRG32 call help with the ilp32 calling convention, labels and F12, live diagnostics at exact ranges mirroring validate_asm_source plus unknown instructions/registers (ADR-0014). Operand types are not checked."
     },
     {
       "id": "PRJ-01",

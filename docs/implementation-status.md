@@ -8,7 +8,7 @@ evidence-checked view is `capabilities.md` (from `capabilities.json`). A gate is
 | --- | --- | --- |
 | G0 Discovery | **Complete** | `architecture/current-state.md`, ADR-0001…0007, baseline tests recorded. |
 | G1 Foundation | **In progress** | Manifest, migrations, archive, duplicate, handwritten assembly mode, revisions, soft delete done; guest policy open. |
-| G2 IDE shell | **In progress** | IDE shell with Monaco, keyboard model, small-screen fallback and browser/a11y tests done (refinement phase 2, ADR-0013) [IDE-01]; the browser suites run in CI and may not skip there. Language services next (phase 3) [IDE-03] [IDE-04]. |
+| G2 IDE shell | **In progress** | IDE shell with Monaco, keyboard model, small-screen fallback and browser/a11y tests done (refinement phase 2, ADR-0013) [IDE-01]; the browser suites run in CI and may not skip there. Offline language services for C and assembly done (phase 3, ADR-0014) [IDE-03] [IDE-04]; block-to-source maps next (phase 4). |
 | G3 Toolchain | In progress | Server builds produce real `.prg32`; build provenance and cartridge SHA-256 done; every compile runs in a bubblewrap sandbox (ADR-0010, audit H-03). Browser toolchain open. |
 | G4 WASM runtime | **Complete** (core scope) | PRG32-QT core as WebAssembly, `/player`, golden tests WASM = native = `prg32qt-headless`. Multiplayer/Wi-Fi host services and exact audio open. |
 | G5 Debugger | **In progress** (Qt-parity slice complete) | Player debugger on the WASM core: pause/continue, step instruction/over/out/frame, speeds 0.01×–4×, gutter breakpoints remembered per cartridge SHA-256, registers with change highlighting, disassembly following the PC, memory view, game vs real time, beginner/advanced views; PRG32-QT's `/api/debug` vocabulary (ADR-0006); differential tests WASM = native. DWARF/C locals, watches, conditional breakpoints and Blockly block highlighting open. |
@@ -44,6 +44,9 @@ evidence-checked view is `capabilities.md` (from `capabilities.json`). A gate is
 | 2026-10-19 | After the CI and documentation fixes: `python3 -m pytest -q -rs` | 654 passed, 21 skipped |
 | 2026-10-19 | same, with the real toolchain and PRG32 SDK | 659 passed, 16 skipped (9 host-GCC differential, 6 bubblewrap, 1 `RLIMIT_AS`: Linux only) |
 | 2026-10-19 | Browser, IDE and frontend suites with Chrome (`tests/test_browser_offline.py tests/test_ide_browser.py tests/test_frontend_offline.py`) | 61 passed |
+| 2026-10-19 | After refinement phase 3 (language services): `python3 -m pytest -q -rs` | 677 passed, 21 skipped |
+| 2026-10-19 | same, with the real toolchain and PRG32 SDK `679dfb5` | 682 passed, 16 skipped |
+| 2026-10-19 | Browser suites with `PRG32_REQUIRE_BROWSER=1` | 63 passed |
 
 Skipped and why:
 

@@ -22,16 +22,40 @@ def _without_comments(source: str) -> str:
     Line continuations are joined first, string and character literals are kept,
     so a comment can no longer hide the start of a directive.
     """
-    text = re.sub(r"\\\r?\n", "", source)
+    return _without_comments_mapped(source)[0]
+
+
+def _without_comments_mapped(source: str) -> tuple[str, list[int]]:
+    """_without_comments, plus the offset in ``source`` that each output character came from.
+
+    The IDE shows problems on the line the student wrote, even when a comment
+    spanning several lines or a line continuation moved the text.
+    """
+    text_chars: list[str] = []
+    text_origin: list[int] = []
+    i = 0
+    while i < len(source):  # join line continuations: backslash-newline (or backslash-CR-LF)
+        if source[i] == "\\" and source.startswith("\n", i + 1):
+            i += 2
+        elif source[i] == "\\" and source.startswith("\r\n", i + 1):
+            i += 3
+        else:
+            text_chars.append(source[i])
+            text_origin.append(i)
+            i += 1
+    text = "".join(text_chars)
     out: list[str] = []
+    origin: list[int] = []
     i = 0
     quote = ""
     while i < len(text):
         ch = text[i]
         if quote:
             out.append(ch)
+            origin.append(text_origin[i])
             if ch == "\\" and i + 1 < len(text):
                 out.append(text[i + 1])
+                origin.append(text_origin[i + 1])
                 i += 2
                 continue
             if ch == quote or ch == "\n":
@@ -40,25 +64,56 @@ def _without_comments(source: str) -> str:
         elif ch in "\"'":
             quote = ch
             out.append(ch)
+            origin.append(text_origin[i])
             i += 1
         elif text.startswith("/*", i):
             end = text.find("*/", i + 2)
             if end < 0:
                 raise ValueError("C source has a comment that never ends")
             out.append(" ")
+            origin.append(text_origin[i])
             i = end + 2
         elif text.startswith("//", i):
             end = text.find("\n", i)
             out.append(" ")
+            origin.append(text_origin[i])
             i = len(text) if end < 0 else end
         else:
             out.append(ch)
+            origin.append(text_origin[i])
             i += 1
-    return "".join(out)
+    return "".join(out), origin
+
+
+def _source_lines(source: str, code: str, origin: list[int]) -> list[int]:
+    """The line of ``source`` on which each of ``code.splitlines()`` starts."""
+    lines, offset = [], 0
+    for line in code.splitlines(keepends=True):
+        start = origin[offset] if offset < len(origin) else len(source)
+        lines.append(source.count("\n", 0, start) + 1)
+        offset += len(line)
+    return lines
+
+
+_STRING = re.compile(r'"(?:\\.|[^"\\\n])*"|\'(?:\\.|[^\'\\\n])*\'')
 
 
 def _without_strings(code: str) -> str:
-    return re.sub(r'"(?:\\.|[^"\\\n])*"|\'(?:\\.|[^\'\\\n])*\'', '""', code)
+    return _STRING.sub('""', code)
+
+
+def _without_strings_mapped(code: str, origin: list[int]) -> tuple[str, list[int]]:
+    """_without_strings, carrying the source offset of every character along."""
+    out, mapped, last = [], [], 0
+    for match in _STRING.finditer(code):
+        out.append(code[last:match.start()])
+        mapped.extend(origin[last:match.start()])
+        out.append('""')
+        mapped.extend([origin[match.start()], origin[match.end() - 1]])
+        last = match.end()
+    out.append(code[last:])
+    mapped.extend(origin[last:])
+    return "".join(out), mapped
 
 
 def validate_c_source(source: str, title: str) -> str:
@@ -150,13 +205,15 @@ def validate_asm_source(source: str, title: str) -> str:
         raise ValueError("Assembly source exceeds 256 KiB or contains NUL bytes")
     if "??=" in source or "??/" in source:
         raise ValueError("Trigraphs (??= and ??/) are not supported")
-    bare = _without_strings(_without_comments(source))
+    bare, origin = _without_strings_mapped(*_without_comments_mapped(source))
+    source_line = _source_lines(source, bare, origin)  # the line the student sees, for each line of bare
     # After an instruction '#' starts a comment; a line that starts with '#' is a preprocessor line.
     code = "\n".join(line if _DIRECTIVE_START.match(line) else line.split("#", 1)[0] for line in bare.splitlines())
     found = _ASM_FILE_WORDS.search(code)
     if found:
         raise ValueError(f"'{found.group(0)}' is not allowed in PRG32 cartridge assembly: it could read files on the server")
-    for number, line in enumerate(bare.splitlines(), start=1):
+    for index, line in enumerate(bare.splitlines()):
+        number = source_line[index]
         if _DIRECTIVE_START.match(line):
             directive = re.sub(r"^\s*%:", "#", line)
             word = re.match(r"^\s*#\s*(\w*)", directive).group(1)

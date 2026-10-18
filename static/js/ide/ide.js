@@ -4,8 +4,11 @@
 // - Blocks projects: the Blockly workspace is the source (Blockly JSON stays canonical); the
 //   generated C, assembly and IR open as read-only Monaco tabs that can be copied.
 // - Advanced C / assembly projects: the source is a Monaco editor (C, or the prg32-asm grammar).
-// - Problems from the server's checks and from the compiler appear in the Problems panel and as
-//   markers in the editor; Enter on a problem jumps to its line.
+// - Problems appear in the Problems panel and as markers in the editor; Enter on a problem jumps
+//   to its line. They come from the live checks while typing (language.js, ADR-0014) and from the
+//   server's checks and the compiler after Generate / Compile.
+// - Completion, hover, signature help and F12 "go to declaration" (into a read-only
+//   prg32.h (portable API) tab) come from the committed PRG32 language index: no network.
 (function () {
   'use strict';
   const projectId = $('#projectId').val();
@@ -19,6 +22,9 @@
   let simulator = null;
   const editors = {};      // tab id -> Monaco editor
   const generated = { c: null, asm: null, ir: null };
+  let liveProblems = [];   // from the live checks of the open source
+  let serverProblems = []; // from the last Generate or Compile
+  let liveChecks = null;
 
   // --- status bar ------------------------------------------------------------------------------
   function setDirty(value) {
@@ -63,14 +69,15 @@
       id, title, closable: options.closable,
       render(panel) {
         const toolbar = options.readOnly
-          ? $(`<div class="ide-editor-toolbar"><span class="small text-muted">Read-only: made from the blocks.</span>
+          ? $(`<div class="ide-editor-toolbar"><span class="small text-muted"></span>
               <button class="btn btn-outline-secondary btn-sm" type="button">Copy</button></div>`).appendTo(panel)
           : null;
+        if (toolbar) toolbar.find('span').text(options.note || 'Read-only: made from the blocks.');
         const host = $('<div class="ide-monaco" data-focus-target></div>').appendTo(panel);
-        const editor = monaco.editor.create(host[0], {
-          value, language, readOnly: !!options.readOnly, automaticLayout: true, minimap: { enabled: false },
+        const editor = monaco.editor.create(host[0], Object.assign(options.model ? { model: options.model } : { value, language }, {
+          readOnly: !!options.readOnly, automaticLayout: true, minimap: { enabled: false },
           ariaLabel: options.ariaLabel, fontSize: 14, scrollBeyondLastLine: false, tabSize: 4,
-        });
+        }));
         editors[id] = editor;
         host.data('focus', () => editor.focus());
         trackCursor(editor);
@@ -79,8 +86,28 @@
         if (options.onChange) editor.onDidChangeModelContent(options.onChange);
       },
       onShow() { if (editors[id]) setTimeout(() => editors[id].layout(), 0); },
-      onClose() { if (editors[id]) { editors[id].dispose(); delete editors[id]; } },
+      onClose() {
+        if (options.onClose) options.onClose();
+        if (editors[id]) { editors[id].dispose(); delete editors[id]; }
+      },
     });
+  }
+
+  // "Go to declaration" on a PRG32 name: the generated, read-only list of the portable API.
+  function openSdkHeader(line) {
+    if (!editors['sdk-h']) {
+      monacoTab('sdk-h', 'prg32.h (portable API)', 'c', '', {
+        readOnly: true, closable: true, model: PRG32MonacoLanguage.sdkModel,
+        note: 'Read-only: everything a PRG32 cartridge can call (PRG32 ABI ' +
+          `${PRG32LanguageIndex.abi.major}.${PRG32LanguageIndex.abi.minor}).`,
+        ariaLabel: 'prg32.h, the portable PRG32 API, read-only' });
+    } else {
+      IdeShell.activateTab('sdk-h');
+    }
+    const editor = editors['sdk-h'];
+    editor.revealLineInCenter(line);
+    editor.setPosition({ lineNumber: line, column: 1 });
+    editor.focus();
   }
 
   function openSource(focus) {
@@ -90,7 +117,12 @@
     monacoTab('src', sourceFile(), language, text || '', {
       closable: false, ariaLabel: mode === 'c' ? 'C source code' : 'RISC-V assembly source code',
       onChange: () => setDirty(true),
+      onClose: () => { if (liveChecks) { liveChecks.dispose(); liveChecks = null; } liveProblems = []; renderProblems(); },
     });
+    if (!liveChecks) {
+      liveChecks = PRG32MonacoLanguage.attach(monaco, editors.src.getModel(), mode === 'c' ? 'c' : 'asm',
+        () => project.title, problems => { liveProblems = problems; renderProblems(); });
+    }
     if (focus) editors.src.focus();
   }
 
@@ -158,34 +190,47 @@
   }
 
   // --- problems ---------------------------------------------------------------------------------
-  // Turn a server or compiler message into {line, message}. Compiler lines look like
-  // "game.c:12:5: error: ..." (paths already reduced to <build>/ by the server).
+  // Server and compiler messages -> problems at exact places, without server paths (language.js).
   function parseProblems(text) {
-    const problems = [];
-    for (const line of String(text || '').split('\n')) {
-      let match = line.match(/game\.[cS]:(\d+):(?:(\d+):)?\s*(?:fatal )?(error|warning):\s*(.*)/);
-      if (match) { problems.push({ line: +match[1], column: +(match[2] || 1), severity: match[3], message: match[4] }); continue; }
-      match = line.match(/^Line (\d+): (.*)/);
-      if (match) problems.push({ line: +match[1], column: 1, severity: 'error', message: match[2] });
+    const source = editors.src ? editors.src.getValue() : '';
+    const problems = PRG32Language.normalizeCompilerOutput(text, { language: mode === 'asm' ? 'asm' : 'c', source });
+    if (!problems.length && text && !/^\s*$/.test(text)) {
+      problems.push({ line: 0, column: 0, endLine: 0, endColumn: 0, severity: 'error', code: 'server',
+        message: PRG32Language.withoutPaths(String(text)), explanation: '' });
     }
-    if (!problems.length && text && !/^\s*$/.test(text)) problems.push({ line: 0, column: 1, severity: 'error', message: text });
     return problems;
   }
 
-  function showProblems(problems) {
+  // The same problem found by the live check and by the server is listed once.
+  function sameProblem(a, b) {
+    const text = problem => problem.message.replace(/^Line \d+: /, '');
+    return a.line === b.line && (text(a) === text(b) || text(b).startsWith(text(a).split(':')[0]));
+  }
+
+  function renderProblems() {
+    const problems = liveProblems.concat(serverProblems.filter(server => !liveProblems.some(live => sameProblem(server, live))));
     $('#problemCount').text(problems.length);
     $('#ideProblems').html(problems.length ? problems.map((problem, index) => `<li><button type="button" class="ide-problem"
         data-index="${index}"><i class="bi ${problem.severity === 'warning' ? 'bi-exclamation-triangle text-warning' : 'bi-x-circle text-danger'}" aria-hidden="true"></i>
         <span class="visually-hidden">${problem.severity}</span>
-        ${problem.line ? `Line ${problem.line}: ` : ''}${Kit.escape(problem.message)}</button></li>`).join('')
+        ${problem.line ? `Line ${problem.line}: ` : ''}${Kit.escape(problem.message.replace(/^Line \d+: /, ''))}
+        ${problem.explanation ? `<span class="d-block small text-muted">${Kit.escape(problem.explanation)}</span>` : ''}</button></li>`).join('')
       : '<li class="text-muted">No problems.</li>');
     $('#ideProblems').data('problems', problems);
+  }
+
+  function showProblems(problems) {
+    serverProblems = problems;
+    renderProblems();
     const model = editors.src && editors.src.getModel();
     if (model) {
-      monaco.editor.setModelMarkers(model, 'prg32', problems.filter(problem => problem.line).map(problem => ({
-        startLineNumber: problem.line, startColumn: problem.column, endLineNumber: problem.line,
-        endColumn: model.getLineMaxColumn(Math.min(problem.line, model.getLineCount())),
-        message: problem.message, severity: problem.severity === 'warning' ? monaco.MarkerSeverity.Warning : monaco.MarkerSeverity.Error,
+      monaco.editor.setModelMarkers(model, 'prg32', problems.filter(problem => problem.line > 0
+          && problem.line <= model.getLineCount()).map(problem => ({
+        startLineNumber: problem.line, startColumn: Math.max(1, problem.column),
+        endLineNumber: problem.line, endColumn: problem.endColumn > problem.column ? problem.endColumn
+          : model.getLineMaxColumn(problem.line),
+        message: problem.explanation ? `${problem.message}\n${problem.explanation}` : problem.message,
+        severity: problem.severity === 'warning' ? monaco.MarkerSeverity.Warning : monaco.MarkerSeverity.Error,
       })));
     }
     if (problems.length) IdeShell.showPanel('problems');
@@ -196,7 +241,7 @@
     if (!problem.line || mode === 'blocks') return;
     openSource(false);
     editors.src.revealLineInCenter(problem.line);
-    editors.src.setPosition({ lineNumber: problem.line, column: problem.column });
+    editors.src.setPosition({ lineNumber: problem.line, column: Math.max(1, problem.column) });
     editors.src.focus();
   });
 
@@ -337,6 +382,7 @@
     .then(([data, sprites, loadedMonaco]) => {
       project = data;
       monaco = loadedMonaco;
+      PRG32MonacoLanguage.register(monaco, { openSdk: openSdkHeader });
       spriteList = sprites.sprites || [];
       $('#ideTitle').text(project.title);
       document.title = project.title + ' - IDE - PRG32-Construction-Kit';
@@ -347,5 +393,7 @@
     })
     .catch(err => Kit.toast('The IDE could not start: ' + err.message, 'danger'));
 
-  window.PRG32Ide = { save, generate, compile, editors, get mode() { return mode; }, get dirty() { return dirty; } };
+  window.PRG32Ide = { save, generate, compile, editors, openSdkHeader, get mode() { return mode; },
+    get dirty() { return dirty; }, get problems() { return $('#ideProblems').data('problems') || []; },
+    get serverProblems() { return serverProblems; } };
 })();

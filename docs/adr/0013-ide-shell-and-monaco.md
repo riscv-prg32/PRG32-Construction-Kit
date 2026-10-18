@@ -46,9 +46,9 @@ application framework.
 
 ## Consequences
 
-- Language services (completion, SDK-aware diagnostics, navigation) are
-  refinement phase 3; this phase gives syntax colouring, server diagnostics
-  as markers, and keyboard-complete editing.
+- Language services (completion, SDK-aware diagnostics, navigation) came in
+  refinement phase 3 (ADR-0014); this phase gave syntax colouring, server
+  diagnostics as markers, and keyboard-complete editing.
 - Browser tests (`tests/test_ide_browser.py`) cover the keyboard-only C and
   assembly workflows, Blocks/generated views, small screens and an axe-core
   scan (no serious/critical violations). No screen-reader session has been run.

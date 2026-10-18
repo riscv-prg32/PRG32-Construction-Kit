@@ -2,6 +2,23 @@
 
 ## Unreleased
 
+### Language services in the IDE (refinement phase 3)
+
+- C and assembly editors suggest PRG32 functions, constants and types, the
+  allowed headers and directives, RV32IMC instructions and registers; hover and
+  signature help explain them; F12 opens the declaration in a read-only
+  `prg32.h (portable API)` (ADR-0014, `ide.md`).
+- Problems are marked while typing, at the exact words, with a short
+  explanation; calls to resident-firmware functions are marked before the
+  build fails. Compiler messages are shown without server paths.
+- Everything comes from `static/js/ide/prg32_language_index.js`, generated from
+  the PRG32 SDK by `tools/build_language_index.py`; nothing is fetched.
+- The server's assembly check now names the line as the student sees it
+  (multi-line comments and line continuations used to shift it). What it
+  accepts is unchanged.
+- No database change. Rollback: revert; the editors fall back to colours and
+  server problems.
+
 ### CI and documentation after the audit of 731e378
 
 - The CI browser job also runs the IDE suite (keyboard, Monaco, phone layout,

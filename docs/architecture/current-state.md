@@ -2,7 +2,8 @@
 
 What the PRG32 repositories contain **now**, read from source and from test
 runs on 2026-10-19 at `731e378` (refinement phase 2) plus the CI and
-documentation fixes that follow the audit of that commit. The per-requirement
+documentation fixes that follow the audit of that commit and refinement
+phase 3 (language services, ADR-0014). The per-requirement
 status, with the source symbol and test behind every claim, is
 `../capabilities.md` (generated from `../capabilities.json`). The lists below
 are a summary of that file, and `tests/test_doc_consistency.py` fails when they
@@ -18,14 +19,14 @@ disagree with it. Audit scores belong to the auditor (`../../audit/`).
 | CartridgeStore | `main` | `820f74b` local (upstream `fb33fda`: CI/metrics only) | Store, accounts, `/api/publish/bundle` (pending review). `sso_protocol.py` identical to the kit's. |
 | PRG32-iOS | `main` | `547fa45` (read 2026-10-18, not checked out here) | Private. Imports cartridges with a SwiftUI file importer; no URL scheme, no debugger. |
 
-## Test runs (2026-10-19, macOS, after the CI and documentation fixes)
+## Test runs (2026-10-19, macOS, after refinement phase 3)
 
 | Command | Result |
 | --- | --- |
-| `python3 -m pytest -q -rs` (no RISC-V toolchain) | 654 passed, 21 skipped |
-| same with `riscv32-esp-elf-gcc` 14.2.0 and `PYTHONPATH=../PRG32` | 659 passed, 16 skipped |
-| `python3 -m pytest -q -rs tests/test_browser_offline.py tests/test_frontend_offline.py tests/test_ide_browser.py` (Chrome) | 61 passed (`PRG32_REQUIRE_BROWSER=1`: no skips) |
-| `compileall`, `node --check`, `service_worker_lock.py --check`, `render_capabilities.py --check`, `git diff --check` | clean |
+| `python3 -m pytest -q -rs` (no RISC-V toolchain) | 677 passed, 21 skipped |
+| same with `riscv32-esp-elf-gcc` 14.2.0 and `PYTHONPATH=../PRG32` | 682 passed, 16 skipped |
+| `python3 -m pytest -q -rs tests/test_browser_offline.py tests/test_frontend_offline.py tests/test_ide_browser.py` (Chrome) | 63 passed (`PRG32_REQUIRE_BROWSER=1`: no skips) |
+| `compileall`, `node --check`, `service_worker_lock.py --check`, `render_capabilities.py --check`, `build_language_index.py --check`, `git diff --check` | clean |
 
 Skips: 9 assembly/C differential tests need a host GCC (macOS has Apple clang);
 6 bubblewrap escape tests need Linux user namespaces (they pass in the kit's
@@ -46,6 +47,11 @@ capability IDs.
 - IDE page `/ide/<id>`: project tree, editor tabs, Problems/Output/Preview/Run
   panels, status bar, command palette, F6 regions, keyboard-only use, phone
   layout, axe-core scan in a real browser (ADR-0013). [IDE-01]
+- Offline language services for Advanced C and assembly: completion of the
+  portable PRG32 ABI, allowed headers and directives, RV32IMC instructions and
+  registers; hover, signature help, F12 into a generated `prg32.h (portable
+  API)`; live problems at exact ranges that mirror the server's validators;
+  compiler messages without server paths (ADR-0014). [IDE-03] [IDE-04]
 - Versioned projects (Blocks, Advanced C, handwritten assembly), archives,
   migrations, history with identity-preserving restore, soft delete. [PRJ-01]
 - Real `.prg32` builds from Blocks, C and assembly; every compile isolated by
@@ -66,9 +72,6 @@ capability IDs.
 
 - Blocks with deterministic generation, but no block → IR → source/address
   maps. [IDE-02]
-- Monaco editors for C and assembly with colours, the allowed-directive
-  grammar and line-exact server/compiler problems; no completion, hover or
-  navigation yet (refinement phase 3). [IDE-03] [IDE-04]
 - Registers, memory and disassembly views; no CSR, stack or watch views. [DBG-04]
 - Registered storage with ownership and history; no quotas, autosave or
   retention. [ACC-02]
@@ -88,8 +91,9 @@ capability IDs.
 
 ## Risks
 
-1. **Scope gap:** language services, source-level debugging, identity and
-   guest storage are the largest missing pieces of the Full IDE.
+1. **Scope gap:** source-level debugging, identity and guest storage are the
+   largest missing pieces of the Full IDE. The language services follow the
+   kit's rules and the SDK, not C semantics (no types or scopes).
 2. **Sandbox deployment:** AppArmor hosts need `apparmor=unconfined` today; no
    per-build disk quota or UID (`../build_sandbox.md`).
 3. **Accessibility:** automated axe-core scans and keyboard tests only; no

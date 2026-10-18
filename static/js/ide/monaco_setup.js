@@ -4,27 +4,22 @@
 //   Content Security Policy does not allow blob: workers.
 // - "prg32-asm" is a small Monarch grammar for the RV32IMC assembly the kit accepts: the
 //   instructions and pseudo-instructions, x0-x31 and their ABI names, the directives that
-//   source_project.validate_asm_source allows, /* */ and # comments, labels, numbers, strings.
+//   source_project.validate_asm_source allows (all from the language index), /* */ and #
+//   comments, labels, numbers, strings.
 //   Directives outside the allow-list are shown as errors (the server refuses them anyway).
 window.PRG32Monaco = (function () {
   'use strict';
   const BASE = '/static/vendor/monaco-editor/0.52.2/min/vs';
   let ready = null;
 
-  // The kit's allowed directives (prg32_construction_kit/source_project.py, ALLOWED_ASM_DIRECTIVES).
-  const DIRECTIVES = ['.2byte', '.4byte', '.align', '.ascii', '.asciz', '.balign', '.bss', '.byte', '.data', '.equ',
-    '.equiv', '.global', '.globl', '.half', '.local', '.option', '.p2align', '.rodata', '.section', '.set', '.short',
-    '.size', '.skip', '.space', '.string', '.text', '.type', '.word', '.zero'];
-  // RV32I + M + C (compressed) instructions and the common pseudo-instructions.
-  const INSTRUCTIONS = ('lui auipc jal jalr beq bne blt bge bltu bgeu lb lh lw lbu lhu sb sh sw addi slti sltiu xori ori '
-    + 'andi slli srli srai add sub sll slt sltu xor srl sra or and fence ecall ebreak csrrw csrrs csrrc csrrwi csrrsi '
-    + 'csrrci mul mulh mulhsu mulhu div divu rem remu c.addi4spn c.lw c.sw c.nop c.addi c.jal c.li c.addi16sp c.lui '
-    + 'c.srli c.srai c.andi c.sub c.xor c.or c.and c.j c.beqz c.bnez c.slli c.lwsp c.jr c.mv c.ebreak c.jalr c.add '
-    + 'c.swsp nop li la mv not neg seqz snez sltz sgtz beqz bnez blez bgez bltz bgtz bgt ble bgtu bleu j jr ret call '
-    + 'tail csrr csrw csrs csrc').split(' ');
-  const REGISTERS = ['zero', 'ra', 'sp', 'gp', 'tp', 't0', 't1', 't2', 's0', 'fp', 's1', 'a0', 'a1', 'a2', 'a3', 'a4',
-    'a5', 'a6', 'a7', 's2', 's3', 's4', 's5', 's6', 's7', 's8', 's9', 's10', 's11', 't3', 't4', 't5', 't6']
-    .concat(Array.from({ length: 32 }, (_, index) => 'x' + index));
+  // The word lists come from the PRG32 language index (prg32_language_index.js, made by
+  // tools/build_language_index.py): the directives are exactly the ones
+  // source_project.validate_asm_source allows; the instructions are RV32IMC + Zicsr + pseudo.
+  const ASM = window.PRG32LanguageIndex.asm;
+  const DIRECTIVES = ASM.directives.map(directive => directive.name);
+  const INSTRUCTIONS = ASM.instructions.map(instruction => instruction.name);
+  const REGISTERS = ASM.registers.map(register => register.abi)
+    .concat(Object.keys(ASM.register_aliases), ASM.registers.map(register => register.name));
 
   function registerAssembly(monaco) {
     monaco.languages.register({ id: 'prg32-asm', extensions: ['.S', '.s'], aliases: ['PRG32 RISC-V assembly'] });

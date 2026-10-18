@@ -143,11 +143,14 @@ def test_ide_needs_a_sign_in_and_only_it_allows_style_attributes(client, anon):
 
 
 def test_the_assembly_grammar_knows_exactly_the_allowed_directives():
+    """The grammar colours the language index's directives, which are exactly the allowed ones."""
     from prg32_construction_kit.source_project import ALLOWED_ASM_DIRECTIVES
 
     grammar = (ROOT / "static" / "js" / "ide" / "monaco_setup.js").read_text()
-    listed = set(re.findall(r"'(\.[a-z0-9]+)'", grammar.split("const DIRECTIVES = [", 1)[1].split("];", 1)[0]))
-    assert listed == ALLOWED_ASM_DIRECTIVES
+    assert "const DIRECTIVES = ASM.directives.map(directive => directive.name);" in grammar
+    index = (ROOT / "static" / "js" / "ide" / "prg32_language_index.js").read_text()
+    index = json.loads(index[index.index("= ") + 2:index.rindex(";\n})")])
+    assert {directive["name"] for directive in index["asm"]["directives"]} == ALLOWED_ASM_DIRECTIVES
 
 
 def test_ci_runs_every_browser_suite_and_forbids_skipping():

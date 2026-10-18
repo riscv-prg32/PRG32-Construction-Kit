@@ -78,4 +78,7 @@ comments). The kit tells you the line and the reason.
 - The check protects the server from file-reading tricks; it does not make
   compiling a sandbox. Keep builds for trusted users until per-build
   containers exist (`security.md`).
+- In the IDE the assembly editor suggests instructions, registers, the allowed
+  directives and PRG32 functions, and underlines problems while you type
+  (`ide.md`).
 - Design record: `adr/0004-handwritten-assembly-mode.md`.
