@@ -2,13 +2,13 @@
 
 Status of the full-IDE plan (`implementation-plan.md`). The per-requirement,
 evidence-checked view is `capabilities.md` (from `capabilities.json`). A gate is marked
-**complete** only when its acceptance tests pass. Updated 2026-10-18.
+**complete** only when its acceptance tests pass. Updated 2026-10-19 (at `731e378` and the CI/doc fixes after its audit).
 
 | Gate | State | Summary |
 | --- | --- | --- |
 | G0 Discovery | **Complete** | `architecture/current-state.md`, ADR-0001…0007, baseline tests recorded. |
 | G1 Foundation | **In progress** | Manifest, migrations, archive, duplicate, handwritten assembly mode, revisions, soft delete done; guest policy open. |
-| G2 IDE shell | **In progress** | IDE shell with Monaco, keyboard model, small-screen fallback and browser/a11y tests done (refinement phase 2, ADR-0013). Language services next (phase 3). |
+| G2 IDE shell | **In progress** | IDE shell with Monaco, keyboard model, small-screen fallback and browser/a11y tests done (refinement phase 2, ADR-0013) [IDE-01]; the browser suites run in CI and may not skip there. Language services next (phase 3) [IDE-03] [IDE-04]. |
 | G3 Toolchain | In progress | Server builds produce real `.prg32`; build provenance and cartridge SHA-256 done; every compile runs in a bubblewrap sandbox (ADR-0010, audit H-03). Browser toolchain open. |
 | G4 WASM runtime | **Complete** (core scope) | PRG32-QT core as WebAssembly, `/player`, golden tests WASM = native = `prg32qt-headless`. Multiplayer/Wi-Fi host services and exact audio open. |
 | G5 Debugger | **In progress** (Qt-parity slice complete) | Player debugger on the WASM core: pause/continue, step instruction/over/out/frame, speeds 0.01×–4×, gutter breakpoints remembered per cartridge SHA-256, registers with change highlighting, disassembly following the PC, memory view, game vs real time, beginner/advanced views; PRG32-QT's `/api/debug` vocabulary (ADR-0006); differential tests WASM = native. DWARF/C locals, watches, conditional breakpoints and Blockly block highlighting open. |
@@ -39,6 +39,11 @@ evidence-checked view is `capabilities.md` (from `capabilities.json`). A gate is
 | 2026-10-18 | After G5 (debugger): `python3 -m pytest -q -rs` | 347 passed, 14 skipped |
 | 2026-10-18 | same, with the real toolchain and PRG32 SDK | 352 passed, 9 skipped (only the 9 host-GCC differential tests) |
 | 2026-10-18 | Browser check: Advanced C cartridge compiled by the kit, `/player` debugger | Pass: gutter breakpoint stops once per frame and Continue moves past it; step/step over (whole call, 10 instructions)/step out (lands on draw); changed registers highlighted; 0.01× walks the PC; breakpoint remembered after reload; decimal and invalid memory addresses; no horizontal scroll at 375 px; no console errors |
+| 2026-10-18 | After refinement phase 2 (`731e378`): `python3 -m pytest -q -rs` | 587 passed, 21 skipped |
+| 2026-10-18 | same, with the real toolchain and PRG32 SDK | 592 passed, 16 skipped |
+| 2026-10-19 | After the CI and documentation fixes: `python3 -m pytest -q -rs` | 654 passed, 21 skipped |
+| 2026-10-19 | same, with the real toolchain and PRG32 SDK | 659 passed, 16 skipped (9 host-GCC differential, 6 bubblewrap, 1 `RLIMIT_AS`: Linux only) |
+| 2026-10-19 | Browser, IDE and frontend suites with Chrome (`tests/test_browser_offline.py tests/test_ide_browser.py tests/test_frontend_offline.py`) | 61 passed |
 
 Skipped and why:
 
@@ -61,8 +66,9 @@ Skipped and why:
 - Debugger: no C variables, call stack, watches or conditional breakpoints
   (needs DWARF), no Blockly block highlighting (needs IR source maps); music
   tracks pause in debug mode, as in PRG32-QT.
-- No hardware, IdP tenant or Emscripten was available; nothing here claims
-  hardware, SSO-provider or WASM validation.
+- No hardware or IdP tenant was available; nothing here claims hardware or
+  SSO-provider validation. (Emscripten 6.0.12 has been available since G4: the
+  WASM runtime is verified against the native core.)
 
 ## Rollback
 

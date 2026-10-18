@@ -94,10 +94,11 @@ Preserve these action routes:
 - README.md must stay short and setup-focused.
 - Every feature must have at least one short teacher/student explanation in `docs/` or `docs/tutorials/`.
 - Keep `docs/install_cartridge_build.md` in step with the Dockerfile, `docker/`, and `examples/deploy/`.
+- `docs/capabilities.json` is the status record; `docs/capabilities.md` is rendered from it. `docs/architecture/current-state.md` lists every capability ID once, and `[ID]` tags elsewhere must agree (`tests/test_doc_consistency.py`). Audit scores are the auditor's: do not change them.
 
 ## Test constraints
 
 - Add or update pytest coverage for backend CRUD, conversion, and packaging logic when behavior changes.
-- CI must run tests on every push and pull request.
+- CI must run tests on every push and pull request, including the real-browser suites (`tests/test_*browser*.py`) with `PRG32_REQUIRE_BROWSER=1` so they cannot pass by skipping.
 - CI also builds the Docker image with the PRG32 toolchain and compiles real cartridges with `tools/check_build.py`; keep that job passing.
 - Tests that need a RISC-V assembler or the PRG32 toolchain must skip cleanly when it is missing.

@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+### CI and documentation after the audit of 731e378
+
+- The CI browser job also runs the IDE suite (keyboard, Monaco, phone layout,
+  axe) and sets `PRG32_REQUIRE_BROWSER=1`: a missing browser fails the job
+  instead of skipping. Results are uploaded as `browser-test-results.xml`.
+- `architecture/current-state.md` describes `731e378`; `tests/test_doc_consistency.py`
+  checks that it, and every `[ID]` tag in the docs, agree with `capabilities.json`.
+- No code or database change.
+
 ### The IDE (refinement phase 2)
 
 - New **IDE** page per project (`/ide/<id>`, ADR-0013, `ide.md`): file tree,

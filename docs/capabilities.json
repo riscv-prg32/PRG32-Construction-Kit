@@ -454,7 +454,9 @@
       ],
       "tests": [
         "tests/test_capabilities.py::test_implemented_rows_name_existing_source_and_tests",
-        "tests/test_presentations.py::test_tutorials_and_decks_are_up_to_date"
+        "tests/test_presentations.py::test_tutorials_and_decks_are_up_to_date",
+        "tests/test_doc_consistency.py::test_current_state_lists_every_capability_once_with_its_status",
+        "tests/test_doc_consistency.py::test_capability_tags_do_not_contradict_the_record"
       ],
       "note": ""
     },
