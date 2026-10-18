@@ -172,6 +172,7 @@ def test_open_cartridge_store_button_makes_a_ticket_for_the_store(pair):
 
 def test_publishing_to_the_synced_store_uses_a_one_time_ticket(pair, monkeypatch):
     kit, _ = pair
+    kit.config["STORE_TRUSTED_LOCAL"] = True  # the peer here is plain http, as on a classroom LAN (ADR-0008)
     client = kit.test_client()
     profile = client.post("/api/publish_profiles", json={"name": "School store", "store_url": "http://other.test/"}).get_json()
     assert profile["uses_sso"] is True

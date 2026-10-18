@@ -42,6 +42,15 @@ class Config:
     BUILD_ROOT = Path(os.environ.get("PRG32_KIT_BUILD_ROOT", DATA_DIR / "builds")).resolve()
     ARTIFACT_ROOT = Path(os.environ.get("PRG32_KIT_ARTIFACT_ROOT", DATA_DIR / "artifacts")).resolve()
     DEFAULT_STORE_URL = os.environ.get("PRG32_STORE_URL", "http://127.0.0.1:5080")
+    # Store egress policy (docs/adr/0008-store-egress-policy.md). Origins bundles may be
+    # sent to; unset = the origins of PRG32_STORE_URL and PRG32_SSO_PEER_URL.
+    STORE_ALLOWED_ORIGINS = ([item.strip() for item in os.environ["PRG32_STORE_ALLOWED_ORIGINS"].split(",") if item.strip()]
+                             if os.environ.get("PRG32_STORE_ALLOWED_ORIGINS") else None)
+    # 1 = the Store may be on a private/loopback address (classroom LAN, laptop); plain http
+    # is then also allowed outside production.
+    STORE_TRUSTED_LOCAL = _flag("PRG32_STORE_TRUSTED_LOCAL", False)
+    # CA bundle for a Store with a school-issued certificate (default: the public CAs).
+    STORE_CA_BUNDLE = os.environ.get("PRG32_STORE_CA_BUNDLE") or None
     # The default runs the PRG32 builder with the same Python that runs the kit,
     # so `pip install -e ../PRG32` inside the kit's virtual environment is enough.
     PRG32_BUILD_COMMAND = os.environ.get("PRG32_BUILD_COMMAND") or f"{shlex.quote(sys.executable)} -m prg32 cartridge build"

@@ -317,4 +317,16 @@ Content-Type: application/json
 }
 ```
 
-The backend posts the bundle to the profile's Cartridge Store URL at `/api/publish/bundle`.
+The backend posts the bundle to the profile's Cartridge Store URL at
+`/api/publish/bundle`, following the Store egress policy (ADR-0008).
+
+- Saving a publish profile (`POST`/`PUT /api/publish_profiles`) with a
+  `store_url` that is not an approved origin, or not https, answers `400`.
+- `POST /api/publish` answers `400 {"error", "reason"}` when the Store is not
+  allowed (`reason`: `not_allowed`, `insecure`, `private_address`, `resolve`,
+  `redirect`, ...), and `502 {"error", "reason"}` when it cannot be reached
+  (`timeout`, `tls`, `connection`). Nothing is sent to a refused Store.
+- On success, `result` is `{"ok", "status_code", "store_host", "message",
+  "response"}`; `response` holds only CartridgeStore's documented fields
+  (`ok`, `status`, `review_required`, `submission_id`, `id`, `version`,
+  `submitted`, `error`). The previous `endpoint` field was removed.

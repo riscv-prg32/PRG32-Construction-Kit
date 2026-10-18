@@ -17,6 +17,7 @@ and what is still open. Reporting: contact the maintainers privately.
 | Well-known admin password | No built-in default; random first-admin password in a 0600 file; production refuses weak `PRG32_ADMIN_PASSWORD`; never re-created after rename/delete; passwords never logged | `auth.py` `bootstrap_admin` |
 | Password guessing, registration and token abuse | Database-backed limits (shared by all workers); `429` + `Retry-After`; same answer for known and unknown names; only hashes of names/addresses stored | `security.py`, `auth.py` |
 | Untraceable admin actions | Audit log of account, role, group, token, bootstrap, publish, SSO-sync and unlock actions; admin-only API; secret-looking metadata dropped | `security.py` `record`, `GET /api/admin/audit` |
+| SSRF through publishing (audit H-01) | Admin allow-list of Store origins; https; strict URL parsing (no credentials, numeric-IP tricks); every resolved address must be public unless `PRG32_STORE_TRUSTED_LOCAL`; connection pinned to the checked address; no redirects; timeouts; 64 KiB answer cap; student-safe errors; audited | `store_policy.py`, `publisher.py`, ADR-0008 |
 | Unexplained cartridges | Build provenance with SHA-256 of source and every cartridge | `provenance.py`, `build_provenance.md` |
 | SSO forgery | HMAC-signed requests and one-time tickets | `sso_protocol.py` |
 | Host files in handwritten assembly | Directive allow-list; no `include`/`incbin`/`_Pragma` words; only simple `#define` and `#if` lines; entry labels checked | `source_project.py` `validate_asm_source` |
@@ -30,6 +31,7 @@ and what is still open. Reporting: contact the maintainers privately.
 | WASM runtime | Guest code in the browser | Interpreted in WASM; no host calls except the PRG32 ABI (ADR-0003) |
 | OAuth / OIDC | No PKCE; users linked by provider + `sub`, not issuer | ADR-0007 |
 | Cloud sync | Token storage, scope creep | Server-side tokens, minimal scopes, revocation (G6) |
+| Publishing authorization (audit H-02) | Any signed-in user may publish; no review/confirmation step; source-only bundles accepted | Phase 2 of the remediation brief |
 | Rate limiting | Only sign-in, registration and token creation are limited; other API routes (builds have their own slots) are not | Reverse-proxy limits for the whole site |
 | Audit log | No retention limit or export; the log lives in the same database an admin controls | Retention policy and off-host export (G6) |
 | SSO | Records synced from the Cartridge Store are not audited one by one (only manual syncs) | Decide with CartridgeStore |

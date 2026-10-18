@@ -57,3 +57,9 @@ Scale: 0 missing; 1 prototype/stub; 2 partial; 3 implemented with meaningful tes
 | Documentation | 3 / 4 | 75.0% |
 | Quality | 3 / 4 | 75.0% |
 | **Total** | **61 / 128** | **47.7%** |
+
+## Remediation notes (not part of the original scoring)
+
+- 2026-10-18, Phase 1: H-01 (SSRF) closed with automated adversarial tests
+  (`audit/REMEDIATION_STATUS.md`). SEC-01 and STR-02 scores unchanged because
+  H-02 and H-03 remain open.

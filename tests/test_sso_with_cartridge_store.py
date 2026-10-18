@@ -126,6 +126,7 @@ def test_single_sign_on_both_ways(kit_and_store):
 
 def test_kit_publishes_to_the_store_as_the_student(kit_and_store, monkeypatch):
     kit, store = kit_and_store
+    kit.config["STORE_TRUSTED_LOCAL"] = True  # the peer here is plain http, as on a classroom LAN (ADR-0008)
     kit.test_client().post("/api/users", json={"username": "ada", "email": "ada@school.test", "password": PASSWORD})
     ada = kit.test_client(login=("ada", PASSWORD))
     seen = {}

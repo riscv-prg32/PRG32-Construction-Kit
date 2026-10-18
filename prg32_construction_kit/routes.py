@@ -33,7 +33,8 @@ from .build_slots import BuildServerBusy, build_slot
 from .asm_generator import ir_to_asm
 from .generator import blocks_to_c, sprite_to_c
 from .packager import SUPPORTED_ARCHITECTURES, prepare_package
-from .publisher import publish_bundle
+from .publisher import StorePublishFailed, publish_bundle
+from .store_policy import StoreRefused, check_url, policy_from_config
 from .sample_data import example_catalog
 from .source_project import validate_asm_source, validate_c_source, validate_features
 
@@ -119,6 +120,9 @@ def checked_payload(resource: str, payload: dict[str, Any]) -> dict[str, Any]:
         # Artifact files are written by the server; a hand-made path could reach another user's build.
         if resource == "artifacts":
             payload.pop("path", None)
+    if resource == "publish_profiles" and "store_url" in payload:
+        # Only Stores the administrator approved (ADR-0008); StoreRefused is a 400 with a student-safe reason.
+        check_url(str(payload["store_url"] or ""), policy_from_config(current_app.config))
     for column, target in LINKS.items():
         if payload.get(column) and column in RESOURCE_COLUMNS[resource]:
             linked = get_resource(target, str(payload[column]))
@@ -1000,15 +1004,30 @@ def api_publish():
     if path is None:
         _audit_publish("refused", payload, profile, reason="bundle file missing")
         return json_error("Bundle file is missing on disk", 404)
+    # The Store must still be approved: the administrator may have changed the list since
+    # the profile was saved (ADR-0008). Checked before any single-sign-on ticket is made.
+    try:
+        check_url(profile.get("store_url", ""), policy_from_config(current_app.config))
+    except StoreRefused as refused:
+        _audit_publish("refused", payload, profile, reason=refused.reason)
+        return jsonify({"error": str(refused), "reason": refused.reason}), 400
     token = profile.get("bearer_token", "")
     if not token and sso.same_service(profile.get("store_url", "")):
         # Single sign-on: publish as the signed-in student with a one-time ticket.
         token = sso.make_ticket(current_principal().email, "api")
     try:
         result = publish_bundle(profile.get("store_url", ""), token, path)
-    except Exception as exc:
+    except StoreRefused as refused:
+        # Address checks (private network, DNS) and redirects: refused, nothing more sent.
+        _audit_publish("refused", payload, profile, reason=refused.reason)
+        return jsonify({"error": str(refused), "reason": refused.reason}), 400
+    except StorePublishFailed as failed:
+        _audit_publish("failed", payload, profile, reason=failed.reason)
+        return jsonify({"error": str(failed), "reason": failed.reason}), 502
+    except Exception as exc:  # never echo the exception: it may name internal addresses
+        current_app.logger.warning("Publishing failed: %s", type(exc).__name__)
         _audit_publish("failed", payload, profile, reason=type(exc).__name__)
-        return json_error(f"Publish request failed: {exc}", 502)
+        return json_error("Publishing failed. Try again later or ask your teacher.", 502)
     _audit_publish("success" if result.get("ok", True) else "failed", payload, profile,
                    status_code=result.get("status_code"), bundle_kind=artifact.get("kind"))
     return jsonify({"profile": public("publish_profiles", profile), "artifact": public("artifacts", artifact), "result": result})

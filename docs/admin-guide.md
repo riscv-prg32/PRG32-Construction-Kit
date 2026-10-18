@@ -36,6 +36,27 @@ The kit has **no default password**. The first start, while no admin exists:
 - There is no password-reset back door. If no admin can sign in any more,
   restore a database backup (and keep backups for that reason).
 
+## Publishing to a Store
+
+The kit only sends bundles to Stores you approve (ADR-0008, audit finding H-01):
+
+| Variable | Meaning |
+| --- | --- |
+| `PRG32_STORE_ALLOWED_ORIGINS` | Comma-separated origins, e.g. `https://store.school.example`. Unset: the origins of `PRG32_STORE_URL` and `PRG32_SSO_PEER_URL`. |
+| `PRG32_STORE_TRUSTED_LOCAL` | `1` when the Store is on the school's private network or the same machine. Without it, Stores resolving to loopback/private addresses are refused. |
+| `PRG32_STORE_CA_BUNDLE` | A CA file for a Store with a school-issued certificate. |
+
+Rules that always apply: https (plain http only with `PRG32_STORE_TRUSTED_LOCAL=1`
+on a non-production server), no user name/password/query/fragment in the URL,
+no numeric tricks like `2130706433`, link-local and metadata addresses
+(`169.254.169.254`) never, no redirects, 5 s connect / 30 s read timeouts,
+at most 64 KiB of the Store's answer read. Every allowed and refused attempt
+is in the audit log (action `publish`, `metadata.reason`).
+
+A developer laptop with a Store on `http://127.0.0.1:5080`: set
+`PRG32_STORE_TRUSTED_LOCAL=1` (and keep `PRG32_KIT_ENV` unset or
+`development`).
+
 ## Sign-in limits
 
 Wrong passwords, registration requests and new API tokens are limited (see

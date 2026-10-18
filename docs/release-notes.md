@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+### Security: Store egress policy (audit H-01)
+
+- Bundles are only sent to Cartridge Stores the administrator approved
+  (`PRG32_STORE_ALLOWED_ORIGINS`, default: `PRG32_STORE_URL` and
+  `PRG32_SSO_PEER_URL`), over https, to public addresses, with the
+  connection pinned to the checked address, no redirects, timeouts and a
+  bounded answer (ADR-0008).
+- Publish profiles with other addresses are refused (`400`); errors no longer
+  echo exception text or Store bodies; the result has a new safe shape.
+- **Upgrade note:** a Store on a private network or `http://127.0.0.1` now
+  needs `PRG32_STORE_TRUSTED_LOCAL=1` (and plain http a non-production
+  server). Existing profiles for other Stores stay listed but are refused at
+  publish time until the Store is approved. No database change; rollback is a
+  plain code revert.
+
 ### Debugger in the Player (G5, first slice)
 
 - **Debugger** card on `/player`: Debug mode switch, Continue/Pause, Step

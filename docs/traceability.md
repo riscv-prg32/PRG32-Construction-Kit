@@ -49,6 +49,7 @@ that proves it. "—" means not implemented yet. Statuses: **Done**,
 | DBG-6 | DWARF: C locals, call stack, watches, conditional breakpoints | Open | needs `-g` build profile |
 | DBG-7 | Blockly block highlighting while stepping | Open | needs IR source maps |
 | ID-* | OIDC+PKCE, roles, guest policy | Open | ADR-0007 |
+| SEC-5 | Store publishing cannot be used for SSRF (audit H-01) | Implemented and verified (automated) | `store_policy.py`, `publisher.py`, `routes.checked_payload`/`api_publish`, ADR-0008; `tests/test_store_egress.py` (URL shapes, numeric IPs, credentials, schemes, private/loopback/link-local/IPv6/mapped addresses, DNS answers, rebinding, redirects, bounded answers, timeouts, TLS with host-name check, API refusals, audit, token non-disclosure, trusted-local workflow) |
 | SEC-1 | No network-deployable default admin password | Done | `auth.bootstrap_admin`, `config.KIT_ENV`, Dockerfile `PRG32_KIT_ENV=production`, compose; `tests/test_admin_bootstrap.py` |
 | SEC-2 | Sign-in, registration, link and token throttling | Done | `security.py` limits, `auth.login/register/register_complete/create_token`; `tests/test_security_controls.py` (threshold, expiry, reset, isolation, proxy trust, unlock) |
 | SEC-3 | Admin audit log | Done | `security.record`, `GET /api/admin/audit`; `tests/test_security_controls.py` (users, roles, groups, tokens, publish, bootstrap, admin-only, no secrets) |

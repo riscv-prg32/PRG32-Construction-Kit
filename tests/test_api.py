@@ -209,8 +209,9 @@ def test_advanced_c_rejects_host_includes_and_wrong_entry_names(client):
     assert client.post(f"/api/projects/{project['id']}/package", json={}).status_code == 400
 
 
-def test_publish_profile_tokens_are_write_only(client, monkeypatch, tmp_path):
-    response = client.post("/api/publish_profiles", json={"name": "Store", "store_url": "http://store.test", "bearer_token": "secret-123"})
+def test_publish_profile_tokens_are_write_only(app, client, monkeypatch, tmp_path):
+    app.config["STORE_ALLOWED_ORIGINS"] = ["https://store.test"]  # the administrator's approved Store (ADR-0008)
+    response = client.post("/api/publish_profiles", json={"name": "Store", "store_url": "https://store.test", "bearer_token": "secret-123"})
     assert response.status_code == 201
     profile = response.get_json()
     assert "bearer_token" not in profile and profile["has_token"] is True

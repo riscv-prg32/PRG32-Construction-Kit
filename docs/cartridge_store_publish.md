@@ -16,13 +16,22 @@ source/game.ir.json
 
 The `source/` directory is extra teaching material. Cartridge Store uses the manifest and `.prg32` files.
 
+## Which Stores can be used
+
+Publishing makes the kit's *server* send the bundle, so only Stores your
+teacher (the administrator) approved can be used. A profile with any other
+address cannot be saved, and an old profile whose Store was removed from the
+list is refused when you press **Publish**. The kit also refuses Stores that
+lead into a private network or answer with a redirect. See
+`admin-guide.md` (*Publishing to a Store*) and `adr/0008-store-egress-policy.md`.
+
 ## Configure a publish profile
 
 Open **Publish** and create a profile:
 
 ```text
-Name: Local Cartridge Store
-URL:  http://127.0.0.1:5080
+Name: School Cartridge Store
+URL:  https://store.your-school.example   (an approved Store)
 Token: optional bearer token
 ```
 

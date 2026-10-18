@@ -203,6 +203,7 @@ def test_publish_attempts_and_results_are_audited(app, client, monkeypatch):
                         lambda command, **_kw: __import__("types").SimpleNamespace(returncode=1, stdout="", stderr=""))
     project = client.post("/api/projects", json={"title": "Pub", "blocks_json": default_blocks()}).get_json()
     bundle = client.post(f"/api/projects/{project['id']}/package", json={}).get_json()["bundle_artifact"]
+    app.config["STORE_ALLOWED_ORIGINS"] = ["https://store.school.test"]
     profile = client.post("/api/publish_profiles", json={"name": "Store", "store_url": "https://store.school.test",
                                                          "bearer_token": "prg32_secret_value"}).get_json()
     monkeypatch.setattr("prg32_construction_kit.routes.publish_bundle",

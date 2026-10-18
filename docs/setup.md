@@ -43,6 +43,9 @@ http://127.0.0.1:5090/
 | `SECRET_KEY` | random, saved in `$PRG32_KIT_DATA/secret_key` | Signs the sign-in cookie. |
 | `PRG32_ADMIN_PASSWORD` | unset | Password of the first `admin` account. Unset: a random one is written to `$PRG32_KIT_DATA/initial_admin_password` (mode 600) and deleted when an admin changes it. See `admin-guide.md`. |
 | `PRG32_KIT_ENV` | `development` (`production` in the Docker image) | `production` refuses a short or well-known `PRG32_ADMIN_PASSWORD` and stops the start. |
+| `PRG32_STORE_ALLOWED_ORIGINS` | origins of `PRG32_STORE_URL` and `PRG32_SSO_PEER_URL` | Cartridge Stores bundles may be sent to (`admin-guide.md`). |
+| `PRG32_STORE_TRUSTED_LOCAL` | `0` | `1` allows a Store on a private/loopback address; plain http then also works outside production. |
+| `PRG32_STORE_CA_BUNDLE` | public CAs | CA file for a Store with a school-issued certificate. |
 | `PRG32_KIT_PROXY_COUNT` | `0` | Trusted reverse proxies in front of the kit; only then is `X-Forwarded-For` used for sign-in limits (`security.md`). |
 | `PRG32_KIT_THROTTLE_<NAME>` | see `security.md` | Change a sign-in limit, e.g. `PRG32_KIT_THROTTLE_LOGIN_USER=5/900` (attempts/seconds). |
 | `PRG32_KIT_REVISION`, `PRG32_SDK_REVISION` | read from `.git` | Commit ids recorded in build provenance when there is no `.git` folder (the Docker image sets the first). |
