@@ -6,6 +6,9 @@
   <meta name="theme-color" content="#14213d">
   {# Which account this window was opened as; app.js sends it with every API call. #}
   <meta name="prg32-user" content="{{ current_user.id if current_user.authenticated else '' }}">
+  {# Read once by static/js/csp_nonce.js; the same nonce is in this page's CSP header. #}
+  <meta name="csp-nonce" content="{{ csp_nonce }}">
+  <script src="{{ url_for('static', filename='js/csp_nonce.js') }}"></script>
   <title>{% block title %}PRG32-Construction-Kit{% endblock %}</title>
   <link rel="manifest" href="{{ url_for('static', filename='manifest.webmanifest') }}">
   <link rel="icon" href="{{ url_for('static', filename='img/prg32-icon.svg') }}" type="image/svg+xml">
@@ -15,7 +18,7 @@
   <link href="{{ url_for('static', filename='css/app.css') }}" rel="stylesheet">
   {% block head %}{% endblock %}
 </head>
-<body>
+<body class="{% block body_class %}{% endblock %}">
 <nav class="navbar navbar-expand-lg navbar-dark kit-navbar sticky-top shadow-sm">
   <div class="container-fluid">
     <a class="navbar-brand d-flex align-items-center gap-2" href="/">

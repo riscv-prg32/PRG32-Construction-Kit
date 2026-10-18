@@ -41,7 +41,7 @@ window.Kit = {
     const kind = variant || 'primary';
     const html = `
       <div id="${id}" class="toast align-items-center text-bg-${kind} border-0" role="status" aria-live="polite" aria-atomic="true">
-        <div class="d-flex"><div class="toast-body"></div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div>
+        <div class="d-flex"><div class="toast-body"></div><button type="button" class="btn-close btn-close-white me-2 m-auto" aria-label="Close" data-bs-dismiss="toast"></button></div>
       </div>`;
     $('#toastArea').append(html);
     $('#' + id + ' .toast-body').text(message);

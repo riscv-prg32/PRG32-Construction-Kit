@@ -21,7 +21,7 @@ def test_vendored_files_match_their_recorded_hashes():
     assert vendor_assets.check() == 0
     record = json.loads((ROOT / "static" / "vendor" / "VENDOR.json").read_text())
     names = {package["name"]: package for package in record["packages"]}
-    assert set(names) == {"bootstrap", "bootstrap-icons", "jquery", "blockly"}
+    assert set(names) == {"bootstrap", "bootstrap-icons", "jquery", "blockly", "monaco-editor"}
     for package in record["packages"]:
         assert package["license"] in {"MIT", "Apache-2.0"} and package["integrity"].startswith("sha512-")
         assert any(Path(path).name.startswith("LICENSE") for path in package["files"]), package["name"]
@@ -87,7 +87,9 @@ def test_content_security_policy_is_strict(client):
     assert directives["default-src"] == "'self'"
     assert directives["script-src"] == "'self' 'wasm-unsafe-eval'"   # no inline scripts, no eval
     assert "'unsafe-inline'" not in policy and "'unsafe-eval'" not in policy
-    assert directives["style-src"].startswith("'self' 'sha256-")      # only Blockly's two stylesheets
+    # Styles: the kit, this page's nonce (Monaco, Blockly via csp_nonce.js), Blockly's two hashes.
+    assert re.fullmatch(r"'self' 'nonce-[\w-]{24}' 'sha256-\S+' 'sha256-\S+'", directives["style-src"])
+    assert client.get("/").headers["Content-Security-Policy"] != policy  # a new nonce every time
     assert directives["object-src"] == "'none'" and directives["frame-ancestors"] == "'none'"
     assert directives["connect-src"] == "'self'" and directives["form-action"] == "'self'"
     assert "http" not in policy                                        # no other site anywhere
@@ -123,3 +125,26 @@ def test_offline_page_holds_no_account_data(anon):
     page = anon.get("/static/offline.html")
     assert page.status_code == 200 and b"Offline" in page.data
     assert b"{{" not in page.data and b"current_user" not in page.data
+
+
+def test_ide_needs_a_sign_in_and_only_it_allows_style_attributes(client, anon):
+    assert anon.get("/ide/anything").status_code in (302, 401)
+    page = client.get("/ide/anything")
+    assert page.status_code == 200
+    html = page.get_data(as_text=True)
+    for landmark in ('role="tree"', 'role="tablist"', 'role="toolbar"', 'role="status"', 'role="dialog"'):
+        assert landmark in html
+    ide_policy = page.headers["Content-Security-Policy"]
+    assert "style-src-attr 'unsafe-inline'" in ide_policy           # Monaco's line styles, IDE only
+    assert re.search(r"style-src-elem 'self' 'nonce-", ide_policy)   # <style> elements stay strict
+    assert "script-src 'self' 'wasm-unsafe-eval'" in ide_policy
+    assert "unsafe-inline" not in client.get("/").headers["Content-Security-Policy"]
+    assert 'name="csp-nonce"' in html
+
+
+def test_the_assembly_grammar_knows_exactly_the_allowed_directives():
+    from prg32_construction_kit.source_project import ALLOWED_ASM_DIRECTIVES
+
+    grammar = (ROOT / "static" / "js" / "ide" / "monaco_setup.js").read_text()
+    listed = set(re.findall(r"'(\.[a-z0-9]+)'", grammar.split("const DIRECTIVES = [", 1)[1].split("];", 1)[0]))
+    assert listed == ALLOWED_ASM_DIRECTIVES

@@ -28,6 +28,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 VENDOR = ROOT / "static" / "vendor"
 RECORD = VENDOR / "VENDOR.json"
+# Libraries only the tests use (never served to students): same checks, own record.
+TEST_VENDOR = ROOT / "tests" / "vendor"
 
 # name, version, licence, {path in the package: path under static/vendor/<name>/<version>/}
 PACKAGES = [
@@ -49,6 +51,26 @@ PACKAGES = [
     ("blockly", "11.2.1", "Apache-2.0", {
         "blockly.min.js": "blockly.min.js",
         "media/": "media/",  # icons and sounds Blockly would otherwise fetch from a Google server
+    }),
+    # The code editor of the IDE (ADR-0013): the classic AMD build, only the editor core,
+    # its worker, the codicon font and the C/C++ grammar (no TypeScript/JSON/CSS/HTML services).
+    ("monaco-editor", "0.52.2", "MIT", {
+        "min/vs/loader.js": "min/vs/loader.js",
+        "min/vs/editor/editor.main.js": "min/vs/editor/editor.main.js",
+        "min/vs/editor/editor.main.css": "min/vs/editor/editor.main.css",
+        "min/vs/base/worker/workerMain.js": "min/vs/base/worker/workerMain.js",
+        "min/vs/base/browser/ui/codicons/codicon/codicon.ttf": "min/vs/base/browser/ui/codicons/codicon/codicon.ttf",
+        "min/vs/basic-languages/cpp/cpp.js": "min/vs/basic-languages/cpp/cpp.js",
+        "LICENSE": "LICENSE",
+        "ThirdPartyNotices.txt": "ThirdPartyNotices.txt",
+    }),
+]
+
+TEST_PACKAGES = [
+    # Accessibility checks in the browser tests (tests/test_ide_browser.py).
+    ("axe-core", "4.10.2", "MPL-2.0", {
+        "axe.min.js": "axe.min.js",
+        "LICENSE": "LICENSE",
     }),
 ]
 
@@ -74,10 +96,17 @@ def registry_integrity(name: str, version: str) -> str:
 
 
 def vendor() -> int:
+    for root, packages in ((VENDOR, PACKAGES), (TEST_VENDOR, TEST_PACKAGES)):
+        if vendor_into(root, packages) != 0:
+            return 1
+    return 0
+
+
+def vendor_into(root: Path, packages: list) -> int:
     record: dict = {"schema": "prg32-kit-vendor-1", "packages": []}
     with tempfile.TemporaryDirectory(prefix="prg32-vendor-") as folder:
         work = Path(folder)
-        for name, version, licence, files in PACKAGES:
+        for name, version, licence, files in packages:
             packed = subprocess.run(["npm", "pack", "--silent", f"{name}@{version}"], cwd=work, capture_output=True,
                                     text=True, check=True).stdout.strip().splitlines()[-1]
             tarball = work / packed
@@ -90,7 +119,7 @@ def vendor() -> int:
             with tarfile.open(tarball) as archive:
                 archive.extractall(unpacked, filter="data")
             package = unpacked / "package"
-            target = VENDOR / name / version
+            target = root / name / version
             shutil.rmtree(target, ignore_errors=True)
             copied: dict[str, str] = {}
             for source, destination in files.items():
@@ -99,12 +128,12 @@ def vendor() -> int:
                         out = target / destination / item.name
                         out.parent.mkdir(parents=True, exist_ok=True)
                         shutil.copyfile(item, out)
-                        copied[str(out.relative_to(VENDOR))] = sha256(out)
+                        copied[str(out.relative_to(root))] = sha256(out)
                 else:
                     out = target / destination
                     out.parent.mkdir(parents=True, exist_ok=True)
                     shutil.copyfile(package / source, out)
-                    copied[str(out.relative_to(VENDOR))] = sha256(out)
+                    copied[str(out.relative_to(root))] = sha256(out)
             for url, destination, expected in EXTRA_FILES.get(name, []):
                 out = target / destination
                 data = subprocess.run(["curl", "-fsSL", url], capture_output=True, check=True).stdout
@@ -112,7 +141,7 @@ def vendor() -> int:
                     print(f"{name}: {url} does not have the pinned SHA-256")
                     return 1
                 out.write_bytes(data)
-                copied[str(out.relative_to(VENDOR))] = expected
+                copied[str(out.relative_to(root))] = expected
             record["packages"].append({
                 "name": name, "version": version, "license": licence,
                 "source": f"https://registry.npmjs.org/{name}/-/{name}-{version}.tgz",
@@ -120,27 +149,32 @@ def vendor() -> int:
                 "extra_sources": [url for url, _destination, _digest in EXTRA_FILES.get(name, [])],
             })
             print(f"{name}@{version}: {len(copied)} files, integrity matches the registry")
-    RECORD.write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
+    (root / "VENDOR.json").write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
     return 0
 
 
 def check() -> int:
-    record = json.loads(RECORD.read_text(encoding="utf-8"))
+    return max(check_root(VENDOR), check_root(TEST_VENDOR))
+
+
+def check_root(root: Path) -> int:
+    record = json.loads((root / "VENDOR.json").read_text(encoding="utf-8"))
     problems = []
     listed = set()
     for package in record["packages"]:
         for path, digest in package["files"].items():
             listed.add(path)
-            file = VENDOR / path
+            file = root / path
             if not file.is_file() or sha256(file) != digest:
                 problems.append(path)
-    extra = [str(path.relative_to(VENDOR)) for path in VENDOR.rglob("*")
-             if path.is_file() and path != RECORD and str(path.relative_to(VENDOR)) not in listed]
+    extra = [str(path.relative_to(root)) for path in root.rglob("*")
+             if path.is_file() and path.name != "VENDOR.json" and str(path.relative_to(root)) not in listed]
     for path in problems:
         print(f"changed or missing: {path}")
     for path in extra:
         print(f"not in VENDOR.json: {path}")
-    print("static/vendor matches VENDOR.json" if not (problems or extra) else "static/vendor does not match")
+    where = root.relative_to(ROOT)
+    print(f"{where} matches VENDOR.json" if not (problems or extra) else f"{where} does not match VENDOR.json")
     return 0 if not (problems or extra) else 1
 
 

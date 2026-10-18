@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% block title %}IDE - PRG32-Construction-Kit{% endblock %}
+{% block body_class %}ide-page{% endblock %}
+{% block content %}
+{#
+  The IDE (ADR-0013). Regions, from top to bottom: toolbar, project tree + editor tabs,
+  bottom panels, status bar. Keyboard: F6 / Shift+F6 move between regions, Ctrl+Shift+P
+  (or F1) opens the command palette, Ctrl+S saves. Everything is reachable without a mouse.
+#}
+<input type="hidden" id="projectId" value="{{ project_id }}">
+<a class="visually-hidden-focusable" href="#ideEditorArea">Skip to the editor</a>
+<div class="ide" id="ide">
+  <header class="ide-toolbar" role="toolbar" aria-label="Project actions" data-region="toolbar" tabindex="-1">
+    <button class="btn btn-outline-secondary btn-sm d-lg-none" id="ideTreeToggle" type="button"
+            aria-controls="ideTree" aria-expanded="false" aria-keyshortcuts="Alt+0">
+      <i class="bi bi-list" aria-hidden="true"></i> Files</button>
+    <h1 class="h6 mb-0 text-truncate" id="ideTitle">Loading…</h1>
+    <label class="visually-hidden" for="ideMode">Project source</label>
+    <select class="form-select form-select-sm w-auto" id="ideMode">
+      <option value="blocks">Blocks</option>
+      <option value="c">Advanced C</option>
+      <option value="asm">Assembly (RISC-V)</option>
+    </select>
+    <button class="btn btn-outline-secondary btn-sm" id="ideSave" type="button" aria-keyshortcuts="Control+S">
+      <i class="bi bi-save" aria-hidden="true"></i> Save</button>
+    <button class="btn btn-primary btn-sm" id="ideGenerate" type="button" aria-keyshortcuts="Control+Shift+G">
+      <i class="bi bi-code-slash" aria-hidden="true"></i> Generate</button>
+    <button class="btn btn-dark btn-sm" id="ideCompile" type="button" aria-keyshortcuts="Control+Shift+B">
+      <i class="bi bi-cpu" aria-hidden="true"></i> Compile</button>
+    <button class="btn btn-outline-primary btn-sm" id="idePalette" type="button" aria-keyshortcuts="Control+Shift+P F1"
+            aria-haspopup="dialog">
+      <i class="bi bi-command" aria-hidden="true"></i> Commands</button>
+    <a class="btn btn-link btn-sm ms-auto" href="/projects/{{ project_id }}">Classic editor</a>
+  </header>
+
+  <nav class="ide-tree" id="ideTree" aria-label="Project files" data-region="tree">
+    <ul role="tree" id="ideTreeList" aria-label="Project files"></ul>
+  </nav>
+
+  <main class="ide-editor" id="ideEditorArea" data-region="editor" tabindex="-1">
+    <div role="tablist" class="ide-tabs" id="ideTabs" aria-label="Open files"></div>
+    <div class="ide-tab-panels" id="ideTabPanels"></div>
+  </main>
+
+  <section class="ide-panel" aria-label="Panels" data-region="panel">
+    <div role="tablist" class="ide-tabs ide-panel-tabs" id="idePanelTabs" aria-label="Panels">
+      <button role="tab" id="panelTab-problems" aria-controls="panel-problems" aria-selected="true" tabindex="0">Problems <span class="badge text-bg-secondary" id="problemCount">0</span></button>
+      <button role="tab" id="panelTab-output" aria-controls="panel-output" aria-selected="false" tabindex="-1">Output</button>
+      <button role="tab" id="panelTab-preview" aria-controls="panel-preview" aria-selected="false" tabindex="-1">Blocks preview</button>
+      <button role="tab" id="panelTab-run" aria-controls="panel-run" aria-selected="false" tabindex="-1">Run &amp; debug</button>
+    </div>
+    <div role="tabpanel" id="panel-problems" aria-labelledby="panelTab-problems" tabindex="0">
+      <ul class="ide-problems" id="ideProblems" aria-label="Problems"><li class="text-muted">No problems.</li></ul>
+    </div>
+    <div role="tabpanel" id="panel-output" aria-labelledby="panelTab-output" tabindex="0" hidden>
+      <pre class="ide-output" id="ideOutput">Nothing yet.</pre>
+    </div>
+    <div role="tabpanel" id="panel-preview" aria-labelledby="panelTab-preview" tabindex="0" hidden>
+      <div class="d-flex flex-wrap gap-3 align-items-start">
+        <canvas id="gameCanvas" width="320" height="200" class="game-canvas" tabindex="0" aria-label="Blocks preview screen. Click or focus it to use the game keys."></canvas>
+        <div class="d-flex flex-column gap-2">
+          <button class="btn btn-success btn-sm" id="idePreviewPlay" type="button">Play</button>
+          <button class="btn btn-warning btn-sm" id="idePreviewStep" type="button">Step</button>
+          <div class="debug-strip" id="debugState">The preview runs Blocks projects.</div>
+        </div>
+      </div>
+    </div>
+    <div role="tabpanel" id="panel-run" aria-labelledby="panelTab-run" tabindex="0" hidden>
+      <p class="mb-2">Compile, then run and debug the real RISC-V cartridge in the Player.</p>
+      <div id="ideCartridges" class="d-flex flex-wrap gap-2"></div>
+    </div>
+  </section>
+
+  <footer class="ide-status" role="status" aria-live="polite" data-region="status">
+    <span id="statusMode">Blocks</span>
+    <span id="statusSaved">Saved</span>
+    <span id="statusCursor"></span>
+    <span id="statusBuild" class="ms-auto"></span>
+  </footer>
+</div>
+
+<div class="modal" id="ideCommandPalette" tabindex="-1" aria-labelledby="paletteTitle" aria-modal="true" role="dialog">
+  <div class="modal-dialog modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header py-2">
+        <h2 class="modal-title h6" id="paletteTitle">Commands</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <input class="form-control" id="paletteInput" type="text" role="combobox" autocomplete="off"
+               aria-expanded="true" aria-controls="paletteList" aria-autocomplete="list" aria-label="Type a command">
+        <ul class="list-group mt-2" id="paletteList" role="listbox" aria-label="Commands"></ul>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+{# Blockly first: Monaco's AMD loader would otherwise capture it as a module. #}
+<script src="{{ url_for('static', filename='vendor/blockly/11.2.1/blockly.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/blockly_blocks.js') }}"></script>
+<script src="{{ url_for('static', filename='js/simulator.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/monaco-editor/0.52.2/min/vs/loader.js') }}"></script>
+<script src="{{ url_for('static', filename='js/ide/monaco_setup.js') }}"></script>
+<script src="{{ url_for('static', filename='js/ide/shell.js') }}"></script>
+<script src="{{ url_for('static', filename='js/ide/ide.js') }}"></script>
+{% endblock %}

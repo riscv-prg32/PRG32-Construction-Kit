@@ -20,6 +20,7 @@
           <div class="mb-3">${Kit.tags(project.tags)}</div>
           <div class="d-flex gap-2">
             <a class="btn btn-primary btn-sm" href="/projects/${encodeURIComponent(project.id)}"><i class="bi bi-pencil-square"></i> Open</a>
+            <a class="btn btn-outline-primary btn-sm" href="/ide/${encodeURIComponent(project.id)}"><i class="bi bi-window-sidebar"></i> IDE</a>
             <button class="btn btn-outline-danger btn-sm delete-project" data-id="${Kit.escape(project.id)}"><i class="bi bi-trash"></i></button>
           </div>
         </div>

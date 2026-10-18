@@ -15,6 +15,7 @@
       <option value="asm">Assembly (RISC-V)</option>
     </select>
     <button class="btn btn-outline-secondary" id="saveProject"><i class="bi bi-save"></i> Save</button>
+    <a class="btn btn-outline-primary" href="/ide/{{ project_id }}"><i class="bi bi-window-sidebar"></i> Open in IDE</a>
     <div class="btn-group">
       <button class="btn btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-download"></i> Export</button>
       <ul class="dropdown-menu">
@@ -85,7 +86,7 @@
         <span class="small text-muted">Arrow keys + Z/X + Enter/Shift</span>
       </div>
       <div class="card-body">
-        <canvas id="gameCanvas" width="320" height="200" class="game-canvas"></canvas>
+        <canvas id="gameCanvas" width="320" height="200" class="game-canvas" tabindex="0" aria-label="Blocks preview screen. Click or focus it to use the game keys."></canvas>
         <section class="simulator-gamepad mt-3" aria-label="Simulator game controls">
           <div class="gamepad-brand">PRG32</div>
           <div class="gamepad-controls">

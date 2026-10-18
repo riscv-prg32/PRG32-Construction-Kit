@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+### The IDE (refinement phase 2)
+
+- New **IDE** page per project (`/ide/<id>`, ADR-0013, `ide.md`): file tree,
+  editor tabs, Problems/Output/Preview/Run panels, status bar, command
+  palette, F6 regions, full keyboard operation, small-screen file panel.
+- Monaco 0.52.2 (vendored) for Advanced C and assembly, with a PRG32 RISC-V
+  assembly grammar; generated C/assembly/IR as read-only, copyable tabs;
+  problems as editor markers with jump-to-line.
+- Fixed: the Blocks preview and the Player took Enter and the arrow keys from
+  the whole page, so buttons could not be pressed with Enter. Game keys now
+  work while the game screen has the focus (it takes it on Play).
+- The toast close button has an accessible name.
+- No database change. Rollback: revert; the classic editor is unchanged.
+
 ### Self-contained frontend, offline page and CSP (refinement phase 1)
 
 - Bootstrap, Bootstrap Icons, jQuery and Blockly (with its media) are served

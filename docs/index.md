@@ -31,6 +31,7 @@ PRG32-Construction-Kit is a classroom web application for building PRG32 games w
 15. `wasm_runtime.md` - the Player: real cartridges running in the browser (PRG32-QT core as WebAssembly).
    - `tutorials/07_debugger.md` - the Player's RISC-V debugger (steps, breakpoints, registers, memory).
 16. `offline.md` - what works without the server, and why nothing signed-in is stored offline.
+17. `ide.md` - the IDE: files, tabs, panels, command palette and keyboard shortcuts.
 
 ## Full-IDE roadmap
 

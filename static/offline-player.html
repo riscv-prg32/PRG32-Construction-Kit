@@ -20,7 +20,7 @@
       <input class="d-none" type="file" id="cartridgeFile" accept=".prg32,application/octet-stream"></label>
     <button class="btn btn-success btn-sm" id="playPause" type="button" disabled><i class="bi bi-play-fill"></i> Play</button>
   </div>
-  <canvas id="playerScreen" class="prg32-screen" aria-label="PRG32 screen, 320 by 200 pixels"></canvas>
+  <canvas id="playerScreen" class="prg32-screen" tabindex="0" aria-label="PRG32 screen, 320 by 200 pixels. Focus it to use the game keys."></canvas>
   <div class="small mt-2" id="playerStatus" aria-live="polite">No cartridge loaded.</div>
 </main>
 <script src="/static/js/prg32_runtime.js"></script>

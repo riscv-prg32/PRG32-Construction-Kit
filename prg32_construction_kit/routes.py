@@ -202,6 +202,12 @@ def project_editor(project_id: str):
     return render_template("editor.html", project_id=project_id)
 
 
+@bp.get("/ide/<project_id>")
+def project_ide(project_id: str):
+    """The IDE: project tree, tabs, Monaco and Blockly, panels, command palette (ADR-0013)."""
+    return render_template("ide.html", project_id=project_id)
+
+
 @bp.get("/sprites")
 def sprite_editor():
     return render_template("sprite_editor.html")

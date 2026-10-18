@@ -13,11 +13,22 @@
     {
       "id": "IDE-01",
       "title": "IDE shell: project tree, tabs, panels, palette, keyboard",
-      "status": "missing",
+      "status": "implemented",
       "audit_score": 0,
-      "source": [],
-      "tests": [],
-      "note": "Editor is a Bootstrap page (templates/editor.html); Phase 2 of the refinement brief."
+      "source": [
+        "templates/ide.html",
+        "static/js/ide/shell.js::openPalette",
+        "static/js/ide/shell.js::cycleRegion",
+        "static/js/ide/shell.js::renderTree",
+        "static/js/ide/ide.js::compile"
+      ],
+      "tests": [
+        "tests/test_ide_browser.py::test_keyboard_only_c_workflow",
+        "tests/test_ide_browser.py::test_ide_has_no_csp_violations_or_serious_accessibility_problems",
+        "tests/test_ide_browser.py::test_small_screens_show_the_files_on_demand",
+        "tests/test_ide_browser.py::test_blocks_stay_editable_and_generated_code_is_read_only"
+      ],
+      "note": "Tree, tabs, panels, palette, status bar, F6 regions, small-screen fallback (ADR-0013). axe-core scan only; no screen-reader session."
     },
     {
       "id": "IDE-02",
@@ -30,37 +41,41 @@
       ],
       "tests": [
         "tests/test_examples.py::test_example_projects_generate_clean_deterministic_c",
-        "tests/test_examples.py::test_simulator_reads_blocks_into_the_same_ir"
+        "tests/test_examples.py::test_simulator_reads_blocks_into_the_same_ir",
+        "tests/test_ide_browser.py::test_blocks_stay_editable_and_generated_code_is_read_only"
       ],
       "note": "Block id -> IR -> source/address maps missing (Phase 4)."
     },
     {
       "id": "IDE-03",
       "title": "C editor with language services",
-      "status": "prototype",
+      "status": "partial",
       "audit_score": 1,
       "source": [
-        "prg32_construction_kit/source_project.py::validate_c_source",
-        "templates/editor.html"
+        "static/js/ide/ide.js::openSource",
+        "static/js/ide/ide.js::showProblems",
+        "prg32_construction_kit/source_project.py::validate_c_source"
       ],
       "tests": [
+        "tests/test_ide_browser.py::test_keyboard_only_c_workflow",
         "tests/test_source_project.py::test_host_access_tricks_are_rejected"
       ],
-      "note": "Plain textarea; server-side validation only (Phases 2-3)."
+      "note": "Monaco C editing, colours, server/compiler problems as markers. No completion, hover or navigation yet (refinement phase 3)."
     },
     {
       "id": "IDE-04",
       "title": "RISC-V assembly editor with language services",
-      "status": "prototype",
+      "status": "partial",
       "audit_score": 1,
       "source": [
-        "prg32_construction_kit/source_project.py::validate_asm_source",
-        "templates/editor.html"
+        "static/js/ide/monaco_setup.js::registerAssembly",
+        "prg32_construction_kit/source_project.py::validate_asm_source"
       ],
       "tests": [
-        "tests/test_handwritten_assembly.py::test_file_reading_and_unknown_directives_are_rejected"
+        "tests/test_ide_browser.py::test_assembly_problems_mark_the_line_and_jump_there",
+        "tests/test_frontend_offline.py::test_the_assembly_grammar_knows_exactly_the_allowed_directives"
       ],
-      "note": "Plain textarea; server-side validation only (Phases 2-3)."
+      "note": "Monaco with the prg32-asm grammar (allowed directives only), line-exact problems. No completion yet (phase 3)."
     },
     {
       "id": "PRJ-01",
@@ -451,9 +466,10 @@
       "source": [],
       "tests": [
         "tests/test_capabilities.py::test_rendered_table_is_up_to_date",
-        "tests/test_browser_offline.py::test_pages_load_only_from_the_kit_without_csp_violations"
+        "tests/test_browser_offline.py::test_pages_load_only_from_the_kit_without_csp_violations",
+        "tests/test_ide_browser.py::test_ide_has_no_csp_violations_or_serious_accessibility_problems"
       ],
-      "note": "Large pytest suite and first real-browser tests (Playwright); no lint/type/coverage gate, automated a11y or performance budget."
+      "note": "Large pytest suite; real-browser tests with keyboard-only workflows and an axe-core scan. No lint/type/coverage gate or performance budget."
     }
   ]
 }

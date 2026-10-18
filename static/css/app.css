@@ -297,3 +297,49 @@ body.dbg-mode-advanced .dbg-beginner { display: none !important; }
 .kit-w-kind { max-width: 140px; }
 .kit-w-address { width: 9rem; }
 .kit-tiny-close { font-size: .5rem; }
+
+/* --- IDE (templates/ide.html, ADR-0013) ------------------------------------------------- */
+.ide-page main.container-fluid { padding: 0 !important; }
+.ide {
+  display: grid;
+  grid-template-columns: 15rem minmax(0, 1fr);
+  grid-template-rows: auto minmax(12rem, 1fr) minmax(9rem, 30vh) auto;
+  grid-template-areas: "toolbar toolbar" "tree editor" "tree panel" "status status";
+  height: calc(100vh - 62px);
+  background: var(--bs-body-bg);
+}
+.ide-toolbar { grid-area: toolbar; display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; padding: .5rem .75rem; border-bottom: 1px solid var(--bs-border-color); }
+.ide-tree { grid-area: tree; overflow: auto; border-right: 1px solid var(--bs-border-color); padding: .5rem 0; background: var(--bs-tertiary-bg); }
+.ide-tree ul { list-style: none; margin: 0; padding-left: .75rem; }
+.ide-tree > ul { padding-left: .25rem; }
+.ide-tree [role=treeitem] > .ide-tree-label { display: block; padding: .15rem .5rem; border-radius: .25rem; cursor: pointer; white-space: nowrap; }
+.ide-tree [role=treeitem]:focus { outline: none; }
+.ide-tree [role=treeitem]:focus > .ide-tree-label { outline: 2px solid #0d6efd; outline-offset: -2px; background: rgba(13, 110, 253, .1); }
+.ide-tree [role=treeitem][aria-expanded=false] > [role=group] { display: none; }
+.ide-editor { grid-area: editor; display: flex; flex-direction: column; min-height: 0; }
+.ide-tab-panels { flex: 1; min-height: 0; position: relative; }
+.ide-tab-panel { position: absolute; inset: 0; display: flex; flex-direction: column; }
+.ide-tab-panel[hidden] { display: none; }
+.ide-monaco, .ide-blockly { flex: 1; min-height: 0; }
+.ide-editor-toolbar { display: flex; justify-content: space-between; align-items: center; padding: .25rem .5rem; border-bottom: 1px solid var(--bs-border-color); }
+.ide-tabs { display: flex; gap: 2px; overflow-x: auto; border-bottom: 1px solid var(--bs-border-color); background: var(--bs-tertiary-bg); }
+.ide-tabs [role=tab] { border: 0; background: transparent; padding: .4rem .75rem; white-space: nowrap; color: var(--bs-body-color); border-bottom: 2px solid transparent; }
+.ide-tabs [role=tab][aria-selected=true] { background: var(--bs-body-bg); border-bottom-color: #0d6efd; font-weight: 600; }
+.ide-tabs [role=tab]:focus-visible { outline: 2px solid #0d6efd; outline-offset: -2px; }
+.ide-tab-close { margin-left: .4rem; opacity: .6; }
+.ide-panel { grid-area: panel; display: flex; flex-direction: column; min-height: 0; border-top: 1px solid var(--bs-border-color); }
+.ide-panel [role=tabpanel] { flex: 1; overflow: auto; padding: .5rem .75rem; }
+.ide-panel [role=tabpanel][hidden] { display: none; }
+.ide-output { margin: 0; white-space: pre-wrap; font-size: .85rem; }
+.ide-problems { list-style: none; padding: 0; margin: 0; }
+.ide-problem { border: 0; background: transparent; text-align: left; width: 100%; padding: .2rem .25rem; font-family: var(--bs-font-monospace); font-size: .85rem; }
+.ide-problem:hover, .ide-problem:focus-visible { background: var(--bs-tertiary-bg); }
+.ide-status { grid-area: status; display: flex; gap: 1.25rem; padding: .2rem .75rem; font-size: .8rem; background: #14213d; color: #fff; }
+.ide-sprite { image-rendering: pixelated; width: 8rem; border: 1px solid var(--bs-border-color); }
+/* Small screens: one column; the file tree slides in over the editor (Files button, Alt+0). */
+@media (max-width: 991.98px) {
+  .ide { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(16rem, 1fr) minmax(10rem, 35vh) auto;
+         grid-template-areas: "toolbar" "editor" "panel" "status"; height: auto; min-height: calc(100vh - 62px); }
+  .ide-tree { display: none; }
+  .ide.ide-tree-open .ide-tree { display: block; position: fixed; z-index: 1040; top: 0; bottom: 0; left: 0; width: min(80vw, 18rem); box-shadow: 0 0 1rem rgba(0,0,0,.3); }
+}

@@ -13,5 +13,6 @@ Start here, then follow the links.
 7. **Playing your real cartridge in the browser:** `wasm_runtime.md`;
    stepping through it instruction by instruction: `tutorials/07_debugger.md`.
    Working without the server: `offline.md`.
+   The IDE (files, tabs, keyboard shortcuts): `ide.md`.
 8. **Publishing to a Cartridge Store:** `tutorials/04_publish_to_store.md`.
 9. **Running a lab (teachers):** `tutorials/05_teacher_lab.md`.

@@ -253,9 +253,11 @@
     }
 
     // Keys typed into a text box or code editor are not game buttons.
+    // Game keys only while the screen has the focus (or nothing has it): Enter and the arrows
+    // must still operate buttons, menus and the debugger's lists.
     capturesKeys(event) {
       const target = event.target;
-      return !(target && (target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName)));
+      return !target || target === this.canvas || target === document.body || target === document.documentElement;
     }
 
     // On-screen buttons (touch screens) call this.
@@ -314,6 +316,7 @@
       this.audio.ensure(); // browsers allow sound only after a click
       if (this.audio.context && this.audio.context.state === 'suspended') this.audio.context.resume();
       this.running = true;
+      this.canvas.focus({ preventScroll: true });  // the game keys now reach the game
       this.lastTime = performance.now();
       this.debt = 0;
       requestAnimationFrame(this.tick);

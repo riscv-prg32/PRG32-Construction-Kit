@@ -36,7 +36,14 @@ def create_app(test_config: dict | None = None) -> Flask:
     auth.init_app(app)
     sso.init_app(app)
     app.register_blueprint(bp)
+    app.before_request(new_csp_nonce)
     app.after_request(browser_security_headers)
+
+    @app.context_processor
+    def inject_csp_nonce() -> dict:
+        from flask import g
+
+        return {"csp_nonce": getattr(g, "csp_nonce", "")}
 
     with app.app_context():
         auth.bootstrap_admin(app)
@@ -71,13 +78,22 @@ def _stored_secret_key(path: Path) -> str:
 
 
 # The two stylesheets Blockly 11.2.1 writes into the page as <style> elements (its core CSS and
-# its renderer CSS). Allowing exactly these, by hash, keeps 'unsafe-inline' out of style-src.
-# A Blockly upgrade changes them; tests/test_browser_offline.py then reports the CSP violation.
+# its renderer CSS). Allowing exactly these, by hash, keeps 'unsafe-inline' out of style-src on
+# the static offline pages, which cannot carry a per-request nonce. Kit pages also get a nonce
+# (new_csp_nonce) that static/js/csp_nonce.js puts on every <style> a library creates (Monaco).
+# A Blockly upgrade changes the hashes; tests/test_browser_offline.py then reports the violation.
 BLOCKLY_STYLE_HASHES = ("'sha256-13eeyLxDr6pLorEKUUklmpuV8Z1YLs/1MWMLY8Zk3pA='",
                         "'sha256-0tN7GGHXLmMTzeNJNnrOblI9B4sRETd8GoaYB0Lmw3Q='")
 
 
-def content_security_policy(config) -> str:
+def new_csp_nonce() -> None:
+    """A fresh random nonce for this response's CSP (styles created by Blockly and Monaco)."""
+    from flask import g
+
+    g.csp_nonce = secrets.token_urlsafe(18)
+
+
+def content_security_policy(config, nonce: str = "", editor_page: bool = False) -> str:
     """The Content Security Policy for every page (docs/adr/0012-offline-frontend-and-csp.md).
 
     Everything comes from the kit itself: no CDNs, no inline scripts, no eval.
@@ -94,7 +110,12 @@ def content_security_policy(config) -> str:
     return "; ".join([
         "default-src 'self'",
         "script-src 'self' 'wasm-unsafe-eval'",
-        "style-src 'self' " + " ".join(BLOCKLY_STYLE_HASHES),
+        "style-src 'self' " + (f"'nonce-{nonce}' " if nonce else "") + " ".join(BLOCKLY_STYLE_HASHES),
+        # Only on IDE pages (ADR-0013): Monaco writes code lines as HTML with style="..."
+        # attributes, which a nonce cannot cover. Style attributes cannot run script or load
+        # anything outside img-src/font-src; <style> elements stay nonce/hash-only (style-src-elem).
+        *(["style-src-elem 'self' " + (f"'nonce-{nonce}' " if nonce else "") + " ".join(BLOCKLY_STYLE_HASHES),
+           "style-src-attr 'unsafe-inline'"] if editor_page else []),
         "img-src 'self' data: blob:",
         "font-src 'self'",
         "connect-src 'self'",
@@ -110,9 +131,12 @@ def content_security_policy(config) -> str:
 
 def browser_security_headers(response):
     """CSP and friends on every answer; signed-in pages and API answers are never cached."""
-    from flask import current_app, request
+    from flask import current_app, g, request
 
-    response.headers.setdefault("Content-Security-Policy", content_security_policy(current_app.config))
+    nonce = getattr(g, "csp_nonce", "") if response.mimetype == "text/html" else ""
+    editor_page = request.path.startswith("/ide/")
+    response.headers.setdefault("Content-Security-Policy",
+                                content_security_policy(current_app.config, nonce, editor_page))
     response.headers.setdefault("X-Content-Type-Options", "nosniff")
     response.headers.setdefault("Referrer-Policy", "same-origin")
     if request.path.startswith("/static/vendor/"):

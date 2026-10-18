@@ -75,6 +75,24 @@
       "extra_sources": [
         "https://raw.githubusercontent.com/google/blockly/blockly-v11.2.1/LICENSE"
       ]
+    },
+    {
+      "name": "monaco-editor",
+      "version": "0.52.2",
+      "license": "MIT",
+      "source": "https://registry.npmjs.org/monaco-editor/-/monaco-editor-0.52.2.tgz",
+      "integrity": "sha512-GEQWEZmfkOGLdd3XK8ryrfWz3AIP8YymVXiPHEdewrUq7mh0qrKrfHLNCXcbB6sTnMLnOZ3ztSiKcciFUkIJwQ==",
+      "files": {
+        "monaco-editor/0.52.2/min/vs/loader.js": "28f3584fd04b182dfce15a9a1ce35b25bea22b31464aee500372bed18b7fee1a",
+        "monaco-editor/0.52.2/min/vs/editor/editor.main.js": "90b588bc0b624e24052a576e1bcab2eaffec7bc666895188862eebd9c9745782",
+        "monaco-editor/0.52.2/min/vs/editor/editor.main.css": "857bc0beafefbcc83ab5cf3510e929391c0314add43ee1a4cb8ecaf4726abbac",
+        "monaco-editor/0.52.2/min/vs/base/worker/workerMain.js": "dbe4aa4f2874f5768e8d98e94281667c0bc493e02dd9760adca930699ff3279b",
+        "monaco-editor/0.52.2/min/vs/base/browser/ui/codicons/codicon/codicon.ttf": "0f1d5219934e96e83b8db162d60b4d8c09b5de1e7d38031cbafe4a3c0f2889c9",
+        "monaco-editor/0.52.2/min/vs/basic-languages/cpp/cpp.js": "52124e8e802797f89ca8e4415c6b9d63a55264de54ea1b38b5aa663159c46c1b",
+        "monaco-editor/0.52.2/LICENSE": "33e4ff1a06ef62ba21788ea162564ee8165269a24a9ce6ef301837447eab0ac6",
+        "monaco-editor/0.52.2/ThirdPartyNotices.txt": "790537262fc78a764e121e6b92b959bcd3f5c310b47d9d9b9e92e17fe0af5336"
+      },
+      "extra_sources": []
     }
   ]
 }

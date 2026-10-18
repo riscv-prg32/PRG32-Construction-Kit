@@ -623,9 +623,11 @@ window.PRG32Simulator = (function () {
         ArrowLeft: 'LEFT', ArrowRight: 'RIGHT', ArrowUp: 'UP', ArrowDown: 'DOWN', z: 'A', Z: 'A', x: 'B', X: 'B', Enter: 'START', Shift: 'SELECT',
         j: 'P2_LEFT', l: 'P2_RIGHT', i: 'P2_UP', k: 'P2_DOWN', u: 'P2_A', o: 'P2_B'
       };
+      // Game keys only while the game screen has the focus (or nothing has it). Otherwise Enter and
+      // the arrow keys belong to the page: buttons, menus, lists and editors must keep working.
       const set = (event, down) => {
         const target = event.target;
-        if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) return;
+        if (target && target !== this.canvas && target !== document.body && target !== document.documentElement) return;
         if (map[event.key]) {
           this.setInput(map[event.key], 'keyboard-' + event.code, down);
           event.preventDefault();
@@ -711,6 +713,8 @@ window.PRG32Simulator = (function () {
 
     toggle() {
       this.running ? this.stop() : this.play();
+      // Playing moves the keyboard focus to the screen, so the game keys reach the game.
+      if (this.running && this.canvas && this.canvas.focus) this.canvas.focus({ preventScroll: true });
       return this.running;
     }
 
