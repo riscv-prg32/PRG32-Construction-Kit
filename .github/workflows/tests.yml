@@ -70,6 +70,64 @@ jobs:
           path: test-results-${{ matrix.python-version }}.xml
           retention-days: 14
 
+  wasm-runtime:
+    name: Browser PRG32 core (WebAssembly) golden tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v7
+
+      - name: Read the PRG32-QT revision the committed module was built from
+        id: core
+        run: echo "revision=$(python3 -c 'import json; print(json.load(open("static/wasm/BUILD.json"))["core"]["revision"])')" >> "$GITHUB_OUTPUT"
+
+      - name: Check out PRG32-QT at that revision
+        uses: actions/checkout@v7
+        with:
+          repository: riscv-prg32/PRG32-QT
+          ref: ${{ steps.core.outputs.revision }}
+          path: PRG32-QT
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: "20"
+
+      - name: Install Python dependencies and build tools
+        run: |
+          python -m pip install --disable-pip-version-check -r requirements.txt
+          sudo apt-get update && sudo apt-get install -y --no-install-recommends ninja-build
+
+      - name: Install Emscripten
+        run: |
+          git clone --depth 1 https://github.com/emscripten-core/emsdk.git "$RUNNER_TEMP/emsdk"
+          "$RUNNER_TEMP/emsdk/emsdk" install latest
+          "$RUNNER_TEMP/emsdk/emsdk" activate latest
+          echo "$RUNNER_TEMP/emsdk" >> "$GITHUB_PATH"
+          echo "$RUNNER_TEMP/emsdk/upstream/emscripten" >> "$GITHUB_PATH"
+
+      - name: Golden tests with the committed module
+        env:
+          PRG32QT_DIR: ${{ github.workspace }}/PRG32-QT
+        run: python -m pytest -q -rs tests/test_wasm_runtime.py
+
+      - name: Golden tests with a fresh build of the module
+        env:
+          PRG32QT_DIR: ${{ github.workspace }}/PRG32-QT
+          PRG32_WASM_MODULE: ${{ github.workspace }}/build/wasm-ci/prg32-core.js
+        run: |
+          emcmake cmake -S wasm -B build/wasm-ci -G Ninja -DPRG32QT_DIR="$PRG32QT_DIR" -DCMAKE_BUILD_TYPE=Release
+          cmake --build build/wasm-ci
+          python -m pytest -q -rs tests/test_wasm_runtime.py -k "golden or audio or refused"
+
   dependency-review:
     name: Dependency review
     if: github.event_name == 'pull_request'

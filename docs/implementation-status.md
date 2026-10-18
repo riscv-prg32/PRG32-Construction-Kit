@@ -9,7 +9,7 @@ Status of the full-IDE plan (`implementation-plan.md`). A gate is marked
 | G1 Foundation | **In progress** | Manifest, migrations, archive, duplicate, handwritten assembly mode, revisions, soft delete done; guest policy open. |
 | G2 IDE shell | Not started | |
 | G3 Toolchain | In progress | Server builds produce real `.prg32` (pre-existing); build provenance and cartridge SHA-256 done (quality round 1). Browser toolchain and container isolation open. |
-| G4 WASM runtime | Not started | Needs Emscripten (not installed on the dev machine). |
+| G4 WASM runtime | **Complete** (core scope) | PRG32-QT core as WebAssembly, `/player`, golden tests WASM = native = `prg32qt-headless`. Multiplayer/Wi-Fi host services and exact audio open. |
 | G5 Debugger | Not started | |
 | G6 Identity/storage | In progress | Secure first-admin bootstrap, sign-in throttling, admin audit log done (quality round 1). OIDC/PKCE, roles, guest policy, cloud sync open. |
 | G7 Delivery | Not started | Store publish exists (pre-existing). |
@@ -32,6 +32,9 @@ Status of the full-IDE plan (`implementation-plan.md`). A gate is marked
 | 2026-10-18 | After quality round 1: `python3 -m pytest -q -rs` | 317 passed, 13 skipped |
 | 2026-10-18 | same, with `riscv32-esp-elf-gcc` 14.2.0 and PRG32 SDK `679dfb5` | 321 passed, 9 skipped (only the 9 host-GCC differential tests) |
 | 2026-10-18 | `PRG32_KIT_ENV=production python3 tools/check_build.py --students 2 --windows 2` (real toolchain) | Pass: 8 cartridges, isolation intact |
+| 2026-10-18 | After G4: `python3 -m pytest -q -rs` (Node, CMake, clang++, PRG32-QT `f6d80ad` present) | 328 passed, 14 skipped |
+| 2026-10-18 | same, with the real toolchain and PRG32 SDK | 333 passed, 9 skipped (only the 9 host-GCC differential tests) |
+| 2026-10-18 | Browser check on a local server: Pong compiled with the real toolchain, opened in `/player` | Pass: 151 frames in 5.0 s at 1×; at 0.25× 4 s real = 1 s game time; Enter started the match; no console errors |
 
 Skipped and why:
 

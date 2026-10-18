@@ -1,0 +1,25 @@
+{
+  "schema": "prg32-kit-wasm-build-1",
+  "core": {
+    "repository": "https://github.com/riscv-prg32/PRG32-QT",
+    "revision": "f6d80addf49d0512c2e4390251a81d797a35b157",
+    "version": "0.4.1",
+    "license": "MIT"
+  },
+  "abi": {
+    "major": 1,
+    "minor": 6,
+    "hash": "0x260f6136"
+  },
+  "emscripten": "emcc (Emscripten gcc/clang-like replacement + linker emulating GNU ld) 6.0.12-git",
+  "files": {
+    "prg32-core.js": {
+      "sha256": "6079af33079e1983cf6e0ad24fcf2f62363f180a8a1c52a5bf610919cee0c2e6",
+      "bytes": 14895
+    },
+    "prg32-core.wasm": {
+      "sha256": "15bd229fb8605b66522770be7e4f889c2bdbfbfd8d1c5f14708f8df2b6085beb",
+      "bytes": 108535
+    }
+  }
+}

@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+### Browser PRG32 core (G4)
+
+- **Player** page (`/player`) and **Play in browser** after a compile: real
+  `.prg32` cartridges run in the browser on PRG32-QT's core compiled to
+  WebAssembly (`static/wasm/`, ≈ 125 KB, cached for offline use).
+- `tools/build_wasm.py` rebuilds the module from a PRG32-QT checkout and
+  records its provenance in `static/wasm/BUILD.json`.
+- Golden tests (`tests/test_wasm_runtime.py`) and a CI job prove the browser
+  core behaves exactly like the native core and `prg32qt-headless`.
+- No database changes.
+
 ### Security and quality (round 1)
 
 - **No default admin password.** The first start writes a random password to

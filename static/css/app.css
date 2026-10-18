@@ -264,3 +264,12 @@ body {
 
 /* History dropdown in the editor: earlier saved versions of a project. */
 .history-menu { min-width: min(30rem, 90vw); max-height: 60vh; overflow-y: auto; }
+
+/* The PRG32 screen: 320 x 200 pixels, scaled up without blurring. */
+.prg32-screen {
+  width: 100%;
+  max-width: 960px;
+  aspect-ratio: 320 / 200;
+  image-rendering: pixelated;
+  background: #000;
+}

@@ -115,5 +115,6 @@ installations; source validation is not an OS sandbox.
 | `prg32_construction_kit/security.py` | Database-backed sign-in limits (`auth_throttle`) and the admin audit log (`audit_events`). |
 | `prg32_construction_kit/provenance.py` | Build provenance: kit/SDK/ABI/compiler identity, normalized build command, SHA-256 of sources and cartridges. |
 | `auth.bootstrap_admin` | First admin without a built-in password; production refuses weak ones. |
+| `wasm/`, `static/wasm/`, `static/js/prg32_runtime.js` | PRG32-QT's core compiled to WebAssembly and its browser host (`wasm_runtime.md`). |
 
 Trust boundaries and the threat model are in `security.md`.

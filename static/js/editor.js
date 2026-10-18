@@ -150,7 +150,9 @@
         setLog(result.build.log || JSON.stringify(result.result, null, 2));
         const cartridges = result.cartridge_artifacts || [];
         if (cartridges.length) {
-          const links = cartridges.map(artifact => `<a class="btn btn-success btn-sm ms-2" href="/api/artifacts/${encodeURIComponent(artifact.id)}/download"><i class="bi bi-download"></i> ${Kit.escape(artifact.metadata.architecture)} .prg32</a>`).join('');
+          const links = cartridges.map(artifact => `<a class="btn btn-success btn-sm ms-2" href="/api/artifacts/${encodeURIComponent(artifact.id)}/download"><i class="bi bi-download"></i> ${Kit.escape(artifact.metadata.architecture)} .prg32</a>`).join('')
+            // The real cartridge, running in this browser (the PRG32-QT core as WebAssembly).
+            + `<a class="btn btn-outline-success btn-sm ms-2" target="_blank" href="/player?artifact=${encodeURIComponent(cartridges[0].id)}"><i class="bi bi-cpu"></i> Play in browser</a>`;
           $('#cartridgeDownloads').removeClass('d-none alert-warning').addClass('alert-success').html(`<strong>Cartridge ready.</strong> Download it and upload it to a PRG32 cartridge slot.${links}`);
         } else if (result.build.status === 'failed') {
           // The build tools are installed, so the compiler refused the source.

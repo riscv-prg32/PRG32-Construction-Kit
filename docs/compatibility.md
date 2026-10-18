@@ -43,10 +43,25 @@ The kit's current debugger works on the game IR, not machine code.
 
 Closing these gaps is G4/G5 (ADR-0003, ADR-0006).
 
+## Browser runtime parity with PRG32-QT
+
+The browser runs PRG32-QT's own core (`docs/wasm_runtime.md`).
+
+| Area | PRG32-QT | Browser (`/player`) |
+| --- | --- | --- |
+| RV32IMAC interpreter, ABI 1.6 (139 calls) | Yes | Same code; identical state in golden tests |
+| Accurate ESP32-C6 timing (virtual clock) | Yes (default) | Yes (default) |
+| 320 × 200 RGB565 framebuffer | Yes | Yes; identical frames to `prg32qt-headless` |
+| Buttons (keyboard map, latch of quick taps) | Yes | Yes, same keys; on-screen buttons |
+| Audio | Qt mixer | Approximate: oscillators for tones/notes, PCM as recorded |
+| Multiplayer, Wi-Fi, score upload | Yes | No |
+| Debugger UI | Yes | Not yet (C API ready, G5) |
+
 ## Hosts that run cartridges
 
 | Host | How a kit cartridge gets there | Verified |
 | --- | --- | --- |
+| Browser (kit Player) | **Play in browser**, or open a `.prg32` on `/player` | Automated: golden and kit-cartridge tests |
 | PRG32-QT | Download `.prg32`, import in PRG32-QT; or publish to the Store and install from it | Manual, per `runtime_check.md` |
 | PRG32-iOS | Download `.prg32`, share to the device, import with the app's file picker | Not verified here (no device) |
 | PRG32 console (ESP32-C6) | Through the Cartridge Store | Not verified here (no hardware) |

@@ -207,6 +207,12 @@ def artifacts_page():
     return render_template("artifacts.html")
 
 
+@bp.get("/player")
+def player_page():
+    """Run a .prg32 cartridge in the browser (the PRG32-QT core compiled to WebAssembly)."""
+    return render_template("player.html")
+
+
 @bp.get("/publish")
 def publish_page():
     return render_template("publish.html")

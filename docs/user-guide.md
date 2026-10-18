@@ -10,5 +10,6 @@ Start here, then follow the links.
 5. **Saving, handing in and sharing projects:** `project_archive.md`;
    going back to an earlier version or a deleted project: `project_history.md`.
 6. **Writing a game directly in RISC-V assembly:** `handwritten_assembly.md`.
-7. **Publishing to a Cartridge Store:** `tutorials/04_publish_to_store.md`.
-8. **Running a lab (teachers):** `tutorials/05_teacher_lab.md`.
+7. **Playing your real cartridge in the browser:** `wasm_runtime.md`.
+8. **Publishing to a Cartridge Store:** `tutorials/04_publish_to_store.md`.
+9. **Running a lab (teachers):** `tutorials/05_teacher_lab.md`.

@@ -35,7 +35,12 @@ that proves it. "—" means not implemented yet. Statuses: **Done**,
 | TC-2a | Compiler errors are `failed`, not `source-only` | Done | `build_check.toolchain_present`, `routes._run_package_build`; `test_compiler_errors_are_failed_builds_not_source_only` |
 | TC-2b | No server paths or secrets in build responses and logs | Done | `packager.redact_build_path`, `public_command`, `routes.public_build_result`; `test_no_server_paths_or_secrets_leave_the_server`, `tests/test_api.py::test_package_uses_configured_build_root` |
 | TC-3 | Browser toolchain | Open | G3 spike |
-| RT-* | WASM guest runtime from PRG32-QT core | Open | ADR-0003 |
+| RT-1 | Qt-free core compiled to WASM, guest interpreted in WASM | Done | `wasm/`, `static/wasm/BUILD.json`; `test_committed_module_matches_its_build_record`, `test_fresh_build_matches_the_committed_module` |
+| RT-2 | Matches PRG32-QT on golden cartridges | Done | `test_wasm_runs_golden_cartridges_exactly_like_native`, `test_native_harness_draws_exactly_like_prg32qt_headless` |
+| RT-3 | Kit-built Blocks/C/assembly cartridges run in the browser core | Done | `test_kit_cartridges_run_the_same_in_the_browser_core` (real toolchain) |
+| RT-4 | Browser host: framebuffer, input, timing (guest vs wall), audio, offline | Done (audio approximate) | `static/js/prg32_runtime.js`, `/player`; `test_audio_calls_reach_the_browser_host`, `test_service_worker_caches_the_runtime_for_offline_use`; manual browser check |
+| RT-5 | Deterministic clock and scripted input playback | Done | accurate-mode virtual clock; harness scripted input |
+| RT-6 | Multiplayer, Wi-Fi, score services in the browser | Open | — |
 | DBG-* | Debugger with Qt parity | Open | ADR-0006; parity table in `compatibility.md` |
 | ID-* | OIDC+PKCE, roles, guest policy | Open | ADR-0007 |
 | SEC-1 | No network-deployable default admin password | Done | `auth.bootstrap_admin`, `config.KIT_ENV`, Dockerfile `PRG32_KIT_ENV=production`, compose; `tests/test_admin_bootstrap.py` |

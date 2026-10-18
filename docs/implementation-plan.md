@@ -64,11 +64,12 @@ is an editor component, like Blockly.
 
 ## G4 WASM runtime
 
-| Task | Repository |
-| --- | --- |
-| Emscripten build of `prg32qt_core` + C API | PRG32-QT (upstream PR) |
-| Browser host: canvas, Web Audio, input, timing | this repo `static/js/runtime/` |
-| Golden test: headless vs WASM under Node on `Asteroids.prg32`, `Bach.prg32` | both |
+| Task | Where | Status |
+| --- | --- | --- |
+| Emscripten build of the core + C API | this repo `wasm/` (PRG32-QT sources unchanged) | done |
+| Browser host: canvas, Web Audio, input, timing | `static/js/prg32_runtime.js`, `/player` | done |
+| Golden tests: WASM vs native vs `prg32qt-headless` | `tests/test_wasm_runtime.py`, CI `wasm-runtime` | done |
+| Multiplayer/Wi-Fi host services in the browser | — | open |
 
 ## G5 Debugger
 

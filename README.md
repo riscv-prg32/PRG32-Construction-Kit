@@ -86,6 +86,7 @@ static/                        PWA assets, JavaScript, CSS, Blockly integration
 examples/                      Example Blocks JSON and sprite JSON
 examples/games/                Five complete Blocks games
 tools/                         Example game and tutorial builders, simulator CLI, runtime and build checks
+wasm/                          C interface + build of PRG32-QT's core for the browser (static/wasm/)
 docs/                          Setup, API, architecture, Docker, tutorials, how-to guides
 tests/                         pytest tests
 .github/workflows/tests.yml    GitHub Actions CI and GHCR container delivery

@@ -88,7 +88,7 @@ verifiable here.
 | Build | Browser-local (WASM) compilation | A | No Emscripten/WASM toolchain evaluated yet |
 | Build | OS-level sandbox for C builds | A | Documented as "not an OS sandbox" (`docs/architecture.md`) |
 | Runtime | IR simulator in the browser | I | `simulator.js`, `tests/test_simulator_js.py` |
-| Runtime | Real RV32 guest execution in the browser | A | PRG32-QT core exists natively only |
+| Runtime | Real RV32 guest execution in the browser | I (G4) | PRG32-QT core → WebAssembly (`static/wasm`, `/player`); `tests/test_wasm_runtime.py` |
 | Debugger | Kit debugger | P | IR-level pause/step in the simulator; no machine state |
 | Debugger | Qt-parity instruction debugger in the browser | A | — |
 | Accounts | Local accounts, roles, groups, API tokens | I | `auth.py`, `tests/test_auth.py` |
