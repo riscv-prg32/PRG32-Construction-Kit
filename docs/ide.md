@@ -11,7 +11,7 @@ still there (**Classic editor**, top right) and works the same as before.
 | Toolbar | Project type (Blocks, Advanced C, Assembly), **Save**, **Generate**, **Compile**, **Commands**. |
 | Files (left) | Your source: the Blocks program, `game.c` or `game.S`. For Blocks also the **generated** `game.c`, `game.S` and `game.ir.json` (read-only), and your sprites. |
 | Editor (middle) | One tab per open file. Blocks open in Blockly; C and assembly in a code editor with colours, suggestions and help (see below). Generated files have a **Copy** button. |
-| Panels (bottom) | **Problems** (click or press Enter on one to jump to its line), **Output** (the compiler's log), **Blocks preview**, **Run & debug** (after Compile: run the real cartridge in the Player). |
+| Panels (bottom) | **Problems** (click or press Enter on one to jump to its line), **Output** (the compiler's log), **Blocks preview**, **Run & debug** (after Compile: run the real cartridge in the Player, and debug it by block, by line or by instruction: lesson 7). |
 | Status bar | Project type, saved or not, cursor line/column, build result. |
 
 ## Keyboard

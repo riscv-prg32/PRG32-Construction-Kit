@@ -97,7 +97,7 @@
       const word = row.width === 2 ? (row.word & 0xffff).toString(16).padStart(4, '0') : (row.word >>> 0).toString(16).padStart(8, '0');
       return `<tr class="${current ? 'dbg-current' : ''} ${breakpoint ? 'dbg-bp' : ''}" data-address="${row.address}">
         <td class="dbg-gutter" title="${breakpoint ? 'Remove breakpoint' : 'Add breakpoint'}" role="button" aria-label="Breakpoint at ${hex(row.address)}">${current ? '▶' : (breakpoint ? '●' : '')}</td>
-        <td>${hex(row.address).slice(2)}</td>${advanced ? `<td class="text-muted">${word}</td>` : ''}
+        <td>${hex(row.address).slice(2)}</td>${advanced ? `<td class="dbg-word">${word}</td>` : ''}
         <td><span class="dbg-op">${escape(operation)}</span>${escape(operands)}</td></tr>`;
     }).join('');
     $('#dbgCode').html(`<table class="table table-sm mb-0 font-monospace"><tbody>${html}</tbody></table>`);

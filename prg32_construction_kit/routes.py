@@ -32,7 +32,9 @@ from .build_sandbox import settings_from_config
 from .provenance import build_provenance
 from .build_slots import BuildServerBusy, build_slot
 from .asm_generator import ir_to_asm
+from .debug_info import unavailable as debug_unavailable
 from .generator import blocks_to_c, sprite_to_c
+from .source_maps import build_source_map
 from .packager import SUPPORTED_ARCHITECTURES, prepare_package
 from .publisher import StorePublishFailed, publish_bundle
 from .store_policy import StoreRefused, check_url, policy_from_config
@@ -167,7 +169,11 @@ def public(resource: str, item: dict[str, Any] | None) -> dict[str, Any] | None:
 
 def public_build_result(result: dict[str, Any]) -> dict[str, Any]:
     """Return package details useful to a browser without host filesystem paths."""
-    return {key: value for key, value in result.items() if key not in {"bundle_path", "work_dir", "source_path"}}
+    shown = {key: value for key, value in result.items()
+             if key not in {"bundle_path", "work_dir", "source_path", "debug_maps"}}
+    # The maps themselves come from GET /api/artifacts/<id>/debug; here only whether there is one.
+    shown["debug_info"] = {arch: debug_map.get("status") for arch, debug_map in (result.get("debug_maps") or {}).items()}
+    return shown
 
 
 def stored_file(path_value: str | None) -> Path | None:
@@ -850,6 +856,7 @@ def _run_package_build(project_id: str, project: dict[str, Any], game_ir: dict[s
             architectures=requested,
             build_timeout=current_app.config["PRG32_BUILD_TIMEOUT"],
             sandbox=settings_from_config(current_app.config),
+            debug_info_enabled=current_app.config["PRG32_DEBUG_INFO"],
         )
     except Exception as exc:
         current_app.logger.exception("Packaging failed for %s", project_id)
@@ -896,6 +903,7 @@ def _run_package_build(project_id: str, project: dict[str, Any], game_ir: dict[s
                 }),
             )
         )
+    _save_debug_artifacts(project_id, project, build["id"], result, built_from, sources, cartridge_artifacts)
     build = update_resource(
         "builds",
         build["id"],
@@ -923,6 +931,97 @@ def _run_package_build(project_id: str, project: dict[str, Any], game_ir: dict[s
         "cartridge_artifacts": [public("artifacts", artifact) for artifact in cartridge_artifacts],
         "result": public_build_result(result),
     })
+
+
+def _save_debug_artifacts(project_id: str, project: dict[str, Any], build_id: str, result: dict[str, Any],
+                          built_from: str, sources: dict[str, str], cartridges: list[dict[str, Any]]) -> None:
+    """Save each cartridge's debug map and the build's block map as artifacts (ADR-0015).
+
+    The cartridge artifact's metadata gets their ids, so the Player can find them.
+    """
+    debug_dir = Path(result["work_dir"]) / "debug"
+    source_map_id = None
+    saved = project.get("game_json") or {}
+    if result.get("debug_maps") and saved.get("source_mode") not in ("c", "asm"):
+        try:
+            _, text, source_map = build_source_map(project.get("blocks_json") or {}, project, built_from)
+        except Exception:  # noqa: BLE001 - no block map means the Player shows source and addresses only
+            current_app.logger.exception("No source map for %s", project_id)
+            text, source_map = None, None
+        if source_map and text == sources.get(built_from):  # the map describes exactly the file that was built
+            path = debug_dir / "source_map.json"
+            path.write_text(json.dumps(source_map, sort_keys=True), encoding="utf-8")
+            source_map_id = create_resource("artifacts", owned({
+                "project_id": project_id, "kind": "source_map", "name": "source_map.json",
+                "content_type": "application/json", "path": str(path),
+                "metadata": {"build_id": build_id, "language": built_from}}))["id"]
+    for artifact in cartridges:
+        architecture = artifact["metadata"]["architecture"]
+        debug_map = (result.get("debug_maps") or {}).get(architecture)
+        if debug_map is None:
+            continue
+        path = debug_dir / f"{architecture}.map.json"
+        path.write_text(json.dumps(debug_map, sort_keys=True), encoding="utf-8")
+        map_artifact = create_resource("artifacts", owned({
+            "project_id": project_id, "kind": "debug_map", "name": f"{architecture}.map.json",
+            "content_type": "application/json", "path": str(path),
+            "metadata": {"build_id": build_id, "architecture": architecture, "status": debug_map.get("status"),
+                         "cartridge_artifact_id": artifact["id"]}}))
+        artifact["metadata"] = {**artifact["metadata"], "debug_map_artifact_id": map_artifact["id"],
+                                "source_map_artifact_id": source_map_id, "built_from": built_from}
+        update_resource("artifacts", artifact["id"], {"metadata": artifact["metadata"]})
+
+
+def _json_artifact(artifact_id: Any) -> dict[str, Any] | None:
+    artifact = readable("artifacts", artifact_id) if artifact_id else None
+    path = stored_file(artifact.get("path")) if artifact else None
+    if path is None:
+        return None
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+
+
+@bp.get("/api/artifacts/<artifact_id>/debug")
+def api_artifact_debug(artifact_id: str):
+    """Everything the Player needs to debug one cartridge at source and block level (ADR-0015).
+
+    Missing pieces are null, and the Player falls back to address-level debugging.
+    """
+    artifact = readable("artifacts", artifact_id)
+    if artifact is None or artifact.get("kind") != "prg32_cartridge":
+        return json_error("Cartridge not found", 404)
+    metadata = artifact.get("metadata") or {}
+    debug_map = _json_artifact(metadata.get("debug_map_artifact_id")) or debug_unavailable(
+        "this cartridge was built without debug information")
+    source_map = _json_artifact(metadata.get("source_map_artifact_id"))
+    build = readable("builds", metadata.get("build_id"))
+    source = None
+    blocks_json = None
+    if build is not None:
+        built_from = metadata.get("built_from") or (build.get("metadata") or {}).get("built_from") or "c"
+        source_id = build.get("c_artifact_id") if built_from == "c" else (build.get("metadata") or {}).get("asm_artifact_id")
+        source_artifact = readable("artifacts", source_id)
+        if source_artifact is not None:
+            source = {"file": "game.c" if built_from == "c" else "game.S", "language": built_from,
+                      "text": source_artifact.get("text_content") or ""}
+        if source_map is not None:
+            bundle = readable("artifacts", build.get("bundle_artifact_id"))
+            work_dir = ((bundle or {}).get("metadata") or {}).get("work_dir")
+            snapshot = stored_file(str(Path(work_dir) / "project.blocks.json")) if work_dir else None
+            if snapshot is not None:
+                blocks_json = json.loads(snapshot.read_text(encoding="utf-8")).get("blocks_json")
+    if source is None or (source_map and source_map.get("source_sha256") != _sha256_text(source["text"])):
+        source_map, blocks_json = None, None  # a map is only good for exactly the source it was made from
+    return jsonify({"cartridge": public("artifacts", artifact), "debug_map": debug_map, "source_map": source_map,
+                    "source": source, "blocks_json": blocks_json})
+
+
+def _sha256_text(text: str) -> str:
+    import hashlib
+
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
 
 @bp.post("/api/sprites/<sprite_id>/convert")

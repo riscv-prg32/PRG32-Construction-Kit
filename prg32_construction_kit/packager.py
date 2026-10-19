@@ -13,7 +13,7 @@ import zlib
 from pathlib import Path
 from typing import Any
 
-from . import build_guard, build_sandbox
+from . import build_guard, build_sandbox, debug_build, debug_info
 from .generator import c_identifier
 
 # Cartridge targets the kit knows how to build: the real board and the QEMU emulator.
@@ -112,7 +112,7 @@ def public_command(parts: list[str]) -> str:
     return " ".join(shown)
 
 
-def run_prg32_build(build_command: str, source_path: Path, out_path: Path, entry_prefix: str, name: str, architecture: str, cart_ram_kib: int, required_features: list[str] | None = None, timeout: float = 120, sandbox: build_sandbox.SandboxSettings | None = None) -> tuple[bool, str]:
+def run_prg32_build(build_command: str, source_path: Path, out_path: Path, entry_prefix: str, name: str, architecture: str, cart_ram_kib: int, required_features: list[str] | None = None, timeout: float = 120, sandbox: build_sandbox.SandboxSettings | None = None, extra_args: list[str] | None = None) -> tuple[bool, str]:
     out_path.parent.mkdir(parents=True, exist_ok=True)
     program = shlex.split(build_command)
     command = program + [
@@ -131,6 +131,7 @@ def run_prg32_build(build_command: str, source_path: Path, out_path: Path, entry
     ]
     for feature in required_features or []:
         command.extend(["--required-feature", feature])
+    command.extend(extra_args or [])  # --tool-prefix of a debug build (debug_build.py)
     if "multiplayer" in (required_features or []):
         # Also sets the cartridge header's multiplayer flag (PRG32 builder option).
         command.append("--multiplayer")
@@ -187,6 +188,7 @@ def prepare_package(
     asm_source: str | None = None,
     build_language: str = "c",
     sandbox: build_sandbox.SandboxSettings | None = None,
+    debug_info_enabled: bool = False,
 ) -> dict[str, Any]:
     """Write the sources, compile one cartridge per architecture and zip a Store bundle.
 
@@ -219,11 +221,18 @@ def prepare_package(
     architectures: list[dict[str, str]] = []
     attempts: list[dict[str, Any]] = []
     cartridges: list[dict[str, Any]] = []
+    # Debug information (ADR-0015): the same cartridge, plus an ELF with DWARF kept aside.
+    tools = debug_build.prepare(work_dir, (sandbox or build_sandbox.SandboxSettings()).tool_prefix,
+                                build_command) if debug_info_enabled else None
+    debug_maps: dict[str, dict[str, Any]] = {}
     for arch in targets:
         out_name = f"{slug}-{arch}.prg32"
         out_path = work_dir / out_name
+        if tools:
+            tools.elf_out.unlink(missing_ok=True)
         ok, log = run_prg32_build(build_command, source_path, out_path, str(entry_prefix), slug, arch, cart_ram_kib,
-                                  game_ir.get("required_features", []), build_timeout, sandbox)
+                                  game_ir.get("required_features", []), build_timeout, sandbox,
+                                  ["--tool-prefix", tools.prefix] if tools else None)
         logs.append(f"[{arch}]\n{redact_build_path(log, work_dir)}")
         attempts.append({"architecture": arch, "ok": ok})
         if ok:
@@ -231,7 +240,13 @@ def prepare_package(
             # The cartridge's fingerprint: the same source and tools give the same SHA-256.
             digest, size = sha256_file(out_path)
             cartridges.append({"architecture": arch, "file": out_name, "sha256": digest, "bytes": size})
+            if tools:
+                elf = debug_build.collect(tools, arch, out_path)
+                debug_maps[arch] = debug_info.build_debug_map(elf) if elf else debug_info.unavailable(
+                    "no debug information matched this cartridge")
     shutil.rmtree(work_dir / "tmp", ignore_errors=True)
+    if tools:
+        shutil.rmtree(work_dir / debug_build.WRAPPED_TOOLS_DIR, ignore_errors=True)
 
     manifest = project_manifest(project, game_ir, architectures)
     manifest_path = work_dir / "manifest.json"
@@ -269,6 +284,7 @@ def prepare_package(
         "attempts": attempts,
         "cartridges": cartridges,
         "sandbox": _sandbox_mode(sandbox),
+        "debug_maps": debug_maps,
     }
 
 

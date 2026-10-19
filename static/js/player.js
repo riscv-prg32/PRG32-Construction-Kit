@@ -2,7 +2,10 @@
 (function () {
   const player = new PRG32CartridgePlayer(document.getElementById('playerScreen'), {
     onStatus: showStatus,
-    onDebug: state => window.PRG32Debugger && window.PRG32Debugger.update(state)
+    onDebug: state => {
+      if (window.PRG32Debugger) window.PRG32Debugger.update(state);
+      if (window.PRG32SourceDebugger) window.PRG32SourceDebugger.update(state);
+    }
   });
   window.prg32Player = player; // the debugger panel (prg32_debugger.js) drives the same player
   let muted = false;
@@ -36,7 +39,8 @@
 
   $('#cartridgeFile').on('change', function () {
     const file = this.files[0];
-    if (file) file.arrayBuffer().then(bytes => open(bytes, file.name));
+    if (file) file.arrayBuffer().then(bytes => open(bytes, file.name))
+      .then(() => window.PRG32SourceDebugger && window.PRG32SourceDebugger.attach(null));
   });
   $('#playPause').on('click', () => player.toggle());
   $('#stepFrame').on('click', () => player.step());
@@ -62,6 +66,9 @@
         return response.arrayBuffer();
       })
       .then(bytes => open(bytes, artifact))
+      // Source and block debugging (ADR-0015): the maps the kit saved with this cartridge.
+      .then(() => Kit.api('/api/artifacts/' + encodeURIComponent(artifact) + '/debug'))
+      .then(answer => window.PRG32SourceDebugger && window.PRG32SourceDebugger.attach(answer))
       .catch(err => Kit.toast(err.message, 'danger'));
   }
 })();

@@ -11,7 +11,7 @@ evidence-checked view is `capabilities.md` (from `capabilities.json`). A gate is
 | G2 IDE shell | **In progress** | IDE shell with Monaco, keyboard model, small-screen fallback and browser/a11y tests done (refinement phase 2, ADR-0013) [IDE-01]; the browser suites run in CI and may not skip there. Offline language services for C and assembly done (phase 3, ADR-0014) [IDE-03] [IDE-04]; block-to-source maps next (phase 4). |
 | G3 Toolchain | In progress | Server builds produce real `.prg32`; build provenance and cartridge SHA-256 done; every compile runs in a bubblewrap sandbox (ADR-0010, audit H-03). Browser toolchain open. |
 | G4 WASM runtime | **Complete** (core scope) | PRG32-QT core as WebAssembly, `/player`, golden tests WASM = native = `prg32qt-headless`. Multiplayer/Wi-Fi host services and exact audio open. |
-| G5 Debugger | **In progress** (Qt-parity slice complete) | Player debugger on the WASM core: pause/continue, step instruction/over/out/frame, speeds 0.01×–4×, gutter breakpoints remembered per cartridge SHA-256, registers with change highlighting, disassembly following the PC, memory view, game vs real time, beginner/advanced views; PRG32-QT's `/api/debug` vocabulary (ADR-0006); differential tests WASM = native. DWARF/C locals, watches, conditional breakpoints and Blockly block highlighting open. |
+| G5 Debugger | **In progress** (source and block slice complete) | Player debugger on the WASM core (Qt parity, ADR-0006) plus, for kit-compiled cartridges, source and block debugging (ADR-0015) [DBG-05]: block → IR → source → address maps, C/assembly/block breakpoints with conditions, active block, locals/globals, call stack, watches, counter CSRs, stack view, compressed-instruction fixture; differential tests at source checkpoints. Open: inlined frames, operand-level checks, a PRG32-QT desktop equivalent. |
 | G6 Identity/storage | In progress | Secure first-admin bootstrap, sign-in throttling, admin audit log done (quality round 1). OIDC/PKCE, roles, guest policy, cloud sync open. |
 | G7 Delivery | Not started | Store publish exists (pre-existing); Store egress policy closes audit H-01 (ADR-0008); publisher role + confirmed review close H-02 (ADR-0009). Draft/update/visibility states not applicable (no Store API). |
 | G8 Release | Not started | |
@@ -47,6 +47,11 @@ evidence-checked view is `capabilities.md` (from `capabilities.json`). A gate is
 | 2026-10-19 | After refinement phase 3 (language services): `python3 -m pytest -q -rs` | 677 passed, 21 skipped |
 | 2026-10-19 | same, with the real toolchain and PRG32 SDK `679dfb5` | 682 passed, 16 skipped |
 | 2026-10-19 | Browser suites with `PRG32_REQUIRE_BROWSER=1` | 63 passed |
+| 2026-10-19 | After refinement phase 4 (source and block debugger): `python3 -m pytest -q -rs` | 723 passed, 23 skipped |
+| 2026-10-19 | same, with the real toolchain and PRG32 SDK `679dfb5` | 730 passed, 16 skipped |
+| 2026-10-19 | Browser suites (incl. scenario D, `tests/test_debugger_browser.py`) with `PRG32_REQUIRE_BROWSER=1` | 65 passed; scenario D 3/3 repeated runs |
+| 2026-10-19 | `tests/test_wasm_runtime.py` with PRG32-QT `f6d80ad` (native vs WebAssembly at source checkpoints) | 37 passed, 1 skipped |
+| 2026-10-19 | Kit Docker image, production sandbox (`bwrap`): `test_source_debugger.py` real debug build, `check_build.py` | pass: identical cartridge with and without `-g`; 8 cartridges |
 
 Skipped and why:
 
@@ -66,9 +71,9 @@ Skipped and why:
   in place and keeps artifact links; `tests/test_restore_relationships.py`.)
 - The editor's Blocks preview still runs the game IR, not RV32 machine code
   (the Player runs and debugs the real cartridge).
-- Debugger: no C variables, call stack, watches or conditional breakpoints
-  (needs DWARF), no Blockly block highlighting (needs IR source maps); music
-  tracks pause in debug mode, as in PRG32-QT.
+- Debugger: source/block features need a kit-compiled cartridge (ADR-0015);
+  values optimised out at `-Os` are shown as such; inlined functions are not
+  separate frames; music tracks pause in debug mode, as in PRG32-QT.
 - No hardware or IdP tenant was available; nothing here claims hardware or
   SSO-provider validation. (Emscripten 6.0.12 has been available since G4: the
   WASM runtime is verified against the native core.)

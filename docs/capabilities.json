@@ -33,18 +33,23 @@
     {
       "id": "IDE-02",
       "title": "Blockly editing with deterministic generation and block-to-source maps",
-      "status": "partial",
+      "status": "implemented",
       "audit_score": 2,
       "source": [
+        "prg32_construction_kit/generator.py::blocks_to_ir_traced",
+        "prg32_construction_kit/source_maps.py::build_source_map",
         "prg32_construction_kit/generator.py::blocks_to_c",
         "static/js/blockly_blocks.js"
       ],
       "tests": [
         "tests/test_examples.py::test_example_projects_generate_clean_deterministic_c",
         "tests/test_examples.py::test_simulator_reads_blocks_into_the_same_ir",
-        "tests/test_ide_browser.py::test_blocks_stay_editable_and_generated_code_is_read_only"
+        "tests/test_ide_browser.py::test_blocks_stay_editable_and_generated_code_is_read_only",
+        "tests/test_source_debugger.py::test_source_maps_leave_the_generated_code_unchanged",
+        "tests/test_source_debugger.py::test_every_statement_block_is_mapped_with_nested_paths",
+        "tests/test_source_debugger.py::test_block_breakpoint_finds_the_active_block"
       ],
-      "note": "Block id -> IR -> source/address maps missing (Phase 4)."
+      "note": "Block id -> IR path -> C/assembly lines (source_map artifact) -> addresses (DWARF line table), saved per build; generated code unchanged (ADR-0015)."
     },
     {
       "id": "IDE-03",
@@ -200,13 +205,16 @@
       "status": "implemented",
       "audit_score": 3,
       "source": [
-        "wasm/prg32_core_api.cpp::prg32_debug_step_instruction"
+        "wasm/prg32_core_api.cpp::prg32_debug_step_instruction",
+        "static/js/prg32_runtime.js::debug"
       ],
       "tests": [
         "tests/test_wasm_runtime.py::test_single_steps_add_up",
-        "tests/test_wasm_runtime.py::test_step_over_and_step_out_follow_calls"
+        "tests/test_wasm_runtime.py::test_step_over_and_step_out_follow_calls",
+        "tests/test_wasm_runtime.py::test_compressed_fixture_steps_one_instruction_at_a_time",
+        "tests/test_source_debugger.py::test_compressed_instructions_step_by_their_own_width"
       ],
-      "note": "No dedicated compressed-instruction fixture yet (refinement Phase 4)."
+      "note": "Dedicated RV32C fixture (tests/fixtures/debug/compressed.S) steps 2- and 4-byte instructions alike in WebAssembly and natively; Step line/Next block over calls."
     },
     {
       "id": "DBG-03",
@@ -214,35 +222,61 @@
       "status": "implemented",
       "audit_score": 3,
       "source": [
-        "wasm/prg32_core_api.cpp::prg32_breakpoint"
+        "wasm/prg32_core_api.cpp::prg32_breakpoint",
+        "static/js/source_debug.js::breakpointForLine",
+        "static/js/source_debug.js::breakpointForBlock",
+        "static/js/source_debug.js::condition"
       ],
       "tests": [
-        "tests/test_wasm_runtime.py::test_breakpoint_stops_once_per_visit"
+        "tests/test_wasm_runtime.py::test_breakpoint_stops_once_per_visit",
+        "tests/test_wasm_runtime.py::test_source_breakpoints_stop_alike_in_browser_and_native",
+        "tests/test_source_debugger.py::test_conditional_breakpoints_run_on_while_false",
+        "tests/test_debugger_browser.py::test_scenario_d_block_and_source_debugging"
       ],
-      "note": "Address breakpoints only; no source/block breakpoints."
+      "note": "Address, C/assembly line and Blockly block breakpoints, with optional conditions checked when they hit; remembered per cartridge."
     },
     {
       "id": "DBG-04",
       "title": "Registers, memory, disassembly, CSR, stack, watches",
-      "status": "partial",
+      "status": "implemented",
       "audit_score": 2,
       "source": [
         "wasm/prg32_core_api.cpp::prg32_read_memory",
-        "wasm/prg32_core_api.cpp::prg32_disassemble"
+        "wasm/prg32_core_api.cpp::prg32_disassemble",
+        "wasm/prg32_core_api.cpp::prg32_debug_state_json",
+        "static/js/source_debug.js::csrRows",
+        "static/js/source_debug.js::stackRows",
+        "static/js/source_debug.js::watch"
       ],
       "tests": [
-        "tests/test_wasm_runtime.py::test_disassembly_uses_prg32_qt_names"
+        "tests/test_wasm_runtime.py::test_disassembly_uses_prg32_qt_names",
+        "tests/test_source_debugger.py::test_csr_counters_follow_the_core",
+        "tests/test_source_debugger.py::test_watches_read_members_elements_and_registers",
+        "tests/test_debugger_browser.py::test_scenario_d_block_and_source_debugging"
       ],
-      "note": "No CSR, explicit stack or watch views."
+      "note": "CSR view = the counters the core implements (cycle/time/instret + high halves); no other CSRs exist in the core. Stack view = words around sp."
     },
     {
       "id": "DBG-05",
       "title": "C locals, call stack, watches (DWARF); active Blockly block",
-      "status": "missing",
+      "status": "implemented",
       "audit_score": 0,
-      "source": [],
-      "tests": [],
-      "note": "Refinement Phase 4."
+      "source": [
+        "prg32_construction_kit/debug_build.py::prepare",
+        "prg32_construction_kit/debug_info.py::build_debug_map",
+        "static/js/source_debug.js::callStack",
+        "static/js/source_debug.js::variables",
+        "static/js/source_debugger.js::showBlock"
+      ],
+      "tests": [
+        "tests/test_source_debugger.py::test_source_breakpoint_call_stack_and_variables",
+        "tests/test_source_debugger.py::test_real_debug_build_gives_the_same_cartridge",
+        "tests/test_source_debugger.py::test_damaged_or_missing_debug_information_is_unavailable",
+        "tests/test_debugger_browser.py::test_scenario_d_block_and_source_debugging",
+        "tests/test_debugger_browser.py::test_without_debug_information_the_address_debugger_remains",
+        "tests/test_wasm_runtime.py::test_source_breakpoints_do_not_change_the_game"
+      ],
+      "note": "DWARF from a -g build with an identical cartridge; locals optimised out at -Os are labelled; inlined functions are not separate frames; handwritten assembly gets lines, labels and an ra-based caller."
     },
     {
       "id": "DBG-06",

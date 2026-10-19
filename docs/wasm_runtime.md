@@ -123,9 +123,9 @@ them against the committed module and against a fresh build.
 - Sound: tones and notes are simple oscillators, PCM is played as recorded;
   PRG32-QT's mixer, envelopes and filters are not reproduced exactly.
 - One cartridge per page at a time.
-- Debugger: no C variables, call stack, watches or conditional breakpoints
-  (needs DWARF from `-g` builds), no highlighting of the Blockly block that
-  is running (needs IR source maps). These are the next G5 steps.
+- Debugger: source, block, variable, call-stack, watch and condition
+  features need a cartridge compiled by the kit (debug map and block map,
+  ADR-0015); a `.prg32` file opened from disk is debugged at address level.
 - In debug mode music tracks do not advance: like PRG32-QT, the track player
   runs only in whole normal frames (`Runtime::frame`). Notes and sounds the
   cartridge plays itself still work.

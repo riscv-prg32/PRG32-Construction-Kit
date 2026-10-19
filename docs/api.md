@@ -288,6 +288,24 @@ cartridge (`build_provenance.md`); each `prg32_cartridge` artifact also has
 `metadata.sha256` and `metadata.bytes`. Responses and logs contain no server
 folders: the build folder appears as `<build>`.
 
+With debug information on (`PRG32_DEBUG_INFO`, default `1`), the PRG32 builder
+compiles with `-g` on the side: the cartridge is byte-identical, and each
+`prg32_cartridge` artifact gets `metadata.debug_map_artifact_id` (and, for
+Blocks projects, `metadata.source_map_artifact_id`). `result.debug_info` says,
+per architecture, `ok` or `unavailable`.
+
+## Debug a cartridge at source and block level
+
+```http
+GET /api/artifacts/<cartridge-artifact-id>/debug
+```
+
+Read-only, for the cartridge's owner (ADR-0015). Returns `debug_map` (line
+table, functions, variables, types, call-frame rules and symbols, or
+`{"status": "unavailable", "reason": ...}`), `source_map` (Blockly block → IR
+path → lines, or `null`), `source` (`{file, language, text}`) and `blocks_json`
+(the blocks the cartridge was built from). No server folders appear in it.
+
 ## Convert sprite to C
 
 ```http

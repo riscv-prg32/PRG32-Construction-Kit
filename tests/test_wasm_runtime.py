@@ -378,3 +378,51 @@ def test_fresh_build_matches_the_committed_module(prg32qt, tmp_path):
     result = run(["python3", str(ROOT / "tools" / "build_wasm.py"), "--prg32qt", str(prg32qt),
                   "--build-dir", str(tmp_path / "build"), "--check"])
     assert result.returncode == 0, result.stdout + result.stderr
+
+
+# --- the source debugger's fixtures (refinement phase 4, ADR-0015) --------------------------
+
+DEBUG_FIXTURES = ROOT / "tests" / "fixtures" / "debug"
+
+
+def line_address(name: str, line: int) -> int:
+    """The first statement address of a source line in a committed debug map."""
+    rows = json.loads((DEBUG_FIXTURES / f"{name}.map.json").read_text())["lines"]
+    return next(row[0] for row in rows if row[1] == 0 and row[2] == line and row[3])
+
+
+@pytest.mark.parametrize("name, line", [("locals", 20), ("locals", 27), ("pong", 333), ("compressed", 31)])
+def test_source_breakpoints_stop_alike_in_browser_and_native(node, native_harness, name, line):
+    """Fixed checkpoints: a source-line breakpoint, more hits, single steps (16- and 32-bit), a frame."""
+    cartridge = DEBUG_FIXTURES / f"{name}.prg32"
+    address = line_address(name, line)
+    script = (f"break:{address}", "continue", "stepi:9", "continue:3", f"unbreak:{address}", "frame:2", "state")
+    native = native_debug(native_harness, cartridge, *script)
+    assert native[1]["result"] == 2 and native[1]["state"]["pc"] == address
+    assert "csr" in native[1]["state"]  # the counter CSRs are part of the compared state
+    assert wasm_debug(node, cartridge, *script) == native
+
+
+def test_compressed_fixture_steps_one_instruction_at_a_time(node, native_harness):
+    cartridge = DEBUG_FIXTURES / "compressed.prg32"
+    script = ["break:update", "continue", *["stepi"] * 14]
+    native = native_debug(native_harness, cartridge, *script)
+    assert wasm_debug(node, cartridge, *script) == native
+    rows = native_debug(native_harness, cartridge, "disasm:update:16")[0]["disassembly"]
+    widths = {row["address"]: row["width"] for row in rows}
+    pcs = [line["state"]["pc"] for line in native[1:]]
+    straight = [(a, b) for a, b in zip(pcs, pcs[1:]) if b - a in (2, 4)]
+    assert {widths[a] for a, _ in straight if a in widths} == {2, 4}  # both sizes were stepped
+    assert all(b - a == widths[a] for a, b in straight if a in widths)
+
+
+@pytest.mark.parametrize("name, line", [("pong", 333), ("locals", 20)])
+def test_source_breakpoints_do_not_change_the_game(native_harness, name, line):
+    """Stopping, stepping and resuming at source breakpoints leaves the guest exactly where a plain run is."""
+    cartridge = DEBUG_FIXTURES / f"{name}.prg32"
+    address = line_address(name, line)
+    debugged = native_debug(native_harness, cartridge, f"break:{address}", "continue:6", "stepi:20",
+                            f"unbreak:{address}", "frame:12", "state")[-1]["state"]
+    normal = native_states(native_harness, cartridge, frames=debugged["frames"], every=debugged["frames"])[-1]
+    debugged.pop("audio_calls"), normal.pop("audio_calls")
+    assert debugged == normal

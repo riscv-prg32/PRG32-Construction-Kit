@@ -50,6 +50,8 @@ from .expressions import (
 from .generator import (
     BUTTON_MAP,
     COLOR_MAP,
+    MAP_BEGIN,
+    MAP_END,
     MAX_REPEAT,
     SINE_TABLE,
     _Emitter,
@@ -903,6 +905,7 @@ class _AsmEmitter:
         self.lines: list[str] = []
         self.max_slot = 0
         self.label_count = 0
+        self.trace: dict[int, str] | None = None  # see generator.ir_to_c
 
     # ---- small writers ---------------------------------------------------
     def emit(self, code: str, note: str = "") -> None:
@@ -1081,7 +1084,12 @@ class _AsmEmitter:
     def block(self, statements: Any, slot: int) -> None:
         for stmt in statements if isinstance(statements, list) else []:
             if isinstance(stmt, dict):
+                mark = self.trace.get(id(stmt)) if self.trace else None
+                if mark:
+                    self.lines.append(MAP_BEGIN + mark)
                 self.statement(stmt, slot)
+                if mark:
+                    self.lines.append(MAP_END + mark)
 
     def heading(self, stmt: dict[str, Any]) -> None:
         """The comment above a block's instructions: the block in words and its C line."""
@@ -1442,8 +1450,11 @@ def _mnemonics(lines: list[str]) -> set[str]:
     return found
 
 
-def ir_to_asm(game_ir: dict[str, Any]) -> str:
-    """Write the game IR as RISC-V assembly, explained line by line for students."""
+def ir_to_asm(game_ir: dict[str, Any], trace: dict[int, str] | None = None) -> str:
+    """Write the game IR as RISC-V assembly, explained line by line for students.
+
+    ``trace`` adds source-map marker lines, as in generator.ir_to_c.
+    """
     prefix = c_identifier(game_ir.get("entry_prefix"), "prg32_game")
     emitter = _AsmEmitter(game_ir)
     state = [(state_name(item.get("name")), int32(c_int(item.get("initial"), 0)))
@@ -1457,6 +1468,7 @@ def ir_to_asm(game_ir: dict[str, Any]) -> str:
     probe_needs = set(emitter.needs) | ({"list_fill"} if emitter.lists else set())
     once, frame = "once" in probe_needs, "frame" in probe_needs
     emitter = _AsmEmitter(game_ir)
+    emitter.trace = trace
 
     init_before: list[tuple] = []
     if state or emitter.lists:

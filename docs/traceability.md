@@ -27,7 +27,7 @@ that proves it. "—" means not implemented yet. Statuses: **Done**,
 | PM-12 | Create/open/rename/delete | Done (pre-existing) | CRUD routes | `tests/test_api.py::test_project_crud` |
 | PM-13a | Restore keeps sprite/asset identity and links, transactionally | Done | `ProjectRevision.child_ids`, `routes.restore_plan`, `db.restore_project_state`, idempotent `_add_missing_revision_child_ids` | `tests/test_restore_relationships.py` (in-place, add/remove, reorder, legacy match by name, malformed ids, damaged revision, foreign ids, rollback, owner, IDOR, old DB) |
 | PM-13 | Snapshots/history, autosave, search, soft delete | Partial (history and soft delete done; autosave and search open) | `project_revisions` table, `add_revision` (db.py); `/api/projects/<id>/revisions*`, `?deleted=1`, `/restore`, `?purge=1` (routes.py); editor **History**, dashboard **Recently deleted** | `tests/test_project_revisions.py` (snapshot rules, cap, restore, IDOR, hide/restore/purge, old DB upgrade) |
-| PM-14 | Source maps blocks → C → instructions | Open | — | — |
+| PM-14 | Source maps blocks → C → instructions | Done [IDE-02] | `source_maps.build_source_map`, `debug_info.build_debug_map`, ADR-0015 | `tests/test_source_debugger.py` |
 
 ## Other areas
 
@@ -50,8 +50,8 @@ that proves it. "—" means not implemented yet. Statuses: **Done**,
 | DBG-3 | Instrumented execution does not change the program | Done | `test_debug_frames_match_normal_frames`, `test_playback_slices_stop_at_every_visit` |
 | DBG-4 | Breakpoints persisted per cartridge; beginner/advanced views on one state | Done | `localStorage` by SHA-256; `test_player_speaks_the_prg32_qt_debug_protocol`; browser check |
 | DBG-5 | Shared protocol (ADR-0006) | Done (main-thread transport) | `docs/adr/0006-shared-debug-protocol.md` |
-| DBG-6 | DWARF: C locals, call stack, watches, conditional breakpoints | Open | needs `-g` build profile |
-| DBG-7 | Blockly block highlighting while stepping | Open | needs IR source maps |
+| DBG-6 | DWARF: C locals, call stack, watches, conditional breakpoints | Done [DBG-05] | `debug_build.py` (-g wrappers, identical cartridge), `debug_info.py`, `static/js/source_debug.js`; `tests/test_source_debugger.py`, `tests/test_debugger_browser.py` |
+| DBG-7 | Blockly block highlighting while stepping | Done [IDE-02] | `static/js/source_debugger.js` (read-only Blocks view, block breakpoints, Next block); `test_scenario_d_block_and_source_debugging` |
 | ID-* | OIDC+PKCE, roles, guest policy | Open | ADR-0007 |
 | SEC-5 | Store publishing cannot be used for SSRF (audit H-01) | Implemented and verified (automated) | `store_policy.py`, `publisher.py`, `routes.checked_payload`/`api_publish`, ADR-0008; `tests/test_store_egress.py` (URL shapes, numeric IPs, credentials, schemes, private/loopback/link-local/IPv6/mapped addresses, DNS answers, rebinding, redirects, bounded answers, timeouts, TLS with host-name check, API refusals, audit, token non-disclosure, trusted-local workflow) |
 | SEC-6 | Publishing needs the publisher role and an explicit, unchanged review (audit H-02) | Implemented and verified (automated + browser check against a local test Store) | `publishing.py`, `routes._prepare_publish`/`api_publish_review`/`api_publish`, `publish.html`/`publish.js`, ADR-0009; `tests/test_publish_authorization.py` (roles, 428/409 paths, swaps, changed bundle/Store, stale/forged/other-user tokens, source-only, missing/fake/mismatched cartridges, bad manifest, uploaded bundles, double confirm, retry after failure, Store refusal, audit stages) |

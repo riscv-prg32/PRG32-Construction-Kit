@@ -284,7 +284,23 @@ body {
 .dbg-code .dbg-current td { background: #075985; color: #fff; font-weight: 700; }
 .dbg-code .dbg-current .dbg-gutter { color: #45c9ff; }
 .dbg-code .dbg-op { color: #a21caf; font-weight: 600; }
+.dbg-code .dbg-word { color: var(--bs-secondary-color); }
+.dbg-code .dbg-current .dbg-word { color: #e0f2fe; }
 .dbg-code .dbg-current .dbg-op { color: #f5d0fe; }
+/* Source and block debugger (ADR-0015) */
+.dbg-blocks { height: 22rem; }
+.dbg-source { max-height: 22rem; overflow: auto; }
+.dbg-src-line { display: flex; white-space: pre; line-height: 1.35; }
+.dbg-src-line code { color: inherit; padding-left: .5rem; }
+.dbg-src-gutter { min-width: 3.2rem; text-align: right; border: 0; background: var(--bs-tertiary-bg); color: var(--bs-secondary-color); padding: 0 .4rem; font: inherit; }
+.dbg-src-gutter:hover, .dbg-src-gutter:focus-visible { background: var(--bs-secondary-bg); }
+.dbg-src-line.dbg-bp .dbg-src-gutter { color: #b02a37; font-weight: 700; }
+.dbg-src-line.dbg-bp .dbg-src-gutter::before { content: "● "; }
+.dbg-src-line.dbg-current { background: #075985; color: #fff; }
+.dbg-src-line.dbg-current .dbg-src-gutter { background: #0c4a6e; color: #fff; }
+#dbgStackWords .dbg-current td { background: #075985; color: #fff; }
+.dbg-block-breakpoint > .blocklyPath { stroke: #dc3545 !important; stroke-width: 4px !important; }
+.dbg-block-active > .blocklyPath { stroke: #0284c7 !important; stroke-width: 5px !important; }
 .dbg-registers td { padding: .05rem .35rem; }
 .dbg-registers .dbg-changed { background: #fff3cd; color: #664d03; font-weight: 700; }
 .dbg-memory { max-height: 26rem; overflow: auto; font-size: .75rem; }

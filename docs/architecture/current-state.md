@@ -2,8 +2,8 @@
 
 What the PRG32 repositories contain **now**, read from source and from test
 runs on 2026-10-19 at `731e378` (refinement phase 2) plus the CI and
-documentation fixes that follow the audit of that commit and refinement
-phase 3 (language services, ADR-0014). The per-requirement
+documentation fixes that follow the audit of that commit, refinement phase 3
+(language services, ADR-0014) and phase 4 (source and block debugger, ADR-0015). The per-requirement
 status, with the source symbol and test behind every claim, is
 `../capabilities.md` (generated from `../capabilities.json`). The lists below
 are a summary of that file, and `tests/test_doc_consistency.py` fails when they
@@ -19,13 +19,14 @@ disagree with it. Audit scores belong to the auditor (`../../audit/`).
 | CartridgeStore | `main` | `820f74b` local (upstream `fb33fda`: CI/metrics only) | Store, accounts, `/api/publish/bundle` (pending review). `sso_protocol.py` identical to the kit's. |
 | PRG32-iOS | `main` | `547fa45` (read 2026-10-18, not checked out here) | Private. Imports cartridges with a SwiftUI file importer; no URL scheme, no debugger. |
 
-## Test runs (2026-10-19, macOS, after refinement phase 3)
+## Test runs (2026-10-19, macOS, after refinement phase 4)
 
 | Command | Result |
 | --- | --- |
-| `python3 -m pytest -q -rs` (no RISC-V toolchain) | 677 passed, 21 skipped |
-| same with `riscv32-esp-elf-gcc` 14.2.0 and `PYTHONPATH=../PRG32` | 682 passed, 16 skipped |
-| `python3 -m pytest -q -rs tests/test_browser_offline.py tests/test_frontend_offline.py tests/test_ide_browser.py` (Chrome) | 63 passed (`PRG32_REQUIRE_BROWSER=1`: no skips) |
+| `python3 -m pytest -q -rs` (no RISC-V toolchain) | 723 passed, 23 skipped |
+| same with `riscv32-esp-elf-gcc` 14.2.0 and `PYTHONPATH=../PRG32` | 730 passed, 16 skipped |
+| browser suites (`tests/test_*browser*.py`, `tests/test_frontend_offline.py`, Chrome) | 65 passed (`PRG32_REQUIRE_BROWSER=1`: no skips) |
+| kit Docker image with the production sandbox (`bwrap`): `tests/test_build_sandbox.py`, `test_handwritten_assembly.py`, `test_source_debugger.py`; `tools/check_build.py` | pass (Node-based tests skip there; they run in the other jobs) |
 | `compileall`, `node --check`, `service_worker_lock.py --check`, `render_capabilities.py --check`, `build_language_index.py --check`, `git diff --check` | clean |
 
 Skips: 9 assembly/C differential tests need a host GCC (macOS has Apple clang);
@@ -61,6 +62,13 @@ capability IDs.
   and an offline subset (scratchpad, Blocks preview, local player). [WASM-01] [WASM-02]
 - Player debugger: pause, continue, restart, speeds, instruction/over/out
   stepping, address breakpoints, browser state equal to PRG32-QT's. [DBG-01] [DBG-02] [DBG-03] [DBG-06]
+- Source and block debugging for kit-compiled cartridges (ADR-0015): a saved
+  block → IR → source → address map, C/assembly line and block breakpoints
+  with conditions, the running block highlighted, locals, globals, call stack
+  from DWARF call-frame rules, watches, counter CSRs and a stack view, a
+  compressed-instruction fixture; the cartridge is byte-identical to one built
+  without debug information, and without it the Player stays address-level.
+  [IDE-02] [DBG-04] [DBG-05]
 - Accounts shared with CartridgeStore; authorized, reviewed, confirmed
   publishing behind a Store egress policy. [SSO-04] [STR-02]
 - Threat model, SSRF controls, build isolation; CI, Docker, migrations,
@@ -70,9 +78,6 @@ capability IDs.
 
 ### Partly implemented
 
-- Blocks with deterministic generation, but no block → IR → source/address
-  maps. [IDE-02]
-- Registers, memory and disassembly views; no CSR, stack or watch views. [DBG-04]
 - Registered storage with ownership and history; no quotas, autosave or
   retention. [ACC-02]
 - Prototype OIDC (one provider, no PKCE) and an ordinal role ladder. [SSO-01] [SSO-02] [SSO-03]
@@ -83,16 +88,14 @@ capability IDs.
 
 ### Not implemented
 
-- Source/block debugging: C locals, call stack, watches (DWARF), active Blockly
-  block (refinement phase 4). [DBG-05]
 - Guest mode and IndexedDB guest projects (phase 6). [ACC-01]
 - Google Drive and OneDrive (phase 8). [CLD-01] [CLD-02]
 - Verified hardware and PRG32-iOS delivery. [DEP-01] [DEP-03]
 
 ## Risks
 
-1. **Scope gap:** source-level debugging, identity and guest storage are the
-   largest missing pieces of the Full IDE. The language services follow the
+1. **Scope gap:** identity, guest storage, the shared Store contract and
+   delivery evidence are the largest missing pieces of the Full IDE. The language services follow the
    kit's rules and the SDK, not C semantics (no types or scopes).
 2. **Sandbox deployment:** AppArmor hosts need `apparmor=unconfined` today; no
    per-build disk quota or UID (`../build_sandbox.md`).

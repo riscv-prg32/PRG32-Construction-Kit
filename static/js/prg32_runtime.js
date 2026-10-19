@@ -374,8 +374,16 @@
 
     // One instrumented run of the core; returns a RUN code and keeps the frame bookkeeping.
     debugRun(budget, mode) {
-      const result = this.core._prg32_debug_run(this.held | this.pressed, budget, mode, 1);
+      let result = this.core._prg32_debug_run(this.held | this.pressed, budget, mode, 1);
       this.instructionsThisFrame += this.core._prg32_debug_last_steps();
+      // Conditional breakpoints (ADR-0015): the page decides whether this hit counts; if not,
+      // run on from it exactly as Continue would (resume ignores the current breakpoint once).
+      for (let skipped = 0; result === RUN.BREAKPOINT && mode === 0 && this.breakpointFilter
+           && !this.breakpointFilter(this.debugState()) && skipped < 10000; skipped += 1) {
+        this.core._prg32_debug_resume();
+        result = this.core._prg32_debug_run(this.held | this.pressed, budget, mode, 1);
+        this.instructionsThisFrame += this.core._prg32_debug_last_steps();
+      }
       if (result === RUN.FRAME_END) this.frameEnded();
       else if (result === RUN.BREAKPOINT) this.stopped('breakpoint');
       else if (result === RUN.ERROR) {
@@ -467,6 +475,25 @@
         this.start();
         return this.debugAnswer();
       }
+      if (command === 'step_line') {
+        // Step over calls until request.moved(state) says a new line (or block) is running,
+        // or the update/draw function returns. The page knows lines; the core does not.
+        this.pause();
+        this.debugReason = 'step_line';
+        const start = this.core._prg32_debug_phase();
+        let result = RUN.DONE;
+        for (let steps = 0; steps < 20000; steps += 1) {
+          result = this.debugRun(STEP_BUDGET, 1);
+          if (result === RUN.ERROR || result === RUN.BREAKPOINT) break;
+          if (this.core._prg32_debug_phase() !== start || this.core._prg32_debug_phase() === 0) break;
+          if (request.moved && request.moved(this.core._prg32_debug_pc() >>> 0)) break;
+        }
+        if (result === RUN.BREAKPOINT) this.debugReason = 'breakpoint';
+        if (this.core._prg32_debug_phase() === 0) this.frameEnded();
+        this.draw();
+        this.status();
+        return result === RUN.ERROR ? refuse(this.core.UTF8ToString(this.core._prg32_last_error())) : this.debugAnswer();
+      }
       if (command === 'step' || command === 'step_over' || command === 'step_out' || command === 'step_frame') {
         this.pause();
         this.debugReason = command;
@@ -536,7 +563,8 @@
         reason: this.debugReason, error: this.error, entries: core.entries, call_active: core.call_active,
         breakpoint_hits: core.breakpoint_hits, last_breakpoint: core.last_breakpoint,
         frames: core.frames, retired: core.retired, cycles: core.cycles, guest_ns: core.guest_ns,
-        wall_ms: Math.round(this.wallMs), sha256: this.sha256
+        wall_ms: Math.round(this.wallMs), sha256: this.sha256,
+        csr: core.csr, guest_base: this.core._prg32_guest_base() >>> 0
       };
     }
 

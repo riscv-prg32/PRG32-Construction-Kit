@@ -240,6 +240,13 @@ class ParseContext:
     lists: dict[str, int] = field(default_factory=dict)
     features: set[str] = field(default_factory=set)
     warnings: list[str] = field(default_factory=list)
+    # id(IR statement) -> the Blockly block id it was made from, for the source maps
+    # (source_maps.py, ADR-0015). It never changes the IR itself.
+    origins: dict[int, str] = field(default_factory=dict)
+
+    def remember(self, stmt: dict[str, Any], block: dict[str, Any]) -> None:
+        if isinstance(block.get("id"), str) and block["id"]:
+            self.origins[id(stmt)] = block["id"]
 
     def ensure_var(self, raw_name: Any, initial: int = 0) -> str | None:
         name = state_name(raw_name)
@@ -437,11 +444,17 @@ def parse_stack(first_block: dict[str, Any] | None, ctx: ParseContext) -> list[d
     for block in walk_stack(first_block):
         stmt = parse_statement(block, ctx)
         if stmt:
+            ctx.remember(stmt, block)
             statements.append(stmt)
     return statements
 
 
 def blocks_to_ir(blocks_json: Any, project: dict[str, Any] | None = None) -> dict[str, Any]:
+    return blocks_to_ir_traced(blocks_json, project)[0]
+
+
+def blocks_to_ir_traced(blocks_json: Any, project: dict[str, Any] | None = None) -> tuple[dict[str, Any], dict[int, str]]:
+    """blocks_to_ir, plus which block made each IR statement (keyed by id() of the statement)."""
     project = project or {}
     ctx = ParseContext()
     init: list[dict[str, Any]] = []
@@ -470,6 +483,7 @@ def blocks_to_ir(blocks_json: Any, project: dict[str, Any] | None = None) -> dic
             # Loose blocks are treated as update logic so student work is not lost.
             stmt = parse_statement(top, ctx)
             if stmt:
+                ctx.remember(stmt, top)
                 update.append(stmt)
 
     if not ctx.variables and not ctx.lists:
@@ -498,7 +512,7 @@ def blocks_to_ir(blocks_json: Any, project: dict[str, Any] | None = None) -> dic
         "update": update,
         "draw": draw,
         "warnings": ctx.warnings,
-    }
+    }, ctx.origins
 
 
 # ---------------------------------------------------------------------------
@@ -1097,6 +1111,8 @@ class _Emitter:
         self.title = str(game_ir.get("title") or "PRG32 Game")
         self.explain = explain
         self.explained: set[str] = set()
+        # id(statement) -> block id: wrap each statement's lines in source-map markers.
+        self.trace: dict[int, str] | None = None
 
     def x(self, text: Any) -> str:
         """Translate one IR expression to C."""
@@ -1119,6 +1135,9 @@ class _Emitter:
         for stmt in statements if isinstance(statements, list) else []:
             if not isinstance(stmt, dict):
                 continue
+            mark = self.trace.get(id(stmt)) if self.trace else None
+            if mark:
+                lines.append(MAP_BEGIN + mark)
             if self.explain:
                 sentence = describe_statement(stmt, self.show)
                 if sentence:
@@ -1130,6 +1149,8 @@ class _Emitter:
                 self.explained.add(op)
                 code = annotate_c([(code[0], C_SYNTAX_NOTES[op])]) + code[1:]
             lines.extend(code)
+            if mark:
+                lines.append(MAP_END + mark)
         return lines
 
     def note(self, code: str, text: str) -> list[str]:
@@ -1302,13 +1323,16 @@ def _section(title: str, *text: str) -> list[str]:
     return ["/* " + rule, f" * {title}", *(f" * {line}".rstrip() for line in text), " * " + rule + " */"]
 
 
-def ir_to_c(game_ir: dict[str, Any], explain: bool = True) -> str:
+def ir_to_c(game_ir: dict[str, Any], explain: bool = True, trace: dict[int, str] | None = None) -> str:
     """Write the game IR as freestanding C, explained line by line for students.
 
     ``explain=False`` leaves out the explanations (the slide decks show short excerpts).
+    ``trace`` (from blocks_to_ir_traced) adds source-map marker lines; source_maps.py
+    removes them again, leaving exactly the normal output.
     """
     prefix = c_identifier(game_ir.get("entry_prefix"), "prg32_game")
     emitter = _Emitter(game_ir, explain)
+    emitter.trace = trace
 
     def annotate(rows: list[Any]) -> list[str]:
         if explain:
@@ -1465,6 +1489,10 @@ def blocks_to_c(blocks_json: Any, project: dict[str, Any] | None = None, explain
     game_ir = blocks_to_ir(blocks_json, project)
     return game_ir, ir_to_c(game_ir, explain)
 
+
+# Source-map marker lines (ADR-0015): only ever present while source_maps.py builds a map.
+MAP_BEGIN = "\x00prg32-map-begin "
+MAP_END = "\x00prg32-map-end "
 
 _HEX_COLOR_RE = re.compile(r"^#?([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$")
 MAX_SPRITE_SIDE = 128

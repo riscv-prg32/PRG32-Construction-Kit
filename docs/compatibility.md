@@ -48,9 +48,10 @@ editor's Blocks preview is a separate thing: it runs the game IR, has
 | Input mask, audio waveform telemetry | Yes | No |
 | Remote control | HTTP `/api/debug` | JavaScript `player.debug()` on the page (same commands and state names; no network endpoint) |
 | Beginner / advanced views | No | **Kit adds**: beginner shows argument/return registers in decimal with explanations; both views share one state |
-| CSRs | No | No |
-| C locals / DWARF / call stack / watches / conditional breakpoints | No | No (next G5 step) |
-| Blockly block highlighting | — | No (next G5 step, needs IR source maps) |
+| CSRs | No | **Kit adds**: the counters a cartridge can read (`cycle`, `time`, `instret` and high halves), by the core's rule |
+| C/assembly source breakpoints, line stepping | No | **Kit adds** for kit-compiled cartridges (DWARF line table, ADR-0015) |
+| C locals, globals, call stack (DWARF CFI), watches, conditional breakpoints, stack view | No | **Kit adds** for kit-compiled cartridges; values optimised out at `-Os` are shown as such |
+| Blockly block highlighting and block breakpoints | — | **Kit adds** (block → IR → source → address maps, ADR-0015) |
 
 ## Browser runtime parity with PRG32-QT
 

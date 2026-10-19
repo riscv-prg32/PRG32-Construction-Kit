@@ -67,6 +67,8 @@ class Config:
     PRG32_BUILD_MAX_PROCESSES = int(os.environ.get("PRG32_BUILD_MAX_PROCESSES", "128"))
     # Seconds one compiler run (one architecture) may take before it is stopped.
     PRG32_BUILD_TIMEOUT = float(os.environ.get("PRG32_BUILD_TIMEOUT", "120"))
+    # Debug information for the Player's source and block debugger (ADR-0015): "0" turns it off.
+    PRG32_DEBUG_INFO = os.environ.get("PRG32_DEBUG_INFO", "1") != "0"
     # How many saved versions (revisions) the History menu keeps per project.
     PRG32_KIT_MAX_REVISIONS = int(os.environ.get("PRG32_KIT_MAX_REVISIONS", "50"))
     MAX_CONTENT_LENGTH = int(os.environ.get("PRG32_KIT_MAX_UPLOAD", str(32 * 1024 * 1024)))

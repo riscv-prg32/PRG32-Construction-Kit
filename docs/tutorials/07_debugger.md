@@ -36,6 +36,38 @@ Things to look for:
   **Real time** is your clock. At 0.01× they are very different, but the game
   behaves the same.
 
+## Debug your blocks, your C or your assembly
+
+When you compile a project in the kit and press **Run & debug**, the Player
+also knows your program, not only its instructions. Under the machine code
+you see:
+
+- **Blocks** (Blocks projects): your blocks. While the game is stopped, the
+  block that is running has a blue outline. Click a block (or choose it in
+  the list) and press **● Breakpoint on block**: the game stops every time
+  that block starts.
+- **game.c** or **game.S**: your source. The running line is blue. Press a
+  line number to put a **●** breakpoint on that line. If a line has no code of
+  its own (the compiler moved its work), the breakpoint goes to the next line
+  that has some, and the Player tells you.
+- **Next block** / **Next line**: run until the next block (or line) of your
+  program. Function calls run whole.
+- **Variables**: your Blocks variables (`score`, `ball_x`, ...) with their
+  values. In Advanced view also the variables of the function that is running.
+- **Watches**: type a name and press **Watch**: `score`, `player.x`,
+  `heights[2]`, or a register such as `a0`.
+- **Call stack**: which function called which. Press one to see its variables.
+- **Stop only if...**: give a breakpoint a condition such as `score > 10`
+  and the game stops there only when it is true.
+
+Try it: put a breakpoint on the block that moves the ball, watch `ball_x`,
+then press **Continue** a few times. Give the breakpoint the condition
+`ball_x < 50`: now it stops only when the ball is near the left wall.
+
+Sometimes a variable says *optimised out*: the compiler made your program
+faster and did not keep that value at this point. The debugger says so
+instead of guessing.
+
 ## Advanced view
 
 **Advanced** shows all 32 registers in hexadecimal, the machine words of each
@@ -46,7 +78,9 @@ instruction, a memory viewer, and two more buttons:
 - **Step out**: runs until the current function returns to its caller.
 
 The memory viewer takes an address in decimal (`1082130432`) or hexadecimal
-(`0x40800000`) and shows up to 1024 bytes as hex and as text.
+(`0x40800000`) and shows up to 1024 bytes as hex and as text. With a kit
+cartridge, Advanced also shows the **counter CSRs** (`cycle`, `time`,
+`instret`: what `csrr` would read) and the **stack**: the words around `sp`.
 
 Beginner and Advanced are two ways of looking at the same thing: switching
 does not change the game, and the breakpoints stay.
@@ -64,5 +98,9 @@ does not change the game, and the breakpoints stay.
   the instruction counter between two stops at the same breakpoint); find
   the instruction that changes the x position of a sprite; compare a Blocks
   game with its generated assembly (**Generate Assembly** in the editor).
-- Not yet: C variable names, the call stack, watches and conditional
-  breakpoints, and highlighting the Blockly block that is running.
+- Source and block debugging needs a cartridge compiled by the kit: the kit
+  compiles with debug information on the side (the cartridge itself is
+  exactly the same, `../adr/0015-source-and-block-debugger.md`). A `.prg32`
+  opened from a file gets the machine-code debugger only.
+- Good exercise with blocks: find which block changes `score`, using a
+  breakpoint with the condition `score > 0`.

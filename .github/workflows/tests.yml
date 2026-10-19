@@ -171,7 +171,7 @@ jobs:
           PRG32_REQUIRE_BROWSER: "1"
         run: >-
           python -m pytest -q -rs --junitxml=browser-test-results.xml
-          tests/test_browser_offline.py tests/test_ide_browser.py tests/test_frontend_offline.py
+          tests/test_browser_offline.py tests/test_ide_browser.py tests/test_debugger_browser.py tests/test_frontend_offline.py
 
       - name: Upload the browser test results
         if: always()
@@ -233,7 +233,7 @@ jobs:
           docker run --rm ${{ env.SANDBOX_OPTS }} --entrypoint sh ${{ env.CI_IMAGE }} -c
           "pip install -q --user pytest && python -m pytest -q -rs -p no:cacheprovider
           tests/test_build_sandbox.py tests/test_concurrency.py tests/test_handwritten_assembly.py
-          tests/test_build_provenance.py"
+          tests/test_build_provenance.py tests/test_source_debugger.py"
 
       - name: Compile real cartridges concurrently
         run: >-

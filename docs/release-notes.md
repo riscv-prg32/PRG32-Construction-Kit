@@ -2,6 +2,26 @@
 
 ## Unreleased
 
+### Source and block debugger (refinement phase 4)
+
+- Cartridges compiled in the kit can be debugged at the level students wrote
+  them (ADR-0015, lesson 7): breakpoints on Blockly blocks and on C or
+  assembly lines, optionally with a condition (`score > 10`); the running block
+  highlighted; Next block / Next line; Blocks variables, locals and globals;
+  call stack; watches (`player.x`, `heights[2]`, `a0`); counter CSRs; stack.
+- The kit compiles with `-g` beside the normal build: the cartridge is
+  byte-identical (checked on every build) and the DWARF is turned into a small
+  debug map. Blocks projects also get a block map. Both are artifacts
+  (`debug_map`, `source_map`), read with `GET /api/artifacts/<id>/debug`.
+- The core's debug state reports the `cycle`/`time`/`instret` counters.
+- The server's assembly check keeps its behaviour; a fixture cartridge with
+  16- and 32-bit instructions is stepped in tests in the browser core and natively.
+- Accessibility fixes on the Player: contrast of the view switch and the Step
+  frame button; the code and memory views can take the keyboard focus.
+- **Upgrade note:** new Python dependency `pyelftools`; `PRG32_DEBUG_INFO=0`
+  turns debug builds off. No database change. Service worker cache `prg32-kit-v14`.
+  Rollback: revert; cartridges are unchanged and old builds simply have no maps.
+
 ### Language services in the IDE (refinement phase 3)
 
 - C and assembly editors suggest PRG32 functions, constants and types, the

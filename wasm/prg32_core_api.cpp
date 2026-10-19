@@ -144,6 +144,7 @@ struct Session {
     uint32_t lastBreakpoint = 0;
     bool stoppedAtBreakpoint = false; // stopped and not moved since: stopping again is not a new hit
     uint64_t lastRunSteps = 0;
+    int performanceMode = 0; // what prg32_set_performance_mode chose (0 = accurate), for the CSR view
 };
 
 std::unique_ptr<Session> session;
@@ -550,7 +551,19 @@ PRG32_EXPORT const char* prg32_debug_state_json() {
     out += "},\"frames\":" + std::to_string(session->frames) + ",\"retired\":" +
            std::to_string(runtime.retiredInstructions()) + ",\"cycles\":" + std::to_string(runtime.virtualCycles()) +
            ",\"guest_ns\":" + std::to_string(runtime.virtualNanoseconds()) +
-           ",\"last_steps\":" + std::to_string(session->lastRunSteps) + "}";
+           ",\"last_steps\":" + std::to_string(session->lastRunSteps);
+    // The counter CSRs a cartridge can read with csrr, by the same rule as the core's
+    // Rv32Cpu (CSR 0xC00 cycle, 0xC01 time, 0xC02 instret; 0xC8x are the high halves):
+    // in accurate ESP32-C6 timing cycle and time follow the virtual clock, otherwise
+    // every counter is the number of retired instructions.
+    const uint64_t retired = runtime.retiredInstructions();
+    const bool accurate = session->performanceMode == 0;
+    const uint64_t cycle = accurate ? runtime.virtualCycles() : retired;
+    const uint64_t time = accurate ? runtime.virtualNanoseconds() : retired;
+    out += ",\"csr\":{\"cycle\":" + std::to_string(uint32_t(cycle)) + ",\"cycleh\":" +
+           std::to_string(uint32_t(cycle >> 32)) + ",\"time\":" + std::to_string(uint32_t(time)) +
+           ",\"timeh\":" + std::to_string(uint32_t(time >> 32)) + ",\"instret\":" +
+           std::to_string(uint32_t(retired)) + ",\"instreth\":" + std::to_string(uint32_t(retired >> 32)) + "}}";
     return out.c_str();
 }
 
@@ -594,6 +607,8 @@ PRG32_EXPORT uint32_t prg32_read_memory(uint32_t address, uint8_t* out, uint32_t
 
 /** 0 = accurate ESP32-C6 virtual timing (default, deterministic), 1 = optimal, 2 = unlimited. */
 PRG32_EXPORT void prg32_set_performance_mode(int mode) {
+    if (session)
+        session->performanceMode = mode;
     if (session)
         session->runtime.setPerformanceMode(mode == 2   ? prg32::PerformanceMode::Unlimited
                                             : mode == 1 ? prg32::PerformanceMode::Optimal
