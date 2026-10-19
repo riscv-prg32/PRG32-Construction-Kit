@@ -1,11 +1,11 @@
 # Findings
 
-## Resolved in refinement phases 0–2
+## Resolved since audit `731e378`
 
-- **IDE shell prototype gap:** closed for shell scope. Chrome demonstrated tree, tabs, panels, palette, keyboard-only editing/save/build command, responsive layout and axe checks.
-- **Offline/CDN/CSP gap:** closed. Runtime libraries are locally vendored, strict CSP is active, the service worker caches static files only, and Chrome demonstrated cold-offline Blockly and real-cartridge execution.
-- **Missing baseline/traceability:** substantially closed by ADR-0011, committed briefs and machine-checked `docs/capabilities.json`.
-- Prior Store SSRF, publish authorization and production sandbox findings remain closed.
+- CI now runs every real-browser suite with `PRG32_REQUIRE_BROWSER=1` and uploads JUnit evidence.
+- Documentation contradictions are machine-checked by `tests/test_doc_consistency.py`.
+- IDE-03/04 language services are implemented offline from a reproducible, pinned index and agree with server validators.
+- The mandatory source/block debugger is implemented and demonstrated in Chrome using real-toolchain fixtures; compressed stepping and native/WASM parity pass.
 
 ## Critical
 
@@ -13,67 +13,53 @@ No exploitable critical issue was confirmed.
 
 ## High
 
-### H-01 — Mandatory source-level debugger functionality is missing
+### H-01 — Academic identity, scoped roles and guest policy are incomplete
 
-- Evidence: no DWARF locals, call stack, watches, conditional/source breakpoints, CSR/stack view, or Blockly active-block mapping (`docs/implementation-status.md:61-63`; `docs/capabilities.md:20-24`).
-- Reproduction: load a cartridge in Player; machine-address debugging works, but mandatory scenario D's source/block state cannot be performed.
-- Impact: explicit NO-GO release gate for mandatory debugger behavior.
-- Remedy: deterministic block→IR→source→address artifacts, debug/DWARF profile, source breakpoints, variables/call stack/watches and graceful fallback.
-
-### H-02 — Academic identity, scoped roles and guest policy remain incomplete
-
-- Evidence: one environment OIDC provider without explicit PKCE or issuer+subject identity; guest IndexedDB/policy is absent (`docs/capabilities.md:25-30`).
-- Reproduction: mandatory scenarios A/E cannot be run as specified.
-- Impact: incomplete tenant isolation/lifecycle model for institutional classroom deployment.
-- Remedy: ADR-0007 implementation, scoped academic RBAC, guest policies and full negative IdP matrix.
+- Evidence: ACC-01 is missing and SSO-01/02/03 remain prototypes (`docs/capabilities.md`).
+- Reproduction: mandatory guest-policy and institutional OIDC scenarios cannot be executed as specified.
+- Impact: complete Full IDE classroom tenancy/lifecycle claims are unsupported.
+- Remedy: PKCE, issuer+subject, multi-IdP lifecycle/recovery, scoped student/TA/teacher RBAC, and administrator-controlled guest IndexedDB policies.
 
 ## Medium
 
-### M-01 — Monaco language intelligence is incomplete
+### M-01 — Registered storage lacks quotas and conflict semantics
 
-C and assembly syntax/editing/markers work, but completion, hover, navigation, SDK declarations and register/instruction/ABI completion do not (`docs/capabilities.md:12-13`). This keeps IDE-03/04 partial.
+No autosave, optimistic conflict recovery, quotas, retention or deprovisioning. History alone does not satisfy ACC-02.
 
-### M-02 — Google Drive and OneDrive are absent
+### M-02 — Drive and OneDrive are absent
 
-No implementation or provider test environment exists; token lifecycle, scopes, revocation, conflicts and network loss cannot be assessed.
+Required OAuth scope, refresh/revoke, conflict and network-loss scenarios cannot run.
 
-### M-03 — Registered storage lacks quotas and conflict semantics
+### M-03 — Store validation remains local rather than shared/live conformance
 
-Autosave, search, quotas, retention/deprovisioning and robust concurrent-edit recovery remain absent (`docs/implementation-status.md:55-56`).
+The kit checks manifests and hashes but still duplicates selected contract knowledge and has no controlled live duplicate/version/update/visibility matrix.
 
 ### M-04 — Delivery targets remain unverified
 
-No physical PRG32 transfer/launch, end-user PRG32-QT import, or verified iOS handoff was executed.
+No physical PRG32 transfer/launch, end-user Qt import or verified iOS handoff was executed.
 
-### M-05 — Store validation is not a shared live contract
+### M-05 — Production sandbox operational gaps remain
 
-The kit locally checks manifest/magic/hashes, but there is no shared versioned schema or live duplicate/version/update/visibility conformance evidence.
+No total build-directory quota or per-build UID; AppArmor needs an exception. Linux escape and real debug-build tests were not independently rerun here.
 
-### M-06 — Build-sandbox operational gaps remain
+### M-06 — Source debugger is intentionally incomplete for advanced optimized C
 
-No total build-folder quota or per-build UID; AppArmor hosts require an exception. Linux escape tests were not rerun in this audit environment.
-
-### M-07 — IDE browser regression suite is omitted from CI
-
-- Evidence: `.github/workflows/tests.yml:169` runs only `test_browser_offline.py` and `test_frontend_offline.py`, not `test_ide_browser.py`.
-- Reproduction: inspect the browser job command.
-- Impact: keyboard, Monaco, responsive and axe regressions can merge despite passing locally.
-- Remedy: add `tests/test_ide_browser.py` to the browser job and publish its result.
+Inlined frames are not represented separately, unsupported DWARF expressions display unavailable, and optimized-out values cannot be recovered. These are documented and fail safely, but should be bounded clearly for advanced users.
 
 ## Low
 
-### L-01 — Current-state architecture documentation contradicts shipped code
+### L-01 — Status documents still identify the phase-2 SHA as the repository revision
 
-`docs/architecture/current-state.md:55-60` still says the IDE shell, Monaco and offline app shell are not implemented, despite phases 1–2. Its Construction Kit SHA at line 13 is also stale. Update it in the same PR as capability changes.
+`docs/architecture/current-state.md:13` and `docs/implementation-status.md:5` describe later phases but retain `731e378`. Record the actual phase-4 HEAD or describe the revision range unambiguously.
 
-### L-02 — Quality/reproducibility gates remain incomplete
+### L-02 — Quality and dependency gates remain incomplete
 
-No lint/type/coverage threshold, performance budget, dependency hash lock, complete SBOM/security inventory, or real screen-reader session exists.
+No lint/type/coverage threshold, performance budget, hash-locked dependency set, complete SBOM/security inventory or real screen-reader session.
 
-### L-03 — Earlier audit totals used the wrong denominator
+### L-03 — Exact build evidence was not reproducible on this host
 
-The required matrix contains 33 rows, not 32. Its denominator is 132 points. This edition corrects the total without changing any individual requirement definition.
+Committed debug fixtures and documented container results are credible source evidence, but local fixture regeneration, real cartridge builds, Linux sandbox execution and exact Emscripten rebuilding were unavailable. Preserve CI artifacts so release audits can verify them independently.
 
 ## Release conclusion
 
-Recommendation remains **NO-GO**. The IDE shell/offline work is implemented and demonstrated, but H-01 is a mandatory debugger release-gate failure and H-02 blocks the required classroom identity/guest scenarios.
+The mandatory debugger NO-GO is closed. The complete Full IDE remains **NO-GO** because substantial approved account, identity, cloud and delivery scope is missing. A bounded classroom preview can be **CONDITIONAL** if it explicitly excludes those claims and uses the documented production controls.

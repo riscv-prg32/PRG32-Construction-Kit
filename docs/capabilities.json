@@ -34,7 +34,7 @@
       "id": "IDE-02",
       "title": "Blockly editing with deterministic generation and block-to-source maps",
       "status": "implemented",
-      "audit_score": 2,
+      "audit_score": 3,
       "source": [
         "prg32_construction_kit/generator.py::blocks_to_ir_traced",
         "prg32_construction_kit/source_maps.py::build_source_map",
@@ -55,7 +55,7 @@
       "id": "IDE-03",
       "title": "C editor with language services",
       "status": "implemented",
-      "audit_score": 2,
+      "audit_score": 3,
       "source": [
         "static/js/ide/language.js::cDiagnostics",
         "static/js/ide/language.js::cCompletions",
@@ -82,7 +82,7 @@
       "id": "IDE-04",
       "title": "RISC-V assembly editor with language services",
       "status": "implemented",
-      "audit_score": 2,
+      "audit_score": 3,
       "source": [
         "static/js/ide/language.js::asmDiagnostics",
         "static/js/ide/language.js::asmCompletions",
@@ -203,7 +203,7 @@
       "id": "DBG-02",
       "title": "Instruction, over, out stepping",
       "status": "implemented",
-      "audit_score": 3,
+      "audit_score": 4,
       "source": [
         "wasm/prg32_core_api.cpp::prg32_debug_step_instruction",
         "static/js/prg32_runtime.js::debug"
@@ -239,7 +239,7 @@
       "id": "DBG-04",
       "title": "Registers, memory, disassembly, CSR, stack, watches",
       "status": "implemented",
-      "audit_score": 2,
+      "audit_score": 3,
       "source": [
         "wasm/prg32_core_api.cpp::prg32_read_memory",
         "wasm/prg32_core_api.cpp::prg32_disassemble",
@@ -260,7 +260,7 @@
       "id": "DBG-05",
       "title": "C locals, call stack, watches (DWARF); active Blockly block",
       "status": "implemented",
-      "audit_score": 0,
+      "audit_score": 4,
       "source": [
         "prg32_construction_kit/debug_build.py::prepare",
         "prg32_construction_kit/debug_info.py::build_debug_map",

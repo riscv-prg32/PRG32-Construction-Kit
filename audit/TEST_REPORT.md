@@ -2,34 +2,33 @@
 
 ## Environment
 
-- Date: 2026-10-19, Europe/Rome.
-- macOS; Python 3.12.10; pytest 8.4.2; Node v26.12.0; npm 11.20.0; Git 2.55.0; Playwright 1.64.0; installed Google Chrome.
-- Local reference checkouts: PRG32 `679dfb5`, PRG32-QT `f6d80ad`, CartridgeStore `820f74b`.
-- No local RISC-V/PRG32 build toolchain or bubblewrap; Docker/container execution not repeated.
+- 2026-10-19, Europe/Rome; macOS.
+- Python 3.12.10; pytest 8.4.2; Node v26.12.0; Playwright 1.64.0; installed Google Chrome.
+- PRG32 `679dfb5`; PRG32-QT `f6d80ad`; CartridgeStore `820f74b`.
+- No local RISC-V/PRG32 toolchain or bubblewrap.
 
-## Exact commands and results
+## Commands and results
 
-1. `python3 -m compileall -q app.py prg32_construction_kit tests tools` — **pass**.
-2. `for file in static/js/*.js static/js/ide/*.js static/service-worker.js tools/*.mjs; do node --check "$file"; done` — **pass**.
-3. `python3 tools/service_worker_lock.py --check` — **pass**.
-4. `python3 tools/render_capabilities.py --check` — **pass**.
-5. `python3 -m pytest -q -rs --ignore=tests/test_store_egress.py -k 'not fresh_build_matches_the_committed_module'` — **482 passed, 31 skipped, 1 deselected**, 52.30 s. Ten browser skips were rerun in command 7.
-6. `python3 -m pytest -q -rs tests/test_capabilities.py tests/test_frontend_offline.py tests/test_ide_browser.py tests/test_browser_offline.py` — **102 passed, 10 browser skips** under restricted execution.
-7. `python3 -m pytest -q -rs tests/test_browser_offline.py tests/test_ide_browser.py` with permission to launch Chrome/bind loopback — **10 passed**, 11.46 s.
-8. `python3 -m pytest -q -rs tests/test_store_egress.py` with loopback permission — **94 passed**, 7.81 s.
-9. `PYTHONPATH=../PRG32 python3 -m pytest -q -rs tests/test_project_format.py::test_sdk_abi_matches_the_prg32_sdk_when_installed tests/test_wasm_runtime.py -k 'not fresh_build_matches_the_committed_module'` — **30 passed, 1 skipped, 1 deselected**, 7.26 s. Skip: missing PRG32 toolchain; deselection: exact Emscripten rebuild.
-10. `cmp -s prg32_construction_kit/sso_protocol.py ../CartridgeStore/cartridge_store/sso_protocol.py` — **pass**.
+1. `python3 -m compileall -q app.py prg32_construction_kit tests tools` — pass.
+2. JS syntax over `static/js/*.js`, `static/js/ide/*.js`, service worker and tool modules — pass.
+3. `service_worker_lock.py --check`, `render_capabilities.py --check`, `build_language_index.py --check`, `git diff --check` — pass.
+4. Broad feasible suite excluding loopback Store and exact WASM rebuild — **614 passed, 37 skipped, 1 deselected**, 57.75 s. Browser skips were rerun in command 6.
+5. Focused language/source-debug/doc/capability/frontend suite — **227 passed, 2 skipped**, 4.15 s. Skips require the real PRG32 toolchain.
+6. `PRG32_REQUIRE_BROWSER=1 PRG32QT_DIR=../PRG32-QT python3 -m pytest -q -rs tests/test_browser_offline.py tests/test_ide_browser.py tests/test_debugger_browser.py tests/test_frontend_offline.py` — **65 passed**, 21.92 s.
+7. `python3 -m pytest -q -rs tests/test_store_egress.py` with loopback permission — **94 passed**, 7.52 s.
+8. SDK ABI plus `tests/test_wasm_runtime.py` excluding exact rebuild — **37 passed, 1 skipped, 1 deselected**, 12.10 s. Skip: real PRG32 toolchain.
+9. Shared `sso_protocol.py` comparison and committed WASM SHA/build record — pass.
 
-## Mandatory scenario coverage
+## Scenario coverage
 
 | Scenario | Result |
 |---|---|
-| A Guest policies | Missing. Offline scratchpad works but is not configurable guest project policy/storage. |
-| B Registered student | CRUD/history/import/export/isolation automated; autosave conflict/cloud/provider cases missing. |
-| C Three language modes | Source validation/generation tested; real local builds blocked by missing toolchain. |
-| D Debugger parity | Machine-level differential suite passes; source/DWARF/block portions missing. |
-| E Academic SSO | Source inspection only; required profile incomplete and no IdP tenant. |
-| F CartridgeStore | 94 egress and publisher-review tests available/passing locally; no live public publication. |
-| G Security/performance/a11y | Chrome CSP/offline/keyboard/axe tests passed; no screen reader, performance/memory budget, or Linux sandbox rerun. |
+| A Guest policies | Missing; offline scratchpad is not administrator-controlled guest storage. |
+| B Registered student | CRUD/history/isolation covered; cloud, autosave conflicts, quotas and token lifecycle missing. |
+| C Three language modes | Generation/validation covered; real local builds unavailable. |
+| D Debugger parity | Passed in Chrome and Node/native/WASM fixtures: source/block breakpoints, active block, call stack, variables, watches, condition, CSR, stack, compressed instructions and fallback. |
+| E Academic SSO | Incomplete source implementation; no external IdP execution. |
+| F CartridgeStore | Local security/review suites passed; no live Store publication. |
+| G Security/performance/a11y | CSP/offline/keyboard/axe/debug boundary tests passed; no Linux rerun, screen reader or performance budget. |
 
-No hardware, iOS, external IdP/cloud, live Store, new cartridge, exact WASM rebuild or CI-run result is claimed.
+No hardware, iOS, external IdP/cloud, live Store, newly built cartridge, exact WASM rebuild or independently executed CI/container result is claimed.

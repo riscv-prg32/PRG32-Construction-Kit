@@ -1,23 +1,25 @@
 # Security review
 
-## Overall assessment
+## Overall
 
-No new critical exploit was confirmed. Store egress, publishing authorization and production build isolation remain materially improved and covered by negative tests. Refinement phase 1 additionally removes runtime CDN trust, vendors browser dependencies, adds strict CSP and proves static-only offline caching in Chrome.
+No new critical exploit was confirmed. The language services and source debugger were designed with fail-closed boundaries and retain server-side validation and existing execution semantics.
 
-## Browser security
+## Language services
 
-The browser loaded only same-origin resources in the executed page matrix; no CSP violation was recorded. CSP avoids inline script, `unsafe-inline` and `unsafe-eval`. Vendored manifests record versions, hashes and licenses. The service worker caches only static resources, not authenticated pages or APIs; Chrome verified this. Remaining work includes a complete recurring dependency/SBOM vulnerability process and real screen-reader/performance testing.
+The generated index is static/browser-only, records input hashes and ABI provenance, suggests only portable ABI functions and validator-approved constructs, and is checked byte-for-byte. Live diagnostics only add feedback; they cannot bypass server validation. Compiler messages are normalized to remove host paths. Corpus tests compare client/server acceptance for unsafe and generated sources.
 
-## Authentication and authorization
+## Debug information
 
-Local credential/token hashing, throttling, ownership checks, stale-window refusal and audit records remain in place. Publishing enforces publisher scope and content-bound explicit confirmation. OIDC still lacks the required explicit PKCE, issuer+subject key, multi-provider administration, academic claim lifecycle and negative IdP execution. Course-scoped student/TA/teacher authorization is absent.
+Debug wrappers are per-build and operate inside the existing sandbox. A retained ELF must match the PRG32 cartridge's loadable image exactly. The API serves bounded JSON maps/source, never the ELF, and requires readable ownership of cartridge, build and artifacts. File paths are reduced to basenames; damaged/oversized/unmatched data becomes unavailable. Source maps are hash-bound to the served source. Browser expression evaluation uses the constrained debugger evaluator rather than arbitrary JavaScript execution.
 
-## Build and upload boundary
+Residual risks:
 
-Source allow-lists remain defense in depth. Production configuration requires bubblewrap with isolated namespaces, no network, read-only toolchain/SDK, cleared environment, seccomp and resource limits. The Linux escape suite was not executable here. Known gaps remain: total build-directory quota, per-build UID and AppArmor portability.
+- wrapper behavior depends on upstream tool naming/invocation;
+- real Linux sandbox/debug builds were not rerun here;
+- no total build-directory quota or per-build UID;
+- complex DWARF inputs deserve continued fuzz/limit testing;
+- source itself is intentionally shown to its owner, while shared-project policy must remain consistent.
 
-Store SSRF/TLS/DNS/redirect/response-bound tests passed 94/94. No live Store was contacted. Publish tokens remain reversibly stored in the database; encryption or short-lived delegated credentials are preferable.
+## Identity, storage and external systems
 
-## Privacy and lifecycle gaps
-
-The offline scratchpad is local and useful, but it is not the requested administrator-controlled guest policy with IndexedDB export/eviction guarantees. Registered quotas, retention/deprovisioning and conflict behavior are missing. Drive/OneDrive are absent, so OAuth scopes, refresh/revoke and provider privacy cannot be evaluated.
+OIDC remains below the academic profile and guest/cloud storage is absent. Registered quotas/retention/deprovisioning are missing. Store tokens remain reversibly stored. These are the largest remaining deployment-security and privacy gaps. Browser CSP, dependency vendoring, authentication, ownership, throttling, Store egress and publish confirmation remain in place.
