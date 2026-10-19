@@ -165,7 +165,7 @@ def test_cold_offline_start_shows_an_editable_scratchpad(browser, live_kit):
     page.goto(f"{live_kit}/projects/{project}")
     page.evaluate("navigator.serviceWorker.ready")
     wait_until(page, "caches.keys().then(keys => keys.length > 0)")
-    wait_until(page, "caches.open('prg32-kit-v14').then(c => c.match('/static/offline.html')).then(Boolean)")
+    wait_until(page, "caches.open('prg32-kit-v15').then(c => c.match('/static/offline.html')).then(Boolean)")
     page.close()
 
     context.set_offline(True)
@@ -176,7 +176,9 @@ def test_cold_offline_start_shows_an_editable_scratchpad(browser, live_kit):
     assert blockly_is_editable(offline)
     offline.click("#offlinePlay")
     wait_until(offline, "document.getElementById('debugState').textContent.startsWith('Frame')")
-    # The scratchpad stays in this browser after a reload.
+    # The game stays in this browser (IndexedDB, ADR-0017) after a reload.
+    wait_until(offline, "!PRG32Guest.pending && PRG32GuestStore.list().then(rows => rows.some(row =>"
+                        " JSON.stringify(row.blocks_json).includes('prg32_')))")
     offline.reload()
     wait_until(offline, "window.PRG32Blocks && PRG32Blocks.getWorkspace()")
     assert offline.evaluate("PRG32Blocks.getWorkspace().getAllBlocks(false).length") >= 1
@@ -192,7 +194,7 @@ def test_offline_player_runs_a_real_cartridge(browser, live_kit):
     page = context.new_page()
     sign_in(page, live_kit)
     page.evaluate("navigator.serviceWorker.ready")
-    wait_until(page, "caches.open('prg32-kit-v14').then(c => c.match('/static/wasm/prg32-core.wasm')).then(Boolean)")
+    wait_until(page, "caches.open('prg32-kit-v15').then(c => c.match('/static/wasm/prg32-core.wasm')).then(Boolean)")
     context.set_offline(True)
     player = context.new_page()
     player.goto(f"{live_kit}/static/offline-player.html")

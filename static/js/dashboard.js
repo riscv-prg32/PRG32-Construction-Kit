@@ -114,7 +114,31 @@
       .catch(err => Kit.toast(err.message, 'danger'));
   });
 
+  // Games made in this browser without an account (ADR-0017): offer to move them in.
+  // Each one is created on the server first and removed from the browser only after that.
+  function checkGuestProjects() {
+    if (!window.PRG32GuestStore) return Promise.resolve();
+    return PRG32GuestStore.list().then(rows => {
+      const games = rows.filter(row => row.blocks_json && Object.keys(row.blocks_json).length);
+      $('#guestProjectsBanner').prop('hidden', !games.length);
+      $('#guestProjectsCount').text(games.length === 1 ? '1 game' : games.length + ' games');
+    }).catch(() => { /* this browser cannot keep guest games: nothing to move */ });
+  }
+
+  $('#moveGuestProjects').on('click', function () {
+    $(this).prop('disabled', true);
+    PRG32GuestStore.moveToAccount(row => Kit.api('/api/projects', { method: 'POST',
+      body: { title: row.title, blocks_json: row.blocks_json } }))
+      .then(result => {
+        if (result.error) Kit.toast(`Moved ${result.moved.length}; ${result.left} stay in this browser: ${result.error.message}`, 'warning');
+        else Kit.toast(`Moved ${result.moved.length} into your account`, 'success');
+        return Promise.all([load(), checkGuestProjects()]);
+      })
+      .finally(() => $(this).prop('disabled', false));
+  });
+
   $('#refreshProjects').on('click', load);
   $('#examplesModal').on('show.bs.modal', loadExamples);
   load();
+  checkGuestProjects();
 })();

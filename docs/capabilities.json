@@ -118,7 +118,7 @@
         "tests/test_project_format.py::test_legacy_json_export_is_migrated",
         "tests/test_restore_relationships.py::test_restore_updates_in_place_adds_and_removes"
       ],
-      "note": "Autosave, search and merge of concurrent edits missing."
+      "note": "Autosave and conflict-safe saves done (ADR-0017); no project search and no automatic merge of concurrent edits (the student chooses)."
     },
     {
       "id": "BLD-01",
@@ -293,29 +293,52 @@
     {
       "id": "ACC-01",
       "title": "Guest policies and IndexedDB guest projects",
-      "status": "missing",
+      "status": "implemented",
       "audit_score": 0,
-      "source": [],
-      "tests": [],
-      "note": "Refinement Phase 6."
+      "source": [
+        "static/js/guest_store.js",
+        "static/js/offline.js",
+        "static/js/dashboard.js",
+        "prg32_construction_kit/config.py::Config"
+      ],
+      "tests": [
+        "tests/test_storage_browser.py::test_guest_games_stay_in_this_browser",
+        "tests/test_storage_browser.py::test_the_old_scratchpad_becomes_a_guest_game",
+        "tests/test_storage_browser.py::test_guest_games_move_into_the_account_after_sign_in",
+        "tests/test_storage_policy.py::test_guest_mode_is_offered_or_not",
+        "tests/test_storage_policy.py::test_the_guest_workspace_is_static_and_stores_nothing_on_the_server"
+      ],
+      "note": "Policy local/off (PRG32_GUEST_MODE); IndexedDB guest games with capacity message, export/import, safe clearing, legacy migration and move-to-account after sign-in (ADR-0017). Temporary server storage for guests deliberately not offered."
     },
     {
       "id": "ACC-02",
       "title": "Registered storage: ownership, history, quotas, autosave, retention",
-      "status": "partial",
+      "status": "implemented",
       "audit_score": 2,
       "source": [
         "prg32_construction_kit/routes.py::can_read",
         "prg32_construction_kit/routes.py::can_write",
-        "prg32_construction_kit/auth.py::guard_request"
+        "prg32_construction_kit/auth.py::guard_request",
+        "prg32_construction_kit/storage_policy.py::check",
+        "prg32_construction_kit/db.py::update_resource",
+        "prg32_construction_kit/retention.py::apply",
+        "prg32_construction_kit/retention.py::prune_builds"
       ],
       "tests": [
         "tests/test_auth.py::test_signing_in_is_required",
         "tests/test_project_format.py::test_duplicate_copies_children_and_belongs_to_the_caller",
         "tests/test_authorization.py::test_deactivation_ends_sessions_tokens_and_sign_in_and_keeps_items",
-        "tests/test_authorization.py::test_nobody_reads_or_changes_another_students_items"
+        "tests/test_authorization.py::test_nobody_reads_or_changes_another_students_items",
+        "tests/test_storage_policy.py::test_a_save_from_an_older_version_changes_nothing",
+        "tests/test_storage_policy.py::test_the_version_check_is_atomic",
+        "tests/test_storage_policy.py::test_autosaves_do_not_fill_the_history",
+        "tests/test_storage_policy.py::test_project_count_quota",
+        "tests/test_storage_policy.py::test_space_quota_refuses_growth_but_allows_shrinking",
+        "tests/test_storage_policy.py::test_each_project_keeps_its_newest_builds_with_their_files",
+        "tests/test_storage_policy.py::test_trash_is_emptied_after_its_days_and_dry_runs_change_nothing",
+        "tests/test_storage_browser.py::test_autosave_and_a_conflict_between_two_windows"
       ],
-      "note": "Ownership, history, deprovisioning (switch off: sessions and tokens end, items kept) done; quotas, autosave and retention open."
+      "note": "Ownership, history, conflict-safe versions, autosave, quotas, retention (trash, builds, orphan folders) and deprovisioning (ADR-0016/0017). No automatic deletion of accounts."
     },
     {
       "id": "SSO-01",

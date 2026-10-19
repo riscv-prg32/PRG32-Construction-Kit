@@ -706,7 +706,8 @@ def login_form():
     from . import auth_adapters, sso
 
     return render_template("auth_login.html", next=safe_next(""), sso=sso.status(),
-                           external_logins=auth_adapters.enabled_logins(current_app))
+                           external_logins=auth_adapters.enabled_logins(current_app),
+                           guest_mode=current_app.config["PRG32_GUEST_MODE"])
 
 
 def too_many(error: security.Throttled, template: str | None = None, **context: Any):
@@ -728,7 +729,8 @@ def login():
 
     username = request.form.get("username", "")
     address = security.client_address()
-    form_context = {"next": safe_next(""), "sso": sso.status(), "external_logins": auth_adapters.enabled_logins(current_app)}
+    form_context = {"next": safe_next(""), "sso": sso.status(), "external_logins": auth_adapters.enabled_logins(current_app),
+                    "guest_mode": current_app.config["PRG32_GUEST_MODE"]}
     try:
         # Failures are counted per address+name (so one student's typos lock only that name)
         # and, with a much larger limit, per address.
@@ -1029,6 +1031,11 @@ def api_user(user_id: int):
         if user.id == me.id:
             return jsonify({"error": "you cannot delete your own account"}), 400
         username, role = user.username, user.role
+        removed = None
+        if request.args.get("with_items") in ("1", "true"):
+            from .retention import delete_account_items
+
+            removed = delete_account_items(user.id, current_app.config["BUILD_ROOT"])
         try:
             delete_user(user)
         except ValueError:
@@ -1036,8 +1043,8 @@ def api_user(user_id: int):
                             metadata={"username": username})
             raise
         security.record("user_delete", target_type="user", target_id=user_id,
-                        metadata={"username": username, "role": role})
-        return jsonify({"deleted": True, "id": user_id})
+                        metadata={"username": username, "role": role, "items_removed": removed or {}})
+        return jsonify({"deleted": True, "id": user_id, "items_removed": removed or {}})
     data = request.get_json(silent=True) or {}
     if user.id == me.id and "role" in data and data["role"] != "admin":
         return jsonify({"error": "admins cannot demote themselves"}), 400

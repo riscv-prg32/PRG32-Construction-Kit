@@ -116,12 +116,28 @@
     const ir = isCMode() ? { source_mode: 'c', source_c: $('#customC').val(), required_features: features }
       : isAsmMode() ? { source_mode: 'asm', source_asm: $('#customAsm').val(), required_features: features }
       : PRG32Simulator.compileBlocks(blocks);
-    return Kit.api('/api/projects/' + projectId, { method: 'PUT', body: { blocks_json: blocks, game_json: ir } })
-      .then(data => {
-        project = data;
-        dirty = false;
-        Kit.toast('Project saved', 'success');
-        if (!isTextMode()) refreshSimulator();
+    return putProject({ blocks_json: blocks, game_json: ir }).then(data => {
+      dirty = false;
+      Kit.toast('Project saved', 'success');
+      if (!isTextMode()) refreshSimulator();
+      return data;
+    });
+  }
+
+  // Every save names the version this window loaded; if the project was saved elsewhere since,
+  // the server refuses (409) and the student chooses what to keep (ADR-0017).
+  function putProject(body, baseVersion) {
+    return Kit.api('/api/projects/' + projectId, { method: 'PUT',
+      body: Object.assign({}, body, { expected_version: baseVersion ?? (project.version || 0) }) })
+      .then(data => { project = data; return data; })
+      .catch(err => {
+        if (err.code !== 'version_conflict') throw err;
+        return new Promise((resolve, reject) => Kit.versionConflict(err, {
+          copy: () => Kit.api('/api/projects', { method: 'POST', body: Object.assign({}, body, { title: project.title + ' (my version)' }) })
+            .then(copy => { dirty = false; window.location.href = '/projects/' + encodeURIComponent(copy.id); }),
+          reload: () => { dirty = false; window.location.reload(); },
+          overwrite: version => putProject(body, version).then(resolve, reject),
+        }));
       });
   }
 
@@ -214,7 +230,7 @@
   $('#startFromBlocks').on('click', () => {
     const blocks = PRG32Blocks.save();
     const asm = isAsmMode();
-    Kit.api('/api/projects/' + projectId, { method: 'PUT', body: { blocks_json: blocks, game_json: PRG32Simulator.compileBlocks(blocks) } })
+    putProject({ blocks_json: blocks, game_json: PRG32Simulator.compileBlocks(blocks) })
       .then(() => Kit.api('/api/projects/' + projectId + '/convert', { method: 'POST', body: { source_language: asm ? 'asm' : 'c' } }))
       .then(result => {
         if (asm) $('#customAsm').val(result.asm_source); else $('#customC').val(result.c_source);

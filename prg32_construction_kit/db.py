@@ -44,6 +44,8 @@ class Project(TimestampedModel):
     # Set when a student deletes the project: it moves to "Recently deleted"
     # and can be restored. Only an admin removes it for good (purge).
     deleted_at: Mapped[str | None] = mapped_column(db.Text, index=True)
+    # +1 on every change: a save that names an older version is a conflict (ADR-0017).
+    version: Mapped[int] = mapped_column(db.Integer, nullable=False, default=0)
 
 
 class ProjectRevision(db.Model):
@@ -196,6 +198,7 @@ def _as_dict(resource: str, instance: TimestampedModel | None) -> dict[str, Any]
     if resource == "projects":
         # Shown, but not in RESOURCE_COLUMNS: only DELETE and restore may change it.
         item["deleted_at"] = instance.deleted_at
+        item["version"] = instance.version or 0
     return item
 
 
@@ -222,6 +225,15 @@ def init_db() -> None:
     _add_missing_owner_columns()
     _add_missing_deleted_at_column()
     _add_missing_revision_child_ids()
+    _add_missing_version_column()
+
+
+def _add_missing_version_column() -> None:
+    """Databases made before conflict-safe saves (ADR-0017) have no projects.version; add it."""
+    columns = {column["name"] for column in inspect(db.engine).get_columns("projects")}
+    if "version" not in columns:
+        with db.engine.begin() as connection:
+            connection.execute(text("ALTER TABLE projects ADD COLUMN version INTEGER NOT NULL DEFAULT 0"))
 
 
 def _add_missing_owner_columns() -> None:
@@ -320,7 +332,13 @@ def create_resource(resource: str, payload: dict[str, Any]) -> dict[str, Any]:
     return created
 
 
-def update_resource(resource: str, item_id: str, payload: dict[str, Any]) -> dict[str, Any] | None:
+class VersionConflict(Exception):
+    """The project was saved by someone (or another window) after the version the save was based on."""
+
+
+def update_resource(resource: str, item_id: str, payload: dict[str, Any],
+                    expected_version: int | None = None) -> dict[str, Any] | None:
+    """Change an item. For a project, ``expected_version`` makes the save conditional (ADR-0017)."""
     model = RESOURCE_MODELS.get(resource)
     if model is None:
         raise KeyError(resource)
@@ -329,6 +347,15 @@ def update_resource(resource: str, item_id: str, payload: dict[str, Any]) -> dic
     if instance is None:
         return None
     try:
+        if resource == "projects":
+            # One atomic step: claim the next version only if nobody saved in between.
+            claim = update(Project).where(Project.id == item_id)
+            if expected_version is not None:
+                claim = claim.where(Project.version == expected_version)
+            if db.session.execute(claim.values(version=Project.version + 1)).rowcount != 1:
+                db.session.rollback()
+                raise VersionConflict(item_id)
+            db.session.refresh(instance)
         for column in RESOURCE_COLUMNS[resource]:
             if column in payload:
                 setattr(instance, _attribute(column), _encode_value(resource, column, payload[column]))

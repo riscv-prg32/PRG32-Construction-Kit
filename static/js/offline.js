@@ -1,23 +1,89 @@
-// The offline page (static/offline.html): a Blocks scratchpad kept in this browser only.
-// Nothing here talks to the server; when it is back, "Try again" reloads the real page.
+// The offline and guest workspace (static/offline.html, ADR-0017): Blocks games kept in this
+// browser's IndexedDB (guest_store.js). Nothing here talks to the server. With ?guest=1 it is
+// the "Try without an account" page; otherwise the page shown when the server is unreachable.
 (function () {
-  const STORAGE_KEY = 'prg32-offline-scratchpad';
+  'use strict';
+  const guest = new URLSearchParams(window.location.search).get('guest') === '1';
+  $('#guestNotice').prop('hidden', !guest);
+  $('#offlineNotice').prop('hidden', guest);
+  $('#offlineBadge').html(guest ? '<i class="bi bi-person"></i> Guest' : '<i class="bi bi-wifi-off"></i> Offline');
+
   PRG32Blocks.init('blocklyDiv');
   const simulator = new PRG32Simulator.Simulator(document.getElementById('gameCanvas'), document.getElementById('debugState'));
+  const store = window.PRG32GuestStore;
+  let current = null;
+  let loading = false;
+  let timer = null;
 
-  function stored() {
-    try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null'); } catch (err) { return null; }
+  function show(message, variant) {
+    $('#guestSpace').text(message).toggleClass('text-danger', variant === 'danger');
   }
-  const saved = stored();
-  if (saved) PRG32Blocks.load(saved);
+
+  function space() {
+    return store.estimate().then(estimate => {
+      if (!estimate || !estimate.quota) return show('Kept in this browser.');
+      const mb = bytes => (bytes / 1048576).toFixed(1);
+      show(`This browser: ${mb(estimate.usage)} MB used of ${mb(estimate.quota)} MB it allows.`);
+    });
+  }
+
+  function fill(rows) {
+    $('#guestProjects').html(rows.map(row => `<option value="${row.id}"></option>`).join(''));
+    $('#guestProjects option').each((index, option) => { option.textContent = rows[index].title; });
+    if (current) $('#guestProjects').val(current.id);
+  }
+
+  function open(row) {
+    current = row;
+    loading = true;
+    PRG32Blocks.load(row.blocks_json || {});
+    loading = false;
+    $('#guestTitle').val(row.title);
+    $('#guestProjects').val(row.id);
+    simulator.loadBlocks(PRG32Blocks.save());
+  }
+
+  function refresh() {
+    return store.list().then(rows => {
+      if (!rows.length) return store.save({ title: 'My first game', blocks_json: {} }).then(row => { fill([row]); open(row); });
+      fill(rows);
+      if (!current || !rows.some(row => row.id === current.id)) open(rows[0]);
+      return null;
+    }).then(space);
+  }
+
+  // Save a moment after the last change; a full disk keeps the previous copy and says so.
+  function flush() {
+    clearTimeout(timer);
+    timer = null;
+    if (!current) return Promise.resolve();
+    return store.save({ ...current, title: $('#guestTitle').val() || current.title, blocks_json: PRG32Blocks.save() })
+      .then(row => { current = row; return store.list().then(fill); })
+      .then(space)
+      .catch(error => show(error.message, 'danger'));
+  }
 
   function remember() {
-    const blocks = PRG32Blocks.save();
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(blocks)); } catch (err) { /* private window: not kept */ }
-    simulator.loadBlocks(blocks);
+    if (loading || !current) return;
+    clearTimeout(timer);
+    timer = setTimeout(flush, 400);
+    simulator.loadBlocks(PRG32Blocks.save());
   }
+  window.addEventListener('pagehide', () => { if (timer) flush(); });
+
   PRG32Blocks.getWorkspace().addChangeListener(event => { if (!event.isUiEvent) remember(); });
-  remember();
+  $('#guestTitle').on('input', remember);
+  $('#guestProjects').on('change', function () { store.get(this.value).then(row => row && open(row)); });
+  $('#guestNew').on('click', () => store.save({ title: 'New game', blocks_json: {} })
+    .then(row => { current = row; return refresh().then(() => open(row)); }).catch(error => show(error.message, 'danger')));
+  $('#guestDelete').on('click', () => {
+    if (!current || !window.confirm(`Delete "${current.title}" from this browser? Save it as a file first if you want to keep it.`)) return;
+    store.remove(current.id).then(() => { current = null; return refresh(); });
+  });
+  $('#guestClear').on('click', () => {
+    if (!window.confirm('Delete ALL games kept in this browser? This cannot be undone. Save the ones you want as files first.')) return;
+    store.clear().then(() => { current = null; return refresh(); });
+  });
 
   $('#offlinePlay').on('click', function () {
     const running = simulator.toggle();
@@ -25,22 +91,22 @@
   });
   $('#offlineStep').on('click', () => simulator.step());
   $('#offlineExport').on('click', () => {
-    const blob = new Blob([JSON.stringify({ abi: 'prg32-construction-kit-project-1.0',
-      project: { title: 'Offline sketch', blocks_json: PRG32Blocks.save() } }, null, 2)], { type: 'application/json' });
     const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = 'offline-sketch.json';  // Import project on the dashboard reads this file
-    link.click();
+    link.href = URL.createObjectURL(store.exportFile({ title: $('#guestTitle').val() || 'My game', blocks_json: PRG32Blocks.save() }));
+    link.download = (($('#guestTitle').val() || 'my-game').replace(/[^A-Za-z0-9_-]+/g, '-') || 'my-game') + '.json';
+    link.click();  // the dashboard's Import project reads this file
     setTimeout(() => URL.revokeObjectURL(link.href), 1000);
   });
   $('#offlineImport').on('change', function () {
     const file = this.files[0];
     if (!file) return;
-    file.text().then(text => {
-      const data = JSON.parse(text);
-      PRG32Blocks.load((data.project || data).blocks_json || data);
-      remember();
-    }).catch(() => window.alert('This file is not a blocks project.'));
+    file.text().then(text => store.save(store.importText(text)))
+      .then(row => { current = row; return refresh().then(() => open(row)); })
+      .catch(error => window.alert(error.message || 'This file is not a blocks project.'));
   });
   $('#retryOnline').on('click', () => window.location.reload());
+
+  store.persist();
+  store.migrateScratchpad().then(refresh).catch(error => show(error.message, 'danger'));
+  window.PRG32Guest = { get current() { return current; }, refresh, flush, get pending() { return Boolean(timer); } };
 })();

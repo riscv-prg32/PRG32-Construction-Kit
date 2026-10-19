@@ -26,10 +26,28 @@
   let serverProblems = []; // from the last Generate or Compile
   let liveChecks = null;
 
+  // Autosave (ADR-0017): 5 seconds after the last change, and when the window is hidden.
+  // Every save names the version it started from; a conflict pauses autosave until the
+  // student decides (Kit.versionConflict), so nothing is ever overwritten silently.
+  const AUTOSAVE_MS = 5000;
+  let autosaveTimer = null;
+  let autosavePaused = false;
+  let changes = 0;          // counts edits, so an edit made while saving stays unsaved
+  let saving = null;
+
   // --- status bar ------------------------------------------------------------------------------
   function setDirty(value) {
     dirty = value;
+    if (value) {
+      changes += 1;
+      scheduleAutosave();
+    }
     $('#statusSaved').text(value ? 'Unsaved changes' : 'Saved');
+  }
+
+  function scheduleAutosave() {
+    clearTimeout(autosaveTimer);
+    if (!autosavePaused) autosaveTimer = setTimeout(() => { if (dirty) save({ autosave: true }).catch(() => {}); }, AUTOSAVE_MS);
   }
   function setBuildStatus(text) { $('#statusBuild').text(text); }
   function trackCursor(editor) {
@@ -259,14 +277,48 @@
       : { source_mode: 'asm', source_asm: text, required_features: features } };
   }
 
-  function save() {
-    return Kit.api(api, { method: 'PUT', body: payload() }).then(saved => {
+  // options: {autosave: true} (quiet), {baseVersion: n} (save over a newer version on purpose)
+  function save(options = {}) {
+    if (saving) return saving.then(() => save(options), () => save(options));  // one save at a time
+    clearTimeout(autosaveTimer);
+    const started = changes;
+    const body = Object.assign(payload(), { expected_version: options.baseVersion ?? (project.version || 0) },
+      options.autosave ? { autosave: true } : {});
+    saving = Kit.api(api, { method: 'PUT', body }).then(saved => {
       project = saved;
-      setDirty(false);
-      Kit.toast('Saved', 'success');
+      if (changes === started) setDirty(false); else scheduleAutosave();
+      const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      $('#statusSaved').text(dirty ? 'Unsaved changes' : (options.autosave ? 'Autosaved ' + time : 'Saved'));
+      if (!options.autosave) Kit.toast('Saved', 'success');
       return saved;
-    }).catch(err => { Kit.toast('Not saved: ' + err.message, 'danger'); throw err; });
+    }).catch(err => {
+      if (err.code === 'version_conflict') {
+        autosavePaused = true;
+        $('#statusSaved').text('Not saved: saved elsewhere');
+        Kit.versionConflict(err, { copy: keepMineAsCopy, reload: loadSavedVersion,
+          overwrite: version => { autosavePaused = false; return save({ baseVersion: version }); } });
+      } else {
+        $('#statusSaved').text('Not saved: ' + err.message);
+        if (!options.autosave || err.code === 'quota_exceeded') Kit.toast('Not saved: ' + err.message, 'danger');
+      }
+      throw err;
+    }).finally(() => { saving = null; });
+    return saving;
   }
+
+  function keepMineAsCopy() {
+    return Kit.api('/api/projects', { method: 'POST', body: Object.assign(payload(), { title: project.title + ' (my version)' }) })
+      .then(copy => { dirty = false; window.location.href = '/ide/' + encodeURIComponent(copy.id); });
+  }
+
+  function loadSavedVersion() {
+    dirty = false;  // the student chose the saved version: no "leave page?" question
+    window.location.reload();
+  }
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden && dirty && !autosavePaused && project) save({ autosave: true }).catch(() => {});
+  });
 
   function expectedVersion() {
     const saved = project.game_json || {};
@@ -394,6 +446,7 @@
     .catch(err => Kit.toast('The IDE could not start: ' + err.message, 'danger'));
 
   window.PRG32Ide = { save, generate, compile, editors, openSdkHeader, get mode() { return mode; },
+    get version() { return project && project.version; }, get autosavePaused() { return autosavePaused; },
     get dirty() { return dirty; }, get problems() { return $('#ideProblems').data('problems') || []; },
     get serverProblems() { return serverProblems; } };
 })();

@@ -71,6 +71,14 @@ class Config:
     PRG32_DEBUG_INFO = os.environ.get("PRG32_DEBUG_INFO", "1") != "0"
     # How many saved versions (revisions) the History menu keeps per project.
     PRG32_KIT_MAX_REVISIONS = int(os.environ.get("PRG32_KIT_MAX_REVISIONS", "50"))
+    # Storage policy (ADR-0017). 0 = no limit.
+    PRG32_KIT_QUOTA_PROJECTS = int(os.environ.get("PRG32_KIT_QUOTA_PROJECTS", "200"))
+    PRG32_KIT_QUOTA_MB = int(os.environ.get("PRG32_KIT_QUOTA_MB", "200"))
+    PRG32_KIT_AUTOSAVE_SNAPSHOT_MINUTES = int(os.environ.get("PRG32_KIT_AUTOSAVE_SNAPSHOT_MINUTES", "10"))
+    PRG32_KIT_TRASH_DAYS = int(os.environ.get("PRG32_KIT_TRASH_DAYS", "30"))
+    PRG32_KIT_KEEP_BUILDS = int(os.environ.get("PRG32_KIT_KEEP_BUILDS", "10"))
+    # "local": the sign-in page offers "Try without an account" (this browser only); "off": it does not.
+    PRG32_GUEST_MODE = os.environ.get("PRG32_GUEST_MODE", "local")
     MAX_CONTENT_LENGTH = int(os.environ.get("PRG32_KIT_MAX_UPLOAD", str(32 * 1024 * 1024)))
     JSON_SORT_KEYS = False
 

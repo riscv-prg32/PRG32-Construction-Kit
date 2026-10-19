@@ -2,6 +2,27 @@
 
 ## Unreleased
 
+### Guest and registered storage policy (refinement phase 6)
+
+- Guest games: *Try without an account* keeps several blocks games in the
+  browser (IndexedDB) with names, export/import as files and a space meter;
+  signing in offers to move them into the account. Nothing is stored on the
+  server for guests (`PRG32_GUEST_MODE`, ADR-0017, `storage.md`).
+- Projects have a `version`; saves from the IDE and the editor are refused
+  (409) instead of overwriting a newer save, and the student chooses: keep a
+  copy, load the saved one, or save over it.
+- The IDE autosaves 5 seconds after the last change; autosaves add to History
+  at most every 10 minutes.
+- Per-student quotas (projects, MB), `GET /api/storage`.
+- Retention: trash emptied after 30 days, 10 builds kept per project,
+  interrupted build folders removed (`flask prg32-retention`,
+  `POST /api/admin/retention`); `DELETE /api/users/<id>?with_items=1`.
+- **Upgrade notes:** new column `projects.version` (added at start-up). The
+  offline scratchpad becomes a guest game automatically. Builds beyond 10 per
+  project are removed on the next compile of that project: raise
+  `PRG32_KIT_KEEP_BUILDS` first if you need them. Service worker `prg32-kit-v15`.
+  Rollback: revert; the column is ignored and guest games stay in IndexedDB.
+
 ### Academic identity and scoped roles (refinement phase 5)
 
 - School sign-in with OpenID Connect: Authorization Code + PKCE, verified ID

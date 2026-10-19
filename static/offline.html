@@ -24,17 +24,36 @@
   </div>
 </nav>
 <main class="container-fluid px-3 px-lg-4 py-4">
-  <div class="alert alert-warning" role="status">
+  <!-- Offline (the server cannot be reached) or guest (?guest=1: no account): offline.js shows one. -->
+  <div class="alert alert-warning" role="status" id="offlineNotice">
     <strong>The kit's server cannot be reached.</strong> Your projects are on the server, so they open again
-    when the connection is back. Meanwhile you can sketch with blocks here (kept only in this browser) or play
+    when the connection is back. Meanwhile you can make games with blocks here (kept only in this browser) or play
     a <code>.prg32</code> cartridge file in the <a href="/static/offline-player.html">offline player</a>.
     <button class="btn btn-sm btn-outline-dark ms-2" id="retryOnline" type="button">Try again</button>
+  </div>
+  <div class="alert alert-info" role="status" id="guestNotice" hidden>
+    <strong>Trying the kit without an account.</strong> Your games are kept only in this browser, on this
+    computer: nobody else sees them, and they can be lost if the browser's data is cleared. Save them as files,
+    or <a href="/auth/login">sign in</a> and move them into your account. You can also play <code>.prg32</code>
+    files in the <a href="/static/offline-player.html">offline player</a>.
+  </div>
+  <div class="card shadow-sm mb-3">
+    <div class="card-body d-flex flex-wrap gap-2 align-items-center">
+      <label class="small text-muted" for="guestProjects">Game</label>
+      <select class="form-select form-select-sm w-auto" id="guestProjects"></select>
+      <label class="visually-hidden" for="guestTitle">Name of this game</label>
+      <input class="form-control form-control-sm w-auto" id="guestTitle" maxlength="200" placeholder="Name of this game">
+      <button class="btn btn-outline-primary btn-sm" id="guestNew" type="button"><i class="bi bi-plus"></i> New game</button>
+      <button class="btn btn-outline-danger btn-sm" id="guestDelete" type="button"><i class="bi bi-trash"></i> Delete</button>
+      <button class="btn btn-outline-secondary btn-sm" id="guestClear" type="button">Delete all games in this browser</button>
+      <span class="small text-muted ms-auto" id="guestSpace" aria-live="polite"></span>
+    </div>
   </div>
   <div class="row g-3">
     <div class="col-xxl-7">
       <div class="card shadow-sm">
         <div class="card-header d-flex flex-wrap gap-2 align-items-center">
-          <strong><i class="bi bi-puzzle"></i> Blocks scratchpad</strong>
+          <strong><i class="bi bi-puzzle"></i> Blocks</strong>
           <span class="small text-muted">saved in this browser only</span>
           <div class="ms-auto d-flex gap-2">
             <button class="btn btn-success btn-sm" id="offlinePlay" type="button"><i class="bi bi-play-fill"></i> Play</button>
@@ -63,6 +82,7 @@
 <script src="/static/vendor/blockly/11.2.1/blockly.min.js"></script>
 <script src="/static/js/blockly_blocks.js"></script>
 <script src="/static/js/simulator.js"></script>
+<script src="/static/js/guest_store.js"></script>
 <script src="/static/js/offline.js"></script>
 </body>
 </html>

@@ -24,6 +24,10 @@
         {% endif %}
         <hr>
         <a href="/auth/register">Create an account</a>
+        {% if guest_mode == 'local' %}
+        <p class="small mt-2 mb-0"><a href="/static/offline.html?guest=1">Try without an account</a>
+          <span class="text-muted">: your games stay in this browser only (docs: storage.md).</span></p>
+        {% endif %}
       </div>
     </div>
   </div>

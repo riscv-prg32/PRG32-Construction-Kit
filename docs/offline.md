@@ -7,9 +7,9 @@ it keeps working on a school network without Internet access.
 
 - If the kit's server cannot be reached, opening any kit page shows the
   **Offline** page instead of an error:
-  - a **blocks scratchpad** you can build and **Play** with the Blocks preview.
-    It is kept in this browser only; **Save as file** downloads it, and
-    **Import project** on the dashboard turns it into a real project later;
+  - your **guest games**: blocks games you can build and **Play**, kept in this
+    browser only (IndexedDB). **Save as file** downloads one; signing in later
+    offers to move them into your account (`storage.md`);
   - the **offline player** (link on that page) plays a `.prg32` cartridge file
     from your computer.
 - Your real projects are on the server: they open again when the connection

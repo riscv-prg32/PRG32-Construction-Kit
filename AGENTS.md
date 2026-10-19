@@ -41,6 +41,7 @@ This file applies to the whole repository.
 - Save block programs as JSON in the `projects.blocks_json` field.
 - Save generated and uploaded artifacts through the artifact CRUD API.
 - Keep large bundles on disk and metadata in SQLite.
+- Storage policy (ADR-0017): project saves from the IDE/editor send `expected_version` and must never overwrite a newer version silently; check quotas (`storage_policy`) before writes and compiles; guests store nothing on the server (IndexedDB only); retention deletes whole `<build_id>/` folders only after their database rows.
 - Do not store bearer tokens in logs or public responses.
 - Maintain idempotent SQLite initialization with `CREATE TABLE IF NOT EXISTS`.
 - Generated C is stored as `c_source` artifacts and generated assembly as `asm_source` artifacts (handwritten assembly also uses `asm_source`).

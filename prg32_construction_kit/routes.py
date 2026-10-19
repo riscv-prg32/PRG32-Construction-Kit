@@ -3,14 +3,19 @@ from __future__ import annotations
 import io
 import json
 import uuid
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
 from flask import Blueprint, Response, current_app, jsonify, render_template, request, send_file, send_from_directory
+from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
 from .db import (
     RESOURCE_COLUMNS,
+    ProjectRevision,
+    VersionConflict,
+    db,
     add_revision,
     create_resource,
     delete_resource,
@@ -24,7 +29,7 @@ from .db import (
     update_if_unchanged,
     update_resource,
 )
-from . import project_format, publishing, security, sso
+from . import project_format, publishing, retention, security, sso, storage_policy
 from .auth import Principal, current_principal, role_at_least
 from .build_check import builds_available, toolchain_present
 from .db import utcnow
@@ -287,6 +292,8 @@ def discovery():
             # False means Compile Cartridge makes source bundles only (docs/install_cartridge_build.md).
             "cartridge_builds": {"available": builds_available(current_app.config["PRG32_BUILD_COMMAND"]),
                                  "architectures": list(SUPPORTED_ARCHITECTURES)},
+            # "local": guests may make games kept in their own browser only; "off": no guest entry (ADR-0017).
+            "guest_mode": current_app.config["PRG32_GUEST_MODE"],
         }
     )
 
@@ -302,6 +309,33 @@ def api_list(resource: str):
     return jsonify({resource: [public(resource, item) for item in items]})
 
 
+def _size(value: Any) -> int:
+    return len(json.dumps(value, ensure_ascii=False).encode("utf-8"))
+
+
+def quota(adding_bytes: int = 0, adding_projects: int = 0) -> None:
+    """Refuse (413) a change that takes the current account over its limits (ADR-0017)."""
+    storage_policy.check(current_principal(), current_app.config, adding_bytes=adding_bytes,
+                         adding_projects=adding_projects)
+
+
+@bp.errorhandler(storage_policy.QuotaExceeded)
+def quota_exceeded(error: storage_policy.QuotaExceeded):
+    security.record("quota_exceeded", target_type="user", target_id=current_principal().id, outcome="denied",
+                    metadata={"bytes": error.usage["bytes"], "projects": error.usage["projects"]})
+    return jsonify({"error": str(error), "code": "quota_exceeded", "usage": error.usage}), 413
+
+
+@bp.get("/api/storage")
+def api_storage():
+    """This account's usage and limits (ADR-0017)."""
+    principal = current_principal()
+    answer = storage_policy.usage(principal.id, current_app.config)
+    if principal.is_admin:
+        answer.update(quota_bytes=0, quota_projects=0)  # administrators have no limit
+    return jsonify(answer)
+
+
 @bp.route("/api/<resource>", methods=["POST"])
 def api_create(resource: str):
     if resource not in RESOURCE_COLUMNS:
@@ -309,6 +343,7 @@ def api_create(resource: str):
     payload = checked_payload(resource, request_json())
     if "owner_id" not in payload or payload["owner_id"] in (None, ""):
         payload = owned(payload)
+    quota(adding_bytes=_size(payload), adding_projects=1 if resource == "projects" else 0)
     item = create_resource(resource, payload)
     return jsonify(public(resource, item)), 201
 
@@ -334,13 +369,42 @@ def api_item(resource: str, item_id: str):
             return json_error("Not found", 404)
         return jsonify({"deleted": True, "id": item_id})
     payload = checked_payload(resource, request_json())
-    if resource == "projects" and _source_changes(existing, payload):
+    expected = payload.pop("expected_version", None) if resource == "projects" else None
+    autosave = bool(payload.pop("autosave", False)) if resource == "projects" else False
+    if expected is not None and (not isinstance(expected, int) or isinstance(expected, bool)):
+        return json_error("expected_version must be a whole number")
+    if expected is not None and expected != existing.get("version", 0):
+        return _version_conflict(existing)
+    changed = {key: value for key, value in payload.items() if key in RESOURCE_COLUMNS[resource]}
+    quota(adding_bytes=_size(changed) - _size({key: existing.get(key) for key in changed}))
+    if resource == "projects" and _source_changes(existing, payload) and (not autosave or _history_is_old(item_id)):
         # Keep the version that is about to be replaced in the project's history.
-        save_revision(existing, "save")
-    item = update_resource(resource, item_id, payload)
+        # Autosaves do so only now and then, so they do not fill it (ADR-0017).
+        save_revision(existing, "autosave" if autosave else "save")
+    try:
+        item = update_resource(resource, item_id, payload, expected_version=expected)
+    except VersionConflict:
+        return _version_conflict(get_resource("projects", item_id))
     if item is None:
         return json_error("Not found", 404)
     return jsonify(public(resource, item))
+
+
+def _version_conflict(current: dict[str, Any] | None):
+    """409: somebody saved this project after the version this save started from. Nothing was changed."""
+    return jsonify({"error": "This project was saved in another window (or by someone else) after you opened it. "
+                             "Nothing was overwritten: keep your version as a copy, or load the saved one.",
+                    "code": "version_conflict", "current": public("projects", current)}), 409
+
+
+def _history_is_old(project_id: str) -> bool:
+    newest = db.session.scalars(select(ProjectRevision.created_at).where(ProjectRevision.project_id == project_id)
+                                .order_by(ProjectRevision.seq.desc()).limit(1)).first()
+    if newest is None:
+        return True
+    minutes = int(current_app.config["PRG32_KIT_AUTOSAVE_SNAPSHOT_MINUTES"])
+    age = datetime.now(timezone.utc) - datetime.fromisoformat(newest)
+    return age.total_seconds() >= minutes * 60
 
 
 def _project_children(project_id: str, everyone: bool = False) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
@@ -366,6 +430,7 @@ def _create_from_contents(contents: dict[str, Any], title: str | None = None) ->
     fields = dict(contents["project"])
     if title:
         fields["title"] = title
+    quota(adding_bytes=_size(contents), adding_projects=1)
     project = create_resource("projects", owned(fields))
     made: list[tuple[str, str]] = []
     try:
@@ -445,8 +510,22 @@ def _purge_project(project_id: str):
         return json_error("Not found", 404)
     if not current_principal().is_admin:
         return json_error("Only a teacher (admin) can delete a project for good", 403)
-    delete_resource("projects", project_id)
+    retention.purge_project(project_id, current_app.config["BUILD_ROOT"])  # with its builds, artifacts and folders
     return jsonify({"deleted": True, "id": project_id, "purged": True})
+
+
+@bp.post("/api/admin/retention")
+def api_retention():
+    """Apply the retention policy (ADR-0017). {"dry_run": true} (the default) only reports."""
+    if not current_principal().is_admin:
+        return json_error("Only teachers with the admin role can do this", 403)
+    dry_run = request_json().get("dry_run", True) is not False
+    report = retention.apply(current_app.config, dry_run=dry_run)
+    if not dry_run:
+        security.record("retention_run", target_type="storage", metadata={
+            "purged_projects": len(report["purged_projects"]), "pruned_builds": len(report["pruned_builds"]),
+            "removed_folders": len(report["removed_folders"])})
+    return jsonify(report)
 
 
 # --- revisions: the History menu -------------------------------------------------
@@ -625,6 +704,7 @@ def api_list_examples():
 def api_import_example(slug: str):
     for item in example_catalog():
         if item["slug"] == slug:
+            quota(adding_bytes=_size(item["project"]), adding_projects=1)
             return jsonify(public("projects", create_resource("projects", owned(item["project"])))), 201
     return json_error("Example not found", 404)
 
@@ -797,6 +877,7 @@ def api_package_project(project_id: str):
     if _changed_elsewhere(project, payload):
         return json_error("This project was changed in another browser window after you saved it. "
                           "Reload the project to see the newest version, then compile again.", 409)
+    quota(adding_bytes=1)  # a full account cannot add cartridges and bundles
     # Every build gets its own id and its own folder, so many students (or one
     # student in several browser windows) can build at the same time without
     # touching each other's files. Build slots keep the number of compilers
@@ -930,6 +1011,8 @@ def _run_package_build(project_id: str, project: dict[str, Any], game_ir: dict[s
             },
         },
     )
+    # Keep the project's newest builds only (ADR-0017); this one is the newest.
+    retention.prune_builds(project_id, current_app.config["PRG32_KIT_KEEP_BUILDS"], current_app.config["BUILD_ROOT"])
     return jsonify({
         "build": public("builds", build),
         "c_artifact": public("artifacts", c_artifact) if c_artifact else None,
@@ -1069,6 +1152,7 @@ def api_upload_artifact():
     project_id = request.form.get("project_id") or None
     if project_id and not can_write(readable("projects", project_id)):
         return json_error("You can only add files to your own projects", 403)
+    quota(adding_bytes=request.content_length or 1)
     uploaded.save(path)
     artifact = create_resource(
         "artifacts",

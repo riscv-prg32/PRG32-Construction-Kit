@@ -24,10 +24,43 @@ window.Kit = {
       }
       if (!response.ok) {
         const message = data && data.error ? data.error : response.statusText;
-        throw new Error(message);
+        const error = new Error(message);
+        error.status = response.status;   // e.g. 409 version_conflict, 413 quota_exceeded (ADR-0017)
+        error.code = data && data.code;
+        error.data = data;
+        throw error;
       }
       return data;
     });
+  },
+  // A save refused because the project was saved elsewhere after this window loaded it
+  // (409 version_conflict, ADR-0017). Nothing was overwritten; the student chooses.
+  // choices: {copy(): Promise, reload(), overwrite(currentVersion): Promise}
+  versionConflict(error, choices) {
+    $('#versionConflict').remove();
+    const current = (error.data && error.data.current) || {};
+    const dialog = $(`<div class="modal" id="versionConflict" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="versionConflictTitle">
+      <div class="modal-dialog"><div class="modal-content">
+        <div class="modal-header"><h2 class="modal-title h5" id="versionConflictTitle">Saved somewhere else</h2></div>
+        <div class="modal-body"><p></p>
+          <p class="small text-muted mb-0">Saved there: <span class="when"></span>. Your changes in this window are not lost yet.</p></div>
+        <div class="modal-footer flex-wrap">
+          <button type="button" class="btn btn-primary" data-choice="copy">Keep mine as a copy</button>
+          <button type="button" class="btn btn-outline-secondary" data-choice="reload">Load the saved version</button>
+          <button type="button" class="btn btn-outline-danger" data-choice="overwrite">Save mine over it</button>
+        </div></div></div></div>`);
+    dialog.find('.modal-body p').first().text(error.message);
+    dialog.find('.when').text(current.updated_at || 'just now');
+    $('body').append(dialog);
+    const modal = new bootstrap.Modal(dialog[0], { backdrop: 'static', keyboard: false });
+    dialog.on('click', '[data-choice]', function () {
+      const choice = $(this).data('choice');
+      modal.hide();
+      if (choice === 'reload') return choices.reload();
+      const done = choice === 'copy' ? choices.copy() : choices.overwrite(current.version);
+      Promise.resolve(done).catch(err => Kit.toast(err.message, 'danger'));
+    });
+    modal.show();
   },
   userChanged(message) {
     if ($('#userChangedBanner').length) return;

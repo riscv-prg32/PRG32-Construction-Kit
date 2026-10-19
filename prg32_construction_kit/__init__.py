@@ -4,6 +4,7 @@ import os
 import secrets
 from pathlib import Path
 
+import click
 from flask import Flask
 
 from . import auth, classes, identity, security, sso  # noqa: F401 - their tables must exist before create_all
@@ -63,6 +64,16 @@ def create_app(test_config: dict | None = None) -> Flask:
         auth.bootstrap_admin(app)
         seed_if_empty(app.config["DEFAULT_STORE_URL"])
         print("Initialized PRG32-Construction-Kit database.")
+
+    @app.cli.command("prg32-retention")
+    @click.option("--apply", "apply_changes", is_flag=True, help="delete for real (default: only show what would go)")
+    def retention_command(apply_changes: bool):
+        """Apply the retention policy (docs/storage.md, ADR-0017)."""
+        import json
+
+        from . import retention
+
+        print(json.dumps(retention.apply(app.config, dry_run=not apply_changes), indent=2))
 
     return app
 

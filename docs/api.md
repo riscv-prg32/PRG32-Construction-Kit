@@ -58,6 +58,19 @@ and shared items (`owner_id` empty); admins see everything.
 A token request without the needed scope answers `403` with `"code": "insufficient_scope"`.
 `PUT /api/users/<id>` accepts `kit_role` (admin only; not your own).
 
+## Saving safely, quotas and retention (ADR-0017)
+
+- `PUT /api/projects/<id>` accepts `expected_version` (the `version` the client
+  loaded). If the project changed since, the answer is `409` with
+  `"code": "version_conflict"` and `"current"` (the saved project); nothing is
+  changed. `"autosave": true` adds to History at most every
+  `PRG32_KIT_AUTOSAVE_SNAPSHOT_MINUTES`.
+- Going over a quota answers `413` with `"code": "quota_exceeded"` and `"usage"`.
+  `GET /api/storage` returns `{bytes, parts, projects, quota_bytes, quota_projects}`.
+- `POST /api/admin/retention` (admin): `{"dry_run": true}` by default; returns what
+  was (or would be) removed.
+- `DELETE /api/users/<id>?with_items=1` (admin) also removes the account's items.
+
 ## Single sign-on with a Cartridge Store
 
 Only when `PRG32_SSO_SECRET` and `PRG32_SSO_PEER_URL` are set:

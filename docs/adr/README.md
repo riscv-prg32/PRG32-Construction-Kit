@@ -22,3 +22,4 @@ Short records of decisions for the full-IDE work. Each has a status:
 | [0014](0014-ide-language-services.md) | Offline language services from a generated PRG32 index | Accepted |
 | [0015](0015-source-and-block-debugger.md) | Source and block debugging from saved maps and DWARF | Accepted |
 | [0016](0016-academic-identity-and-scoped-roles.md) | Academic identity with PKCE, issuer+subject accounts, scoped roles | Accepted |
+| [0017](0017-storage-policy.md) | Guest and registered storage policy | Accepted |
