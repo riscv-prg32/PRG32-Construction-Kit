@@ -73,3 +73,21 @@ owner can; a session stays valid after a password change or a deactivation.
   kit is a `user` there unless an administrator gives them more.
 - Not done here: SCIM provisioning, front-channel/back-channel logout from the
   identity provider (signing out of the kit does not sign out of the school).
+
+## Amendment (2026-10-19, after the audit of `e2d0cef`): provisioning and logout
+
+- **Provisioning: no SCIM.** Accounts are created just in time at the first
+  school sign-in and switched off by a kit administrator (deprovisioning). A
+  provisioning feed is not required for the classroom deployment and is not
+  offered; adding one later means idempotent create/update/deactivate keyed by
+  (issuer, subject), audited like the other account changes.
+- **Switching a person off at the school** stops new kit sign-ins at once (the
+  provider refuses them). A kit session that already exists lasts until it ends
+  (`PRG32_KIT_SESSION_HOURS` from sign-in) unless a kit administrator switches the
+  account off, which ends it immediately.
+- **Logout is local only.** Signing out ends the kit session; it does not sign
+  the person out of the school's provider (no RP-initiated, front- or
+  back-channel logout). The sign-out answer says so (`school_session_ended:
+  false`) and the page warns about shared computers.
+- Evidence: `tests/test_identity_live.py` against Keycloak 26.0.7
+  (`docs/identity_live_testing.md`), opt-in locally and in CI.

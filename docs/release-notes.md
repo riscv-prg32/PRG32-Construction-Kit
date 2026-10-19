@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+### School sign-in against a real provider (after the audit of e2d0cef)
+
+- Opt-in live test suite against Keycloak (`identity_live_testing.md`), also as a
+  manual CI job; it can target an institution's test tenant from environment
+  variables only.
+- Fixed: discovery and key caches could stop refreshing if the server clock was
+  stepped back; a negative cache age now counts as stale.
+- Signing out after a school sign-in says that the school session may remain
+  (logout is local only; no SCIM provisioning: ADR-0016 amendment).
+
 ### Guest and registered storage policy (refinement phase 6)
 
 - Guest games: *Try without an account* keeps several blocks games in the

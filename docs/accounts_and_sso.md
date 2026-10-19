@@ -110,7 +110,11 @@ or students and staff).
   **new** accounts (`student`, `teacher`, `facilitator`); it never gives
   `publisher` or `admin`.
 - `allowed domains` limits which emails may make new accounts.
-- Signing out of the kit does not sign you out of the school.
+- Signing out of the kit does **not** sign you out of the school: on a shared
+  computer, close the browser. Switching a person off at the school stops new
+  sign-ins at once; switch the account off in the kit too to end a running session.
+- Accounts are made at the first sign-in; there is no provisioning feed (SCIM).
+- How to test against a real provider: `identity_live_testing.md`.
 
 SAML (`PRG32_SAML_*`) uses the same rules, with the IdP entity id as issuer and
 the NameID as subject. Design: `adr/0016-academic-identity-and-scoped-roles.md`.

@@ -208,13 +208,18 @@ _discovery: dict[str, tuple[float, dict[str, Any]]] = {}
 _keys: dict[str, tuple[float, list[dict[str, Any]]]] = {}
 
 
+def now_seconds() -> float:
+    """The clock for flows, caches and token times (one function, so tests can move it alone)."""
+    return time.time()
+
+
 class OidcError(Exception):
     """A sign-in that must not go on. The message is safe to show (no tokens, no secrets)."""
 
 
 def discovery(item: Provider) -> dict[str, Any]:
     cached = _discovery.get(item.issuer)
-    if cached and time.time() - cached[0] < CACHE_SECONDS:
+    if cached and 0 <= now_seconds() - cached[0] < CACHE_SECONDS:   # a clock that went back = stale
         return cached[1]
     status, document = http("GET", item.issuer.rstrip("/") + "/.well-known/openid-configuration")
     if status != 200 or not isinstance(document, dict):
@@ -223,21 +228,22 @@ def discovery(item: Provider) -> dict[str, Any]:
         raise OidcError("the school's sign-in service names a different issuer")
     for key in ("authorization_endpoint", "token_endpoint", "jwks_uri"):
         check_endpoint(document.get(key, ""))
-    _discovery[item.issuer] = (time.time(), document)
+    _discovery[item.issuer] = (now_seconds(), document)
     return document
 
 
 def signing_keys(jwks_uri: str, refresh: bool = False) -> list[dict[str, Any]]:
     cached = _keys.get(jwks_uri)
-    fresh = cached and time.time() - cached[0] < CACHE_SECONDS
-    recently = cached and time.time() - cached[0] < JWKS_REFRESH_SECONDS
+    age = now_seconds() - cached[0] if cached else -1
+    fresh = cached and 0 <= age < CACHE_SECONDS           # a negative age (the clock went back) is stale
+    recently = cached and 0 <= age < JWKS_REFRESH_SECONDS
     if cached and (fresh and not refresh or refresh and recently):
         return cached[1]
     status, document = http("GET", jwks_uri)
     keys = document.get("keys") if status == 200 and isinstance(document, dict) else None
     if not isinstance(keys, list):
         raise OidcError("the school's sign-in keys could not be read")
-    _keys[jwks_uri] = (time.time(), keys)
+    _keys[jwks_uri] = (now_seconds(), keys)
     return keys
 
 
@@ -314,7 +320,7 @@ def verify_id_token(token: str, item: Provider, jwks_uri: str, nonce: str, now: 
     if not candidates:
         raise OidcError("the sign-in token was signed with an unknown key")
     _verify_signature(algorithm, candidates[0], (parts[0] + "." + parts[1]).encode("ascii"), signature)
-    now = time.time() if now is None else now
+    now = now_seconds() if now is None else now
     if claims.get("iss") != item.issuer:
         raise OidcError("the sign-in token comes from another issuer")
     audience = claims.get("aud")
@@ -437,7 +443,7 @@ def _start(item: Provider, intent: str, user_id: int | None = None) -> str:
     flows = dict(session.get("oidc_flows") or {})
     flows = dict(sorted(flows.items(), key=lambda pair: pair[1].get("started", 0))[-(MAX_FLOWS - 1):])
     flows[state] = {"slug": item.slug, "nonce": nonce, "verifier": verifier, "intent": intent, "user_id": user_id,
-                    "next": safe_next("/account" if intent == "link" else "/"), "started": time.time()}
+                    "next": safe_next("/account" if intent == "link" else "/"), "started": now_seconds()}
     session["oidc_flows"] = flows
     query = {"response_type": "code", "client_id": item.client_id, "redirect_uri": _redirect_uri(item.slug),
              "scope": item.scopes, "state": state, "nonce": nonce, "code_challenge": challenge,
@@ -513,7 +519,7 @@ def callback(slug: str):
     session["oidc_flows"] = flows   # a state works once
     if flow is None or flow.get("slug") != slug:
         return _refuse("This sign-in link is not valid any more. Start again.", "bad_state", slug, 400)
-    if time.time() - float(flow.get("started", 0)) > FLOW_SECONDS:
+    if now_seconds() - float(flow.get("started", 0)) > FLOW_SECONDS:
         return _refuse("The sign-in took too long. Start again.", "expired_flow", slug, 400)
     if request.args.get("error"):
         return _refuse("The school sign-in was cancelled or refused.", "provider_error", slug, 401)
@@ -540,6 +546,7 @@ def callback(slug: str):
         return _refuse(str(refusal), refusal.reason, slug, 403)
     principal = principal_from_user(user)
     sign_in(principal)
+    session["auth_via"] = slug   # signing out ends the kit session only (see auth.logout)
     security.record("oidc_sign_in", target_type="identity_provider", target_id=slug, actor=principal,
                     metadata={"account_created": created, "kit_role": user.kit_role})
     return redirect(flow.get("next") or "/")

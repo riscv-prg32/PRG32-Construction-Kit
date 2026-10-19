@@ -98,7 +98,7 @@ def test_state_must_be_this_browsers_fresh_single_use_state(app, client, idp, mo
         response = finish(browser, grant, slug="other")
     else:
         real = time.time
-        monkeypatch.setattr(identity.time, "time", lambda: real() + identity.FLOW_SECONDS + 5)
+        monkeypatch.setattr(identity, "now_seconds", lambda: real() + identity.FLOW_SECONDS + 5)
         response = finish(browser, grant)
     assert response.status_code == 400
     assert me(browser)["authenticated"] is False or problem == "reused"
@@ -166,7 +166,7 @@ def test_key_rotation_is_followed_but_unknown_keys_are_not(app, idp, monkeypatch
     browser.post("/auth/logout")
     idp.rotate()                                   # a new key the kit has not seen yet
     real = time.time                               # (the cache may be refreshed once a minute)
-    monkeypatch.setattr(identity.time, "time", lambda: real() + identity.JWKS_REFRESH_SECONDS + 1)
+    monkeypatch.setattr(identity, "now_seconds", lambda: real() + identity.JWKS_REFRESH_SECONDS + 1)
     assert school_sign_in(browser, idp, "pupil-1", "ada@school.test").status_code == 302
     browser.post("/auth/logout")
     idp.sign_with = "never-published"
@@ -312,3 +312,25 @@ def test_endpoints_must_be_https_except_on_this_computer():
     for url in ("http://idp.school.test/x", "ftp://idp/x", "https:///x", ""):
         with pytest.raises(ValueError):
             identity.check_endpoint(url)
+
+
+def test_signing_out_is_local_only_and_says_so(app, idp):
+    browser = app.test_client(login=None)
+    school_sign_in(browser, idp, "pupil-1", "ada@school.test")
+    answer = browser.post("/auth/logout", headers={"Accept": "application/json"}).get_json()
+    assert answer == {"ok": True, "school_session_ended": False}
+    school_sign_in(browser, idp, "pupil-1", "ada@school.test")
+    page = browser.post("/auth/logout", follow_redirects=True).get_data(as_text=True)
+    assert "school account may still be signed in" in page
+
+
+def test_caches_do_not_freeze_when_the_clock_goes_back(app, idp, monkeypatch):
+    """Keys cached 'in the future' (the clock was stepped back) are fetched again, not trusted for ever."""
+    real = time.time
+    monkeypatch.setattr(identity, "now_seconds", lambda: real() + 3600)
+    with app.app_context():
+        identity.signing_keys(idp.issuer + "/jwks")          # cached with a timestamp an hour ahead
+    monkeypatch.setattr(identity, "now_seconds", real)
+    idp.rotate()                                            # tokens are now signed with a key not in that cache
+    browser = app.test_client(login=None)
+    assert school_sign_in(browser, idp, "pupil-1", "ada@school.test").status_code == 302

@@ -358,9 +358,15 @@
         "tests/test_identity.py::test_key_rotation_is_followed_but_unknown_keys_are_not",
         "tests/test_identity.py::test_accounts_are_found_by_issuer_and_subject",
         "tests/test_identity.py::test_matching_email_never_joins_accounts",
-        "tests/test_identity.py::test_state_from_another_browser_is_refused"
+        "tests/test_identity.py::test_state_from_another_browser_is_refused",
+        "tests/test_identity_live.py::test_real_sign_in_with_discovery_jwks_and_pkce",
+        "tests/test_identity_live.py::test_the_provider_enforces_pkce",
+        "tests/test_identity_live.py::test_a_tampered_state_is_refused",
+        "tests/test_identity_live.py::test_expired_tokens_are_refused",
+        "tests/test_identity_live.py::test_a_wrong_audience_is_refused",
+        "tests/test_identity.py::test_caches_do_not_freeze_when_the_clock_goes_back"
       ],
-      "note": "Authorization Code + PKCE (S256), single-use state and nonce, ID token signature (RS256/PS256/ES256, JWKS rotation), iss/aud/azp/exp/iat checks; accounts by issuer+subject, never joined by email (ADR-0016). Tested against an in-process provider; no live IdP tenant."
+      "note": "Authorization Code + PKCE (S256), single-use state and nonce, ID token signature (RS256/PS256/ES256, JWKS rotation), iss/aud/azp/exp/iat; accounts by issuer+subject, never joined by email (ADR-0016). In-process provider tests plus an opt-in live suite against Keycloak 26.0.7 (docs/identity_live_testing.md); no institutional tenant run recorded."
     },
     {
       "id": "SSO-02",
@@ -377,9 +383,13 @@
         "tests/test_identity.py::test_provider_claims_grant_academic_roles_only",
         "tests/test_identity.py::test_linking_is_a_deliberate_act_of_the_signed_in_owner",
         "tests/test_identity.py::test_only_administrators_manage_providers_and_secrets_stay_references",
-        "tests/test_identity.py::test_unlinking_keeps_a_way_to_sign_in"
+        "tests/test_identity.py::test_unlinking_keeps_a_way_to_sign_in",
+        "tests/test_identity_live.py::test_collision_then_explicit_linking_then_recovery",
+        "tests/test_identity_live.py::test_deactivation_on_both_sides",
+        "tests/test_identity_live.py::test_key_rotation_and_role_claims",
+        "tests/test_identity.py::test_signing_out_is_local_only_and_says_so"
       ],
-      "note": "Admin-configured providers (secret by reference only), claim -> academic role mapping (never a global role), allowed domains, explicit account linking/unlinking as recovery path. No SCIM or IdP-initiated logout."
+      "note": "Admin-configured providers (secret by reference), claim -> academic role mapping, allowed domains, explicit linking/unlinking as recovery. No SCIM (just-in-time accounts, admin deprovisioning); logout is local only and says so (ADR-0016 amendment)."
     },
     {
       "id": "SSO-03",

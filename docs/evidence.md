@@ -12,7 +12,8 @@ administrator or an auditor can repeat them.
 | Full pytest suite, Python 3.11 and 3.12 | backend, generators, validators, maps, documentation consistency | `test` job |
 | Real-browser suites with `PRG32_REQUIRE_BROWSER=1` | offline page and player, CSP, IDE keyboard and accessibility, language services offline, the source and block debugger (audit scenario D). A missing browser **fails** the job; it cannot pass by skipping. Results: `browser-test-results.xml` | `browser` job: `tests/test_browser_offline.py`, `tests/test_ide_browser.py`, `tests/test_debugger_browser.py`, `tests/test_frontend_offline.py` |
 | Browser core = native core | the WebAssembly core runs cartridges, steps, stops at breakpoints (also at source-line checkpoints) exactly like PRG32-QT's core compiled natively | `wasm-runtime` job: `tests/test_wasm_runtime.py` |
-| Real cartridges in the kit's Docker image, inside the production sandbox | builds are isolated; debug builds give byte-identical cartridges | `container-smoke-test` job |
+| Real cartridges in the kit's Docker image, inside the production sandbox | builds are isolated; debug builds give byte-identical cartridges | `container-smoke-test` job; evidence kept as `container-evidence-<sha>` |
+| School sign-in against a real OpenID Connect provider (opt-in) | PKCE, state, expiry, audience, key rotation, collision/linking, deactivation, local logout with Keycloak 26.0.7 | `live-identity` job (manual), `tests/test_identity_live.py`, `identity_live_testing.md` |
 
 ## Generated files and how they are kept honest
 

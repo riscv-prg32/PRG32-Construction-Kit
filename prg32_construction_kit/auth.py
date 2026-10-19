@@ -756,9 +756,15 @@ def login():
 
 @bp.post("/auth/logout")
 def logout():
+    """Sign out of the kit. With school sign-in this does NOT sign out of the school's
+    identity provider (no front- or back-channel logout, ADR-0016): we say so."""
+    school = session.get("auth_via")
     session.clear()
     if wants_json():
-        return jsonify({"ok": True})
+        return jsonify({"ok": True, "school_session_ended": False if school else None})
+    if school:
+        flash("You are signed out of the kit. Your school account may still be signed in on this browser: "
+              "close the browser, or sign out on the school's sign-in page, on a shared computer.")
     return redirect(url_for("auth.login_form"))
 
 
