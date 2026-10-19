@@ -11,8 +11,14 @@
           <input class="form-control" name="username" placeholder="Username" required>
           <input class="form-control" name="email" type="email" placeholder="Email" required>
           <input class="form-control" name="password" type="password" autocomplete="new-password" placeholder="Password (empty = keep / single sign-on only)">
-          <select class="form-select" name="role">
+          <label class="small text-muted mb-0" for="userRole">Role (shared with the Cartridge Store)</label>
+          <select class="form-select" name="role" id="userRole">
             {% for role in roles %}<option value="{{ role }}" {% if role == 'user' %}selected{% endif %}>{{ role }}</option>{% endfor %}
+          </select>
+          <label class="small text-muted mb-0" for="userKitRole">In class (academic role)</label>
+          <select class="form-select" name="kit_role" id="userKitRole">
+            <option value="student" selected>student</option><option value="teacher">teacher</option>
+            <option value="facilitator">facilitator</option><option value="service">service (API tokens only)</option>
           </select>
           <input class="form-control" name="groups" placeholder="Groups, comma separated (e.g. editors, class-3b)">
           <div class="d-flex gap-2">
@@ -20,6 +26,12 @@
             <button class="btn btn-outline-secondary" type="reset" id="resetUserForm">New</button>
           </div>
         </form>
+      </div>
+    </div>
+    <div class="card shadow-sm mb-4">
+      <div class="card-body small">
+        <a href="/admin/identity"><i class="bi bi-mortarboard"></i> School sign-in providers</a> ·
+        <a href="/classes"><i class="bi bi-people"></i> Classes</a>
       </div>
     </div>
     <div class="card shadow-sm">
@@ -40,7 +52,7 @@
       <div class="card-header"><strong><i class="bi bi-people"></i> Users</strong></div>
       <div class="table-responsive">
         <table class="table table-sm align-middle mb-0">
-          <thead><tr><th>Username</th><th>Email</th><th>Role</th><th>Groups</th><th>Last sign-in</th><th></th></tr></thead>
+          <thead><tr><th>Username</th><th>Email</th><th>Role</th><th>In class</th><th>Groups</th><th>Last sign-in</th><th></th></tr></thead>
           <tbody id="userRows"></tbody>
         </table>
       </div>

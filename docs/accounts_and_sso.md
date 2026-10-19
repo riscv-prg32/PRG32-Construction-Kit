@@ -49,12 +49,27 @@ the `editors` group for its review queue.
 The **Users** page (admins only) creates, edits and deletes accounts. The kit
 refuses to delete or demote the last admin, and you cannot delete yourself.
 
+Beside the role, every account has a **role in class**: `student` (the
+default), `teacher`, `facilitator` or `service` (for scripts: API tokens only,
+no sign-in). Only an administrator changes it. Teachers make **classes** and add
+students; teachers and facilitators can look at, never change, their students'
+work. See `classes_and_roles.md`. Roles in class stay in the kit; the Cartridge
+Store only sees the role above.
+
+**Switch off** (Users page) deprovisions an account: it cannot sign in, its
+sessions end and its API tokens are revoked; its projects stay. **Switch on**
+restores sign-in (make new tokens). A new password, a new role or a new role in
+class also ends the account's other sessions, and every session ends
+`PRG32_KIT_SESSION_HOURS` after sign-in. **My account → Sign out everywhere**
+ends them all at once.
+
 ### Who sees what
 
 | Item | Owner | Other students | Admins |
 |---|---|---|---|
 | Project, sprite, artifact, build, publish profile | read and change | nothing | read and change |
 | Shared item (no owner, e.g. starter games) | - | read only | read and change |
+| A student's item, for a teacher or facilitator of that student's class | read and change | read only (never change or publish) | read and change |
 
 Projects made before accounts existed have no owner, so they become shared
 items. An admin can give one to a student by setting `owner_id` (the user's
@@ -69,16 +84,45 @@ id) with `PUT /api/projects/<id>`.
 | `PRG32_KIT_ALLOW_REGISTRATION` | `true` | Let people create their own accounts |
 | `PRG32_KIT_REQUIRE_EMAIL_DOMAIN` | empty | Only allow emails like `name@school.edu` |
 | `PRG32_KIT_DEFAULT_ROLE` | `user` | Role of self-registered accounts |
-| `PRG32_KIT_SESSION_HOURS` | `12` | How long a sign-in lasts |
+| `PRG32_KIT_SESSION_HOURS` | `12` | How long a sign-in lasts (from sign-in, however active) |
+| `PRG32_KIT_PUBLIC_URL` | empty | The kit's public address, for school sign-in redirect addresses (set it behind a proxy) |
 | `PRG32_KIT_SECURE_COOKIES` | `false` | Set `true` when the kit is served over HTTPS |
 | `PRG32_SMTP_HOST`, `_PORT`, `_FROM`, `_USER`, `_PASSWORD`, `_TLS` | empty | Mail server for registration links. Without one, the link is printed in the server log. |
-| `PRG32_OIDC_*`, `PRG32_SAML_*` | off | School sign-in, same names as the Cartridge Store |
+| `PRG32_OIDC_*`, `PRG32_SAML_*` | off | One school sign-in provider from the environment (more on **Users → School sign-in providers**) |
+
+### School sign-in (OpenID Connect)
+
+On **Users → School sign-in providers** an administrator adds the school's
+OpenID Connect provider: issuer, client id and where the client secret is
+(`env:NAME` or `file:/path`; the secret itself is never typed into the kit).
+Register the redirect address the page shows with the provider. Students then
+see a **sign-in button** for it. Several providers can be added (two schools,
+or students and staff).
+
+- Sign-in uses Authorization Code with PKCE; the kit checks the ID token's
+  signature, issuer, audience, expiry and nonce, and follows key rotation.
+- An account belongs to one identity: the provider's **issuer + subject**. A
+  first sign-in makes a new account. If an account with that email already
+  exists, sign-in is **refused**: the person signs in to the existing account
+  and presses **Link** on **My account**. The kit never joins accounts because
+  their emails match.
+- A provider claim (for example `roles: faculty`) can set the role in class of
+  **new** accounts (`student`, `teacher`, `facilitator`); it never gives
+  `publisher` or `admin`.
+- `allowed domains` limits which emails may make new accounts.
+- Signing out of the kit does not sign you out of the school.
+
+SAML (`PRG32_SAML_*`) uses the same rules, with the IdP entity id as issuer and
+the NameID as subject. Design: `adr/0016-academic-identity-and-scoped-roles.md`.
 
 ### Scripts and API tokens
 
-On **My account**, make an API token. Scripts send it as
-`Authorization: Bearer prg32_...`. The token is shown once; the kit keeps
-only a hash. Revoke it there if it leaks.
+On **My account**, make an API token and choose what it may do: **read**,
+**change** (write), **compile** (build), **publish**, **administer** (admins
+only), and when it expires. Scripts send it as `Authorization: Bearer prg32_...`.
+The token is shown once; the kit keeps only a hash. A token cannot change the
+password or make a token with more rights than its own. Revoke it there if it
+leaks. Tokens made before scopes existed keep full access until revoked.
 
 ## Linking the kit with a Cartridge Store
 

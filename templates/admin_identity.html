@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}School sign-in - PRG32-Construction-Kit{% endblock %}
+{% block content %}
+<h1 class="h3 mb-1"><i class="bi bi-mortarboard"></i> School sign-in providers</h1>
+<p class="text-muted">OpenID Connect providers students and teachers can sign in with (Authorization Code + PKCE).
+  Accounts are matched by issuer and subject, never by email. <a href="/docs/accounts_and_sso.md">Guide</a></p>
+<div class="row g-4">
+  <div class="col-lg-5">
+    <div class="card shadow-sm">
+      <div class="card-header"><strong id="providerFormTitle">New provider</strong></div>
+      <div class="card-body">
+        <form id="providerForm" class="vstack gap-2">
+          <label class="small mb-0" for="pSlug">Short name (in the address)</label>
+          <input class="form-control" id="pSlug" name="slug" placeholder="school" pattern="[a-z][a-z0-9-]{1,31}" required>
+          <label class="small mb-0" for="pName">Button text</label>
+          <input class="form-control" id="pName" name="name" placeholder="Sign in with our school" required>
+          <label class="small mb-0" for="pIssuer">Issuer</label>
+          <input class="form-control" id="pIssuer" name="issuer" placeholder="https://login.school.example/realms/students" required>
+          <label class="small mb-0" for="pClient">Client id</label>
+          <input class="form-control" id="pClient" name="client_id" required>
+          <label class="small mb-0" for="pSecret">Client secret: where it is, not the secret</label>
+          <input class="form-control" id="pSecret" name="client_secret_ref" placeholder="env:SCHOOL_OIDC_SECRET or file:/run/secrets/oidc (empty: public client)">
+          <label class="small mb-0" for="pRoleClaim">Claim with the person's role (optional)</label>
+          <input class="form-control" id="pRoleClaim" name="role_claim" placeholder="roles">
+          <label class="small mb-0" for="pRoleMap">Claim values → class roles, JSON (student, teacher, facilitator only)</label>
+          <input class="form-control font-monospace" id="pRoleMap" name="role_map" placeholder='{"faculty": "teacher", "student": "student"}'>
+          <label class="small mb-0" for="pDomains">Email domains that may make new accounts (optional, space separated)</label>
+          <input class="form-control" id="pDomains" name="allowed_domains" placeholder="school.example">
+          <div class="small text-muted">Redirect address to register with the provider: <code>{{ redirect_example }}</code> (SLUG = the short name)</div>
+          <button class="btn btn-primary" type="submit">Save provider</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-7">
+    <div class="card shadow-sm">
+      <div class="card-header"><strong>Providers</strong></div>
+      <ul class="list-group list-group-flush" id="providerList"></ul>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/admin_identity.js') }}"></script>
+{% endblock %}

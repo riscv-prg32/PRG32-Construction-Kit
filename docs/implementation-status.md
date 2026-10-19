@@ -12,7 +12,7 @@ evidence-checked view is `capabilities.md` (from `capabilities.json`). A gate is
 | G3 Toolchain | In progress | Server builds produce real `.prg32`; build provenance and cartridge SHA-256 done; every compile runs in a bubblewrap sandbox (ADR-0010, audit H-03). Browser toolchain open. |
 | G4 WASM runtime | **Complete** (core scope) | PRG32-QT core as WebAssembly, `/player`, golden tests WASM = native = `prg32qt-headless`. Multiplayer/Wi-Fi host services and exact audio open. |
 | G5 Debugger | **In progress** (source and block slice complete) | Player debugger on the WASM core (Qt parity, ADR-0006) plus, for kit-compiled cartridges, source and block debugging (ADR-0015) [DBG-05]: block → IR → source → address maps, C/assembly/block breakpoints with conditions, active block, locals/globals, call stack, watches, counter CSRs, stack view, compressed-instruction fixture; differential tests at source checkpoints. Open: inlined frames, operand-level checks, a PRG32-QT desktop equivalent. |
-| G6 Identity/storage | In progress | Secure first-admin bootstrap, sign-in throttling, admin audit log done (quality round 1). OIDC/PKCE, roles, guest policy, cloud sync open. |
+| G6 Identity/storage | In progress (identity slice complete) | Secure first-admin bootstrap, throttling, audit log (quality round 1); OIDC + PKCE, issuer+subject accounts, several providers, explicit linking, academic roles and classes, scoped tokens, session epochs and deprovisioning (ADR-0016) [SSO-01] [SSO-02] [SSO-03]. Guest policy, quotas, autosave, retention and cloud sync open. |
 | G7 Delivery | Not started | Store publish exists (pre-existing); Store egress policy closes audit H-01 (ADR-0008); publisher role + confirmed review close H-02 (ADR-0009). Draft/update/visibility states not applicable (no Store API). |
 | G8 Release | Not started | |
 
@@ -52,6 +52,10 @@ evidence-checked view is `capabilities.md` (from `capabilities.json`). A gate is
 | 2026-10-19 | Browser suites (incl. scenario D, `tests/test_debugger_browser.py`) with `PRG32_REQUIRE_BROWSER=1` | 65 passed; scenario D 3/3 repeated runs |
 | 2026-10-19 | `tests/test_wasm_runtime.py` with PRG32-QT `f6d80ad` (native vs WebAssembly at source checkpoints) | 37 passed, 1 skipped |
 | 2026-10-19 | Kit Docker image, production sandbox (`bwrap`): `test_source_debugger.py` real debug build, `check_build.py` | pass: identical cartridge with and without `-g`; 8 cartridges |
+| 2026-10-19 | After refinement phase 5 (identity and scoped roles): `python3 -m pytest -q -rs` | 798 passed, 23 skipped |
+| 2026-10-19 | same, with the real toolchain and PRG32 SDK `679dfb5` | 805 passed, 16 skipped |
+| 2026-10-19 | Browser suites incl. `tests/test_accounts_browser.py`, `PRG32_REQUIRE_BROWSER=1` | 70 passed |
+| 2026-10-19 | `cmp prg32_construction_kit/sso_protocol.py ../CartridgeStore/cartridge_store/sso_protocol.py` | identical |
 
 Skipped and why:
 

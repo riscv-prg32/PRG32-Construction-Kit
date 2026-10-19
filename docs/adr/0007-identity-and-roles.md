@@ -1,6 +1,6 @@
 # ADR-0007: OIDC with PKCE, issuer+subject linking, wider roles
 
-**Status:** Proposed
+**Status:** Superseded by ADR-0016 (implemented 2026-10-19; roles became kit-only academic roles and classes so the CartridgeStore sync stays unchanged)
 
 ## Context
 

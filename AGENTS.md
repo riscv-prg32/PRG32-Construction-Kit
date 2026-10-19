@@ -78,6 +78,7 @@ Preserve these action routes:
 - Items belong to their creator (`owner_id`); items without an owner are shared and read-only for non-admins.
 - `prg32_construction_kit/sso_protocol.py` must stay identical to `cartridge_store/sso_protocol.py` in CartridgeStore.
 - Never store plain-text passwords; synced records carry password hashes only.
+- School sign-in (ADR-0016): accounts are keyed by issuer + subject (`external_identities`); never join accounts by matching email; keep PKCE, single-use state/nonce and full ID-token verification. Provider claims may set academic roles only, never global roles. Supervision (teachers/facilitators of a class) is read-only and must never publish. API tokens are checked against their scopes before any route.
 - Browser API calls send `X-PRG32-Kit: 1` and `X-PRG32-User`; keep the `409 user_changed` refusal when a window's user no longer matches the session.
 
 ## Frontend constraints

@@ -173,7 +173,8 @@ def test_user_management_is_audited_without_passwords(app, client):
     client.put(f"/api/users/{user['id']}", json={"password": "a-new-password-22"})
     client.delete(f"/api/users/{user['id']}")
     log = {event["action"]: event for event in events(client)}
-    assert log["user_create"]["metadata"] == {"groups": ["class-3b"], "role": "user", "username": "ada"}
+    assert log["user_create"]["metadata"] == {"groups": ["class-3b"], "role": "user", "kit_role": "student",
+                                              "username": "ada"}
     assert log["user_role_change"]["metadata"]["role_before"] == "user"
     assert log["user_role_change"]["metadata"]["role_after"] == "admin"
     assert log["user_groups_change"]["metadata"]["groups_after"] == ["class-4a"]

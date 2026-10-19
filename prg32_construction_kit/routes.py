@@ -31,6 +31,7 @@ from .db import utcnow
 from .build_sandbox import settings_from_config
 from .provenance import build_provenance
 from .build_slots import BuildServerBusy, build_slot
+from .classes import supervises
 from .asm_generator import ir_to_asm
 from .debug_info import unavailable as debug_unavailable
 from .generator import blocks_to_c, sprite_to_c
@@ -79,11 +80,14 @@ def request_json() -> dict[str, Any]:
 # who is signed in can read them, only admins can change them. Admins can see
 # and change everything.
 
-def can_read(item: dict[str, Any] | None, principal: Principal | None = None) -> bool:
+def can_read(item: dict[str, Any] | None, principal: Principal | None = None, supervised: bool = True) -> bool:
+    """Own, shared (no owner) or, for teachers and facilitators, a student's in their class (ADR-0016)."""
     principal = principal or current_principal()
     if item is None or not principal.authenticated:
         return False
-    return principal.is_admin or item.get("owner_id") in (None, principal.id)
+    if principal.is_admin or item.get("owner_id") in (None, principal.id):
+        return True
+    return supervised and supervises(principal, item.get("owner_id"))
 
 
 def can_write(item: dict[str, Any] | None, principal: Principal | None = None) -> bool:
@@ -93,12 +97,15 @@ def can_write(item: dict[str, Any] | None, principal: Principal | None = None) -
     return principal.is_admin or item.get("owner_id") == principal.id
 
 
-def readable(resource: str, item_id: Any) -> dict[str, Any] | None:
-    """The item, or None when it does not exist or the user may not see it."""
+def readable(resource: str, item_id: Any, supervised: bool = True) -> dict[str, Any] | None:
+    """The item, or None when it does not exist or the user may not see it.
+
+    ``supervised=False``: only the user's own and shared items (what they may act on as themselves).
+    """
     if not item_id:
         return None
     item = get_resource(resource, str(item_id))
-    return item if can_read(item) else None
+    return item if can_read(item, supervised=supervised) else None
 
 
 def viewer_id() -> int | None:
@@ -1122,8 +1129,9 @@ def _prepare_publish(payload: dict[str, Any], stage_action: str):
     if not role_at_least(principal.role, "publisher"):
         return None, None, None, None, None, _publish_refusal(
             stage_action, payload, None, "not_publisher", publishing.MESSAGES["not_publisher"], 403, outcome="denied")
-    profile = readable("publish_profiles", payload.get("profile_id", ""))
-    artifact = readable("artifacts", payload.get("bundle_artifact_id", ""))
+    # A teacher may read a student's bundle, but publishes only their own (or shared) work.
+    profile = readable("publish_profiles", payload.get("profile_id", ""), supervised=False)
+    artifact = readable("artifacts", payload.get("bundle_artifact_id", ""), supervised=False)
     if profile is None:
         return None, None, None, None, None, _publish_refusal(stage_action, payload, None, "profile_not_found",
                                                               "Publish profile not found", 404)

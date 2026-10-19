@@ -6,7 +6,14 @@ learn it once:
 - every person has a user account (username, email, password, role);
 - roles go from ``reader`` to ``admin``; groups (like ``editors``) are labels;
 - browsers sign in with a session cookie, scripts send an API token as
-  ``Authorization: Bearer prg32_...``;
+  ``Authorization: Bearer prg32_...`` (each token has scopes: read, write, build,
+  publish, admin);
+- beside the global role, which CartridgeStore shares, the kit gives every
+  account an academic role (student, teacher, facilitator or service) and class
+  memberships (classes.py); school sign-in keys accounts by issuer + subject
+  (identity.py, ADR-0016);
+- a session ends when the account's ``session_epoch`` changes (password, role,
+  deactivation, "sign out everywhere") or after PRG32_KIT_SESSION_HOURS;
 - the first start creates an ``admin`` account (password from
   ``PRG32_ADMIN_PASSWORD``, or ``password`` -- change it right away).
 
@@ -54,6 +61,12 @@ ROLE_LEVELS = {
     "admin": 3,
 }
 
+# Kit-only academic roles (ADR-0016). Not synchronised with CartridgeStore.
+KIT_ROLES = ("student", "teacher", "facilitator", "service")
+# What an API token may do. A token made before scopes existed (scopes NULL) may do everything.
+TOKEN_SCOPES = ("read", "write", "build", "publish", "admin")
+DEFAULT_TOKEN_SCOPES = ("read", "write", "build")
+
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 MIN_PASSWORD_LENGTH = 10
 
@@ -75,6 +88,10 @@ class User(db.Model):
     # Changed whenever the account changes; user sync uses it to keep the newest version.
     updated_at: Mapped[str] = mapped_column(db.Text, nullable=False, default=timestamp_now)
     last_login: Mapped[str | None] = mapped_column(db.Text)
+    # ADR-0016: academic role, deactivation, and the number that ends older sessions.
+    kit_role: Mapped[str] = mapped_column(db.Text, nullable=False, default="student")
+    disabled_at: Mapped[str | None] = mapped_column(db.Text)
+    session_epoch: Mapped[int] = mapped_column(db.Integer, nullable=False, default=0)
 
 
 class ApiToken(db.Model):
@@ -85,6 +102,8 @@ class ApiToken(db.Model):
     label: Mapped[str] = mapped_column(db.Text, nullable=False, default="API token")
     created_at: Mapped[str] = mapped_column(db.Text, nullable=False, default=utcnow)
     last_used: Mapped[str | None] = mapped_column(db.Text)
+    scopes: Mapped[str | None] = mapped_column(db.Text)       # "read write build"; NULL = every scope
+    expires_at: Mapped[str | None] = mapped_column(db.Text)
 
 
 class Group(db.Model):
@@ -120,10 +139,20 @@ class Principal:
     id: int | None = None
     email: str = ""
     groups: tuple[str, ...] = ()
+    kit_role: str = "student"
+    # None for a browser session; the token's scopes when the request came with an API token.
+    token_scopes: tuple[str, ...] | None = None
 
     @property
     def username(self) -> str:
         return self.name
+
+    @property
+    def is_teacher(self) -> bool:
+        return self.authenticated and self.kit_role == "teacher"
+
+    def has_scope(self, scope: str) -> bool:
+        return self.token_scopes is None or scope in self.token_scopes
 
     @property
     def is_admin(self) -> bool:
@@ -136,6 +165,7 @@ class Principal:
             "username": self.name,
             "email": self.email,
             "role": self.role,
+            "kit_role": self.kit_role,
             "groups": list(self.groups),
             "authenticated": self.authenticated,
         }
@@ -170,9 +200,9 @@ def groups_for_user(user_id: int) -> tuple[str, ...]:
     return tuple(rows)
 
 
-def principal_from_user(user: User | None) -> Principal:
-    if user is None:
-        return ANONYMOUS
+def principal_from_user(user: User | None, token_scopes: tuple[str, ...] | None = None) -> Principal:
+    if user is None or user.disabled_at:
+        return ANONYMOUS  # a deactivated account is nobody
     return Principal(
         id=int(user.id),
         name=user.username,
@@ -180,6 +210,8 @@ def principal_from_user(user: User | None) -> Principal:
         role=normalize_role(user.role or "user"),
         authenticated=True,
         groups=groups_for_user(int(user.id)),
+        kit_role=user.kit_role or "student",
+        token_scopes=token_scopes,
     )
 
 
@@ -202,11 +234,12 @@ def authenticate_token(token: str) -> Principal:
     if not token:
         return ANONYMOUS
     row = db.session.scalar(select(ApiToken).where(ApiToken.token_hash == token_hash(token)))
-    if row is None:
+    if row is None or (row.expires_at and row.expires_at <= utcnow()):
         return ANONYMOUS
     row.last_used = utcnow()
     db.session.commit()
-    return load_user(row.user_id)
+    scopes = tuple(row.scopes.split()) if row.scopes is not None else None
+    return principal_from_user(db.session.get(User, row.user_id), token_scopes=scopes)
 
 
 def current_principal() -> Principal:
@@ -217,16 +250,36 @@ def current_principal() -> Principal:
     user_id = session.get("user_id")
     if user_id is not None:
         try:
-            principal = load_user(int(user_id))
+            principal = _session_principal(int(user_id))
         except (TypeError, ValueError):
             principal = ANONYMOUS
         if not principal.authenticated:
-            session.clear()  # the account was deleted (perhaps on the synced Cartridge Store)
+            # Deleted (perhaps on the synced Cartridge Store), deactivated, signed out
+            # everywhere, or simply too old: this session is over.
+            session.clear()
     if not principal.authenticated:
         principal = authenticate_token(extract_token())
         g.prg32_auth_by_token = principal.authenticated
     g.prg32_principal = principal
     return principal
+
+
+def _session_principal(user_id: int) -> Principal:
+    user = db.session.get(User, user_id)
+    if user is None or user.disabled_at or user.kit_role == "service":
+        return ANONYMOUS
+    if session.get("epoch") != (user.session_epoch or 0):
+        return ANONYMOUS
+    started = session.get("signed_in_at")
+    lifetime = int(current_app.config["PERMANENT_SESSION_LIFETIME"])
+    if not isinstance(started, (int, float)) or datetime.now(timezone.utc).timestamp() - started > lifetime:
+        return ANONYMOUS  # sessions end a fixed time after sign-in, however active they are
+    return principal_from_user(user)
+
+
+def end_sessions(user: User) -> None:
+    """Every session of this account ends at its next request (ADR-0016)."""
+    user.session_epoch = (user.session_epoch or 0) + 1
 
 
 def wants_json() -> bool:
@@ -355,8 +408,14 @@ def create_user(username: str, email: str, password: str | None, *, role: str = 
 
 
 def update_user(user: User, *, username: str | None = None, email: str | None = None, password: str | None = None,
-                role: str | None = None, groups: Iterable[str] | None = None) -> User:
+                role: str | None = None, groups: Iterable[str] | None = None, kit_role: str | None = None) -> User:
     previous_email = user.email
+    if kit_role is not None:
+        if kit_role not in KIT_ROLES:
+            raise ValueError("academic role must be one of: " + ", ".join(KIT_ROLES))
+        if kit_role != user.kit_role:
+            end_sessions(user)
+        user.kit_role = kit_role
     if email is not None:
         email = normalize_email(email)
         if not EMAIL_RE.fullmatch(email):
@@ -375,10 +434,13 @@ def update_user(user: User, *, username: str | None = None, email: str | None = 
     if password:
         _check_password(password)
         user.password_hash = generate_password_hash(password)
+        end_sessions(user)
     if role is not None:
         role = normalize_role(role)
         if user.role == "admin" and role != "admin" and admin_count(excluding=user.id) == 0:
             raise ValueError("the last admin cannot be demoted")
+        if role != user.role:
+            end_sessions(user)
         user.role = role
     if groups is not None:
         _write_groups(int(user.id), groups)
@@ -406,7 +468,10 @@ def user_as_dict(user: User) -> dict[str, Any]:
         "email": user.email,
         "role": user.role,
         "groups": list(groups_for_user(int(user.id))),
-        "external_provider": user.external_provider,
+        "kit_role": user.kit_role or "student",
+        "disabled": bool(user.disabled_at),
+        "disabled_at": user.disabled_at,
+        "identities": identity_summaries(int(user.id)),
         "has_password": bool(user.password_hash),
         "created_at": user.created_at,
         "updated_at": user.updated_at,
@@ -417,36 +482,17 @@ def user_as_dict(user: User) -> dict[str, Any]:
 def authenticate_local_user(username: str, password: str) -> Principal:
     name = str(username or "").strip()
     user = db.session.scalar(select(User).where((User.username == name) | (User.email == name.lower())))
-    if user is None or not user.password_hash:
+    if user is None or not user.password_hash or user.disabled_at or user.kit_role == "service":
         return ANONYMOUS
     if not check_password_hash(user.password_hash, password or ""):
         return ANONYMOUS
     return principal_from_user(user)
 
 
-def upsert_external_user(*, provider: str, external_id: str, email: str, username: str = "") -> User:
-    """Find or create the account for someone who signed in with OIDC or SAML."""
-    provider = str(provider).strip().lower()
-    external_id = str(external_id).strip()
-    email = normalize_email(email)
-    if not provider or not external_id or not email:
-        raise ValueError("provider, external_id, and email are required")
-    user = db.session.scalar(select(User).where(User.external_provider == provider, User.external_id == external_id))
-    if user is None:
-        # Link by the identity provider's email only. Matching on username would let
-        # an IdP user called "admin" take over the local admin account.
-        user = find_user_by_email(email)
-    if user is None:
-        user = create_user(unique_username(username or email, email), email, None,
-                           role=current_app.config["DEFAULT_ROLE"], sync=False)
-    previous_email = user.email
-    user.email = email
-    user.external_provider = provider
-    user.external_id = external_id
-    user.updated_at = timestamp_now()
-    db.session.commit()
-    _notify_sync(user, previous_email=previous_email if previous_email != email else None)
-    return user
+def identity_summaries(user_id: int) -> list[dict[str, str]]:
+    from .identity import identities_of
+
+    return identities_of(user_id)
 
 
 # Passwords nobody may use for the first admin on a production server.
@@ -535,6 +581,8 @@ def sign_in(principal: Principal) -> None:
         db.session.commit()
     session.clear()
     session["user_id"] = principal.id
+    session["epoch"] = (user.session_epoch or 0) if user is not None else 0
+    session["signed_in_at"] = datetime.now(timezone.utc).timestamp()
     session.permanent = True
 
 
@@ -598,16 +646,38 @@ def _send_registration_email(email: str, link: str) -> None:
 # Pages and files anyone may open without signing in.
 PUBLIC_PREFIXES = ("/auth/", "/static/", "/docs/", "/.well-known/")
 PUBLIC_PATHS = {"/documentation", "/favicon.ico", "/api/sso/users", "/service-worker.js"}
+# Under /auth/ but only for a signed-in account (so API-token scopes apply to them too).
+ACCOUNT_PATHS = ("/auth/tokens", "/auth/password", "/auth/sessions", "/auth/identities")
+
+
+def required_scope(method: str, path: str) -> str:
+    """The API-token scope a request needs (ADR-0016)."""
+    if path.startswith(("/api/admin", "/api/users", "/admin/")):
+        return "admin"
+    if path.startswith("/api/publish"):
+        return "publish"
+    if method == "POST" and path.endswith(("/package", "/convert")):
+        return "build"
+    if method in ("GET", "HEAD", "OPTIONS"):
+        return "read"
+    return "write"
 
 
 def guard_request():
     """Run before every request: ask for a sign-in, and block cross-site form posts."""
     path = request.path
-    if path in PUBLIC_PATHS or path.startswith(PUBLIC_PREFIXES):
+    if path in PUBLIC_PATHS or (path.startswith(PUBLIC_PREFIXES) and not path.startswith(ACCOUNT_PATHS)):
         return None
     principal = current_principal()
     if not principal.authenticated:
         return auth_failure("Please sign in first", 401)
+    if principal.token_scopes is not None:
+        needed = required_scope(request.method, path)
+        if not principal.has_scope(needed) or path.startswith("/auth/password"):
+            security.record("api_token_scope", target_type="route", target_id=path, outcome="denied",
+                            metadata={"needed": needed, "method": request.method})
+            return jsonify({"error": f"this API token does not have the {needed!r} scope",
+                            "code": "insufficient_scope"}), 403
     if (request.method == "POST" and not getattr(g, "prg32_auth_by_token", False)
             and not request.is_json and request.headers.get("X-PRG32-Kit") != "1"):
         # A web page on another site can submit a plain form (always a POST) to
@@ -802,11 +872,41 @@ def change_password():
         return jsonify({"error": "current password is wrong"}), 400
     update_user(user, password=str(data.get("new_password", "")) or None)
     security.record("password_change", target_type="user", target_id=user.id)
+    sign_in(principal_from_user(user))  # this window stays signed in; every other session ends
+    return jsonify({"ok": True})
+
+
+@bp.post("/auth/sessions/revoke")
+@login_required
+def revoke_my_sessions():
+    """Sign out everywhere: every session of this account ends, including this one."""
+    user = db.session.get(User, current_principal().id)
+    end_sessions(user)
+    db.session.commit()
+    security.record("sessions_revoke", target_type="user", target_id=user.id, metadata={"by": "self"})
+    session.clear()
     return jsonify({"ok": True})
 
 
 def _token_record(row: ApiToken) -> dict[str, Any]:
-    return {"id": row.id, "label": row.label, "created_at": row.created_at, "last_used": row.last_used or ""}
+    return {"id": row.id, "label": row.label, "created_at": row.created_at, "last_used": row.last_used or "",
+            "scopes": row.scopes.split() if row.scopes is not None else list(TOKEN_SCOPES),
+            "expires_at": row.expires_at or ""}
+
+
+def _requested_scopes(data: dict[str, Any], principal: Principal) -> list[str]:
+    scopes = data.get("scopes", list(DEFAULT_TOKEN_SCOPES))
+    if isinstance(scopes, str):
+        scopes = scopes.split()
+    if not isinstance(scopes, list) or not scopes or any(scope not in TOKEN_SCOPES for scope in scopes):
+        raise ValueError("scopes must be a list of: " + ", ".join(TOKEN_SCOPES))
+    if "admin" in scopes and not principal.is_admin:
+        raise ValueError("only administrators can make tokens with the admin scope")
+    if "publish" in scopes and not role_at_least(principal.role, "publisher"):
+        raise ValueError("only publishers can make tokens with the publish scope")
+    if principal.token_scopes is not None and not set(scopes) <= set(principal.token_scopes):
+        raise ValueError("a token cannot make a token with more scopes than its own")
+    return [scope for scope in TOKEN_SCOPES if scope in scopes]
 
 
 @bp.get("/auth/tokens")
@@ -827,13 +927,22 @@ def create_token():
     except security.Throttled as error:
         security.record("api_token_create", target_type="api_token", outcome="denied", metadata={"label": label})
         return too_many(error)
+    scopes = _requested_scopes(data, current_principal())
+    days = data.get("expires_in_days")
+    if days is not None and (not isinstance(days, int) or isinstance(days, bool) or not 1 <= days <= 3650):
+        raise ValueError("expires_in_days must be a whole number of days from 1 to 3650")
+    expires = ((datetime.now(timezone.utc) + timedelta(days=days)).replace(microsecond=0).isoformat()
+               if days else None)
     token = "prg32_" + secrets.token_urlsafe(32)
-    row = ApiToken(user_id=current_principal().id, token_hash=token_hash(token), label=label)
+    row = ApiToken(user_id=current_principal().id, token_hash=token_hash(token), label=label,
+                   scopes=" ".join(scopes), expires_at=expires)
     db.session.add(row)
     db.session.commit()
-    security.record("api_token_create", target_type="api_token", target_id=row.id, metadata={"label": label})
+    security.record("api_token_create", target_type="api_token", target_id=row.id,
+                    metadata={"label": label, "scopes": scopes, "expires_at": expires or ""})
     # The token is shown only now; the server keeps just its hash.
-    return jsonify({"ok": True, "id": row.id, "label": label, "token": token}), 201
+    return jsonify({"ok": True, "id": row.id, "label": label, "token": token, "scopes": scopes,
+                    "expires_at": expires or ""}), 201
 
 
 @bp.patch("/auth/tokens/<int:token_id>")
@@ -893,10 +1002,17 @@ def _groups_from(data: dict[str, Any]) -> list[str] | None:
 @admin_required
 def api_create_user():
     data = request.get_json(silent=True) or {}
+    kit_role = str(data.get("kit_role") or "student")
+    if kit_role not in KIT_ROLES:
+        raise ValueError("academic role must be one of: " + ", ".join(KIT_ROLES))
     user = create_user(str(data.get("username") or ""), str(data.get("email") or ""), str(data.get("password") or "") or None,
                        role=str(data.get("role") or "user"), groups=_groups_from(data) or [])
+    if kit_role != "student":
+        user.kit_role = kit_role
+        db.session.commit()
     security.record("user_create", target_type="user", target_id=user.id,
-                    metadata={"username": user.username, "role": user.role, "groups": list(groups_for_user(user.id))})
+                    metadata={"username": user.username, "role": user.role, "kit_role": user.kit_role,
+                              "groups": list(groups_for_user(user.id))})
     return jsonify(user_as_dict(user)), 201
 
 
@@ -926,6 +1042,9 @@ def api_user(user_id: int):
     if user.id == me.id and "role" in data and data["role"] != "admin":
         return jsonify({"error": "admins cannot demote themselves"}), 400
     before = {"username": user.username, "email": user.email, "role": user.role, "groups": list(groups_for_user(user.id))}
+    if user.id == me.id and "kit_role" in data and data["kit_role"] != user.kit_role:
+        return jsonify({"error": "you cannot change your own academic role"}), 400
+    before["kit_role"] = user.kit_role
     update_user(
         user,
         username=str(data["username"]) if "username" in data else None,
@@ -933,16 +1052,64 @@ def api_user(user_id: int):
         password=str(data.get("password") or "") or None,
         role=str(data["role"]) if "role" in data else None,
         groups=_groups_from(data),
+        kit_role=str(data["kit_role"]) if "kit_role" in data else None,
     )
-    after = {"username": user.username, "email": user.email, "role": user.role, "groups": list(groups_for_user(user.id))}
+    after = {"username": user.username, "email": user.email, "role": user.role, "groups": list(groups_for_user(user.id)),
+             "kit_role": user.kit_role}
     changes = {f"{key}_before": before[key] for key in before if before[key] != after[key]}
     changes.update({f"{key}_after": after[key] for key in after if before[key] != after[key]})
     if data.get("password"):
         changes["credentials_changed"] = True  # that the password changed, never its value
     action = ("user_role_change" if "role_after" in changes
+              else "user_kit_role_change" if "kit_role_after" in changes
               else "user_groups_change" if "groups_after" in changes else "user_update")
     security.record(action, target_type="user", target_id=user_id, metadata=changes)
     return jsonify(user_as_dict(user))
+
+
+def _set_disabled(user_id: int, disabled: bool):
+    user = db.session.get(User, user_id)
+    if user is None:
+        return jsonify({"error": "user not found"}), 404
+    if user.id == current_principal().id:
+        return jsonify({"error": "you cannot deactivate your own account"}), 400
+    if disabled and user.role == "admin" and admin_count(excluding=user.id) == 0:
+        return jsonify({"error": "the last admin cannot be deactivated"}), 400
+    if disabled:
+        user.disabled_at = user.disabled_at or utcnow()
+        end_sessions(user)
+        db.session.execute(delete(ApiToken).where(ApiToken.user_id == user.id))  # tokens stop working for good
+    else:
+        user.disabled_at = None
+    db.session.commit()
+    security.record("user_deactivate" if disabled else "user_reactivate", target_type="user", target_id=user.id,
+                    metadata={"username": user.username})
+    return jsonify(user_as_dict(user))
+
+
+@bp.post("/api/users/<int:user_id>/deactivate")
+@admin_required
+def api_deactivate_user(user_id: int):
+    """Deprovision: no sign-in, sessions end, API tokens are revoked; the account's items stay."""
+    return _set_disabled(user_id, True)
+
+
+@bp.post("/api/users/<int:user_id>/reactivate")
+@admin_required
+def api_reactivate_user(user_id: int):
+    return _set_disabled(user_id, False)
+
+
+@bp.post("/api/users/<int:user_id>/sessions/revoke")
+@admin_required
+def api_revoke_user_sessions(user_id: int):
+    user = db.session.get(User, user_id)
+    if user is None:
+        return jsonify({"error": "user not found"}), 404
+    end_sessions(user)
+    db.session.commit()
+    security.record("sessions_revoke", target_type="user", target_id=user.id, metadata={"by": "admin"})
+    return jsonify({"ok": True})
 
 
 # --- teacher (admin) security tools ------------------------------------------
@@ -975,9 +1142,34 @@ def handle_bad_value(exc: ValueError):
     return render_template("error.html", error=str(exc)), 400
 
 
+_NEW_COLUMNS = {
+    "users": {"kit_role": "TEXT NOT NULL DEFAULT 'student'", "disabled_at": "TEXT",
+              "session_epoch": "INTEGER NOT NULL DEFAULT 0"},
+    "api_tokens": {"scopes": "TEXT", "expires_at": "TEXT"},
+}
+
+
+def migrate() -> None:
+    """Add the ADR-0016 columns to databases made before them (idempotent)."""
+    from sqlalchemy import inspect, text
+
+    inspector = inspect(db.engine)
+    with db.engine.begin() as connection:
+        for table, columns in _NEW_COLUMNS.items():
+            present = {column["name"] for column in inspector.get_columns(table)}
+            for name, kind in columns.items():
+                if name not in present:
+                    connection.execute(text(f"ALTER TABLE {table} ADD COLUMN {name} {kind}"))
+    from .identity import migrate_legacy_identities
+
+    migrate_legacy_identities()
+
+
 def init_app(app) -> None:
     from . import auth_adapters
 
+    with app.app_context():
+        migrate()
     app.register_blueprint(bp)
     app.before_request(guard_request)
 

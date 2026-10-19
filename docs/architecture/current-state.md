@@ -32,6 +32,8 @@ commit; the newest may say *this change* while it is the commit being made.
 | CI browser suite, documentation drift repair | `7910e86`, `9332c8c` | `tests/test_frontend_offline.py::test_ci_runs_every_browser_suite_and_forbids_skipping`, `tests/test_doc_consistency.py` |
 | Refinement phase 3: offline language services | `a9f2c97` | ADR-0014, `tests/test_language_services.py` |
 | Refinement phase 4: source and block debugger | `5dd98a9` | ADR-0015, `tests/test_source_debugger.py`, `tests/test_debugger_browser.py` (audited: 79/132) |
+| Evidence drift repair after the audit of `5dd98a9` | `e91b68b` | `../evidence.md`, `tests/test_doc_consistency.py` |
+| Refinement phase 5: academic identity and scoped roles | this change | ADR-0016, `tests/test_identity.py`, `tests/test_authorization.py`, `tests/test_accounts_browser.py` |
 
 How each kind of evidence is produced and checked: `../evidence.md`.
 
@@ -87,6 +89,11 @@ capability IDs.
   [IDE-02] [DBG-04] [DBG-05]
 - Accounts shared with CartridgeStore; authorized, reviewed, confirmed
   publishing behind a Store egress policy. [SSO-04] [STR-02]
+- Academic identity (ADR-0016): OIDC Authorization Code + PKCE with verified ID
+  tokens, accounts by issuer + subject (never joined by email), several
+  admin-configured providers, explicit account linking; academic roles and
+  classes with read-only supervision, scoped and expiring API tokens, session
+  epochs, deprovisioning. [SSO-01] [SSO-02] [SSO-03]
 - Threat model, SSRF controls, build isolation; CI, Docker, migrations,
   health; documentation and traceability. [SEC-01] [OPS-01] [DOC-01]
 - Self-contained frontend: every library from `static/vendor/`, strict CSP,
@@ -94,9 +101,8 @@ capability IDs.
 
 ### Partly implemented
 
-- Registered storage with ownership and history; no quotas, autosave or
-  retention. [ACC-02]
-- Prototype OIDC (one provider, no PKCE) and an ordinal role ladder. [SSO-01] [SSO-02] [SSO-03]
+- Registered storage with ownership, history and deprovisioning; no quotas,
+  autosave or retention. [ACC-02]
 - Store bundle preparation without a shared schema or live conformance; PRG32-QT
   delivery with runtime parity but no executed import. [STR-01] [DEP-02]
 - Credentials, throttling and audit log; quality gates without lint, type,
@@ -110,8 +116,10 @@ capability IDs.
 
 ## Risks
 
-1. **Scope gap:** identity, guest storage, the shared Store contract and
-   delivery evidence are the largest missing pieces of the Full IDE. The language services follow the
+1. **Scope gap:** guest storage, quotas/autosave/retention, the shared Store
+   contract, cloud storage and delivery evidence are the largest missing pieces
+   of the Full IDE. School sign-in is tested against an in-process provider, not
+   a live institutional tenant. The language services follow the
    kit's rules and the SDK, not C semantics (no types or scopes).
 2. **Sandbox deployment:** AppArmor hosts need `apparmor=unconfined` today; no
    per-build disk quota or UID (`../build_sandbox.md`).

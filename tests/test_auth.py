@@ -160,6 +160,9 @@ def test_only_admins_manage_users(app, client):
     assert ada.get("/api/users").status_code == 403
     assert ada.get("/admin/users").status_code == 403
     assert client.put(f"/api/users/{student['id']}", json={"role": "publisher", "groups": ["class-3b"]}).get_json()["groups"] == ["class-3b"]
+    # A new role ends the account's sessions (ADR-0016): signing in again shows it.
+    assert ada.get("/api/projects").status_code == 401
+    ada = student_client(app, "ada")
     assert ada.get("/auth/me").get_json()["user"]["role"] == "publisher"
     assert client.delete(f"/api/users/{student['id']}").get_json()["deleted"] is True
     assert ada.get("/api/projects").status_code == 401  # a deleted account is signed out

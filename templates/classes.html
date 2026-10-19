@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Classes - PRG32-Construction-Kit{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+  <div>
+    <h1 class="h3 mb-1"><i class="bi bi-people"></i> Classes</h1>
+    <div class="text-muted">Teachers and facilitators can look at (never change) the projects of the students in their classes.
+      <a href="/docs/classes_and_roles.md">How classes work</a></div>
+  </div>
+  {% if current_user.kit_role == 'teacher' or current_user.is_admin %}
+  <form class="d-flex gap-2" id="classForm">
+    <label class="visually-hidden" for="className">Name of the new class</label>
+    <input class="form-control" id="className" name="name" placeholder="New class, e.g. 3B" maxlength="80" required>
+    <button class="btn btn-primary text-nowrap" type="submit">Make class</button>
+  </form>
+  {% endif %}
+</div>
+<div class="row g-3" id="classCards"><div class="col text-muted">Loading…</div></div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/classes.js') }}"></script>
+{% endblock %}

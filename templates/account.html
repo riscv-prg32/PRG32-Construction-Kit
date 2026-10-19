@@ -10,12 +10,30 @@
           <dt class="col-4">Username</dt><dd class="col-8">{{ current_user.username }}</dd>
           <dt class="col-4">Email</dt><dd class="col-8">{{ current_user.email }}</dd>
           <dt class="col-4">Role</dt><dd class="col-8">{{ current_user.role }}</dd>
+          <dt class="col-4">In class</dt><dd class="col-8">{{ current_user.kit_role }}</dd>
           <dt class="col-4">Groups</dt><dd class="col-8">{{ current_user.groups|join(', ') or '-' }}</dd>
         </dl>
         {% if sso.enabled %}
         <div class="alert alert-info small mt-3 mb-0"><i class="bi bi-link-45deg"></i> This account is shared with the Cartridge Store at {{ sso.peer_url }}.
           Changing your password here changes it there too. <a href="/auth/sso/peer">Open the Cartridge Store</a></div>
         {% endif %}
+      </div>
+    </div>
+    <div class="card shadow-sm mb-4">
+      <div class="card-header"><strong><i class="bi bi-mortarboard"></i> School accounts</strong></div>
+      <div class="card-body">
+        <p class="small text-muted">Sign in with your school account instead of a password. Link one here while signed in;
+          the kit never joins accounts just because their emails match.</p>
+        <ul class="list-group mb-2" id="identityList"></ul>
+        <div class="d-flex flex-wrap gap-2" id="identityProviders"></div>
+      </div>
+    </div>
+    <div class="card shadow-sm mb-4">
+      <div class="card-header"><strong><i class="bi bi-door-closed"></i> Sessions</strong></div>
+      <div class="card-body">
+        <p class="small text-muted mb-2">Signed in on a classroom computer and forgot to sign out? This signs you out
+          everywhere, here too.</p>
+        <button class="btn btn-outline-danger btn-sm" id="signOutEverywhere" type="button">Sign out everywhere</button>
       </div>
     </div>
     <div class="card shadow-sm">
@@ -34,9 +52,24 @@
       <div class="card-header"><strong><i class="bi bi-terminal"></i> API tokens</strong></div>
       <div class="card-body">
         <p class="text-muted small">Scripts and tools can use the kit as you by sending <code>Authorization: Bearer &lt;token&gt;</code>. A token is shown only once; revoke it if it leaks.</p>
-        <form id="tokenForm" class="d-flex gap-2 mb-3">
-          <input class="form-control" name="label" placeholder="What is this token for?" maxlength="80">
-          <button class="btn btn-primary text-nowrap" type="submit">New token</button>
+        <form id="tokenForm" class="vstack gap-2 mb-3">
+          <div class="d-flex gap-2">
+            <label class="visually-hidden" for="tokenLabel">What is this token for?</label>
+            <input class="form-control" id="tokenLabel" name="label" placeholder="What is this token for?" maxlength="80">
+            <button class="btn btn-primary text-nowrap" type="submit">New token</button>
+          </div>
+          <fieldset class="d-flex flex-wrap gap-3 small">
+            <legend class="visually-hidden">What the token may do</legend>
+            <span class="text-muted">May:</span>
+            <label><input type="checkbox" name="scope" value="read" checked> read</label>
+            <label><input type="checkbox" name="scope" value="write" checked> change</label>
+            <label><input type="checkbox" name="scope" value="build" checked> compile</label>
+            <label><input type="checkbox" name="scope" value="publish"> publish</label>
+            <label><input type="checkbox" name="scope" value="admin"> administer</label>
+            <label class="ms-auto">Expires <select name="expires" class="form-select form-select-sm d-inline w-auto">
+              <option value="">never</option><option value="7">in 7 days</option><option value="30" selected>in 30 days</option>
+              <option value="365">in a year</option></select></label>
+          </fieldset>
         </form>
         <div id="newToken" class="alert alert-success d-none"></div>
         <div class="list-group" id="tokenList"></div>

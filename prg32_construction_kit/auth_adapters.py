@@ -1,8 +1,9 @@
-"""Optional school sign-in with OpenID Connect (OIDC) or SAML 2.0.
+"""Optional school sign-in with SAML 2.0, and the list of school sign-in buttons.
 
-These work like the Cartridge Store adapters. They stay off unless the
-matching ``PRG32_OIDC_*`` or ``PRG32_SAML_*`` environment variables are set and
-the optional library (``authlib`` or ``python3-saml``) is installed.
+OpenID Connect lives in identity.py (PKCE, several providers, ADR-0016). SAML stays
+off unless the ``PRG32_SAML_*`` environment variables are set and ``python3-saml``
+is installed; it uses the same accounts by issuer (the IdP entity id) + subject
+(the NameID), never joined to another account by email.
 """
 
 from __future__ import annotations
@@ -21,66 +22,35 @@ def _enabled(value: str) -> bool:
 
 
 def enabled_logins(app: Flask) -> list[dict[str, str]]:
-    return list(app.extensions.get("prg32_external_logins", []))
+    """The school sign-in buttons: every enabled OIDC provider (identity.py), then SAML."""
+    from .identity import enabled_logins as oidc_logins
+
+    return oidc_logins() + list(app.extensions.get("prg32_external_logins", []))
 
 
 def register(app: Flask) -> None:
     app.extensions["prg32_external_logins"] = []
-    _register_oidc(app)
     _register_saml(app)
 
 
-def _finish_external_login(provider: str, external_id: str, email: str, username: str):
-    from .auth import principal_from_user, sign_in, upsert_external_user
+def _finish_external_login(issuer: str, subject: str, email: str, username: str):
+    """SAML: the same issuer + subject accounts as OIDC (identity.py, ADR-0016), never joined by email."""
+    from . import security
+    from .auth import principal_from_user, sign_in
+    from .identity import SignInRefused, complete_external_sign_in
 
-    user = upsert_external_user(provider=provider, external_id=external_id, email=email, username=username)
-    sign_in(principal_from_user(user))
-    return redirect(url_for("kit.index"))
-
-
-def _register_oidc(app: Flask) -> None:
-    config = {
-        "enabled": os.environ.get("PRG32_OIDC_ENABLED", ""),
-        "issuer": os.environ.get("PRG32_OIDC_ISSUER", ""),
-        "client_id": os.environ.get("PRG32_OIDC_CLIENT_ID", ""),
-        "client_secret": os.environ.get("PRG32_OIDC_CLIENT_SECRET", ""),
-        "scope": os.environ.get("PRG32_OIDC_SCOPE", "openid email profile"),
-    }
-    if not _enabled(config["enabled"]):
-        return
-    if not config["issuer"] or not config["client_id"] or not config["client_secret"]:
-        log.warning("OIDC sign-in disabled because issuer, client id, or client secret is missing")
-        return
     try:
-        from authlib.integrations.flask_client import OAuth
-    except Exception as exc:  # pragma: no cover - optional dependency
-        log.warning("OIDC sign-in disabled because authlib is not installed: %s", exc)
-        return
-
-    oidc = OAuth(app).register(
-        name="prg32_oidc",
-        server_metadata_url=config["issuer"].rstrip("/") + "/.well-known/openid-configuration",
-        client_id=config["client_id"],
-        client_secret=config["client_secret"],
-        client_kwargs={"scope": config["scope"]},
-    )
-
-    @app.get("/auth/oidc/login")
-    def auth_oidc_login():
-        return oidc.authorize_redirect(url_for("auth_oidc_callback", _external=True))
-
-    @app.get("/auth/oidc/callback")
-    def auth_oidc_callback():
-        token = oidc.authorize_access_token()
-        profile = token.get("userinfo") or {}
-        if not profile.get("sub") or not profile.get("email"):
-            profile = oidc.get("userinfo", token=token).json()
-        if not profile.get("sub") or not profile.get("email"):
-            return Response("The school sign-in did not send an email address.\n", status=401)
-        return _finish_external_login("oidc", str(profile["sub"]), str(profile["email"]),
-                                      str(profile.get("preferred_username") or profile["email"]))
-
-    app.extensions["prg32_external_logins"].append({"label": "School sign-in (OIDC)", "url": "/auth/oidc/login"})
+        user, created = complete_external_sign_in(provider_slug="saml", issuer=issuer, subject=subject, email=email,
+                                                  username=username)
+    except SignInRefused as refusal:
+        security.record("saml_sign_in", target_type="identity_provider", target_id="saml", outcome="refused",
+                        metadata={"reason": refusal.reason}, actor=None)
+        return Response(str(refusal) + "\n", status=403)
+    principal = principal_from_user(user)
+    sign_in(principal)
+    security.record("saml_sign_in", target_type="identity_provider", target_id="saml", actor=principal,
+                    metadata={"account_created": created})
+    return redirect(url_for("kit.index"))
 
 
 def _register_saml(app: Flask) -> None:
@@ -117,7 +87,9 @@ def _register_saml(app: Flask) -> None:
         email = next((str(attributes[name][0]) for name in ("email", "mail", "Email") if attributes.get(name)), "")
         if not email:
             return Response("The school sign-in did not send an email address.\n", status=401)
-        return _finish_external_login("saml", saml.get_nameid() or email, email, email)
+        if not saml.get_nameid():
+            return Response("The school sign-in did not send a NameID.\n", status=401)
+        return _finish_external_login(config["idp_entity_id"], saml.get_nameid(), email, email)
 
     @app.get("/auth/saml/metadata")
     def auth_saml_metadata():

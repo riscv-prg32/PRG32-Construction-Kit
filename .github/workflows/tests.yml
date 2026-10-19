@@ -171,7 +171,7 @@ jobs:
           PRG32_REQUIRE_BROWSER: "1"
         run: >-
           python -m pytest -q -rs --junitxml=browser-test-results.xml
-          tests/test_browser_offline.py tests/test_ide_browser.py tests/test_debugger_browser.py tests/test_frontend_offline.py
+          tests/test_browser_offline.py tests/test_ide_browser.py tests/test_debugger_browser.py tests/test_accounts_browser.py tests/test_frontend_offline.py
 
       - name: Upload the browser test results
         if: always()

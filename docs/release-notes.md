@@ -2,6 +2,27 @@
 
 ## Unreleased
 
+### Academic identity and scoped roles (refinement phase 5)
+
+- School sign-in with OpenID Connect: Authorization Code + PKCE, verified ID
+  tokens, several providers set up by an administrator (**Users → School sign-in
+  providers**), accounts by issuer + subject (ADR-0016).
+- **Change:** an identity provider can no longer take over an account by sending
+  its email address. A first sign-in whose email already has an account is
+  refused; the owner links the school account on **My account**. Existing
+  `PRG32_OIDC_*`/SAML links are kept (issuer `legacy:<provider>`).
+- Roles in class (`student`, `teacher`, `facilitator`, `service`) and **Classes**:
+  teachers and facilitators read, never change or publish, their students' work.
+- API tokens have scopes and an optional expiry; old tokens keep full access.
+- Sessions end after a password, role or role-in-class change, on **Sign out
+  everywhere** and `PRG32_KIT_SESSION_HOURS` after sign-in. Administrators can
+  switch accounts off (deprovisioning) and on again.
+- **Upgrade notes:** new tables and columns are added at start-up; `cryptography`
+  is now required; `authlib` is no longer used; set `PRG32_KIT_PUBLIC_URL` behind a
+  proxy. A role change now signs that user out. Rollback: revert; the new tables
+  and columns are ignored, and accounts linked by a new provider fall back to
+  password sign-in.
+
 ### Source and block debugger (refinement phase 4)
 
 - Cartridges compiled in the kit can be debugged at the level students wrote

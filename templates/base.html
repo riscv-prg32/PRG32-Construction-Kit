@@ -18,7 +18,7 @@
   <link href="{{ url_for('static', filename='css/app.css') }}" rel="stylesheet">
   {% block head %}{% endblock %}
 </head>
-<body class="{% block body_class %}{% endblock %}">
+<body class="{% block body_class %}{% endblock %}" data-admin="{{ '1' if current_user and current_user.is_admin else '0' }}">
 <nav class="navbar navbar-expand-lg navbar-dark kit-navbar sticky-top shadow-sm">
   <div class="container-fluid">
     <a class="navbar-brand d-flex align-items-center gap-2" href="/">
@@ -35,6 +35,9 @@
         <li class="nav-item"><a class="nav-link" href="/artifacts"><i class="bi bi-box-seam"></i> Artifacts</a></li>
         <li class="nav-item"><a class="nav-link" href="/player"><i class="bi bi-cpu"></i> Player</a></li>
         <li class="nav-item"><a class="nav-link" href="/publish"><i class="bi bi-cloud-upload"></i> Publish</a></li>
+        {% if current_user.authenticated %}
+        <li class="nav-item"><a class="nav-link" href="/classes"><i class="bi bi-mortarboard"></i> Classes</a></li>
+        {% endif %}
         <li class="nav-item"><a class="nav-link" href="/documentation"><i class="bi bi-book"></i> Docs</a></li>
         {% if current_user.is_admin %}
         <li class="nav-item"><a class="nav-link" href="/admin/users"><i class="bi bi-people"></i> Users</a></li>

@@ -18,7 +18,8 @@ PRG32-Construction-Kit is a classroom web application for building PRG32 games w
    - `videos/snake-workflow-demo.mov` - short screen recording of the Snake workflow.
 8. `cartridge_store_publish.md` - publishing bundles.
 9. `api.md` - CRUD and action API.
-   - `accounts_and_sso.md` - accounts, who sees what, and sharing users with a Cartridge Store.
+   - `accounts_and_sso.md` - accounts, school sign-in (OIDC with PKCE), who sees what, and sharing users with a Cartridge Store.
+   - `classes_and_roles.md` - classes, teachers, facilitators and students: who reads whose work.
 10. `tutorials/` - step-by-step lessons.
    - `tutorials/games/` - five complete classic-inspired games with slide decks
      (`presentations/*.html`).

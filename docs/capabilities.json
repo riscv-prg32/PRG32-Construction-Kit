@@ -311,44 +311,74 @@
       ],
       "tests": [
         "tests/test_auth.py::test_signing_in_is_required",
-        "tests/test_project_format.py::test_duplicate_copies_children_and_belongs_to_the_caller"
+        "tests/test_project_format.py::test_duplicate_copies_children_and_belongs_to_the_caller",
+        "tests/test_authorization.py::test_deactivation_ends_sessions_tokens_and_sign_in_and_keeps_items",
+        "tests/test_authorization.py::test_nobody_reads_or_changes_another_students_items"
       ],
-      "note": "No quotas, autosave, retention or deprovisioning."
+      "note": "Ownership, history, deprovisioning (switch off: sessions and tokens end, items kept) done; quotas, autosave and retention open."
     },
     {
       "id": "SSO-01",
       "title": "OIDC with PKCE, issuer+subject identity",
-      "status": "prototype",
+      "status": "implemented",
       "audit_score": 1,
       "source": [
-        "prg32_construction_kit/auth_adapters.py::_register_oidc"
+        "prg32_construction_kit/identity.py::verify_id_token",
+        "prg32_construction_kit/identity.py::callback",
+        "prg32_construction_kit/identity.py::complete_external_sign_in",
+        "prg32_construction_kit/identity.py::_pkce_pair"
       ],
-      "tests": [],
-      "note": "One env-configured provider, no PKCE, identity key ('oidc', sub). No tests."
+      "tests": [
+        "tests/test_identity.py::test_sign_in_uses_pkce_state_and_nonce",
+        "tests/test_identity.py::test_a_tampered_pkce_verifier_is_refused",
+        "tests/test_identity.py::test_bad_id_tokens_are_refused",
+        "tests/test_identity.py::test_key_rotation_is_followed_but_unknown_keys_are_not",
+        "tests/test_identity.py::test_accounts_are_found_by_issuer_and_subject",
+        "tests/test_identity.py::test_matching_email_never_joins_accounts",
+        "tests/test_identity.py::test_state_from_another_browser_is_refused"
+      ],
+      "note": "Authorization Code + PKCE (S256), single-use state and nonce, ID token signature (RS256/PS256/ES256, JWKS rotation), iss/aud/azp/exp/iat checks; accounts by issuer+subject, never joined by email (ADR-0016). Tested against an in-process provider; no live IdP tenant."
     },
     {
       "id": "SSO-02",
       "title": "Multiple admin-configured IdPs, claim mapping, recovery",
-      "status": "prototype",
+      "status": "implemented",
       "audit_score": 1,
       "source": [
-        "prg32_construction_kit/auth_adapters.py::_register_oidc"
+        "prg32_construction_kit/identity.py::admin_providers",
+        "prg32_construction_kit/identity.py::academic_role",
+        "prg32_construction_kit/identity.py::link"
       ],
-      "tests": [],
-      "note": "Environment-only single provider."
+      "tests": [
+        "tests/test_identity.py::test_two_providers_never_collide",
+        "tests/test_identity.py::test_provider_claims_grant_academic_roles_only",
+        "tests/test_identity.py::test_linking_is_a_deliberate_act_of_the_signed_in_owner",
+        "tests/test_identity.py::test_only_administrators_manage_providers_and_secrets_stay_references",
+        "tests/test_identity.py::test_unlinking_keeps_a_way_to_sign_in"
+      ],
+      "note": "Admin-configured providers (secret by reference only), claim -> academic role mapping (never a global role), allowed domains, explicit account linking/unlinking as recovery path. No SCIM or IdP-initiated logout."
     },
     {
       "id": "SSO-03",
       "title": "Scoped student/TA/teacher/publisher/admin capabilities",
-      "status": "prototype",
+      "status": "implemented",
       "audit_score": 1,
       "source": [
+        "prg32_construction_kit/classes.py::supervises",
+        "prg32_construction_kit/routes.py::can_read",
+        "prg32_construction_kit/auth.py::required_scope",
         "prg32_construction_kit/auth.py::role_at_least"
       ],
       "tests": [
+        "tests/test_authorization.py::test_teachers_and_facilitators_read_their_students_work_only",
+        "tests/test_authorization.py::test_supervision_is_read_only",
+        "tests/test_authorization.py::test_teachers_cannot_publish_their_students_bundles",
+        "tests/test_authorization.py::test_only_administrators_add_teachers_and_facilitators",
+        "tests/test_authorization.py::test_token_scopes_are_enforced",
+        "tests/test_authorization.py::test_students_cannot_raise_their_own_roles",
         "tests/test_publish_authorization.py::test_students_without_the_publisher_role_get_403"
       ],
-      "note": "Ordinal role ladder shared with CartridgeStore; publisher gate enforced."
+      "note": "Global roles shared with CartridgeStore unchanged; kit-only academic roles (student/teacher/facilitator/service) and class memberships give read-only supervision; scoped, expiring API tokens."
     },
     {
       "id": "SSO-04",
@@ -471,14 +501,18 @@
         "prg32_construction_kit/auth.py::bootstrap_admin",
         "prg32_construction_kit/security.py::check",
         "prg32_construction_kit/security.py::record",
-        "prg32_construction_kit/__init__.py::content_security_policy"
+        "prg32_construction_kit/__init__.py::content_security_policy",
+        "prg32_construction_kit/auth.py::end_sessions"
       ],
       "tests": [
         "tests/test_admin_bootstrap.py::test_fresh_production_start_makes_a_random_password_file",
         "tests/test_security_controls.py::test_five_wrong_passwords_lock_that_name_from_that_address",
-        "tests/test_frontend_offline.py::test_content_security_policy_is_strict"
+        "tests/test_frontend_offline.py::test_content_security_policy_is_strict",
+        "tests/test_authorization.py::test_password_change_ends_other_sessions_but_not_this_one",
+        "tests/test_authorization.py::test_sessions_end_after_their_lifetime_however_active",
+        "tests/test_identity.py::test_no_secret_code_or_token_reaches_the_audit_log"
       ],
-      "note": "No hash-locked dependencies, quotas, retention or broad rate limits."
+      "note": "Session epochs (password/role change, deactivation, sign out everywhere) and absolute session lifetime done. No hash-locked dependencies, quotas, retention or broad rate limits."
     },
     {
       "id": "OPS-01",

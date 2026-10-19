@@ -41,6 +41,23 @@ unknown username get the same answer.
 Each item has an `owner_id` and a `can_edit` flag. Users see their own items
 and shared items (`owner_id` empty); admins see everything.
 
+## School sign-in, classes and token scopes (ADR-0016)
+
+| Route | Who | What |
+| --- | --- | --- |
+| `GET /auth/oidc/<provider>/login`, `GET /auth/oidc/<provider>/callback` | anyone | OIDC Authorization Code + PKCE sign-in |
+| `GET /auth/identities`, `POST /auth/identities/<provider>/link`, `DELETE /auth/identities/<id>` | signed in | the account's school identities; link answers `{"redirect": url}` |
+| `POST /auth/sessions/revoke` | signed in | sign out everywhere |
+| `POST /auth/tokens` | signed in | `{"label", "scopes": ["read","write","build","publish","admin"], "expires_in_days"}` |
+| `GET/POST /api/admin/identity_providers`, `PUT/DELETE /api/admin/identity_providers/<slug>` | admin | providers; `client_secret_ref` is `env:NAME` or `file:/path` |
+| `POST /api/users/<id>/deactivate`, `/reactivate`, `/sessions/revoke` | admin | deprovisioning and session revocation |
+| `GET/POST /api/classes`, `GET/PUT/DELETE /api/classes/<id>` | members, teachers, admin | classes |
+| `POST /api/classes/<id>/members`, `DELETE /api/classes/<id>/members/<user>` | class teachers (students only), admin | membership |
+| `GET /api/classes/<id>/projects` | class teachers and facilitators, admin | students' projects, read-only |
+
+A token request without the needed scope answers `403` with `"code": "insufficient_scope"`.
+`PUT /api/users/<id>` accepts `kit_role` (admin only; not your own).
+
 ## Single sign-on with a Cartridge Store
 
 Only when `PRG32_SSO_SECRET` and `PRG32_SSO_PEER_URL` are set:

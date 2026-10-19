@@ -12,7 +12,7 @@ Short records of decisions for the full-IDE work. Each has a status:
 | [0004](0004-handwritten-assembly-mode.md) | Handwritten assembly authoring mode | Accepted (option 2) |
 | [0005](0005-build-isolation.md) | Server builds first, browser toolchain after a measured spike | Accepted |
 | [0006](0006-shared-debug-protocol.md) | One debug protocol shared with PRG32-QT | Proposed |
-| [0007](0007-identity-and-roles.md) | OIDC with PKCE, issuer+subject linking, wider roles | Proposed |
+| [0007](0007-identity-and-roles.md) | OIDC with PKCE, issuer+subject linking, wider roles | Superseded by 0016 |
 | [0008](0008-store-egress-policy.md) | Store egress policy: admin allow-list, public addresses only, pinned connections (H-01) | Accepted |
 | [0009](0009-publish-authorization-and-confirmation.md) | Publishing needs the publisher role and a confirmed review (H-02) | Accepted |
 | [0010](0010-build-sandbox.md) | Every compile runs in a bubblewrap sandbox (H-03) | Accepted |
@@ -21,3 +21,4 @@ Short records of decisions for the full-IDE work. Each has a status:
 | [0013](0013-ide-shell-and-monaco.md) | IDE shell with Monaco, on Bootstrap + jQuery | Accepted |
 | [0014](0014-ide-language-services.md) | Offline language services from a generated PRG32 index | Accepted |
 | [0015](0015-source-and-block-debugger.md) | Source and block debugging from saved maps and DWARF | Accepted |
+| [0016](0016-academic-identity-and-scoped-roles.md) | Academic identity with PKCE, issuer+subject accounts, scoped roles | Accepted |

@@ -92,6 +92,9 @@ class Config:
     ALLOW_REGISTRATION = _flag("PRG32_KIT_ALLOW_REGISTRATION", True)
     REQUIRE_EMAIL_DOMAIN = os.environ.get("PRG32_KIT_REQUIRE_EMAIL_DOMAIN", "")
     DEFAULT_ROLE = os.environ.get("PRG32_KIT_DEFAULT_ROLE", "user")
+    # The kit's public address (https://kit.school.example), used for school sign-in redirect
+    # addresses so they never depend on the Host header a request arrives with (ADR-0016).
+    PUBLIC_URL = os.environ.get("PRG32_KIT_PUBLIC_URL", "")
     SMTP_HOST = os.environ.get("PRG32_SMTP_HOST", "")
     SMTP_PORT = int(os.environ.get("PRG32_SMTP_PORT", "587"))
     SMTP_FROM = os.environ.get("PRG32_SMTP_FROM", "noreply@localhost")
