@@ -2,7 +2,7 @@
 
 Status of the full-IDE plan (`implementation-plan.md`). The per-requirement,
 evidence-checked view is `capabilities.md` (from `capabilities.json`). A gate is marked
-**complete** only when its acceptance tests pass. Updated 2026-10-19 (at `731e378` and the CI/doc fixes after its audit).
+**complete** only when its acceptance tests pass. Updated 2026-10-19 (at `5dd98a9`, refinement phase 4; milestones in `architecture/current-state.md`).
 
 | Gate | State | Summary |
 | --- | --- | --- |

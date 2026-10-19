@@ -107,3 +107,27 @@ def test_no_document_says_the_pages_load_from_a_cdn():
         text = re.sub(r"\s+", " ", path.read_text())  # sentences wrap across lines
         found = stale.search(text)
         assert not found, f"{path.name} still says pages load from a CDN: {found.group(0)}"
+
+
+def test_every_refinement_phase_commit_is_a_listed_milestone():
+    """The milestone table names each "Refinement phase" commit; only HEAD may say "this change"."""
+    try:
+        shallow = subprocess.run(["git", "rev-parse", "--is-shallow-repository"], cwd=ROOT, capture_output=True,
+                                 text=True, check=True).stdout.strip()
+        log = subprocess.run(["git", "log", "--format=%h %H %s"], cwd=ROOT, capture_output=True, text=True,
+                             check=True).stdout.splitlines()
+        head = subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT, capture_output=True, text=True,
+                              check=True).stdout.strip()
+    except (OSError, subprocess.CalledProcessError):
+        pytest.skip("not a git checkout")
+    if shallow == "true":
+        pytest.skip("shallow clone: the history is not available")
+    text = CURRENT_STATE.read_text()
+    table = text.split("## Milestones", 1)[1].split("\n## ", 1)[0]
+    for line in log:
+        short, full, subject = line.split(" ", 2)
+        if not subject.startswith("Refinement phase"):
+            continue
+        listed = re.search(rf"`{short[:7]}[0-9a-f]*`", table)
+        this_change = full == head and "this change" in table
+        assert listed or this_change, f"milestone {short} ({subject}) is missing from current-state.md"

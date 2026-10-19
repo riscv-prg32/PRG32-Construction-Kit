@@ -1,9 +1,8 @@
 # Current state
 
-What the PRG32 repositories contain **now**, read from source and from test
-runs on 2026-10-19 at `731e378` (refinement phase 2) plus the CI and
-documentation fixes that follow the audit of that commit, refinement phase 3
-(language services, ADR-0014) and phase 4 (source and block debugger, ADR-0015). The per-requirement
+What the PRG32 repositories contain **now**: `development` at `5dd98a9`
+(refinement phase 4, audited as 79/132) and the changes after it listed under
+**Milestones**, read from source and from the test runs below. The per-requirement
 status, with the source symbol and test behind every claim, is
 `../capabilities.md` (generated from `../capabilities.json`). The lists below
 are a summary of that file, and `tests/test_doc_consistency.py` fails when they
@@ -13,13 +12,30 @@ disagree with it. Audit scores belong to the auditor (`../../audit/`).
 
 | Repository | Branch | Commit | Role |
 | --- | --- | --- | --- |
-| PRG32-Construction-Kit | `development` | `731e378` (refinement phases 0–2) | This repository. Flask + SQLAlchemy + Bootstrap + jQuery + Blockly + Monaco PWA, all served from `static/vendor/`. MIT. |
+| PRG32-Construction-Kit | `development` | `5dd98a9` (refinement phases 0–4) | This repository. Flask + SQLAlchemy + Bootstrap + jQuery + Blockly + Monaco PWA, all served from `static/vendor/`. MIT. |
 | PRG32 | `main` | `679dfb5` | SDK, firmware, `prg32` CLI, portable cartridge builder, ABI 1.6 (`prg32/abi/abi_generated.py`). |
 | PRG32-QT | `main` | `f6d80ad` (0.4.1) | Qt host; its Qt-free `src/core` is compiled into the kit's browser runtime (`static/wasm/BUILD.json`). |
 | CartridgeStore | `main` | `820f74b` local (upstream `fb33fda`: CI/metrics only) | Store, accounts, `/api/publish/bundle` (pending review). `sso_protocol.py` identical to the kit's. |
 | PRG32-iOS | `main` | `547fa45` (read 2026-10-18, not checked out here) | Private. Imports cartridges with a SwiftUI file importer; no URL scheme, no debugger. |
 
-## Test runs (2026-10-19, macOS, after refinement phase 4)
+## Milestones
+
+Every refinement phase and the audit that followed it. `tests/test_doc_consistency.py`
+checks that each `Refinement phase` commit in the history is listed here by its
+commit; the newest may say *this change* while it is the commit being made.
+
+| Milestone | Commit | Evidence |
+| --- | --- | --- |
+| Refinement phase 0: baseline, machine-checked capabilities | `62eb5bf` | `capabilities.json`, `tests/test_capabilities.py` |
+| Refinement phase 1: self-contained frontend, root service worker, strict CSP | `903cba0` | ADR-0012, `tests/test_frontend_offline.py`, `tests/test_browser_offline.py` |
+| Refinement phase 2: IDE shell with Monaco | `731e378` | ADR-0013, `tests/test_ide_browser.py` (audited: 70/132) |
+| CI browser suite, documentation drift repair | `7910e86`, `9332c8c` | `tests/test_frontend_offline.py::test_ci_runs_every_browser_suite_and_forbids_skipping`, `tests/test_doc_consistency.py` |
+| Refinement phase 3: offline language services | `a9f2c97` | ADR-0014, `tests/test_language_services.py` |
+| Refinement phase 4: source and block debugger | `5dd98a9` | ADR-0015, `tests/test_source_debugger.py`, `tests/test_debugger_browser.py` (audited: 79/132) |
+
+How each kind of evidence is produced and checked: `../evidence.md`.
+
+## Test runs (2026-10-19, macOS, at `5dd98a9`)
 
 | Command | Result |
 | --- | --- |
