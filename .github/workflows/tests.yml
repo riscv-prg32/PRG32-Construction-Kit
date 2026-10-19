@@ -170,16 +170,16 @@ jobs:
           PRG32QT_DIR: ${{ github.workspace }}/PRG32-QT
           PRG32_REQUIRE_BROWSER: "1"
         run: >-
-          python -m pytest -q -rs --junitxml=browser-test-results.xml
+          python -m pytest -q -rs --junitxml=browser-test-results.xml -o junit_suite_name=browser-${{ github.sha }}
           tests/test_browser_offline.py tests/test_ide_browser.py tests/test_debugger_browser.py tests/test_accounts_browser.py tests/test_storage_browser.py tests/test_frontend_offline.py
 
       - name: Upload the browser test results
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: browser-test-results
+          name: browser-test-results-${{ github.sha }}
           path: browser-test-results.xml
-          retention-days: 14
+          retention-days: 90
 
   dependency-review:
     name: Dependency review
@@ -228,17 +228,37 @@ jobs:
       - name: Allow user namespaces for the build sandbox
         run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0 || true
 
+      # Evidence of this commit's container run is kept as an artifact (junit, logs, fixtures).
+      - name: Prepare the evidence folder
+        run: mkdir -p ci-evidence && chmod 777 ci-evidence
+
       - name: Run the build sandbox escape tests in the container
         run: >-
-          docker run --rm ${{ env.SANDBOX_OPTS }} --entrypoint sh ${{ env.CI_IMAGE }} -c
+          docker run --rm ${{ env.SANDBOX_OPTS }} -v "$PWD/ci-evidence:/evidence" --entrypoint sh ${{ env.CI_IMAGE }} -c
           "pip install -q --user pytest && python -m pytest -q -rs -p no:cacheprovider
+          --junitxml=/evidence/container-tests.xml
           tests/test_build_sandbox.py tests/test_concurrency.py tests/test_handwritten_assembly.py
           tests/test_build_provenance.py tests/test_source_debugger.py"
 
       - name: Compile real cartridges concurrently
         run: >-
-          docker run --rm ${{ env.SANDBOX_OPTS }} --entrypoint python ${{ env.CI_IMAGE }}
-          tools/check_build.py --students 2 --windows 2
+          docker run --rm ${{ env.SANDBOX_OPTS }} -v "$PWD/ci-evidence:/evidence" --entrypoint sh ${{ env.CI_IMAGE }} -c
+          "python tools/check_build.py --students 2 --windows 2 > /evidence/check_build.log 2>&1;
+          status=$?; cat /evidence/check_build.log; exit $status"
+
+      - name: Rebuild the debugger fixtures with the image's toolchain
+        run: >-
+          docker run --rm ${{ env.SANDBOX_OPTS }} -v "$PWD/ci-evidence:/evidence" --entrypoint sh ${{ env.CI_IMAGE }} -c
+          "python tools/build_debug_fixtures.py --check-if-comparable --out /evidence/debug-fixtures
+          > /evidence/debug-fixtures.log 2>&1; status=$?; cat /evidence/debug-fixtures.log; exit $status"
+
+      - name: Keep this commit's container evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: container-evidence-${{ github.sha }}
+          path: ci-evidence/
+          retention-days: 90
 
       - name: The container refuses to start without the sandbox profile
         run: |

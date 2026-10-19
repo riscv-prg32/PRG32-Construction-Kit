@@ -7,7 +7,7 @@ evidence-checked view is `capabilities.md` (from `capabilities.json`). A gate is
 | Gate | State | Summary |
 | --- | --- | --- |
 | G0 Discovery | **Complete** | `architecture/current-state.md`, ADR-0001…0007, baseline tests recorded. |
-| G1 Foundation | **In progress** | Manifest, migrations, archive, duplicate, handwritten assembly mode, revisions, soft delete done; guest policy open. |
+| G1 Foundation | **Complete** | Manifest, migrations, archive, duplicate, handwritten assembly mode, revisions, soft delete [PRJ-01]; guest policy and IndexedDB guest games done (ADR-0017) [ACC-01]. |
 | G2 IDE shell | **In progress** | IDE shell with Monaco, keyboard model, small-screen fallback and browser/a11y tests done (refinement phase 2, ADR-0013) [IDE-01]; the browser suites run in CI and may not skip there. Offline language services for C and assembly done (phase 3, ADR-0014) [IDE-03] [IDE-04]; block-to-source maps next (phase 4). |
 | G3 Toolchain | In progress | Server builds produce real `.prg32`; build provenance and cartridge SHA-256 done; every compile runs in a bubblewrap sandbox (ADR-0010, audit H-03). Browser toolchain open. |
 | G4 WASM runtime | **Complete** (core scope) | PRG32-QT core as WebAssembly, `/player`, golden tests WASM = native = `prg32qt-headless`. Multiplayer/Wi-Fi host services and exact audio open. |

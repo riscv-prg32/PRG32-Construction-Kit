@@ -34,7 +34,7 @@ commit; the newest may say *this change* while it is the commit being made.
 | Refinement phase 4: source and block debugger | `5dd98a9` | ADR-0015, `tests/test_source_debugger.py`, `tests/test_debugger_browser.py` (audited: 79/132) |
 | Evidence drift repair after the audit of `5dd98a9` | `e91b68b` | `../evidence.md`, `tests/test_doc_consistency.py` |
 | Refinement phase 5: academic identity and scoped roles | `4a5498a` | ADR-0016, `tests/test_identity.py`, `tests/test_authorization.py`, `tests/test_accounts_browser.py` |
-| Refinement phase 6: guest and registered storage policy | this change | ADR-0017, `tests/test_storage_policy.py`, `tests/test_storage_browser.py` |
+| Refinement phase 6: guest and registered storage policy | `e2d0cef` | ADR-0017, `tests/test_storage_policy.py`, `tests/test_storage_browser.py` (audited: 93/132) |
 
 How each kind of evidence is produced and checked: `../evidence.md`.
 

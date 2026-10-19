@@ -2,6 +2,9 @@
 
     python3 tools/build_debug_fixtures.py           # write tests/fixtures/debug/*.prg32 and *.map.json
     python3 tools/build_debug_fixtures.py --check   # fail if the committed files differ
+    python3 tools/build_debug_fixtures.py --check-if-comparable --out DIR
+        # CI: check only when this machine has the SDK and compiler of BUILD.json
+        # (otherwise say so and succeed); keep what was built in DIR as evidence
 
 Each fixture (tests/fixtures/debug/compressed.S, locals.c, and the Pong example's
 Blocks program, with its block map as pong.source_map.json) is built exactly as the kit
@@ -77,7 +80,20 @@ def build(source: Path, prefix: str, build_command: str, work: Path) -> tuple[by
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--check", action="store_true")
+    parser.add_argument("--check-if-comparable", action="store_true",
+                        help="like --check, but only when the SDK and compiler match BUILD.json")
+    parser.add_argument("--out", type=Path, help="also write what was built here (CI evidence)")
     args = parser.parse_args()
+    if args.check_if_comparable:
+        recorded = json.loads(RECORD.read_text()) if RECORD.is_file() else {}
+        if toolchain_present(Config.PRG32_BUILD_COMMAND) and inputs() != recorded:
+            print(f"not comparable: the fixtures were built with {recorded}; this machine has {inputs()}")
+            args.check = False
+            args.out = args.out or None
+            if args.out is None:
+                return 0
+        else:
+            args.check = True
     build_command = Config.PRG32_BUILD_COMMAND
     if not toolchain_present(build_command):
         print("the PRG32 toolchain is not installed", file=sys.stderr)
@@ -99,6 +115,11 @@ def main() -> int:
                        **extra}
             for path, content in targets.items():
                 data = content if isinstance(content, bytes) else content.encode("utf-8")
+                if args.out:
+                    args.out.mkdir(parents=True, exist_ok=True)
+                    (args.out / path.name).write_bytes(data)
+                if args.check_if_comparable and not args.check:
+                    continue      # built for the evidence only: not the committed inputs
                 if args.check:
                     if not path.is_file() or path.read_bytes() != data:
                         stale.append(path.name)
@@ -106,6 +127,11 @@ def main() -> int:
                     path.write_bytes(data)
                     print(f"Wrote {path.relative_to(ROOT)}")
     record = json.dumps(inputs(), indent=1, sort_keys=True) + "\n"
+    if args.out:
+        (args.out / RECORD.name).write_text(record)
+    if args.check_if_comparable and not args.check:
+        print("built for the record only (inputs differ from BUILD.json); nothing compared")
+        return 0
     if args.check:
         if not RECORD.is_file() or RECORD.read_text() != record:
             stale.append(RECORD.name)

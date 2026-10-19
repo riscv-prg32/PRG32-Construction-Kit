@@ -161,3 +161,14 @@ def test_ci_runs_every_browser_suite_and_forbids_skipping():
         assert f"tests/{suite}" in job, f"{suite} is not run by the CI browser job"
     assert 'PRG32_REQUIRE_BROWSER: "1"' in job
     assert "--junitxml=browser-test-results.xml" in job and "path: browser-test-results.xml" in job
+
+
+def test_ci_keeps_commit_specific_evidence():
+    """Browser and container/toolchain evidence of every commit is uploaded under its SHA."""
+    workflow = (ROOT / ".github" / "workflows" / "tests.yml").read_text()
+    assert "name: browser-test-results-${{ github.sha }}" in workflow
+    container = workflow.split("\n  container-smoke-test:\n", 1)[1].split("\n  publish-container:\n", 1)[0]
+    assert "name: container-evidence-${{ github.sha }}" in container and "if: always()" in container
+    assert "--junitxml=/evidence/container-tests.xml" in container
+    assert "build_debug_fixtures.py --check-if-comparable --out /evidence/debug-fixtures" in container
+    assert "| tee" not in container  # a pipe would hide a failing exit status
