@@ -1,25 +1,7 @@
 # Security review
 
-## Overall
+No critical exploit was confirmed. OIDC uses PKCE, single-use state/nonce, signature and issuer/audience/time validation, bounded no-redirect metadata requests, issuer+subject identity, and explicit linking. Email equality cannot take over an account. Session epochs, expiry, scoped tokens, deactivation and audit events close important lifecycle gaps. Academic/class permissions are read-only where supervision is intended.
 
-No new critical exploit was confirmed. The language services and source debugger were designed with fail-closed boundaries and retain server-side validation and existing execution semantics.
+Guest work stays in IndexedDB and is never sent to anonymous server storage. Registered writes use atomic expected-version checks; quotas constrain account growth; retention is explicit and administrator-controlled. Existing CSP, vendoring, ownership, stale-window checks, Store egress policy and publish confirmation remain intact.
 
-## Language services
-
-The generated index is static/browser-only, records input hashes and ABI provenance, suggests only portable ABI functions and validator-approved constructs, and is checked byte-for-byte. Live diagnostics only add feedback; they cannot bypass server validation. Compiler messages are normalized to remove host paths. Corpus tests compare client/server acceptance for unsafe and generated sources.
-
-## Debug information
-
-Debug wrappers are per-build and operate inside the existing sandbox. A retained ELF must match the PRG32 cartridge's loadable image exactly. The API serves bounded JSON maps/source, never the ELF, and requires readable ownership of cartridge, build and artifacts. File paths are reduced to basenames; damaged/oversized/unmatched data becomes unavailable. Source maps are hash-bound to the served source. Browser expression evaluation uses the constrained debugger evaluator rather than arbitrary JavaScript execution.
-
-Residual risks:
-
-- wrapper behavior depends on upstream tool naming/invocation;
-- real Linux sandbox/debug builds were not rerun here;
-- no total build-directory quota or per-build UID;
-- complex DWARF inputs deserve continued fuzz/limit testing;
-- source itself is intentionally shown to its owner, while shared-project policy must remain consistent.
-
-## Identity, storage and external systems
-
-OIDC remains below the academic profile and guest/cloud storage is absent. Registered quotas/retention/deprovisioning are missing. Store tokens remain reversibly stored. These are the largest remaining deployment-security and privacy gaps. Browser CSP, dependency vendoring, authentication, ownership, throttling, Store egress and publish confirmation remain in place.
+Residual risks: no live institutional IdP/SCIM/logout evidence; Store credentials remain recoverable server-side; no total build-root quota, per-build UID or confined AppArmor profile; Linux sandbox tests were unavailable locally; complex DWARF inputs warrant continued fuzzing; dependency hashes/SBOM and restoration exercises remain incomplete.

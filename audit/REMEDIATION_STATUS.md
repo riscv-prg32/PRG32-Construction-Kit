@@ -1,16 +1,16 @@
 # Remediation status
 
-Status at `5dd98a95a0f910091896eb1149d29a5f96265b3d`.
+Status at `e2d0cef834bbe75e1fd3fd5c2ea69ce7f1560954`.
 
 | Item | Status | Evidence |
 |---|---|---|
-| Store SSRF and publish authorization | Closed | 94 tests plus signed review/confirmation implementation. |
-| Production build sandbox | Implemented; Linux rerun not performed here | ADR-0010 and existing container evidence. |
-| Offline/CSP and IDE shell | Closed for implemented scope | Required Chrome suites pass and run non-skippably in CI. |
-| Language services | Implemented/tested | ADR-0014, reproducible index, validator/corpus/browser tests. |
-| Mandatory source/block debugger | Closed | ADR-0015, scenario D Chrome tests, real-toolchain fixtures and native/WASM parity. |
-| Academic identity/RBAC | Open | OIDC and roles remain prototypes. |
-| Guest/registered policy | Missing/partial | No guest policy, quotas, autosave conflicts or lifecycle. |
-| Cloud and delivery | Missing/unverified | No providers, hardware or iOS execution. |
+| Offline/CSP, IDE and language services | Closed for implemented scope | Required browser suites and reproducibility checks. |
+| Source/block debugger | Closed for required baseline | Browser scenario, fixtures and parity tests. |
+| Academic identity/RBAC | Implemented; external integration conditional | ADR-0016, identity/authorization/account browser tests. |
+| Guest/registered storage | Closed for specified local policy | ADR-0017, storage policy and browser tests. |
+| Store contract/live conformance | Partial | Egress/publish policy passes; shared/live matrix absent. |
+| Cloud providers | Missing | Drive and OneDrive absent. |
+| Delivery | Missing/partial | Runtime parity only; hardware/iOS not executed. |
+| Sandbox operations/supply chain | Partial | Strong existing controls; quota/UID/AppArmor/SBOM gaps. |
 
-Complete Full IDE recommendation remains **NO-GO**; a bounded classroom preview may be **CONDITIONAL** with explicit scope exclusions.
+Complete Full IDE recommendation remains **NO-GO**; bounded classroom deployment is **CONDITIONAL**, particularly when institutional SSO claims depend on an untested external provider.

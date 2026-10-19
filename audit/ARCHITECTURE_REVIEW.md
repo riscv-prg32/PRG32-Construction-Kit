@@ -1,31 +1,11 @@
 # Architecture review
 
-## Current architecture
+The core pipeline remains sound: browser editors feed authenticated Flask APIs; Blocks JSON becomes validated IR; deterministic C or RV32IM assembly is built in a private build directory; artifacts are executed by the pinned PRG32 core or reviewed before Store publication.
 
-`Browser IDE (Bootstrap/jQuery/Blockly/Monaco)` → authenticated Flask APIs → relational metadata/disk artifacts → validated Blocks IR or validated source → deterministic C/assembly → sandboxed PRG32 toolchain → PRG32 cartridge plus optional safe debug maps → WASM Player or reviewed Store submission.
+Phases 5–6 add two coherent boundaries. Identity providers are configuration records whose secrets remain environment/file references; verified `(issuer, subject)` identities attach to accounts only through sign-in or an explicit owner-controlled link. Global Store-compatible roles remain separate from kit academic roles and class membership. Guest storage remains entirely browser-side, while registered project versions use conditional database updates. Quotas and retention account for database and artifact/build data without sharing build folders.
 
-Phase 3 uses a generated browser-only index built from pinned SDK headers, ABI data and validator allow-lists. Monaco adapters do not contact a language server. Portable ABI entries are suggested; resident-only functions are diagnosed. Server validation remains authoritative.
+Trust boundaries remain layered: strict same-origin/CSP browser code; authenticated and scope-checked APIs; owner/class authorization; validator-controlled generation; sandboxed builds; owner-scoped debug JSON; controlled Store egress. `sso_protocol.py` remains identical to CartridgeStore.
 
-Phase 4 adds one coordinate chain: block ID → IR path → generated source lines → DWARF guest addresses. Generator markers are temporary and stripped; tests compare mapped output byte-for-byte with normal generation. Per-build compiler wrappers add only `-g` and `-fdebug-prefix-map`, capture the ELF inside the private build folder, and retain it only if its loadable image exactly matches the PRG32 cartridge. The ELF is converted to bounded JSON and never exposed.
+Cross-repository revisions: Kit `e2d0cef834bbe75e1fd3fd5c2ea69ce7f1560954`; PRG32 `679dfb58783bd007125de9ca0b75eaa077908739`; PRG32-QT `f6d80addf49d0512c2e4390251a81d797a35b157`; CartridgeStore `820f74bfe9364c8727db92cb0f15f3b9dd85feab`.
 
-## Trust boundaries
-
-1. Browser dependencies and language services are same-origin, vendored, CSP-constrained and offline.
-2. Browser→Flask retains authentication, ownership and stale-window checks.
-3. Archive/source validation and the production build sandbox remain layered defenses.
-4. Debug JSON is owner-scoped, path-sanitized, size/count-bounded and content-linked to its exact cartridge/source. Missing or malformed information falls back to address debugging.
-5. Cartridge execution remains the pinned PRG32-QT core; source features translate to existing core addresses rather than replacing execution semantics.
-6. Store egress and publishing retain approved-origin and signed-confirmation boundaries.
-
-## Cross-repository consistency
-
-- Kit: `5dd98a95a0f910091896eb1149d29a5f96265b3d`.
-- PRG32 SDK: `679dfb58783bd007125de9ca0b75eaa077908739`; ABI 1.6/hash `0x260f6136` in the generated language index.
-- PRG32-QT: `f6d80addf49d0512c2e4390251a81d797a35b157`; rebuilt WASM record matches this revision.
-- CartridgeStore: `820f74bfe9364c8727db92cb0f15f3b9dd85feab`; shared protocol remains identical.
-
-No incompatible ABI or debug-execution fork was demonstrated. Store/cartridge schema duplication remains a drift risk.
-
-## Maintainability
-
-The language index and debug fixtures have reproducibility checks, and documentation consistency is machine-tested. Remaining risks are the wrapper dependency on the upstream builder's invocation pattern, complex hand-written DWARF interpretation, optimized-code limitations, missing quotas/migrations for future storage work, and substantial external identity/cloud/device scope.
+Remaining architectural gaps are provider-neutral cloud storage, one shared versioned Store/cartridge contract, operational sandbox quotas/identity, and end-to-end delivery adapters. External IdP lifecycle integration is not yet demonstrated.

@@ -294,7 +294,7 @@
       "id": "ACC-01",
       "title": "Guest policies and IndexedDB guest projects",
       "status": "implemented",
-      "audit_score": 0,
+      "audit_score": 4,
       "source": [
         "static/js/guest_store.js",
         "static/js/offline.js",
@@ -314,7 +314,7 @@
       "id": "ACC-02",
       "title": "Registered storage: ownership, history, quotas, autosave, retention",
       "status": "implemented",
-      "audit_score": 2,
+      "audit_score": 4,
       "source": [
         "prg32_construction_kit/routes.py::can_read",
         "prg32_construction_kit/routes.py::can_write",
@@ -344,7 +344,7 @@
       "id": "SSO-01",
       "title": "OIDC with PKCE, issuer+subject identity",
       "status": "implemented",
-      "audit_score": 1,
+      "audit_score": 3,
       "source": [
         "prg32_construction_kit/identity.py::verify_id_token",
         "prg32_construction_kit/identity.py::callback",
@@ -366,7 +366,7 @@
       "id": "SSO-02",
       "title": "Multiple admin-configured IdPs, claim mapping, recovery",
       "status": "implemented",
-      "audit_score": 1,
+      "audit_score": 3,
       "source": [
         "prg32_construction_kit/identity.py::admin_providers",
         "prg32_construction_kit/identity.py::academic_role",
@@ -385,7 +385,7 @@
       "id": "SSO-03",
       "title": "Scoped student/TA/teacher/publisher/admin capabilities",
       "status": "implemented",
-      "audit_score": 1,
+      "audit_score": 4,
       "source": [
         "prg32_construction_kit/classes.py::supervises",
         "prg32_construction_kit/routes.py::can_read",
@@ -519,7 +519,7 @@
       "id": "SEC-02",
       "title": "Credentials, throttling, audit, secrets",
       "status": "partial",
-      "audit_score": 2,
+      "audit_score": 3,
       "source": [
         "prg32_construction_kit/auth.py::bootstrap_admin",
         "prg32_construction_kit/security.py::check",

@@ -1,14 +1,13 @@
 # Remediation plan
 
-| PR | Owner | Size | Work | Acceptance tests |
-|---:|---|:---:|---|---|
-| 1 | Docs/release | S | Update phase-4 HEAD wording and preserve browser/container/fixture CI artifacts for independent audits. | Docs/capability consistency plus downloadable evidence. |
-| 2 | Identity/security | L | PKCE, issuer+subject, multi-IdP admin config, claims lifecycle/recovery and scoped academic RBAC. | Full mandatory scenario E and cross-issuer/privilege tests. |
-| 3 | Accounts/storage | L | Guest policies/IndexedDB/export/eviction; registered quotas, autosave, retention, deprovisioning and conflicts. | Scenarios A/B, migration/rollback and no guest server persistence. |
-| 4 | Store/architecture | M | Shared versioned cartridge/bundle contracts and controlled live conformance. | ABI/schema/version/duplicate/update/visibility/recovery matrix. |
-| 5 | Cloud | L | Drive and OneDrive with minimum scopes and provider-neutral conflicts. | Expiry/revoke/disconnect/network-loss/concurrent-edit tenant tests. |
-| 6 | Platform/security | M | Total build quota, per-build identity where feasible, AppArmor profile, DWARF fuzz limits and x86_64/aarch64 evidence. | Sandbox/debug escape and resource suites plus real three-mode builds. |
-| 7 | Debugger/UX | M | Improve optimized/inlined-code presentation and breakpoint persistence/enable controls without guessing unavailable values. | Advanced optimized C fixtures and graceful fallback tests. |
-| 8 | Delivery/QA | M | Hardware, Qt and verified iOS workflows; screen reader, performance budgets, backup/restore, hash locks/SBOM. | Mandatory C/G evidence, device hashes/logs and restore drill. |
+| Priority | Area | Work | Acceptance evidence |
+|---:|---|---|---|
+| 1 | Evidence | Replace “this change”/stale guest-policy wording; retain immutable CI artifacts. | Documentation consistency and commit-specific records. |
+| 2 | Identity integration | Exercise a real institutional IdP; define SCIM/provisioning and logout lifecycle where required. | Tenant PKCE, rotation, deactivation, collision and recovery matrix. |
+| 3 | Store contract | Share/version cartridge and publication schemas; add controlled live conformance. | Duplicate/version/update/visibility/failure matrix. |
+| 4 | Cloud | Add provider-neutral Drive and OneDrive adapters with least-privilege scopes and deterministic conflicts. | Revoke, expiry, disconnect, outage and concurrent-edit tests. |
+| 5 | Platform security | Enforce total disk limits, per-build identity where feasible, AppArmor and DWARF fuzz limits. | Linux escape/resource suites and real builds. |
+| 6 | Delivery/QA | Verify hardware, Qt import and iOS; screen reader, performance, restore, dependency locks and SBOM. | Device logs/hashes, accessibility report and restore drill. |
+| 7 | Debugger polish | Improve optimized/inlined presentation and breakpoint persistence without guessing values. | Advanced fixtures and graceful-unavailable tests. |
 
-Do not start cloud work before identity and conflict semantics stabilize. Never weaken cartridge/debug identity checks or expose debug ELFs.
+Never weaken validation, cartridge/debug byte identity, private build directories, CSP, ownership, or the no-debug-ELF API boundary.

@@ -1,34 +1,40 @@
 # Test report
 
-## Environment
+Audited HEAD: `e2d0cef834bbe75e1fd3fd5c2ea69ce7f1560954`.
 
-- 2026-10-19, Europe/Rome; macOS.
-- Python 3.12.10; pytest 8.4.2; Node v26.12.0; Playwright 1.64.0; installed Google Chrome.
-- PRG32 `679dfb5`; PRG32-QT `f6d80ad`; CartridgeStore `820f74b`.
-- No local RISC-V/PRG32 toolchain or bubblewrap.
+## Executed locally
 
-## Commands and results
+| Gate | Result |
+|---|---|
+| Python compileall and JavaScript `node --check` | Pass |
+| Service-worker lock | Pass |
+| Rendered capabilities check | Pass |
+| Language-index reproducibility | Pass |
+| Broad feasible pytest suite, excluding Store egress and exact WASM rebuild | 710 passed, 42 skipped, 1 deselected |
+| Required Chromium suites: offline, IDE, debugger, accounts, storage, frontend | 74 passed, no skips |
+| Store-egress suite | 94 passed |
+| Capability and documentation consistency after score rendering | Pass |
+| CartridgeStore SSO protocol comparison | Byte-identical |
 
-1. `python3 -m compileall -q app.py prg32_construction_kit tests tools` — pass.
-2. JS syntax over `static/js/*.js`, `static/js/ide/*.js`, service worker and tool modules — pass.
-3. `service_worker_lock.py --check`, `render_capabilities.py --check`, `build_language_index.py --check`, `git diff --check` — pass.
-4. Broad feasible suite excluding loopback Store and exact WASM rebuild — **614 passed, 37 skipped, 1 deselected**, 57.75 s. Browser skips were rerun in command 6.
-5. Focused language/source-debug/doc/capability/frontend suite — **227 passed, 2 skipped**, 4.15 s. Skips require the real PRG32 toolchain.
-6. `PRG32_REQUIRE_BROWSER=1 PRG32QT_DIR=../PRG32-QT python3 -m pytest -q -rs tests/test_browser_offline.py tests/test_ide_browser.py tests/test_debugger_browser.py tests/test_frontend_offline.py` — **65 passed**, 21.92 s.
-7. `python3 -m pytest -q -rs tests/test_store_egress.py` with loopback permission — **94 passed**, 7.52 s.
-8. SDK ABI plus `tests/test_wasm_runtime.py` excluding exact rebuild — **37 passed, 1 skipped, 1 deselected**, 12.10 s. Skip: real PRG32 toolchain.
-9. Shared `sso_protocol.py` comparison and committed WASM SHA/build record — pass.
+Broad-suite skips were the separately rerun browser cases plus unavailable RISC-V/PRG32 toolchain, Linux bubblewrap/RLIMIT and exact WASM rebuild cases. Browser tests were rerun with `PRG32_REQUIRE_BROWSER=1`, so missing browser evidence would fail.
 
-## Scenario coverage
+## Scenario assessment
 
 | Scenario | Result |
 |---|---|
-| A Guest policies | Missing; offline scratchpad is not administrator-controlled guest storage. |
-| B Registered student | CRUD/history/isolation covered; cloud, autosave conflicts, quotas and token lifecycle missing. |
-| C Three language modes | Generation/validation covered; real local builds unavailable. |
-| D Debugger parity | Passed in Chrome and Node/native/WASM fixtures: source/block breakpoints, active block, call stack, variables, watches, condition, CSR, stack, compressed instructions and fallback. |
-| E Academic SSO | Incomplete source implementation; no external IdP execution. |
-| F CartridgeStore | Local security/review suites passed; no live Store publication. |
-| G Security/performance/a11y | CSP/offline/keyboard/axe/debug boundary tests passed; no Linux rerun, screen reader or performance budget. |
+| Guest classroom use | Pass: projects remain in IndexedDB; export/import, migration, capacity and clearing behavior covered. |
+| Registered student | Pass: ownership, autosave, atomic conflict response, quotas and retention covered. |
+| Academic identity | Conditional: signed fake-provider PKCE/ID-token/security matrix passes; no external tenant or SCIM. |
+| Teacher/facilitator supervision | Pass: class-scoped, read-only boundaries and denial paths covered. |
+| Language services | Pass within documented validator-derived scope. |
+| Source/block debugging | Pass within documented optimized-code limits. |
+| Store | Local policy passes; shared/live conformance remains unexecuted. |
+| Cloud providers | Not implemented. |
+| Delivery | Runtime evidence only; hardware/Qt import/iOS handoff unexecuted. |
 
-No hardware, iOS, external IdP/cloud, live Store, newly built cartridge, exact WASM rebuild or independently executed CI/container result is claimed.
+## Revisions and immutable artifacts
+
+- PRG32: `679dfb58783bd007125de9ca0b75eaa077908739`
+- PRG32-QT: `f6d80addf49d0512c2e4390251a81d797a35b157`
+- CartridgeStore: `820f74bfe9364c8727db92cb0f15f3b9dd85feab`
+- committed WASM SHA-256: `3a19c44f2ead629196899ef187d8c87418d6277b90eadad07cff4052184d371f` (matches `static/wasm/BUILD.json`)
