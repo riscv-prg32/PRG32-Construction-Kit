@@ -431,20 +431,38 @@
     {
       "id": "CLD-01",
       "title": "Google Drive",
-      "status": "missing",
+      "status": "partial",
       "audit_score": 0,
-      "source": [],
-      "tests": [],
-      "note": "Refinement Phase 8."
+      "source": [
+        "prg32_construction_kit/cloud_storage.py::GoogleDrive",
+        "prg32_construction_kit/cloud_storage.py::api_push",
+        "prg32_construction_kit/cloud_storage.py::api_pull",
+        "static/js/cloud.js"
+      ],
+      "tests": [
+        "tests/test_cloud_storage.py::test_push_over_a_cloud_change_is_a_conflict_with_choices",
+        "tests/test_cloud_storage.py::test_a_revoked_connection_asks_to_reconnect_and_changes_nothing",
+        "tests/test_cloud_browser.py::test_connect_save_and_resolve_a_conflict"
+      ],
+      "note": "One provider interface (ADR-0019), proven against an in-process fake and a real browser; the opt-in live suite (tests/test_cloud_live.py) has not run against a real test account."
     },
     {
       "id": "CLD-02",
       "title": "OneDrive",
-      "status": "missing",
+      "status": "partial",
       "audit_score": 0,
-      "source": [],
-      "tests": [],
-      "note": "Refinement Phase 8."
+      "source": [
+        "prg32_construction_kit/cloud_storage.py::OneDrive",
+        "prg32_construction_kit/cloud_storage.py::api_push",
+        "prg32_construction_kit/cloud_storage.py::api_pull",
+        "static/js/cloud.js"
+      ],
+      "tests": [
+        "tests/test_cloud_storage.py::test_push_over_a_cloud_change_is_a_conflict_with_choices",
+        "tests/test_cloud_storage.py::test_a_revoked_connection_asks_to_reconnect_and_changes_nothing",
+        "tests/test_cloud_browser.py::test_connect_save_and_resolve_a_conflict"
+      ],
+      "note": "One provider interface (ADR-0019), proven against an in-process fake and a real browser; the opt-in live suite (tests/test_cloud_live.py) has not run against a real test account."
     },
     {
       "id": "STR-01",

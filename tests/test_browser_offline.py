@@ -18,6 +18,7 @@ What they prove, in a real browser:
 from __future__ import annotations
 
 import os
+import re
 import threading
 from pathlib import Path
 from urllib.parse import urlsplit
@@ -27,6 +28,9 @@ from conftest import ADMIN_PASSWORD, make_app
 
 # The CI browser job sets this, so the browser tests can never pass by skipping there.
 REQUIRE_BROWSER = os.environ.get("PRG32_REQUIRE_BROWSER") == "1"
+# The service worker's cache, read from the worker itself (it changes with every cached-file change).
+CACHE_NAME = re.search(r"const CACHE_NAME = '([^']+)'",
+                       (Path(__file__).resolve().parent.parent / "static" / "service-worker.js").read_text()).group(1)
 
 
 def skip_or_fail(reason: str):
@@ -165,7 +169,7 @@ def test_cold_offline_start_shows_an_editable_scratchpad(browser, live_kit):
     page.goto(f"{live_kit}/projects/{project}")
     page.evaluate("navigator.serviceWorker.ready")
     wait_until(page, "caches.keys().then(keys => keys.length > 0)")
-    wait_until(page, "caches.open('prg32-kit-v15').then(c => c.match('/static/offline.html')).then(Boolean)")
+    wait_until(page, f"caches.open('{CACHE_NAME}').then(c => c.match('/static/offline.html')).then(Boolean)")
     page.close()
 
     context.set_offline(True)
@@ -194,7 +198,7 @@ def test_offline_player_runs_a_real_cartridge(browser, live_kit):
     page = context.new_page()
     sign_in(page, live_kit)
     page.evaluate("navigator.serviceWorker.ready")
-    wait_until(page, "caches.open('prg32-kit-v15').then(c => c.match('/static/wasm/prg32-core.wasm')).then(Boolean)")
+    wait_until(page, f"caches.open('{CACHE_NAME}').then(c => c.match('/static/wasm/prg32-core.wasm')).then(Boolean)")
     context.set_offline(True)
     player = context.new_page()
     player.goto(f"{live_kit}/static/offline-player.html")

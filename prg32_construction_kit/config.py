@@ -48,6 +48,15 @@ class Config:
                              if os.environ.get("PRG32_STORE_ALLOWED_ORIGINS") else None)
     # 1 = the Store may be on a private/loopback address (classroom LAN, laptop); plain http
     # is then also allowed outside production.
+    # Optional cloud storage for registered accounts (ADR-0019, docs/cloud_storage.md).
+    # Unset = no cloud storage; everything else works the same.
+    CLOUD_GOOGLE_CLIENT_ID = os.environ.get("PRG32_CLOUD_GOOGLE_CLIENT_ID") or None
+    CLOUD_GOOGLE_CLIENT_SECRET = os.environ.get("PRG32_CLOUD_GOOGLE_CLIENT_SECRET") or None
+    CLOUD_ONEDRIVE_CLIENT_ID = os.environ.get("PRG32_CLOUD_ONEDRIVE_CLIENT_ID") or None
+    CLOUD_ONEDRIVE_CLIENT_SECRET = os.environ.get("PRG32_CLOUD_ONEDRIVE_CLIENT_SECRET") or None
+    CLOUD_ONEDRIVE_TENANT = os.environ.get("PRG32_CLOUD_ONEDRIVE_TENANT") or "common"
+    # Encrypts stored cloud tokens; derived from SECRET_KEY when unset.
+    CLOUD_TOKEN_KEY = os.environ.get("PRG32_CLOUD_TOKEN_KEY") or None
     STORE_TRUSTED_LOCAL = _flag("PRG32_STORE_TRUSTED_LOCAL", False)
     # CA bundle for a Store with a school-issued certificate (default: the public CAs).
     STORE_CA_BUNDLE = os.environ.get("PRG32_STORE_CA_BUNDLE") or None

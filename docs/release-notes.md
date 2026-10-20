@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+### Cloud storage: Google Drive and OneDrive (after the audit of e2d0cef)
+
+- Optional (`cloud_storage.md`, ADR-0019): connect on *My account*, then **Save to
+  cloud** / **Get cloud version** from the dashboard. Least-privilege permissions,
+  explicit consent, encrypted tokens, bounded retries.
+- When the project changed here and in the cloud, you choose: keep both, take the
+  cloud version (yours goes into History) or overwrite the cloud copy.
+- Fixed: restoring a revision now gives the project a new version, so a window
+  still showing the old one cannot save over the restore.
+- New tables `cloud_accounts` and `cloud_links` (created on start). Service worker
+  `prg32-kit-v16`.
+
 ### Shared Store contract (after the audit of e2d0cef)
 
 - `contracts/prg32-store-contract-1.json` (ADR-0018, `store_contract.md`): bundle,

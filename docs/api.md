@@ -71,6 +71,29 @@ A token request without the needed scope answers `403` with `"code": "insufficie
   was (or would be) removed.
 - `DELETE /api/users/<id>?with_items=1` (admin) also removes the account's items.
 
+## Cloud storage (ADR-0019)
+
+Only when an administrator configured a provider (`google`, `onedrive`); otherwise
+`404 not_configured`. Errors carry `code` and `retryable`; conflicts also `choices`,
+`remote` and `local`.
+
+| Route | What it does |
+|---|---|
+| `GET /api/cloud` | offered providers, scopes, and this account's connection (never tokens) |
+| `POST /api/cloud/<provider>/connect` `{"consent": true}` | `{"redirect": url}` to the provider (browser sign-in only) |
+| `GET /cloud/<provider>/callback` | the provider comes back here (single-use state, PKCE) |
+| `POST /api/cloud/<provider>/disconnect` | forget the tokens; `revoked_at_provider` says whether the provider revoked them |
+| `GET /api/cloud/<provider>/files` | the kit's project files there, with the linked `project_id` |
+| `POST /api/cloud/<provider>/files/<file_id>/open` | a new project from a cloud file |
+| `DELETE /api/cloud/<provider>/files/<file_id>?revision=` | to the provider's trash, only for that revision |
+| `GET /api/projects/<id>/cloud` | the project's links (kit records only) |
+| `POST /api/projects/<id>/cloud/<provider>/push` | `{}`, `{"choice": "copy"}` or `{"choice": "overwrite", "expected_remote_revision": r}` → `result` `created`, `saved`, `in_sync`, `overwritten` |
+| `POST /api/projects/<id>/cloud/<provider>/pull` | `{}`, `{"choice": "copy"}` or `{"choice": "take_remote", "expected_version": v}` → `result` `taken`, `nothing_new`, `copied` |
+
+Codes: `cloud_conflict`, `remote_missing`, `other_account`, `reconnect`,
+`not_connected`, `consent_required`, `unavailable` (retryable), `too_large`,
+`bad_file`, `forbidden`.
+
 ## Single sign-on with a Cartridge Store
 
 Only when `PRG32_SSO_SECRET` and `PRG32_SSO_PEER_URL` are set:

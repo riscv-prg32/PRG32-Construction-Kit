@@ -57,6 +57,19 @@ def test_the_version_check_is_atomic(app, client):
             update_resource("projects", project["id"], {"title": "second"}, expected_version=0)
 
 
+def test_a_restore_is_a_new_version_so_an_old_window_cannot_save_over_it(client):
+    project = new_project(client)
+    path = f"/api/projects/{project['id']}"
+    client.put(path, json={"title": "first", "blocks_json": {"n": 1}, "expected_version": 0})
+    client.put(path, json={"title": "second", "blocks_json": {"n": 2}, "expected_version": 1})
+    revision = client.get(path + "/revisions").get_json()["revisions"][-1]
+    restored = client.post(f"{path}/revisions/{revision['id']}/restore").get_json()["project"]
+    assert restored["version"] == 3
+    stale = client.put(path, json={"title": "from an old window", "expected_version": 2})
+    assert stale.status_code == 409 and stale.get_json()["code"] == "version_conflict"
+    assert client.get(path).get_json()["title"] == restored["title"]
+
+
 def test_expected_version_must_be_a_number(client):
     project = new_project(client)
     assert client.put(f"/api/projects/{project['id']}", json={"title": "x", "expected_version": "0"}).status_code == 400

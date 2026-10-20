@@ -359,3 +359,7 @@ body.dbg-mode-advanced .dbg-beginner { display: none !important; }
   .ide-tree { display: none; }
   .ide.ide-tree-open .ide-tree { display: block; position: fixed; z-index: 1040; top: 0; bottom: 0; left: 0; width: min(80vw, 18rem); box-shadow: 0 0 1rem rgba(0,0,0,.3); }
 }
+
+/* Cloud storage (ADR-0019): only when a cloud account is connected. */
+.cloud-only { display: none; }
+.cloud-ready .cloud-only { display: inline-block; }

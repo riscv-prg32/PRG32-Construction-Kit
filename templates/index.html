@@ -61,6 +61,32 @@
   <div class="list-group" id="deletedList"></div>
 </section>
 
+<div class="modal fade" id="cloudModal" tabindex="-1" aria-hidden="true" aria-labelledby="cloudModalTitle">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title" id="cloudModalTitle">Cloud copy</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+      <div class="modal-body">
+        <p class="mb-2"><strong id="cloudProjectTitle"></strong></p>
+        <label class="form-label small" for="cloudProvider">Cloud storage</label>
+        <select class="form-select form-select-sm mb-3" id="cloudProvider"></select>
+        <div class="d-flex flex-wrap gap-2 mb-3">
+          <button class="btn btn-primary btn-sm" id="cloudPush" type="button"><i class="bi bi-cloud-upload"></i> Save to cloud</button>
+          <button class="btn btn-outline-primary btn-sm" id="cloudPull" type="button"><i class="bi bi-cloud-download"></i> Get cloud version</button>
+        </div>
+        <div class="small" id="cloudStatus" role="status" aria-live="polite"></div>
+        <div class="alert alert-warning small mt-3 d-none" id="cloudConflict" role="alert">
+          <p class="mb-2" id="cloudConflictText"></p>
+          <div class="vstack gap-2">
+            <button class="btn btn-outline-dark btn-sm text-start" data-choice="copy" type="button"><strong>Keep both</strong> - nothing is replaced: you get a copy</button>
+            <button class="btn btn-outline-dark btn-sm text-start" data-choice="take_remote" type="button"><strong>Take the cloud version</strong> - your version here goes into the project's History</button>
+            <button class="btn btn-outline-danger btn-sm text-start" data-choice="overwrite" type="button"><strong>Overwrite the cloud copy</strong> with your version here</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="modal fade" id="newProjectModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog">
     <form class="modal-content" id="newProjectForm">
@@ -85,4 +111,5 @@
 {% block scripts %}
 <script src="{{ url_for('static', filename='js/guest_store.js') }}"></script>
 <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+<script src="{{ url_for('static', filename='js/cloud.js') }}"></script>
 {% endblock %}

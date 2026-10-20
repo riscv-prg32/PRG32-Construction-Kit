@@ -113,15 +113,18 @@ capability IDs.
 - Credentials, throttling and audit log; quality gates without lint, type,
   coverage or performance budgets. [SEC-02] [QLT-01]
 
+- Google Drive and OneDrive behind one provider interface (ADR-0019), proven
+  against in-process fakes and a real browser; no live tenant run yet.
+  [CLD-01] [CLD-02]
+
 ### Not implemented
 
-- Google Drive and OneDrive (phase 8). [CLD-01] [CLD-02]
 - Verified hardware and PRG32-iOS delivery. [DEP-01] [DEP-03]
 
 ## Risks
 
-1. **Scope gap:** the shared Store contract, cloud storage and delivery
-   evidence are the largest missing pieces of the Full IDE. School sign-in is tested against an in-process provider, not
+1. **Scope gap:** delivery evidence and live cloud tenants are the largest
+   missing pieces of the Full IDE. School sign-in is tested against an in-process provider, not
    a live institutional tenant. The language services follow the
    kit's rules and the SDK, not C semantics (no types or scopes).
 2. **Sandbox deployment:** AppArmor hosts need `apparmor=unconfined` today; no

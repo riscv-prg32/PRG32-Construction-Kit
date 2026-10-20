@@ -23,6 +23,7 @@ PRG32-Construction-Kit is a classroom web application for building PRG32 games w
    - `classes_and_roles.md` - classes, teachers, facilitators and students: who reads whose work.
    - `identity_live_testing.md` - testing school sign-in against Keycloak or your institution's provider.
    - `storage.md` - where games are kept: autosave, conflicts, quotas, retention, and guest games in the browser.
+   - `cloud_storage.md` - keeping projects in Google Drive or OneDrive (optional).
 10. `tutorials/` - step-by-step lessons.
    - `tutorials/games/` - five complete classic-inspired games with slide decks
      (`presentations/*.html`).

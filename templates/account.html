@@ -75,9 +75,18 @@
         <div class="list-group" id="tokenList"></div>
       </div>
     </div>
+    <div class="card shadow-sm mt-4 d-none" id="cloud">
+      <div class="card-header"><strong><i class="bi bi-cloud"></i> Cloud storage</strong></div>
+      <div class="card-body">
+        <p class="small text-muted">Keep copies of your projects in your own Google Drive or OneDrive, to work on
+          them from another computer. Optional: the kit works the same without it.</p>
+        <div class="vstack gap-3" id="cloudProviders"></div>
+      </div>
+    </div>
   </div>
 </div>
 {% endblock %}
 {% block scripts %}
 <script src="{{ url_for('static', filename='js/account.js') }}"></script>
+<script src="{{ url_for('static', filename='js/cloud.js') }}"></script>
 {% endblock %}

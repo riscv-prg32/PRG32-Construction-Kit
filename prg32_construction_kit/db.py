@@ -531,19 +531,29 @@ def count(resource: str) -> int:
 
 
 def restore_project_state(project_id: str, project_values: dict[str, Any],
-                          children: dict[str, dict[str, Any]], new_owner_id: int | None) -> dict[str, Any] | None:
+                          children: dict[str, dict[str, Any]], new_owner_id: int | None,
+                          expected_version: int | None = None) -> dict[str, Any] | None:
     """Put a project and its sprites/assets back as a revision had them, in ONE transaction.
 
     ``children`` is {"sprites"|"assets": {"update": [(row id, values)], "create": [values],
     "delete": [row ids]}}. Rows are changed in place where possible, so their ids (and
     every link to them) stay the same. Either everything is stored or, if anything goes
     wrong, nothing is: the project and its children stay exactly as they were.
+    Like every save, it gives the project a new version, so a window still showing the
+    old one cannot save over it (ADR-0017); ``expected_version`` makes it conditional.
     """
     project = db.session.get(Project, project_id)
     if project is None:
         return None
     now = utcnow()
     try:
+        claim = update(Project).where(Project.id == project_id)
+        if expected_version is not None:
+            claim = claim.where(Project.version == expected_version)
+        if db.session.execute(claim.values(version=Project.version + 1)).rowcount != 1:
+            db.session.rollback()
+            raise VersionConflict(project_id)
+        db.session.refresh(project)
         for column, value in project_values.items():
             setattr(project, _attribute(column), _encode_value("projects", column, value))
         project.updated_at = now

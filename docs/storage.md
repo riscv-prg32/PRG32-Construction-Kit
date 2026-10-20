@@ -16,6 +16,9 @@
   If it is full, saving bigger or compiling stops with a message: delete old
   projects or ask your teacher.
 
+**In your own cloud** (optional, if the kit offers it): see `cloud_storage.md`.
+The same rule holds there: when both copies changed, you choose.
+
 **Without an account** (*Try without an account* on the sign-in page, or the
 offline page when the server cannot be reached), your games are kept **in this
 browser only**, on this computer:
