@@ -5,11 +5,16 @@ The map has what a classroom debugger needs and nothing that names the server:
     {"schema": "prg32-debug-map/1", "status": "ok", "link_base": 1082130432, "image_size": 6420,
      "files": ["game.c", "portable_stubs.S"],
      "lines": [[address, file, line, is_stmt], ...],          # file -1 = end of a sequence
-     "functions": [{"name", "low", "high", "file", "line", "frame_base", "variables": [...]}],
+     "functions": [{"name", "low", "high", "file", "line", "frame_base", "variables": [...],
+                    "inlined": [{"name", "ranges": [[low, high], ...], "call_file", "call_line", "depth"}]}],
      "globals": [{"name", "address", "type", "file", "line"}],
      "types": {"<id>": {"kind": "base" | "pointer" | "array" | "struct" | "enum" | ..., ...}},
      "cfi": [{"low", "high", "rows": [[pc, cfa_register, cfa_offset, {"1": -4, ...}], ...]}],
      "symbols": [{"name", "address", "size", "kind": "function" | "object" | "label"}]}
+
+"inlined" (only when the compiler inlined calls into the function) says which
+addresses belong to an inlined function, and from which line it was called; the call
+stack shows such a function as its own frame, "inlined into" the real one.
 
 The symbols come from the ELF symbol table: they name handwritten assembly's labels
 (which have no DWARF functions or variables) in the call stack and the variables view.
@@ -35,6 +40,8 @@ MAX_IMAGE_BYTES = 1024 * 1024     # loadable span; a cartridge's RAM is far smal
 MAX_LINE_ROWS = 200_000
 MAX_DIES = 100_000
 MAX_TYPE_DEPTH = 12
+MAX_INLINED = 2_000          # inlined calls in one map
+MAX_INLINE_DEPTH = 16
 
 
 class DebugInfoError(Exception):
@@ -221,10 +228,61 @@ def _pc_range(die, base: int) -> tuple[int, int] | None:
     return low, (high.value if high.form == "DW_FORM_addr" else low + high.value)
 
 
-def _line_table(dwarf, cu, files: list[str], rows: list[list[int]]) -> None:
+def _ranges(die, cu, base: int, dwarf) -> list[list[int]]:
+    """[[low, high], ...] of a DIE: low/high_pc, or DW_AT_ranges (DWARF 4 and 5). Empty ranges dropped."""
+    single = _pc_range(die, base)
+    if single:
+        return [list(single)] if single[1] > single[0] else []
+    attribute = die.attributes.get("DW_AT_ranges")
+    if attribute is None:
+        return []
+    lists = dwarf.range_lists()
+    if lists is None:
+        return []
+    if attribute.form == "DW_FORM_rnglistx":
+        entries = lists.get_range_list_at_index(attribute.value, cu) if hasattr(lists, "get_range_list_at_index") else []
+    else:
+        entries = lists.get_range_list_at_offset(attribute.value, cu=cu)
+    out = []
+    for entry in entries:
+        if hasattr(entry, "base_address"):
+            base = entry.base_address
+        elif hasattr(entry, "begin_offset"):
+            low = entry.begin_offset if entry.is_absolute else base + entry.begin_offset
+            high = entry.end_offset if entry.is_absolute else base + entry.end_offset
+            if high > low:
+                out.append([low, high])
+    return out
+
+
+def _inlined(reader: _Reader, die, cu, base: int, file_index, depth: int, out: list) -> None:
+    """Every inlined call inside a function, outermost first (depth 0 = called by the function itself)."""
+    for child in die.iter_children():
+        reader.count()
+        if child.tag == "DW_TAG_subprogram":
+            continue
+        if child.tag == "DW_TAG_inlined_subroutine" and depth < MAX_INLINE_DEPTH:
+            origin = child.get_DIE_from_attribute("DW_AT_abstract_origin") \
+                if "DW_AT_abstract_origin" in child.attributes else child
+            ranges = _ranges(child, cu, base, reader.dwarf)
+            if ranges and "DW_AT_name" in origin.attributes:
+                attrs = child.attributes
+                out.append({"name": origin.attributes["DW_AT_name"].value.decode("utf-8", "replace"), "ranges": ranges,
+                            "call_file": file_index(attrs["DW_AT_call_file"].value) if "DW_AT_call_file" in attrs else -1,
+                            "call_line": attrs["DW_AT_call_line"].value if "DW_AT_call_line" in attrs else 0,
+                            "depth": depth})
+                if len(out) > MAX_INLINED:
+                    raise DebugInfoError("too many inlined calls")
+            _inlined(reader, child, cu, base, file_index, depth + 1, out)
+        else:
+            _inlined(reader, child, cu, base, file_index, depth, out)
+
+
+def _line_table(dwarf, cu, files: list[str], rows: list[list[int]]):
+    """Add the CU's line rows; return its file-number -> files index function."""
     program = dwarf.line_program_for_CU(cu)
     if program is None:
-        return
+        return lambda _number: -1
     entries = program["file_entry"]
     version = program["version"]
 
@@ -245,6 +303,7 @@ def _line_table(dwarf, cu, files: list[str], rows: list[list[int]]) -> None:
             rows.append([state.address, file_index(state.file), state.line, 1 if state.is_stmt else 0])
         if len(rows) > MAX_LINE_ROWS:
             raise DebugInfoError("the line table is too large")
+    return file_index
 
 
 def _scopes(reader: _Reader, die, cu, base: int, files: list[str], scope: list[int] | None, out: list) -> None:
@@ -319,7 +378,7 @@ def _build(elf_path: Path) -> dict[str, Any]:
     for cu in dwarf.iter_CUs():
         top = cu.get_top_DIE()
         base = top.attributes["DW_AT_low_pc"].value if "DW_AT_low_pc" in top.attributes else 0
-        _line_table(dwarf, cu, files, rows)
+        file_index = _line_table(dwarf, cu, files, rows)
         for die in top.iter_children():
             reader.count()
             if die.tag == "DW_TAG_variable":
@@ -337,12 +396,14 @@ def _build(elf_path: Path) -> dict[str, Any]:
                 variables: list[dict[str, Any]] = []
                 _scopes(reader, die, cu, base, files, None, variables)
                 frame = die.attributes.get("DW_AT_frame_base")
+                inlined: list[dict[str, Any]] = []
+                _inlined(reader, die, cu, base, file_index, 0, inlined)
                 functions.append({
                     "name": origin.attributes["DW_AT_name"].value.decode("utf-8", "replace"),
                     "low": pc[0], "high": pc[1],
                     "line": origin.attributes["DW_AT_decl_line"].value if "DW_AT_decl_line" in origin.attributes else 0,
                     "frame_base": _ops(reader.parser, frame.value) if frame is not None else [],
-                    "variables": variables})
+                    "variables": variables, **({"inlined": inlined} if inlined else {})})
                 # Function-level statics live at fixed addresses: show them with the globals.
                 for variable in variables:
                     location = variable["location"]

@@ -159,7 +159,17 @@
       return row;
     }
 
-    // frames[0] is where the core stopped; each next frame is its caller.
+    // The inlined calls (outermost first) whose code holds this address, inside one function.
+    function inlinedAt(info, lookup) {
+      const address = back(lookup);
+      return ((info && info.inlined) || [])
+        .filter(item => item.ranges.some(range => address >= range[0] && address < range[1]))
+        .sort((a, b) => a.depth - b.depth);
+    }
+
+    // frames[0] is where the core stopped; each next frame is its caller. A function the
+    // compiler inlined is shown as its own frame ("inlined": no frame of its own in memory,
+    // so its variables are not shown), called from the line its call was written on.
     function callStack(state, memory) {
       const imageEnd = map.link_base + map.image_size;
       const inImage = pc => back(pc) >= map.link_base && back(pc) < imageEnd;
@@ -173,15 +183,23 @@
         const where = lineAt(lookup);
         const row = cfiRow(lookup);
         const cfa = row ? (registers[row[1]] + row[2]) >>> 0 : null;
-        frames.push({ depth, pc, lookup, function: fn ? fn.name : hex(pc), file: where && where.file,
-          line: where && where.line, cfa, registers, info: fn && fn.info });
+        let place = where;
+        const chain = inlinedAt(fn && fn.info, lookup);
+        for (let k = chain.length - 1; k >= 0; k--) {
+          frames.push({ depth: frames.length, pc, lookup, function: chain[k].name, file: place && place.file,
+            line: place && place.line, cfa, registers, info: null, inlined: true, inlinedInto: fn.name });
+          place = chain[k].call_line ? { file: files[chain[k].call_file] || (place && place.file), line: chain[k].call_line }
+            : place;
+        }
+        frames.push({ depth: frames.length, pc, lookup, function: fn ? fn.name : hex(pc), file: place && place.file,
+          line: place && place.line, cfa, registers, info: fn && fn.info });
         if (!row) {
           // Assembly without call-frame rules: if this is where the core stopped, ra is the way back.
           if (depth === 0 && inImage(registers[1] >>> 0)) {
             const back2 = (registers[1] >>> 0) - 2;
             const caller = functionAt(back2);
             const line = lineAt(back2);
-            frames.push({ depth: 1, pc: registers[1] >>> 0, lookup: back2, function: caller ? caller.name : hex(registers[1]),
+            frames.push({ depth: frames.length, pc: registers[1] >>> 0, lookup: back2, function: caller ? caller.name : hex(registers[1]),
               file: line && line.file, line: line && line.line, cfa: null, registers: null, info: null, guessed: true });
           }
           break;
@@ -457,5 +475,19 @@
     return rows;
   }
 
-  return { create, csrRows, stackRows, registerNumber, REGISTER_NAMES };
+  // Where a saved line breakpoint belongs after the source was generated again: the same
+  // line if it still reads the same, else the nearest line that reads exactly like it, else
+  // nowhere (null: the code changed, and the breakpoint is not placed on other code).
+  function reanchorLine(line, text, sourceLines) {
+    const at = number => (sourceLines[number - 1] || '').trim();
+    if (text === undefined || text === null) return { line, moved: false };   // saved before anchors existed
+    if (at(line) === text) return { line, moved: false };
+    let best = null;
+    for (let number = 1; text !== '' && number <= sourceLines.length; number++) {
+      if (at(number) === text && (best === null || Math.abs(number - line) < Math.abs(best - line))) best = number;
+    }
+    return best === null ? null : { line: best, moved: true };
+  }
+
+  return { create, csrRows, stackRows, registerNumber, reanchorLine, REGISTER_NAMES };
 });

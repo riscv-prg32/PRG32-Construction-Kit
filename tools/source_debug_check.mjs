@@ -63,7 +63,8 @@ function where() {
   const top = stack[0];
   return {
     pc: now.pc, phase: now.phase, line: debug.lineAt(now.pc), block: debug.blockAt(now.pc),
-    stack: stack.map(frame => ({ function: frame.function, file: frame.file, line: frame.line, guessed: !!frame.guessed })),
+    stack: stack.map(frame => ({ function: frame.function, file: frame.file, line: frame.line, guessed: !!frame.guessed,
+      inlined: !!frame.inlined, inlinedInto: frame.inlinedInto || null })),
     variables: stack.map(frame => debug.variables(frame, memory).map(v => ({ name: v.name, text: v.text }))),
     globals: debug.globals(memory).map(g => ({ name: g.name, text: g.text })),
     csr: SourceDebug.csrRows(now).map(row => [row.name, row.value]),

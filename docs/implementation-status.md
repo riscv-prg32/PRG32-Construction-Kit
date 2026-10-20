@@ -73,6 +73,16 @@ evidence-checked view is `capabilities.md` (from `capabilities.json`). A gate is
 | 2026-10-20 | `tests/test_build_sandbox.py tests/test_build_budget.py tests/test_debug_fuzz.py` in `prg32-kit:sandbox` (Docker Desktop, aarch64, bwrap required) | 36 passed |
 | 2026-10-20 | AppArmor profile `docker/apparmor/prg32-kit`: `apparmor_parser -Q -K` (AppArmor 4.0.1, Ubuntu 24.04 container) | parses; confined run only in CI (no AppArmor kernel here) |
 | 2026-10-20 | `tests/test_cloud_live.py`, `tools/delivery_check.py device` (no test accounts, console or PRG32-QT session used) | not run |
+| 2026-10-20 | CI on `development` for `c6eb948`, `fea31c0`, `7373f4b` | **failed**: *Store contract* job (actions/checkout cannot fetch the short CartridgeStore SHA; contract now names the full SHA) and, for `7373f4b`, the AppArmor-confined sandbox run (bubblewrap refused under the first profile; profile broadened). Other jobs passed. Fixes not yet run in CI. |
+| 2026-10-21 | After sections 5–7: `python3 -m pytest -q` | 983 passed, 45 skipped |
+| 2026-10-21 | Browser suites (8 files incl. performance), `PRG32_REQUIRE_BROWSER=1` | 81 passed |
+| 2026-10-21 | Store contract + disposable Store + SSO | 45 passed |
+| 2026-10-21 | `tests/test_store_egress.py` | 94 passed |
+| 2026-10-21 | `tools/build_debug_fixtures.py --check` (toolchain 14.2.0, SDK `679dfb5`) | up to date |
+| 2026-10-21 | Sandbox, budget and fuzz tests in `prg32-kit:sandbox` (bwrap required) | 37 passed |
+| 2026-10-21 | Full suite on `requirements.lock` in a clean venv (cryptography 50.0.2, pytest 9.1.1) | 931 passed, 67 skipped (no browser/toolchain in that venv) |
+| 2026-10-21 | `pip-audit --require-hashes -r requirements.lock` | no known vulnerabilities (after updating cryptography and pytest) |
+| 2026-10-21 | `pip install --require-hashes -r requirements.lock` in `python:3.12-slim` (aarch64) | installs and imports |
 
 Skipped and why:
 

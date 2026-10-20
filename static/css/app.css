@@ -296,6 +296,8 @@ body {
 .dbg-src-gutter:hover, .dbg-src-gutter:focus-visible { background: var(--bs-secondary-bg); }
 .dbg-src-line.dbg-bp .dbg-src-gutter { color: #b02a37; font-weight: 700; }
 .dbg-src-line.dbg-bp .dbg-src-gutter::before { content: "● "; }
+.dbg-src-line.dbg-bp-off .dbg-src-gutter { color: #6c757d; }
+.dbg-src-line.dbg-bp-off .dbg-src-gutter::before { content: "○ "; }
 .dbg-src-line.dbg-current { background: #075985; color: #fff; }
 .dbg-src-line.dbg-current .dbg-src-gutter { background: #0c4a6e; color: #fff; }
 #dbgStackWords .dbg-current td { background: #075985; color: #fff; }

@@ -170,6 +170,46 @@ def test_source_breakpoint_call_stack_and_variables():
 
 
 @needs_node
+def test_an_inlined_function_is_its_own_frame_and_invents_no_values():
+    """Pong's prg32_kit_draw_number is inlined into pong_draw (two calls, lines 556 and 559)."""
+    debug_map = json.loads((FIXTURES / "pong.map.json").read_text())
+    draw = next(item for item in debug_map["functions"] if item["name"] == "pong_draw")
+    assert {(item["name"], item["call_line"]) for item in draw["inlined"]} >= {
+        ("prg32_kit_draw_number", 556), ("prg32_kit_draw_number", 559)}
+    _placed, stop = drive("pong", "line:172", "continue", source_map=True)
+    assert stop["result"] == 2
+    top, caller = stop["stack"][0], stop["stack"][1]
+    assert top["function"] == "prg32_kit_draw_number" and top["inlined"] and top["inlinedInto"] == "pong_draw"
+    assert top["line"] == 172
+    assert caller["function"] == "pong_draw" and not caller["inlined"] and caller["line"] in (556, 559)
+    assert stop["variables"][0] == []      # no frame of its own: nothing shown, nothing guessed
+
+
+@needs_node
+def test_saved_breakpoints_follow_their_code_or_say_it_changed():
+    script = """
+const D = require(process.argv[1]);
+const lines = ['int a;', '  score += 1;', 'void f(void) {', '  score += 1;', '}'];
+console.log(JSON.stringify([
+  D.reanchorLine(2, 'score += 1;', lines),
+  D.reanchorLine(3, 'score += 1;', lines),
+  D.reanchorLine(5, 'score += 1;', lines),
+  D.reanchorLine(2, 'gone();', lines),
+  D.reanchorLine(4, '', lines),
+  D.reanchorLine(4, undefined, lines),
+]));
+"""
+    result = subprocess.run(["node", "-e", script, str(ROOT / "static" / "js" / "source_debug.js")],
+                            capture_output=True, text=True, timeout=60, check=True)
+    same, moved_up, nearest, gone, blank, legacy = json.loads(result.stdout)
+    assert same == {"line": 2, "moved": False}
+    assert moved_up["moved"] and moved_up["line"] in (2, 4)
+    assert nearest == {"line": 4, "moved": True}
+    assert gone is None and blank is None          # never placed on other code
+    assert legacy == {"line": 4, "moved": False}   # saved before anchors existed: as before
+
+
+@needs_node
 def test_a_line_without_code_moves_the_breakpoint_to_the_next_line():
     assert drive("locals", "line:19")[0]["placed"]["line"] == 20
 

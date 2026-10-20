@@ -59,7 +59,10 @@ Then add `apparmor=prg32-kit` to `security_opt` in `docker-compose.yml` (or
 needed. To load it at every boot, copy it to `/etc/apparmor.d/`.
 
 CI loads this profile and runs the sandbox escape and disk tests confined by it,
-with the user-namespace restriction on. Hosts without AppArmor (Docker Desktop)
+with the user-namespace restriction on. The first run (kit `7373f4b`) failed: the
+first profile allowed too few mounts and capabilities for bubblewrap. The current
+profile follows Ubuntu's own bubblewrap profile; its CI run is still pending, so until
+it passes treat `apparmor=unconfined` plus the sysctl above as the tested fallback. Hosts without AppArmor (Docker Desktop)
 need only the seccomp profile.
 
 ## Settings

@@ -3,7 +3,7 @@
   "description": "What a PRG32 Store bundle is, what the Cartridge Store accepts, and what its refusals mean. One file for the kit and the Store (docs/store_contract.md).",
   "store_reference": {
     "repository": "riscv-prg32/CartridgeStore",
-    "checked_against": "820f74b",
+    "checked_against": "820f74bfe9364c8727db92cb0f15f3b9dd85feab",
     "code": [
       "cartridge_store/app.py::_prepare_bundle",
       "cartridge_store/prg32_format.py::validate_metadata",

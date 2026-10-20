@@ -68,6 +68,18 @@ Sometimes a variable says *optimised out*: the compiler made your program
 faster and did not keep that value at this point. The debugger says so
 instead of guessing.
 
+Sometimes the call stack shows a function marked **inlined into** another: the
+compiler copied that small function into the one that calls it, so it has no
+frame of its own. The debugger still shows where you are inside it and the line
+it was called from; its variables are not shown (press the function it was
+inlined into to see that one's).
+
+**Your breakpoints stay** when you change the game and compile again. Each one
+remembers the code on its line: if that code moved, the breakpoint moves with it;
+if the code is gone, the breakpoint is listed as *the code changed* and is not put
+anywhere else. The tick box in front of a breakpoint switches it off without
+losing it (its dot in the source becomes ○).
+
 ## Advanced view
 
 **Advanced** shows all 32 registers in hexadecimal, the machine words of each

@@ -392,6 +392,9 @@ jobs:
             --junitxml=/evidence/container-apparmor-tests.xml tests/test_build_sandbox.py tests/test_build_budget.py"
           status=$?
           sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+          if [ $status -ne 0 ]; then
+            echo "AppArmor denials (if any):"; sudo dmesg | grep -i 'apparmor="DENIED"' | tail -40 || true
+          fi
           exit $status
 
       - name: Compile real cartridges concurrently

@@ -39,7 +39,7 @@ and what is still open. Reporting: contact the maintainers privately.
 
 | Area | Risk | Plan |
 | --- | --- | --- |
-| Build sandbox gaps | Builds share the kit user outside their namespaces (per-build UIDs evaluated, not adopted: ADR-0010 amendment); the folder budget is checked four times a second | AppArmor profile `docker/apparmor/prg32-kit` and disk budgets done (`build_budget.py`); CI proves the profile on Ubuntu 24.04 |
+| Build sandbox gaps | Builds share the kit user outside their namespaces (per-build UIDs evaluated, not adopted: ADR-0010 amendment); the folder budget is checked four times a second | AppArmor profile `docker/apparmor/prg32-kit` and disk budgets done (`build_budget.py`); the confined CI run on Ubuntu 24.04 failed with the first profile (bubblewrap refused) and is pending again with the broadened one |
 | WASM runtime | Guest code in the browser | Interpreted in WASM; no host calls except the PRG32 ABI (ADR-0003) |
 | OAuth / OIDC | No PKCE; users linked by provider + `sub`, not issuer | ADR-0007 |
 | Cloud storage | Token storage, scope creep | Done (ADR-0019): server-side encrypted tokens, least-privilege scopes, revocation where the provider offers it; real-account evidence pending |

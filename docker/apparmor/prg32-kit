@@ -23,27 +23,15 @@ profile prg32-kit flags=(attach_disconnected,mediate_deleted) {
   signal (send, receive) peer=prg32-kit,
   ptrace (trace, read, tracedby, readby) peer=prg32-kit,
 
-  # bubblewrap: a new user namespace per build, and in it a private /tmp, read-only binds,
-  # the build folder, a read-only remount of / and pivot_root. These capabilities are the
-  # namespace's own: the container itself has none (cap_drop ALL).
+  # bubblewrap: a new user namespace per build, and in it a private /tmp and /dev (with
+  # devpts), read-only binds, the build folder, a read-only remount of /, a loopback
+  # network and pivot_root. As in Ubuntu's own bwrap profile, capabilities and mounts are
+  # allowed here: the container itself has none (cap_drop ALL, no-new-privileges), so they
+  # exist only inside a build's user namespace.
   userns,
-  capability sys_admin,
-  capability sys_chroot,
-  capability setpcap,
-  capability setuid,
-  capability setgid,
-  capability dac_override,
-  mount fstype=tmpfs -> /**,
-  mount options=(rw, rbind) -> /**,
-  mount options=(rw, bind) -> /**,
-  mount options=(ro, remount, bind) -> /**,
-  mount options=(ro, remount, rbind) -> /**,
-  mount options=(rw, rprivate) -> /**,
-  mount options=(rw, rslave) -> /**,
-  mount options=(rw, nosuid, nodev) -> /**,
-  mount options=(ro, remount, nosuid, nodev, bind) -> /**,
-  mount fstype=devtmpfs -> /**,
-  mount fstype=proc -> /**,
+  capability,
+  mount,
+  remount,
   pivot_root,
 
   # As in docker-default: no kernel settings, no sensitive kernel files.

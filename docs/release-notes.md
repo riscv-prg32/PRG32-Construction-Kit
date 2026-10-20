@@ -28,6 +28,10 @@
 - Quality gates: `ruff` (pyflakes rules), a coverage floor of 88% (measured 91%), and
   performance budgets in a real browser with a 4x slower CPU (`performance.md`).
 - Fixed: taking a cloud version of a project deleted meanwhile answered 500; now 404.
+- Debugger: breakpoints stay when the game is compiled again (they follow their
+  code, or are listed as "the code changed"), and can be switched off without being
+  removed; inlined functions appear in the call stack as "inlined into ...". Service
+  worker `prg32-kit-v17`.
 - Cloud storage: more checks against the fake providers (files the kit did not
   make, outages while taking the cloud version, the Drive check-then-write window).
 

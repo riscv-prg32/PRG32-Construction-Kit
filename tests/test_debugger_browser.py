@@ -146,3 +146,52 @@ def test_without_debug_information_the_address_debugger_remains(browser, debug_k
     page.click("#dbgStep")
     wait_until(page, "document.querySelectorAll('#dbgCode .dbg-current').length === 1")
     context.close()
+
+
+def test_breakpoints_switch_off_and_survive_compiling_again(browser, debug_kit):  # noqa: F811
+    """Breakpoints are kept per project and source file: after the code is generated again they
+    follow their line, or are listed as "the code changed" and not placed on other code."""
+    context = browser.new_context(viewport={"width": 1400, "height": 1000})
+    record = Recorder(context, debug_kit["url"])
+    page = open_player(context, debug_kit, debug_kit["cartridge"])
+    record.watch(page)
+    wait_until(page, "!!PRG32SourceDebugger.session && PRG32SourceDebugger.session.ok")
+    page.click("#dbgEnable")
+    page.click("#tabSource")
+    line = page.evaluate("""(() => { const s = PRG32SourceDebugger.session; for (let n = 360; n < 420; n++) {
+        const found = s.breakpointForLine(n); if (found && found.line === n) return n; } return null; })()""")
+    page.focus(f"#dbgSource .dbg-src-gutter[data-line='{line}']")
+    page.keyboard.press("Enter")
+    wait_until(page, f"!!document.querySelector(\"#dbgSource .dbg-src-line.dbg-bp[data-line='{line}']\")")
+    # Switched off: kept in the list and in the gutter (hollow), but the program runs past it.
+    page.uncheck(".dbg-src-enabled[data-kind=line]")
+    wait_until(page, f"!!document.querySelector(\"#dbgSource .dbg-src-line.dbg-bp-off[data-line='{line}']\")")
+    page.click("#dbgContinue")
+    page.wait_for_timeout(600)
+    assert page.evaluate("prg32Player.debugState().running") is True
+    key = page.evaluate("Object.keys(localStorage).find(k => k.startsWith('prg32-kit-breakpoints:'))")
+    assert key and key.endswith(":game.c")          # by project and file, not by cartridge
+    saved = page.evaluate(f"JSON.parse(localStorage.getItem('{key}'))")
+    assert saved["lines"][0]["enabled"] is False and saved["lines"][0]["text"]
+
+    # "Compiled again": the line's code was saved at another line that has code of its own
+    # (without its anchor the breakpoint would stay there), and one line is gone.
+    text = saved["lines"][0]["text"]
+    elsewhere = page.evaluate(f"""(() => {{ const s = PRG32SourceDebugger.session; for (let n = 300; n < {line}; n++) {{
+        const found = s.breakpointForLine(n); if (found && found.line === n) return n; }} return null; }})()""")
+    assert elsewhere and elsewhere != line
+    page.evaluate(f"""localStorage.setItem('{key}', JSON.stringify({{lines: [
+        {{line: {elsewhere}, text: {json.dumps(text)}, condition: '', enabled: true}},
+        {{line: 5, text: 'this_line_was_removed();', condition: '', enabled: true}}], blocks: [], watches: []}}))""")
+    page.reload()
+    wait_until(page, "!!window.PRG32SourceDebugger && document.getElementById('dbgEnable').disabled === false")
+    wait_until(page, "!!PRG32SourceDebugger.session && PRG32SourceDebugger.session.ok")
+    page.click("#dbgEnable")                         # the panels are drawn while debugging
+    page.click("#tabSource")
+    wait_until(page, f"!!document.querySelector(\"#dbgSource .dbg-src-line.dbg-bp[data-line='{line}']\")")
+    listed = page.inner_text("#dbgSourceBreakpoints")
+    assert f"Line {line}" in listed and "the code changed" in listed and "this_line_was_removed" in listed
+    assert not page.query_selector("#dbgSource .dbg-src-line.dbg-bp[data-line='5']")
+    assert not page.query_selector(f"#dbgSource .dbg-src-line.dbg-bp[data-line='{elsewhere}']")
+    assert record.csp_violations() == []
+    context.close()

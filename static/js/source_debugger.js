@@ -24,8 +24,10 @@
   let workspace = null;      // read-only Blockly workspace
   let selectedFrame = 0;
   let lastPc = null;
-  const lineBreakpoints = new Map();   // line -> {addresses, condition}
-  const blockBreakpoints = new Map();  // block id -> {addresses, condition}
+  const lineBreakpoints = new Map();   // line -> {addresses, condition, enabled, text}
+  const blockBreakpoints = new Map();  // block id -> {addresses, condition, enabled}
+  let changedCode = [];                // saved breakpoints whose code is gone: listed, never placed
+  const placed = new Set();            // addresses set in the core
   const watches = [];
   const memory = { read: (address, length) => player.readMemory(address, length) };
 
@@ -33,55 +35,98 @@
   const hex = value => '0x' + (value >>> 0).toString(16).padStart(8, '0');
   const advanced = () => $('body').hasClass('dbg-mode-advanced');
 
-  function storageKey() { return 'prg32-kit-source-breakpoints:' + (player.sha256 || ''); }
+  // Breakpoints belong to the project's source, not to one build: they survive compiling again.
+  function storageKey() {
+    const project = info && info.cartridge && info.cartridge.project_id;
+    return project ? `prg32-kit-breakpoints:${project}:${info.source ? info.source.file : ''}`
+      : 'prg32-kit-source-breakpoints:' + (player.sha256 || '');
+  }
+  const linesOfSource = () => (info && info.source ? info.source.text.split('\n') : []);
 
   function remember() {
-    const saved = { lines: [...lineBreakpoints].map(([line, item]) => [line, item.condition || '']),
-      blocks: [...blockBreakpoints].map(([block, item]) => [block, item.condition || '']), watches };
+    const saved = {
+      lines: [...lineBreakpoints].map(([line, item]) => ({ line, text: item.text, condition: item.condition || '', enabled: item.enabled })),
+      blocks: [...blockBreakpoints].map(([block, item]) => ({ block, condition: item.condition || '', enabled: item.enabled })),
+      changed: changedCode, watches };
     try { localStorage.setItem(storageKey(), JSON.stringify(saved)); } catch (_) { /* private window */ }
   }
 
   function restore() {
     let saved = null;
-    try { saved = JSON.parse(localStorage.getItem(storageKey()) || 'null'); } catch (_) { saved = null; }
+    try {
+      saved = JSON.parse(localStorage.getItem(storageKey()) || 'null')
+        || JSON.parse(localStorage.getItem('prg32-kit-source-breakpoints:' + (player.sha256 || '')) || 'null');
+    } catch (_) { saved = null; }
     if (!saved) return;
-    for (const [line, condition] of saved.lines || []) setLineBreakpoint(Number(line), true, condition);
-    for (const [block, condition] of saved.blocks || []) setBlockBreakpoint(block, true, condition);
+    const moved = [];
+    changedCode = (saved.changed || []).slice(0, 50);
+    for (const entry of saved.lines || []) {
+      const [line, condition, enabled, text] = Array.isArray(entry) ? [entry[0], entry[1], true, undefined]
+        : [entry.line, entry.condition, entry.enabled !== false, entry.text];
+      const anchored = PRG32SourceDebug.reanchorLine(Number(line), text, linesOfSource());
+      if (!anchored) { changedCode.push({ kind: 'line', line: Number(line), text: text || '', condition: condition || '' }); continue; }
+      if (anchored.moved) moved.push(`${line} → ${anchored.line}`);
+      setLineBreakpoint(anchored.line, true, condition, { quiet: true, enabled });
+    }
+    for (const entry of saved.blocks || []) {
+      const [block, condition, enabled] = Array.isArray(entry) ? [entry[0], entry[1], true] : [entry.block, entry.condition, entry.enabled !== false];
+      if (!debug.breakpointForBlock(block)) { changedCode.push({ kind: 'block', block, condition: condition || '' }); continue; }
+      setBlockBreakpoint(block, true, condition, { quiet: true, enabled });
+    }
     watches.splice(0, watches.length, ...(saved.watches || []).slice(0, 20));
+    if (moved.length) Kit.toast(`The code moved; breakpoints followed it (line ${moved.join(', ')}).`, 'info');
+    if (changedCode.length) Kit.toast('Some breakpoints are on code that changed: they are listed, switched off.', 'warning');
+    remember();
   }
 
   // --- breakpoints -------------------------------------------------------------------
-  function placeAddresses(addresses, enabled) {
-    for (const address of addresses) player.debug({ command: 'breakpoint', address, enabled });
+  // The core's address breakpoints are always exactly those of the enabled line and block
+  // breakpoints (one address can belong to both a line and a block).
+  function syncAddresses() {
+    const wanted = new Set();
+    for (const item of [...lineBreakpoints.values(), ...blockBreakpoints.values()]) {
+      if (item.enabled) item.addresses.forEach(address => wanted.add(address));
+    }
+    for (const address of [...placed]) {
+      if (!wanted.has(address)) { player.debug({ command: 'breakpoint', address, enabled: false }); placed.delete(address); }
+    }
+    for (const address of wanted) {
+      if (!placed.has(address)) { player.debug({ command: 'breakpoint', address, enabled: true }); placed.add(address); }
+    }
   }
 
-  function setLineBreakpoint(line, enabled, condition) {
-    if (!enabled) {
-      const item = lineBreakpoints.get(line);
-      if (item) placeAddresses(item.addresses, false);
+  function setLineBreakpoint(line, on, condition, options = {}) {
+    if (!on) {
       lineBreakpoints.delete(line);
     } else {
       const found = debug.breakpointForLine(line);
-      if (!found) { Kit.toast(`Line ${line} has no code to stop at.`, 'warning'); return; }
-      if (found.line !== line) Kit.toast(`Line ${line} has no code of its own: the breakpoint is on line ${found.line}.`, 'info');
-      lineBreakpoints.set(found.line, { addresses: found.addresses, condition: condition || '' });
-      placeAddresses(found.addresses, true);
+      if (!found) { if (!options.quiet) Kit.toast(`Line ${line} has no code to stop at.`, 'warning'); return; }
+      if (found.line !== line && !options.quiet) Kit.toast(`Line ${line} has no code of its own: the breakpoint is on line ${found.line}.`, 'info');
+      lineBreakpoints.set(found.line, { addresses: found.addresses, condition: condition || '',
+        enabled: options.enabled !== false, text: (linesOfSource()[found.line - 1] || '').trim() });
     }
-    remember();
-    render(player.debugState());
+    syncAddresses();
+    if (!options.quiet) { remember(); render(player.debugState()); }
   }
 
-  function setBlockBreakpoint(block, enabled, condition) {
-    if (!enabled) {
-      const item = blockBreakpoints.get(block);
-      if (item) placeAddresses(item.addresses, false);
+  function setBlockBreakpoint(block, on, condition, options = {}) {
+    if (!on) {
       blockBreakpoints.delete(block);
     } else {
       const found = debug.breakpointForBlock(block);
-      if (!found) { Kit.toast('This block makes no code of its own (a comment, or inside an empty part).', 'warning'); return; }
-      blockBreakpoints.set(block, { addresses: found.addresses, condition: condition || '' });
-      placeAddresses(found.addresses, true);
+      if (!found) { if (!options.quiet) Kit.toast('This block makes no code of its own (a comment, or inside an empty part).', 'warning'); return; }
+      blockBreakpoints.set(block, { addresses: found.addresses, condition: condition || '', enabled: options.enabled !== false });
     }
+    syncAddresses();
+    markBlocks();
+    if (!options.quiet) { remember(); render(player.debugState()); }
+  }
+
+  function setEnabled(kind, key, enabled) {
+    const item = (kind === 'line' ? lineBreakpoints : blockBreakpoints).get(key);
+    if (!item) return;
+    item.enabled = enabled;
+    syncAddresses();
     markBlocks();
     remember();
     render(player.debugState());
@@ -89,7 +134,7 @@
 
   function conditionAt(pc) {
     for (const item of [...lineBreakpoints.values(), ...blockBreakpoints.values()]) {
-      if (item.condition && item.addresses.includes(pc >>> 0)) return item.condition;
+      if (item.enabled && item.condition && item.addresses.includes(pc >>> 0)) return item.condition;
     }
     return '';
   }
@@ -152,7 +197,8 @@
     if (!workspace) return;
     for (const block of workspace.getAllBlocks(false)) {
       const root = block.getSvgRoot();
-      if (root) root.classList.toggle('dbg-block-breakpoint', blockBreakpoints.has(block.id));
+      const item = blockBreakpoints.get(block.id);
+      if (root) root.classList.toggle('dbg-block-breakpoint', !!item && item.enabled);
     }
   }
 
@@ -185,8 +231,10 @@
   }
 
   function renderSourceMarks(line) {
-    $('#dbgSource .dbg-src-line').removeClass('dbg-current dbg-bp');
-    for (const bp of lineBreakpoints.keys()) $(`#dbgSource .dbg-src-line[data-line="${bp}"]`).addClass('dbg-bp');
+    $('#dbgSource .dbg-src-line').removeClass('dbg-current dbg-bp dbg-bp-off');
+    for (const [bp, item] of lineBreakpoints) {
+      $(`#dbgSource .dbg-src-line[data-line="${bp}"]`).addClass(item.enabled ? 'dbg-bp' : 'dbg-bp-off');
+    }
     if (line) {
       const row = $(`#dbgSource .dbg-src-line[data-line="${line}"]`).addClass('dbg-current');
       if (row[0]) row[0].scrollIntoView({ block: 'nearest' });
@@ -217,12 +265,15 @@
     // Variables: beginners see the game's own variables; advanced users see the frame too.
     const globals = debug.globals(memory).filter(item => advanced() || !item.name.startsWith('prg32_kit_'));
     const locals = advanced() || !debug.hasBlocks ? debug.variables(frame, memory) : [];
-    $('#dbgVariables').html((locals.length ? `<tr><th colspan="2" class="text-muted small">In ${escape(frame.function)}</th></tr>${valueRows(locals)}` : '')
+    const inlinedNote = frame && frame.inlined && (advanced() || !debug.hasBlocks)
+      ? `<tr><td colspan="2" class="text-muted small">${escape(frame.function)} was inlined into ${escape(frame.inlinedInto)}: it has no frame of its own, so its variables are not shown. Choose ${escape(frame.inlinedInto)} in the call stack.</td></tr>` : '';
+    $('#dbgVariables').html(inlinedNote + (locals.length ? `<tr><th colspan="2" class="text-muted small">In ${escape(frame.function)}</th></tr>${valueRows(locals)}` : '')
       + (globals.length ? `<tr><th colspan="2" class="text-muted small">${debug.hasBlocks ? 'Your variables' : 'Globals'}</th></tr>${valueRows(globals)}` : '')
       || '<tr><td class="text-muted small">No variables here.</td></tr>');
     // Call stack
     $('#dbgCallStack').html(stack.map((item, index) => `<li><button type="button" class="btn btn-link btn-sm p-0 dbg-frame ${index === selectedFrame ? 'fw-bold' : ''}"
-        data-index="${index}" aria-current="${index === selectedFrame}">${escape(item.function)}</button>
+        data-index="${index}" aria-current="${index === selectedFrame}">${escape(item.function)}</button>${item.inlined
+          ? ` <span class="badge text-bg-light" title="The compiler copied this function into ${escape(item.inlinedInto)}">inlined into ${escape(item.inlinedInto)}</span>` : ''}
         <span class="small text-muted">${item.line ? `${escape(item.file)}:${item.line}` : hex(item.pc)}${item.guessed ? ' (from ra)' : ''}</span></li>`).join('')
       || '<li class="text-muted small">Not inside the program.</li>');
     // Watches
@@ -241,11 +292,17 @@
     const items = [...[...lineBreakpoints].map(([line, item]) => ({ kind: 'line', key: line, label: `Line ${line}`, ...item })),
       ...[...blockBreakpoints].map(([block, item]) => ({ kind: 'block', key: block, label: `Block ${describeBlock(block)}`, ...item }))];
     $('#dbgSourceBreakpoints').html(items.map(item => `<li class="d-flex flex-wrap gap-1 align-items-center">
-        <span class="text-danger">●</span> ${escape(item.label)}
+        <input class="form-check-input dbg-src-enabled" type="checkbox" id="on-${item.kind}-${escape(item.key)}"
+          data-kind="${item.kind}" data-key="${escape(item.key)}" ${item.enabled ? 'checked' : ''}>
+        <label class="${item.enabled ? '' : 'text-muted text-decoration-line-through'}" for="on-${item.kind}-${escape(item.key)}">${escape(item.label)}</label>
         <label class="visually-hidden" for="cond-${item.kind}-${escape(item.key)}">Condition for ${escape(item.label)}</label>
         <input class="form-control form-control-sm w-auto font-monospace dbg-condition" id="cond-${item.kind}-${escape(item.key)}"
           data-kind="${item.kind}" data-key="${escape(item.key)}" value="${escape(item.condition)}" placeholder="stop only if… (score > 10)">
         <button type="button" class="btn btn-link btn-sm p-0 dbg-src-remove" data-kind="${item.kind}" data-key="${escape(item.key)}">remove</button></li>`).join('')
+      + changedCode.map((item, index) => `<li class="d-flex flex-wrap gap-1 align-items-center text-muted">
+        <span title="not placed">○</span> ${item.kind === 'line' ? `Line ${item.line}` : `Block ${escape(describeBlock(item.block))}`}: the code changed
+        ${item.text ? `(was <code>${escape(item.text)}</code>)` : ''}
+        <button type="button" class="btn btn-link btn-sm p-0 dbg-changed-remove" data-index="${index}">remove</button></li>`).join('')
       || '<li class="text-muted small">No source or block breakpoints.</li>');
   }
 
@@ -260,6 +317,11 @@
   // --- attach -------------------------------------------------------------------------
   function attach(answer) {
     info = answer;
+    // A new cartridge in the core: nothing of the previous one's breakpoints is placed there.
+    lineBreakpoints.clear();
+    blockBreakpoints.clear();
+    placed.clear();
+    changedCode = [];
     debug = answer ? PRG32SourceDebug.create({ debugMap: answer.debug_map, sourceMap: answer.source_map,
       guestBase: player.debugState().guest_base }) : null;
     if (!debug || !debug.ok) {
@@ -309,6 +371,13 @@
     const item = (kind === 'line' ? lineBreakpoints : blockBreakpoints).get(key);
     if (item) item.condition = this.value.trim();
     remember();
+  }).on('change', '.dbg-src-enabled', function () {
+    const kind = $(this).data('kind');
+    setEnabled(kind, kind === 'line' ? Number($(this).data('key')) : String($(this).data('key')), this.checked);
+  }).on('click', '.dbg-changed-remove', function () {
+    changedCode.splice(Number($(this).data('index')), 1);
+    remember();
+    render(player.debugState());
   }).on('click', '.dbg-src-remove', function () {
     const kind = $(this).data('kind');
     if (kind === 'line') setLineBreakpoint(Number($(this).data('key')), false);

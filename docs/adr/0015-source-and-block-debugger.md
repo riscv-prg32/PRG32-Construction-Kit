@@ -74,3 +74,21 @@ Blockly block id --(source map)--> IR path --(source map)--> game.c / game.S lin
   fails safely (no debug map) and a test says so.
 - Builds take slightly longer (pyelftools reads a ~50 KB ELF in well under a
   second); `PRG32_DEBUG_INFO=0` turns debug builds off.
+
+## Amendment (2026-10-20, after audit `fea31c0`)
+
+- **Breakpoints across regeneration:** saved per project and source file (not per
+  cartridge), each line breakpoint with the trimmed text of its line as an anchor and
+  an enabled flag. After the code is generated again a breakpoint stays if its line
+  reads the same, moves to the nearest identical line otherwise, and is listed as "the
+  code changed" (not placed) when there is none (`PRG32SourceDebug.reanchorLine`).
+  Disabled breakpoints stay listed; the core's address breakpoints are always exactly
+  those of the enabled ones.
+- **Inlined frames:** the debug map gains an optional `inlined` list per function
+  (`DW_TAG_inlined_subroutine`: name, address ranges incl. `DW_AT_ranges`, call file
+  and line, depth). The call stack shows an inlined function as its own frame "inlined
+  into" the real one, at the line of its body, with the caller at the call line. Its
+  variables are not shown (no frame of its own); nothing is invented. The schema name
+  stays `prg32-debug-map/1` (an added key).
+- Values the compiler did not keep stay labelled "optimised out"; the readers are
+  fuzzed (`tests/test_debug_fuzz.py`).

@@ -275,9 +275,11 @@
         "tests/test_debugger_browser.py::test_scenario_d_block_and_source_debugging",
         "tests/test_debugger_browser.py::test_without_debug_information_the_address_debugger_remains",
         "tests/test_wasm_runtime.py::test_source_breakpoints_do_not_change_the_game",
-        "tests/test_debug_fuzz.py::test_damaged_debug_elfs_are_harmless"
+        "tests/test_debug_fuzz.py::test_damaged_debug_elfs_are_harmless",
+        "tests/test_source_debugger.py::test_an_inlined_function_is_its_own_frame_and_invents_no_values",
+        "tests/test_debugger_browser.py::test_breakpoints_switch_off_and_survive_compiling_again"
       ],
-      "note": "DWARF from a -g build with an identical cartridge; locals optimised out at -Os are labelled; inlined functions are not separate frames; handwritten assembly gets lines, labels and an ra-based caller."
+      "note": "DWARF from a -g build with an identical cartridge; locals optimised out at -Os are labelled; inlined functions are frames 'inlined into' their caller (no variables shown); breakpoints persist per project and follow their code across regeneration, with enable/disable; handwritten assembly gets lines, labels and an ra-based caller."
     },
     {
       "id": "DBG-06",
