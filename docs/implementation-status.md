@@ -60,6 +60,8 @@ evidence-checked view is `capabilities.md` (from `capabilities.json`). A gate is
 | 2026-10-19 | same, with the real toolchain and PRG32 SDK `679dfb5` | 831 passed, 16 skipped |
 | 2026-10-19 | Browser suites incl. `tests/test_storage_browser.py`, `PRG32_REQUIRE_BROWSER=1` | 74 passed |
 | 2026-10-19 | `PRG32_LIVE_OIDC=keycloak python3 -m pytest -q -rs tests/test_identity_live.py` (Keycloak 26.0.7 in Docker, Chrome) | 9 passed |
+| 2026-10-20 | Shared Store contract: `python3 -m pytest -q` | 862 passed, 38 skipped |
+| 2026-10-20 | `PRG32_REQUIRE_STORE=1 PRG32_LIVE_STORE=local python3 -m pytest -q -rs tests/test_store_contract.py tests/test_store_live.py tests/test_sso_with_cartridge_store.py` (CartridgeStore 820f74b) | 45 passed |
 
 Skipped and why:
 

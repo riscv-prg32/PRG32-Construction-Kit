@@ -23,3 +23,4 @@ Short records of decisions for the full-IDE work. Each has a status:
 | [0015](0015-source-and-block-debugger.md) | Source and block debugging from saved maps and DWARF | Accepted |
 | [0016](0016-academic-identity-and-scoped-roles.md) | Academic identity with PKCE, issuer+subject accounts, scoped roles | Accepted |
 | [0017](0017-storage-policy.md) | Guest and registered storage policy | Accepted |
+| [0018](0018-shared-store-contract.md) | One versioned Store contract for the kit and the Cartridge Store | Accepted |

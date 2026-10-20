@@ -453,13 +453,19 @@
       "audit_score": 2,
       "source": [
         "prg32_construction_kit/packager.py::project_manifest",
-        "prg32_construction_kit/publishing.py::inspect_bundle"
+        "prg32_construction_kit/publishing.py::inspect_bundle",
+        "contracts/prg32-store-contract-1.json",
+        "prg32_construction_kit/store_contract.py::validate_bundle",
+        "prg32_construction_kit/store_contract.py::classify"
       ],
       "tests": [
         "tests/test_publish_authorization.py::test_cartridges_that_differ_from_the_build_are_refused",
-        "tests/test_publish_authorization.py::test_bad_manifests_are_refused"
+        "tests/test_publish_authorization.py::test_bad_manifests_are_refused",
+        "tests/test_store_contract.py::test_the_store_decides_like_the_contract",
+        "tests/test_store_contract.py::test_a_bundle_that_breaks_the_contract_is_never_uploaded",
+        "tests/test_store_live.py::test_the_store_going_away_is_retryable_and_the_retry_publishes_once"
       ],
-      "note": "No shared Store schema or live conformance (refinement Phase 7)."
+      "note": "Shared versioned contract (contracts/prg32-store-contract-1.json, ADR-0018) checked against the Store's own code and a throwaway live Store in CI; Store gaps recorded: duplicate pending id/version, tokens without expiry."
     },
     {
       "id": "STR-02",

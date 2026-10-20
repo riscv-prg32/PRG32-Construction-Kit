@@ -181,6 +181,54 @@ jobs:
           path: browser-test-results.xml
           retention-days: 90
 
+  # The shared Store contract against the Cartridge Store's own code, at the commit the
+  # contract names (contracts/prg32-store-contract-1.json store_reference.checked_against).
+  store-contract:
+    name: Store contract and SSO protocol against CartridgeStore
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v7
+
+      - name: Read the CartridgeStore commit the contract was checked against
+        id: store
+        run: echo "revision=$(python3 -c 'import json; print(json.load(open("contracts/prg32-store-contract-1.json"))["store_reference"]["checked_against"])')" >> "$GITHUB_OUTPUT"
+
+      - name: Check out CartridgeStore
+        uses: actions/checkout@v7
+        with:
+          repository: riscv-prg32/CartridgeStore
+          ref: ${{ steps.store.outputs.revision }}
+          path: CartridgeStore
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: Install the kit's and the Store's requirements
+        run: python -m pip install --disable-pip-version-check -r requirements.txt -r CartridgeStore/requirements.txt
+
+      # test_store_live.py starts a throwaway CartridgeStore on 127.0.0.1 with temporary
+      # data: real HTTP publishes, never a production Store.
+      - name: Run the contract, live publish and SSO conformance tests (a missing Store fails, never skips)
+        env:
+          PRG32_CARTRIDGE_STORE_SOURCE: ${{ github.workspace }}/CartridgeStore
+          PRG32_REQUIRE_STORE: "1"
+          PRG32_LIVE_STORE: local
+        run: >-
+          python -m pytest -q -rs --junitxml=store-contract-results.xml
+          tests/test_store_contract.py tests/test_store_live.py tests/test_sso_with_cartridge_store.py
+
+      - name: Keep the results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: store-contract-results-${{ github.sha }}
+          path: store-contract-results.xml
+          retention-days: 90
+
   # Opt-in: only when started by hand (Actions -> Run workflow). A real OpenID Connect
   # provider (Keycloak, test realm tests/fixtures/oidc/school-realm.json) in Docker.
   live-identity:

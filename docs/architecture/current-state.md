@@ -106,8 +106,10 @@ capability IDs.
 
 ### Partly implemented
 
-- Store bundle preparation without a shared schema or live conformance; PRG32-QT
-  delivery with runtime parity but no executed import. [STR-01] [DEP-02]
+- Store bundles against a shared versioned contract (ADR-0018), checked with the
+  Store's own code and a throwaway live Store; Store gaps (repeated id/version,
+  tokens without expiry) recorded. PRG32-QT delivery with runtime parity but no
+  executed import. [STR-01] [DEP-02]
 - Credentials, throttling and audit log; quality gates without lint, type,
   coverage or performance budgets. [SEC-02] [QLT-01]
 

@@ -18,7 +18,7 @@ import certifi
 import urllib3
 from flask import current_app, has_app_context
 
-from . import store_policy
+from . import store_contract, store_policy
 from .store_policy import StorePolicy, StoreRefused
 
 log = logging.getLogger(__name__)
@@ -124,4 +124,9 @@ def publish_bundle(store_url: str, token: str, bundle_path: Path, policy: StoreP
         message = "The Store received the bundle."
     else:
         message = STATUS_MESSAGES.get(status) or str(answer.get("error") or f"The Store refused the bundle ({status}).")
-    return {"ok": ok, "status_code": status, "store_host": target.host, "message": message, "response": answer or {}}
+    result = {"ok": ok, "status_code": status, "store_host": target.host, "message": message, "response": answer or {}}
+    if not ok:
+        # The contract's stable code for this refusal, and whether trying again can help.
+        verdict = store_contract.classify(status, str((answer or {}).get("error") or ""))
+        result.update(error_code=verdict["code"], retryable=verdict["retryable"])
+    return result

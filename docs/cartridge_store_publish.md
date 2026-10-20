@@ -15,6 +15,8 @@ source/game.ir.json
 ```
 
 The `source/` directory is extra teaching material. Cartridge Store uses the manifest and `.prg32` files.
+The exact rules are in the shared Store contract (`store_contract.md`); the kit
+checks every bundle against it before anything is uploaded.
 
 ## Which Stores can be used
 
@@ -70,6 +72,8 @@ If anything changes between review and confirmation (another bundle, another
 Store address, an edited file) the kit refuses and asks you to review again.
 Pressing **Publish** twice never uploads twice. If the upload fails (the
 Store is unreachable, or it refuses the version), you can try again.
+The result says why with a contract code (`error_code`) and whether trying again
+can help (`retryable`).
 
 The backend sends:
 

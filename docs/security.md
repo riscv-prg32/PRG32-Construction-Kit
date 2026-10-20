@@ -44,6 +44,8 @@ and what is still open. Reporting: contact the maintainers privately.
 | Cloud sync | Token storage, scope creep | Server-side tokens, minimal scopes, revocation (G6) |
 | Rate limiting | Only sign-in, registration and token creation are limited; other API routes (builds have their own slots) are not | Reverse-proxy limits for the whole site |
 | Audit log | No retention limit or export; the log lives in the same database an admin controls | Retention policy and off-host export (G6) |
+| Store | Store API tokens never expire (CartridgeStore 820f74b); a revoked token is refused at once (`tests/test_store_live.py`) | Revoke unused tokens; proposal in `store_contract.md` |
+| Store | The Store accepts a repeated id/version as a new pending submission | The kit never sends one bundle twice and versions every change; proposal in `store_contract.md` |
 | SSO | Records synced from the Cartridge Store are not audited one by one (only manual syncs) | Decide with CartridgeStore |
 | Plugins | None exist; none are loaded | Keep it that way until a design exists |
 

@@ -29,7 +29,7 @@ from .db import (
     update_if_unchanged,
     update_resource,
 )
-from . import project_format, publishing, retention, security, sso, storage_policy
+from . import project_format, publishing, retention, security, sso, storage_policy, store_contract
 from .auth import Principal, current_principal, role_at_least
 from .build_check import builds_available, toolchain_present
 from .db import utcnow
@@ -1248,6 +1248,13 @@ def _prepare_publish(payload: dict[str, Any], stage_action: str):
     except publishing.PublishRefused as refused:
         return None, profile, artifact, path, target, _publish_refusal(stage_action, payload, profile,
                                                                        refused.reason, str(refused), 400)
+    try:
+        # Last: checked like the Store checks it (contracts/), so nothing half-valid is ever uploaded.
+        store_contract.validate_bundle(path.read_bytes())
+    except store_contract.ContractViolation as violation:
+        return None, profile, artifact, path, target, _publish_refusal(
+            stage_action, payload, profile, "contract_" + violation.code,
+            "This bundle does not meet the Store contract: " + str(violation), 400)
     if profile.get("bearer_token"):
         authentication = "token"
     elif sso.same_service(profile.get("store_url", "")):

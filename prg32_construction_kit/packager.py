@@ -13,7 +13,7 @@ import zlib
 from pathlib import Path
 from typing import Any
 
-from . import build_guard, build_sandbox, debug_build, debug_info
+from . import build_guard, build_sandbox, debug_build, debug_info, store_contract
 from .generator import c_identifier
 
 # Cartridge targets the kit knows how to build: the real board and the QEMU emulator.
@@ -58,7 +58,8 @@ def project_manifest(project: dict[str, Any], game_ir: dict[str, Any], architect
         "abi": "prg32-metadata-1.0",
         "id": f"org.prg32kit.{slug}",
         "title": project.get("title") or game_ir.get("title") or "PRG32 Blocks Game",
-        "version": "0.1.0",
+        # A saved change makes a new version; an unchanged project keeps it (contracts/prg32-store-contract-1.json).
+        "version": f"0.1.{int(project.get('version') or 0)}",
         "summary": project.get("description") or "A PRG32 game made with blocks.",
         "description": project.get("description") or "Built with PRG32-Construction-Kit.",
         "authors": [project.get("author") or "Student"],
@@ -249,6 +250,8 @@ def prepare_package(
         shutil.rmtree(work_dir / debug_build.WRAPPED_TOOLS_DIR, ignore_errors=True)
 
     manifest = project_manifest(project, game_ir, architectures)
+    if architectures:
+        store_contract.validate_manifest(manifest)  # a manifest the Store would refuse never becomes a bundle
     manifest_path = work_dir / "manifest.json"
     manifest_path.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
 

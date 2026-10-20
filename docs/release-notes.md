@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+### Shared Store contract (after the audit of e2d0cef)
+
+- `contracts/prg32-store-contract-1.json` (ADR-0018, `store_contract.md`): bundle,
+  manifest schema, architectures, versioning, errors and tokens in one file.
+- Bundles are checked against it before upload; Store refusals come back with a
+  code, a student message and whether to try again.
+- The manifest version follows the project (`0.1.<version>`).
+- Generated fixture bundles agree with the Cartridge Store's own code; a live suite
+  publishes to a throwaway Store (CI job `store-contract`).
+
 ### School sign-in against a real provider (after the audit of e2d0cef)
 
 - Opt-in live test suite against Keycloak (`identity_live_testing.md`), also as a
