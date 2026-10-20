@@ -63,16 +63,31 @@ After changing the contract or the kit's manifest, regenerate the fixtures:
 python3 tools/build_contract_fixtures.py
 ```
 
-## Gaps in the Store today (recorded, with a proposal)
+## Gaps in the Store today: what the kit does, and the proposal
 
 1. **Repeated id/version.** The Store accepts a second pending submission with an id
-   and version it already has; approving it replaces that version's files. The kit
-   never sends one bundle twice and gives every change a new version, but another
-   client could. *Proposal for CartridgeStore:* refuse an upload whose id/version
-   is already published or pending from another bundle digest (`409`, code
-   `duplicate_version`), and accept the same digest again idempotently.
-2. **Tokens without expiry.** *Proposal:* an optional expiry date per token, shown in
-   the token list, and refused with `401` once passed.
+   and version it already has; approving it replaces that version's files.
+   - *The kit:* sends one bundle per id and version to a Store. The same files again
+     get the first answer and nothing is uploaded; other files are refused with
+     `version_already_published` until the student saves (a new version).
+     (`versioning.kit_duplicate_rule`)
+   - *Proposal for CartridgeStore:* refuse an upload whose id/version is already
+     published or pending with another bundle digest (`409`, code
+     `duplicate_version`), and accept the same digest again idempotently.
+2. **Tokens without expiry.**
+   - *The kit:* records when a publish profile's token was put in, shows the date it
+     stops working (`token_expires_on`), and refuses it after
+     `PRG32_STORE_TOKEN_MAX_DAYS` (default 180) with `token_too_old`. Rotation: make
+     a new token in the Store, put it in the profile, revoke the old one in the Store.
+     (`tokens.kit_rotation`)
+   - *Proposal for CartridgeStore:* `POST /auth/tokens` accepts `expires_in_days`
+     (default 180, at most 365); the token list shows `expires_at`; an expired token
+     is refused with `401` and code `token_expired`.
+
+Both proposed codes are already in the error catalogue (marked `"proposed": true`), so
+a Store that adopts them is understood without a new contract version. Every change to
+this file so far only added keys: `tests/test_store_lifecycle.py` checks that version 1
+keeps all its keys and codes.
 
 The live suite asserts the Store's current behaviour against the contract, so when
 the Store changes, the suite fails and the contract is updated in the same change.

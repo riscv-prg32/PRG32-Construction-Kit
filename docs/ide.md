@@ -63,7 +63,8 @@ tab; use F6 to leave the editor (or Ctrl+M, Monaco's own "Tab moves focus").
 ## For contributors
 
 The IDE is tested in a real browser with the keyboard only, at desktop and phone
-size, with an accessibility scan. On your computer:
+size, with an accessibility scan (a session with a real screen reader is described in
+`accessibility_session.md`; none has been recorded yet). On your computer:
 
 ```
 python3 -m pip install -r requirements-browser.txt

@@ -133,6 +133,9 @@ pip install -r requirements.txt
 pip install --no-deps -e ../PRG32   # the cartridge builder needs no extra packages
 ```
 
+The Docker image installs the same packages pinned with hashes from
+`requirements.lock` (`dependencies.md`).
+
 Then put the RISC-V compiler on `PATH`. Pick one:
 
 - **ESP-IDF 5.4 is installed:** it is already in

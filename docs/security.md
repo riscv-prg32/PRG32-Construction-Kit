@@ -45,8 +45,8 @@ and what is still open. Reporting: contact the maintainers privately.
 | Cloud storage | Token storage, scope creep | Done (ADR-0019): server-side encrypted tokens, least-privilege scopes, revocation where the provider offers it; real-account evidence pending |
 | Rate limiting | Only sign-in, registration and token creation are limited; other API routes (builds have their own slots) are not | Reverse-proxy limits for the whole site |
 | Audit log | No retention limit or export; the log lives in the same database an admin controls | Retention policy and off-host export (G6) |
-| Store | Store API tokens never expire (CartridgeStore 820f74b); a revoked token is refused at once (`tests/test_store_live.py`) | Revoke unused tokens; proposal in `store_contract.md` |
-| Store | The Store accepts a repeated id/version as a new pending submission | The kit never sends one bundle twice and versions every change; proposal in `store_contract.md` |
+| Store | Store API tokens never expire (CartridgeStore 820f74b); a revoked token is refused at once (`tests/test_store_live.py`) | The kit refuses tokens older than `PRG32_STORE_TOKEN_MAX_DAYS` (default 180); Store-side expiry proposed in `store_contract.md` |
+| Store | The Store accepts a repeated id/version as a new pending submission | The kit sends one bundle per id/version per Store (`version_already_published`); Store-side refusal proposed in `store_contract.md` |
 | SSO | Records synced from the Cartridge Store are not audited one by one (only manual syncs) | Decide with CartridgeStore |
 | Plugins | None exist; none are loaded | Keep it that way until a design exists |
 

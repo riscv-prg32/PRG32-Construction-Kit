@@ -17,6 +17,17 @@
   block ids can no longer cost a project its block highlighting; the debug-map
   reader refuses ELF images over 1 MiB. Both readers are fuzzed
   (`tests/test_debug_fuzz.py`).
+- Store lifecycle: the kit sends one bundle per game version to a Store (save to make
+  a new version) and stops using a publish profile's Store token after 180 days
+  (`PRG32_STORE_TOKEN_MAX_DAYS`); the profile shows the date. New columns are added on
+  start. The Store contract only gained keys, including the proposed Store-side codes.
+- Operations: `tools/backup_restore.py` (backup while running, restore into a clean
+  folder with artifact paths moved, verify), tested as a restore drill; the Docker image
+  installs exactly `requirements.lock` (hashes); `docs/sbom.cdx.json` (CycloneDX);
+  `cryptography` 50.0.2 and `pytest` 9.1.1 after an audit (`dependencies.md`).
+- Quality gates: `ruff` (pyflakes rules), a coverage floor of 88% (measured 91%), and
+  performance budgets in a real browser with a 4x slower CPU (`performance.md`).
+- Fixed: taking a cloud version of a project deleted meanwhile answered 500; now 404.
 - Cloud storage: more checks against the fake providers (files the kit did not
   make, outages while taking the cloud version, the Drive check-then-write window).
 

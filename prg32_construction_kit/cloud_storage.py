@@ -827,6 +827,8 @@ def api_pull(project_id: str, name: str):
     except VersionConflict:
         raise conflict(remote, project, ["copy", "take_remote", "overwrite"],
                        message="The project was saved here while taking the cloud version. Nothing was changed.") from None
+    if updated is None:      # deleted for good meanwhile
+        raise CloudError("not_found", "Project not found", 404)
     _remember(link, user_id=user_id, item=item, account=account, project=updated, remote=remote,
               digest=hashlib.sha256(data).hexdigest(), version=int(updated["version"]))
     security.record("cloud_pull", target_type="project", target_id=project_id,

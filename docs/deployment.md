@@ -27,8 +27,8 @@ ties them together.
   so build provenance names the kit's commit (CI does this).
 - Use PostgreSQL through `DATABASE_URL` when more than one server process
   writes (`architecture.md`, *Persistence*).
-- Back up the data folder (database, `builds/`, `artifacts/`). Students can
-  also keep their own backups as project archives (`project_archive.md`).
+- Back up the data folder with `tools/backup_restore.py` (`backup_restore.md`).
+  Students can also keep their own backups as project archives (`project_archive.md`).
 - Only trusted users should compile C until per-build containers exist
   (`security.md`).
 

@@ -171,7 +171,7 @@ jobs:
           PRG32_REQUIRE_BROWSER: "1"
         run: >-
           python -m pytest -q -rs --junitxml=browser-test-results.xml -o junit_suite_name=browser-${{ github.sha }}
-          tests/test_browser_offline.py tests/test_ide_browser.py tests/test_debugger_browser.py tests/test_accounts_browser.py tests/test_storage_browser.py tests/test_cloud_browser.py tests/test_frontend_offline.py
+          tests/test_browser_offline.py tests/test_ide_browser.py tests/test_debugger_browser.py tests/test_accounts_browser.py tests/test_storage_browser.py tests/test_cloud_browser.py tests/test_performance_browser.py tests/test_frontend_offline.py
 
       - name: Upload the browser test results
         if: always()
@@ -276,6 +276,57 @@ jobs:
         uses: actions/dependency-review-action@v5
         with:
           fail-on-severity: high
+
+  # Lint (real mistakes only), a coverage floor, and the dependency lock and SBOM kept in step.
+  quality:
+    name: Lint, coverage, dependency lock and SBOM
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: Install the kit's packages exactly as locked, and the quality tools
+        run: |
+          python -m pip install --disable-pip-version-check --require-hashes -r requirements.lock
+          python -m pip install --disable-pip-version-check "ruff==0.16.4" "coverage==7.15.4"
+
+      - name: Lint (pyflakes rules and syntax errors; settings in pyproject.toml)
+        run: ruff check .
+
+      - name: The dependency lock fits the requirements, and the SBOM matches the lock and VENDOR.json
+        run: |
+          python tools/lock_requirements.py --check
+          python tools/make_sbom.py --check
+
+      - name: Tests with coverage (fails under the floor in pyproject.toml)
+        run: |
+          python -m coverage run -m pytest -q -p no:cacheprovider
+          python -m coverage report
+
+  # Opt-in: only when started by hand. Known vulnerabilities in the locked packages
+  # (docs/dependencies.md says what to do with a finding).
+  dependency-audit:
+    name: Known vulnerabilities in the locked packages (manual)
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v7
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Audit requirements.lock
+        run: |
+          python -m pip install --disable-pip-version-check "pip-audit==2.9.0"
+          pip-audit --require-hashes --disable-pip -r requirements.lock
 
   container-smoke-test:
     name: Toolchain container and real cartridges

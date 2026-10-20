@@ -75,6 +75,14 @@ Store is unreachable, or it refuses the version), you can try again.
 The result says why with a contract code (`error_code`) and whether trying again
 can help (`retryable`).
 
+Two rules protect the Store's catalogue:
+
+- **One bundle per version.** Publishing the same version again sends nothing new.
+  Changed the game? Save it first: that gives it a new version.
+- **Store tokens get old.** A publish profile shows when its token stops working
+  (after 180 days, or `PRG32_STORE_TOKEN_MAX_DAYS`). Teachers: make a new token in the
+  Store, put it in the profile, and revoke the old one there.
+
 The backend sends:
 
 ```http

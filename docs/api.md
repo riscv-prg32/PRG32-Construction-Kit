@@ -71,6 +71,15 @@ A token request without the needed scope answers `403` with `"code": "insufficie
   was (or would be) removed.
 - `DELETE /api/users/<id>?with_items=1` (admin) also removes the account's items.
 
+## Store lifecycle rules (contract `tokens`, `versioning`)
+
+- Publish profiles show `token_expires_on` (`""` = never or no token); `token_set_at` is
+  set by the server whenever `bearer_token` is put in and cannot be sent by clients.
+- `POST /api/publish/review` and `POST /api/publish` refuse with `reason`
+  `token_too_old` (400) or `version_already_published` (409). Publishing an id/version
+  already accepted by that Store with the same files answers `"duplicate": true` and
+  uploads nothing.
+
 ## Cloud storage (ADR-0019)
 
 Only when an administrator configured a provider (`google`, `onedrive`); otherwise

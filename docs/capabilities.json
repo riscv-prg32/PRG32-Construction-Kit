@@ -475,16 +475,19 @@
         "prg32_construction_kit/publishing.py::inspect_bundle",
         "contracts/prg32-store-contract-1.json",
         "prg32_construction_kit/store_contract.py::validate_bundle",
-        "prg32_construction_kit/store_contract.py::classify"
+        "prg32_construction_kit/store_contract.py::classify",
+        "prg32_construction_kit/publishing.py::submitted_version"
       ],
       "tests": [
         "tests/test_publish_authorization.py::test_cartridges_that_differ_from_the_build_are_refused",
         "tests/test_publish_authorization.py::test_bad_manifests_are_refused",
         "tests/test_store_contract.py::test_the_store_decides_like_the_contract",
         "tests/test_store_contract.py::test_a_bundle_that_breaks_the_contract_is_never_uploaded",
-        "tests/test_store_live.py::test_the_store_going_away_is_retryable_and_the_retry_publishes_once"
+        "tests/test_store_live.py::test_the_store_going_away_is_retryable_and_the_retry_publishes_once",
+        "tests/test_store_lifecycle.py::test_one_id_and_version_goes_to_a_store_once",
+        "tests/test_store_lifecycle.py::test_an_old_store_token_is_refused_and_a_new_one_works"
       ],
-      "note": "Shared versioned contract (contracts/prg32-store-contract-1.json, ADR-0018) checked against the Store's own code and a throwaway live Store in CI; Store gaps recorded: duplicate pending id/version, tokens without expiry."
+      "note": "Shared versioned contract (ADR-0018) checked against the Store's own code and a disposable loopback Store in CI. Store gaps (duplicate pending id/version, tokens without expiry) are closed on the kit side (one bundle per version, token age limit) and proposed to CartridgeStore; not yet changed there."
     },
     {
       "id": "STR-02",
@@ -587,13 +590,15 @@
       "source": [
         "tools/check_build.py::main",
         "docker/entrypoint.sh",
-        ".github/workflows/tests.yml"
+        ".github/workflows/tests.yml",
+        "tools/backup_restore.py::restore"
       ],
       "tests": [
         "tests/test_api.py::test_discovery_reports_whether_cartridges_can_be_built",
-        "tests/test_db.py::test_sqlalchemy_creates_the_compatible_resource_schema"
+        "tests/test_db.py::test_sqlalchemy_creates_the_compatible_resource_schema",
+        "tests/test_backup_restore.py::test_backup_restore_verify_and_use"
       ],
-      "note": "No restore drill, metrics/SLO or TLS proof."
+      "note": "Restore drill automated (tools/backup_restore.py, tests/test_backup_restore.py); hash-locked image dependencies and a CycloneDX SBOM; no metrics/SLO or TLS proof."
     },
     {
       "id": "DOC-01",
@@ -623,9 +628,10 @@
       "tests": [
         "tests/test_capabilities.py::test_rendered_table_is_up_to_date",
         "tests/test_browser_offline.py::test_pages_load_only_from_the_kit_without_csp_violations",
-        "tests/test_ide_browser.py::test_ide_has_no_csp_violations_or_serious_accessibility_problems"
+        "tests/test_ide_browser.py::test_ide_has_no_csp_violations_or_serious_accessibility_problems",
+        "tests/test_performance_browser.py::test_ide_is_ready_on_a_slow_laptop"
       ],
-      "note": "Large pytest suite; real-browser tests with keyboard-only workflows and an axe-core scan. No lint/type/coverage gate or performance budget."
+      "note": "Large pytest suite; real-browser keyboard workflows, axe-core scan and performance budgets at 4x CPU slowdown; ruff (pyflakes) and a coverage floor (88%) in CI; no type gate (decided: annotations would not help learners); no real screen-reader session yet (docs/accessibility_session.md)."
     }
   ]
 }

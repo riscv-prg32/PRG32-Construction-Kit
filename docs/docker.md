@@ -36,7 +36,8 @@ see `concurrent_builds.md`.
 
 SQLite is the convenient single-container default. For a multi-user production
 deployment, run PostgreSQL as a separate managed service or Compose service,
-install `requirements-production.txt`, and provide:
+install `requirements-production.txt` (the image already installs exactly
+`requirements.lock`, which includes it; `dependencies.md`), and provide:
 
 ```yaml
 environment:

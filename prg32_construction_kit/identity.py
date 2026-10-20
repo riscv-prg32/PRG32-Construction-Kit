@@ -511,7 +511,7 @@ def _token_request(item: Provider, document: dict[str, Any], code: str, verifier
 
 @bp.get("/auth/oidc/<slug>/callback")
 def callback(slug: str):
-    from .auth import current_principal, principal_from_user, sign_in
+    from .auth import principal_from_user, sign_in
 
     state = request.args.get("state", "")
     flows = dict(session.get("oidc_flows") or {})

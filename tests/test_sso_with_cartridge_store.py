@@ -6,10 +6,8 @@ PRG32_CARTRIDGE_STORE_SOURCE points at it) and its requirements are installed.
 
 from __future__ import annotations
 
-import io
 import os
 import sys
-import zipfile
 from pathlib import Path
 from urllib.parse import urlsplit
 

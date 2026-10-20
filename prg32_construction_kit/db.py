@@ -125,6 +125,8 @@ class PublishProfile(TimestampedModel):
     name: Mapped[str] = mapped_column(db.Text, nullable=False)
     store_url: Mapped[str] = mapped_column(db.Text, nullable=False)
     bearer_token: Mapped[str] = mapped_column(db.Text, nullable=False, default="")
+    # When the token was put in (server-set): tokens older than PRG32_STORE_TOKEN_MAX_DAYS are refused.
+    token_set_at: Mapped[str] = mapped_column(db.Text, nullable=False, default="")
 
 
 RESOURCE_COLUMNS: dict[str, list[str]] = {
@@ -133,7 +135,7 @@ RESOURCE_COLUMNS: dict[str, list[str]] = {
     "assets": ["project_id", "name", "kind", "content_type", "data", "owner_id"],
     "artifacts": ["project_id", "sprite_id", "kind", "name", "content_type", "path", "text_content", "metadata", "owner_id"],
     "builds": ["project_id", "status", "log", "c_artifact_id", "bundle_artifact_id", "metadata", "owner_id"],
-    "publish_profiles": ["name", "store_url", "bearer_token", "owner_id"],
+    "publish_profiles": ["name", "store_url", "bearer_token", "token_set_at", "owner_id"],
 }
 RESOURCE_MODELS = {"projects": Project, "sprites": Sprite, "assets": Asset, "artifacts": Artifact, "builds": Build, "publish_profiles": PublishProfile}
 JSON_COLUMNS = {"projects": {"tags", "blocks_json", "game_json"}, "sprites": {"pixels"}, "assets": {"data"}, "artifacts": {"metadata"}, "builds": {"metadata"}, "publish_profiles": set()}
@@ -226,6 +228,26 @@ def init_db() -> None:
     _add_missing_deleted_at_column()
     _add_missing_revision_child_ids()
     _add_missing_version_column()
+    _add_missing_publishing_columns()
+
+
+def _add_missing_publishing_columns() -> None:
+    """Publish records and profiles made before the Store lifecycle rules (contract tokens/versioning)."""
+    wanted = {"publish_attempts": ("store_host", "cartridge_id", "cartridge_version", "bundle_sha256"),
+              "publish_profiles": ("token_set_at",)}
+    inspector = inspect(db.engine)
+    with db.engine.begin() as connection:
+        for table, names in wanted.items():
+            if not inspector.has_table(table):
+                continue
+            columns = {column["name"] for column in inspector.get_columns(table)}
+            for name in names:
+                if name not in columns:
+                    connection.execute(text(f"ALTER TABLE {table} ADD COLUMN {name} TEXT NOT NULL DEFAULT ''"))
+        if inspector.has_table("publish_profiles"):
+            # Tokens of unknown age start counting now, not at the epoch (that would refuse them all at once).
+            connection.execute(text("UPDATE publish_profiles SET token_set_at = :now "
+                                    "WHERE bearer_token != '' AND token_set_at = ''"), {"now": utcnow()})
 
 
 def _add_missing_version_column() -> None:

@@ -55,8 +55,9 @@ ENV PRG32_BUILD_SANDBOX=bwrap
 
 WORKDIR /app
 
-COPY requirements.txt requirements-production.txt ./
-RUN pip install --no-cache-dir -r requirements-production.txt
+# Exactly the packages and files in requirements.lock (tools/lock_requirements.py, docs/dependencies.md).
+COPY requirements.txt requirements-production.txt requirements.lock ./
+RUN pip install --no-cache-dir --require-hashes -r requirements.lock
 
 LABEL org.opencontainers.image.title="PRG32-Construction-Kit" \
       prg32.toolchain="$PRG32_TOOLCHAIN" \

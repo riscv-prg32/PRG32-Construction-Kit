@@ -181,6 +181,18 @@ def test_duplicate_identity_and_version_behaves_as_the_contract_records(kit, sto
     count = len(submissions(store))
     status, answer = publish(kit, artifact)
     assert status == 200 and answer["duplicate"] is True and len(submissions(store)) == count
+    # Another bundle with the same id/version: the same files answer with the first result,
+    # other files are refused by the kit (contract versioning.kit_duplicate_rule).
+    same_files = publish(kit, bundle_artifact(kit, with_version("0.1.20"), "v20-again.zip"))
+    assert same_files[1]["duplicate"] is True and len(submissions(store)) == count
+    changed = io.BytesIO()
+    with zipfile.ZipFile(io.BytesIO(with_version("0.1.20"))) as source, zipfile.ZipFile(changed, "w") as target:
+        for info in source.infolist():
+            data = source.read(info.filename)
+            target.writestr(info, data + b"\n" if info.filename.endswith(".json") else data)
+    other = changed.getvalue()
+    status, answer = publish(kit, bundle_artifact(kit, other, "v20-other.zip"))
+    assert status == 409 and answer["reason"] == "version_already_published" and len(submissions(store)) == count
     # Sent straight to the Store, a second bundle with the same id/version is ...
     direct = requests.post(STORE + "/api/publish/bundle", timeout=20,
                            headers={"Authorization": "Bearer " + kit["token"]["token"]},

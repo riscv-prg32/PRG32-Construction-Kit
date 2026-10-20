@@ -19,7 +19,7 @@ from test_ide_browser import END_OF_FILE, new_project, open_ide, press_until, pr
 GAME = {"blocks": {"languageVersion": 0, "blocks": [{"type": "prg32_on_start", "id": "g1", "x": 20, "y": 20}]}}
 
 
-def guest_page(context, live_kit):
+def guest_page(context, live_kit):  # noqa: F811 - the fixture, imported above
     page = context.new_page()
     page.goto(f"{live_kit}/static/offline.html?guest=1")
     wait_until(page, "!!window.PRG32Guest && !!PRG32Guest.current")

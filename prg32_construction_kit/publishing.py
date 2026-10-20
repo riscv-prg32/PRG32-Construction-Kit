@@ -54,6 +54,10 @@ MESSAGES = {
     "not_a_cartridge": "A file in the bundle is not a PRG32 cartridge.",
     "hash_mismatch": "A cartridge in the bundle is not the one the build made. Compile the cartridge again.",
     "too_large": "The bundle is too large to publish.",
+    "version_already_published": "This version of the game was already sent to this Store with different files. "
+                                 "Save the project (that gives it a new version), compile again, then publish.",
+    "token_too_old": "The Store token of this publish profile is too old to use. Ask your teacher to make a new "
+                     "token in the Store and put it in the publish profile.",
 }
 
 
@@ -73,6 +77,11 @@ class PublishAttempt(db.Model):
     artifact_id: Mapped[str] = mapped_column(db.Text, nullable=False)
     state: Mapped[str] = mapped_column(db.Text, nullable=False)
     result: Mapped[str] = mapped_column(db.Text, nullable=False, default="{}")
+    # What was sent where, so one id/version never goes to a Store twice (contract versioning.kit_rule).
+    store_host: Mapped[str] = mapped_column(db.Text, nullable=False, default="")
+    cartridge_id: Mapped[str] = mapped_column(db.Text, nullable=False, default="")
+    cartridge_version: Mapped[str] = mapped_column(db.Text, nullable=False, default="")
+    bundle_sha256: Mapped[str] = mapped_column(db.Text, nullable=False, default="")
     created_at: Mapped[str] = mapped_column(db.Text, nullable=False)
     updated_at: Mapped[str] = mapped_column(db.Text, nullable=False)
 
@@ -188,7 +197,23 @@ def _seconds_since(timestamp: str) -> float:
     return (datetime.now(UTC) - then).total_seconds()
 
 
-def start_attempt(digest: str, user_id: int, profile_id: str, artifact_id: str) -> tuple[str, dict[str, Any] | None]:
+def submitted_version(summary: dict[str, Any]) -> PublishAttempt | None:
+    """An earlier accepted upload of this cartridge id and version to this Store, if any.
+
+    The Cartridge Store accepts the same id/version twice and an approval then replaces
+    the published files (contract versioning.known_store_gap), so the kit never sends a
+    second bundle for one id/version: the same files answer with the first result, other
+    files are refused (the student saves and compiles: a new version).
+    """
+    cartridge = summary.get("cartridge") or {}
+    return db.session.scalar(select(PublishAttempt).where(
+        PublishAttempt.state == "submitted", PublishAttempt.store_host == summary["store"]["host"],
+        PublishAttempt.cartridge_id == str(cartridge.get("id") or ""),
+        PublishAttempt.cartridge_version == str(cartridge.get("version") or "")).order_by(PublishAttempt.created_at))
+
+
+def start_attempt(digest: str, user_id: int, profile_id: str, artifact_id: str,
+                  summary: dict[str, Any] | None = None) -> tuple[str, dict[str, Any] | None]:
     """Claim this review for upload.
 
     Returns ("go", None) when the caller should upload now, ("submitted", result)
@@ -198,8 +223,13 @@ def start_attempt(digest: str, user_id: int, profile_id: str, artifact_id: str) 
     now = utcnow()
     attempt = db.session.scalar(select(PublishAttempt).where(PublishAttempt.digest == digest))
     if attempt is None:
+        sent = summary or {}
         db.session.add(PublishAttempt(id=new_id("publish"), digest=digest, user_id=user_id, profile_id=profile_id,
-                                      artifact_id=artifact_id, state="uploading", created_at=now, updated_at=now))
+                                      artifact_id=artifact_id, state="uploading", created_at=now, updated_at=now,
+                                      store_host=(sent.get("store") or {}).get("host", ""),
+                                      cartridge_id=str((sent.get("cartridge") or {}).get("id") or ""),
+                                      cartridge_version=str((sent.get("cartridge") or {}).get("version") or ""),
+                                      bundle_sha256=(sent.get("bundle") or {}).get("sha256", "")))
         try:
             db.session.commit()
         except IntegrityError:  # another request claimed it a moment ago

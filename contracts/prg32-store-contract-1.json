@@ -147,7 +147,9 @@
   "versioning": {
     "kit_rule": "The kit's manifest version is 0.1.<project version>: every saved change gives a new version, and an unchanged project republishes the same one.",
     "duplicate_identity_version": "store_accepts_duplicate_pending",
-    "known_store_gap": "The Cartridge Store (820f74b) accepts a second pending submission with the same id and version; approving it replaces that version's published files. The kit never sends the same id/version twice from one review (publish attempts are idempotent by digest) and asks the Store to refuse duplicates (proposal in docs/store_contract.md)."
+    "known_store_gap": "The Cartridge Store (820f74b) accepts a second pending submission with the same id and version; approving it replaces that version's published files. The kit never sends the same id/version twice from one review (publish attempts are idempotent by digest) and asks the Store to refuse duplicates (proposal in docs/store_contract.md).",
+    "kit_duplicate_rule": "The kit sends one bundle per cartridge id and version to a Store: the same files again answer with the first result (nothing is uploaded), different files are refused with version_already_published until the project is saved (a new version).",
+    "store_proposal": "CartridgeStore refuses an upload whose id/version is already published or pending with a different bundle digest (409, code duplicate_version) and accepts the same digest again idempotently. Until then this section's duplicate_identity_version stays store_accepts_duplicate_pending."
   },
   "publish": {
     "endpoint": "POST /api/publish/bundle",
@@ -169,6 +171,22 @@
     "visibility": "A submission is not listed in GET /api/games until an editor verifies it (POST /api/submissions/<id>/verify)."
   },
   "errors": [
+    {
+      "code": "token_expired",
+      "status": 401,
+      "match": "token_expired|token has expired|expired token",
+      "retryable": false,
+      "student_message": "The Store token has expired. Ask your teacher to make a new one for the publish profile.",
+      "proposed": true
+    },
+    {
+      "code": "duplicate_version",
+      "status": 409,
+      "match": null,
+      "retryable": false,
+      "student_message": "The Store already has this version with different files. Save the project (a new version), compile again, then publish.",
+      "proposed": true
+    },
     {
       "code": "unauthorized",
       "status": 401,
@@ -279,7 +297,13 @@
     "create": "POST /auth/tokens (signed in) answers {id, token}; the token is shown once",
     "revoke": "DELETE /auth/tokens/<id>; a revoked token is refused with 401 at once",
     "expiry": "none",
-    "known_store_gap": "Cartridge Store (820f74b) API tokens never expire; a teacher revokes them by hand. The kit stores the token write-only in the publish profile and never logs it."
+    "known_store_gap": "Cartridge Store (820f74b) API tokens never expire; a teacher revokes them by hand. The kit stores the token write-only in the publish profile and never logs it.",
+    "kit_rotation": {
+      "setting": "PRG32_STORE_TOKEN_MAX_DAYS",
+      "default_days": 180,
+      "rule": "The kit records when a publish profile's token was put in and refuses to use it after this many days (token_too_old); a teacher makes a new token in the Store and revokes the old one."
+    },
+    "store_proposal": "POST /auth/tokens accepts expires_in_days (default 180, at most 365); GET /auth/tokens shows expires_at; an expired token is refused with 401 and code token_expired, like a revoked one. Until then expiry stays none."
   },
   "publish_profile": {
     "fields": {

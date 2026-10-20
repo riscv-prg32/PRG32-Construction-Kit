@@ -57,6 +57,9 @@ class Config:
     CLOUD_ONEDRIVE_TENANT = os.environ.get("PRG32_CLOUD_ONEDRIVE_TENANT") or "common"
     # Encrypts stored cloud tokens; derived from SECRET_KEY when unset.
     CLOUD_TOKEN_KEY = os.environ.get("PRG32_CLOUD_TOKEN_KEY") or None
+    # Store API tokens do not expire in the Cartridge Store (contract tokens.known_store_gap):
+    # the kit refuses a publish profile's token older than this many days (0 = never).
+    STORE_TOKEN_MAX_DAYS = int(os.environ.get("PRG32_STORE_TOKEN_MAX_DAYS", "180"))
     STORE_TRUSTED_LOCAL = _flag("PRG32_STORE_TRUSTED_LOCAL", False)
     # CA bundle for a Store with a school-issued certificate (default: the public CAs).
     STORE_CA_BUNDLE = os.environ.get("PRG32_STORE_CA_BUNDLE") or None

@@ -135,6 +135,10 @@ def checked_payload(resource: str, payload: dict[str, Any]) -> dict[str, Any]:
         # Artifact files are written by the server; a hand-made path could reach another user's build.
         if resource == "artifacts":
             payload.pop("path", None)
+    if resource == "publish_profiles":
+        payload.pop("token_set_at", None)          # set by the server when a token is put in
+        if "bearer_token" in payload:
+            payload["token_set_at"] = utcnow() if payload["bearer_token"] else ""
     if resource == "publish_profiles" and "store_url" in payload:
         # Only Stores the administrator approved (ADR-0008); StoreRefused is a 400 with a student-safe reason.
         check_url(str(payload["store_url"] or ""), policy_from_config(current_app.config))
@@ -153,6 +157,19 @@ def checked_payload(resource: str, payload: dict[str, Any]) -> dict[str, Any]:
 @bp.errorhandler(PermissionError)
 def handle_forbidden(exc: PermissionError):
     return json_error(str(exc) or "Forbidden", 403)
+
+
+def _token_expires_on(profile: dict[str, Any]) -> str:
+    """The date after which the kit stops using this profile's Store token ("" = never or no token)."""
+    days = int(current_app.config.get("STORE_TOKEN_MAX_DAYS") or 0)
+    if not profile.get("bearer_token") or not days or not profile.get("token_set_at"):
+        return ""
+    from datetime import datetime, timedelta
+
+    try:
+        return (datetime.fromisoformat(profile["token_set_at"]) + timedelta(days=days)).date().isoformat()
+    except ValueError:
+        return ""
 
 
 def public(resource: str, item: dict[str, Any] | None) -> dict[str, Any] | None:
@@ -174,6 +191,7 @@ def public(resource: str, item: dict[str, Any] | None) -> dict[str, Any] | None:
     if resource == "publish_profiles":
         shown.pop("bearer_token", None)
         shown["has_token"] = bool(item.get("bearer_token"))
+        shown["token_expires_on"] = _token_expires_on(item)
         # Publishing to the synced Cartridge Store needs no token: it happens as the signed-in user.
         shown["uses_sso"] = not item.get("bearer_token") and sso.same_service(item.get("store_url", ""))
     return shown
@@ -1261,6 +1279,10 @@ def _prepare_publish(payload: dict[str, Any], stage_action: str):
         return None, profile, artifact, path, target, _publish_refusal(
             stage_action, payload, profile, "contract_" + violation.code,
             "This bundle does not meet the Store contract: " + str(violation), 400)
+    expires_on = _token_expires_on(profile)
+    if expires_on and expires_on < utcnow()[:10]:
+        return None, profile, artifact, path, target, _publish_refusal(
+            stage_action, payload, profile, "token_too_old", publishing.MESSAGES["token_too_old"], 400)
     if profile.get("bearer_token"):
         authentication = "token"
     elif sso.same_service(profile.get("store_url", "")):
@@ -1270,6 +1292,11 @@ def _prepare_publish(payload: dict[str, Any], stage_action: str):
     summary = publishing.build_summary(target=target, authentication=authentication, profile=profile,
                                        artifact=artifact, inspected=inspected,
                                        build_id=build["id"] if build else None)
+    earlier = publishing.submitted_version(summary)
+    if earlier is not None and earlier.bundle_sha256 != summary["bundle"]["sha256"]:
+        return None, profile, artifact, path, target, _publish_refusal(
+            stage_action, payload, profile, "version_already_published",
+            publishing.MESSAGES["version_already_published"], 409)
     return summary, profile, artifact, path, target, None
 
 
@@ -1304,7 +1331,12 @@ def api_publish():
         _audit_publish("refused", payload, profile, stage="refused", reason="review_mismatch")
         return jsonify({"error": problem, "reason": "review_mismatch"}), 409
     digest = publishing.summary_digest(summary)
-    state, previous = publishing.start_attempt(digest, user_id, profile["id"], artifact["id"])
+    earlier = publishing.submitted_version(summary)
+    if earlier is not None:   # the same files were already accepted there (another review, another artifact)
+        _audit_publish("success", payload, profile, stage="duplicate")
+        return jsonify({"state": "submitted", "duplicate": True, "summary": summary,
+                        "result": json.loads(earlier.result or "{}")})
+    state, previous = publishing.start_attempt(digest, user_id, profile["id"], artifact["id"], summary)
     if state == "submitted":
         _audit_publish("success", payload, profile, stage="duplicate")
         return jsonify({"state": "submitted", "duplicate": True, "summary": summary, "result": previous})
