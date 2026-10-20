@@ -1,26 +1,26 @@
 # Executive summary
 
-Audit date: 2026-10-19 (Europe/Rome)
+Audit date: 2026-10-20 (Europe/Rome)
 
-Audited revision: `ide/refine-after-5dd98a9` at `e2d0cef834bbe75e1fd3fd5c2ea69ce7f1560954`
+Audited revision: `ide/refine-after-e2d0cef` at `fea31c02348af2adc28e96c3795d38ae18a8f8e9`
 
-Recommendation: **NO-GO for the complete Full IDE scope; CONDITIONAL GO for a bounded classroom deployment**
+Recommendation: **NO-GO for the complete Full IDE scope; GO for a bounded classroom deployment with documented platform limits**
 
-Refinement phases 5–6 close the previous High account/identity/guest-policy finding and the registered-storage finding. OIDC now uses Authorization Code + PKCE, verified issuer/subject identities and explicit account linking. Multiple administrator-configured providers, academic/class roles, scoped tokens, session epochs and deprovisioning are implemented. Guest projects stay in IndexedDB and support export/import and safe account migration. Registered storage now has atomic conflict detection, autosave, quotas and retention.
+The latest refinement materially closes three previous product gaps. School identity passes nine live Keycloak scenarios in addition to its unit matrix. Store bundles now follow a generated, versioned contract checked against CartridgeStore code and 45 tests using a disposable live Store. Optional Google Drive and OneDrive adapters share explicit conflict semantics, least-privilege scopes, PKCE, encrypted server-side tokens, fixed egress hosts and browser-tested UX.
 
-The new controls passed unit, authorization, browser and storage scenarios. The SSO score remains below full because no external institutional IdP, provisioning system or IdP-initiated logout was exercised. The complete product remains NO-GO because Drive/OneDrive are absent, Store conformance is local rather than shared/live, and hardware/Qt/iOS delivery lacks end-to-end evidence.
+The complete Full IDE remains NO-GO because neither cloud adapter has been executed against a real provider account and hardware/Qt/iOS delivery remains incomplete. Operational sandbox, supply-chain, accessibility/performance and advanced-debugger evidence also remains below release-grade completeness. These gaps no longer block local classroom use when cloud and unverified delivery claims are excluded.
 
 ## Executed evidence
 
-- Feasible broad suite excluding Store egress and exact WASM rebuild: **710 passed, 42 skipped, 1 deselected**.
-- Required Chrome suites with `PRG32_REQUIRE_BROWSER=1`: **74 passed**, no skips.
+- Broad feasible suite: **815 passed, 63 skipped, 1 deselected**.
+- Required Chromium suites with `PRG32_REQUIRE_BROWSER=1`: **77 passed**, no skips.
+- Shared contract and disposable live Store suite: **45 passed**.
 - Store-egress suite: **94 passed**.
-- Python and JavaScript syntax, service-worker lock, capability rendering and language-index reproducibility: passed.
-- Capability/document consistency after reassessment: passed.
-- `sso_protocol.py` is byte-identical to the checked-out CartridgeStore copy.
+- Disposable live Keycloak suite: **9 passed**.
+- Syntax, service-worker lock, capability rendering, language index and contract-fixture reproducibility: passed.
 
 ## Limitations
 
-No external institutional IdP, SCIM feed, Drive/OneDrive tenant, live public Store, physical PRG32 hardware, iOS target, exact Emscripten rebuild, local real cartridge build or Linux bubblewrap run was used. Browser behavior was independently executed with Chromium. Toolchain- and Linux-only tests skipped cleanly.
+No real Google Drive or OneDrive test account, physical PRG32, end-user Qt import, iOS target, local real cartridge build, Linux bubblewrap run or exact Emscripten rebuild was available. The Store and IdP runs used disposable local services, not production systems. Toolchain/Linux-only and real-cloud cases skipped cleanly.
 
-Scored coverage is **93/132 (70.5%)** across all 33 requirements.
+Scored coverage is **103/132 (78.0%)** across all 33 requirements.

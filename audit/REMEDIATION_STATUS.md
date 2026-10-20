@@ -1,16 +1,15 @@
 # Remediation status
 
-Status at `e2d0cef834bbe75e1fd3fd5c2ea69ce7f1560954`.
+Status at `fea31c02348af2adc28e96c3795d38ae18a8f8e9`.
 
 | Item | Status | Evidence |
 |---|---|---|
-| Offline/CSP, IDE and language services | Closed for implemented scope | Required browser suites and reproducibility checks. |
-| Source/block debugger | Closed for required baseline | Browser scenario, fixtures and parity tests. |
-| Academic identity/RBAC | Implemented; external integration conditional | ADR-0016, identity/authorization/account browser tests. |
-| Guest/registered storage | Closed for specified local policy | ADR-0017, storage policy and browser tests. |
-| Store contract/live conformance | Partial | Egress/publish policy passes; shared/live matrix absent. |
-| Cloud providers | Missing | Drive and OneDrive absent. |
-| Delivery | Missing/partial | Runtime parity only; hardware/iOS not executed. |
-| Sandbox operations/supply chain | Partial | Strong existing controls; quota/UID/AppArmor/SBOM gaps. |
+| IDE/language/debug baseline | Closed for documented scope | Reproducibility and required browser suites. |
+| Academic identity/RBAC | Reference-verified | Unit matrix plus 9 disposable Keycloak tests. |
+| Guest/registered storage | Reference-verified | Storage policy and browser tests. |
+| Store contract | Reference-verified | Generated fixtures, Store code and 45 disposable live tests. |
+| Google Drive/OneDrive | Implemented; externally conditional | Fake-provider and browser tests; no real tenants. |
+| Delivery | Missing/partial | Runtime parity only; device/import/iOS unexecuted. |
+| Sandbox/supply chain | Partial | Existing controls pass; operational gaps remain. |
 
-Complete Full IDE recommendation remains **NO-GO**; bounded classroom deployment is **CONDITIONAL**, particularly when institutional SSO claims depend on an untested external provider.
+Bounded local classroom deployment is **GO with documented limits**. Complete Full IDE release remains **NO-GO**.

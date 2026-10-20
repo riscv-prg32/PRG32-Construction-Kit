@@ -344,7 +344,7 @@
       "id": "SSO-01",
       "title": "OIDC with PKCE, issuer+subject identity",
       "status": "implemented",
-      "audit_score": 3,
+      "audit_score": 4,
       "source": [
         "prg32_construction_kit/identity.py::verify_id_token",
         "prg32_construction_kit/identity.py::callback",
@@ -372,7 +372,7 @@
       "id": "SSO-02",
       "title": "Multiple admin-configured IdPs, claim mapping, recovery",
       "status": "implemented",
-      "audit_score": 3,
+      "audit_score": 4,
       "source": [
         "prg32_construction_kit/identity.py::admin_providers",
         "prg32_construction_kit/identity.py::academic_role",
@@ -432,7 +432,7 @@
       "id": "CLD-01",
       "title": "Google Drive",
       "status": "partial",
-      "audit_score": 0,
+      "audit_score": 3,
       "source": [
         "prg32_construction_kit/cloud_storage.py::GoogleDrive",
         "prg32_construction_kit/cloud_storage.py::api_push",
@@ -450,7 +450,7 @@
       "id": "CLD-02",
       "title": "OneDrive",
       "status": "partial",
-      "audit_score": 0,
+      "audit_score": 3,
       "source": [
         "prg32_construction_kit/cloud_storage.py::OneDrive",
         "prg32_construction_kit/cloud_storage.py::api_push",
@@ -468,7 +468,7 @@
       "id": "STR-01",
       "title": "Store bundle preparation and validation",
       "status": "partial",
-      "audit_score": 2,
+      "audit_score": 4,
       "source": [
         "prg32_construction_kit/packager.py::project_manifest",
         "prg32_construction_kit/publishing.py::inspect_bundle",
