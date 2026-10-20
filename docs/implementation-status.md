@@ -73,8 +73,9 @@ evidence-checked view is `capabilities.md` (from `capabilities.json`). A gate is
 | 2026-10-20 | `tests/test_build_sandbox.py tests/test_build_budget.py tests/test_debug_fuzz.py` in `prg32-kit:sandbox` (Docker Desktop, aarch64, bwrap required) | 36 passed |
 | 2026-10-20 | AppArmor profile `docker/apparmor/prg32-kit`: `apparmor_parser -Q -K` (AppArmor 4.0.1, Ubuntu 24.04 container) | parses; confined run only in CI (no AppArmor kernel here) |
 | 2026-10-20 | `tests/test_cloud_live.py`, `tools/delivery_check.py device` (no test accounts, console or PRG32-QT session used) | not run |
-| 2026-10-20 | CI on `development` for `c6eb948`, `fea31c0`, `7373f4b` | **failed**: *Store contract* job (actions/checkout cannot fetch the short CartridgeStore SHA; contract now names the full SHA) and, for `7373f4b`, the AppArmor-confined sandbox run (bubblewrap refused under the first profile; profile broadened). Other jobs passed. Fixes not yet run in CI. |
+| 2026-10-20 | CI on `development` for `c6eb948`, `fea31c0`, `7373f4b` | **failed**: *Store contract* job (actions/checkout cannot fetch the short CartridgeStore SHA; contract now names the full SHA) and, for `7373f4b`, the AppArmor-confined sandbox run (bubblewrap refused under the first profile; profile broadened). Other jobs passed. Fixed at `c0d115e` (next row). |
 | 2026-10-21 | After sections 5–7: `python3 -m pytest -q` | 983 passed, 45 skipped |
+| 2026-10-21 | CI on `development` at `c0d115e` | **all required jobs passed**, including *Store contract* (45 passed) and the AppArmor-confined sandbox run (31 passed, `kernel.apparmor_restrict_unprivileged_userns=1`) |
 | 2026-10-21 | Browser suites (8 files incl. performance), `PRG32_REQUIRE_BROWSER=1` | 81 passed |
 | 2026-10-21 | Store contract + disposable Store + SSO | 45 passed |
 | 2026-10-21 | `tests/test_store_egress.py` | 94 passed |
