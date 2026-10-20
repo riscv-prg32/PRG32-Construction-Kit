@@ -45,17 +45,22 @@ with `python3 tools/make_seccomp_profile.py`.
 ### AppArmor hosts (Ubuntu 24.04 and others)
 
 Docker's `docker-default` AppArmor profile forbids the mounts bubblewrap makes,
-and Ubuntu 24.04 restricts unprivileged user namespaces. Today the tested
-setting (CI) is:
+and Ubuntu 24.04 restricts unprivileged user namespaces. Use the kit's own
+profile, `docker/apparmor/prg32-kit`: docker-default plus user namespaces and
+mounts inside them (the container still has no capabilities of its own).
 
 ```bash
-sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
-# and in docker-compose.yml, under security_opt:  - apparmor=unconfined
+sudo apparmor_parser -r -W docker/apparmor/prg32-kit
 ```
 
-This removes AppArmor confinement from the kit container (the seccomp profile,
-no-new-privileges, dropped capabilities and the sandbox itself stay). A
-tailored AppArmor profile is planned.
+Then add `apparmor=prg32-kit` to `security_opt` in `docker-compose.yml` (or
+`--security-opt apparmor=prg32-kit` to `docker run`). Neither
+`apparmor=unconfined` nor `kernel.apparmor_restrict_unprivileged_userns=0` is
+needed. To load it at every boot, copy it to `/etc/apparmor.d/`.
+
+CI loads this profile and runs the sandbox escape and disk tests confined by it,
+with the user-namespace restriction on. Hosts without AppArmor (Docker Desktop)
+need only the seccomp profile.
 
 ## Settings
 
@@ -65,13 +70,20 @@ tailored AppArmor profile is planned.
 | `PRG32_BUILD_MEMORY_MB` | `1536` | Memory per compile. |
 | `PRG32_BUILD_MAX_PROCESSES` | `128` | Processes a compile may add. |
 | `PRG32_BUILD_RO_PATHS` | empty | Extra read-only folders for a custom `PRG32_BUILD_COMMAND`. |
+| `PRG32_BUILD_MAX_MB` | `256` | Disk one build folder may use; the build is stopped beyond it. |
+| `PRG32_BUILD_ROOT_MAX_MB` | `4096` | Disk all builds together may use (finished ones included); a build that would not fit is refused (507) before it starts. `0` = no total budget. |
 
 ## Limits we know about
 
-- No total disk quota per build folder: files are capped one by one (64 MiB),
-  `/tmp` is capped (256 MiB), and the time limit stops runaway writers.
+- Disk: each file is capped (64 MiB), each build folder (`PRG32_BUILD_MAX_MB`,
+  checked four times a second, so a build can overshoot by what it writes in a
+  quarter of a second), and all builds together (`PRG32_BUILD_ROOT_MAX_MB`, by
+  reservation before a build starts). A build runs inside its own folder in both
+  modes.
 - All builds run as the same server user outside their namespaces; they are
-  kept apart by mounts (each sees only its own folder), not by user ids.
+  kept apart by mounts (each sees only its own folder), not by user ids. Per-build
+  user ids were evaluated and not adopted: they need privileges the container
+  deliberately drops (ADR-0010, amendment).
 - The process limit counts all of the kit user's processes, so a fork bomb is
   bounded by "what exists now + 128", not by an exact per-build count.
 

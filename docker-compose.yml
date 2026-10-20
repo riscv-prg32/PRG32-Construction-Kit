@@ -17,6 +17,8 @@ services:
     # seccomp profile plus only the namespace calls bubblewrap needs. No extra capabilities.
     security_opt:
       - seccomp=./docker/seccomp-kit.json
+      # AppArmor hosts (Ubuntu 24.04): sudo apparmor_parser -r -W docker/apparmor/prg32-kit, then add
+      # - apparmor=prg32-kit
       - no-new-privileges:true
     cap_drop:
       - ALL

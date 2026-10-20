@@ -11,7 +11,9 @@ Off unless ``PRG32_LIVE_CLOUD=google`` or ``onedrive``. Then, from the environme
                                      refresh token stops working)
 
 It only touches files it creates (``prg32-live-test-<random>...``) and moves them to the
-trash at the end. docs/cloud_storage.md says how to get the refresh token.
+trash at the end. Outages cannot be caused on purpose against a real provider: they are
+covered by tests/test_cloud_storage.py. docs/cloud_storage.md says how to get the refresh
+token.
 """
 
 from __future__ import annotations
@@ -81,13 +83,44 @@ def test_an_expired_token_is_refreshed_and_the_account_is_known(live):
     assert account_id and live["api"].tokens["access_token"] != "expired"
 
 
+def test_only_the_least_privilege_scopes_were_granted(live):
+    granted = set(str(live["api"].tokens.get("scope", "")).split())
+    if PROVIDER == "google":
+        assert "https://www.googleapis.com/auth/drive.file" in granted
+        assert not granted & {"https://www.googleapis.com/auth/drive", "https://www.googleapis.com/auth/drive.readonly"}
+    else:
+        lowered = {scope.lower().rsplit("/", 1)[-1] for scope in granted}
+        assert {"files.readwrite.appfolder", "user.read"} <= lowered
+        assert not lowered & {"files.readwrite", "files.readwrite.all", "files.read.all", "sites.readwrite.all"}
+
+
+def test_a_revoked_or_unknown_refresh_token_is_refused_without_changes(live):
+    """A refresh token the provider does not know: 'connect again', and no request reaches a file."""
+    with pytest.raises(CloudError) as refused:
+        cloud_storage._token_request(live["item"], {"grant_type": "refresh_token",
+                                                    "refresh_token": "prg32-live-test-not-a-real-token"})
+    assert refused.value.code in ("reconnect", "unavailable")
+
+
+def test_the_onedrive_simple_upload_limit_is_enforced_before_sending(live):
+    if PROVIDER != "onedrive":
+        pytest.skip("OneDrive only")
+    too_big = b"0" * (live["item"].max_upload + 1)
+    with pytest.raises(CloudError) as refused:
+        live["item"].create(live["api"], live["name"] + "-big.prg32project.zip", too_big, "live-big", "x")
+    assert refused.value.code == "too_large"
+    assert live["name"] + "-big" not in " ".join(entry.name for entry in live["item"].list(live["api"]))
+
+
 def test_create_list_load_save_and_trash(live):
     item, api = live["item"], live["api"]
     data = archive("one")
     name = live["name"] + ".prg32project.zip"
     remote = item.create(api, name, data, "live-project", hashlib.sha256(data).hexdigest())
     live["made"].append(remote.file_id)
-    assert remote.file_id in [entry.file_id for entry in item.list(api)]
+    listed = item.list(api)
+    assert remote.file_id in [entry.file_id for entry in listed]
+    assert all(entry.name.endswith(".prg32project.zip") for entry in listed)   # only kit project files
     loaded, content = item.load(api, remote.file_id)
     assert content == data
     newer = archive("two")
@@ -106,6 +139,8 @@ def test_a_save_from_an_old_revision_is_refused(live):
     item.save(api, remote.file_id, first, hashlib.sha256(first).hexdigest(), remote.revision)
     with pytest.raises(RemoteChanged):
         item.save(api, remote.file_id, archive("second writer"), "x", remote.revision)
+    # On Drive this refusal comes from the kit's check before writing (no conditional upload):
+    # a change in the moment between that check and the write would still be replaced (ADR-0019).
     assert item.load(api, remote.file_id)[1] == first
 
 

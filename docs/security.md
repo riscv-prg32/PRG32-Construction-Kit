@@ -39,10 +39,10 @@ and what is still open. Reporting: contact the maintainers privately.
 
 | Area | Risk | Plan |
 | --- | --- | --- |
-| Build sandbox gaps | No total disk quota per build folder, no per-build UID, AppArmor hosts need `apparmor=unconfined` today | Tailored AppArmor profile; quotas (Phase 7) |
+| Build sandbox gaps | Builds share the kit user outside their namespaces (per-build UIDs evaluated, not adopted: ADR-0010 amendment); the folder budget is checked four times a second | AppArmor profile `docker/apparmor/prg32-kit` and disk budgets done (`build_budget.py`); CI proves the profile on Ubuntu 24.04 |
 | WASM runtime | Guest code in the browser | Interpreted in WASM; no host calls except the PRG32 ABI (ADR-0003) |
 | OAuth / OIDC | No PKCE; users linked by provider + `sub`, not issuer | ADR-0007 |
-| Cloud sync | Token storage, scope creep | Server-side tokens, minimal scopes, revocation (G6) |
+| Cloud storage | Token storage, scope creep | Done (ADR-0019): server-side encrypted tokens, least-privilege scopes, revocation where the provider offers it; real-account evidence pending |
 | Rate limiting | Only sign-in, registration and token creation are limited; other API routes (builds have their own slots) are not | Reverse-proxy limits for the whole site |
 | Audit log | No retention limit or export; the log lives in the same database an admin controls | Retention policy and off-host export (G6) |
 | Store | Store API tokens never expire (CartridgeStore 820f74b); a revoked token is refused at once (`tests/test_store_live.py`) | Revoke unused tokens; proposal in `store_contract.md` |

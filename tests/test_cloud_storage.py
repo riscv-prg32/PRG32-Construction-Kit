@@ -501,6 +501,51 @@ def test_a_cloud_file_that_is_not_a_project_is_refused(cloud):
     assert answer.status_code == 422 and answer.get_json()["code"] == "bad_file"
 
 
+def test_files_the_kit_did_not_make_stay_invisible_and_untouched(cloud):
+    """Least privilege, as drive.file and the OneDrive app folder enforce it."""
+    connect(cloud)
+    mine = cloud["fake"].add_foreign("holiday-photos.prg32project.zip", b"the student's own file")
+    project = new_project(cloud["student"])
+    push(cloud, project)
+    files = cloud["student"].get(f"/api/cloud/{cloud['name']}/files").get_json()["files"]
+    assert mine["id"] not in [item["file_id"] for item in files]
+    assert cloud["student"].post(f"/api/cloud/{cloud['name']}/files/{mine['id']}/open").status_code == 404
+    assert cloud["student"].delete(f"/api/cloud/{cloud['name']}/files/{mine['id']}?revision=1").status_code in (200, 404)
+    assert (mine["data"], mine["version"], mine["trashed"]) == (b"the student's own file", 1, False)
+
+
+def test_an_outage_while_taking_the_cloud_version_changes_nothing_anywhere(cloud):
+    connect(cloud)
+    project = new_project(cloud["student"])
+    push(cloud, project)
+    remote = only_file(cloud)
+    cloud["fake"].edit_elsewhere(remote["id"], other_archive(cloud))
+    before_remote = bytes(remote["data"])
+    before_local = cloud["student"].get(f"/api/projects/{project['id']}").get_json()
+    cloud["fake"].outage = 100
+    refused = pull(cloud, project)
+    assert refused.status_code == 503 and refused.get_json()["retryable"] is True
+    after_local = cloud["student"].get(f"/api/projects/{project['id']}").get_json()
+    assert (after_local["version"], after_local["title"]) == (before_local["version"], before_local["title"])
+    assert remote["data"] == before_remote
+
+
+def test_the_check_then_write_window_differs_by_provider(cloud):
+    """Recorded honestly (ADR-0019): Drive cannot refuse a change made between the kit's check
+    and its write; OneDrive's If-Match does."""
+    connect(cloud)
+    project = new_project(cloud["student"])
+    push(cloud, project)
+    remote = only_file(cloud)
+    save(cloud["student"], project, blocks_json={"blocks": 11})
+    cloud["fake"].before_write = lambda: cloud["fake"].edit_elsewhere(remote["id"], b"written in the window")
+    answer = push(cloud, project)
+    if cloud["name"] == "google":
+        assert answer.status_code == 200          # the known gap: the change in the window is replaced
+    else:
+        assert answer.status_code == 409 and remote["data"] == b"written in the window"
+
+
 def test_the_kit_only_talks_to_the_providers_addresses():
     drive = cloud_storage.GoogleDrive("id")
     for url in ("http://www.googleapis.com/drive/v3/files", "https://evil.test/drive", "https://www.googleapis.com:8443/x",

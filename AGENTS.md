@@ -47,7 +47,7 @@ This file applies to the whole repository.
 - Do not store bearer tokens in logs or public responses.
 - Maintain idempotent SQLite initialization with `CREATE TABLE IF NOT EXISTS`.
 - Generated C is stored as `c_source` artifacts and generated assembly as `asm_source` artifacts (handwritten assembly also uses `asm_source`).
-- Every build works only inside its own `<build_id>/` folder (with a private `tmp/`); builds must never share files.
+- Every build works only inside its own `<build_id>/` folder (with a private `tmp/`); builds must never share files. Keep the disk budgets (`build_budget.reserve` before a build, `build_guard --disk-budget` during it) and the AppArmor profile `docker/apparmor/prg32-kit` in step with what bubblewrap needs.
 
 ## API constraints
 

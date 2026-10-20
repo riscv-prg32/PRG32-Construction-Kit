@@ -12,8 +12,8 @@ evidence-checked view is `capabilities.md` (from `capabilities.json`). A gate is
 | G3 Toolchain | In progress | Server builds produce real `.prg32`; build provenance and cartridge SHA-256 done; every compile runs in a bubblewrap sandbox (ADR-0010, audit H-03). Browser toolchain open. |
 | G4 WASM runtime | **Complete** (core scope) | PRG32-QT core as WebAssembly, `/player`, golden tests WASM = native = `prg32qt-headless`. Multiplayer/Wi-Fi host services and exact audio open. |
 | G5 Debugger | **In progress** (source and block slice complete) | Player debugger on the WASM core (Qt parity, ADR-0006) plus, for kit-compiled cartridges, source and block debugging (ADR-0015) [DBG-05]: block → IR → source → address maps, C/assembly/block breakpoints with conditions, active block, locals/globals, call stack, watches, counter CSRs, stack view, compressed-instruction fixture; differential tests at source checkpoints. Open: inlined frames, operand-level checks, a PRG32-QT desktop equivalent. |
-| G6 Identity/storage | In progress (identity and storage slices complete) | OIDC + PKCE, issuer+subject accounts, academic roles and classes, scoped tokens, session epochs, deprovisioning (ADR-0016) [SSO-01] [SSO-02] [SSO-03]; guest games in IndexedDB, conflict-safe versions, autosave, quotas and retention (ADR-0017) [ACC-01] [ACC-02]. Cloud sync open. |
-| G7 Delivery | Not started | Store publish exists (pre-existing); Store egress policy closes audit H-01 (ADR-0008); publisher role + confirmed review close H-02 (ADR-0009). Draft/update/visibility states not applicable (no Store API). |
+| G6 Identity/storage | In progress (identity and storage slices complete) | OIDC + PKCE, issuer+subject accounts, academic roles and classes, scoped tokens, session epochs, deprovisioning (ADR-0016) [SSO-01] [SSO-02] [SSO-03]; guest games in IndexedDB, conflict-safe versions, autosave, quotas and retention (ADR-0017) [ACC-01] [ACC-02]. Google Drive and OneDrive adapters implemented behind one interface (ADR-0019) [CLD-01] [CLD-02]; real-tenant evidence pending (`tests/test_cloud_live.py` has not run against a test account). |
+| G7 Delivery | In progress | Store egress policy closes audit H-01 (ADR-0008); publisher role + confirmed review close H-02 (ADR-0009); shared versioned Store contract enforced before every upload, checked against CartridgeStore's code and a disposable loopback Store: pending until verified, updates, refusals, revoked tokens, outage and retry (ADR-0018) [STR-01]. Open: physical PRG32 transfer, end-user PRG32-QT import, iOS handoff [DEP-01] [DEP-02] [DEP-03]. |
 | G8 Release | Not started | |
 
 ## Test runs
@@ -65,6 +65,14 @@ evidence-checked view is `capabilities.md` (from `capabilities.json`). A gate is
 | 2026-10-20 | Cloud storage (ADR-0019): `python3 -m pytest -q` | 931 passed, 42 skipped |
 | 2026-10-20 | Browser suites incl. `tests/test_cloud_browser.py`, `PRG32_REQUIRE_BROWSER=1` | 77 passed |
 | 2026-10-20 | `tests/test_cloud_live.py` (no Google or Microsoft test account available) | not run (4 skipped) |
+| 2026-10-20 | After audit `fea31c0`: `python3 -m pytest -q` | 963 passed, 45 skipped |
+| 2026-10-20 | Browser suites (7 files), `PRG32_REQUIRE_BROWSER=1` | 77 passed |
+| 2026-10-20 | Store contract + disposable Store + SSO (`PRG32_REQUIRE_STORE=1 PRG32_LIVE_STORE=local`) | 45 passed |
+| 2026-10-20 | `tests/test_store_egress.py` | 94 passed |
+| 2026-10-20 | `tools/build_debug_fixtures.py --check` with riscv32-esp-elf-gcc 14.2.0 and PRG32 SDK `679dfb5` | up to date (cartridges and maps byte-identical) |
+| 2026-10-20 | `tests/test_build_sandbox.py tests/test_build_budget.py tests/test_debug_fuzz.py` in `prg32-kit:sandbox` (Docker Desktop, aarch64, bwrap required) | 36 passed |
+| 2026-10-20 | AppArmor profile `docker/apparmor/prg32-kit`: `apparmor_parser -Q -K` (AppArmor 4.0.1, Ubuntu 24.04 container) | parses; confined run only in CI (no AppArmor kernel here) |
+| 2026-10-20 | `tests/test_cloud_live.py`, `tools/delivery_check.py device` (no test accounts, console or PRG32-QT session used) | not run |
 
 Skipped and why:
 
@@ -87,8 +95,9 @@ Skipped and why:
 - Debugger: source/block features need a kit-compiled cartridge (ADR-0015);
   values optimised out at `-Os` are shown as such; inlined functions are not
   separate frames; music tracks pause in debug mode, as in PRG32-QT.
-- No hardware or IdP tenant was available; nothing here claims hardware or
-  SSO-provider validation. (Emscripten 6.0.12 has been available since G4: the
+- No hardware, institutional identity provider, production Store or real cloud
+  account was available; only disposable local services (Keycloak in Docker, a
+  loopback CartridgeStore) were used, and nothing here claims more. (Emscripten 6.0.12 has been available since G4: the
   WASM runtime is verified against the native core.)
 
 ## Rollback

@@ -31,6 +31,7 @@ from typing import Any
 
 SCHEMA = "prg32-debug-map/1"
 MAX_ELF_BYTES = 4 * 1024 * 1024
+MAX_IMAGE_BYTES = 1024 * 1024     # loadable span; a cartridge's RAM is far smaller
 MAX_LINE_ROWS = 200_000
 MAX_DIES = 100_000
 MAX_TYPE_DEPTH = 12
@@ -67,6 +68,8 @@ def elf_image(elf) -> tuple[int, bytes]:
         raise DebugInfoError("the ELF has no loadable sections")
     base = min(s["sh_addr"] for s in sections)
     end = max(s["sh_addr"] + s["sh_size"] for s in sections)
+    if end - base > MAX_IMAGE_BYTES:   # a damaged or crafted ELF must not make the server allocate gigabytes
+        raise DebugInfoError("the ELF's loadable image is larger than 1 MiB")
     image = bytearray(end - base)
     for section in sections:
         start = section["sh_addr"] - base

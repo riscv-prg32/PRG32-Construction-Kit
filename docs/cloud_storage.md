@@ -75,8 +75,14 @@ no redirects and a size limit.
 | Check | Where |
 |---|---|
 | One contract run against fake Google Drive and OneDrive: consent, PKCE, scopes, encrypted tokens, create/update/in-sync, conflicts and the three choices, renames, deleted files, token expiry and refusal, disconnect and revocation, account switching, outages and retries, a create stored but not confirmed, ownership, `user_changed`, allowed hosts | `tests/test_cloud_storage.py`, `tests/fake_cloud.py` |
+| Files the kit did not make stay invisible and untouched; an outage while taking the cloud version changes nothing here or there; the check-then-write window (Drive replaces, OneDrive refuses) | `tests/test_cloud_storage.py` |
 | The Account page and the dashboard dialog in a real browser | `tests/test_cloud_browser.py` |
-| A real test account (opt-in) | `tests/test_cloud_live.py` |
+| A real test account (opt-in): refresh after expiry, account identity, granted scopes are only the least-privilege ones, create/list/load/conditional save, stale revision refused, files it did not make unreachable, unknown refresh token refused, OneDrive 4 MB limit, trash at the end | `tests/test_cloud_live.py` |
+
+**Status:** the live suite has **not** been run against a Google or Microsoft test
+account yet, so nothing here is verified against a real provider. To record evidence,
+run it once per provider with a dedicated, non-personal test account and add the
+result (date, provider, pass/skip counts, kit commit) to `implementation-status.md`.
 
 The live suite runs only with `PRG32_LIVE_CLOUD=google` or `onedrive` and settings
 from the environment (never from files): `PRG32_LIVE_CLOUD_CLIENT_ID`,

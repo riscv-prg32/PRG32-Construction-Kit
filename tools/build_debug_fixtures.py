@@ -11,13 +11,18 @@ Blocks program, with its block map as pong.source_map.json) is built exactly as 
 builds a student's game: the PRG32 builder (python -m prg32 cartridge build --portable,
 architecture qemu) through debug_build's tool wrappers. The cartridge and its debug map
 are committed, so the debugger tests run without a RISC-V toolchain; with one, --check
-proves they are what the toolchain makes.
+proves they are what the toolchain makes. Each debug ELF is also kept in
+tests/fixtures/debug/fuzz/ as the starting point of tests/test_debug_fuzz.py (a test
+input only: the kit never serves a debug ELF). The toolchain writes the build folder's
+path into the assembler stub's debug information, so those paths are overwritten with
+same-length filler, and the seeds are not compared by --check (they differ by machine).
 """
 
 from __future__ import annotations
 
 import argparse
 import json
+import re
 import shutil
 import sys
 import tempfile
@@ -59,7 +64,16 @@ def inputs() -> dict[str, str]:
             "compiler": first_line(["riscv32-esp-elf-gcc", "--version"])}
 
 
-def build(source: Path, prefix: str, build_command: str, work: Path) -> tuple[bytes, str]:
+def scrubbed(elf: bytes, work: Path) -> bytes:
+    """The ELF with host paths (build folder, toolchain and SDK folders) replaced by 'x's of the
+    same length, so offsets stay valid and no machine's folders end up in the repository."""
+    elf = re.sub(rb"prg32-cart-[A-Za-z0-9_]{8}", lambda match: b"prg32-cart-" + b"x" * 8, elf)
+    # Every absolute folder in a NUL-terminated string, up to its last '/': the file name stays.
+    return re.sub(rb"/(?:Users|home|private|var|tmp|opt|root|usr|builds?|work|github)/[^\x00]*/",
+                  lambda match: b"x" * len(match.group(0)), elf)
+
+
+def build(source: Path, prefix: str, build_command: str, work: Path) -> tuple[bytes, str, bytes]:
     work.mkdir(parents=True)
     copy = work / ("game" + source.suffix)
     shutil.copyfile(source, copy)
@@ -74,7 +88,8 @@ def build(source: Path, prefix: str, build_command: str, work: Path) -> tuple[by
     elf = debug_build.collect(tools, ARCHITECTURE, out)
     if elf is None:
         raise SystemExit(f"{source.name}: the debug ELF does not match the cartridge")
-    return out.read_bytes(), json.dumps(debug_info.build_debug_map(elf), indent=1, sort_keys=True) + "\n"
+    return (out.read_bytes(), json.dumps(debug_info.build_debug_map(elf), indent=1, sort_keys=True) + "\n",
+            scrubbed(elf.read_bytes(), work))
 
 
 def main() -> int:
@@ -110,9 +125,9 @@ def main() -> int:
             jobs.append((generated, game_ir["entry_prefix"],
                          {FIXTURES / f"{stem}.source_map.json": json.dumps(source_map, indent=1, sort_keys=True) + "\n"}))
         for source, prefix, extra in jobs:
-            cartridge, debug_map = build(source, prefix, build_command, Path(tmp) / ("build-" + source.stem))
+            cartridge, debug_map, elf = build(source, prefix, build_command, Path(tmp) / ("build-" + source.stem))
             targets = {FIXTURES / f"{source.stem}.prg32": cartridge, FIXTURES / f"{source.stem}.map.json": debug_map,
-                       **extra}
+                       FIXTURES / "fuzz" / f"{source.stem}.elf": elf, **extra}
             for path, content in targets.items():
                 data = content if isinstance(content, bytes) else content.encode("utf-8")
                 if args.out:
@@ -120,10 +135,13 @@ def main() -> int:
                     (args.out / path.name).write_bytes(data)
                 if args.check_if_comparable and not args.check:
                     continue      # built for the evidence only: not the committed inputs
+                if args.check and path.suffix == ".elf":
+                    continue      # fuzz seeds: machine-dependent, see the docstring
                 if args.check:
                     if not path.is_file() or path.read_bytes() != data:
                         stale.append(path.name)
                 else:
+                    path.parent.mkdir(parents=True, exist_ok=True)
                     path.write_bytes(data)
                     print(f"Wrote {path.relative_to(ROOT)}")
     record = json.dumps(inputs(), indent=1, sort_keys=True) + "\n"

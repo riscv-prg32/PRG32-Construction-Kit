@@ -28,6 +28,10 @@ from prg32_construction_kit import build_guard, build_sandbox, packager
 from prg32_construction_kit.build_sandbox import SandboxSettings, SandboxUnavailable
 
 BWRAP = build_sandbox.bwrap_works(SandboxSettings(mode="bwrap"))
+# CI's container jobs set PRG32_REQUIRE_BWRAP=1: there a sandbox that does not work fails the
+# run instead of skipping the escape tests (for example under the kit's AppArmor profile).
+if os.environ.get("PRG32_REQUIRE_BWRAP") == "1" and not BWRAP:
+    raise RuntimeError("PRG32_REQUIRE_BWRAP=1 but bubblewrap does not work here")
 needs_bwrap = pytest.mark.skipif(not BWRAP, reason="bubblewrap does not work here (needs Linux user namespaces)")
 
 
@@ -56,6 +60,19 @@ def guard(tmp_path, *command, timeout=10, **extra):
         args += [f"--{key.replace('_', '-')}", str(value)]
     return subprocess.run([*args, "--", *command], capture_output=True, text=True, timeout=60, cwd=tmp_path,
                           check=False)
+
+
+def test_a_build_runs_inside_its_own_folder_and_keeps_relative_paths(tmp_path, monkeypatch):
+    """Relative writes land in the build folder (never the server's folder), and a relative
+    PYTHONPATH still means what it meant where the kit was started."""
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "sdk").mkdir()
+    (tmp_path / "sdk" / "fake_sdk.py").write_text("NAME = 'found'\n")
+    monkeypatch.setenv("PYTHONPATH", "sdk")
+    script = "import os, sys, fake_sdk\nopen('relative.txt', 'w').write(fake_sdk.NAME + ' ' + os.getcwd())\n"
+    ok, log, work = run_build(tmp_path, script, mode="rlimit")
+    assert (work / "relative.txt").read_text().startswith("found ")
+    assert not (tmp_path / "relative.txt").exists()
 
 
 def test_timeout_kills_the_whole_process_group(tmp_path):

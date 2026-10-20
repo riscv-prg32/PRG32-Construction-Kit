@@ -72,6 +72,6 @@ The browser runs PRG32-QT's own core (`docs/wasm_runtime.md`).
 | Host | How a kit cartridge gets there | Verified |
 | --- | --- | --- |
 | Browser (kit Player) | **Play in browser**, or open a `.prg32` on `/player` | Automated: golden and kit-cartridge tests |
-| PRG32-QT | Download `.prg32`, import in PRG32-QT; or publish to the Store and install from it | Manual, per `runtime_check.md` |
-| PRG32-iOS | Download `.prg32`, share to the device, import with the app's file picker | Not verified here (no device) |
-| PRG32 console (ESP32-C6) | Through the Cartridge Store | Not verified here (no hardware) |
+| PRG32-QT | Download `.prg32`, **Import PRG32 cartridge**; or its web API on port 8080; or the Store (`delivery.md`) | Runtime headless (`runtime_check.md`); end-user import not yet recorded |
+| PRG32-iOS | Not supported by the kit for now (ADR-0020) | Deferred |
+| PRG32 console (ESP32-C6) | `python3 -m prg32 esp32c6 upload` over the console's Wi-Fi, or the Cartridge Store (`delivery.md`) | Not yet recorded (`tools/delivery_check.py`) |

@@ -2,6 +2,24 @@
 
 ## Unreleased
 
+### Delivery and evidence (after the audit of fea31c0)
+
+- `delivery.md`: putting a game on the PRG32 console, PRG32-QT or the browser.
+  PRG32-iOS handoff is deferred, and the kit no longer suggests it (ADR-0020).
+- `tools/delivery_check.py` uploads to a console or PRG32-QT through the PRG32 web
+  API and records hashes, slot, screenshot and outcome.
+- Builds: a disk budget per build (`PRG32_BUILD_MAX_MB`) and for all builds
+  together (`PRG32_BUILD_ROOT_MAX_MB`, 507 when full); builds run inside their own
+  folder in every mode, with relative `PATH`/`PYTHONPATH` entries resolved first.
+- AppArmor hosts: load `docker/apparmor/prg32-kit` instead of running the
+  container unconfined (`build_sandbox.md`).
+- Debugger: the source-map markers carry a number instead of the block id, so odd
+  block ids can no longer cost a project its block highlighting; the debug-map
+  reader refuses ELF images over 1 MiB. Both readers are fuzzed
+  (`tests/test_debug_fuzz.py`).
+- Cloud storage: more checks against the fake providers (files the kit did not
+  make, outages while taking the cloud version, the Drive check-then-write window).
+
 ### Cloud storage: Google Drive and OneDrive (after the audit of e2d0cef)
 
 - Optional (`cloud_storage.md`, ADR-0019): connect on *My account*, then **Save to

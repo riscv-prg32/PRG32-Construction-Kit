@@ -75,6 +75,10 @@ class Config:
     PRG32_BUILD_MEMORY_MB = int(os.environ.get("PRG32_BUILD_MEMORY_MB", "1536"))
     PRG32_BUILD_MAX_PROCESSES = int(os.environ.get("PRG32_BUILD_MAX_PROCESSES", "128"))
     # Seconds one compiler run (one architecture) may take before it is stopped.
+    # Disk: one build folder at most PRG32_BUILD_MAX_MB; all of BUILD_ROOT at most
+    # PRG32_BUILD_ROOT_MAX_MB (0 = no total budget). See build_budget.py.
+    PRG32_BUILD_MAX_MB = int(os.environ.get("PRG32_BUILD_MAX_MB", "256"))
+    PRG32_BUILD_ROOT_MAX_MB = int(os.environ.get("PRG32_BUILD_ROOT_MAX_MB", "4096"))
     PRG32_BUILD_TIMEOUT = float(os.environ.get("PRG32_BUILD_TIMEOUT", "120"))
     # Debug information for the Player's source and block debugger (ADR-0015): "0" turns it off.
     PRG32_DEBUG_INFO = os.environ.get("PRG32_DEBUG_INFO", "1") != "0"

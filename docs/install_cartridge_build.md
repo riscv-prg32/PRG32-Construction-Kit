@@ -241,7 +241,8 @@ copes with the whole class clicking at once. Details: `concurrent_builds.md`.
 | `FAIL build command runs ... No module named prg32` | The PRG32 tools are not installed in the Python that runs the kit. Docker: rebuild with `PRG32_TOOLCHAIN=1`. Without Docker: `pip install --no-deps -e ../PRG32` in the kit's `.venv`. |
 | `FAIL RISC-V compiler on PATH` | Add the compiler's `bin` folder to `PATH` for the server process (systemd: the `Environment=PATH=` line). |
 | `docker compose build` fails with "No RISC-V compiler download" | The computer is not amd64 or arm64. Use another computer or `PRG32_TOOLCHAIN=0`. |
-| `FAIL build sandbox: ... bubblewrap does not work` | The container was started without `docker/seccomp-kit.json` (see `build_sandbox.md`). On Ubuntu 24.04 and other AppArmor hosts also read *AppArmor hosts* there. |
+| `FAIL build sandbox: ... bubblewrap does not work` | The container was started without `docker/seccomp-kit.json` (see `build_sandbox.md`). On Ubuntu 24.04 and other AppArmor hosts, load `docker/apparmor/prg32-kit` and start the container with `--security-opt apparmor=prg32-kit` (*AppArmor hosts* there). |
+| `507 build_disk_full` when compiling | All builds together reached `PRG32_BUILD_ROOT_MAX_MB`. Old builds go with retention (`PRG32_KIT_KEEP_BUILDS`, *Retention* in `storage.md`); raise the budget if the disk allows. |
 | The container restarts again and again | The start-up check failed. Read `docker compose logs`, or set `PRG32_REQUIRE_TOOLCHAIN=0` to start without builds while you fix it. |
 | "All N cartridge build slots are busy" | The server is working; see `concurrent_builds.md`. |
 | Debug Log shows a C error | The compiler works; the game's C has a problem. See `cartridge_build.md`. |

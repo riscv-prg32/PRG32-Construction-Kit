@@ -59,6 +59,7 @@ class SandboxSettings:
     open_files: int = 256
     output_bytes: int = 256 * 1024
     tmp_size_bytes: int = 256 * 1024 * 1024
+    build_disk_bytes: int = 256 * 1024 * 1024   # the whole build folder (build_guard --disk-budget)
     read_only_paths: tuple[str, ...] = ()
     forbidden_paths: tuple[str, ...] = ()   # data folders: never mounted
     tool_prefix: str = "riscv32-esp-elf-"
@@ -72,6 +73,7 @@ def settings_from_config(config: Any) -> SandboxSettings:
                            production=config.get("KIT_ENV") == "production",
                            memory_bytes=int(config.get("PRG32_BUILD_MEMORY_MB") or 1536) * 1024 * 1024,
                            processes=int(config.get("PRG32_BUILD_MAX_PROCESSES") or 128),
+                           build_disk_bytes=int(config.get("PRG32_BUILD_MAX_MB") or 256) * 1024 * 1024,
                            read_only_paths=extra, forbidden_paths=forbidden)
 
 
@@ -186,6 +188,12 @@ def build_env(work_dir: Path) -> dict[str, str]:
     env = {name: os.environ[name] for name in ALLOWED_ENV if os.environ.get(name)}
     env.setdefault("PATH", "/usr/local/bin:/usr/bin:/bin")
     env.setdefault("LANG", "C.UTF-8")
+    # A build runs inside its own folder, so relative entries (PYTHONPATH=../PRG32) must
+    # mean what they meant where the kit was started.
+    for name in ("PATH", "PYTHONPATH"):
+        if env.get(name):
+            env[name] = os.pathsep.join(os.path.abspath(item) if item and not os.path.isabs(item) else item
+                                        for item in env[name].split(os.pathsep))
     env.update(HOME=tmp_dir, TMPDIR=tmp_dir, TEMP=tmp_dir, TMP=tmp_dir, PYTHONDONTWRITEBYTECODE="1",
                PYTHONNOUSERSITE="1")
     return env
@@ -200,11 +208,12 @@ def process_limit(settings: SandboxSettings) -> int:
     return processes_of_this_user() + settings.processes
 
 
-def guard_arguments(settings: SandboxSettings, timeout: float, guard_path: str) -> list[str]:
+def guard_arguments(settings: SandboxSettings, timeout: float, guard_path: str, work_dir: Path | None = None) -> list[str]:
+    watch = ["--disk-budget", str(settings.build_disk_bytes), "--watch", str(work_dir)] if work_dir else []
     return [sys.executable, guard_path, "--timeout", f"{timeout:g}", "--cpu", str(settings.cpu_seconds),
             "--memory", str(settings.memory_bytes), "--processes", str(process_limit(settings)),
             "--file-size", str(settings.file_size_bytes), "--open-files", str(settings.open_files),
-            "--output", str(settings.output_bytes), "--"]
+            "--output", str(settings.output_bytes), *watch, "--"]
 
 
 def system_symlinks() -> list[tuple[str, str]]:
@@ -246,6 +255,7 @@ class SandboxRun:
     env: dict[str, str]
     pass_fds: tuple[int, ...] = ()
     mode: str = "rlimit"
+    cwd: str | None = None          # the build folder, in both modes (bwrap also does --chdir)
     _files: list[Any] = field(default_factory=list)
 
     def close(self) -> None:
@@ -292,11 +302,12 @@ def prepare(settings: SandboxSettings, command: list[str], work_dir: Path, build
     (work_dir / "tmp").mkdir(parents=True, exist_ok=True)
     env = build_env(work_dir)
     if mode == "rlimit":
-        return SandboxRun([*guard_arguments(settings, timeout, str(GUARD)), *command], env, mode="rlimit")
+        return SandboxRun([*guard_arguments(settings, timeout, str(GUARD), work_dir), *command], env, mode="rlimit",
+                          cwd=str(work_dir))
     seccomp_file = tempfile.TemporaryFile()  # noqa: SIM115 - kept open for bwrap, closed by SandboxRun.close()
     seccomp_file.write(seccomp_filter())
     seccomp_file.seek(0)
     fd = seccomp_file.fileno()
     argv = [*bwrap_arguments(settings, work_dir, build_command, env, fd), "--",
-            *guard_arguments(settings, timeout, GUARD_IN_SANDBOX), *command]
-    return SandboxRun(argv, env, pass_fds=(fd,), mode="bwrap", _files=[seccomp_file])
+            *guard_arguments(settings, timeout, GUARD_IN_SANDBOX, work_dir), *command]
+    return SandboxRun(argv, env, pass_fds=(fd,), mode="bwrap", cwd=str(work_dir), _files=[seccomp_file])

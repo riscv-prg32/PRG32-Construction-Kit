@@ -316,11 +316,32 @@ jobs:
 
       - name: Run the build sandbox escape tests in the container
         run: >-
-          docker run --rm ${{ env.SANDBOX_OPTS }} -v "$PWD/ci-evidence:/evidence" --entrypoint sh ${{ env.CI_IMAGE }} -c
+          docker run --rm ${{ env.SANDBOX_OPTS }} -e PRG32_REQUIRE_BWRAP=1 -v "$PWD/ci-evidence:/evidence"
+          --entrypoint sh ${{ env.CI_IMAGE }} -c
           "pip install -q --user pytest && python -m pytest -q -rs -p no:cacheprovider
           --junitxml=/evidence/container-tests.xml
           tests/test_build_sandbox.py tests/test_concurrency.py tests/test_handwritten_assembly.py
-          tests/test_build_provenance.py tests/test_source_debugger.py"
+          tests/test_build_provenance.py tests/test_source_debugger.py tests/test_build_budget.py
+          tests/test_debug_fuzz.py"
+
+      # The kit's own AppArmor profile (docker/apparmor/prg32-kit) instead of apparmor=unconfined,
+      # with Ubuntu's restriction on user namespaces switched back on: the profile alone must let
+      # bubblewrap work, and every escape test must still be refused.
+      - name: Load the kit's AppArmor profile
+        run: sudo apparmor_parser -r -W docker/apparmor/prg32-kit
+
+      - name: Run the sandbox tests confined by the kit's AppArmor profile
+        run: |
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=1
+          set +e
+          docker run --rm --security-opt seccomp=docker/seccomp-kit.json --security-opt apparmor=prg32-kit \
+            --security-opt no-new-privileges:true --cap-drop ALL -v "$PWD/ci-evidence:/evidence" \
+            -e PRG32_BUILD_SANDBOX=bwrap -e PRG32_REQUIRE_BWRAP=1 --entrypoint sh ${{ env.CI_IMAGE }} -c \
+            "pip install -q --user pytest && python -m pytest -q -rs -p no:cacheprovider \
+            --junitxml=/evidence/container-apparmor-tests.xml tests/test_build_sandbox.py tests/test_build_budget.py"
+          status=$?
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+          exit $status
 
       - name: Compile real cartridges concurrently
         run: >-

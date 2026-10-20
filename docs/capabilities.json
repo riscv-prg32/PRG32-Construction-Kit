@@ -274,7 +274,8 @@
         "tests/test_source_debugger.py::test_damaged_or_missing_debug_information_is_unavailable",
         "tests/test_debugger_browser.py::test_scenario_d_block_and_source_debugging",
         "tests/test_debugger_browser.py::test_without_debug_information_the_address_debugger_remains",
-        "tests/test_wasm_runtime.py::test_source_breakpoints_do_not_change_the_game"
+        "tests/test_wasm_runtime.py::test_source_breakpoints_do_not_change_the_game",
+        "tests/test_debug_fuzz.py::test_damaged_debug_elfs_are_harmless"
       ],
       "note": "DWARF from a -g build with an identical cartridge; locals optimised out at -Os are labelled; inlined functions are not separate frames; handwritten assembly gets lines, labels and an ra-based caller."
     },
@@ -426,7 +427,7 @@
         "tests/test_sso_with_cartridge_store.py::test_protocol_file_is_the_same_in_both_repositories",
         "tests/test_sso.py::test_signed_requests_and_tickets"
       ],
-      "note": "No live Store test."
+      "note": "Shared users checked against CartridgeStore's own code in the store-contract CI job (disposable, in-process); no production Store."
     },
     {
       "id": "CLD-01",
@@ -501,16 +502,20 @@
         "tests/test_publish_authorization.py::test_confirming_twice_does_not_upload_twice",
         "tests/test_store_egress.py::test_dns_rebinding_cannot_move_the_upload"
       ],
-      "note": "Only local test Stores; no live public Store."
+      "note": "Only disposable loopback Stores (tests/test_store_live.py); never a production Store."
     },
     {
       "id": "DEP-01",
       "title": "Physical PRG32 transfer and launch",
       "status": "missing",
       "audit_score": 0,
-      "source": [],
-      "tests": [],
-      "note": "No hardware available."
+      "source": [
+        "tools/delivery_check.py::check_on_device"
+      ],
+      "tests": [
+        "tests/test_delivery_check.py::test_device_check_uses_only_the_given_slot_and_records_outcomes"
+      ],
+      "note": "No hardware available; tools/delivery_check.py records a console run (tested against a stand-in device only)."
     },
     {
       "id": "DEP-02",
@@ -521,7 +526,7 @@
       "tests": [
         "tests/test_wasm_runtime.py::test_native_harness_draws_exactly_like_prg32qt_headless"
       ],
-      "note": "Runtime parity verified; user import workflow not executed."
+      "note": "Runtime parity verified headlessly; end-user import described (docs/delivery.md) but not recorded."
     },
     {
       "id": "DEP-03",
@@ -530,7 +535,7 @@
       "audit_score": 0,
       "source": [],
       "tests": [],
-      "note": "Contract read (file importer only); no handoff executed."
+      "note": "Deferred (ADR-0020): PRG32-iOS has no import contract beyond its file importer and no device is available; the kit claims no iOS handoff."
     },
     {
       "id": "SEC-01",
@@ -540,14 +545,17 @@
       "source": [
         "prg32_construction_kit/store_policy.py::choose_address",
         "prg32_construction_kit/build_sandbox.py::bwrap_arguments",
-        "prg32_construction_kit/build_sandbox.py::seccomp_filter"
+        "prg32_construction_kit/build_sandbox.py::seccomp_filter",
+        "prg32_construction_kit/build_budget.py::reserve"
       ],
       "tests": [
         "tests/test_store_egress.py::test_non_public_destinations_are_refused",
         "tests/test_build_sandbox.py::test_a_compiler_cannot_read_other_builds_or_the_kit_data",
-        "tests/test_build_sandbox.py::test_seccomp_program_checks_the_architecture_and_blocks_escape_calls"
+        "tests/test_build_sandbox.py::test_seccomp_program_checks_the_architecture_and_blocks_escape_calls",
+        "tests/test_build_budget.py::test_builds_starting_together_never_overcommit",
+        "tests/test_build_budget.py::test_the_guard_stops_a_build_whose_folder_grows_too_big"
       ],
-      "note": "Escape tests need bubblewrap; AppArmor hosts and disk quotas are known gaps."
+      "note": "Escape tests need bubblewrap; AppArmor profile docker/apparmor/prg32-kit and build disk budgets (build_budget.py) added, confined run in CI; builds share one user id outside their namespaces."
     },
     {
       "id": "SEC-02",

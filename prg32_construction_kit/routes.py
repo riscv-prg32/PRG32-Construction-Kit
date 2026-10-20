@@ -29,7 +29,7 @@ from .db import (
     update_if_unchanged,
     update_resource,
 )
-from . import project_format, publishing, retention, security, sso, storage_policy, store_contract
+from . import build_budget, project_format, publishing, retention, security, sso, storage_policy, store_contract
 from .auth import Principal, current_principal, role_at_least
 from .build_check import builds_available, toolchain_present
 from .db import utcnow
@@ -887,13 +887,19 @@ def api_package_project(project_id: str):
     try:
         with build_slot(current_app.config["BUILD_ROOT"] / ".slots",
                         current_app.config["PRG32_MAX_PARALLEL_BUILDS"],
-                        current_app.config["PRG32_BUILD_QUEUE_TIMEOUT"]):
+                        current_app.config["PRG32_BUILD_QUEUE_TIMEOUT"]), \
+                build_budget.reserve(current_app.config["BUILD_ROOT"],
+                                     current_app.config["PRG32_BUILD_MAX_MB"] * 1024 * 1024,
+                                     current_app.config["PRG32_BUILD_ROOT_MAX_MB"] * 1024 * 1024):
             return _run_package_build(project_id, project, game_ir, _generated_sources(language, game_ir, c_source),
                                       requested)
     except BuildServerBusy as exc:
         response, status = json_error(str(exc), 503)
         response.headers["Retry-After"] = "10"
         return response, status
+    except build_budget.BuildDiskFull as exc:
+        security.record("build_disk_full", target_type="project", target_id=project_id, outcome="refused")
+        return jsonify({"error": str(exc), "code": "build_disk_full"}), 507
 
 
 def _cartridge_fingerprint(result: dict[str, Any], architecture: str) -> dict[str, Any]:

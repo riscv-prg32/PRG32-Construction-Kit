@@ -16,7 +16,10 @@ What it does:
 - starts the command in a new process group and waits for it;
 - at the timeout, kills the whole group (exit status 124);
 - passes on at most --output bytes of stdout and stderr, so a compiler that
-  prints without end cannot fill the server's memory.
+  prints without end cannot fill the server's memory;
+- with --disk-budget and --watch, checks the size of the build folder four times a
+  second and stops the whole group when it grows beyond the budget (exit status
+  125). Together with the per-file limit this bounds what one build can write.
 """
 
 from __future__ import annotations
@@ -28,8 +31,11 @@ import signal
 import subprocess
 import sys
 import threading
+import time
 
 TIMEOUT_EXIT = 124
+DISK_EXIT = 125
+WATCH_SECONDS = 0.25
 
 
 def limit(name: str, value: int) -> None:
@@ -58,6 +64,39 @@ def processes_of_this_user() -> int:
         if fields.get("Uid", "").split()[:1] == [str(uid)]:
             count += int(fields.get("Threads", "1").strip() or 1)
     return count
+
+
+def folder_bytes(path: str) -> int:
+    """Bytes of every file under ``path`` (symbolic links not followed). A copy of build_budget's,
+    because this file runs on its own inside the sandbox."""
+    total, stack = 0, [path]
+    while stack:
+        try:
+            entries = list(os.scandir(stack.pop()))
+        except OSError:
+            continue
+        for entry in entries:
+            try:
+                if entry.is_dir(follow_symlinks=False):
+                    stack.append(entry.path)
+                else:
+                    total += entry.stat(follow_symlinks=False).st_size
+            except OSError:
+                pass
+    return total
+
+
+def watch_disk(child: subprocess.Popen, folder: str, budget: int, over: threading.Event) -> None:
+    """Stop the build's process group as soon as its folder is bigger than ``budget`` bytes."""
+    while child.poll() is None:
+        if folder_bytes(folder) > budget:
+            over.set()
+            try:
+                os.killpg(child.pid, signal.SIGKILL)
+            except (ProcessLookupError, PermissionError):
+                pass
+            return
+        time.sleep(WATCH_SECONDS)
 
 
 def apply_limits(args: argparse.Namespace) -> None:
@@ -102,6 +141,8 @@ def main(argv: list[str]) -> int:
     parser.add_argument("--file-size", type=int, default=0)
     parser.add_argument("--open-files", type=int, default=0)
     parser.add_argument("--output", type=int, default=256 * 1024)
+    parser.add_argument("--disk-budget", type=int, default=0, help="bytes the --watch folder may hold")
+    parser.add_argument("--watch", default="", help="the build folder")
     parser.add_argument("command", nargs=argparse.REMAINDER)
     args = parser.parse_args(argv)
     command = args.command[1:] if args.command[:1] == ["--"] else args.command
@@ -119,6 +160,9 @@ def main(argv: list[str]) -> int:
              threading.Thread(target=pump, args=(child.stderr, sys.stderr.buffer, args.output), daemon=True)]
     for thread in pumps:
         thread.start()
+    over_budget = threading.Event()
+    if args.disk_budget > 0 and args.watch:
+        threading.Thread(target=watch_disk, args=(child, args.watch, args.disk_budget, over_budget), daemon=True).start()
     try:
         child.wait(timeout=args.timeout)
         code = child.returncode
@@ -132,6 +176,10 @@ def main(argv: list[str]) -> int:
     child.wait()
     for thread in pumps:
         thread.join(timeout=5)
+    if over_budget.is_set():
+        print(f"\nbuild_guard: stopped: the build folder grew beyond {args.disk_budget // (1024 * 1024)} MB",
+              file=sys.stderr)
+        return DISK_EXIT
     if code == TIMEOUT_EXIT:
         print(f"\nbuild_guard: stopped after {args.timeout:g} seconds", file=sys.stderr)
     elif code < 0:

@@ -149,7 +149,7 @@ def run_prg32_build(build_command: str, source_path: Path, out_path: Path, entry
     try:
         # The guard stops the build at `timeout`; the extra time only covers starting the sandbox.
         result = subprocess.run(prepared.argv, check=False, capture_output=True, text=True, timeout=timeout + 30,
-                                env=prepared.env, pass_fds=prepared.pass_fds)
+                                env=prepared.env, pass_fds=prepared.pass_fds, cwd=prepared.cwd)
     except FileNotFoundError:
         return False, f"Build command not found: {public_command(program[:1])}\nCommand: {shown}"
     except subprocess.TimeoutExpired:
@@ -159,6 +159,8 @@ def run_prg32_build(build_command: str, source_path: Path, out_path: Path, entry
     log = "$ " + shown + "\n" + (result.stdout or "") + (result.stderr or "")
     if result.returncode == build_guard.TIMEOUT_EXIT:
         log += f"\nBuild command timed out after {timeout:g} seconds."
+    elif result.returncode == build_guard.DISK_EXIT:
+        log += "\nThe build was stopped because it wrote more than one build may (PRG32_BUILD_MAX_MB)."
     return result.returncode == 0 and out_path.exists(), log
 
 

@@ -69,19 +69,24 @@ def strip_markers(text: str) -> tuple[str, list[tuple[str, int, int]]]:
 def build_source_map(blocks_json: Any, project: dict[str, Any], language: str) -> tuple[dict[str, Any], str, dict[str, Any]]:
     """(game IR, generated source, source map) for a Blocks project, in "c" or "asm"."""
     game_ir, origins = blocks_to_ir_traced(blocks_json, project)
+    # The markers carry a number, never the block id itself: ids come from the student's
+    # Blocks JSON and may hold anything (new lines, marker text). The number leads back
+    # to the statement and its block.
+    statements = [statement for statement, block in origins.items() if block]   # no id, no entry (as before)
+    numbered = {statement: str(number) for number, statement in enumerate(statements)}
     if language == "asm":
-        marked, plain, name = ir_to_asm(game_ir, trace=origins), ir_to_asm(game_ir), "game.S"
+        marked, plain, name = ir_to_asm(game_ir, trace=numbered), ir_to_asm(game_ir), "game.S"
     else:
-        marked, plain, name = ir_to_c(game_ir, trace=origins), ir_to_c(game_ir), "game.c"
+        marked, plain, name = ir_to_c(game_ir, trace=numbered), ir_to_c(game_ir), "game.c"
     source, spans = strip_markers(marked)
     if source != plain:  # the markers must never change what students and the compiler see
         raise RuntimeError("source-map markers changed the generated code")
-    by_block = {block: id_ for id_, block in origins.items()}
     paths = ir_paths(game_ir)
     entries = []
-    for block, first, last in sorted(spans, key=lambda span: (span[1], -span[2], span[0])):
-        path, op = paths.get(by_block.get(block, -1), ("", ""))
-        entries.append({"block": block, "ir": path, "op": op, "lines": [first, last]})
+    for number, first, last in sorted(spans, key=lambda span: (span[1], -span[2], int(span[0]))):
+        statement = statements[int(number)]
+        path, op = paths.get(statement, ("", ""))
+        entries.append({"block": origins[statement], "ir": path, "op": op, "lines": [first, last]})
     source_map = {"schema": SCHEMA, "language": language, "file": name,
                   "source_sha256": hashlib.sha256(source.encode("utf-8")).hexdigest(), "entries": entries}
     return game_ir, source, source_map

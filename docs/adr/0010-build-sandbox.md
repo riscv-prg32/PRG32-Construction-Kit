@@ -61,3 +61,20 @@ Every compiler run goes through `build_sandbox.py`:
 - The kit container itself runs with a slightly larger seccomp allowance
   than Docker's default (the six namespace calls); compilers run under the
   much stricter kit filter.
+
+## Amendment (2026-10-20, after audit `fea31c0`)
+
+- **AppArmor:** `docker/apparmor/prg32-kit` replaces `apparmor=unconfined` on
+  AppArmor hosts: docker-default's rules plus `userns`, the namespace-local
+  capabilities and the mounts bubblewrap makes. CI runs the sandbox and disk tests
+  confined by it with `kernel.apparmor_restrict_unprivileged_userns=1`.
+- **Disk:** each build folder is capped (`build_guard.py --disk-budget`), and all
+  builds together reserve space before they start (`build_budget.py`); a full build
+  area answers 507 and writes nothing. Builds run inside their folder in `rlimit`
+  mode too.
+- **Per-build user ids, evaluated:** a setuid helper or `newuidmap` needs root or
+  `CAP_SETUID` in the container, which contradicts `cap_drop: ALL` and
+  `no-new-privileges`; one rootless container per build costs seconds per compile
+  on classroom servers. Not adopted. Separation stays by mount namespaces (a build
+  sees only its own folder, read-only system, no network, no `/proc`), with the
+  per-user process limit and the disk budgets above.

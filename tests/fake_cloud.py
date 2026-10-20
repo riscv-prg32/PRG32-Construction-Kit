@@ -28,6 +28,7 @@ class FakeCloud:
         self.outage = 0                     # answer the next N API requests with 503
         self.drop = 0                       # drop the next N connections
         self.store_then_fail = False        # store the next write, then answer 503
+        self.before_write = None            # called just before a write is applied (a race)
         self.token_lifetime = 3600
         self.revoked: list[str] = []
         self.log: list[tuple[str, str, dict]] = []
@@ -65,7 +66,19 @@ class FakeCloud:
         item["version"] += 1
 
     def live_files(self) -> list[dict]:
-        return [item for item in self.files.values() if not item["trashed"]]
+        """What the kit may see: its own files, not in the trash."""
+        return [item for item in self.files.values() if not item["trashed"] and not item.get("foreign")]
+
+    def add_foreign(self, name: str, data: bytes) -> dict:
+        """A file the student made outside the kit. drive.file and the app folder hide it from the kit."""
+        item = {"id": self.new_id(), "name": name, "data": data, "version": 1, "trashed": False, "foreign": True,
+                "props": {"prg32kit": "project"}}   # even if it looks like a kit file
+        self.files[item["id"]] = item
+        return item
+
+    def visible(self, file_id: str) -> dict | None:
+        item = self.files.get(file_id)
+        return None if item is None or item.get("foreign") else item
 
     @staticmethod
     def answer(status: int, body=None, headers=None):
@@ -88,7 +101,7 @@ class FakeCloud:
             self.revoked.append(token)
             return self.answer(200, {})
         if parts.hostname.endswith(".1drv.com"):
-            item = self.files.get(parts.path.rsplit("/", 1)[-1])
+            item = self.visible(parts.path.rsplit("/", 1)[-1])
             return self.answer(200, item["data"]) if item else self.answer(404, {})
         if self.outage:
             self.outage -= 1
@@ -96,6 +109,9 @@ class FakeCloud:
         token = headers.get("Authorization", "").removeprefix("Bearer ")
         if self.access.get(token, 0) <= self.clock():
             return self.answer(401, {"error": "invalid_token"})
+        if self.before_write and method in ("PATCH", "PUT") and ("/upload/" in parts.path or parts.path.endswith("/content")):
+            hook, self.before_write = self.before_write, None
+            hook()
         handler = self.google if self.provider == "google" else self.graph
         status, answer_headers, data = handler(method, parts, headers, body)
         if self.store_then_fail and method in ("POST", "PUT", "PATCH"):
@@ -136,7 +152,7 @@ class FakeCloud:
                     found = [item for item in found if item["props"].get(key) == value]
             return self.answer(200, {"files": [self.drive_item(item) for item in found]})
         if path.startswith("/drive/v3/files/"):
-            item = self.files.get(unquote(path.rsplit("/", 1)[-1]))
+            item = self.visible(unquote(path.rsplit("/", 1)[-1]))
             if item is None:
                 return self.answer(404, {"error": "notFound"})
             if method == "GET":
@@ -151,7 +167,7 @@ class FakeCloud:
             self.files[item["id"]] = item
             return self.answer(200, self.drive_item(item))
         if path.startswith("/upload/drive/v3/files/") and method == "PATCH":
-            item = self.files.get(unquote(path.rsplit("/", 1)[-1]))
+            item = self.visible(unquote(path.rsplit("/", 1)[-1]))
             if item is None:
                 return self.answer(404, {"error": "notFound"})
             metadata, data = self.multipart(headers, body)
@@ -193,7 +209,7 @@ class FakeCloud:
                 return self.answer(201, self.graph_item(item))
         if path.startswith("/me/drive/items/"):
             file_id = path.removeprefix("/me/drive/items/").removesuffix("/content")
-            item = self.files.get(file_id)
+            item = self.visible(file_id)
             if item is None or item["trashed"]:
                 return self.answer(404, {"error": {"code": "itemNotFound"}})
             if "If-Match" in headers and headers["If-Match"] != self.revision(item):

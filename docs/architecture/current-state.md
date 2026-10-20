@@ -35,6 +35,10 @@ commit; the newest may say *this change* while it is the commit being made.
 | Evidence drift repair after the audit of `5dd98a9` | `e91b68b` | `../evidence.md`, `tests/test_doc_consistency.py` |
 | Refinement phase 5: academic identity and scoped roles | `4a5498a` | ADR-0016, `tests/test_identity.py`, `tests/test_authorization.py`, `tests/test_accounts_browser.py` |
 | Refinement phase 6: guest and registered storage policy | `e2d0cef` | ADR-0017, `tests/test_storage_policy.py`, `tests/test_storage_browser.py` (audited: 93/132) |
+| Release records and commit-specific CI evidence | `7a6aa9d883224b8d817a16fb9666bf325a42abbe` | `../evidence.md`, CI artifacts `*-<sha>` |
+| Live school sign-in harness (disposable Keycloak) | `1ecfd61e010f2a0de6cb3c95182c4e2329e754c9` | `tests/test_identity_live.py`, `../identity_live_testing.md` |
+| Shared Store contract, disposable live Store | `c6eb9482f4d1a479e91f8c3377d338d7d7e2098c` | ADR-0018, `tests/test_store_contract.py`, `tests/test_store_live.py` |
+| Google Drive and OneDrive behind one interface | `fea31c02348af2adc28e96c3795d38ae18a8f8e9` | ADR-0019, `tests/test_cloud_storage.py`, `tests/test_cloud_browser.py` (audited: 103/132) |
 
 How each kind of evidence is produced and checked: `../evidence.md`.
 
@@ -119,20 +123,27 @@ capability IDs.
 
 ### Not implemented
 
-- Verified hardware and PRG32-iOS delivery. [DEP-01] [DEP-03]
+- Verified hardware delivery (a recording tool exists, no run recorded) and
+  PRG32-iOS handoff (deferred, ADR-0020). [DEP-01] [DEP-03]
 
 ## Risks
 
-1. **Scope gap:** delivery evidence and live cloud tenants are the largest
-   missing pieces of the Full IDE. School sign-in is tested against an in-process provider, not
-   a live institutional tenant. The language services follow the
+1. **Scope gap:** delivery evidence (hardware, PRG32-QT import, iOS) and real
+   cloud accounts are the largest missing pieces of the Full IDE. The language
+   services follow the
    kit's rules and the SDK, not C semantics (no types or scopes).
-2. **Sandbox deployment:** AppArmor hosts need `apparmor=unconfined` today; no
-   per-build disk quota or UID (`../build_sandbox.md`).
+2. **Sandbox deployment:** a confined AppArmor profile and disk budgets exist
+   (`../build_sandbox.md`); builds still share one user id outside their
+   namespaces (evaluated, ADR-0010 amendment).
 3. **Accessibility:** automated axe-core scans and keyboard tests only; no
    screen-reader session has been run.
-4. **External validation:** no live Store, IdP, cloud provider, hardware or iOS
-   device has been used; claims about them are absent on purpose.
+4. **External validation:** the kit has been run against **disposable local
+   services** only: Keycloak 26.0.7 in Docker with a test realm
+   (`tests/test_identity_live.py`) and a throwaway CartridgeStore on loopback with
+   temporary data (`tests/test_store_live.py`). No production or institutional
+   identity provider, no production Store, no real Google or Microsoft account, no
+   PRG32 hardware and no iOS device has been used; claims about them are absent on
+   purpose. Cloud storage is proven against in-process fakes of both providers.
 
 ---
 
