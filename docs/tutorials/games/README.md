@@ -41,11 +41,17 @@ Each game was checked through the whole pipeline with
 The same cartridge code is built for `esp32c6` (the PRG32 board) and `qemu`.
 See [../../runtime_check.md](../../runtime_check.md) to repeat the checks.
 
-### The same frame on three runtimes
+### One game on three runtimes
 
-The last frame of each scripted run, from `tools/runtime_check.py --figures` (recipes and
-dates: `docs/figures/manifest.json`). The simulator draws 320 x 200; QEMU's frame buffer
-is 320 x 240, so its pictures have a black band at the bottom.
+Each game runs with the same scripted buttons, and `tools/runtime_check.py --figures` takes
+the pictures (recipes and dates: `docs/figures/manifest.json`):
+
+- The simulator and PRG32-QT count frames, so they show the same final frame, identical on
+  every run.
+- QEMU runs the real firmware on the computer's clock, and its picture is read while the game
+  is running. It shows another moment of the same game, different from run to run.
+- The simulator draws 320 x 200. QEMU's frame buffer is 320 x 240, so its pictures have a
+  black band at the bottom.
 
 | Game | Construction Kit simulator | PRG32-QT | PRG32 firmware in QEMU |
 |---|---|---|---|

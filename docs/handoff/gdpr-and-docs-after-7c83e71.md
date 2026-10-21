@@ -118,8 +118,10 @@ transfer mechanisms are all **open**. A deployment is **NO-GO** until they are d
     and the five editor screenshots.
   - Re-rendered: 12 simulator and PRG32-QT frames (`tools/runtime_check.py --figures`) and
     5 title screens (`tools/simulate.js`), all **identical pixel for pixel**.
-  - QEMU frames: not re-rendered (it needs the SDK's cicd QEMU build). The game sources are
-    unchanged since they were captured, which is recorded.
+  - QEMU frames: re-rendered afterwards from a scratch clone of SDK `679dfb5` with the cicd
+    QEMU build (all six games pass). QEMU runs on the host clock, so its picture is a
+    different moment of the same game on every run. The games README now says so, instead
+    of claiming "the same frame on three runtimes".
   - Before and after: the old README hero showed the classic editor (git history of
     `docs/figures/PRG32-Construction-Kit_01.png`); the new one shows the IDE.
 - **`tools/check_docs.py`**, in the CI Python job, with `fetch-depth: 0`. It checks:
@@ -160,8 +162,7 @@ transfer mechanisms are all **open**. A deployment is **NO-GO** until they are d
    processor agreements, no staffed breach exercise. S-1, S-5, S-6 and R-1 were closed
    afterwards (above).
 2. Reads in a signed-in browser are left to the server's access logs.
-3. The QEMU runtime frames were not re-rendered.
-4. Carried over: the upstream audio PRs are unmerged (PRG32#45, #46, PRG32-QT#1); no
+3. Carried over: the upstream audio PRs are unmerged (PRG32#45, #46, PRG32-QT#1); no
    physical stereo capture or console delivery; no human screen-reader session; the PRG32-QT
    desktop Import menu was not driven (computer use was unavailable); no real Google,
    Microsoft or school tenant; iOS unsupported.
