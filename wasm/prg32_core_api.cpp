@@ -876,3 +876,62 @@ PRG32_EXPORT uint32_t prg32_audio_buzzer_calls() {
 PRG32_EXPORT void prg32_audio_voice(int voice, int32_t* out) {
     prg32_kit_audio_voice(voice, out);
 }
+
+// --- Preview: the engine without a cartridge (AudioStudio, the Blocks preview) -----------
+// A page that previews sound uses its own instance of this module, so a cartridge in the
+// Player and a preview never share the engine.
+
+namespace {
+std::vector<uint8_t> previewBlock;   // the AUD0 block being previewed; the engine reads it in place
+}
+
+/** Start the engine fresh (as the console at power-on); any loaded cartridge is unloaded. */
+PRG32_EXPORT int prg32_preview_start() {
+    session.reset();
+    previewBlock.clear();
+    return prg32_kit_audio_start() == 0 ? 1 : 0;
+}
+
+/** Load an AUD0 block (copied); 1 on success, 0 if the engine refuses it. */
+PRG32_EXPORT int prg32_preview_load(const uint8_t* data, uint32_t size) {
+    previewBlock.assign(data, data + size);
+    return prg32_kit_audio_load(previewBlock.data(), previewBlock.size()) == 0 ? 1 : 0;
+}
+
+PRG32_EXPORT void prg32_preview_note_on(uint32_t voice, uint32_t instrument, uint32_t note, uint32_t volume, int32_t pan) {
+    prg32_audio_note_on_pan(uint8_t(voice), uint8_t(instrument), uint8_t(note), uint8_t(volume), int8_t(pan));
+}
+
+PRG32_EXPORT void prg32_preview_note(uint32_t voice, uint32_t instrument, uint32_t note, uint32_t volume, uint32_t ms) {
+    prg32_audio_note(uint8_t(voice), uint8_t(instrument), uint8_t(note), uint8_t(volume), ms);
+}
+
+PRG32_EXPORT void prg32_preview_note_off(uint32_t voice) {
+    prg32_audio_note_off(uint8_t(voice));
+}
+
+PRG32_EXPORT void prg32_preview_play_track(uint32_t track) {
+    prg32_audio_play_track(uint16_t(track));
+}
+
+PRG32_EXPORT void prg32_preview_stop_track() {
+    prg32_audio_stop_track();
+}
+
+PRG32_EXPORT void prg32_preview_stop_all() {
+    prg32_audio_stop_all();
+}
+
+PRG32_EXPORT void prg32_preview_master(uint32_t volume) {
+    prg32_audio_set_master_volume(uint8_t(volume));
+}
+
+/** 1 while a soundtrack plays (it may be waiting between notes). */
+PRG32_EXPORT int prg32_preview_track_active() {
+    return prg32_kit_audio_tracker_active();
+}
+
+/** Let `ms` of engine time pass; the frames rendered wait in prg32_audio_frames/samples. */
+PRG32_EXPORT void prg32_preview_advance(uint32_t ms) {
+    prg32_kit_audio_advance_ms(ms);
+}

@@ -11,7 +11,14 @@
   no longer suggested by the editor, and silent in old cartridges (the Player says so).
 - The audio contract (`contracts/prg32-audio-contract-1.json`) is checked against the PRG32
   SDK; an 8-voice conformance cartridge pins the sound by hash and envelope trace.
-- Service worker `prg32-kit-v18`.
+- **AudioStudio** (`audio_studio.md`, tutorial 8): a project's instruments, sound effects,
+  soundtracks (an 8-voice step grid) and WAV samples, heard through the same engine. New
+  blocks: *play sound effect*, *play soundtrack*, *stop soundtrack*, *stop all sounds*; the
+  generated C and assembly name the fixed numbers. Builds pack the sound into the cartridge
+  (`audio_block_sha256` in the build record); archives, copies and export carry the samples.
+- The Blocks simulator plays its sounds through the PRG32 engine with the project's
+  instruments, and Pause silences them.
+- Service worker `prg32-kit-v19`.
 
 ### Delivery and evidence (after the audit of fea31c0)
 

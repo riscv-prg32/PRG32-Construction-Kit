@@ -96,6 +96,8 @@ class Asset(TimestampedModel):
     kind: Mapped[str] = mapped_column(db.Text, nullable=False, default="text")
     content_type: Mapped[str] = mapped_column(db.Text, nullable=False, default="text/plain")
     data: Mapped[str] = mapped_column(db.Text, nullable=False, default="{}")
+    # +1 on every change, like projects.version: AudioStudio saves name the one they started from.
+    version: Mapped[int] = mapped_column(db.Integer, nullable=False, default=0)
 
 
 class Artifact(TimestampedModel):
@@ -201,6 +203,8 @@ def _as_dict(resource: str, instance: TimestampedModel | None) -> dict[str, Any]
         # Shown, but not in RESOURCE_COLUMNS: only DELETE and restore may change it.
         item["deleted_at"] = instance.deleted_at
         item["version"] = instance.version or 0
+    if resource == "assets":
+        item["version"] = instance.version or 0
     return item
 
 
@@ -229,6 +233,15 @@ def init_db() -> None:
     _add_missing_revision_child_ids()
     _add_missing_version_column()
     _add_missing_publishing_columns()
+    _add_missing_asset_version()
+
+
+def _add_missing_asset_version() -> None:
+    """Databases made before AudioStudio have no assets.version; add it."""
+    columns = {column["name"] for column in inspect(db.engine).get_columns("assets")}
+    if "version" not in columns:
+        with db.engine.begin() as connection:
+            connection.execute(text("ALTER TABLE assets ADD COLUMN version INTEGER NOT NULL DEFAULT 0"))
 
 
 def _add_missing_publishing_columns() -> None:
@@ -369,12 +382,12 @@ def update_resource(resource: str, item_id: str, payload: dict[str, Any],
     if instance is None:
         return None
     try:
-        if resource == "projects":
+        if resource in ("projects", "assets"):
             # One atomic step: claim the next version only if nobody saved in between.
-            claim = update(Project).where(Project.id == item_id)
+            claim = update(model).where(model.id == item_id)
             if expected_version is not None:
-                claim = claim.where(Project.version == expected_version)
-            if db.session.execute(claim.values(version=Project.version + 1)).rowcount != 1:
+                claim = claim.where(model.version == expected_version)
+            if db.session.execute(claim.values(version=model.version + 1)).rowcount != 1:
                 db.session.rollback()
                 raise VersionConflict(item_id)
             db.session.refresh(instance)

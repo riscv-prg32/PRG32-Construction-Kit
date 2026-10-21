@@ -40,6 +40,8 @@ uint64_t prg32_kit_audio_hash(void);
 /* One voice, for envelope traces: active, synth, envelope state (0 off, 1 attack,
  * 2 decay, 3 sustain, 4 release), envelope level 0..65535, volume, pan. */
 void prg32_kit_audio_voice(int voice, int32_t out[6]);
+/* 1 while a soundtrack is playing (it can wait between notes with every voice quiet). */
+int prg32_kit_audio_tracker_active(void);
 
 #ifdef __cplusplus
 }

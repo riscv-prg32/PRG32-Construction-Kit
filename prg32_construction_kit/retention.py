@@ -136,4 +136,8 @@ def delete_account_items(user_id: int, build_root: Path) -> dict[str, int]:
                     shutil.rmtree(folder, ignore_errors=True)
             delete_resource(resource, item_id)
         counts[resource] = len(rows)
+    # AudioStudio sample sounds live in one folder per owner (audio_studio_api.store_sample).
+    from flask import current_app
+
+    shutil.rmtree(Path(current_app.config["ARTIFACT_ROOT"]) / "audio" / str(int(user_id)), ignore_errors=True)
     return counts

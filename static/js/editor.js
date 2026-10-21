@@ -82,7 +82,30 @@
       showMode();
       showSharedNotice();
       setLog('Loaded project ' + project.id);
+      loadAudio();
     });
+  }
+
+  // The project's AudioStudio sound (docs/audio_studio.md): its names fill the sound blocks'
+  // lists, and the Play preview sounds through the PRG32 engine with the project's instruments.
+  function loadAudio() {
+    return Kit.api('/api/projects/' + projectId + '/audio').then(audio => {
+      PRG32Blocks.setAudioNames({ effects: audio.document.effects.map(effect => effect.name),
+                                  soundtracks: audio.document.soundtracks.map(track => track.name) });
+      PRG32Simulator.setAudio(audio.document);
+      refreshSimulator();
+      if (!window.PRG32AudioEngine) return null;
+      const engine = simulator.audioEngine || new window.PRG32AudioEngine();
+      // Without saved AudioStudio sound the cartridge has no audio block and plays the
+      // firmware's default instrument; the preview does the same.
+      if (!audio.asset_id || audio.missing_samples.length) {
+        if (audio.missing_samples.length) setLog('AudioStudio samples without sound: ' + audio.missing_samples.join(', '));
+        return engine.start(null).then(() => { simulator.audioEngine = engine; });
+      }
+      return Kit.api('/api/projects/' + projectId + '/audio/preview', { method: 'POST', body: {} })
+        .then(block => engine.start(block))
+        .then(() => { simulator.audioEngine = engine; });
+    }).catch(err => setLog('Sound preview unavailable: ' + err.message));
   }
 
   // Shared classroom projects (like the starter games) are read-only for students:

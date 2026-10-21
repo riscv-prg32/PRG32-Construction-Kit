@@ -508,6 +508,24 @@ window.PRG32Simulator = (function () {
     if (type === 'prg32_audio_note') { ctx.features.add('audio'); return { op: 'note', note: f('NOTE', 60), channel: f('CHANNEL', 0), ms: f('MS', 250) }; }
     if (type === 'prg32_audio_stop') { ctx.features.add('audio'); return { op: 'note_off', channel: f('CHANNEL', 0) }; }
     if (type === 'prg32_audio_volume') { ctx.features.add('audio'); return { op: 'volume', volume: f('VOLUME', 200) }; }
+    // AudioStudio blocks: names become fixed numbers from the project's document (as on the server).
+    if (type === 'prg32_sound_effect' || type === 'prg32_soundtrack_play') {
+      ctx.features.add('audio');
+      const audio = ctx.audio || { effects: [], soundtracks: [] };
+      if (type === 'prg32_sound_effect') {
+        const name = String(field(block, 'EFFECT', '')).slice(0, 32);
+        const index = (audio.effects || []).findIndex(item => item.name === name);
+        if (index < 0) { ctx.warnings.push(`The sound effect '${name}' is not in this project's AudioStudio`); return { op: 'comment', text: `skipped: no sound effect named ${name}` }; }
+        const effect = audio.effects[index];
+        return { op: 'sfx', name, voice: effect.voice, instrument: 8 + index, note: effect.note, volume: effect.volume, ms: effect.duration_ms };
+      }
+      const name = String(field(block, 'TRACK', '')).slice(0, 32);
+      const index = (audio.soundtracks || []).findIndex(item => item.name === name);
+      if (index < 0) { ctx.warnings.push(`The soundtrack '${name}' is not in this project's AudioStudio`); return { op: 'comment', text: `skipped: no soundtrack named ${name}` }; }
+      return { op: 'track_play', name, track: index };
+    }
+    if (type === 'prg32_soundtrack_stop') { ctx.features.add('audio'); return { op: 'track_stop' }; }
+    if (type === 'prg32_sound_stop_all') { ctx.features.add('audio'); return { op: 'sound_stop_all' }; }
     if (type === 'prg32_band_text') {
       const stmt = { op: 'band', text: text('TEXT', 'SCORE', 24) };
       const value = field(block, 'VALUE', '');
@@ -525,8 +543,26 @@ window.PRG32Simulator = (function () {
     return { op: 'comment', text: 'Unsupported block ' + String(type).slice(0, 40) };
   }
 
+  // The project's AudioStudio document (docs/audio_studio.md): sound effect and soundtrack
+  // blocks name its sounds, and become the same fixed numbers as in the generated C.
+  let audioDocument = null;
+  function setAudio(document) { audioDocument = document || null; }
+
+  // The MIDI note nearest to a frequency, from C3 (48) to C6 (84): prg32_kit_note_from_hz in the generated C.
+  const NOTE_HZ = [131, 139, 147, 156, 165, 175, 185, 196, 208, 220, 233, 247,
+    262, 277, 294, 311, 330, 349, 370, 392, 415, 440, 466, 494,
+    523, 554, 587, 622, 659, 698, 740, 784, 831, 880, 932, 988, 1047];
+  function noteFromHz(hz) {
+    if (hz <= NOTE_HZ[0]) return 48;
+    for (let index = 0; index < 36; index += 1) {
+      if (hz < Math.trunc((NOTE_HZ[index] + NOTE_HZ[index + 1]) / 2)) return 48 + index;
+    }
+    return 84;
+  }
+
   function compileBlocks(data) {
     const ctx = makeContext();
+    ctx.audio = audioDocument;
     const ir = { abi: 'prg32-construction-kit-game-1.1', state: [], lists: [], required_features: [], init: [], update: [], draw: [], warnings: ctx.warnings };
     const tops = asBlocks(data);
     allBlocks(tops).forEach(block => {
@@ -684,6 +720,7 @@ window.PRG32Simulator = (function () {
       (this.ir.lists || []).forEach(item => { this.lists[item.name] = new Int32Array(item.size); });
       this.frame = 0;
       this.previousInput = this.inputMask();
+      this.sound('stop');   // a reset leaves no note sounding
       this.env = { state: this.state, lists: this.lists, frame: 0, tile: (l, x, y) => this.tileAt(l, x, y) };
       this.exec(this.ir.init || [], 0);
       this.drawFrame();
@@ -693,6 +730,7 @@ window.PRG32Simulator = (function () {
     play() {
       if (this.running) return;
       this.running = true;
+      this.sound('resume');   // browsers allow sound only after a click: Play is that click
       let last = performance.now();
       let carry = 0;
       const tick = now => {
@@ -709,7 +747,7 @@ window.PRG32Simulator = (function () {
       requestAnimationFrame(tick);
     }
 
-    stop() { this.running = false; }
+    stop() { this.running = false; this.sound('stop'); }   // Pause silences the game, like the Player
 
     toggle() {
       this.running ? this.stop() : this.play();
@@ -816,8 +854,14 @@ window.PRG32Simulator = (function () {
         if (layer < 2) this.scroll[layer] = [v(stmt.x), v(stmt.y)];
       } else if (op === 'playfield_camera') this.camera = [v(stmt.x), v(stmt.y)];
       else if (op === 'playfield_draw') this.drawPlayfield(v(stmt.layer) & 255, stmt.transparent);
-      else if (op === 'beep') this.beep(v(stmt.freq), v(stmt.ms));
-      else if (op === 'note') this.beep(440 * Math.pow(2, (v(stmt.note) - 69) / 12), v(stmt.ms));
+      else if (op === 'beep') this.sound('note', 0, 0, noteFromHz(v(stmt.freq)), 255, v(stmt.ms));
+      else if (op === 'note') this.sound('note', v(stmt.channel) & 7, 0, v(stmt.note) & 127, 255, v(stmt.ms));
+      else if (op === 'note_off') this.sound('noteOff', v(stmt.channel) & 7);
+      else if (op === 'volume') this.sound('master', v(stmt.volume) & 255);
+      else if (op === 'sfx') this.sound('note', stmt.voice, stmt.instrument, stmt.note, stmt.volume, stmt.ms);
+      else if (op === 'track_play') this.sound('playTrack', stmt.track);
+      else if (op === 'track_stop') this.sound('stopTrack');
+      else if (op === 'sound_stop_all') this.sound('stop');
       else if (op === 'band') this.band = stmt.text + ('value' in stmt ? ' ' + v(stmt.value) : '');
       else if (op === 'score_submit') this.band = 'Score submitted: ' + v(stmt.value);
       else if (op === 'player_name') this.band = 'PRG32 asks for the player name here';
@@ -941,17 +985,12 @@ window.PRG32Simulator = (function () {
       this.ctx.putImageData(this.image, 0, 0);
     }
 
-    beep(freq, ms) {
-      try {
-        this.audio = this.audio || new (window.AudioContext || window.webkitAudioContext)();
-        const osc = this.audio.createOscillator();
-        const gain = this.audio.createGain();
-        osc.frequency.value = Math.max(40, Math.min(5000, freq));
-        gain.gain.value = 0.04;
-        osc.connect(gain).connect(this.audio.destination);
-        osc.start();
-        osc.stop(this.audio.currentTime + Math.max(0.02, Math.min(0.5, ms / 1000)));
-      } catch (_) {}
+    // Sound goes to the PRG32 sound engine the page gives it (window.PRG32AudioEngine, the
+    // same engine as the Player, ADR-0021); without one the preview is silent.
+    sound(method, ...args) {
+      const engine = this.audioEngine;
+      if (!engine || !engine.core) return;
+      try { engine[method](...args); } catch (_) { /* a sound must never stop the game */ }
     }
 
     report(prefix) {
@@ -961,5 +1000,5 @@ window.PRG32Simulator = (function () {
     }
   }
 
-  return { compileBlocks, evalExpr, saneExpr, checkExpr, toRgb, COLOR, FONT, Simulator };
+  return { compileBlocks, setAudio, noteFromHz, evalExpr, saneExpr, checkExpr, toRgb, COLOR, FONT, Simulator };
 })();

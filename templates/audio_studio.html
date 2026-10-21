@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}AudioStudio - PRG32-Construction-Kit{% endblock %}
+{% block content %}
+<input type="hidden" id="projectId" value="{{ project.id }}">
+<input type="hidden" id="canEdit" value="{{ 'yes' if can_edit else 'no' }}">
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+  <div>
+    <h1 class="h3 mb-1">AudioStudio</h1>
+    <div class="text-muted">Instruments, sound effects and soundtracks for <strong id="projectTitle">{{ project.title }}</strong>, played by the PRG32 sound engine.</div>
+  </div>
+  <div class="btn-toolbar gap-2">
+    <a class="btn btn-outline-secondary" href="/projects/{{ project.id }}"><i class="bi bi-arrow-left"></i> Back to the project</a>
+    <button class="btn btn-danger" id="stopSound" title="Silence every voice (Escape)"><i class="bi bi-stop-fill"></i> Stop sound</button>
+    <button class="btn btn-success" id="saveAudio"{% if not can_edit %} disabled{% endif %}><i class="bi bi-save"></i> Save</button>
+    <button class="btn btn-outline-primary" id="exportAudio"><i class="bi bi-download"></i> Export</button>
+    <label class="btn btn-outline-primary mb-0{% if not can_edit %} disabled{% endif %}">
+      <i class="bi bi-upload"></i> Import <input class="d-none" type="file" id="importAudio" accept=".json,application/json"{% if not can_edit %} disabled{% endif %}>
+    </label>
+  </div>
+</div>
+{% if not can_edit %}
+<div class="alert alert-info py-2">You can listen to this project's sound, but only its owner can change it.</div>
+{% endif %}
+<div id="audioStatus" class="small text-muted mb-2" role="status" aria-live="polite">Loading…</div>
+<div id="missingSamples" class="alert alert-warning py-2 d-none" role="alert"></div>
+
+<ul class="nav nav-tabs" role="tablist">
+  <li class="nav-item" role="presentation"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#voicesPanel" type="button" role="tab" aria-controls="voicesPanel" aria-selected="true">Voices</button></li>
+  <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#effectsPanel" type="button" role="tab" aria-controls="effectsPanel" aria-selected="false">Sound effects</button></li>
+  <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tracksPanel" type="button" role="tab" aria-controls="tracksPanel" aria-selected="false">Soundtracks</button></li>
+  <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#samplesPanel" type="button" role="tab" aria-controls="samplesPanel" aria-selected="false">Samples</button></li>
+</ul>
+
+<div class="tab-content border border-top-0 rounded-bottom p-3 bg-body">
+  <div class="tab-pane fade show active" id="voicesPanel" role="tabpanel">
+    <p class="small text-muted">A PRG32 game has 8 voices. In a soundtrack, voice 0 plays instrument 0, voice 1 instrument 1, and so on.</p>
+    <div class="row g-3">
+      <div class="col-lg-3"><div class="list-group" id="voiceList" aria-label="Voices"></div></div>
+      <div class="col-lg-9"><div id="voiceEditor"></div></div>
+    </div>
+  </div>
+
+  <div class="tab-pane fade" id="effectsPanel" role="tabpanel">
+    <p class="small text-muted">A sound effect is one note with its own instrument. The Blocks "play sound effect" block plays it by name.</p>
+    <div class="row g-3">
+      <div class="col-lg-3">
+        <div class="list-group mb-2" id="effectList" aria-label="Sound effects"></div>
+        <button class="btn btn-outline-primary btn-sm edit-only" id="addEffect"><i class="bi bi-plus-circle"></i> New sound effect</button>
+        <button class="btn btn-outline-danger btn-sm edit-only" id="deleteEffect"><i class="bi bi-trash"></i> Delete</button>
+      </div>
+      <div class="col-lg-9"><div id="effectEditor"><p class="text-muted">No sound effects yet.</p></div></div>
+    </div>
+  </div>
+
+  <div class="tab-pane fade" id="tracksPanel" role="tabpanel">
+    <p class="small text-muted">A soundtrack is a grid: one row per voice, one column per step. Type a note (C4, F#5 or a number 0–127), <kbd>off</kbd> to end a note, or leave it empty. Arrow keys move around the grid.</p>
+    <div class="row g-3">
+      <div class="col-lg-3">
+        <div class="list-group mb-2" id="trackList" aria-label="Soundtracks"></div>
+        <button class="btn btn-outline-primary btn-sm edit-only" id="addTrack"><i class="bi bi-plus-circle"></i> New soundtrack</button>
+        <button class="btn btn-outline-danger btn-sm edit-only" id="deleteTrack"><i class="bi bi-trash"></i> Delete</button>
+      </div>
+      <div class="col-lg-9"><div id="trackEditor"><p class="text-muted">No soundtracks yet.</p></div></div>
+    </div>
+  </div>
+
+  <div class="tab-pane fade" id="samplesPanel" role="tabpanel">
+    <p class="small text-muted">A sample is a short recorded sound (a WAV file, at most a few seconds). PRG32 keeps it as 8-bit sound at 22050 Hz.</p>
+    <form class="row g-2 align-items-end mb-3 edit-only" id="sampleForm">
+      <div class="col-sm-4"><label class="form-label" for="sampleName">Name</label><input class="form-control" id="sampleName" maxlength="32" placeholder="Drum"></div>
+      <div class="col-sm-5"><label class="form-label" for="sampleFile">WAV file</label><input class="form-control" type="file" id="sampleFile" accept=".wav,audio/wav,audio/x-wav"></div>
+      <div class="col-sm-3"><button class="btn btn-primary w-100" type="submit"><i class="bi bi-upload"></i> Add sample</button></div>
+    </form>
+    <div id="sampleEditor"></div>
+  </div>
+</div>
+
+<div class="card shadow-sm mt-3">
+  <div class="card-header"><strong>What the code says</strong></div>
+  <div class="card-body small">
+    <p class="mb-2">The generated C and assembly use these numbers. They come from the order of the lists above.</p>
+    <pre class="code-panel mb-0"><code id="audioIds">Loading…</code></pre>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/prg32_runtime.js') }}"></script>
+<script src="{{ url_for('static', filename='js/prg32_audio.js') }}"></script>
+<script src="{{ url_for('static', filename='js/audio_studio.js') }}"></script>
+{% endblock %}

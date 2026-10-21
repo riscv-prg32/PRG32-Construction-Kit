@@ -114,8 +114,60 @@ window.PRG32Blocks = (function () {
 
       // Multiplayer
       stmt({ type: 'prg32_mp_join', message0: 'join multiplayer game', colour: 230, tooltip: 'Join the Cartridge Store relay for this game (prg32_multiplayer_join). Use it in "when game starts".' }),
-      stmt({ type: 'prg32_mp_share', message0: 'share my position x %1 y %2 look %3', args0: [text('X', 'player_x'), text('Y', 'player_y'), text('LOOK', 0)], colour: 230, tooltip: 'Send your position every frame. Read others with peers(), peer_x(i), peer_y(i), peer_look(i).' })
+      stmt({ type: 'prg32_mp_share', message0: 'share my position x %1 y %2 look %3', args0: [text('X', 'player_x'), text('Y', 'player_y'), text('LOOK', 0)], colour: 230, tooltip: 'Send your position every frame. Read others with peers(), peer_x(i), peer_y(i), peer_look(i).' }),
+
+      // AudioStudio (docs/audio_studio.md): sounds made for this project
+      stmt({ type: 'prg32_soundtrack_stop', message0: 'stop soundtrack', colour: 300, tooltip: 'The soundtrack stops; notes already playing fade out.' }),
+      stmt({ type: 'prg32_sound_stop_all', message0: 'stop all sounds', colour: 300, tooltip: 'Every voice goes silent at once.' })
     ]);
+    defineAudioStudioBlocks();
+  }
+
+  // The names of this project's AudioStudio sound effects and soundtracks (the editor sets them).
+  let audioNames = { effects: [], soundtracks: [] };
+
+  function setAudioNames(names) {
+    audioNames = { effects: (names && names.effects) || [], soundtracks: (names && names.soundtracks) || [] };
+  }
+
+  // A dropdown of AudioStudio names that keeps a saved name even when it is not (or not yet)
+  // in the list, so loading a project never changes what a block plays.
+  function audioNameField(kind) {
+    class AudioNameField extends Blockly.FieldDropdown {
+      constructor() {
+        super(function () {
+          const names = audioNames[kind].slice();
+          const current = this.getValue ? this.getValue() : '';
+          if (current && !names.includes(current)) names.push(current);
+          return names.length ? names.map(name => [name, name]) : [['(make one in AudioStudio)', '']];
+        });
+      }
+      doClassValidation_(value) { return typeof value === 'string' ? value : null; }
+      getText_() { return this.getValue() || '(make one in AudioStudio)'; }
+    }
+    return new AudioNameField();
+  }
+
+  function defineAudioStudioBlocks() {
+    if (Blockly.Blocks.prg32_sound_effect) return;
+    Blockly.Blocks.prg32_sound_effect = {
+      init() {
+        this.appendDummyInput().appendField('play sound effect').appendField(audioNameField('effects'), 'EFFECT');
+        this.setPreviousStatement(true);
+        this.setNextStatement(true);
+        this.setColour(300);
+        this.setTooltip('A sound effect made in AudioStudio: its instrument, note, length and voice.');
+      }
+    };
+    Blockly.Blocks.prg32_soundtrack_play = {
+      init() {
+        this.appendDummyInput().appendField('play soundtrack').appendField(audioNameField('soundtracks'), 'TRACK');
+        this.setPreviousStatement(true);
+        this.setNextStatement(true);
+        this.setColour(300);
+        this.setTooltip('A soundtrack made in AudioStudio: voice N plays instrument N.');
+      }
+    };
   }
 
   const toolbox = `
@@ -183,6 +235,10 @@ window.PRG32Blocks = (function () {
       <block type="prg32_audio_note"></block>
       <block type="prg32_audio_stop"></block>
       <block type="prg32_audio_volume"></block>
+      <block type="prg32_sound_effect"></block>
+      <block type="prg32_soundtrack_play"></block>
+      <block type="prg32_soundtrack_stop"></block>
+      <block type="prg32_sound_stop_all"></block>
     </category>
     <category name="Scores &amp; Status" colour="60">
       <block type="prg32_band_text"></block>
@@ -227,5 +283,5 @@ window.PRG32Blocks = (function () {
 
   function getWorkspace() { return workspace; }
 
-  return { init, save, load, getWorkspace, defineBlocks };
+  return { init, save, load, getWorkspace, defineBlocks, setAudioNames };
 })();

@@ -14,5 +14,6 @@ Start here, then follow the links.
    stepping through it instruction by instruction: `tutorials/07_debugger.md`.
    Working without the server: `offline.md`.
    The IDE (files, tabs, keyboard shortcuts): `ide.md`.
+   Sound effects and music for your game: `audio_studio.md`, `tutorials/08_audio_studio.md`.
 8. **Publishing to a Cartridge Store:** `tutorials/04_publish_to_store.md`.
 9. **Running a lab (teachers):** `tutorials/05_teacher_lab.md`.

@@ -6,7 +6,7 @@
 // - when a page cannot be loaded because the server is unreachable, the static offline
 //   page is shown instead (a blocks scratchpad and a player for local .prg32 files);
 // - bump CACHE_NAME whenever a file in APP_SHELL changes.
-const CACHE_NAME = 'prg32-kit-v18';
+const CACHE_NAME = 'prg32-kit-v19';
 const OFFLINE_PAGE = '/static/offline.html';
 const APP_SHELL = [
   '/static/offline.html',
@@ -19,6 +19,8 @@ const APP_SHELL = [
   '/static/js/editor.js',
   '/static/js/sprite_editor.js',
   '/static/js/prg32_runtime.js',
+  '/static/js/prg32_audio.js',
+  '/static/js/audio_studio.js',
   '/static/js/player.js',
   '/static/js/prg32_debugger.js',
   '/static/js/guest_store.js',

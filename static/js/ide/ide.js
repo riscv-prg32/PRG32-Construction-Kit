@@ -430,7 +430,22 @@
   // --- start -----------------------------------------------------------------------------------------
   register();
   simulator = new PRG32Simulator.Simulator(document.getElementById('gameCanvas'), document.getElementById('debugState'));
-  Promise.all([Kit.api(api), Kit.api('/api/sprites?project_id=' + encodeURIComponent(projectId)), PRG32Monaco.load()])
+  // The project's AudioStudio sound (docs/audio_studio.md): names for the sound blocks, and the
+  // simulator's preview through the PRG32 engine, as in the classic editor.
+  function loadAudio() {
+    return Kit.api(api + '/audio').then(audio => {
+      PRG32Blocks.setAudioNames({ effects: audio.document.effects.map(effect => effect.name),
+                                  soundtracks: audio.document.soundtracks.map(track => track.name) });
+      PRG32Simulator.setAudio(audio.document);
+      const engine = new window.PRG32AudioEngine();
+      const block = audio.asset_id && !audio.missing_samples.length
+        ? Kit.api(api + '/audio/preview', { method: 'POST', body: {} }) : Promise.resolve(null);
+      return block.then(bytes => engine.start(bytes)).then(() => { simulator.audioEngine = engine; });
+    }).catch(() => { /* the game still runs, silently */ });
+  }
+
+  Promise.all([Kit.api(api), Kit.api('/api/sprites?project_id=' + encodeURIComponent(projectId)), PRG32Monaco.load(),
+               loadAudio()])
     .then(([data, sprites, loadedMonaco]) => {
       project = data;
       monaco = loadedMonaco;

@@ -243,6 +243,8 @@ class ParseContext:
     # id(IR statement) -> the Blockly block id it was made from, for the source maps
     # (source_maps.py, ADR-0015). It never changes the IR itself.
     origins: dict[int, str] = field(default_factory=dict)
+    # The project's AudioStudio document (audio_studio.py): sound effects and soundtracks by name.
+    audio: dict[str, Any] | None = None
 
     def remember(self, stmt: dict[str, Any], block: dict[str, Any]) -> None:
         if isinstance(block.get("id"), str) and block["id"]:
@@ -411,6 +413,32 @@ def parse_statement(block: dict[str, Any], ctx: ParseContext) -> dict[str, Any] 
     if btype == "prg32_audio_volume":
         ctx.features.add("audio")
         return {"op": "volume", "volume": f("VOLUME", 200)}
+    if btype in ("prg32_sound_effect", "prg32_soundtrack_play"):
+        # AudioStudio (docs/audio_studio.md): the name becomes fixed numbers from the project's
+        # document, so the generated code says exactly which instrument, voice and track play.
+        ctx.features.add("audio")
+        audio = ctx.audio or {"effects": [], "soundtracks": []}
+        if btype == "prg32_sound_effect":
+            name = str(field_value(block, "EFFECT", ""))[:32]
+            index = next((i for i, item in enumerate(audio.get("effects", [])) if item["name"] == name), None)
+            if index is None:
+                ctx.warnings.append(f"The sound effect {name!r} is not in this project's AudioStudio")
+                return {"op": "comment", "text": f"skipped: no sound effect named {name}"}
+            effect = audio["effects"][index]
+            return {"op": "sfx", "name": name, "voice": effect["voice"], "instrument": 8 + index,
+                    "note": effect["note"], "volume": effect["volume"], "ms": effect["duration_ms"]}
+        name = str(field_value(block, "TRACK", ""))[:32]
+        index = next((i for i, item in enumerate(audio.get("soundtracks", [])) if item["name"] == name), None)
+        if index is None:
+            ctx.warnings.append(f"The soundtrack {name!r} is not in this project's AudioStudio")
+            return {"op": "comment", "text": f"skipped: no soundtrack named {name}"}
+        return {"op": "track_play", "name": name, "track": index}
+    if btype == "prg32_soundtrack_stop":
+        ctx.features.add("audio")
+        return {"op": "track_stop"}
+    if btype == "prg32_sound_stop_all":
+        ctx.features.add("audio")
+        return {"op": "sound_stop_all"}
     if btype == "prg32_band_text":
         value = field_value(block, "VALUE", "")
         stmt = {"op": "band", "text": _text(block, "TEXT", "SCORE", 24)}
@@ -456,7 +484,7 @@ def blocks_to_ir(blocks_json: Any, project: dict[str, Any] | None = None) -> dic
 def blocks_to_ir_traced(blocks_json: Any, project: dict[str, Any] | None = None) -> tuple[dict[str, Any], dict[int, str]]:
     """blocks_to_ir, plus which block made each IR statement (keyed by id() of the statement)."""
     project = project or {}
-    ctx = ParseContext()
+    ctx = ParseContext(audio=project.get("audio_studio") or None)
     init: list[dict[str, Any]] = []
     update: list[dict[str, Any]] = []
     draw: list[dict[str, Any]] = []
@@ -646,6 +674,17 @@ def describe_statement(stmt: dict[str, Any], show: Callable[[Any], str] | None =
         return f'Block "stop sound": silence channel {v("channel")}.'
     if op == "volume":
         return f'Block "set volume": master volume {v("volume")} (0 is silent, 255 is loudest).'
+    if op == "sfx":
+        return (f'Block "play sound effect {stmt.get("name")}": AudioStudio instrument {stmt.get("instrument")} plays '
+                f'note {stmt.get("note")} on voice {stmt.get("voice")} for {stmt.get("ms")} ms, then its envelope '
+                'releases.')
+    if op == "track_play":
+        return (f'Block "play soundtrack {stmt.get("name")}": track {stmt.get("track")} of the cartridge\'s audio '
+                'block starts; voice N plays instrument N.')
+    if op == "track_stop":
+        return 'Block "stop soundtrack": the soundtrack stops (notes already playing fade out).'
+    if op == "sound_stop_all":
+        return 'Block "stop all sounds": every voice goes silent at once.'
     if op == "band":
         shown = f' followed by the value of {v("value")}' if "value" in stmt else ""
         return f'Block "status band": show "{stmt.get("text", "")}"{shown} in the firmware status band.'
@@ -1284,6 +1323,15 @@ class _Emitter:
             return [f"{indent}prg32_audio_note_off({x(stmt.get('channel'))});"]
         if op == "volume":
             return [f"{indent}prg32_audio_set_master_volume({x(stmt.get('volume'))});"]
+        if op == "sfx":
+            return [f"{indent}prg32_audio_note({int(stmt['voice'])}, {int(stmt['instrument'])}, {int(stmt['note'])}, "
+                    f"{int(stmt['volume'])}, {int(stmt['ms'])});"]
+        if op == "track_play":
+            return [f"{indent}prg32_audio_play_track({int(stmt['track'])});"]
+        if op == "track_stop":
+            return [f"{indent}prg32_audio_stop_track();"]
+        if op == "sound_stop_all":
+            return [f"{indent}prg32_audio_stop_all();"]
         if op == "band":
             self.needs.add("band")
             has_value = "value" in stmt

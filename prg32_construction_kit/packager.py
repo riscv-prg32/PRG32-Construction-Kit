@@ -191,12 +191,15 @@ def prepare_package(
     build_language: str = "c",
     sandbox: build_sandbox.SandboxSettings | None = None,
     debug_info_enabled: bool = False,
+    audio: tuple[bytes, dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     """Write the sources, compile one cartridge per architecture and zip a Store bundle.
 
     ``c_source`` and ``asm_source`` are the generated files (either may be None);
     ``build_language`` ("c" or "asm") says which one the PRG32 builder compiles.
     Both files are put in the bundle so students can study them side by side.
+    ``audio`` is the project's AudioStudio sound (the AUD0 block and its document, ADR-0021):
+    the block goes into every cartridge, the document into the bundle's source/ folder.
     """
     slug = slugify(project.get("title") or game_ir.get("title"), "game")
     entry_prefix = game_ir.get("entry_prefix") or c_identifier(slug, "game")
@@ -217,6 +220,11 @@ def prepare_package(
     (work_dir / "game.ir.json").write_text(json.dumps(game_ir, indent=2), encoding="utf-8")
     icon_path = work_dir / "icon.png"
     write_png_icon(icon_path)
+    audio_args: list[str] = []
+    if audio:
+        (work_dir / "audio.aud").write_bytes(audio[0])
+        (work_dir / "audio.json").write_text(json.dumps(audio[1], indent=2, sort_keys=True), encoding="utf-8")
+        audio_args = ["--audio-block", str(work_dir / "audio.aud")]
 
     logs: list[str] = []
     targets = architectures or SUPPORTED_ARCHITECTURES
@@ -234,7 +242,7 @@ def prepare_package(
             tools.elf_out.unlink(missing_ok=True)
         ok, log = run_prg32_build(build_command, source_path, out_path, str(entry_prefix), slug, arch, cart_ram_kib,
                                   game_ir.get("required_features", []), build_timeout, sandbox,
-                                  ["--tool-prefix", tools.prefix] if tools else None)
+                                  (["--tool-prefix", tools.prefix] if tools else []) + audio_args or None)
         logs.append(f"[{arch}]\n{redact_build_path(log, work_dir)}")
         attempts.append({"architecture": arch, "ok": ok})
         if ok:
@@ -264,6 +272,8 @@ def prepare_package(
             zf.write(path, f"source/{path.name}")
         zf.write(work_dir / "project.blocks.json", "source/project.blocks.json")
         zf.write(work_dir / "game.ir.json", "source/game.ir.json")
+        if audio:
+            zf.write(work_dir / "audio.json", "source/audio.json")
         for arch in architectures:
             zf.write(work_dir / arch["file"], arch["file"])
         if not architectures:

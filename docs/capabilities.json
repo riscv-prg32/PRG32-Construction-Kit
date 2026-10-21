@@ -222,11 +222,24 @@
     {
       "id": "AUD-03",
       "title": "AudioStudio instruments, sound effects and soundtracks",
-      "status": "missing",
+      "status": "implemented",
       "audit_score": 0,
-      "source": [],
-      "tests": [],
-      "note": "No AudioStudio route, editor, versioned audio-asset workflow, eight-voice arrangement UI or cartridge asset integration exists."
+      "source": [
+        "prg32_construction_kit/audio_studio.py::compile_document",
+        "prg32_construction_kit/audio_studio_api.py::put_audio",
+        "static/js/audio_studio.js",
+        "static/js/prg32_audio.js::PRG32AudioEngine",
+        "prg32_construction_kit/packager.py::prepare_package"
+      ],
+      "tests": [
+        "tests/test_audio_studio.py::test_saving_names_the_version_and_never_overwrites_a_newer_one",
+        "tests/test_audio_studio.py::test_only_the_owner_changes_a_projects_sound",
+        "tests/test_audio_studio.py::test_generated_c_and_assembly_use_the_documents_numbers",
+        "tests/test_audio_studio.py::test_the_cartridge_build_gets_the_audio_block",
+        "tests/test_audio_studio.py::test_the_project_archive_carries_the_sound_and_imports_again",
+        "tests/test_audio_browser.py::test_audio_studio_edits_previews_saves_and_reloads"
+      ],
+      "note": "AudioStudio page parallel to Sprite Lab: 8 voice instruments with ADSR, sound effects, an 8-row soundtrack grid, WAV samples; previewed through the PRG32 engine; one versioned audio_studio asset per project (expected_version, 409, quotas, ownership); named blocks become fixed instrument/track numbers in the generated C and assembly; the AUD0 block is packed deterministically into the cartridge build; archive, copy and export carry the samples. Not yet heard on hardware or QEMU."
     },
     {
       "id": "AUD-04",

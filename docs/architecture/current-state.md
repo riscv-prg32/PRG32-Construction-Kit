@@ -85,6 +85,11 @@ capability IDs.
 - Eight-voice audio in the browser: the PRG32 firmware's own engine (8 voices,
   SID-like synth, independent ADSR, samples, tracker) behind a host-call hook,
   checked against the audio contract on a toolchain-built fixture (ADR-0021). [AUD-01]
+- AudioStudio, parallel to Sprite Lab: voice instruments with ADSR, sound
+  effects, an 8-voice soundtrack grid and WAV samples, previewed through the
+  same engine; one versioned asset per project; named blocks become fixed
+  numbers in the generated C and assembly; the audio block is packed
+  deterministically into the cartridge build. [AUD-03]
 - Player debugger: pause, continue, restart, speeds, instruction/over/out
   stepping, address breakpoints, browser state equal to PRG32-QT's. [DBG-01] [DBG-02] [DBG-03] [DBG-06]
 - Source and block debugging for kit-compiled cartridges (ADR-0015): a saved
@@ -134,7 +139,6 @@ capability IDs.
 
 - Verified hardware delivery (a recording tool exists, no run recorded) and
   PRG32-iOS handoff (deferred, ADR-0020). [DEP-01] [DEP-03]
-- AudioStudio. [AUD-03]
 
 ## Risks
 

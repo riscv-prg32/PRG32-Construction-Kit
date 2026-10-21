@@ -121,6 +121,14 @@ paints an undefined tile with black, PRG32-QT skips it.
 | `play MIDI note 60 on channel 0 for 250 ms` | `prg32_audio_note` with the default instrument |
 | `stop sound on channel 0` | `prg32_audio_note_off` |
 | `set master volume to 200` | `prg32_audio_set_master_volume` (0-255) |
+| `play sound effect Jump` | `prg32_audio_note(voice, 8 + k, note, volume, ms)` for AudioStudio's sound effect *k* |
+| `play soundtrack Theme` | `prg32_audio_play_track(k)` for AudioStudio's soundtrack *k* |
+| `stop soundtrack` / `stop all sounds` | `prg32_audio_stop_track()` / `prg32_audio_stop_all()` |
+
+The instruments, sound effects and soundtracks come from the project's AudioStudio
+(`audio_studio.md`). `play beep` and `play MIDI note` play instrument 0: voice 0's
+instrument when the project has AudioStudio sound, otherwise the console's default
+instrument (a soft sine wave).
 
 ## Scores and status
 

@@ -1328,6 +1328,18 @@ class _AsmEmitter:
             self.call("prg32_audio_note_off", [typed("channel", "u8")], slot, "silence the channel")
         elif op == "volume":
             self.call("prg32_audio_set_master_volume", [typed("volume", "u8")], slot, "set the volume")
+        elif op == "sfx":
+            self.call("prg32_audio_note", [("imm", int(stmt["voice"]), None), ("imm", int(stmt["instrument"]), None),
+                                           ("imm", int(stmt["note"]), None), ("imm", int(stmt["volume"]), None),
+                                           ("imm", int(stmt["ms"]), None)], slot,
+                      f"sound effect {stmt.get('name')}: instrument {stmt['instrument']} on voice {stmt['voice']}")
+        elif op == "track_play":
+            self.call("prg32_audio_play_track", [("imm", int(stmt["track"]), None)], slot,
+                      f"soundtrack {stmt.get('name')}")
+        elif op == "track_stop":
+            self.call("prg32_audio_stop_track", [], slot, "stop the soundtrack")
+        elif op == "sound_stop_all":
+            self.call("prg32_audio_stop_all", [], slot, "silence every voice")
         elif op == "band":
             self.needs.add("band")
             has_value = "value" in stmt

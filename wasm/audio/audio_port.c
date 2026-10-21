@@ -132,6 +132,8 @@ uint32_t prg32_kit_audio_dropped(void) { return dropped_; }
 
 uint64_t prg32_kit_audio_hash(void) { return hash_; }
 
+int prg32_kit_audio_tracker_active(void) { return g_prg32_audio.tracker.active ? 1 : 0; }
+
 void prg32_kit_audio_voice(int voice, int32_t out[6]) {
     memset(out, 0, 6 * sizeof(int32_t));
     if (voice < 0 || voice >= CONFIG_PRG32_AUDIO_MAX_VOICES) {

@@ -10,6 +10,7 @@ src/game.c                  the Advanced C source (authoring_mode "c")
 src/game.S                  handwritten RISC-V assembly (authoring_mode "assembly")
 assets/sprites/01-ship.json one file per sprite
 assets/data/01-level.json   one file per asset
+audio/samples/01-drum.u8    one file per AudioStudio sample (8-bit sound, 22050 Hz)
 ```
 
 Only the source the student wrote is saved. Generated C and assembly are made
@@ -31,6 +32,7 @@ import zipfile
 from collections.abc import Callable
 from typing import Any
 
+from . import audio_block
 from .generator import c_identifier
 from .packager import SUPPORTED_ARCHITECTURES
 from .source_project import validate_features
@@ -62,6 +64,11 @@ MAX_TEXT_FIELD = 4000
 # Zip entries get this date so the same project always gives the same bytes.
 _FIXED_ZIP_TIME = (1980, 1, 1, 0, 0, 0)
 _ASSET_PATH = re.compile(r"^assets/(sprites|data)/[A-Za-z0-9][A-Za-z0-9._-]{0,80}\.json$")
+# AudioStudio samples (docs/audio_studio.md): raw sound, listed under "audio_samples" in the
+# manifest so that kits from before AudioStudio skip them instead of refusing the archive.
+_SAMPLE_PATH = re.compile(r"^audio/samples/[0-9]{2,3}-[A-Za-z0-9._-]{1,80}\.u8$")
+_SAMPLE_ID = re.compile(r"^[A-Za-z0-9_\-]{1,64}$")
+MAX_SAMPLE_BYTES = audio_block.MAX_SAMPLE_BYTES
 
 SPRITE_FIELDS = ("name", "width", "height", "pixels", "data_url")
 ASSET_FIELDS = ("name", "kind", "content_type", "data")
@@ -93,8 +100,12 @@ def _numbered(kind: str, index: int, name: str) -> str:
     return f"assets/{kind}/{index:02d}-{_slug(name, fallback)}.json"
 
 
-def build_manifest(project: dict[str, Any], sprites: list[dict[str, Any]], assets: list[dict[str, Any]]) -> dict[str, Any]:
-    """Describe a saved project as a ``prg32.project.json`` manifest."""
+def build_manifest(project: dict[str, Any], sprites: list[dict[str, Any]], assets: list[dict[str, Any]],
+                   samples: list[dict[str, Any]] | None = None) -> dict[str, Any]:
+    """Describe a saved project as a ``prg32.project.json`` manifest.
+
+    ``samples`` are the AudioStudio samples: ``{"artifact_id", "name", "pcm"}``.
+    """
     mode = authoring_mode(project)
     prefix = c_identifier(project.get("title") or "", "prg32_game")
     saved = project.get("game_json") if isinstance(project.get("game_json"), dict) else {}
@@ -105,7 +116,7 @@ def build_manifest(project: dict[str, Any], sprites: list[dict[str, Any]], asset
     asset_list += [{"kind": "asset", "name": str(asset.get("name") or "asset"),
                     "path": _numbered("data", index, asset.get("name") or "")}
                    for index, asset in enumerate(assets, start=1)]
-    return {
+    manifest = {
         "schema": SCHEMA,
         "schema_version": SCHEMA_VERSION,
         "title": project.get("title") or "Untitled PRG32 Game",
@@ -125,6 +136,11 @@ def build_manifest(project: dict[str, Any], sprites: list[dict[str, Any]], asset
         "assets": asset_list,
         "tests": [],
     }
+    if samples:
+        manifest["audio_samples"] = [{"name": sample["name"], "artifact_id": sample["artifact_id"],
+                                      "path": f"audio/samples/{index:02d}-{_slug(sample['name'], 'sample')}.u8"}
+                                     for index, sample in enumerate(samples, start=1)]
+    return manifest
 
 
 def _dumps(value: Any) -> bytes:
@@ -132,9 +148,9 @@ def _dumps(value: Any) -> bytes:
 
 
 def project_files(project: dict[str, Any], sprites: list[dict[str, Any]],
-                  assets: list[dict[str, Any]]) -> dict[str, bytes]:
+                  assets: list[dict[str, Any]], samples: list[dict[str, Any]] | None = None) -> dict[str, bytes]:
     """All files of the archive, by path."""
-    manifest = build_manifest(project, sprites, assets)
+    manifest = build_manifest(project, sprites, assets, samples)
     files = {MANIFEST_NAME: _dumps(manifest)}
     if manifest["authoring_mode"] == "c":
         files[manifest["source"]] = str(project["game_json"].get("source_c") or "").encode("utf-8")
@@ -146,6 +162,8 @@ def project_files(project: dict[str, Any], sprites: list[dict[str, Any]],
     for entry, row in zip(manifest["assets"], rows):
         fields = SPRITE_FIELDS if entry["kind"] == "sprite" else ASSET_FIELDS
         files[entry["path"]] = _dumps({field: row.get(field) for field in fields})
+    for entry, sample in zip(manifest.get("audio_samples", []), samples or []):
+        files[entry["path"]] = bytes(sample["pcm"])
     return files
 
 
@@ -162,8 +180,9 @@ def write_archive(files: dict[str, bytes]) -> bytes:
     return buffer.getvalue()
 
 
-def export_archive(project: dict[str, Any], sprites: list[dict[str, Any]], assets: list[dict[str, Any]]) -> bytes:
-    return write_archive(project_files(project, sprites, assets))
+def export_archive(project: dict[str, Any], sprites: list[dict[str, Any]], assets: list[dict[str, Any]],
+                   samples: list[dict[str, Any]] | None = None) -> bytes:
+    return write_archive(project_files(project, sprites, assets, samples))
 
 
 def archive_filename(project: dict[str, Any]) -> str:
@@ -298,7 +317,7 @@ def _check_manifest(manifest: dict[str, Any]) -> None:
 def contents_from_files(files: dict[str, bytes]) -> dict[str, Any]:
     """Turn archive files into what the kit stores: one project, its sprites and assets.
 
-    Returns ``{"manifest", "project", "sprites", "assets", "ignored"}``. The
+    Returns ``{"manifest", "project", "sprites", "assets", "audio_samples", "ignored"}``. The
     project has no owner here; the caller makes it belong to the importer.
     """
     manifest = upgrade(_json_file(files, MANIFEST_NAME))
@@ -350,8 +369,33 @@ def contents_from_files(files: dict[str, bytes]) -> dict[str, Any]:
             sprites.append(_sprite_row(row, path))
         else:
             assets.append(_asset_row(row, path))
+    samples = _samples(manifest.get("audio_samples", []), files, used)
     ignored = sorted(path for path in files if path not in used)
-    return {"manifest": manifest, "project": project, "sprites": sprites, "assets": assets, "ignored": ignored}
+    return {"manifest": manifest, "project": project, "sprites": sprites, "assets": assets,
+            "audio_samples": samples, "ignored": ignored}
+
+
+def _samples(entries: Any, files: dict[str, bytes], used: set[str]) -> list[dict[str, Any]]:
+    """The AudioStudio samples of an archive: raw sound bytes, never run or interpreted."""
+    if not isinstance(entries, list) or len(entries) > 64:
+        raise ProjectFormatError("audio_samples must be a list of at most 64 samples")
+    samples = []
+    for entry in entries:
+        path = entry.get("path") if isinstance(entry, dict) else None
+        artifact_id = entry.get("artifact_id") if isinstance(entry, dict) else None
+        if not isinstance(path, str) or not _SAMPLE_PATH.match(path) or not isinstance(artifact_id, str) \
+                or not _SAMPLE_ID.match(artifact_id):
+            raise ProjectFormatError(f"Unknown audio sample entry in the manifest: {entry!r}")
+        if path in used:
+            raise ProjectFormatError(f"{path} is listed twice")
+        if path not in files:
+            raise ProjectFormatError(f"The archive is missing {path}")
+        if len(files[path]) > MAX_SAMPLE_BYTES:
+            raise ProjectFormatError(f"{path} is longer than a PRG32 sample can be")
+        used.add(path)
+        samples.append({"name": _text(entry.get("name"), f"{path} name", 32) or "sample",
+                        "artifact_id": artifact_id, "pcm": files[path]})
+    return samples
 
 
 def _sprite_row(row: dict[str, Any], path: str) -> dict[str, Any]:

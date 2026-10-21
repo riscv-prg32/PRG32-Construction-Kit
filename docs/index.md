@@ -43,6 +43,9 @@ PRG32-Construction-Kit is a classroom web application for building PRG32 games w
    - `tutorials/07_debugger.md` - the Player's RISC-V debugger (steps, breakpoints, registers, memory).
 16. `offline.md` - what works without the server, and why nothing signed-in is stored offline.
 17. `ide.md` - the IDE: files, tabs, panels, command palette and keyboard shortcuts.
+18. `audio_studio.md` - AudioStudio: instruments, sound effects, soundtracks and samples.
+   - `tutorials/08_audio_studio.md` - a sound effect and a tune for your game.
+   - `audio_engine.md` - the 8-voice PRG32 sound engine and how it is checked.
 
 ## Full-IDE roadmap
 

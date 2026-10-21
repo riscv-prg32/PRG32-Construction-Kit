@@ -15,7 +15,10 @@ window.Kit = {
     }
     return fetch(path, opts).then(async response => {
       const contentType = response.headers.get('content-type') || '';
-      const data = contentType.includes('application/json') ? await response.json() : await response.text();
+      // JSON, raw bytes (an ArrayBuffer, e.g. an audio block) or text.
+      const data = contentType.includes('application/json') ? await response.json()
+        : contentType.includes('application/octet-stream') && response.ok ? await response.arrayBuffer()
+        : await response.text();
       if (response.status === 401) {
         window.location.href = '/auth/login?next=' + encodeURIComponent(window.location.pathname);
       }

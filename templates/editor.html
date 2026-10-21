@@ -16,6 +16,7 @@
     </select>
     <button class="btn btn-outline-secondary" id="saveProject"><i class="bi bi-save"></i> Save</button>
     <a class="btn btn-outline-primary" href="/ide/{{ project_id }}"><i class="bi bi-window-sidebar"></i> Open in IDE</a>
+    <a class="btn btn-outline-primary" href="/audio-studio/{{ project_id }}"><i class="bi bi-music-note-beamed"></i> AudioStudio</a>
     <div class="btn-group">
       <button class="btn btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-download"></i> Export</button>
       <ul class="dropdown-menu">
@@ -133,5 +134,7 @@
 <script src="{{ url_for('static', filename='vendor/blockly/11.2.1/blockly.min.js') }}"></script>
 <script src="{{ url_for('static', filename='js/blockly_blocks.js') }}"></script>
 <script src="{{ url_for('static', filename='js/simulator.js') }}"></script>
+<script src="{{ url_for('static', filename='js/prg32_runtime.js') }}"></script>
+<script src="{{ url_for('static', filename='js/prg32_audio.js') }}"></script>
 <script src="{{ url_for('static', filename='js/editor.js') }}"></script>
 {% endblock %}

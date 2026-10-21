@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import io
 import json
 import uuid
@@ -29,7 +30,7 @@ from .db import (
     update_if_unchanged,
     update_resource,
 )
-from . import build_budget, project_format, publishing, retention, security, sso, storage_policy, store_contract
+from . import audio_studio, audio_studio_api, build_budget, project_format, publishing, retention, security, sso, storage_policy, store_contract
 from .auth import Principal, current_principal, role_at_least
 from .build_check import builds_available, toolchain_present
 from .db import utcnow
@@ -52,6 +53,11 @@ bp = Blueprint("kit", __name__)
 
 def json_error(message: str, status: int = 400) -> tuple[Response, int]:
     return jsonify({"error": message}), status
+
+
+@bp.errorhandler(audio_studio.AudioStudioError)
+def handle_audio_invalid(exc: audio_studio.AudioStudioError):
+    return jsonify({"error": str(exc), "code": "audio_invalid"}), 400
 
 
 @bp.errorhandler(ValueError)
@@ -361,6 +367,8 @@ def api_create(resource: str):
     payload = checked_payload(resource, request_json())
     if "owner_id" not in payload or payload["owner_id"] in (None, ""):
         payload = owned(payload)
+    if resource == "assets" and payload.get("kind") == audio_studio_api.KIND:
+        payload["data"] = audio_studio.validate_document(payload.get("data"))   # the same rules as AudioStudio
     quota(adding_bytes=_size(payload), adding_projects=1 if resource == "projects" else 0)
     item = create_resource(resource, payload)
     return jsonify(public(resource, item)), 201
@@ -387,11 +395,16 @@ def api_item(resource: str, item_id: str):
             return json_error("Not found", 404)
         return jsonify({"deleted": True, "id": item_id})
     payload = checked_payload(resource, request_json())
-    expected = payload.pop("expected_version", None) if resource == "projects" else None
+    expected = payload.pop("expected_version", None) if resource in ("projects", "assets") else None
+    if resource == "assets" and existing.get("kind") == audio_studio_api.KIND and "data" in payload:
+        payload["data"] = audio_studio.validate_document(payload["data"])   # the same rules as AudioStudio
     autosave = bool(payload.pop("autosave", False)) if resource == "projects" else False
     if expected is not None and (not isinstance(expected, int) or isinstance(expected, bool)):
         return json_error("expected_version must be a whole number")
     if expected is not None and expected != existing.get("version", 0):
+        if resource == "assets":
+            return jsonify({"error": "This item was saved elsewhere after you opened it. Nothing was overwritten.",
+                            "code": "version_conflict", "current": public("assets", existing)}), 409
         return _version_conflict(existing)
     changed = {key: value for key, value in payload.items() if key in RESOURCE_COLUMNS[resource]}
     quota(adding_bytes=_size(changed) - _size({key: existing.get(key) for key in changed}))
@@ -402,6 +415,9 @@ def api_item(resource: str, item_id: str):
     try:
         item = update_resource(resource, item_id, payload, expected_version=expected)
     except VersionConflict:
+        if resource == "assets":
+            return jsonify({"error": "This item was saved elsewhere after you opened it. Nothing was overwritten.",
+                            "code": "version_conflict"}), 409
         return _version_conflict(get_resource("projects", item_id))
     if item is None:
         return json_error("Not found", 404)
@@ -448,12 +464,22 @@ def _create_from_contents(contents: dict[str, Any], title: str | None = None) ->
     fields = dict(contents["project"])
     if title:
         fields["title"] = title
-    quota(adding_bytes=_size(contents), adding_projects=1)
+    samples = contents.get("audio_samples") or []
+    quota(adding_bytes=_size({key: value for key, value in contents.items() if key != "audio_samples"})
+          + sum(len(sample["pcm"]) for sample in samples), adding_projects=1)
     project = create_resource("projects", owned(fields))
     made: list[tuple[str, str]] = []
     try:
+        # AudioStudio samples become the new owner's own sounds; the document names the new copies.
+        new_ids = {}
+        for sample in samples:
+            artifact = audio_studio_api.store_sample(project, sample["name"], sample["pcm"])
+            made.append(("artifacts", artifact["id"]))
+            new_ids[sample["artifact_id"]] = artifact["id"]
         for resource in ("sprites", "assets"):
             for row in contents[resource]:
+                if resource == "assets" and row.get("kind") == audio_studio_api.KIND:
+                    row = {**row, "data": audio_studio_api.renamed_samples(row.get("data"), new_ids)}
                 child = create_resource(resource, owned({**row, "project_id": project["id"]}))
                 made.append((resource, child["id"]))
     except Exception:
@@ -481,7 +507,7 @@ def api_project_archive(project_id: str):
     if project is None:
         return json_error("Project not found", 404)
     sprites, assets = _project_children(project_id)
-    data = project_format.export_archive(project, sprites, assets)
+    data = project_format.export_archive(project, sprites, assets, audio_studio_api.archive_samples(project))
     return send_file(io.BytesIO(data), mimetype=project_format.ARCHIVE_CONTENT_TYPE, as_attachment=True,
                      download_name=project_format.archive_filename(project))
 
@@ -497,7 +523,8 @@ def api_duplicate_project(project_id: str):
     if title is not None and (not isinstance(title, str) or not title.strip() or len(title) > 200):
         return json_error("title must be text of at most 200 characters")
     sprites, assets = _project_children(project_id)
-    contents = project_format.contents_from_files(project_format.project_files(project, sprites, assets))
+    contents = project_format.contents_from_files(project_format.project_files(
+        project, sprites, assets, audio_studio_api.archive_samples(project)))
     copy = _create_from_contents(contents, title=(title or f"{project['title']} (copy)").strip())
     return jsonify(public("projects", copy)), 201
 
@@ -746,6 +773,8 @@ def _generate_project(project_id: str) -> tuple[dict[str, Any] | None, dict[str,
         return None, None, None, json_error("Project not found", 404)
     if not can_write(project):
         return project, None, None, json_error("This is a shared classroom project: make your own copy to build it", 403)
+    # Its AudioStudio document: sound-effect and soundtrack blocks become fixed numbers from it.
+    project = {**project, "audio_studio": audio_studio_api.document_of(project_id)[0]}
     saved = project.get("game_json") or {}
     if isinstance(saved, dict) and saved.get("source_mode") == "c":
         source = saved.get("source_c", "")
@@ -896,6 +925,12 @@ def api_package_project(project_id: str):
         return json_error("This project was changed in another browser window after you saved it. "
                           "Reload the project to see the newest version, then compile again.", 409)
     quota(adding_bytes=1)  # a full account cannot add cartridges and bundles
+    try:
+        audio = audio_studio_api.project_audio(project)   # the AudioStudio sound for every cartridge
+    except audio_studio_api.AudioRefused as refused:
+        return jsonify({"error": str(refused), **refused.details}), refused.status
+    except audio_studio.AudioStudioError as invalid:
+        return json_error(f"The project's AudioStudio sound cannot be packed: {invalid}")
     # Every build gets its own id and its own folder, so many students (or one
     # student in several browser windows) can build at the same time without
     # touching each other's files. Build slots keep the number of compilers
@@ -910,7 +945,7 @@ def api_package_project(project_id: str):
                                      current_app.config["PRG32_BUILD_MAX_MB"] * 1024 * 1024,
                                      current_app.config["PRG32_BUILD_ROOT_MAX_MB"] * 1024 * 1024):
             return _run_package_build(project_id, project, game_ir, _generated_sources(language, game_ir, c_source),
-                                      requested)
+                                      requested, audio)
     except BuildServerBusy as exc:
         response, status = json_error(str(exc), 503)
         response.headers["Retry-After"] = "10"
@@ -928,7 +963,7 @@ def _cartridge_fingerprint(result: dict[str, Any], architecture: str) -> dict[st
 
 
 def _run_package_build(project_id: str, project: dict[str, Any], game_ir: dict[str, Any], sources: dict[str, str],
-                       requested: list[str] | None):
+                       requested: list[str] | None, audio: tuple[bytes, dict[str, Any]] | None = None):
     built_from = "c" if "c" in sources else "asm"
     artifacts = {lang: _source_artifact(project_id, project, lang, text,
                                         {"entry_prefix": game_ir.get("entry_prefix"), "source": "package"})
@@ -969,6 +1004,7 @@ def _run_package_build(project_id: str, project: dict[str, Any], game_ir: dict[s
             build_timeout=current_app.config["PRG32_BUILD_TIMEOUT"],
             sandbox=settings_from_config(current_app.config),
             debug_info_enabled=current_app.config["PRG32_DEBUG_INFO"],
+            audio=audio,
         )
     except Exception as exc:
         current_app.logger.exception("Packaging failed for %s", project_id)
@@ -1031,6 +1067,7 @@ def _run_package_build(project_id: str, project: dict[str, Any], game_ir: dict[s
                 "project_updated_at": project.get("updated_at"),
                 "built_from": built_from,
                 "asm_artifact_id": asm_artifact["id"] if asm_artifact else None,
+                "audio_block_sha256": hashlib.sha256(audio[0]).hexdigest() if audio else None,
                 "provenance": provenance(result["status"], result),
             },
         },
