@@ -22,7 +22,7 @@ disagree with it. Audit scores belong to the auditor (`../../audit/`).
 
 Every refinement phase and the audit that followed it. `tests/test_doc_consistency.py`
 checks that each `Refinement phase` commit in the history is listed here by its
-commit; the newest may say *this change* while it is the commit being made.
+commit; a milestone is recorded once its commit exists.
 
 | Milestone | Commit | Evidence |
 | --- | --- | --- |
