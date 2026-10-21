@@ -287,3 +287,26 @@ def test_assembly_language_services(browser, live_kit):  # noqa: F811
     page.evaluate("PRG32Ide.editors.src.setPosition({lineNumber: 10, column: 15})")
     assert "stack pointer" in hover_text(page)
     context.close()
+
+
+def test_the_compiler_check_after_saving_adds_its_problems(browser, live_kit, monkeypatch):  # noqa: F811
+    """After a save, the server compiles the saved C (ADR-0014); the compiler's message, which the
+    kit's own checks cannot know, appears in Problems at its line. (A stand-in compiler answers
+    like gcc here; tests/test_compiler_check.py also runs the real one.)"""
+    from test_compiler_check import BROKEN_C, Compiler
+
+    compiler = Compiler()
+    monkeypatch.setattr("prg32_construction_kit.packager.subprocess.run", compiler)
+    monkeypatch.setattr("prg32_construction_kit.routes.toolchain_present", lambda _command: True)
+    context = browser.new_context()
+    page, _ = open_ide(context, live_kit, {"title": "Broken", "game_json": {"source_mode": "c", "source_c": BROKEN_C}})
+    assert page.evaluate("PRG32Ide.problems.length") == 0          # the kit's own checks find nothing
+    press_until(page, "F6", lambda focus: focus["inMonaco"])
+    page.keyboard.press(END_OF_FILE)
+    page.keyboard.type("/* saved */\n")
+    page.keyboard.press("Control+s")
+    wait_until(page, "PRG32Ide.serverProblems.some(p => p.line === 3 && /missing_value/.test(p.message))", timeout=30)
+    assert page.evaluate("document.getElementById('statusBuild').textContent") == "Compiler: 1 problem"
+    assert page.evaluate("monaco.editor.getModelMarkers({owner: 'prg32'}).map(m => m.startLineNumber)") == [3]
+    assert compiler.sources and compiler.sources[-1][1].endswith("/* saved */\n")
+    context.close()

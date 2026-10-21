@@ -237,7 +237,7 @@
     $('#ideProblems').data('problems', problems);
   }
 
-  function showProblems(problems) {
+  function showProblems(problems, quiet) {
     serverProblems = problems;
     renderProblems();
     const model = editors.src && editors.src.getModel();
@@ -251,7 +251,27 @@
         severity: problem.severity === 'warning' ? monaco.MarkerSeverity.Warning : monaco.MarkerSeverity.Error,
       })));
     }
-    if (problems.length) IdeShell.showPanel('problems');
+    if (problems.length && !quiet) IdeShell.showPanel('problems');
+  }
+
+  // The compiler check (ADR-0014): after a save, the server compiles the saved C or assembly
+  // with the real PRG32 toolchain in its build sandbox and keeps nothing; its messages join the
+  // Problems list. It only adds problems: the kit's own checks still decide what is valid.
+  let checking = null;
+  function compilerCheck(options = {}) {
+    if (mode === 'blocks' || !project) return Promise.resolve();
+    const version = project.version;
+    checking = Kit.api(api + '/check', { method: 'POST', body: { source_language: mode } }).then(result => {
+      if (!result.available) {
+        if (!options.quiet) setBuildStatus('Compiler check: no toolchain on this server');
+        return;
+      }
+      if (project.version !== version || result.project_version !== version) return;   // saved again since
+      const problems = result.ok ? [] : parseProblems(result.log);
+      showProblems(problems, options.quiet);
+      setBuildStatus(result.ok ? 'Compiler: no problems' : `Compiler: ${problems.length} problem${problems.length === 1 ? '' : 's'}`);
+    }).catch(err => { if (!options.quiet) setBuildStatus('Compiler check: ' + err.message); });
+    return checking;
   }
 
   $('#ideProblems').on('click', '.ide-problem', function () {
@@ -290,6 +310,7 @@
       const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       $('#statusSaved').text(dirty ? 'Unsaved changes' : (options.autosave ? 'Autosaved ' + time : 'Saved'));
       if (!options.autosave) Kit.toast('Saved', 'success');
+      if (!options.noCheck) compilerCheck({ quiet: options.autosave });
       return saved;
     }).catch(err => {
       if (err.code === 'version_conflict') {
@@ -329,7 +350,7 @@
 
   function generate() {
     setBuildStatus('Generating…');
-    return save().then(() => Kit.api(api + '/convert', { method: 'POST', body: { source_language: mode === 'blocks' ? 'both' : mode } }))
+    return save({ noCheck: true }).then(() => Kit.api(api + '/convert', { method: 'POST', body: { source_language: mode === 'blocks' ? 'both' : mode } }))
       .then(result => {
         if (mode === 'blocks') {
           generated.c = result.c_source || '';
@@ -348,7 +369,7 @@
     setBuildStatus('Compiling…');
     $('#ideOutput').text('Compiling…');
     IdeShell.showPanel('output');
-    return save().then(() => Kit.api(api + '/package', { method: 'POST',
+    return save({ noCheck: true }).then(() => Kit.api(api + '/package', { method: 'POST',
       body: Object.assign({ source_language: mode === 'blocks' ? 'c' : mode }, expectedVersion()) }))
       .then(result => {
         $('#ideOutput').text(result.build.log || 'No log.');
@@ -388,6 +409,7 @@
     command('save', 'Save project', 'Ctrl+S', () => save());
     command('generate', 'Generate C and assembly (check the source)', 'Ctrl+Shift+G', () => generate());
     command('compile', 'Compile cartridge', 'Ctrl+Shift+B', () => compile());
+    command('compiler-check', 'Check with the compiler', '', () => save({ noCheck: true }).then(() => compilerCheck()));
     command('open-source', 'Open source', '', () => (mode === 'blocks' ? openBlocks(true) : openSource(true)));
     command('open-gen-c', 'Open generated C', '', () => mode === 'blocks' && openGenerated('c', true));
     command('open-gen-asm', 'Open generated assembly', '', () => mode === 'blocks' && openGenerated('asm', true));

@@ -770,7 +770,9 @@
 
   // An absolute path (Unix or Windows) becomes its last part: /srv/kit/builds/7/tmp/game.c -> game.c
   function withoutPaths(text) {
-    return text.replace(/(?:[A-Za-z]:)?(?:[\\/][^\s\\/:'"`()]+)+[\\/]([^\s\\/:'"`()]+)/g, '$1');
+    // Build logs already show the build folder as "<build>/" (packager.redact_build_path).
+    return text.replace(/<build>[\\/]/g, '')
+      .replace(/(?:[A-Za-z]:)?(?:[\\/][^\s\\/:'"`()]+)+[\\/]([^\s\\/:'"`()]+)/g, '$1');
   }
 
   function normalizeCompilerOutput(output, options) {

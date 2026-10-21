@@ -307,3 +307,28 @@ def _sandbox_mode(sandbox: build_sandbox.SandboxSettings | None) -> str:
         return build_sandbox.effective_mode(sandbox or build_sandbox.SandboxSettings())
     except build_sandbox.SandboxUnavailable:
         return "unavailable"
+
+
+def check_source(*, build_root: Path, project: dict[str, Any], game_ir: dict[str, Any], source: str, language: str,
+                 build_command: str, cart_ram_kib: int, timeout: float,
+                 sandbox: build_sandbox.SandboxSettings | None = None) -> tuple[bool, str]:
+    """Compile and link one validated source exactly as a build does, and keep nothing.
+
+    The IDE's compiler check (ADR-0014): the PRG32 builder runs in the build sandbox, in its
+    own ``build_<id>/`` folder with a private ``tmp/``, for one target; the folder is removed
+    afterwards, cartridge included. Returns whether it compiled and the log without server
+    paths, for the Problems panel."""
+    import uuid
+
+    slug = slugify(project.get("title") or game_ir.get("title"), "game")
+    entry_prefix = game_ir.get("entry_prefix") or c_identifier(slug, "game")
+    work_dir = build_root / f"build_{uuid.uuid4().hex[:12]}"
+    work_dir.mkdir(parents=True, exist_ok=True)
+    try:
+        source_path = work_dir / ("game.c" if language == "c" else "game.S")
+        source_path.write_text(source, encoding="utf-8")
+        ok, log = run_prg32_build(build_command, source_path, work_dir / f"{slug}-check.prg32", str(entry_prefix), slug,
+                                  "qemu", cart_ram_kib, game_ir.get("required_features", []), timeout, sandbox)
+        return ok, redact_build_path(log, work_dir)
+    finally:
+        shutil.rmtree(work_dir, ignore_errors=True)

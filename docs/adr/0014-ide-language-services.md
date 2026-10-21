@@ -58,5 +58,12 @@ firmware API, but a portable cartridge links only against the ABI table
   regenerate the index (`python3 tools/build_language_index.py`); the tests say
   so. The builder refuses an SDK whose ABI differs from the kit's.
 - Not semantic analysis: there are no types, scopes or C parsing beyond the
-  kit's rules; deeper errors still come from the compiler after Compile.
+  kit's rules. Deeper errors come from the compiler: after Compile, and since the
+  audit of f4b74bc also after every save, through the compiler check
+  (`POST /api/projects/<id>/check`). The check compiles only the saved, validated
+  source (never text sent by the browser), as a build does: build sandbox, a build
+  slot, the disk budget and the quota, in a private `build_<id>/` folder removed
+  afterwards. It needs the `build` token scope. Its messages are only added to
+  Problems; the validators still decide. (`tests/test_compiler_check.py`,
+  `tests/test_ide_browser.py::test_the_compiler_check_after_saving_adds_its_problems`.)
 - The index (about 170 KB) loads with the IDE page only.

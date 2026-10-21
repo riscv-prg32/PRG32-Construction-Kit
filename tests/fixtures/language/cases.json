@@ -1701,5 +1701,26 @@
    },
    "source": "void f(void) { prg32_b"
   }
+ },
+ {
+  "expected": [
+   {
+    "code": "compiler",
+    "column": 59,
+    "endColumn": 72,
+    "endLine": 3,
+    "explanation": "This name is not declared: check the spelling, or declare the variable first.",
+    "line": 3,
+    "message": "'missing_value' undeclared (first use in this function)",
+    "severity": "error"
+   }
+  ],
+  "name": "c: a build log from the kit (<build>/ paths) maps to the student's line",
+  "request": {
+   "language": "c",
+   "op": "normalize",
+   "output": "$ python3 -m prg32 cartridge build <build>/game.c --portable --architecture qemu --cart-ram-kib 64 --entry-prefix broken --name broken --out <build>/broken-check.prg32\n<build>/game.c: In function 'broken_update':\n<build>/game.c:3:59: error: 'missing_value' undeclared (first use in this function)\n<build>/game.c:3:59: note: each undeclared identifier is reported only once for each function it appears in\n",
+   "source": "#include \"prg32.h\"\nvoid broken_init(void) {}\nvoid broken_update(void) { int score = 0; score = score + missing_value; }\nvoid broken_draw(void) {}\n"
+  }
  }
 ]

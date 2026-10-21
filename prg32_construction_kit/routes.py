@@ -42,7 +42,7 @@ from .asm_generator import ir_to_asm
 from .debug_info import unavailable as debug_unavailable
 from .generator import blocks_to_c, sprite_to_c
 from .source_maps import build_source_map
-from .packager import SUPPORTED_ARCHITECTURES, prepare_package
+from .packager import SUPPORTED_ARCHITECTURES, check_source, prepare_package
 from .publisher import StorePublishFailed, publish_bundle
 from .store_policy import StoreRefused, check_url, policy_from_config
 from .sample_data import example_catalog
@@ -960,6 +960,52 @@ def _cartridge_fingerprint(result: dict[str, Any], architecture: str) -> dict[st
         if cartridge["architecture"] == architecture:
             return {"sha256": cartridge["sha256"], "bytes": cartridge["bytes"]}
     return {}
+
+
+@bp.post("/api/projects/<project_id>/check")
+def api_check_project(project_id: str):
+    """Compile the saved project with the real PRG32 toolchain and report the compiler's messages.
+
+    The IDE's compiler check (ADR-0014): {"source_language": "c" | "asm"}. The source is the
+    saved, validated one (never text the browser sends); the compiler runs in the build sandbox
+    like a build, takes a build slot and the disk budget, and nothing is kept. Without the
+    toolchain the answer is {"available": false}."""
+    payload = request_json()
+    project, game_ir, c_source, error = _generate_project(project_id)
+    if error:
+        return error
+    assert project and game_ir is not None and c_source is not None
+    language, error = _source_language(payload, game_ir)
+    if error:
+        return error
+    if language == "both":
+        return json_error("Check one language at a time: c or asm")
+    build_command = current_app.config["PRG32_BUILD_COMMAND"]
+    if not toolchain_present(build_command):
+        return jsonify({"available": False, "source_language": language})
+    quota(adding_bytes=1)
+    source = _generated_sources(language, game_ir, c_source)[language]
+    release_connection()
+    try:
+        with build_slot(current_app.config["BUILD_ROOT"] / ".slots",
+                        current_app.config["PRG32_MAX_PARALLEL_BUILDS"],
+                        current_app.config["PRG32_BUILD_QUEUE_TIMEOUT"]), \
+                build_budget.reserve(current_app.config["BUILD_ROOT"],
+                                     current_app.config["PRG32_BUILD_MAX_MB"] * 1024 * 1024,
+                                     current_app.config["PRG32_BUILD_ROOT_MAX_MB"] * 1024 * 1024):
+            ok, log = check_source(build_root=current_app.config["BUILD_ROOT"], project=project, game_ir=game_ir,
+                                   source=source, language=language, build_command=build_command,
+                                   cart_ram_kib=current_app.config["PRG32_CART_RAM_KIB"],
+                                   timeout=current_app.config["PRG32_BUILD_TIMEOUT"],
+                                   sandbox=settings_from_config(current_app.config))
+    except BuildServerBusy as exc:
+        response, status = json_error(str(exc), 503)
+        response.headers["Retry-After"] = "10"
+        return response, status
+    except build_budget.BuildDiskFull as exc:
+        return jsonify({"error": str(exc), "code": "build_disk_full"}), 507
+    return jsonify({"available": True, "ok": ok, "source_language": language, "log": log,
+                    "project_version": project.get("version")})
 
 
 def _run_package_build(project_id: str, project: dict[str, Any], game_ir: dict[str, Any], sources: dict[str, str],

@@ -47,6 +47,15 @@ marks them, because a cartridge that calls them cannot be built.
 All of this works without a network connection. The server still checks the
 source on Generate and Compile, so nothing unsafe is let through.
 
+**The compiler check.** Each time you save C or assembly (Ctrl+S, or the
+autosave), the server also compiles and links the saved file with the real PRG32
+compiler, the way Compile does, but keeps nothing. The compiler's messages join
+**Problems** at their lines, for example a name you never declared, which the
+editor's own checks cannot know. The status bar says `Compiler: no problems` or how
+many it found. **Check with the compiler** in the command palette runs it on
+demand. It needs a server with the PRG32 toolchain; without one it says so and
+changes nothing.
+
 On a Mac, Cmd works where Ctrl is written. In the code editor, Tab inserts a
 tab; use F6 to leave the editor (or Ctrl+M, Monaco's own "Tab moves focus").
 
