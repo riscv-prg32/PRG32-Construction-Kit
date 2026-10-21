@@ -82,6 +82,11 @@ def test_tracker_and_block_limits(sdk):
     assert "60000u / ((uint32_t)bpm * 4u)" in tracker
     assert int(define(tracker, "PRG32_AUDIO_TRACKER_MAX_EVENTS_PER_STEP").rstrip("u")) == CONTRACT["tracker"]["max_events_per_step"]
     assert "prg32_audio_note_on(channel, channel," in tracker     # instrument N on voice N
+    # contract "delta": the event is fetched, its delta becomes the wait, and it runs before that wait.
+    fetch = tracker.index("track->events[tracker->event_index++]")
+    wait = tracker.index("tracker->next_delta = event.delta_ticks", fetch)
+    assert wait < tracker.index("execute_event(&event)", wait)
+    assert "wait before" in CONTRACT["tracker"]["delta"] and "runs first" in CONTRACT["tracker"]["delta"]
     config = sdk["audio_config.h"]
     for key, name in (("max_samples", "PRG32_AUDIO_MAX_SAMPLES"), ("max_instruments", "PRG32_AUDIO_MAX_INSTRUMENTS"),
                       ("max_tracks", "PRG32_AUDIO_MAX_TRACKS")):

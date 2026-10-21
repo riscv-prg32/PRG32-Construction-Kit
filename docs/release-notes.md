@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Sound: soundtracks on time, and a console check (after the audit of 13766c9)
+
+- Fixed: AudioStudio soundtracks played each note one gap early. The PRG32 tracker runs an
+  event and then waits its delta; the kit now writes deltas that way (contract
+  `tracker.delta`, checked against `audio_tracker.c`), and a test plays a soundtrack
+  through the engine and checks each note starts on its step. Saved documents are
+  unchanged; their cartridges are now correct when built again.
+
 ### Sound: the console's engine in the browser; the buzzer is gone (audio audit of c0d115e)
 
 - The Player now plays the PRG32 firmware's own audio engine, compiled into the browser

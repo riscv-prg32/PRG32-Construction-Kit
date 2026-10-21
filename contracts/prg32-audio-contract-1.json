@@ -92,7 +92,8 @@
     "note_on_instrument": "a track's NOTE_ON on voice N plays instrument N",
     "commands": {"NOTE_ON": 1, "NOTE_OFF": 2, "SET_VOLUME": 3, "SET_PAN": 4, "SET_TEMPO": 5, "PLAY_SAMPLE": 6, "JUMP": 7, "END": 255},
     "jump_target": "arg1 << 8 | arg0; out of range stops the track",
-    "delta_zero": "events with delta 0 run in the same tick (a chord)"
+    "delta_zero": "events with delta 0 run in the same tick (a chord)",
+    "delta": "an event runs first, then the tracker waits its delta ticks before the next event (audio_tracker.c); the SDK's tools/midi2prg32audio.py writes the MIDI meaning (wait before), an upstream mismatch"
   },
   "block": {
     "magic": "AUD0",

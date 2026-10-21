@@ -198,18 +198,14 @@ def _block_instrument(item: dict[str, Any], sample_index: dict[str, int]) -> dic
 def _track_events(track: dict[str, Any], muted: set[int]) -> list[dict[str, Any]]:
     """A soundtrack's grid as tracker events: a note plays until the next note or "off" in its row.
 
-    Each event waits (delta, in steps) since the event before it; a muted voice's row is left out
-    (AudioStudio's preview). A looping soundtrack jumps back after its last step; otherwise the notes
-    still playing are released and the track ends.
+    The PRG32 tracker runs an event and then waits its delta (in steps) before the next one
+    (audio_tracker.c; contract "tracker.delta"), so each event's delta is the number of steps
+    until the event after it, and SET_TEMPO's delta is the wait before the first note. A muted
+    voice's row is left out (AudioStudio's preview). A looping soundtrack jumps back to SET_TEMPO
+    after its last step; otherwise the notes still playing are released and the track ends.
     """
-    events: list[dict[str, Any]] = [{"delta": 0, "command": "SET_TEMPO", "arg0": track["tempo"], "arg1": 0}]
-    last_step, sounding = 0, set()
-
-    def add(step: int, command: str, voice: int, note: int = 0) -> None:
-        nonlocal last_step
-        events.append({"delta": step - last_step, "command": command, "arg0": voice, "arg1": note})
-        last_step = step
-
+    timed: list[tuple[int, dict[str, Any]]] = [(0, {"command": "SET_TEMPO", "arg0": track["tempo"], "arg1": 0})]
+    sounding: set[int] = set()
     for step in range(track["steps"]):
         for voice in range(VOICES):
             cell = track["rows"][voice][step]
@@ -217,18 +213,21 @@ def _track_events(track: dict[str, Any], muted: set[int]) -> list[dict[str, Any]
                 continue
             if cell == "off":
                 if voice in sounding:
-                    add(step, "NOTE_OFF", voice)
+                    timed.append((step, {"command": "NOTE_OFF", "arg0": voice, "arg1": 0}))
                     sounding.discard(voice)
             else:
-                add(step, "NOTE_ON", voice, cell)
+                timed.append((step, {"command": "NOTE_ON", "arg0": voice, "arg1": cell}))
                 sounding.add(voice)
-    if track["loop"] and len(events) > 1:
-        add(track["steps"], "JUMP", 1)          # back to the first event after SET_TEMPO
-        events[-1]["arg1"] = 0
-        return events
-    for voice in sorted(sounding):
-        add(track["steps"], "NOTE_OFF", voice)
-    add(track["steps"], "END", 0)
+    end = track["steps"]
+    if track["loop"] and len(timed) > 1:
+        timed.append((end, {"command": "JUMP", "arg0": 0, "arg1": 0}))      # back to SET_TEMPO
+    else:
+        timed += [(end, {"command": "NOTE_OFF", "arg0": voice, "arg1": 0}) for voice in sorted(sounding)]
+        timed.append((end, {"command": "END", "arg0": 0, "arg1": 0}))
+    events = []
+    for index, (step, event) in enumerate(timed):
+        following = timed[index + 1][0] if index + 1 < len(timed) else step
+        events.append({"delta": following - step, **event})
     return events
 
 

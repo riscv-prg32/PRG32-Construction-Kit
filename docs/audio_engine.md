@@ -44,7 +44,7 @@ hear is what the console plays. (The old *buzzer* is gone: games use the 8 voice
 | Pan gains | left `255 − pan×255/63` for pan > 0, right `255 − (−pan)×255/64` for pan < 0, else 255 |
 | ADSR time | `1 + v×v×2000/65025` ms (0 = at once); the level moves a whole step per sample, so a stage can end a little early |
 | Sustain level | `sustain × 257` of 65535 |
-| Tracker | one tick = `60000 / (bpm × 4)` ms; bpm 30–300, default 120 |
+| Tracker | one tick = `60000 / (bpm × 4)` ms; bpm 30–300, default 120; an event runs, then the tracker waits its delta before the next one |
 | Audio block | `AUD0` v1: at most 64 samples, 32 instruments, 16 tracks |
 
 ## How it is checked

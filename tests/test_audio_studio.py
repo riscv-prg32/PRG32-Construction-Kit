@@ -90,7 +90,18 @@ def test_compiling_gives_fixed_instrument_and_track_numbers():
     steps = [(e["command"], e["arg0"], e["arg1"]) for e in events[1:]]
     assert steps == [("NOTE_ON", 0, 48), ("NOTE_ON", 1, 64), ("NOTE_ON", 0, 55), ("NOTE_OFF", 0, 0),
                      ("NOTE_OFF", 1, 0), ("END", 0, 0)]
-    assert [e["delta"] for e in events[1:]] == [0, 2, 2, 2, 2, 0]
+    # The tracker runs an event, then waits its delta: notes at steps 0, 2, 4, off at 6, end at 8.
+    assert [e["delta"] for e in events[1:]] == [2, 2, 2, 2, 0, 0]
+
+
+def test_a_soundtrack_starting_late_waits_on_set_tempo_and_loops_back_to_it():
+    document = song_document()
+    track = document["soundtracks"][0]
+    track["rows"] = [[None] * 8 for _ in range(8)]
+    track["rows"][2][3], track["loop"] = 70, True
+    events = audio_studio.compile_document(document, {})["tracks"][0]["events"]
+    assert [(e["command"], e["delta"]) for e in events] == [("SET_TEMPO", 3), ("NOTE_ON", 5), ("JUMP", 0)]
+    assert events[-1]["arg0"] == 0 and events[-1]["arg1"] == 0
 
 
 def test_a_looping_soundtrack_jumps_back_and_muted_rows_are_left_out():
@@ -98,7 +109,7 @@ def test_a_looping_soundtrack_jumps_back_and_muted_rows_are_left_out():
     document["soundtracks"][0]["loop"] = True
     events = audio_studio.compile_document(document, {}, muted={1})["tracks"][0]["events"]
     assert all(e["arg0"] != 1 for e in events if e["command"] in ("NOTE_ON", "NOTE_OFF"))
-    assert events[-1]["command"] == "JUMP" and events[-1]["arg0"] == 1
+    assert events[-1]["command"] == "JUMP" and events[-1]["arg0"] == 0
 
 
 def test_packing_is_deterministic():
@@ -500,3 +511,52 @@ def test_the_generic_asset_routes_apply_audio_studio_rules(client):
     stale = client.put(f"/api/assets/{asset['id']}", json={"data": louder, "expected_version": asset["version"]})
     assert stale.status_code == 409 and stale.get_json()["code"] == "version_conflict"
     assert client.put(f"/api/assets/{asset['id']}", json={"data": {"schema": "x"}}).status_code == 400
+
+
+def test_the_engine_plays_each_note_on_its_step(tmp_path):
+    """Through the real PRG32 engine (the browser core): every note starts exactly on its grid step."""
+    import shutil
+    import subprocess
+
+    from pathlib import Path
+
+    if shutil.which("node") is None:
+        pytest.skip("Node.js is not installed")
+    root = Path(__file__).resolve().parent.parent
+    document = audio_studio.default_document()
+    rows = [[None] * 12 for _ in range(8)]
+    starts = {0: 0, 1: 3, 2: 5, 7: 9}
+    for voice, step in starts.items():
+        rows[voice][step] = 60 + voice
+    rows[1][7] = "off"
+    for voice in range(8):
+        document["voices"][voice].update(attack=0, release=0)
+    document["soundtracks"].append({"name": "Steps", "tempo": 120, "steps": 12, "loop": False, "rows": rows})
+    block = tmp_path / "steps.aud"
+    block.write_bytes(audio_studio.pack_document(document, {}))
+    script = f"""
+const core = await require({json.dumps(str(root / "static" / "wasm" / "prg32-core.js"))})();
+const bytes = require('fs').readFileSync({json.dumps(str(block))});
+core._prg32_preview_start();
+const at = core._malloc(bytes.length); core.HEAPU8.set(bytes, at);
+if (!core._prg32_preview_load(at, bytes.length)) process.exit(3);
+core._prg32_preview_play_track(0);
+const buffer = core._malloc(24), out = [];
+for (let tick = 0; tick < 12; tick += 1) {{
+  core._prg32_preview_advance(tick === 0 ? 20 : 125);   // 20 ms into each 125 ms step
+  core._prg32_audio_take();
+  const row = [];
+  for (let v = 0; v < 8; v += 1) {{ core._prg32_audio_voice(v, buffer); row.push(core.HEAP32[buffer >> 2]); }}
+  out.push(row);
+}}
+console.log(JSON.stringify(out));
+"""
+    result = subprocess.run(["node", "--input-type=module", "-e",
+                             "import {createRequire} from 'module'; const require = createRequire(import.meta.url);" + script],
+                            capture_output=True, text=True, timeout=120)
+    assert result.returncode == 0, result.stderr
+    active = json.loads(result.stdout)
+    for voice, step in starts.items():
+        first = next(tick for tick, row in enumerate(active) if row[voice])
+        assert first == step, (voice, first, step)
+    assert active[6][1] and not active[8][1]          # voice 1 released at step 7
