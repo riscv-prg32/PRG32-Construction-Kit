@@ -467,9 +467,10 @@
         "tests/test_identity_live.py::test_a_tampered_state_is_refused",
         "tests/test_identity_live.py::test_expired_tokens_are_refused",
         "tests/test_identity_live.py::test_a_wrong_audience_is_refused",
-        "tests/test_identity.py::test_caches_do_not_freeze_when_the_clock_goes_back"
+        "tests/test_identity.py::test_caches_do_not_freeze_when_the_clock_goes_back",
+        "tests/test_live_suites.py::test_the_recorded_live_run"
       ],
-      "note": "Authorization Code + PKCE (S256), single-use state and nonce, ID token signature (RS256/PS256/ES256, JWKS rotation), iss/aud/azp/exp/iat; accounts by issuer+subject, never joined by email (ADR-0016). In-process provider tests plus an opt-in live suite against Keycloak 26.0.7 (docs/identity_live_testing.md); no institutional tenant run recorded."
+      "note": "Authorization Code + PKCE (S256), single-use state and nonce, ID token signature (RS256/PS256/ES256, JWKS rotation), iss/aud/azp/exp/iat; accounts by issuer+subject, never joined by email (ADR-0016). In-process provider tests plus an opt-in live suite against Keycloak 26.0.7 (docs/identity_live_testing.md), run 2026-10-21 through tools/run_live_suites.py: 9 passed (docs/evidence/live/2026-10-21); no institutional tenant run recorded."
     },
     {
       "id": "SSO-02",

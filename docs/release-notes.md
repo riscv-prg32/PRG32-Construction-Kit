@@ -18,6 +18,9 @@
   reported running itself before and after its screenshot
   (`docs/evidence/delivery/2026-10-21-prg32qt-checked/`). Handoff:
   `docs/handoff/refinement-after-951f782.md`.
+- Every live suite in one step: `tools/run_live_suites.py` runs the Store, sign-in (a
+  disposable Keycloak or a school's test tenant), cloud and QEMU suites the computer can run,
+  says "not run" for the rest, and keeps no secrets or machine names (`live_testing.md`).
 
 ### The compiler in the IDE, and shared accounts checked live
 

@@ -12,7 +12,7 @@ auditor's; `docs/capabilities.json` has only notes and evidence updated.
 | 3 QEMU effect timing | `dc0222f` | One scheduling boundary, the frame clock (ADR-0021). The whole recordings are equal in QEMU, the browser core and PRG32-QT; a regression fails on a one-buffer shift. |
 | 4 Delivery integrity | `46b24aa`, this commit | The evidence collector waits for the selected cartridge's identity and frames before and after the screenshot (stale/late/swap regressions). The five cartridges were delivered again with these checks. **The desktop Import menu was not driven:** computer use was not available in this session. |
 | 5 Screen-reader session | none | **Not held:** it needs a person. Tasks 10–14 are ready in `docs/accessibility_session.md`. |
-| 6 Integrations | none | **No test tenants** (the project owner's answer): Google Drive, OneDrive and institutional OIDC are not run; iOS stays unsupported. Live Store SSO/publishing was run (below). |
+| 6 Integrations | see "Live suites" | One step for every live suite (`tools/run_live_suites.py`, `docs/live_testing.md`). Run here: the throwaway Store (11 passed), school sign-in against a real Keycloak in Docker (9 passed), QEMU (1 passed). **No test tenants** (the project owner's answer): Google Drive, OneDrive and an institution's OIDC tenant are "not run"; iOS stays unsupported. |
 
 ## Upstream pull requests
 
@@ -77,11 +77,11 @@ Regressions:
 | Command | Result |
 |---|---|
 | Full `pytest` with `PRG32_REQUIRE_BROWSER=1 PRG32_REQUIRE_SDK=1`, the RISC-V toolchain on PATH and the SDK on `PYTHONPATH` | **1155 passed, 0 failed, 45 skipped** |
-| `PRG32_LIVE_STORE=local pytest tests/test_store_live.py tests/test_sso_live.py` (loopback CartridgeStore) | 11 passed |
-| `PRG32_LIVE_QEMU=1 pytest -k live_qemu` (ESP-IDF v5.4, Espressif QEMU 9.0.0) | 1 passed |
+| `tools/run_live_suites.py --out docs/evidence/live/2026-10-21` | store 11 passed, oidc-keycloak 9 passed (Keycloak 26.0.7 in Docker), qemu 1 passed (ESP-IDF v5.4, Espressif QEMU 9.0.0); oidc-external and cloud not run (no tenant) |
 | `service_worker_lock --check` (cache `prg32-kit-v20`), `render_capabilities` | ok |
 | PRG32 SDK `pytest tests`, in the PR clones | 89 (#45), 87 (#46) |
 | PRG32-QT `ctest`, PR clone, default / OFF | 5/5 / 4/4 |
+| PRG32-QT's own CI on QT#1 | formatting fixed in a second commit (clang-format 18, as its CI); the Android packaging jobs failed in Gradle's resource merge (files changing under it), which canonical `main` passed; to be re-run by the maintainers |
 
 The 45 skips:
 
@@ -104,4 +104,5 @@ The 45 skips:
 3. The PRG32-QT desktop Import menu was not driven: computer use was not available in this
    session. The API delivery with integrity checks is recorded instead.
 4. No human screen-reader session.
-5. No Google Drive, OneDrive or institutional OIDC tenant; iOS stays unsupported/unverified.
+5. No Google Drive, OneDrive or institutional OIDC tenant (school sign-in was proven against a disposable
+   Keycloak only); iOS stays unsupported/unverified.

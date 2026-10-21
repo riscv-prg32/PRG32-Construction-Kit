@@ -72,7 +72,7 @@ index c055275..b779d22 100644
    qt_add_resources(PRG32_QT prg32qt_assets PREFIX "/prg32qt" FILES assets/prg32_logo.png assets/prg32_title.png assets/prg32_appicon_1024.png)
 diff --git a/src/core/FirmwareAudio.cpp b/src/core/FirmwareAudio.cpp
 new file mode 100644
-index 0000000..00e8f7b
+index 0000000..3b403fb
 --- /dev/null
 +++ b/src/core/FirmwareAudio.cpp
 @@ -0,0 +1,178 @@
@@ -94,8 +94,8 @@ index 0000000..00e8f7b
 +    if (data.size() < 20)
 +        return {};
 +    const uint32_t headerSize = uint32_t(data[8]) | uint32_t(data[9]) << 8;
-+    const uint32_t codeSize = uint32_t(data[16]) | uint32_t(data[17]) << 8 | uint32_t(data[18]) << 16 |
-+                              uint32_t(data[19]) << 24;
++    const uint32_t codeSize =
++        uint32_t(data[16]) | uint32_t(data[17]) << 8 | uint32_t(data[18]) << 16 | uint32_t(data[19]) << 24;
 +    const uint64_t offset = uint64_t(headerSize) + codeSize;
 +    if (offset + 40 > data.size() || std::memcmp(data.data() + offset, "AUD0", 4) != 0)
 +        return {};
@@ -256,7 +256,7 @@ index 0000000..00e8f7b
 +} // namespace prg32
 diff --git a/src/core/FirmwareAudio.h b/src/core/FirmwareAudio.h
 new file mode 100644
-index 0000000..d91512f
+index 0000000..e20b9db
 --- /dev/null
 +++ b/src/core/FirmwareAudio.h
 @@ -0,0 +1,47 @@
@@ -301,8 +301,8 @@ index 0000000..d91512f
 +    void catchUp();
 +    Runtime* runtime_ = nullptr;
 +    std::vector<uint8_t> block_;
-+    uint64_t frames_ = 0;             // frames run since attach
-+    uint64_t audioNanoseconds_ = 0;   // cartridge time the engine has reached
++    uint64_t frames_ = 0;           // frames run since attach
++    uint64_t audioNanoseconds_ = 0; // cartridge time the engine has reached
 +    uint32_t args_[8]{};
 +    uint32_t buzzerCalls_ = 0;
 +};
@@ -684,7 +684,7 @@ index 0000000..7bfc509
 +
 +#endif
 diff --git a/src/core/headless.cpp b/src/core/headless.cpp
-index 166f68a..a82456a 100644
+index 166f68a..82e2b31 100644
 --- a/src/core/headless.cpp
 +++ b/src/core/headless.cpp
 @@ -1,5 +1,9 @@
@@ -752,7 +752,7 @@ index 166f68a..a82456a 100644
          if (verifyMedia && i % 15 == 0) {
              const auto& pixels = r.framebuffer().rgb565Pixels();
              frameHashes.insert(framebufferHash(pixels));
-@@ -143,6 +165,28 @@ int main(int argc, char** argv) {
+@@ -143,6 +165,37 @@ int main(int argc, char** argv) {
          return 6;
      }
      std::cout << c->name() << ": OK (" << frames << " frames)\n";
@@ -769,9 +769,18 @@ index 166f68a..a82456a 100644
 +        const uint32_t bytes = uint32_t(pcm.size() * 2);
 +        auto u32 = [&](uint32_t v) { output.write(reinterpret_cast<const char*>(&v), 4); };
 +        auto u16 = [&](uint16_t v) { output.write(reinterpret_cast<const char*>(&v), 2); };
-+        output.write("RIFF", 4); u32(36 + bytes); output.write("WAVEfmt ", 8); u32(16); u16(1); u16(2);
-+        u32(prg32::FirmwareAudio::SampleRate); u32(prg32::FirmwareAudio::SampleRate * 4); u16(4); u16(16);
-+        output.write("data", 4); u32(bytes);
++        output.write("RIFF", 4);
++        u32(36 + bytes);
++        output.write("WAVEfmt ", 8);
++        u32(16);
++        u16(1);
++        u16(2);
++        u32(prg32::FirmwareAudio::SampleRate);
++        u32(prg32::FirmwareAudio::SampleRate * 4);
++        u16(4);
++        u16(16);
++        output.write("data", 4);
++        u32(bytes);
 +        output.write(reinterpret_cast<const char*>(pcm.data()), std::streamsize(bytes));
 +    }
 +#else
@@ -782,7 +791,7 @@ index 166f68a..a82456a 100644
          std::cout << "MEDIA graphics_non_black=" << maximumNonBlackPixels
                    << " unique_frame_hashes=" << frameHashes.size() << " audio_declared=" << bool(c->audio())
 diff --git a/src/qt/AppController.cpp b/src/qt/AppController.cpp
-index 89c4d0d..3c6b80b 100644
+index 89c4d0d..c5ef1a4 100644
 --- a/src/qt/AppController.cpp
 +++ b/src/qt/AppController.cpp
 @@ -48,7 +48,9 @@ AppController::AppController(QObject* p)
@@ -806,14 +815,15 @@ index 89c4d0d..3c6b80b 100644
          ++frameCount_;
          ++frameRateCount_;
          const qint64 elapsedMilliseconds = frameRateTimer_.elapsed();
-@@ -222,6 +228,14 @@ bool AppController::loadBytes(const QByteArray& d, const QString& suggestedName)
+@@ -222,6 +228,15 @@ bool AppController::loadBytes(const QByteArray& d, const QString& suggestedName)
      }
      timer_.stop();
      rt_.stop();
 +#ifdef PRG32QT_FIRMWARE_AUDIO
 +    // The firmware audio engine makes the sound; the Runtime's own sink stays silent.
 +    rt_.setAudioSink(&silentSink_);
-+    if (!firmwareAudio_.attach(rt_, std::span<const uint8_t>((const uint8_t*)d.constData(), size_t(d.size())), e)) {
++    if (!firmwareAudio_.attach(
++            rt_, std::span<const uint8_t>((const uint8_t*)d.constData(), size_t(d.size())), e)) {
 +        setStatus(QString::fromStdString(e));
 +        return false;
 +    }
@@ -949,10 +959,10 @@ index 9e2087e..6327d89 100644
      float master_ = 0.86f;
 diff --git a/tests/audio_device_check.cpp b/tests/audio_device_check.cpp
 new file mode 100644
-index 0000000..d0041c3
+index 0000000..2f23450
 --- /dev/null
 +++ b/tests/audio_device_check.cpp
-@@ -0,0 +1,80 @@
+@@ -0,0 +1,85 @@
 +// Plays a cartridge's sound through the computer's real audio output with the PRG32 firmware
 +// audio engine, as the desktop app does, and checks what the device took:
 +//
@@ -1027,9 +1037,14 @@ index 0000000..d0041c3
 +    const bool timeOk = status.processedUs >= (seconds - 1) * 1000000LL;
 +    const bool framesOk = status.firmwareFrames >= (seconds - 1) * prg32::FirmwareAudio::SampleRate;
 +    const bool samplesOk = hash == status.firmwareHash;
-+    std::printf("{\"device\": \"%s\", \"sink_state\": %d, \"processed_us\": %lld, \"firmware_frames_played\": %lld, "
-+                "\"frames_pushed\": %zu, \"played_equal_engine\": %s}\n",
-+                status.device.toUtf8().constData(), status.state, static_cast<long long>(status.processedUs),
-+                static_cast<long long>(status.firmwareFrames), pushed.size() / 2, samplesOk ? "true" : "false");
++    std::printf(
++        "{\"device\": \"%s\", \"sink_state\": %d, \"processed_us\": %lld, \"firmware_frames_played\": %lld, "
++        "\"frames_pushed\": %zu, \"played_equal_engine\": %s}\n",
++        status.device.toUtf8().constData(),
++        status.state,
++        static_cast<long long>(status.processedUs),
++        static_cast<long long>(status.firmwareFrames),
++        pushed.size() / 2,
++        samplesOk ? "true" : "false");
 +    return timeOk && framesOk && samplesOk ? 0 : 1;
 +}

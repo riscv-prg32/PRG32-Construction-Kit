@@ -1,0 +1,44 @@
+{
+ "started": "2026-10-21T17:51:56+00:00",
+ "kit_revision": "7ad7fb17bc753012a238655029d9b19afb2b0ab6",
+ "settings_present": [],
+ "suites": {
+  "store": {
+   "outcome": "passed",
+   "tests": [
+    "tests/test_store_live.py",
+    "tests/test_sso_live.py"
+   ],
+   "passed": 11,
+   "failed": 0,
+   "skipped": 0
+  },
+  "oidc-keycloak": {
+   "outcome": "passed",
+   "tests": [
+    "tests/test_identity_live.py"
+   ],
+   "passed": 9,
+   "failed": 0,
+   "skipped": 0
+  },
+  "oidc-external": {
+   "outcome": "not run",
+   "reason": "PRG32_LIVE_OIDC_ISSUER is not set (no test tenant)"
+  },
+  "cloud": {
+   "outcome": "not run",
+   "reason": "PRG32_LIVE_CLOUD is not set to google or onedrive (no test account)"
+  },
+  "qemu": {
+   "outcome": "passed",
+   "tests": [
+    "tests/test_audio_conformance.py::test_live_qemu_audio_does_not_drift"
+   ],
+   "passed": 1,
+   "failed": 0,
+   "skipped": 0
+  }
+ },
+ "finished": "2026-10-21T17:52:53+00:00"
+}
