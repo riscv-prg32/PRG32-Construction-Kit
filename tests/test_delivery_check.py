@@ -6,6 +6,7 @@ only to the given address, uses only the given slot, and records honest outcomes
 
 from __future__ import annotations
 
+import hashlib
 import json
 import struct
 import sys
@@ -191,6 +192,29 @@ def test_the_recorded_prg32_qt_delivery_matches_the_reproduced_builds():
     # The same Blocks game as C and as generated assembly draws the same screen; the others differ.
     assert shots["blocks-generated-C-esp32c6.prg32"] == shots["blocks-generated-assembly-esp32c6.prg32"]
     assert len(set(shots.values())) == 4
+
+
+def test_the_checked_prg32_qt_delivery_shows_each_cartridge_running_itself():
+    """docs/evidence/delivery/2026-10-21-prg32qt-checked: the same five cartridges, delivered again
+    with the integrity checks. For each, PRG32-QT reported that cartridge (name and code size)
+    running before and after its screenshot, with frames advancing - unlike the first record,
+    where the handwritten assembly was screenshotted while the console check was reported."""
+    folder = ROOT / "docs/evidence/delivery/2026-10-21-prg32qt-checked"
+    delivery = json.loads((folder / "delivery.json").read_text())
+    first = {item["file"]: item for item in json.loads(
+        (ROOT / "docs/evidence/delivery/2026-10-21-prg32qt/delivery.json").read_text())["cartridges"]}
+    assert len(delivery["cartridges"]) == 5
+    for item in delivery["cartridges"]:
+        assert item["outcome"] == "launched" and item["sha256"] == first[item["file"]]["sha256"]
+        for key in ("runtime_selected", "runtime_after_screenshot"):
+            cart = item[key]["cart"]
+            assert cart["loaded"] and cart["name"] == item["name"] and cart["code_size"] == item["code_size"], key
+        assert item["runtime_after_screenshot"]["diag"]["frame_count"] >= 30
+        shot = (folder / "screenshots" / item["file"].replace(".prg32", ".bmp")).read_bytes()
+        assert hashlib.sha256(shot).hexdigest() == item["screenshot"]["sha256"]
+    names = [item["name"] for item in delivery["cartridges"]]
+    assert names[-1] == "audio-check" and len(set(names[2:])) == 3
+    assert first["handwritten-assembly-esp32c6.prg32"]["runtime"]["cart"]["name"] == "audio-check"   # the stale record
 
 
 def test_a_device_that_reports_the_new_cartridge_late_is_waited_for(tmp_path, device):

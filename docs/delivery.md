@@ -77,5 +77,11 @@ python3 tools/delivery_check.py device --url http://192.168.4.1 --slot cart7 --t
   cartridges through its own web API: Blocks as C, Blocks as assembly, Advanced C,
   handwritten assembly, and the console audio check. The screenshots are kept. Their
   SHA-256 are the ones the kit's Docker image builds (`docs/evidence/toolchain/`).
+  That first record took one screenshot while PRG32-QT still reported the previous
+  cartridge running. The same five were delivered again with the integrity checks
+  (`docs/evidence/delivery/2026-10-21-prg32qt-checked/`): each time, PRG32-QT reported the
+  selected cartridge (name, code size, frames advancing) before and after its screenshot.
+- **PRG32-QT desktop Import menu:** not recorded yet. It needs a person, or computer use, to
+  choose **Import PRG32 cartridge** for each file.
 - **PRG32 console:** no delivery has been recorded yet. It needs a console on the
   network.

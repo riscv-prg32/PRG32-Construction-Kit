@@ -636,9 +636,10 @@
       "tests": [
         "tests/test_wasm_runtime.py::test_native_harness_draws_exactly_like_prg32qt_headless",
         "tests/test_delivery_check.py::test_the_recorded_prg32_qt_delivery_matches_the_reproduced_builds",
-        "tests/test_delivery_check.py::test_prg32_qt_slots_are_checked_before_anything_is_uploaded"
+        "tests/test_delivery_check.py::test_prg32_qt_slots_are_checked_before_anything_is_uploaded",
+        "tests/test_delivery_check.py::test_the_checked_prg32_qt_delivery_shows_each_cartridge_running_itself"
       ],
-      "note": "Delivery recorded 2026-10-21 (docs/evidence/delivery/2026-10-21-prg32qt): canonical PRG32-QT f6d80ad stored, started and drew five kit cartridges (Blocks as C and as assembly, Advanced C, handwritten assembly, the console audio check) through its web API, with screenshots; their SHA-256 equal the Docker-built ones. Through the API, not the desktop Import menu clicked by a person."
+      "note": "Delivery recorded 2026-10-21 (docs/evidence/delivery/2026-10-21-prg32qt): canonical PRG32-QT f6d80ad stored, started and drew five kit cartridges (Blocks as C and as assembly, Advanced C, handwritten assembly, the console audio check) through its web API, with screenshots; their SHA-256 equal the Docker-built ones. Delivered again with the integrity checks (2026-10-21-prg32qt-checked): PRG32-QT reported each selected cartridge running, by name and code size, before and after its screenshot. Through the API, not the desktop Import menu clicked by a person."
     },
     {
       "id": "DEP-03",

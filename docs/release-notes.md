@@ -14,6 +14,10 @@
 - The three patches are open pull requests (not merged): riscv-prg32/PRG32#45 (buzzer
   retired), riscv-prg32/PRG32#46 (frame clock, fresh mixer), riscv-prg32/PRG32-QT#1 (firmware
   audio engine). Links in `docs/upstream/README.md`.
+- PRG32-QT delivery recorded again with the integrity checks: each of the five cartridges
+  reported running itself before and after its screenshot
+  (`docs/evidence/delivery/2026-10-21-prg32qt-checked/`). Handoff:
+  `docs/handoff/refinement-after-951f782.md`.
 
 ### The compiler in the IDE, and shared accounts checked live
 
