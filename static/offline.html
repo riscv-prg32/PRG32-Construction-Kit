@@ -77,6 +77,15 @@
     </div>
   </div>
 </main>
+<!-- The storage note of base.html, as static text (this page has no server template): keep the
+     version and text equal to the "storage" notice in privacy_notices.json (a test checks it). -->
+<div class="kit-storage-notice alert alert-light border shadow mb-0" id="storageNotice" role="region" aria-label="Cookies and storage" data-version="1.0" hidden>
+  <p class="mb-2"><i class="bi bi-cookie" aria-hidden="true"></i> This kit uses one cookie, only to keep you signed in, and keeps your own games, settings and breakpoints in this browser. There is no advertising or tracking, and nothing is shared with other sites.</p>
+  <div class="d-flex gap-2 align-items-center">
+    <button type="button" class="btn btn-primary btn-sm" id="storageNoticeOk">OK</button>
+    <a href="/privacy#storage">What is stored</a>
+  </div>
+</div>
 <script src="/static/vendor/jquery/3.7.1/jquery.min.js"></script>
 <script src="/static/vendor/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
 <script src="/static/vendor/blockly/11.2.1/blockly.min.js"></script>
@@ -84,5 +93,6 @@
 <script src="/static/js/simulator.js"></script>
 <script src="/static/js/guest_store.js"></script>
 <script src="/static/js/offline.js"></script>
+<script src="/static/js/storage_notice.js"></script>
 </body>
 </html>

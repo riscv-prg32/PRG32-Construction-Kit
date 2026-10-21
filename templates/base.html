@@ -32,6 +32,7 @@
       <ul class="navbar-nav me-auto mb-2 mb-lg-0">
         <li class="nav-item"><a class="nav-link" href="/"><i class="bi bi-grid-3x3-gap"></i> Projects</a></li>
         <li class="nav-item"><a class="nav-link" href="/sprites"><i class="bi bi-brush"></i> Sprite Lab</a></li>
+        <li class="nav-item"><a class="nav-link" href="/audio-studio"><i class="bi bi-music-note-beamed"></i> AudioStudio</a></li>
         <li class="nav-item"><a class="nav-link" href="/artifacts"><i class="bi bi-box-seam"></i> Artifacts</a></li>
         <li class="nav-item"><a class="nav-link" href="/player"><i class="bi bi-cpu"></i> Player</a></li>
         <li class="nav-item"><a class="nav-link" href="/publish"><i class="bi bi-cloud-upload"></i> Publish</a></li>
@@ -62,11 +63,30 @@
   {% block content %}{% endblock %}
 </main>
 
+<footer class="kit-footer border-top small">
+  <div class="container-fluid px-3 px-lg-4 py-3 d-flex flex-wrap gap-3 align-items-center">
+    <span class="text-body-secondary">PRG32-Construction-Kit{% if kit_version %} {{ kit_version }}{% endif %}</span>
+    <a href="/privacy"><i class="bi bi-shield-lock" aria-hidden="true"></i> Privacy &amp; your data</a>
+    <a href="/privacy#storage"><i class="bi bi-cookie" aria-hidden="true"></i> Cookies &amp; storage</a>
+    <a href="/documentation"><i class="bi bi-book" aria-hidden="true"></i> Docs</a>
+  </div>
+</footer>
+
+{# A short note on what this browser keeps (no tracking, so nothing to consent to); storage_notice.js shows it once per version. #}
+<div class="kit-storage-notice alert alert-light border shadow mb-0" id="storageNotice" role="region" aria-label="Cookies and storage" data-version="{{ privacy_notice('storage').version }}" hidden>
+  <p class="mb-2"><i class="bi bi-cookie" aria-hidden="true"></i> {{ privacy_notice('storage').summary }}</p>
+  <div class="d-flex gap-2 align-items-center">
+    <button type="button" class="btn btn-primary btn-sm" id="storageNoticeOk">OK</button>
+    <a href="/privacy#storage">What is stored</a>
+  </div>
+</div>
+
 <div class="toast-container position-fixed bottom-0 end-0 p-3" id="toastArea"></div>
 
 <script src="{{ url_for('static', filename='vendor/jquery/3.7.1/jquery.min.js') }}"></script>
 <script src="{{ url_for('static', filename='vendor/bootstrap/5.3.3/js/bootstrap.bundle.min.js') }}"></script>
 <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+<script src="{{ url_for('static', filename='js/storage_notice.js') }}"></script>
 {% block scripts %}{% endblock %}
 </body>
 </html>

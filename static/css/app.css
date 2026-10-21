@@ -365,3 +365,17 @@ body.dbg-mode-advanced .dbg-beginner { display: none !important; }
 /* Cloud storage (ADR-0019): only when a cloud account is connected. */
 .cloud-only { display: none; }
 .cloud-ready .cloud-only { display: inline-block; }
+
+/* --- footer and the storage note (base.html, storage_notice.js) ------------------------- */
+.kit-footer { background: var(--bs-tertiary-bg); }
+.kit-footer a { text-decoration: none; }
+.kit-storage-notice {
+  position: fixed;
+  left: 1rem;
+  bottom: 1rem;
+  z-index: 1080;
+  max-width: 32rem;
+}
+@media (max-width: 575.98px) {
+  .kit-storage-notice { left: .5rem; right: .5rem; bottom: .5rem; max-width: none; }
+}

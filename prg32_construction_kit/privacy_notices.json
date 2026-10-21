@@ -48,6 +48,14 @@
       "where": "Classes page, when a teacher adds a student",
       "summary": "Teachers and facilitators of your class can open your games to help you. They can read them but not change or publish them.",
       "full": "docs/privacy/notices/classes.md"
+    },
+    {
+      "id": "storage",
+      "version": "1.0",
+      "effective": "2026-10-22",
+      "where": "every page, once per browser: cookies and browser storage",
+      "summary": "This kit uses one cookie, only to keep you signed in, and keeps your own games, settings and breakpoints in this browser. There is no advertising or tracking, and nothing is shared with other sites.",
+      "full": "docs/privacy/notices/storage.md"
     }
   ]
 }

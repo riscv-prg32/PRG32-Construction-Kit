@@ -491,11 +491,35 @@ def _me():
     return principal, None
 
 
+# Everything the kit keeps in a visitor's browser (the "Cookies & storage" part of /privacy and
+# the storage notice). Keep it in step with the browser_storage rows of docs/privacy/ropa.json.
+BROWSER_STORAGE = (
+    {"name": "prg32_kit_session", "kind": "cookie", "why": "keeps you signed in; holds your account number and "
+     "sign-in time, signed so it cannot be changed", "how_long": "until you sign out, or a few hours after "
+     "signing in", "needed": True},
+    {"name": "prg32-kit-guest", "kind": "IndexedDB", "why": "the games, sprites and sounds you make without an "
+     "account", "how_long": "until you delete them or clear this site's data", "needed": True},
+    {"name": "prg32-source-language-<project>", "kind": "localStorage", "why": "which code view (C or assembly) "
+     "you last opened for a project", "how_long": "until you clear this site's data", "needed": True},
+    {"name": "prg32-kit-breakpoints:<...>, prg32-kit-source-breakpoints:<...>", "kind": "localStorage", "why": "the breakpoints you set in the "
+     "debugger", "how_long": "until you clear this site's data", "needed": True},
+    {"name": "prg32-kit-debugger-view", "kind": "localStorage", "why": "beginner or advanced debugger view",
+     "how_long": "until you clear this site's data", "needed": True},
+    {"name": "prg32-kit-last-project", "kind": "localStorage", "why": "the project AudioStudio offers to "
+     "continue with", "how_long": "until you clear this site's data", "needed": True},
+    {"name": "prg32-kit-storage-notice", "kind": "localStorage", "why": "that you have read this storage notice",
+     "how_long": "until you clear this site's data", "needed": True},
+    {"name": "prg32-kit-v*", "kind": "Cache Storage", "why": "the kit's own pages and libraries, so it opens "
+     "without a connection; never your games or account pages", "how_long": "until the kit is updated",
+     "needed": True},
+)
+
+
 @bp.get("/privacy")
 def privacy_page():
     from flask import render_template
 
-    return render_template("privacy.html", notices=list(notices().values()),
+    return render_template("privacy.html", notices=list(notices().values()), storage=BROWSER_STORAGE,
                            controller=current_app.config.get("PRG32_PRIVACY_CONTROLLER", ""),
                            contact=current_app.config.get("PRG32_PRIVACY_CONTACT", ""))
 

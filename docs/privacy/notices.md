@@ -16,6 +16,7 @@ shown (`privacy_notice_records`). This happens once per version:
 | [cloud](notices/cloud.md) | Account page, beside the consent box | when connecting |
 | [publishing](notices/publishing.md) | Publish page; in the review summary | at review, before confirming |
 | [classes](notices/classes.md) | Classes page | at sign-in, for class members |
+| [storage](notices/storage.md) | bottom of every page until OK is pressed; `/privacy#storage` | not recorded (needed storage only, nothing to consent to); OK is remembered in the browser |
 
 **Changing a notice:** edit both texts, raise the `version` and `effective` date in
 `privacy_notices.json`, and add a line to [CHANGELOG.md](CHANGELOG.md).

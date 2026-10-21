@@ -15,6 +15,23 @@ from .routes import bp
 from .sample_data import seed_if_empty
 
 
+def _kit_version() -> str:
+    """The version in pyproject.toml, shown in the page footer ("" when it cannot be read)."""
+    try:
+        from importlib.metadata import PackageNotFoundError, version
+
+        return version("prg32-construction-kit")
+    except (ImportError, PackageNotFoundError):
+        import re
+
+        pyproject = Path(__file__).resolve().parent.parent / "pyproject.toml"
+        found = re.search(r'^version = "([^"]+)"', pyproject.read_text(encoding="utf-8"), re.M) if pyproject.is_file() else None
+        return found.group(1) if found else ""
+
+
+KIT_VERSION = _kit_version()
+
+
 def create_app(test_config: dict | None = None) -> Flask:
     app = Flask(__name__, instance_relative_config=False, static_folder="../static", template_folder="../templates")
     app.config.from_object(Config)
@@ -50,7 +67,7 @@ def create_app(test_config: dict | None = None) -> Flask:
     def inject_csp_nonce() -> dict:
         from flask import g
 
-        return {"csp_nonce": getattr(g, "csp_nonce", "")}
+        return {"csp_nonce": getattr(g, "csp_nonce", ""), "kit_version": KIT_VERSION}
 
     with app.app_context():
         auth.bootstrap_admin(app)

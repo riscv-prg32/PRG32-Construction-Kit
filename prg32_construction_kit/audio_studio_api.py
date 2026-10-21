@@ -159,6 +159,12 @@ def _answer(project: dict[str, Any], document: dict[str, Any], row: Asset | None
                     "soundtracks": {track["name"]: index for index, track in enumerate(document["soundtracks"])}}}
 
 
+@bp.get("/audio-studio")
+def pick_project():
+    """The AudioStudio menu item: choose which project's sound to open (sound belongs to a project)."""
+    return render_template("audio_studio_pick.html")
+
+
 @bp.get("/audio-studio/<project_id>")
 def page(project_id: str):
     project = _project(project_id, write=False)

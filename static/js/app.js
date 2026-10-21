@@ -94,6 +94,14 @@ window.Kit = {
   }
 };
 
+// The editor, the IDE and AudioStudio carry the open project's id: remember it so the
+// AudioStudio menu item can offer it first (localStorage, listed on /privacy#storage).
+$(function () {
+  const projectId = $('#projectId').val();
+  if (!projectId) return;
+  try { localStorage.setItem('prg32-kit-last-project', projectId); } catch (_) { /* private window */ }
+});
+
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     // Served from the root so it covers every page (it caches static files only).

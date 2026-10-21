@@ -32,6 +32,20 @@
       </div>
     </section>
     {% endfor %}
+    <h2 class="h5 mt-4" id="storage">Cookies and browser storage</h2>
+    <p>{{ privacy_notice('storage').summary }} Everything below is needed for the kit to work, so the law
+      does not ask for your consent; you can still delete it at any time by clearing this site's data in
+      your browser. <a href="/docs/privacy/notices/storage.md">Full notice</a>.</p>
+    <div class="table-responsive">
+      <table class="table table-sm align-middle">
+        <thead><tr><th scope="col">Name</th><th scope="col">Kind</th><th scope="col">What it is for</th><th scope="col">How long</th></tr></thead>
+        <tbody>
+        {% for item in storage %}
+          <tr><td><code>{{ item.name }}</code></td><td>{{ item.kind }}</td><td>{{ item.why }}</td><td>{{ item.how_long }}</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
     <p class="small text-muted">For the people running the kit: <a href="/docs/privacy/README.md">docs/privacy</a>
       (records of processing, roles and legal bases, retention, processors, incidents).</p>
   </div>

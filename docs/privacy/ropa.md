@@ -244,7 +244,7 @@ not decisions: see [decisions.md](decisions.md).
 | Store | Data | Where | Kept for | Deleted by | Personal |
 |---|---|---|---|---|---|
 | session_cookie | signed session cookie: account id, session number, sign-in time | the person's browser | PERMANENT_SESSION_LIFETIME (fixed from sign-in) | signing out; ending all sessions; erasure invalidates it | yes |
-| browser_storage | IndexedDB: guest games, unsaved work, editor preferences | the person's browser only | until the person clears it | the person (Clear site data); never sent to the server for guests | yes |
+| browser_storage | IndexedDB prg32-kit-guest: guest games; localStorage prg32-*: code view per project, debugger breakpoints and view, last AudioStudio project, storage notice read (list on /privacy#storage) | the person's browser only | until the person clears it | the person (Clear site data); never sent to the server for guests | yes |
 | service_worker_cache | static files only, never signed-in pages | the browser | until the next cache version | automatic | no |
 | build_folders | <data>/builds/<build_id>/: sources and outputs of one build | the server chosen by the operator (configure in the EU/EEA, see processors_and_transfers.md) | as builds | with the build | yes |
 | artifact_files | <data>/artifacts/: uploads and AudioStudio samples (one folder per owner) | the server chosen by the operator (configure in the EU/EEA, see processors_and_transfers.md) | as artifacts | with the artifact (retention.delete_artifact); erasure removes the owner's sample folder | yes |
