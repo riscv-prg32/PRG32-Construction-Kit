@@ -1,0 +1,52 @@
+{
+ "kit": {
+  "name": "PRG32-Construction-Kit",
+  "version": "0.1.0",
+  "revision": "4d099e5a61a0e53be9c820ae70d8319a64e6dea1"
+ },
+ "sdk": {
+  "name": "prg32",
+  "installed": true,
+  "version": "0.1.0",
+  "revision": "679dfb58783bd007125de9ca0b75eaa077908739"
+ },
+ "classroom_cartridges": 1,
+ "modes": [
+  {
+   "mode": "blocks (generated C)",
+   "architecture": "esp32c6",
+   "source_language": "c",
+   "build_id": "build_d02e0c6c5f2e",
+   "bytes": 2888,
+   "sha256": "010fac8882dd01974ccd3930fd11303e4afe555d37bb041a3ff22a9f5f8d7fd3",
+   "runs_in_browser_core": true
+  },
+  {
+   "mode": "blocks (generated assembly)",
+   "architecture": "esp32c6",
+   "source_language": "asm",
+   "build_id": "build_e893dc63672d",
+   "bytes": 3060,
+   "sha256": "5d86ff9298c6a7a5cba3d983084ff5d2f78553fd27df7ac28c713776b38582a4",
+   "runs_in_browser_core": true
+  },
+  {
+   "mode": "advanced C",
+   "architecture": "esp32c6",
+   "source_language": "c",
+   "build_id": "build_17d73c06539a",
+   "bytes": 2776,
+   "sha256": "ba1597f76f19d3c50e20fb4bee40ef3d6a5ddef58fe33270298b23ab89611255",
+   "runs_in_browser_core": true
+  },
+  {
+   "mode": "handwritten assembly",
+   "architecture": "esp32c6",
+   "source_language": "asm",
+   "build_id": "build_0ea8da3d00ea",
+   "bytes": 2744,
+   "sha256": "29bf1530d80d229e16c3b0673f09c4270a92c93414de3b03c0accacbae86f8e4",
+   "runs_in_browser_core": true
+  }
+ ]
+}

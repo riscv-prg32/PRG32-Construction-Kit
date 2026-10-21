@@ -57,12 +57,20 @@ python3 tools/delivery_check.py device --url http://192.168.4.1 --slot cart7 --t
 
 - Choose a slot you do not need: its game is replaced.
 - Try one cartridge of each kind: Blocks or C, generated assembly, handwritten
-  assembly. `tools/check_build.py` builds all three.
+  assembly. `tools/check_build.py --save-cartridges DIR` builds all of them.
+- PRG32-QT has four slots (`cart0` … `cart3`); the tool refuses a slot the device does
+  not have before sending anything. `--screenshots DIR` keeps each screenshot.
 - `launched` means the device stored and started the cartridge and drew something.
   Watch it too, and write what you saw in `--notes`.
 - `record` (instead of `device`) writes the hashes only, for example before
   importing by hand in PRG32-QT.
 
-**Status:** no PRG32 console and no PRG32-QT import has been recorded by the
-project yet. The tool is tested against a stand-in device only
-(`tests/test_delivery_check.py`).
+**Status:**
+
+- **PRG32-QT:** recorded on 2026-10-21 in `docs/evidence/delivery/2026-10-21-prg32qt/`.
+  Canonical PRG32-QT `f6d80ad` (unpatched, macOS) stored, started and drew five kit
+  cartridges through its own web API: Blocks as C, Blocks as assembly, Advanced C,
+  handwritten assembly, and the console audio check. The screenshots are kept. Their
+  SHA-256 are the ones the kit's Docker image builds (`docs/evidence/toolchain/`).
+- **PRG32 console:** no delivery has been recorded yet. It needs a console on the
+  network.

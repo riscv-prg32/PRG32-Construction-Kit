@@ -146,3 +146,20 @@ def test_prg32_qt_slots_are_checked_before_anything_is_uploaded(tmp_path, device
                        "--screenshots", str(tmp_path / "shots"), out=tmp_path / "qt3.json")
     assert code == 0 and set(FakeDevice.slots) == {"cart3"}
     assert (tmp_path / "shots" / "pong.bmp").read_bytes() == FakeDevice.screen
+
+
+def test_the_recorded_prg32_qt_delivery_matches_the_reproduced_builds():
+    """docs/evidence: the cartridges delivered to PRG32-QT are byte for byte the ones the kit's Docker
+    image builds (another host), and every one was stored, started and drew its own screen."""
+    delivery = json.loads((ROOT / "docs/evidence/delivery/2026-10-21-prg32qt/delivery.json").read_text())
+    built = json.loads((ROOT / "docs/evidence/toolchain/2026-10-21/check_build.json").read_text())
+    container = {item["sha256"] for item in built["modes"]}
+    delivered = {item["file"]: item for item in delivery["cartridges"]}
+    assert all(item["outcome"] == "launched" for item in delivered.values())
+    four = [item for name, item in delivered.items() if not name.startswith("audio_check")]
+    assert len(four) == 4 and {item["sha256"] for item in four} <= container
+    assert delivery["cartridges"][0]["runtime"]["host"] == "qt"
+    shots = {item["file"]: item["screenshot"]["sha256"] for item in delivery["cartridges"]}
+    # The same Blocks game as C and as generated assembly draws the same screen; the others differ.
+    assert shots["blocks-generated-C-esp32c6.prg32"] == shots["blocks-generated-assembly-esp32c6.prg32"]
+    assert len(set(shots.values())) == 4

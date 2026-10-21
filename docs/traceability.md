@@ -69,4 +69,4 @@ that proves it. "—" means not implemented yet. Statuses: **Done**,
 | SEC-4 | Audit of configuration/SSO admin actions | Partial | Manual SSO sync and throttle clearing are audited; the kit has no other admin configuration endpoints |
 | CL-* | Drive/OneDrive sync | Open | needs OAuth app registrations |
 | ST-1 | Store bundle publish | Done (pre-existing) | `tests/test_api.py` publish tests |
-| TG-* | Qt / iOS / hardware targets [DEP-01] [DEP-02] [DEP-03] | Partial | download, `delivery.md`; `tools/delivery_check.py` records device runs (`tests/test_delivery_check.py`); iOS deferred (ADR-0020) |
+| TG-* | Qt / iOS / hardware targets [DEP-01] [DEP-02] [DEP-03] | Partial | download, `delivery.md`; `tools/delivery_check.py` records device runs (`tests/test_delivery_check.py`); PRG32-QT delivery recorded (`docs/evidence/delivery/2026-10-21-prg32qt`); iOS deferred (ADR-0020) |

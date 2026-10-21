@@ -48,6 +48,7 @@ PRG32-Construction-Kit is a classroom web application for building PRG32 games w
    - `audio_engine.md` - the 8-voice PRG32 sound engine and how it is checked.
    - `hardware_audio_check.md` - checking the sound on a real PRG32 console (I2S capture or microphones).
    - `upstream/README.md` - changes the kit proposes to the PRG32 SDK, PRG32-QT and the Cartridge Store.
+19. `reproducing.md` - running every toolchain check with Docker only (for reviewers and auditors).
 
 ## Full-IDE roadmap
 

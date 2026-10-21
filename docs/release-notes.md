@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+### Builds and delivery, reproducible without the toolchain
+
+- `tools/check_build.py` also builds one game written each way (Blocks as C and as
+  assembly, Advanced C, handwritten assembly), runs each in the browser core, and can save
+  the cartridges and their SHA-256 (`--save-cartridges`, `--evidence`).
+- `tools/reproduce_toolchain_checks.py` runs every toolchain check in the kit's Docker
+  image, for anyone without the RISC-V toolchain (`reproducing.md`). First run:
+  `docs/evidence/toolchain/2026-10-21/`.
+- The first recorded PRG32-QT delivery: five kit cartridges on canonical PRG32-QT, with
+  screenshots (`docs/evidence/delivery/2026-10-21-prg32qt/`). `tools/delivery_check.py`
+  now knows PRG32-QT has four slots, and `--screenshots` keeps the pictures.
+
 ### Sound: upstream patches proven, console sessions ready (after the audit of f4b74bc)
 
 - PRG32 SDK patches (`docs/upstream/`, the SDK itself is not changed):

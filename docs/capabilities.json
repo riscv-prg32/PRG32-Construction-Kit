@@ -127,14 +127,18 @@
       "audit_score": 2,
       "source": [
         "prg32_construction_kit/packager.py::prepare_package",
-        "prg32_construction_kit/packager.py::run_prg32_build"
+        "prg32_construction_kit/packager.py::run_prg32_build",
+        "prg32_construction_kit/build_check.py::source_modes_check",
+        "tools/reproduce_toolchain_checks.py"
       ],
       "tests": [
         "tests/test_wasm_runtime.py::test_kit_cartridges_run_the_same_in_the_browser_core",
         "tests/test_concurrency.py::test_real_cartridges_for_many_students_and_windows",
-        "tests/test_handwritten_assembly.py::test_handwritten_assembly_builds_a_real_cartridge"
+        "tests/test_handwritten_assembly.py::test_handwritten_assembly_builds_a_real_cartridge",
+        "tests/test_concurrency.py::test_real_cartridges_from_blocks_c_and_assembly",
+        "tests/test_concurrency.py::test_source_modes_check_builds_each_way_of_writing_a_game"
       ],
-      "note": "Real-build tests need the PRG32 toolchain and skip without it; executed locally and in the Linux container on 2026-10-18."
+      "note": "Real-build tests need the PRG32 toolchain and skip without it. tools/reproduce_toolchain_checks.py runs them with Docker only: on 2026-10-21 (kit b547d82) check_build built Blocks (as C and as assembly), Advanced C and handwritten assembly for both targets, the fixtures rebuilt byte for byte, and 112 toolchain tests passed (docs/evidence/toolchain); the same cartridges, built on macOS, have identical SHA-256."
     },
     {
       "id": "BLD-02",
@@ -614,11 +618,15 @@
       "title": "PRG32-QT delivery",
       "status": "partial",
       "audit_score": 2,
-      "source": [],
-      "tests": [
-        "tests/test_wasm_runtime.py::test_native_harness_draws_exactly_like_prg32qt_headless"
+      "source": [
+        "tools/delivery_check.py::check_on_device"
       ],
-      "note": "Runtime parity verified headlessly; end-user import described (docs/delivery.md) but not recorded."
+      "tests": [
+        "tests/test_wasm_runtime.py::test_native_harness_draws_exactly_like_prg32qt_headless",
+        "tests/test_delivery_check.py::test_the_recorded_prg32_qt_delivery_matches_the_reproduced_builds",
+        "tests/test_delivery_check.py::test_prg32_qt_slots_are_checked_before_anything_is_uploaded"
+      ],
+      "note": "Delivery recorded 2026-10-21 (docs/evidence/delivery/2026-10-21-prg32qt): canonical PRG32-QT f6d80ad stored, started and drew five kit cartridges (Blocks as C and as assembly, Advanced C, handwritten assembly, the console audio check) through its web API, with screenshots; their SHA-256 equal the Docker-built ones. Through the API, not the desktop Import menu clicked by a person."
     },
     {
       "id": "DEP-03",

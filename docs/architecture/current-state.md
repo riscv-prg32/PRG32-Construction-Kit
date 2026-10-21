@@ -119,8 +119,9 @@ capability IDs.
 
 - Store bundles against a shared versioned contract (ADR-0018), checked with the
   Store's own code and a throwaway live Store; Store gaps (repeated id/version,
-  tokens without expiry) recorded. PRG32-QT delivery with runtime parity but no
-  executed import. [STR-01] [DEP-02]
+  tokens without expiry) recorded. PRG32-QT delivery recorded through its web API
+  (five kit cartridges stored, started and drawn on canonical PRG32-QT); the
+  desktop Import menu was not used by a person. [STR-01] [DEP-02]
 - Credentials, throttling and audit log; quality gates without lint, type,
   coverage or performance budgets. [SEC-02] [QLT-01]
 
