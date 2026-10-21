@@ -171,8 +171,8 @@
     {
       "id": "WASM-02",
       "title": "Browser host: framebuffer, input, timing, audio, offline",
-      "status": "implemented",
-      "audit_score": 4,
+      "status": "partial",
+      "audit_score": 2,
       "source": [
         "static/js/prg32_runtime.js::PRG32CartridgePlayer",
         "static/service-worker.js"
@@ -182,7 +182,56 @@
         "tests/test_browser_offline.py::test_offline_player_runs_a_real_cartridge",
         "tests/test_browser_offline.py::test_cold_offline_start_shows_an_editable_scratchpad"
       ],
-      "note": "Audio approximate. Offline subset: scratchpad, Blocks preview, local player (ADR-0012); signed-in projects need the server."
+      "note": "Framebuffer/input/timing/offline behavior is covered, but the browser explicitly approximates audio with Web Audio oscillators and has no ADSR/sample parity proof."
+    },
+    {
+      "id": "AUD-01",
+      "title": "Eight SID-like voices with independent ADSR",
+      "status": "partial",
+      "audit_score": 1,
+      "source": [
+        "static/js/prg32_runtime.js::AudioHost",
+        "prg32_construction_kit/generator.py::parse_statement"
+      ],
+      "tests": [
+        "tests/test_wasm_runtime.py::test_audio_calls_reach_the_browser_host"
+      ],
+      "note": "The portable audio calls reach the browser and PRG32/PRG32-QT contain synth support, but the browser host substitutes simple oscillators, ignores ADSR parameters, and has no eight-active-voice envelope test."
+    },
+    {
+      "id": "AUD-02",
+      "title": "Stereo audio and cross-runtime sample parity",
+      "status": "partial",
+      "audit_score": 2,
+      "source": [
+        "static/js/prg32_runtime.js::AudioHost",
+        "wasm/prg32_core_api.cpp::setChannelPan"
+      ],
+      "tests": [
+        "tests/test_wasm_runtime.py::test_audio_calls_reach_the_browser_host"
+      ],
+      "note": "The browser uses StereoPannerNode and forwards pan calls, but tests count audio calls rather than compare left/right PCM, envelopes, clipping or deterministic samples with firmware and PRG32-QT."
+    },
+    {
+      "id": "AUD-03",
+      "title": "AudioStudio instruments, sound effects and soundtracks",
+      "status": "missing",
+      "audit_score": 0,
+      "source": [],
+      "tests": [],
+      "note": "No AudioStudio route, editor, versioned audio-asset workflow, eight-voice arrangement UI or cartridge asset integration exists."
+    },
+    {
+      "id": "AUD-04",
+      "title": "Obsolete buzzer removal",
+      "status": "missing",
+      "audit_score": 0,
+      "source": [
+        "tools/build_language_index.py",
+        "static/js/ide/prg32_language_index.js"
+      ],
+      "tests": [],
+      "note": "Buzzer functions remain in the generated portable API index and buzzer-era examples/documentation remain reachable; no rejection or migration test exists."
     },
     {
       "id": "DBG-01",
@@ -566,7 +615,7 @@
       "id": "SEC-02",
       "title": "Credentials, throttling, audit, secrets",
       "status": "partial",
-      "audit_score": 3,
+      "audit_score": 4,
       "source": [
         "prg32_construction_kit/auth.py::bootstrap_admin",
         "prg32_construction_kit/security.py::check",
@@ -588,7 +637,7 @@
       "id": "OPS-01",
       "title": "CI, Docker, migrations, health",
       "status": "implemented",
-      "audit_score": 3,
+      "audit_score": 4,
       "source": [
         "tools/check_build.py::main",
         "docker/entrypoint.sh",
@@ -625,7 +674,7 @@
       "id": "QLT-01",
       "title": "Quality gates: tests, lint, E2E, a11y, performance",
       "status": "partial",
-      "audit_score": 3,
+      "audit_score": 4,
       "source": [],
       "tests": [
         "tests/test_capabilities.py::test_rendered_table_is_up_to_date",

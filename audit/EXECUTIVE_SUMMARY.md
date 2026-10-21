@@ -1,26 +1,31 @@
 # Executive summary
 
-Audit date: 2026-10-20 (Europe/Rome)
+Audit date: 2026-10-21 (Europe/Rome)
 
-Audited revision: `ide/refine-after-e2d0cef` at `fea31c02348af2adc28e96c3795d38ae18a8f8e9`
+Audited revision: `ide/refine-after-e2d0cef` at `c0d115e80c53b1d7d46afb639d104efd2b1c8516`
 
-Recommendation: **NO-GO for the complete Full IDE scope; GO for a bounded classroom deployment with documented platform limits**
+Recommendation: **NO-GO**
 
-The latest refinement materially closes three previous product gaps. School identity passes nine live Keycloak scenarios in addition to its unit matrix. Store bundles now follow a generated, versioned contract checked against CartridgeStore code and 45 tests using a disposable live Store. Optional Google Drive and OneDrive adapters share explicit conflict semantics, least-privilege scopes, PKCE, encrypted server-side tokens, fixed egress hosts and browser-tested UX.
+The audit now contains 37 requirements, including four mandatory audio rows. The repository has strong IDE, identity, storage, Store, sandbox, debugger and operations evidence, but it does not satisfy the newly explicit audio release gate.
 
-The complete Full IDE remains NO-GO because neither cloud adapter has been executed against a real provider account and hardware/Qt/iOS delivery remains incomplete. Operational sandbox, supply-chain, accessibility/performance and advanced-debugger evidence also remains below release-grade completeness. These gaps no longer block local classroom use when cloud and unverified delivery claims are excluded.
+The browser runtime labels its audio as an approximation and replaces PRG32 synth output with simple Web Audio oscillators. It forwards pan but does not reproduce ADSR envelopes or compare rendered left/right PCM with PRG32 firmware and PRG32-QT. No test gates eight independently enveloped voices simultaneously. There is no AudioStudio for instruments, sound effects or soundtracks. Obsolete `prg32_buzzer_*` functions remain in the generated portable language index, and buzzer-era examples and documentation remain reachable.
+
+These are release blockers under the updated audit brief: fewer than eight demonstrated SID-like ADSR voices, missing stereo sample parity, missing AudioStudio, or a reachable buzzer path each requires NO-GO.
+
+Recent non-audio refinements are credible: disk budgets/AppArmor CI evidence, Store lifecycle guards, backup/restore, locked dependencies/SBOM, performance/accessibility gates and debugger regeneration/inlined-frame behavior are implemented and tested.
 
 ## Executed evidence
 
-- Broad feasible suite: **815 passed, 63 skipped, 1 deselected**.
-- Required Chromium suites with `PRG32_REQUIRE_BROWSER=1`: **77 passed**, no skips.
-- Shared contract and disposable live Store suite: **45 passed**.
-- Store-egress suite: **94 passed**.
-- Disposable live Keycloak suite: **9 passed**.
-- Syntax, service-worker lock, capability rendering, language index and contract-fixture reproducibility: passed.
+- Feasible broad suite: **857 passed, 70 skipped, 1 deselected**, plus two documentation failures caused by the audit adding new capability IDs while that run was active and four loopback permission errors.
+- All six delivery tests were rerun with loopback permission and passed; capability/document tests were rerun after rendering: **150 passed**.
+- Required Chromium: **81 passed**; disposable Store/contract/lifecycle: **51 passed**; Store egress: **94 passed**.
+- Syntax, service-worker lock, capability rendering, language index, Store fixtures, SBOM and requirements-lock reproducibility passed.
 
-## Limitations
+## Audio verdict
 
-No real Google Drive or OneDrive test account, physical PRG32, end-user Qt import, iOS target, local real cartridge build, Linux bubblewrap run or exact Emscripten rebuild was available. The Store and IdP runs used disposable local services, not production systems. Toolchain/Linux-only and real-cloud cases skipped cleanly.
+- Eight simultaneous SID-like ADSR voices: **not demonstrated; browser ADSR absent**.
+- Stereo output: **partially wired; rendered stereo parity not demonstrated**.
+- AudioStudio: **missing**.
+- Buzzer removal: **failed; buzzer APIs remain reachable**.
 
-Scored coverage is **103/132 (78.0%)** across all 33 requirements.
+Scored coverage is **107/148 (72.3%)**. The score cannot override the mandatory audio blockers.

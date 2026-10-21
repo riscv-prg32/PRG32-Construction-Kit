@@ -81,8 +81,7 @@ capability IDs.
 - Real `.prg32` builds from Blocks, C and assembly; every compile isolated by
   bubblewrap + seccomp + limits, with provenance and SHA-256. [BLD-01] [BLD-02]
 - Browser runtime: the PRG32-QT core as WebAssembly, equal to the native core
-  and `prg32qt-headless`; browser host with framebuffer, input, timing, audio
-  and an offline subset (scratchpad, Blocks preview, local player). [WASM-01] [WASM-02]
+  and `prg32qt-headless`. [WASM-01]
 - Player debugger: pause, continue, restart, speeds, instruction/over/out
   stepping, address breakpoints, browser state equal to PRG32-QT's. [DBG-01] [DBG-02] [DBG-03] [DBG-06]
 - Source and block debugging for kit-compiled cartridges (ADR-0015): a saved
@@ -106,7 +105,7 @@ capability IDs.
 - Threat model, SSRF controls, build isolation; CI, Docker, migrations,
   health; documentation and traceability. [SEC-01] [OPS-01] [DOC-01]
 - Self-contained frontend: every library from `static/vendor/`, strict CSP,
-  static-only service worker at `/` (ADR-0012). [WASM-02]
+  static-only service worker at `/` (ADR-0012).
 
 ### Partly implemented
 
@@ -120,11 +119,16 @@ capability IDs.
 - Google Drive and OneDrive behind one provider interface (ADR-0019), proven
   against in-process fakes and a real browser; no live tenant run yet.
   [CLD-01] [CLD-02]
+- Browser host with framebuffer, input, timing and an offline subset; audio
+  calls and stereo pan reach Web Audio, but the host is approximate and
+  eight-voice ADSR/sample parity is unproved. [WASM-02] [AUD-01] [AUD-02]
 
 ### Not implemented
 
 - Verified hardware delivery (a recording tool exists, no run recorded) and
   PRG32-iOS handoff (deferred, ADR-0020). [DEP-01] [DEP-03]
+- AudioStudio is absent, and obsolete buzzer APIs and teaching material remain
+  reachable without an explicit legacy migration or rejection. [AUD-03] [AUD-04]
 
 ## Risks
 

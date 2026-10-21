@@ -1,13 +1,13 @@
 # Remediation plan
 
-| Priority | Area | Work | Acceptance evidence |
-|---:|---|---|---|
-| 1 | Documentation | Remove stale “no live Store/IdP” and “cloud open” statements. | Documentation/capability consistency. |
-| 2 | Cloud validation | Run opt-in suites against dedicated Google and Microsoft accounts; preserve created-file-only cleanup. | Refresh, revoke, conflict, outage and least-privilege tenant evidence. |
-| 3 | Delivery | Verify physical PRG32, end-user Qt import and iOS handoff. | Device logs, artifact hashes and reproducible instructions. |
-| 4 | Build security | Total disk budget, per-build identity, confined AppArmor and DWARF fuzzing. | Linux escape/resource and real-build suites. |
-| 5 | Store lifecycle | Coordinate expiring tokens and duplicate pending id/version behavior with CartridgeStore. | Shared contract v1-compatible migration and live tests. |
-| 6 | QA/operations | Screen reader, performance budgets, restore drill, dependency locking and SBOM. | Recorded reports and restoration exercise. |
-| 7 | Debugger polish | Breakpoint persistence and honest optimized/inlined presentation. | Advanced fixtures and graceful-unavailable tests. |
+| Priority | Owner | Size | Work | Acceptance evidence |
+|---:|---|:---:|---|---|
+| 1 | Runtime/audio | L | Implement one canonical eight-voice SID-like stereo ADSR renderer for browser/WASM parity, preserving the portable ABI. | Eight concurrent voice fixture; per-voice ADSR traces; left/right PCM hashes/tolerances against PRG32-QT and firmware/QEMU. |
+| 2 | Product/frontend | L | Add accessible AudioStudio parallel to SpriteLab for instruments, effects and soundtracks. | Keyboard/browser scenario covering CRUD, preview, eight-voice arrangement, save/reload, import/export and project attachment. |
+| 3 | Assets/build | L | Define versioned audio assets and deterministic PRG32 audio-block generation/packaging. | Round trips, malformed/oversized rejection, reproducible source/block/cartridge hashes and all three source modes. |
+| 4 | SDK/docs | M | Remove buzzer from canonical portable API, index, blocks, examples and docs; define legacy migration/rejection. | Reproducible index plus repository-wide no-reachable-buzzer test and migration fixtures. |
+| 5 | Audio QA | M | Add stop/reset, clipping, master/channel volume/pan, voice exhaustion, timing and offline tests. | Cross-runtime PCM and no-stuck-note browser tests. |
+| 6 | Delivery | M | Validate stereo hardware, Qt import and iOS handoff. | Recorded tool versions, hashes and stereo capture/device results. |
+| 7 | Operations | M | Complete real cloud evidence and per-build identity evaluation. | Safe tenant suites and Linux isolation evidence. |
 
-Preserve validation, deterministic teaching sources, private build directories, cartridge/debug identity, CSP, ownership, offline use and explicit conflict choices.
+Audio PRs must not weaken deterministic generation, server validation, cartridge/debug identity, CSP, ownership, offline use or educational source visibility.

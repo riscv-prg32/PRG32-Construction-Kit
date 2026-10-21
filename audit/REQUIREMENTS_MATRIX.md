@@ -12,7 +12,11 @@ Scores: 0 missing, 1 prototype, 2 partial, 3 implemented/tested with an evidence
 | BLD-01 | 2 | Partial | Real local toolchain build unavailable during this audit. |
 | BLD-02 | 3 | Implemented/tested | Isolation/provenance/diagnostics/debug identity; Linux rerun unavailable. |
 | WASM-01 | 4 | Reference-verified | Committed browser core and golden execution tests. |
-| WASM-02 | 4 | Reference-verified | Deterministic input/audio/graphics behavior covered. |
+| WASM-02 | 2 | Partial | Framebuffer/input/timing/offline pass, but browser audio is explicitly approximate and lacks sample/envelope parity. |
+| AUD-01 | 1 | Prototype | Audio calls and synth waveforms exist, but browser ADSR is absent and eight simultaneous enveloped voices are unproved. |
+| AUD-02 | 2 | Partial | Stereo panning is wired in browser/Qt, but no left/right PCM, clipping or deterministic cross-runtime comparison exists. |
+| AUD-03 | 0 | Missing | No AudioStudio, versioned audio assets, soundtrack/effect editor or cartridge integration workflow. |
+| AUD-04 | 0 | Missing | Buzzer APIs remain in the generated portable index and buzzer-era examples/docs remain reachable. |
 | DBG-01 | 4 | Reference-verified | Address debugger and execution controls covered. |
 | DBG-02 | 4 | Reference-verified | Breakpoints and compressed stepping covered. |
 | DBG-03 | 3 | Implemented/tested | Registers, memory, CSR and stack views; physical target not used. |
@@ -33,11 +37,11 @@ Scores: 0 missing, 1 prototype, 2 partial, 3 implemented/tested with an evidence
 | DEP-02 | 2 | Partial | Qt runtime parity exists; end-user import workflow not executed. |
 | DEP-03 | 0 | Missing | iOS handoff not verified. |
 | SEC-01 | 3 | Implemented/tested | SSRF/sandbox boundaries tested; per-build UID/AppArmor/disk limit gaps remain. |
-| SEC-02 | 3 | Implemented/tested | Credential, session, secret-reference, quota, retention, audit, throttling and CSP controls covered; supply-chain gaps remain. |
-| OPS-01 | 3 | Implemented/tested | Operational configuration and CI evidence; restore drill not executed. |
+| SEC-02 | 4 | Reference-verified | Credential/session controls, retention, auditing, throttling, CSP, hash-locked dependencies and SBOM are covered. |
+| OPS-01 | 4 | Reference-verified | CI/deployment/migrations and a tested backup/restore drill are documented and exercised. |
 | DOC-01 | 3 | Implemented/tested | Consistency checks pass; one current-state row still says “this change”. |
-| QLT-01 | 3 | Implemented/tested | Large automated suite and required browser CI; quality/performance gates incomplete. |
+| QLT-01 | 4 | Reference-verified | Required browser CI, lint/coverage gates, performance budgets, accessibility evidence and regression coverage are present. |
 
-Domain totals: IDE 12/16; Project 3/4; Build 5/8; WASM 8/8; Debug 22/24; Accounts 8/8; SSO 15/16; Cloud 6/8; Store 7/8; Delivery 2/12; Security 6/8; Operations 3/4; Documentation 3/4; Quality 3/4.
+Domain totals: IDE 12/16; Project 3/4; Build 5/8; WASM 6/8; Audio 3/16; Debug 22/24; Accounts 8/8; SSO 15/16; Cloud 6/8; Store 7/8; Delivery 2/12; Security 7/8; Operations 4/4; Documentation 3/4; Quality 4/4.
 
-**Total: 103/132 (78.0%).**
+**Total: 107/148 (72.3%).**

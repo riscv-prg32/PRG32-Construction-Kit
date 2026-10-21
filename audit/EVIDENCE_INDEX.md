@@ -1,30 +1,26 @@
 # Evidence index
 
-## Repositories
+## Revisions
 
 | Repository | HEAD |
 |---|---|
-| PRG32-Construction-Kit | `fea31c02348af2adc28e96c3795d38ae18a8f8e9` |
+| PRG32-Construction-Kit | `c0d115e80c53b1d7d46afb639d104efd2b1c8516` |
 | PRG32 | `679dfb58783bd007125de9ca0b75eaa077908739` |
 | PRG32-QT | `f6d80addf49d0512c2e4390251a81d797a35b157` |
 | CartridgeStore | `820f74bfe9364c8727db92cb0f15f3b9dd85feab` |
 
-## Primary evidence
+## Audio evidence
 
-- Identity: ADR-0016, `identity.py`, identity/authorization/live Keycloak suites.
-- Storage/cloud: ADR-0017/0019, `cloud_storage.py`, guest/storage/cloud unit and browser suites.
-- Store: ADR-0018, `contracts/prg32-store-contract-1.json`, fixture builder, contract/live/egress suites.
-- Language/debug: ADR-0014/0015, reproducible index/fixtures and browser/native/WASM tests.
-- CI: non-skipping browser job, disposable Store job, opt-in Keycloak job and commit-specific artifacts.
+- Browser approximation: `static/js/prg32_runtime.js`, `AudioHost`.
+- WASM semantic records: `wasm/prg32_core_api.cpp`, `QueueAudioSink`.
+- Existing call-only test: `tests/test_wasm_runtime.py::test_audio_calls_reach_the_browser_host`.
+- Generated buzzer exposure: `tools/build_language_index.py` and `static/js/ide/prg32_language_index.js`.
+- Basic Blocks/generation: `prg32_construction_kit/generator.py`, `asm_generator.py`, `tools/build_example_games.py`.
+- Upstream reference: PRG32 `components/prg32_audio/`; PRG32-QT `src/core/Audio.h`, `Runtime.cpp`, and `src/qt/QtAudioEngine.cpp`.
+- Missing evidence: AudioStudio files/tests, eight-voice fixture, ADSR trace, rendered stereo comparison and buzzer-removal test.
 
 ## Executed evidence
 
-- Broad feasible suite: 815 passed, 63 skipped, 1 deselected.
-- Required Chromium: 77 passed.
-- Contract/disposable Store: 45 passed.
-- Store egress: 94 passed.
-- Disposable Keycloak: 9 passed.
-
-## Missing external evidence
-
-Real Google/Microsoft accounts; physical PRG32, end-user Qt import and iOS; Linux sandbox/resource exhaustion; real local cartridge/debug rebuild; exact Emscripten rebuild; screen reader, performance, complete SBOM and restore drill.
+- Broad feasible suite: 857 passed, 70 skipped, 1 deselected before isolated reruns.
+- Syntax and all reproducibility checks passed.
+- Required Chromium: 81 passed; delivery: 6 passed; disposable Store contract/lifecycle: 51 passed; Store egress: 94 passed; capability/document consistency: 150 passed.
