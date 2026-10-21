@@ -41,6 +41,12 @@
   - ADR and capability IDs.
 
   A human checklist goes with it (`release_checklist.md`).
+- Security follow-ups from the Article 32 review and the breach rehearsal:
+  - Store bearer tokens are encrypted at rest (older databases at start-up);
+  - every request made with an API token is in the audit log;
+  - a sign-in from a new address is flagged in the log, mailed to the person when the kit
+    can send email, and listed under *Recent sign-ins* on the Account page;
+  - answered rights requests can expire (`PRG32_KIT_PRIVACY_REQUEST_DAYS`).
 
 ### Sound on one clock everywhere, and the patches proposed upstream (after the audit of 951f782)
 

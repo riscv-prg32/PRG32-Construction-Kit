@@ -107,7 +107,7 @@ so a sound always starts in the same buffer: in the browser, in PRG32-QT and in 
 - password and token hashes;
 - encrypted cloud tokens;
 - the secret key (in backups);
-- Store bearer tokens, stored in clear (open item S-1).
+- Store bearer tokens, encrypted at rest and read back only to send them to the Store.
 
 The complete field-level record, the legal bases, rights and transfers are in
 [privacy/](privacy/README.md).

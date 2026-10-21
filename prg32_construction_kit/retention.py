@@ -10,7 +10,8 @@
 - Switched-off accounts (ADR-0016) are listed for an administrator to review; their
   items are never deleted automatically.
 - Audit events older than PRG32_KIT_AUDIT_DAYS (365) are removed, and sign-up links that
-  expired or were used more than a day ago (ADR-0022, docs/privacy/retention.md).
+  expired or were used more than a day ago (ADR-0022, docs/privacy/retention.md). Answered
+  rights requests go PRG32_KIT_PRIVACY_REQUEST_DAYS after their answer, when that is set.
 
 Run it with ``flask --app app prg32-retention`` (shows what it would do) or
 ``--apply``, or ``POST /api/admin/retention``; builds are also pruned for a project
@@ -156,7 +157,16 @@ def _expire_records(config: dict[str, Any], now: datetime, dry_run: bool) -> dic
     old_links = select(RegistrationToken.id).where(or_(RegistrationToken.expires_at < link_cutoff,
                                                        RegistrationToken.used_at < link_cutoff))
     counts = {"expired_audit_events": len(db.session.scalars(old_events).all()),
-              "expired_signup_links": len(db.session.scalars(old_links).all())}
+              "expired_signup_links": len(db.session.scalars(old_links).all()), "expired_privacy_requests": 0}
+    from .privacy import FINAL_STATES, PrivacyRequest
+
+    request_days = int(config.get("PRG32_KIT_PRIVACY_REQUEST_DAYS", 0))
+    old_requests = select(PrivacyRequest.id).where(PrivacyRequest.status.in_(FINAL_STATES),
+                                                   PrivacyRequest.completed_at < _iso_days_ago(request_days, now))
+    if request_days > 0:
+        counts["expired_privacy_requests"] = len(db.session.scalars(old_requests).all())
+        if not dry_run:
+            db.session.execute(delete(PrivacyRequest).where(PrivacyRequest.id.in_(old_requests)))
     if not dry_run:
         db.session.execute(delete(AuditEvent).where(AuditEvent.created_at < audit_cutoff))
         db.session.execute(delete(RegistrationToken).where(or_(RegistrationToken.expires_at < link_cutoff,

@@ -96,6 +96,9 @@ class Config:
     # ADR-0022: how long the audit log and backups are kept (docs/privacy/retention.md).
     PRG32_KIT_AUDIT_DAYS = int(os.environ.get("PRG32_KIT_AUDIT_DAYS", "365"))
     PRG32_KIT_BACKUP_DAYS = int(os.environ.get("PRG32_KIT_BACKUP_DAYS", "35"))
+    # Closed rights requests are removed this many days after they were answered; 0 keeps them.
+    # The period is the controller's decision (docs/privacy/decisions.md D-5).
+    PRG32_KIT_PRIVACY_REQUEST_DAYS = int(os.environ.get("PRG32_KIT_PRIVACY_REQUEST_DAYS", "0"))
     # Shown on /privacy: who runs this kit (the controller) and where to send privacy requests.
     PRG32_PRIVACY_CONTROLLER = os.environ.get("PRG32_PRIVACY_CONTROLLER", "")
     PRG32_PRIVACY_CONTACT = os.environ.get("PRG32_PRIVACY_CONTACT", "")

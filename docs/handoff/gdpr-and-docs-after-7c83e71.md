@@ -144,12 +144,22 @@ transfer mechanisms are all **open**. A deployment is **NO-GO** until they are d
 | `tools/run_live_suites.py` (throwaway Store, disposable Keycloak 26.0.7, QEMU), at the final state | Store 11, Keycloak 9, QEMU 1 passed; school tenant and cloud not run |
 | `tools/breach_rehearsal.py` | record in `docs/privacy/exercises/` |
 
+## After the handoff: open items closed
+
+| Item | Now | Checked by |
+|---|---|---|
+| S-1: Store bearer tokens in clear | Encrypted at rest (`secrets_at_rest.py`); older databases encrypted at start-up; a changed secret key gives a clear refusal | `tests/test_publish_authorization.py` (3 new tests) |
+| S-5: reads not audited | Every API-token request logged (`api_token_use`: method and path) | `tests/test_security_controls.py::test_what_an_api_token_does_is_in_the_audit_log` |
+| S-6: no alerting | `login_new_address`, an email to the person, *Recent sign-ins* on the Account page | `tests/test_security_controls.py::test_a_sign_in_from_a_new_address_is_logged_and_the_person_told` |
+| R-1: request register retention | `PRG32_KIT_PRIVACY_REQUEST_DAYS` (0 = keep until the controller decides) | `tests/test_privacy_rights.py::test_answered_requests_expire_only_when_the_controller_sets_a_period` |
+| CI on `b12b4e8` | The generated diagrams were reported stale against their own generator. Their freshness is now `build_diagrams.py --check`, and the checker compares against the working tree. | CI |
+
 ## Remaining exceptions
 
 1. **GDPR-01 stays NO-GO.** No controller decisions, no DPO or counsel review, no DPIA, no
-   processor agreements, no staffed breach exercise. Store bearer tokens are stored in
-   clear (S-1). Reads are not audited (S-5). There is no alerting (S-6).
-2. Request register retention is not automated (R-1).
+   processor agreements, no staffed breach exercise. S-1, S-5, S-6 and R-1 were closed
+   afterwards (above).
+2. Reads in a signed-in browser are left to the server's access logs.
 3. The QEMU runtime frames were not re-rendered.
 4. Carried over: the upstream audio PRs are unmerged (PRG32#45, #46, PRG32-QT#1); no
    physical stereo capture or console delivery; no human screen-reader session; the PRG32-QT

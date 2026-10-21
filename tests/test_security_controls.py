@@ -231,3 +231,44 @@ def test_safe_metadata_drops_secrets_and_trims():
                                       "label": "a" * 500, "groups": list(range(100)), "n": 3})
     assert set(cleaned) == {"label", "groups", "n"}
     assert len(cleaned["label"]) == 200 and len(cleaned["groups"]) == 50
+
+
+def test_what_an_api_token_does_is_in_the_audit_log(app, client):
+    """S-5 (docs/privacy/security_article32.md): if a token leaks, the log shows what it was used for."""
+    token = client.post("/auth/tokens", json={"label": "script", "scopes": ["read"]}).get_json()
+    anon = app.test_client(login=None)
+    assert anon.get("/api/projects?secret=x", headers={"Authorization": f"Bearer {token['token']}"}).status_code == 200
+    anon.post("/api/projects", json={"title": "x"}, headers={"Authorization": f"Bearer {token['token']}"})
+    events = client.get("/api/admin/audit", query_string={"action": "api_token_use"}).get_json()["events"]
+    seen = {(event["metadata"]["method"], event["metadata"]["path"]) for event in events}
+    assert ("GET", "/api/projects") in seen
+    denied = client.get("/api/admin/audit", query_string={"action": "api_token_scope"}).get_json()["events"]
+    assert any(event["target_id"] == "/api/projects" and event["outcome"] == "denied" for event in denied)
+    assert all(event["target_id"] == str(token["id"]) for event in events)
+    assert "secret=x" not in str(events) and token["token"] not in str(events)
+
+
+def test_a_sign_in_from_a_new_address_is_logged_and_the_person_told(app, client):
+    """S-6: a sign-in from an address the account never used is flagged, in the audit log, by email
+    when the kit can send it, and in the person's own Recent sign-ins."""
+    from conftest import ADMIN_PASSWORD
+
+    def sign_in(address):
+        browser = app.test_client(login=None)
+        browser.environ_base.update({"REMOTE_ADDR": address, "HTTP_X_PRG32_KIT": "1"})
+        assert browser.post("/auth/login", data={"username": "admin", "password": ADMIN_PASSWORD}).status_code == 302
+        return browser
+
+    app.extensions.pop("prg32_last_notice", None)
+    sign_in("127.0.0.1")                                   # the address the fixture already used
+    assert "prg32_last_notice" not in app.extensions
+    other = sign_in("203.0.113.9")
+    notice = app.extensions.pop("prg32_last_notice")
+    assert notice["email"] and "not used before" in notice["text"]
+    flagged = client.get("/api/admin/audit", query_string={"action": "login_new_address"}).get_json()["events"]
+    assert [event["client"] for event in flagged] == ["203.0.113.9"]
+    sign_in("203.0.113.9")                                 # known now
+    assert "prg32_last_notice" not in app.extensions
+    recent = other.get("/auth/sessions/recent").get_json()["sign_ins"]
+    assert any(item["action"] == "login_new_address" and item["address"] == "203.0.113.9" for item in recent)
+    assert app.test_client(login=None).get("/auth/sessions/recent").status_code in (302, 401)   # sign in first

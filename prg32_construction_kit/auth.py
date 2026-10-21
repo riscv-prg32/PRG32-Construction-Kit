@@ -243,6 +243,7 @@ def authenticate_token(token: str) -> Principal:
         return ANONYMOUS
     row.last_used = utcnow()
     db.session.commit()
+    g.prg32_token_id = row.id      # for the audit of what the token did (guard_request)
     scopes = tuple(row.scopes.split()) if row.scopes is not None else None
     return principal_from_user(db.session.get(User, row.user_id), token_scopes=scopes)
 
@@ -584,6 +585,7 @@ def sign_in(principal: Principal) -> None:
     if user is not None:
         user.last_login = utcnow()
         db.session.commit()
+        note_new_address(user)
     session.clear()
     session["user_id"] = principal.id
     session["epoch"] = (user.session_epoch or 0) if user is not None else 0
@@ -647,12 +649,54 @@ def _send_registration_email(email: str, link: str) -> None:
     message["Subject"] = "Finish your PRG32-Construction-Kit registration"
     message.set_content("Open this link to finish your PRG32-Construction-Kit registration:\n\n"
                         f"{link}\n\nThe link expires in 24 hours.\n")
-    with smtplib.SMTP(host, int(config["SMTP_PORT"]), timeout=10) as smtp:
+    _smtp_send(message)
+
+
+def _smtp_send(message: EmailMessage) -> None:
+    config = current_app.config
+    with smtplib.SMTP(str(config["SMTP_HOST"]).strip(), int(config["SMTP_PORT"]), timeout=10) as smtp:
         if config.get("SMTP_TLS", True):
             smtp.starttls()
         if config.get("SMTP_USER"):
             smtp.login(config["SMTP_USER"], config.get("SMTP_PASSWORD", ""))
         smtp.send_message(message)
+
+
+# --- sign-ins from a new address (S-6, docs/privacy/breach_playbook.md) -----------------------
+
+SIGN_IN_ACTIONS = ("login", "oidc_sign_in", "saml_sign_in")
+
+
+def note_new_address(user: User) -> bool:
+    """Called at sign-in, before this sign-in is logged. When the account has signed in before but
+    never from this address (within the audit log's retention), log ``login_new_address`` and, if
+    the kit can send email, tell the person: a stolen password then does not go unnoticed."""
+    address = security.client_address()
+    earlier = select(security.AuditEvent.id).where(security.AuditEvent.actor_id == user.id,
+                                                    security.AuditEvent.action.in_(SIGN_IN_ACTIONS),
+                                                    security.AuditEvent.outcome == "success")
+    if not address or db.session.scalar(earlier.limit(1)) is None:
+        return False                                   # the first sign-in: nothing to compare with
+    if db.session.scalar(earlier.where(security.AuditEvent.client == address).limit(1)) is not None:
+        return False
+    security.record("login_new_address", target_type="user", target_id=user.id, actor=principal_from_user(user))
+    config = current_app.config
+    text = ("Your PRG32-Construction-Kit account was just signed in to from a computer or network it has not "
+            "used before.\n\nIf it was you, there is nothing to do. If not, change your password at once "
+            "(Account page) and tell your teacher.\n")
+    if config.get("TESTING"):
+        current_app.extensions["prg32_last_notice"] = {"email": user.email, "text": text}
+    elif str(config.get("SMTP_HOST") or "").strip():
+        message = EmailMessage()
+        message["From"] = config["SMTP_FROM"]
+        message["To"] = user.email
+        message["Subject"] = "New sign-in to your PRG32-Construction-Kit account"
+        message.set_content(text)
+        try:
+            _smtp_send(message)
+        except (OSError, smtplib.SMTPException) as error:   # never stop a sign-in because mail failed
+            current_app.logger.warning("could not send the new sign-in notice: %s", error)
+    return True
 
 
 # --- the request guard --------------------------------------------------------
@@ -693,6 +737,11 @@ def guard_request():
                             metadata={"needed": needed, "method": request.method})
             return jsonify({"error": f"this API token does not have the {needed!r} scope",
                             "code": "insufficient_scope"}), 403
+    if getattr(g, "prg32_auth_by_token", False):
+        # S-5: every request made with an API token is in the audit log (method and path, never the
+        # body or the query), so the extent of a leaked token's use can be established.
+        security.record("api_token_use", target_type="api_token", target_id=getattr(g, "prg32_token_id", ""),
+                        metadata={"method": request.method, "path": path[:200]})
     from .privacy import restriction_blocks
 
     if restriction_blocks(principal, request.method, path):
@@ -921,6 +970,20 @@ def revoke_my_sessions():
     security.record("sessions_revoke", target_type="user", target_id=user.id, metadata={"by": "self"})
     session.clear()
     return jsonify({"ok": True})
+
+
+@bp.get("/auth/sessions/recent")
+@login_required
+def recent_sign_ins():
+    """The person's own last sign-ins (S-6), so they can spot one that was not them."""
+    me = current_principal().id
+    rows = db.session.scalars(
+        select(security.AuditEvent).where(
+            ((security.AuditEvent.actor_id == me) & security.AuditEvent.action.in_(SIGN_IN_ACTIONS + ("login_new_address",)))
+            | ((security.AuditEvent.action == "login_failed") & (security.AuditEvent.target_id == str(me))))
+        .order_by(security.AuditEvent.id.desc()).limit(20)).all()
+    return jsonify({"sign_ins": [{"at": row.created_at, "action": row.action, "outcome": row.outcome,
+                                  "address": row.client} for row in rows]})
 
 
 def _token_record(row: ApiToken) -> dict[str, Any]:

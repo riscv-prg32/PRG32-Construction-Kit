@@ -21,9 +21,9 @@ or its DPO (D-8).**
 
 | Id | Item | Risk | Proposal | Status |
 |---|---|---|---|---|
-| S-1 | Store bearer tokens (`publish_profiles.bearer_token`) are stored in clear in the database. They are never returned by the API. | Someone who reads the database file or a backup can publish as that profile. | Encrypt them like cloud tokens, and keep backups encrypted. | open (D-11) |
+| S-1 | Store bearer tokens were stored in clear in the database | Someone reading the database or a backup could publish as that profile | Encrypted at rest (`secrets_at_rest.py`, Fernet, a key derived from the secret key); older databases are encrypted at start-up | **fixed** (2026-10-21) |
 | S-2 | Backups contain everything, including the secret key | Exposure of all data | Encrypt the backup archives and store them in the EEA (operator) | operator's configuration |
 | S-3 | Web-server logs are outside the kit's retention | Addresses kept longer than needed | Rotate at 14 days (operator) | operator's configuration |
 | S-4 | No independent penetration test | Unknown weaknesses | Commission one before a large deployment | open |
-| S-5 | Ordinary reads of projects are not audited (rehearsal finding F-3) | The extent of a breach is harder to establish | Keep server access logs for 14 days; consider auditing reads by API tokens | open |
-| S-6 | No alert on sign-ins from new addresses (rehearsal finding F-2) | Late detection | Alerting outside the kit (log monitoring), or a future kit feature | open |
+| S-5 | Reads were not audited (rehearsal finding F-3) | The extent of a breach was harder to establish | Every request made with an API token is logged (`api_token_use`: method and path); session reads are covered by the server's access logs | **fixed** for API tokens (2026-10-21) |
+| S-6 | No alert on sign-ins from new addresses (rehearsal finding F-2) | Late detection | `login_new_address` in the audit log, an email to the person when SMTP is set, and *Recent sign-ins* on the Account page | **fixed** (2026-10-21) |

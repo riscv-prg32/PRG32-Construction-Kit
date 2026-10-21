@@ -30,7 +30,8 @@ from .db import (
     update_if_unchanged,
     update_resource,
 )
-from . import audio_studio, audio_studio_api, build_budget, project_format, publishing, retention, security, sso, storage_policy, store_contract
+from . import (audio_studio, audio_studio_api, build_budget, project_format, publishing, retention, secrets_at_rest,
+               security, sso, storage_policy, store_contract)
 from .auth import Principal, current_principal, role_at_least
 from .build_check import builds_available, toolchain_present
 from .db import utcnow
@@ -145,6 +146,8 @@ def checked_payload(resource: str, payload: dict[str, Any]) -> dict[str, Any]:
         payload.pop("token_set_at", None)          # set by the server when a token is put in
         if "bearer_token" in payload:
             payload["token_set_at"] = utcnow() if payload["bearer_token"] else ""
+            # Encrypted at rest (S-1): only the publish step reads it back, to send it to the Store.
+            payload["bearer_token"] = secrets_at_rest.seal(str(payload["bearer_token"] or ""))
     if resource == "publish_profiles" and "store_url" in payload:
         # Only Stores the administrator approved (ADR-0008); StoreRefused is a 400 with a student-safe reason.
         check_url(str(payload["store_url"] or ""), policy_from_config(current_app.config))
@@ -1437,7 +1440,12 @@ def api_publish():
                         "state": "uploading"}), 409
     _audit_publish("success", payload, profile, stage="upload", cartridge=summary["cartridge"]["id"],
                    version=summary["cartridge"]["version"])
-    token = profile.get("bearer_token", "")
+    token = secrets_at_rest.unseal(profile.get("bearer_token", ""))
+    if token is None:
+        publishing.finish_attempt(digest, "failed", {"ok": False, "reason": "token_unreadable"})
+        return jsonify({"error": "The Store token of this profile cannot be read any more (the kit's secret key "
+                                 "changed). Enter the token again in the profile.", "reason": "token_unreadable",
+                        "state": "failed"}), 400
     if not token and summary["store"]["authentication"] == "single_sign_on":
         # Single sign-on: publish as the signed-in student with a one-time ticket.
         token = sso.make_ticket(current_principal().email, "api")

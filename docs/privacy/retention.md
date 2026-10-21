@@ -20,7 +20,7 @@ them. The controller confirms or changes each period (decision D-5 in
 | Single sign-on tickets | minutes | none | Expiry |
 | Cloud tokens (encrypted) | until disconnected | none | Disconnect, or erasure (revoked at Google; Microsoft offers no revocation) |
 | Notice records | while the account exists | none | Erasure |
-| Rights requests | kept under a pseudonym after erasure, as accountability evidence | the controller decides (D-5) | Not yet automated: open item R-1 |
+| Rights requests | answered requests: kept under a pseudonym after erasure, as accountability evidence; open requests always | `PRG32_KIT_PRIVACY_REQUEST_DAYS` (0 = keep; the controller decides, D-5) | Retention run, that many days after the answer |
 | Session cookie | a fixed time from sign-in | `PERMANENT_SESSION_LIFETIME` | Sign-out, "end all sessions", erasure |
 | Browser storage (guests, unsaved work) | until the person clears it | none | The person |
 | **Backups** | **35 days** | `PRG32_KIT_BACKUP_DAYS` | `python3 tools/backup_restore.py prune --folder <backups> --keep-days 35`, run daily |
@@ -53,5 +53,6 @@ proves this end to end.
 
 ## Open items
 
-- **R-1:** the request register has no automatic retention. The controller sets the period
-  (D-5); until then, administrators delete old entries by hand.
+- **R-1 (closed 2026-10-21):** the request register expires answered requests when
+  `PRG32_KIT_PRIVACY_REQUEST_DAYS` is set. The period itself is still the controller's
+  decision (D-5).

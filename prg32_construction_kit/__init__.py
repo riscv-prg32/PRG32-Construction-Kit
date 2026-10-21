@@ -55,6 +55,9 @@ def create_app(test_config: dict | None = None) -> Flask:
     with app.app_context():
         auth.bootstrap_admin(app)
         security.forget_expired()  # old sign-in counters
+        from .secrets_at_rest import seal_plain_store_tokens
+
+        seal_plain_store_tokens()  # Store tokens an older database kept in clear (S-1)
         seed_if_empty(app.config["DEFAULT_STORE_URL"])
         # gunicorn --preload builds the app once and then forks workers; each
         # worker must open its own database connections instead of sharing these.

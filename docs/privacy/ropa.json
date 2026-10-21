@@ -321,7 +321,7 @@
   },
   {
    "id": "publishing",
-   "data": "Store profiles (with the Store's bearer token, stored in clear in the database, never returned by the API: open item S-1 in security_article32.md) and what was published where",
+   "data": "Store profiles (with the Store's bearer token, encrypted at rest and never returned by the API) and what was published where",
    "fields": {
     "publish_profiles": [
      "id",
@@ -367,7 +367,7 @@
   },
   {
    "id": "security_log",
-   "data": "audit events (who did what, when, from which address) and sign-in counters (hashed)",
+   "data": "audit events (who did what, when, from which address; API-token use; sign-ins from new addresses) and sign-in counters (hashed)",
    "fields": {
     "audit_events": [
      "id",
@@ -472,7 +472,7 @@
    "access": "the person (their own); administrators",
    "recipients": "none",
    "location": "the server chosen by the operator (configure in the EU/EEA, see processors_and_transfers.md)",
-   "retention": "notices: while the account exists; requests: kept under a pseudonym after erasure, for the period the controller sets (decisions.md)",
+   "retention": "notices: while the account exists; open requests always; answered requests PRG32_KIT_PRIVACY_REQUEST_DAYS after the answer (0 = keep; the controller decides, decisions.md D-5), under a pseudonym after erasure",
    "deletion": "erasure (notices); requests pseudonymised",
    "transfers": "none",
    "review_owner": "the operator's privacy lead (name it in decisions.md)",

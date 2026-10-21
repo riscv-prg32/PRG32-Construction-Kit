@@ -25,6 +25,20 @@
     }).catch(err => Kit.toast(err.message, 'danger'));
   });
 
+  const SIGN_IN = { login: 'signed in', oidc_sign_in: 'signed in with the school account',
+    saml_sign_in: 'signed in with the school account', login_new_address: 'NEW: from a computer or network not used before',
+    login_failed: 'wrong password' };
+
+  function loadSignIns() {
+    return Kit.api('/auth/sessions/recent').then(data => {
+      $('#recentSignIns').html(data.sign_ins.map(item => `
+        <li class="list-group-item${item.action === 'login_new_address' ? ' list-group-item-warning' : ''}">
+          ${Kit.escape(item.at)} · ${Kit.escape(SIGN_IN[item.action] || item.action)}${item.outcome === 'success' || item.action === 'login_failed' ? '' : ' (' + Kit.escape(item.outcome) + ')'}
+          · <span class="text-muted">${Kit.escape(item.address || 'unknown address')}</span></li>`).join('')
+        || '<li class="list-group-item text-muted">No sign-ins recorded yet.</li>');
+    }).catch(err => Kit.toast(err.message, 'danger'));
+  }
+
   $('#tokenList').on('click', '.revoke-token', function () {
     Kit.api('/auth/tokens/' + encodeURIComponent($(this).data('id')), { method: 'DELETE' })
       .then(() => { Kit.toast('Token revoked', 'success'); loadTokens(); })
@@ -71,4 +85,5 @@
 
   loadTokens();
   loadIdentities();
+  loadSignIns();
 })();

@@ -49,8 +49,9 @@ This folder gives them two things:
   log and sign-up links. Backups can be pruned and erasures re-applied after a restore
   ([retention.md](retention.md)).
 - **Secrets.** Passwords and tokens are stored as hashes, and cloud tokens are encrypted.
-  Logs never contain secrets. Store bearer tokens are the exception: they are stored in clear
-  (open item S-1 in [security_article32.md](security_article32.md)).
+  Store bearer tokens are encrypted too. Logs never contain secrets.
+- **Detection.** What API tokens do, and sign-ins from a new address, are in the audit log.
+  The person is told by email (when the kit can send it) and sees their recent sign-ins.
 
 ## For a school putting the kit into service
 

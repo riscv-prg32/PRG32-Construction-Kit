@@ -333,3 +333,54 @@ def test_audit_distinguishes_review_refusal_upload_success_and_failure(setup):
     assert stages[:2] == ["submitted", "upload"]
     stored = json.dumps(s.admin.get("/api/admin/audit").get_json())
     assert "prg32_token_secret_1" not in stored and token not in stored
+
+
+# --- the Store token at rest (S-1, ADR-0022) -------------------------------------------------
+
+def stored_token(s) -> str:
+    from prg32_construction_kit.db import PublishProfile, db
+
+    with s.app.app_context():
+        return db.session.get(PublishProfile, s.profile["id"]).bearer_token
+
+
+def test_the_store_token_is_encrypted_in_the_database_and_sent_in_clear(setup):
+    s = setup
+    raw = stored_token(s)
+    assert raw.startswith("enc1:") and "prg32_token_secret_1" not in raw
+    token = s.pia.post("/api/publish/review", json=body(s)).get_json()["review_token"]
+    assert confirm(s.pia, s, token).status_code == 200
+    assert s.sent[-1]["token"] == "prg32_token_secret_1"
+    # Changing the token stores the new one encrypted too; removing it stores nothing.
+    s.pia.put(f"/api/publish_profiles/{s.profile['id']}", json={"bearer_token": "prg32_token_secret_2"})
+    assert stored_token(s).startswith("enc1:") and "secret_2" not in stored_token(s)
+    s.pia.put(f"/api/publish_profiles/{s.profile['id']}", json={"bearer_token": ""})
+    assert stored_token(s) == ""
+
+
+def test_an_older_database_with_tokens_in_clear_is_encrypted_at_start(setup):
+    from sqlalchemy import text
+
+    from prg32_construction_kit.db import db
+    from prg32_construction_kit.secrets_at_rest import seal_plain_store_tokens, unseal
+
+    s = setup
+    with s.app.app_context():
+        db.session.execute(text("UPDATE publish_profiles SET bearer_token = 'legacy-plain-token' WHERE id = :id"),
+                           {"id": s.profile["id"]})
+        db.session.commit()
+        assert seal_plain_store_tokens() == 1 and seal_plain_store_tokens() == 0
+    assert stored_token(s).startswith("enc1:")
+    with s.app.app_context():
+        assert unseal(stored_token(s)) == "legacy-plain-token"
+
+
+def test_a_token_that_cannot_be_read_any_more_is_refused_clearly(setup):
+    s = setup
+    token = s.pia.post("/api/publish/review", json=body(s)).get_json()["review_token"]
+    s.app.config["SECRET_KEY"] = "a-different-secret-key-for-this-test-only"
+    pia = s.app.test_client(login=("pia", PASSWORD))   # the old session cookie is signed with the old key
+    review = pia.post("/api/publish/review", json=body(s)).get_json()
+    refused = confirm(pia, s, review["review_token"])
+    assert refused.status_code == 400 and refused.get_json()["reason"] == "token_unreadable"
+    assert s.sent == [] and token

@@ -2,7 +2,7 @@
 
 | Date | Kind | Who took part | Record | Open findings |
 |---|---|---|---|---|
-| 2026-10-21 | technical rehearsal (scripted, synthetic pupils) | kit maintainers only | [2026-10-21-breach-rehearsal/record.md](2026-10-21-breach-rehearsal/record.md) | F-2, F-3, F-4 |
+| 2026-10-21 | technical rehearsal (scripted, synthetic pupils) | kit maintainers only | [2026-10-21-breach-rehearsal/record.md](2026-10-21-breach-rehearsal/record.md) | F-4 (F-2, F-3 fixed the same day: S-5, S-6) |
 
 **Not done yet:** a staffed tabletop exercise with the controller's incident lead, privacy
 lead, DPO and school leadership (decision D-10). Repeat it at least once a year.

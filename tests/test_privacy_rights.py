@@ -347,3 +347,22 @@ def test_the_audit_log_and_old_signup_links_expire(kit):
         retention.apply(kit.config, dry_run=False)
         assert db.session.query(security.AuditEvent).filter_by(action="old").count() == 0
         assert db.session.query(RegistrationToken).filter_by(email="old@school.test").count() == 0
+
+
+def test_answered_requests_expire_only_when_the_controller_sets_a_period(kit):
+    from prg32_construction_kit import retention
+    from prg32_construction_kit.db import db
+    from prg32_construction_kit.privacy import PrivacyRequest
+
+    with kit.app_context():
+        db.session.add(PrivacyRequest(subject_ref="person-old", kind="access", status="completed",
+                                      received_at="2020-01-01T00:00:00", due_at="2020-01-31T00:00:00",
+                                      completed_at="2020-01-02T00:00:00"))
+        db.session.add(PrivacyRequest(subject_ref="person-open", kind="erasure", status="received",
+                                      received_at="2020-01-01T00:00:00", due_at="2020-01-31T00:00:00"))
+        db.session.commit()
+        assert retention.apply(kit.config, dry_run=False)["expired_privacy_requests"] == 0   # default: keep
+        kit.config["PRG32_KIT_PRIVACY_REQUEST_DAYS"] = 730
+        assert retention.apply(kit.config, dry_run=False)["expired_privacy_requests"] == 1
+        left = [item.subject_ref for item in db.session.query(PrivacyRequest).all()]
+        assert left == ["person-open"]                       # an open request is never removed

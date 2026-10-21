@@ -148,7 +148,7 @@ not decisions: see [decisions.md](decisions.md).
 
 | | |
 |---|---|
-| Data | Store profiles (with the Store's bearer token, stored in clear in the database, never returned by the API: open item S-1 in security_article32.md) and what was published where |
+| Data | Store profiles (with the Store's bearer token, encrypted at rest and never returned by the API) and what was published where |
 | People | students with the publisher role, teachers |
 | Purpose | publishing games to the Cartridge Store, each version once |
 | Legal basis | Art. 6(1)(e) or (a) depending on whether publishing is part of the course; PROPOSED - not decided: the controller confirms with its DPO (decisions.md) |
@@ -167,7 +167,7 @@ not decisions: see [decisions.md](decisions.md).
 
 | | |
 |---|---|
-| Data | audit events (who did what, when, from which address) and sign-in counters (hashed) |
+| Data | audit events (who did what, when, from which address; API-token use; sign-ins from new addresses) and sign-in counters (hashed) |
 | People | everyone who signs in or tries to |
 | Purpose | security, accountability and incident investigation (Art. 32, 33) |
 | Legal basis | Art. 6(1)(c)/(e) or (f): security of processing; PROPOSED - not decided: the controller confirms with its DPO (decisions.md) |
@@ -213,7 +213,7 @@ not decisions: see [decisions.md](decisions.md).
 | Who can see it | the person (their own); administrators |
 | Recipients | none |
 | Where | the server chosen by the operator (configure in the EU/EEA, see processors_and_transfers.md) |
-| Kept for | notices: while the account exists; requests: kept under a pseudonym after erasure, for the period the controller sets (decisions.md) |
+| Kept for | notices: while the account exists; open requests always; answered requests PRG32_KIT_PRIVACY_REQUEST_DAYS after the answer (0 = keep; the controller decides, decisions.md D-5), under a pseudonym after erasure |
 | Deleted by | erasure (notices); requests pseudonymised |
 | Transfers | none |
 | Review owner | the operator's privacy lead (name it in decisions.md) |

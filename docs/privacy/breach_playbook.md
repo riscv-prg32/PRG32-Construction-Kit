@@ -69,6 +69,9 @@ Use the template in [exercises/](exercises/).
   deletions, exports, privacy requests, cloud connections, publishing. Each records the
   time, the actor and the address the request came from.
 - API tokens: `last_used`.
-- **Not logged:** ordinary reads of projects by their owner or teacher. This is open item S-5,
-  found in the 2026-10-21 rehearsal. Server access logs cover reads when the operator keeps
-  them.
+- Every request made with an API token: method and path (`api_token_use`).
+- Sign-ins from an address the account never used (`login_new_address`). The person is also
+  told by email when the kit can send it, and sees their *Recent sign-ins* on the Account
+  page.
+- **Not logged by the kit:** ordinary reads in a signed-in browser. Server access logs cover
+  them when the operator keeps them.

@@ -53,7 +53,8 @@ processors, transfers) belong to each deploying school or operator, not to the k
 - Deleting an artifact now deletes its file in the artifact folder, unless another artifact
   uses it. Before, uploads stayed on disk.
 - Retention also expires the audit log (`PRG32_KIT_AUDIT_DAYS`, 365) and old sign-up links.
-- Open items are recorded, not hidden:
-  - Store bearer tokens are stored in clear (S-1);
-  - reads are not audited (S-5);
-  - there is no alerting (S-6).
+- Open items are recorded, not hidden. Three were found and then fixed the same day:
+  - Store bearer tokens were stored in clear (S-1): now encrypted at rest;
+  - reads were not audited (S-5): API-token use is now logged;
+  - there was no alerting (S-6): sign-ins from a new address are flagged, mailed and shown
+    to the person.
