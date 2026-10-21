@@ -212,3 +212,22 @@ def test_a_digital_capture_at_another_rate_is_refused(reference, tmp_path):
         target.setparams(params._replace(framerate=44100))
         target.writeframes(frames)
     assert compare(capture, reference, digital=True)["outcome"] == "failed"
+
+
+EVIDENCE = ROOT / "docs" / "evidence" / "hardware-audio"
+EVIDENCE_FILES = ("delivery.json", "capture.wav", "report.json", "firmware.md", "setup.md", "notes.md")
+
+
+@pytest.mark.parametrize("folder", sorted(p for p in EVIDENCE.glob("*") if p.is_dir()) if EVIDENCE.is_dir() else [],
+                         ids=lambda p: p.name)
+def test_a_console_recording_has_all_its_evidence(folder):
+    """docs/hardware_audio_check.md step 5: a console recording counts only with all of its evidence."""
+    missing = [name for name in EVIDENCE_FILES if not (folder / name).is_file()]
+    assert missing == [], f"{folder.name} is missing {missing}"
+    delivery = json.loads((folder / "delivery.json").read_text())
+    hashes = {cartridge.get("sha256") for cartridge in delivery.get("cartridges", [delivery])}
+    assert BUILD["sha256"]["audio_check-esp32c6.prg32"] in hashes
+    report = json.loads((folder / "report.json").read_text())
+    assert report["outcome"] == "passed"
+    assert report["recording"]["sha256"] == hashlib.sha256((folder / "capture.wav").read_bytes()).hexdigest()
+    assert "CONFIG_PRG32_AUDIO_MODE_STEREO=y" in (folder / "firmware.md").read_text()

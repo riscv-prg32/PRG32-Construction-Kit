@@ -36,6 +36,28 @@ reached.
 Add a row to the table below and open an issue for every problem found, with the task
 number.
 
+For the AudioStudio tasks (10–14), also copy this block into
+`docs/evidence/screen-reader/<date>-audiostudio.md`. The audio audit needs each field:
+
+```markdown
+# AudioStudio screen-reader session, <date>
+
+- Person (or initials) and how often they use a screen reader:
+- Screen reader and version (e.g. VoiceOver, macOS 26.6; NVDA 2025.x):
+- Browser and version:
+- Kit commit and page URL (/audio-studio/<project>):
+
+| Task | Keys used (the path taken) | What was announced | Done? | Problem | Fix (issue or commit) |
+| --- | --- | --- | --- | --- | --- |
+| 10 Open AudioStudio, move between tabs | | | | | |
+| 11 Change voice 0's attack | | | | | |
+| 12 Make, rename, play and stop a sound effect | | | | | |
+| 13 Type notes in the soundtrack grid | | | | | |
+| 14 Save; "changed in another window" | | | | | |
+
+Anything else noticed:
+```
+
 | Date | Screen reader, browser, system | Kit commit | Tasks done | Issues |
 | --- | --- | --- | --- | --- |
 | | | | | |

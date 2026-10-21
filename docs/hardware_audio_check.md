@@ -29,6 +29,12 @@ The screen shows `PRG32 AUDIO CHECK` and the frame counter.
 - A PRG32 console wired for **stereo** (two MAX98357A amplifiers, `hardware.md` in the
   PRG32 repository), with firmware built with `CONFIG_PRG32_AUDIO_MODE_STEREO=y`. With the
   shipped mono profile both channels carry the same sound and the left/right checks fail.
+- **Firmware:** preferably with `docs/upstream/prg32-sdk-audio-clock-and-reset.patch`. On SDK
+  `679dfb5` a sound played before the cartridge (the setup menu's, for example) leaves its
+  voice quieter for the cartridge's soundtrack. Voice 0 is the left-only voice here, so its
+  bit-exact check would fail for that reason alone. Without the patch, power the console on
+  with the check as the only cartridge, so it starts without the setup menu, and write in
+  `notes.md` that you did.
 - **Recommended:** a logic analyser that sigrok supports (any FX2-based 8-channel USB
   analyser works) and `sigrok-cli`. It records the I2S data the ESP32-C6 sends to the
   amplifiers: the console's own samples, so the checks can be exact.
@@ -67,9 +73,26 @@ The screen shows `PRG32 AUDIO CHECK` and the frame counter.
 
    For microphones, leave out `--digital`. Exit code 0 means every check passed.
 
-4. **Keep the evidence.** Put these files in `docs/evidence/hardware-audio/<date>/`:
-   the delivery record, the recording, the report, the firmware commit and its
-   `sdkconfig`, and a line on what you heard. Commit them.
+4. **Listen while it plays.** Write down, in a few words each, what you hear:
+   - 8 different sounds at once at the start, spread from left to right;
+   - notes that fade out differently;
+   - one sound on the left only, then one on the right only;
+   - the drum;
+   - the held note cut short;
+   - the silences;
+   - any click, beep or hum where there should be silence.
+
+5. **Keep the evidence** in `docs/evidence/hardware-audio/<date>/` and commit it.
+   `tests/test_hardware_audio_check.py` refuses a folder that is missing any of these:
+
+   | File | What |
+   |---|---|
+   | `delivery.json` | step 1's record (the cartridge's SHA-256 must be the one in `BUILD.json`) |
+   | `capture.wav` | the raw recording (I2S capture or microphones) |
+   | `report.json` | step 3's report; it must say `passed` |
+   | `firmware.md` | firmware commit (and patches), how it was built, and the complete `CONFIG_PRG32_AUDIO_*` settings from its `sdkconfig` |
+   | `setup.md` | console (board, amplifiers, speakers), capture tool (analyser model, `sigrok-cli --version`, sample rate) or microphones and recorder |
+   | `notes.md` | step 4's listening notes, who listened and when |
 
 ## What the report checks
 
