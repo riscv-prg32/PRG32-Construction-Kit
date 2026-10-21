@@ -6,10 +6,10 @@ Scores: 0 missing, 1 prototype, 2 partial, 3 implemented/tested with an evidence
 |---|---:|---|---|
 | IDE-01 | 3 | Implemented/tested | Blockly/C/assembly modes and conversion are covered. |
 | IDE-02 | 3 | Implemented/tested | Monaco shell, accessibility and responsive browser flows pass. |
-| IDE-03 | 3 | Implemented/tested | Offline C service is validator-derived; no full compiler service. |
-| IDE-04 | 3 | Implemented/tested | Offline assembly service is validator-derived; no full assembler service. |
+| IDE-03 | 4 | Reference-verified | Portable-ABI completion/navigation and validator ranges are backed by the real PRG32 compiler after every validated save. |
+| IDE-04 | 4 | Reference-verified | RV32IMC/Zicsr, ABI/labels/navigation and safe validation are backed by the real PRG32 assembler/compiler after every save. |
 | PRJ-01 | 3 | Implemented/tested | Deterministic project model, revisions and archive/import are covered. |
-| BLD-01 | 2 | Partial | Real local toolchain build unavailable during this audit. |
+| BLD-01 | 4 | Reference-verified | Retained Docker evidence rebuilds Blocks-C, Blocks-assembly, Advanced C and handwritten assembly for both targets; hashes match macOS builds. |
 | BLD-02 | 3 | Implemented/tested | Isolation/provenance/diagnostics/debug identity; Linux rerun unavailable. |
 | WASM-01 | 4 | Reference-verified | Committed browser core and golden execution tests. |
 | WASM-02 | 4 | Reference-verified | Browser graphics/input/timing/offline evidence remains strong; its firmware-engine PCM is now compared with retained real-firmware QEMU output. |
@@ -28,20 +28,20 @@ Scores: 0 missing, 1 prototype, 2 partial, 3 implemented/tested with an evidence
 | SSO-01 | 4 | Reference-verified | PKCE and issuer+subject pass signed fake-provider tests and nine live Keycloak scenarios. |
 | SSO-02 | 4 | Reference-verified | Multi-IdP, role claims, collision/linking, recovery, deactivation and documented local logout pass live/provider tests. |
 | SSO-03 | 4 | Reference-verified | Academic/class RBAC and scoped token denial paths are covered. |
-| SSO-04 | 3 | Implemented/tested | Shared Store protocol is identical/unit-tested; no live Store authorization. |
+| SSO-04 | 4 | Reference-verified | Fresh disposable HTTP Kit/CartridgeStore tests verify shared users/roles, one-time sign-on tickets and publisher-scoped upload tickets. |
 | CLD-01 | 3 | Implemented/tested | Drive provider, least privilege, encrypted tokens and conflicts pass fake/browser tests; no real Google account run. |
 | CLD-02 | 3 | Implemented/tested | OneDrive provider, app-folder scope, encrypted tokens and conflicts pass fake/browser tests; no real Microsoft account run. |
 | STR-01 | 4 | Reference-verified | Versioned contract and deterministic fixtures pass against CartridgeStore code and a throwaway live Store. |
 | STR-02 | 3 | Implemented/tested | Store egress and confirmation boundaries pass 94 tests. |
 | DEP-01 | 0 | Missing | Physical PRG32 transfer/launch not verified. |
-| DEP-02 | 2 | Partial | Qt runtime parity exists; end-user import workflow not executed. |
+| DEP-02 | 3 | Implemented/tested | Canonical PRG32-QT stored, launched and drew five hashed Kit cartridges through its web API; desktop Import-menu workflow remains untested. |
 | DEP-03 | 0 | Missing | iOS handoff not verified. |
 | SEC-01 | 3 | Implemented/tested | SSRF/sandbox boundaries tested; per-build UID/AppArmor/disk limit gaps remain. |
 | SEC-02 | 4 | Reference-verified | Credential/session controls, retention, auditing, throttling, CSP, hash-locked dependencies and SBOM are covered. |
 | OPS-01 | 4 | Reference-verified | CI/deployment/migrations and a tested backup/restore drill are documented and exercised. |
-| DOC-01 | 3 | Implemented/tested | Consistency checks pass; one current-state row still says “this change”. |
+| DOC-01 | 4 | Reference-verified | Capability IDs, generated status, traceability and commit-named milestones pass consistency tests with no ambiguous “this change” rows. |
 | QLT-01 | 4 | Reference-verified | Required browser CI, lint/coverage gates, performance budgets, accessibility evidence and regression coverage are present. |
 
-Domain totals: IDE 12/16; Project 3/4; Build 5/8; WASM 8/8; Audio 13/16; Debug 22/24; Accounts 8/8; SSO 15/16; Cloud 6/8; Store 7/8; Delivery 2/12; Security 7/8; Operations 4/4; Documentation 3/4; Quality 4/4.
+Domain totals: IDE 14/16; Project 3/4; Build 7/8; WASM 8/8; Audio 13/16; Debug 22/24; Accounts 8/8; SSO 16/16; Cloud 6/8; Store 7/8; Delivery 3/12; Security 7/8; Operations 4/4; Documentation 4/4; Quality 4/4.
 
-**Total: 119/148 (80.4%).**
+**Total: 126/148 (85.1%).**

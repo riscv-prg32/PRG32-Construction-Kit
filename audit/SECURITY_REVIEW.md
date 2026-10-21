@@ -1,7 +1,7 @@
 # Security review
 
-No new critical security issue was confirmed. AudioStudio preserves authenticated ownership, version conflicts, quotas, bounded document/WAV validation and deterministic packaging. Browser preview executes the compiled firmware engine rather than uploaded code. Archive imports remap owned samples, and the normal generation pipeline still refuses arbitrary unvalidated LLM C.
+No new critical security issue was confirmed. The compiler-on-save path first applies the existing C/assembly validators, runs in an isolated build directory and returns sanitized diagnostics without preserving a build. Live Store evidence confirms one-time sign-on/upload tickets reject reuse and forgery, while publisher authorization remains enforced by the Kit.
 
-The added QEMU, patch-application and hardware-check tooling operates on explicit copies/artifacts and has negative tests for malformed or misleading captures. Legacy buzzer calls are never reinterpreted as another sound operation.
+AudioStudio retains ownership, conflict, quota and bounded-data validation. Patch tests operate on clean copies rather than mutating neighboring repositories. Buzzer compatibility remains silent and reserved rather than repurposing ABI slots.
 
-Residual risks are primarily availability and supply-chain reproducibility: local toolchain rebuilds were unavailable; the upstream patches are not canonical releases; and target CPU/memory behavior lacks physical-device observation. Existing non-audio residuals—shared host UID outside namespaces and absent real external-provider/device-delivery evidence—remain.
+Residual risks remain: builds share a host UID outside Linux namespaces; institutional/cloud tenants are untested; upstream patch supply-chain adoption is pending; and physical target resource behavior has not been observed. The recorded PRG32-QT delivery also deserves a small evidence-tool review because asynchronous runtime state must always be tied unambiguously to the cartridge just selected.

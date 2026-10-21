@@ -55,7 +55,7 @@
       "id": "IDE-03",
       "title": "C editor with language services",
       "status": "implemented",
-      "audit_score": 3,
+      "audit_score": 4,
       "source": [
         "static/js/ide/language.js::cDiagnostics",
         "static/js/ide/language.js::cCompletions",
@@ -86,7 +86,7 @@
       "id": "IDE-04",
       "title": "RISC-V assembly editor with language services",
       "status": "implemented",
-      "audit_score": 3,
+      "audit_score": 4,
       "source": [
         "static/js/ide/language.js::asmDiagnostics",
         "static/js/ide/language.js::asmCompletions",
@@ -132,7 +132,7 @@
       "id": "BLD-01",
       "title": "Blocks, C and assembly build real PRG32 cartridges",
       "status": "implemented",
-      "audit_score": 2,
+      "audit_score": 4,
       "source": [
         "prg32_construction_kit/packager.py::prepare_package",
         "prg32_construction_kit/packager.py::run_prg32_build",
@@ -519,7 +519,7 @@
       "id": "SSO-04",
       "title": "Shared accounts with CartridgeStore",
       "status": "implemented",
-      "audit_score": 3,
+      "audit_score": 4,
       "source": [
         "prg32_construction_kit/sso_protocol.py::make_ticket",
         "prg32_construction_kit/sso_protocol.py::verify_request"
@@ -628,7 +628,7 @@
       "id": "DEP-02",
       "title": "PRG32-QT delivery",
       "status": "partial",
-      "audit_score": 2,
+      "audit_score": 3,
       "source": [
         "tools/delivery_check.py::check_on_device"
       ],
@@ -712,7 +712,7 @@
       "id": "DOC-01",
       "title": "Documentation and traceability",
       "status": "implemented",
-      "audit_score": 3,
+      "audit_score": 4,
       "source": [
         "docs/capabilities.json",
         "docs/traceability.md",

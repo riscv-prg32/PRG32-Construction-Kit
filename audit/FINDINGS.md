@@ -2,42 +2,43 @@
 
 ## Closed or materially improved
 
-- Real PRG32 firmware/QEMU captures now confirm the browser engine's stereo samples between cartridge events.
-- A tested PRG32-QT patch replaces the divergent floating-point mixer with the firmware engine and produces bit-identical hashes.
-- AudioStudio's keyboard-only, archive and Compile workflows run in real Chrome, with PCM/traces and failure screenshots retained by CI.
-- A real-toolchain AudioStudio cartridge, AUD0 block and strict physical-capture comparison tool are committed.
-- The discovered soundtrack delta-timing defect was fixed and regression-tested.
+- All authoring modes now have retained real-toolchain builds for both targets, with cross-host deterministic hashes.
+- C and assembly editing now receives the real compiler's line diagnostics after safe server validation.
+- Canonical PRG32-QT delivery is recorded for Blocks-C, Blocks-assembly, Advanced C, handwritten assembly and AudioStudio audio-check cartridges.
+- Disposable HTTP Kit/CartridgeStore processes now demonstrate shared accounts, one-time sign-on and publisher upload authorization.
+- Tested SDK/Qt/QEMU patches make the intended audio migration concrete and reproducible.
+- Documentation no longer uses ambiguous “this change” milestone rows.
 
 ## High
 
-### H-01 — Canonical SDK still supports the obsolete buzzer
+### H-01 — Required audio changes are not canonical upstream
 
-The SDK at `679dfb5` still declares and exports buzzer calls at portable ABI indices 5, 7 and 8. The Kit refuses new C/assembly use and makes legacy calls silent, but `docs/upstream/README.md` is only a proposal. Remove/version the feature upstream, reserve the indices safely and regenerate every consumer.
+The buzzer-retirement, firmware-audio Qt integration and QEMU clock/reset fixes exist only as patches under `docs/upstream/`. The pinned SDK still publicly exports buzzer and released PRG32-QT still defaults to its divergent mixer. Submit, review and merge equivalent upstream changes before declaring ecosystem compatibility.
 
 ## Medium
 
-### M-01 — Stereo parity changes are not canonical upstream
+### M-01 — Physical PRG32 remains unverified
 
-`docs/upstream/prg32-qt-firmware-audio.patch` is well tested, but the released PRG32-QT checkout still uses its non-ADSR mixer. Merge an equivalent change upstream and test the released artifact.
+No stereo console capture or physical transfer/launch record exists. The prepared comparator cannot substitute for a real I2S or acoustic recording.
 
-### M-02 — QEMU event timing diverges
+### M-02 — QEMU frame-triggered effects retain one-buffer ambiguity
 
-The firmware/QEMU path advances envelopes and the tracker by emulated wall time while emitting fixed 20 ms buffers, so events occur early. Fix the upstream QEMU audio clock to advance from rendered sample count, then require whole-recording parity.
+The patch aligns tracker-driven audio and most whole recordings, but effects invoked from cartridge frames can land 20 ms early or late because frame and audio schedules are independent.
 
-### M-03 — Physical stereo path remains unverified
+### M-03 — Desktop import UX is not exercised
 
-The cartridge, capture procedure and comparator are ready, but `docs/hardware_audio_check.md` explicitly records that no console capture exists. Run it on a stereo-wired ESP32-C6 PRG32 and retain delivery, firmware and I2S evidence.
+PRG32-QT web-API delivery is meaningful and produces screenshots, but the user-facing desktop Import workflow was not clicked and observed.
 
-### M-04 — Local fixture reproduction unavailable
+### M-04 — External delivery and tenant evidence remains incomplete
 
-The audit host lacks the PRG32 RISC-V toolchain, so the committed audio fixture rebuild checks skipped. CI documents an equipped job, but this audit independently verified only stored hashes and tests.
+No iOS handoff, physical console, institutional identity tenant, Google Drive account or Microsoft account was exercised.
 
 ## Low
 
-### L-01 — Human assistive-technology evidence remains open
+### L-01 — Human screen-reader evidence remains open
 
-Keyboard and automated accessibility scenarios pass. Complete the AudioStudio tasks in `docs/accessibility_session.md` with a human screen-reader session.
+Automated accessibility and keyboard scenarios pass, but AudioStudio tasks 10–14 have not been completed with an identified assistive technology.
 
 ## Release conclusion
 
-The Construction Kit's AudioStudio classroom workflow is credible and reference-tested through browser and firmware/QEMU. Complete ecosystem audio release remains **NO-GO** until upstream buzzer removal, canonical Qt integration, corrected QEMU timing and physical stereo capture are complete.
+The Construction Kit itself is increasingly release credible and scores **126/148**. The complete ecosystem audio/hardware release remains **NO-GO** until upstream patch adoption and physical stereo evidence.

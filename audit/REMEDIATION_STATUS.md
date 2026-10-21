@@ -1,14 +1,17 @@
 # Remediation status
 
-Status at `f4b74bcfe2f0b70563daae4fd76cc1c1b8acaf78`.
+Status at `951f782f3c54a306d2bad70396127fc74a596158`.
 
 | Item | Status |
 |---|---|
-| Eight SID-like ADSR voices | Reference-verified in native/WASM and retained real-firmware QEMU segments |
-| Stereo engine parity | Strong evidence; Qt integration remains unmerged and QEMU event timing differs |
-| AudioStudio | Reference-verified through browser, real-toolchain cartridge and firmware/QEMU evidence |
-| Buzzer removal | Complete in the Kit; canonical SDK retirement is only proposed |
-| Physical console | Procedure and strict comparator ready; no recording |
-| Accessibility | Automated and keyboard coverage pass; human screen-reader session absent |
+| Real builds | Reference-verified for all four authoring paths and both targets using retained Docker evidence |
+| IDE C/assembly checks | Reference-verified with real compiler diagnostics after validation |
+| AudioStudio/eight voices | Reference-verified through browser, toolchain and firmware/QEMU evidence |
+| Stereo ecosystem parity | Strong tested patches; not canonical upstream, one-buffer frame-event gap remains |
+| Buzzer removal | Complete in Kit and proven patch; not merged into canonical SDK |
+| CartridgeStore SSO/publishing | Fresh disposable HTTP interoperability passed |
+| PRG32-QT delivery | Implemented/tested through canonical web API; desktop Import UI untested |
+| Physical console/iOS | Missing |
+| Human screen reader | Missing |
 
-Recommendation: **GO for the evidenced Construction Kit classroom workflow; NO-GO for complete ecosystem audio release**.
+Recommendation: **GO for evidenced Kit workflows; NO-GO for complete ecosystem audio/hardware release**.
