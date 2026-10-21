@@ -10,7 +10,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from test_browser_offline import Recorder, browser, live_kit, sign_in, wait_until  # noqa: F401 - fixtures
+from test_browser_offline import Recorder, browser, live_kit, settled, sign_in, wait_until  # noqa: F401 - fixtures
 
 AXE = Path(__file__).resolve().parent / "vendor" / "axe-core" / "4.10.2" / "axe.min.js"
 
@@ -18,6 +18,7 @@ AXE = Path(__file__).resolve().parent / "vendor" / "axe-core" / "4.10.2" / "axe.
 def serious(page):
     page.wait_for_timeout(300)  # let Bootstrap's colour transitions finish
     page.evaluate(AXE.read_text())
+    settled(page)
     found = page.evaluate("""axe.run(document, {runOnly: {type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21aa']}})
         .then(r => r.violations.filter(v => ['serious', 'critical'].includes(v.impact))
         .map(v => ({id: v.id, target: v.nodes.slice(0, 3).map(n => n.target.join(' '))})))""")

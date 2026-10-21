@@ -119,6 +119,14 @@ def wait_until(page, expression: str, timeout: float = 15.0):
         time.sleep(0.1)
 
 
+def settled(page):
+    """Wait until no toast is fading in or out: axe measures colours as drawn, so a half-transparent
+    toast (Bootstrap animates its opacity) would look like low contrast."""
+    wait_until(page, """Array.from(document.querySelectorAll('.toast, .fade')).every(element => {
+        const style = getComputedStyle(element);
+        return style.display === 'none' || style.opacity === '1' || style.opacity === '0'; })""")
+
+
 def sign_in(page, live_kit):
     page.goto(f"{live_kit}/auth/login")
     page.fill("input[name=username]", "admin")
@@ -215,7 +223,8 @@ def test_an_open_page_keeps_working_when_the_network_goes(browser, live_kit):
     sign_in(page, live_kit)
     project = first_project(page, live_kit)
     page.goto(f"{live_kit}/projects/{project}")
-    wait_until(page, "window.PRG32Blocks && PRG32Blocks.getWorkspace()")
+    # The editor loads Blockly and the sound engine; a busy CI runner can take longer than 15 s.
+    wait_until(page, "window.PRG32Blocks && PRG32Blocks.getWorkspace()", timeout=45)
     context.set_offline(True)
     assert blockly_is_editable(page)
     page.click("#runGame")

@@ -18,7 +18,7 @@ from pathlib import Path
 import pytest
 from conftest import make_app
 from debug_seed import seed_pong
-from test_browser_offline import Recorder, browser, sign_in, wait_until  # noqa: F401 - fixtures
+from test_browser_offline import Recorder, browser, settled, sign_in, wait_until  # noqa: F401 - fixtures
 
 ROOT = Path(__file__).resolve().parent.parent
 AXE = ROOT / "tests" / "vendor" / "axe-core" / "4.10.2" / "axe.min.js"
@@ -127,6 +127,7 @@ def test_scenario_d_block_and_source_debugging(browser, debug_kit):  # noqa: F81
     page.mouse.move(0, 0)
     page.wait_for_timeout(400)  # Bootstrap's buttons fade their colours for 0.15 s: scan the final ones
     page.evaluate(AXE.read_text())
+    settled(page)
     results = page.evaluate("""axe.run(document, {runOnly: {type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21aa']}})
         .then(r => r.violations.map(v => ({id: v.id, impact: v.impact, target: v.nodes.slice(0, 3).map(n => n.target.join(' '))})))""")
     serious = [violation for violation in results if violation["impact"] in ("serious", "critical")]

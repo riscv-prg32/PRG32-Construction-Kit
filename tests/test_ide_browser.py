@@ -17,6 +17,7 @@ from test_browser_offline import (  # noqa: F401 - fixtures
     Recorder,
     browser,
     live_kit,
+    settled,
     sign_in,
     wait_until,
 )
@@ -84,6 +85,7 @@ def test_ide_has_no_csp_violations_or_serious_accessibility_problems(browser, li
     page.keyboard.press("Enter")
     wait_until(page, "!!PRG32Ide.editors['gen-c'] && PRG32Ide.editors['gen-c'].getValue().includes('PRG32')")
     page.evaluate(AXE.read_text())  # through DevTools, so the page's CSP is not weakened for the test
+    settled(page)
     results = page.evaluate("""axe.run(document, {runOnly: {type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21aa']}})
         .then(r => r.violations.map(v => ({id: v.id, impact: v.impact, nodes: v.nodes.length,
                                            target: v.nodes.slice(0, 3).map(n => n.target.join(' '))})))""")

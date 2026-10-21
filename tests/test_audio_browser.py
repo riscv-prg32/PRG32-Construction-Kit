@@ -12,7 +12,7 @@ import contextlib
 import os
 from pathlib import Path
 
-from test_browser_offline import Recorder, browser, live_kit, sign_in, wait_until  # noqa: F401 - fixtures
+from test_browser_offline import Recorder, browser, live_kit, settled, sign_in, wait_until  # noqa: F401 - fixtures
 
 CARTRIDGE = Path(__file__).resolve().parent / "fixtures" / "audio" / "conformance.prg32"
 
@@ -134,6 +134,7 @@ def test_audio_studio_edits_previews_saves_and_reloads(browser, live_kit):  # no
         page.evaluate(AXE.read_text())
         for panel in ("#voicesPanel", "#effectsPanel", "#tracksPanel", "#samplesPanel"):
             page.click(f"[data-bs-target='{panel}']")
+            settled(page)
             results = page.evaluate("""axe.run(document, {runOnly: {type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21aa']}})
                 .then(r => r.violations.filter(v => v.impact === 'serious' || v.impact === 'critical')
                 .map(v => ({id: v.id, target: v.nodes.slice(0, 3).map(n => n.target.join(' '))})))""")
