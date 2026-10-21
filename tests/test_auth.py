@@ -221,3 +221,12 @@ def test_service_worker_never_caches_signed_in_pages(client):
     shell = worker.split("const APP_SHELL = [", 1)[1].split("];", 1)[0]
     assert all(line.strip().startswith("'/static/") for line in shell.strip().splitlines())
     assert "startsWith('/static/')" in worker
+
+
+def test_ordinary_responses_do_not_resend_the_session_cookie(app, client):
+    """A page's API calls must not overwrite a newer session cookie (for example one holding a school
+    sign-in flow started meanwhile): only responses that change the session send it."""
+    assert "prg32_kit_session=" not in client.get("/api/projects").headers.get("Set-Cookie", "")
+    fresh = app.test_client(login=None)
+    signed_in = fresh.post("/auth/login", data={"username": "admin", "password": ADMIN_PASSWORD})
+    assert "prg32_kit_session=" in signed_in.headers.get("Set-Cookie", "")

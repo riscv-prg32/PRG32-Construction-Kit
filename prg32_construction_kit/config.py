@@ -110,6 +110,11 @@ class Config:
     SESSION_COOKIE_SAMESITE = "Lax"
     SESSION_COOKIE_SECURE = _flag("PRG32_KIT_SECURE_COOKIES", False)
     PERMANENT_SESSION_LIFETIME = int(os.environ.get("PRG32_KIT_SESSION_HOURS", "12")) * 3600
+    # Send the session cookie only when the session changed. Otherwise every response re-sends
+    # it, and a slow request that started earlier (a page's API calls) can overwrite a newer
+    # cookie, such as the one holding a school sign-in or cloud connection flow. Sessions still
+    # end PERMANENT_SESSION_LIFETIME after sign-in: auth checks the signed-in time.
+    SESSION_REFRESH_EACH_REQUEST = False
 
     # "production" (set by the Docker image) refuses weak first-admin passwords;
     # "development" (plain `python app.py`) allows them with a loud warning.
