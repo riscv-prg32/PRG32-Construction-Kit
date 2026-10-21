@@ -1109,784 +1109,784 @@
    {
     "doc": "",
     "header": "components/prg32_audio/include/prg32_audio.h",
-    "line": 362,
+    "line": 355,
     "name": "PRG32_AUDIO_BLOCK_MAGIC",
     "value": "\"AUD0\""
    },
    {
     "doc": "",
     "header": "components/prg32_audio/include/prg32_audio.h",
-    "line": 363,
+    "line": 356,
     "name": "PRG32_AUDIO_BLOCK_VERSION",
     "value": "1"
    },
    {
     "doc": "",
     "header": "components/prg32_audio/include/prg32_audio.h",
-    "line": 364,
+    "line": 357,
     "name": "PRG32_AUDIO_PAN_CENTER",
     "value": "0"
    },
    {
     "doc": "",
     "header": "components/prg32_audio/include/prg32_audio.h",
-    "line": 365,
+    "line": 358,
     "name": "PRG32_AUDIO_PAN_LEFT",
     "value": "(-64)"
    },
    {
     "doc": "",
     "header": "components/prg32_audio/include/prg32_audio.h",
-    "line": 366,
+    "line": 359,
     "name": "PRG32_AUDIO_PAN_RIGHT",
     "value": "63"
    },
    {
     "doc": "",
     "header": "components/prg32_audio/include/prg32_audio.h",
-    "line": 367,
+    "line": 360,
     "name": "PRG32_AUDIO_SAMPLE_LOOP",
     "value": "(1u << 0)"
    },
    {
     "doc": "Values 0..63 remain ordinary PCM sample slots.  Bit 15 selects a procedural instrument without changing prg32_instrument_desc_t.",
     "header": "components/prg32_audio/include/prg32_audio.h",
-    "line": 368,
+    "line": 361,
     "name": "PRG32_AUDIO_SYNTH_MARKER",
     "value": "0x8000u"
    },
    {
     "doc": "Values 0..63 remain ordinary PCM sample slots.  Bit 15 selects a procedural instrument without changing prg32_instrument_desc_t.",
     "header": "components/prg32_audio/include/prg32_audio.h",
-    "line": 369,
+    "line": 362,
     "name": "PRG32_AUDIO_SYNTH_WAVE_NOISE",
     "value": "3u"
    },
    {
     "doc": "Values 0..63 remain ordinary PCM sample slots.  Bit 15 selects a procedural instrument without changing prg32_instrument_desc_t.",
     "header": "components/prg32_audio/include/prg32_audio.h",
-    "line": 370,
+    "line": 363,
     "name": "PRG32_AUDIO_SYNTH_WAVE_PULSE",
     "value": "2u"
    },
    {
     "doc": "Values 0..63 remain ordinary PCM sample slots.  Bit 15 selects a procedural instrument without changing prg32_instrument_desc_t.",
     "header": "components/prg32_audio/include/prg32_audio.h",
-    "line": 371,
+    "line": 364,
     "name": "PRG32_AUDIO_SYNTH_WAVE_SAW",
     "value": "1u"
    },
    {
     "doc": "Values 0..63 remain ordinary PCM sample slots.  Bit 15 selects a procedural instrument without changing prg32_instrument_desc_t.",
     "header": "components/prg32_audio/include/prg32_audio.h",
-    "line": 372,
+    "line": 365,
     "name": "PRG32_AUDIO_SYNTH_WAVE_TRIANGLE",
     "value": "0u"
    },
    {
     "doc": "Firmware-owned status-band identifiers.",
     "header": "components/prg32/include/prg32.h",
-    "line": 373,
+    "line": 366,
     "name": "PRG32_BAND_BOTTOM",
     "value": "1"
    },
    {
     "doc": "Firmware-owned status-band identifiers.",
     "header": "components/prg32/include/prg32.h",
-    "line": 374,
+    "line": 367,
     "name": "PRG32_BAND_TOP",
     "value": "0"
    },
    {
     "doc": "Controller bitmask. Player 1 occupies bits 0..6 and player 2 occupies bits 8..14. SELECT and START are names for the same physical input.",
     "header": "components/prg32/include/prg32.h",
-    "line": 375,
+    "line": 368,
     "name": "PRG32_BTN_A",
     "value": "(1u << 4)"
    },
    {
     "doc": "Controller bitmask. Player 1 occupies bits 0..6 and player 2 occupies bits 8..14. SELECT and START are names for the same physical input.",
     "header": "components/prg32/include/prg32.h",
-    "line": 376,
+    "line": 369,
     "name": "PRG32_BTN_B",
     "value": "(1u << 5)"
    },
    {
     "doc": "Controller bitmask. Player 1 occupies bits 0..6 and player 2 occupies bits 8..14. SELECT and START are names for the same physical input.",
     "header": "components/prg32/include/prg32.h",
-    "line": 377,
+    "line": 370,
     "name": "PRG32_BTN_DOWN",
     "value": "(1u << 3)"
    },
    {
     "doc": "Controller bitmask. Player 1 occupies bits 0..6 and player 2 occupies bits 8..14. SELECT and START are names for the same physical input.",
     "header": "components/prg32/include/prg32.h",
-    "line": 378,
+    "line": 371,
     "name": "PRG32_BTN_LEFT",
     "value": "(1u << 0)"
    },
    {
     "doc": "Controller bitmask. Player 1 occupies bits 0..6 and player 2 occupies bits 8..14. SELECT and START are names for the same physical input.",
     "header": "components/prg32/include/prg32.h",
-    "line": 379,
+    "line": 372,
     "name": "PRG32_BTN_RIGHT",
     "value": "(1u << 1)"
    },
    {
     "doc": "Controller bitmask. Player 1 occupies bits 0..6 and player 2 occupies bits 8..14. SELECT and START are names for the same physical input.",
     "header": "components/prg32/include/prg32.h",
-    "line": 380,
+    "line": 373,
     "name": "PRG32_BTN_SELECT",
     "value": "PRG32_BTN_START"
    },
    {
     "doc": "Controller bitmask. Player 1 occupies bits 0..6 and player 2 occupies bits 8..14. SELECT and START are names for the same physical input.",
     "header": "components/prg32/include/prg32.h",
-    "line": 381,
+    "line": 374,
     "name": "PRG32_BTN_START",
     "value": "(1u << 6)"
    },
    {
     "doc": "Controller bitmask. Player 1 occupies bits 0..6 and player 2 occupies bits 8..14. SELECT and START are names for the same physical input.",
     "header": "components/prg32/include/prg32.h",
-    "line": 382,
+    "line": 375,
     "name": "PRG32_BTN_UP",
     "value": "(1u << 2)"
    },
    {
     "doc": "Cartridge binary-format constants. These values are consumed by packaging tools and the runtime loader; changing one invalidates stored binaries.",
     "header": "components/prg32/include/prg32.h",
-    "line": 383,
+    "line": 376,
     "name": "PRG32_CART_ABI_MAJOR",
     "value": "1"
    },
    {
     "doc": "Cartridge binary-format constants. These values are consumed by packaging tools and the runtime loader; changing one invalidates stored binaries.",
     "header": "components/prg32/include/prg32.h",
-    "line": 384,
+    "line": 377,
     "name": "PRG32_CART_ABI_MINOR",
     "value": "1"
    },
    {
     "doc": "Cartridge binary-format constants. These values are consumed by packaging tools and the runtime loader; changing one invalidates stored binaries.",
     "header": "components/prg32/include/prg32.h",
-    "line": 385,
+    "line": 378,
     "name": "PRG32_CART_ARCH_ESP32C6",
     "value": "\"esp32c6\""
    },
    {
     "doc": "Cartridge binary-format constants. These values are consumed by packaging tools and the runtime loader; changing one invalidates stored binaries.",
     "header": "components/prg32/include/prg32.h",
-    "line": 386,
+    "line": 379,
     "name": "PRG32_CART_ARCH_QEMU",
     "value": "\"qemu\""
    },
    {
     "doc": "Cartridge binary-format constants. These values are consumed by packaging tools and the runtime loader; changing one invalidates stored binaries.",
     "header": "components/prg32/include/prg32.h",
-    "line": 387,
+    "line": 380,
     "name": "PRG32_CART_COLOPHON_ABI",
     "value": "\"prg32-colophon-1.0\""
    },
    {
     "doc": "Cartridge binary-format constants. These values are consumed by packaging tools and the runtime loader; changing one invalidates stored binaries.",
     "header": "components/prg32/include/prg32.h",
-    "line": 388,
+    "line": 381,
     "name": "PRG32_CART_FLAG_ABI_TABLE",
     "value": "(1u << 2)"
    },
    {
     "doc": "Cartridge binary-format constants. These values are consumed by packaging tools and the runtime loader; changing one invalidates stored binaries.",
     "header": "components/prg32/include/prg32.h",
-    "line": 389,
+    "line": 382,
     "name": "PRG32_CART_FLAG_AUDIO_BLOCK",
     "value": "(1u << 0)"
    },
    {
     "doc": "Cartridge binary-format constants. These values are consumed by packaging tools and the runtime loader; changing one invalidates stored binaries.",
     "header": "components/prg32/include/prg32.h",
-    "line": 390,
+    "line": 383,
     "name": "PRG32_CART_FLAG_MULTIPLAYER",
     "value": "(1u << 1)"
    },
    {
     "doc": "Cartridge binary-format constants. These values are consumed by packaging tools and the runtime loader; changing one invalidates stored binaries.",
     "header": "components/prg32/include/prg32.h",
-    "line": 391,
+    "line": 384,
     "name": "PRG32_CART_FLAG_RELOCATABLE",
     "value": "(1u << 3)"
    },
    {
     "doc": "Cartridge binary-format constants. These values are consumed by packaging tools and the runtime loader; changing one invalidates stored binaries.",
     "header": "components/prg32/include/prg32.h",
-    "line": 392,
+    "line": 385,
     "name": "PRG32_CART_LOAD_ADDR",
     "value": "0x40800000u"
    },
    {
     "doc": "Cartridge binary-format constants. These values are consumed by packaging tools and the runtime loader; changing one invalidates stored binaries.",
     "header": "components/prg32/include/prg32.h",
-    "line": 393,
+    "line": 386,
     "name": "PRG32_CART_MAGIC",
     "value": "\"PRG2\""
    },
    {
     "doc": "Cartridge binary-format constants. These values are consumed by packaging tools and the runtime loader; changing one invalidates stored binaries.",
     "header": "components/prg32/include/prg32.h",
-    "line": 394,
+    "line": 387,
     "name": "PRG32_CART_MAX_SIZE",
     "value": "((uint32_t)CONFIG_PRG32_CART_MAX_KIB * 1024u)"
    },
    {
     "doc": "Cartridge binary-format constants. These values are consumed by packaging tools and the runtime loader; changing one invalidates stored binaries.",
     "header": "components/prg32/include/prg32.h",
-    "line": 395,
+    "line": 388,
     "name": "PRG32_CART_META_ABI",
     "value": "\"prg32-metadata-1.0\""
    },
    {
     "doc": "Cartridge binary-format constants. These values are consumed by packaging tools and the runtime loader; changing one invalidates stored binaries.",
     "header": "components/prg32/include/prg32.h",
-    "line": 396,
+    "line": 389,
     "name": "PRG32_CART_META_BLOCK_COLOPHON",
     "value": "\"COLO\""
    },
    {
     "doc": "Cartridge binary-format constants. These values are consumed by packaging tools and the runtime loader; changing one invalidates stored binaries.",
     "header": "components/prg32/include/prg32.h",
-    "line": 397,
+    "line": 390,
     "name": "PRG32_CART_META_BLOCK_ICON",
     "value": "\"ICON\""
    },
    {
     "doc": "Cartridge binary-format constants. These values are consumed by packaging tools and the runtime loader; changing one invalidates stored binaries.",
     "header": "components/prg32/include/prg32.h",
-    "line": 398,
+    "line": 391,
     "name": "PRG32_CART_META_BLOCK_META",
     "value": "\"META\""
    },
    {
     "doc": "Cartridge binary-format constants. These values are consumed by packaging tools and the runtime loader; changing one invalidates stored binaries.",
     "header": "components/prg32/include/prg32.h",
-    "line": 399,
+    "line": 392,
     "name": "PRG32_CART_META_BLOCK_SCREENSHOT",
     "value": "\"SCRN\""
    },
    {
     "doc": "Cartridge binary-format constants. These values are consumed by packaging tools and the runtime loader; changing one invalidates stored binaries.",
     "header": "components/prg32/include/prg32.h",
-    "line": 400,
+    "line": 393,
     "name": "PRG32_CART_META_BLOCK_SIGNATURE",
     "value": "\"SIGN\""
    },
    {
     "doc": "Cartridge binary-format constants. These values are consumed by packaging tools and the runtime loader; changing one invalidates stored binaries.",
     "header": "components/prg32/include/prg32.h",
-    "line": 401,
+    "line": 394,
     "name": "PRG32_CART_META_MAGIC",
     "value": "\"PRG32META\""
    },
    {
     "doc": "Cartridge binary-format constants. These values are consumed by packaging tools and the runtime loader; changing one invalidates stored binaries.",
     "header": "components/prg32/include/prg32.h",
-    "line": 402,
+    "line": 395,
     "name": "PRG32_CART_META_VERSION",
     "value": "1"
    },
    {
     "doc": "Cartridge binary-format constants. These values are consumed by packaging tools and the runtime loader; changing one invalidates stored binaries.",
     "header": "components/prg32/include/prg32.h",
-    "line": 403,
+    "line": 396,
     "name": "PRG32_CART_NAME_LEN",
     "value": "32"
    },
    {
     "doc": "Cartridge binary-format constants. These values are consumed by packaging tools and the runtime loader; changing one invalidates stored binaries.",
     "header": "components/prg32/include/prg32.h",
-    "line": 404,
+    "line": 397,
     "name": "PRG32_CART_RAM_SIZE",
     "value": "((uint32_t)CONFIG_PRG32_CART_RAM_KIB * 1024u)"
    },
    {
     "doc": "Cartridge binary-format constants. These values are consumed by packaging tools and the runtime loader; changing one invalidates stored binaries.",
     "header": "components/prg32/include/prg32.h",
-    "line": 405,
+    "line": 398,
     "name": "PRG32_CART_SLOT_COUNT",
     "value": "8"
    },
    {
     "doc": "Common RGB565 colors. Custom colors use RRRRRGGGGGGBBBBB packing.",
     "header": "components/prg32/include/prg32.h",
-    "line": 406,
+    "line": 399,
     "name": "PRG32_COLOR_BLACK",
     "value": "0x0000"
    },
    {
     "doc": "Common RGB565 colors. Custom colors use RRRRRGGGGGGBBBBB packing.",
     "header": "components/prg32/include/prg32.h",
-    "line": 407,
+    "line": 400,
     "name": "PRG32_COLOR_BLUE",
     "value": "0x001f"
    },
    {
     "doc": "Common RGB565 colors. Custom colors use RRRRRGGGGGGBBBBB packing.",
     "header": "components/prg32/include/prg32.h",
-    "line": 408,
+    "line": 401,
     "name": "PRG32_COLOR_CYAN",
     "value": "0x07ff"
    },
    {
     "doc": "Common RGB565 colors. Custom colors use RRRRRGGGGGGBBBBB packing.",
     "header": "components/prg32/include/prg32.h",
-    "line": 409,
+    "line": 402,
     "name": "PRG32_COLOR_GREEN",
     "value": "0x07e0"
    },
    {
     "doc": "Common RGB565 colors. Custom colors use RRRRRGGGGGGBBBBB packing.",
     "header": "components/prg32/include/prg32.h",
-    "line": 410,
+    "line": 403,
     "name": "PRG32_COLOR_MAGENTA",
     "value": "0xf81f"
    },
    {
     "doc": "Common RGB565 colors. Custom colors use RRRRRGGGGGGBBBBB packing.",
     "header": "components/prg32/include/prg32.h",
-    "line": 411,
+    "line": 404,
     "name": "PRG32_COLOR_RED",
     "value": "0xf800"
    },
    {
     "doc": "Common RGB565 colors. Custom colors use RRRRRGGGGGGBBBBB packing.",
     "header": "components/prg32/include/prg32.h",
-    "line": 412,
+    "line": 405,
     "name": "PRG32_COLOR_WHITE",
     "value": "0xffff"
    },
    {
     "doc": "Common RGB565 colors. Custom colors use RRRRRGGGGGGBBBBB packing.",
     "header": "components/prg32/include/prg32.h",
-    "line": 413,
+    "line": 406,
     "name": "PRG32_COLOR_YELLOW",
     "value": "0xffe0"
    },
    {
     "doc": "",
     "header": "components/prg32_audio/include/prg32_audio.h",
-    "line": 414,
+    "line": 407,
     "name": "PRG32_DEFAULT_INSTRUMENT_ID",
     "value": "0"
    },
    {
     "doc": "Cartridge binary-format constants. These values are consumed by packaging tools and the runtime loader; changing one invalidates stored binaries.",
     "header": "components/prg32/include/prg32.h",
-    "line": 415,
+    "line": 408,
     "name": "PRG32_FIRMWARE_VERSION",
     "value": "\"dev\""
    },
    {
     "doc": "Physical framebuffer and cartridge-visible game viewport dimensions. The 320x200 game viewport is centered vertically in the 320x240 framebuffer; the remaining 20-pixel bands are owned by the resident firmware.",
     "header": "components/prg32/include/prg32.h",
-    "line": 416,
+    "line": 409,
     "name": "PRG32_GAME_H",
     "value": "200"
    },
    {
     "doc": "Physical framebuffer and cartridge-visible game viewport dimensions. The 320x200 game viewport is centered vertically in the 320x240 framebuffer; the remaining 20-pixel bands are owned by the resident firmware.",
     "header": "components/prg32/include/prg32.h",
-    "line": 417,
+    "line": 410,
     "name": "PRG32_GAME_W",
     "value": "320"
    },
    {
     "doc": "Cartridge binary-format constants. These values are consumed by packaging tools and the runtime loader; changing one invalidates stored binaries.",
     "header": "components/prg32/include/prg32.h",
-    "line": 418,
+    "line": 411,
     "name": "PRG32_IMPORT_MODEL_ABI_TABLE",
     "value": "1u"
    },
    {
     "doc": "Cartridge binary-format constants. These values are consumed by packaging tools and the runtime loader; changing one invalidates stored binaries.",
     "header": "components/prg32/include/prg32.h",
-    "line": 419,
+    "line": 412,
     "name": "PRG32_IMPORT_MODEL_LEGACY_ABSOLUTE",
     "value": "0u"
    },
    {
     "doc": "Physical framebuffer and cartridge-visible game viewport dimensions. The 320x200 game viewport is centered vertically in the 320x240 framebuffer; the remaining 20-pixel bands are owned by the resident firmware.",
     "header": "components/prg32/include/prg32.h",
-    "line": 420,
+    "line": 413,
     "name": "PRG32_LCD_H",
     "value": "240"
    },
    {
     "doc": "Physical framebuffer and cartridge-visible game viewport dimensions. The 320x200 game viewport is centered vertically in the 320x240 framebuffer; the remaining 20-pixel bands are owned by the resident firmware.",
     "header": "components/prg32/include/prg32.h",
-    "line": 421,
+    "line": 414,
     "name": "PRG32_LCD_W",
     "value": "320"
    },
    {
     "doc": "",
     "header": "components/prg32/include/prg32_multiplayer.h",
-    "line": 422,
+    "line": 415,
     "name": "PRG32_MP_FLAG_ENABLE",
     "value": "(1u << 0)"
    },
    {
     "doc": "",
     "header": "components/prg32/include/prg32_multiplayer.h",
-    "line": 423,
+    "line": 416,
     "name": "PRG32_MP_MAX_PEERS",
     "value": "8"
    },
    {
     "doc": "",
     "header": "components/prg32/include/prg32.h",
-    "line": 424,
+    "line": 417,
     "name": "PRG32_P2_BTN_A",
     "value": "(1u << 12)"
    },
    {
     "doc": "",
     "header": "components/prg32/include/prg32.h",
-    "line": 425,
+    "line": 418,
     "name": "PRG32_P2_BTN_B",
     "value": "(1u << 13)"
    },
    {
     "doc": "",
     "header": "components/prg32/include/prg32.h",
-    "line": 426,
+    "line": 419,
     "name": "PRG32_P2_BTN_DOWN",
     "value": "(1u << 11)"
    },
    {
     "doc": "",
     "header": "components/prg32/include/prg32.h",
-    "line": 427,
+    "line": 420,
     "name": "PRG32_P2_BTN_LEFT",
     "value": "(1u << 8)"
    },
    {
     "doc": "",
     "header": "components/prg32/include/prg32.h",
-    "line": 428,
+    "line": 421,
     "name": "PRG32_P2_BTN_RIGHT",
     "value": "(1u << 9)"
    },
    {
     "doc": "",
     "header": "components/prg32/include/prg32.h",
-    "line": 429,
+    "line": 422,
     "name": "PRG32_P2_BTN_SELECT",
     "value": "PRG32_P2_BTN_START"
    },
    {
     "doc": "",
     "header": "components/prg32/include/prg32.h",
-    "line": 430,
+    "line": 423,
     "name": "PRG32_P2_BTN_START",
     "value": "(1u << 14)"
    },
    {
     "doc": "",
     "header": "components/prg32/include/prg32.h",
-    "line": 431,
+    "line": 424,
     "name": "PRG32_P2_BTN_UP",
     "value": "(1u << 10)"
    },
    {
     "doc": "Physical framebuffer and cartridge-visible game viewport dimensions. The 320x200 game viewport is centered vertically in the 320x240 framebuffer; the remaining 20-pixel bands are owned by the resident firmware.",
     "header": "components/prg32/include/prg32.h",
-    "line": 432,
+    "line": 425,
     "name": "PRG32_PARALLAX_1X",
     "value": "256"
    },
    {
     "doc": "Public, append-only performance broker ABI. Every descriptor starts with a contract version and byte size so future firmware can extend it safely.",
     "header": "components/prg32/include/prg32_metrics.h",
-    "line": 433,
+    "line": 426,
     "name": "PRG32_PERF_ABI_VERSION",
     "value": "1u"
    },
    {
     "doc": "Public, append-only performance broker ABI. Every descriptor starts with a contract version and byte size so future firmware can extend it safely.",
     "header": "components/prg32/include/prg32_metrics.h",
-    "line": 434,
+    "line": 427,
     "name": "PRG32_PERF_COLOR_CUSTOM",
     "value": "2u"
    },
    {
     "doc": "Public, append-only performance broker ABI. Every descriptor starts with a contract version and byte size so future firmware can extend it safely.",
     "header": "components/prg32/include/prg32_metrics.h",
-    "line": 435,
+    "line": 428,
     "name": "PRG32_PERF_COLOR_INDEXED",
     "value": "1u"
    },
    {
     "doc": "Public, append-only performance broker ABI. Every descriptor starts with a contract version and byte size so future firmware can extend it safely.",
     "header": "components/prg32/include/prg32_metrics.h",
-    "line": 436,
+    "line": 429,
     "name": "PRG32_PERF_COLOR_RGB565",
     "value": "0u"
    },
    {
     "doc": "Public, append-only performance broker ABI. Every descriptor starts with a contract version and byte size so future firmware can extend it safely.",
     "header": "components/prg32/include/prg32_metrics.h",
-    "line": 437,
+    "line": 430,
     "name": "PRG32_PERF_STATE_ABORTED",
     "value": "3u"
    },
    {
     "doc": "Public, append-only performance broker ABI. Every descriptor starts with a contract version and byte size so future firmware can extend it safely.",
     "header": "components/prg32/include/prg32_metrics.h",
-    "line": 438,
+    "line": 431,
     "name": "PRG32_PERF_STATE_COMPLETE",
     "value": "2u"
    },
    {
     "doc": "Public, append-only performance broker ABI. Every descriptor starts with a contract version and byte size so future firmware can extend it safely.",
     "header": "components/prg32/include/prg32_metrics.h",
-    "line": 439,
+    "line": 432,
     "name": "PRG32_PERF_STATE_IDLE",
     "value": "0u"
    },
    {
     "doc": "Public, append-only performance broker ABI. Every descriptor starts with a contract version and byte size so future firmware can extend it safely.",
     "header": "components/prg32/include/prg32_metrics.h",
-    "line": 440,
+    "line": 433,
     "name": "PRG32_PERF_STATE_RUNNING",
     "value": "1u"
    },
    {
     "doc": "Stable byte offsets for assembly cartridges. They mirror prg32_platform_actor_t exactly and must not be changed independently.",
     "header": "components/prg32/include/prg32.h",
-    "line": 441,
+    "line": 434,
     "name": "PRG32_PLATFORM_ACTOR_H_OFFSET",
     "value": "18"
    },
    {
     "doc": "Stable byte offsets for assembly cartridges. They mirror prg32_platform_actor_t exactly and must not be changed independently.",
     "header": "components/prg32/include/prg32.h",
-    "line": 442,
+    "line": 435,
     "name": "PRG32_PLATFORM_ACTOR_LAYER_OFFSET",
     "value": "22"
    },
    {
     "doc": "Stable byte offsets for assembly cartridges. They mirror prg32_platform_actor_t exactly and must not be changed independently.",
     "header": "components/prg32/include/prg32.h",
-    "line": 443,
+    "line": 436,
     "name": "PRG32_PLATFORM_ACTOR_SIZE",
     "value": "24"
    },
    {
     "doc": "Stable byte offsets for assembly cartridges. They mirror prg32_platform_actor_t exactly and must not be changed independently.",
     "header": "components/prg32/include/prg32.h",
-    "line": 444,
+    "line": 437,
     "name": "PRG32_PLATFORM_ACTOR_STATE_OFFSET",
     "value": "20"
    },
    {
     "doc": "Stable byte offsets for assembly cartridges. They mirror prg32_platform_actor_t exactly and must not be changed independently.",
     "header": "components/prg32/include/prg32.h",
-    "line": 445,
+    "line": 438,
     "name": "PRG32_PLATFORM_ACTOR_VX_OFFSET",
     "value": "8"
    },
    {
     "doc": "Stable byte offsets for assembly cartridges. They mirror prg32_platform_actor_t exactly and must not be changed independently.",
     "header": "components/prg32/include/prg32.h",
-    "line": 446,
+    "line": 439,
     "name": "PRG32_PLATFORM_ACTOR_VY_OFFSET",
     "value": "12"
    },
    {
     "doc": "Stable byte offsets for assembly cartridges. They mirror prg32_platform_actor_t exactly and must not be changed independently.",
     "header": "components/prg32/include/prg32.h",
-    "line": 447,
+    "line": 440,
     "name": "PRG32_PLATFORM_ACTOR_W_OFFSET",
     "value": "16"
    },
    {
     "doc": "Stable byte offsets for assembly cartridges. They mirror prg32_platform_actor_t exactly and must not be changed independently.",
     "header": "components/prg32/include/prg32.h",
-    "line": 448,
+    "line": 441,
     "name": "PRG32_PLATFORM_ACTOR_X_OFFSET",
     "value": "0"
    },
    {
     "doc": "Stable byte offsets for assembly cartridges. They mirror prg32_platform_actor_t exactly and must not be changed independently.",
     "header": "components/prg32/include/prg32.h",
-    "line": 449,
+    "line": 442,
     "name": "PRG32_PLATFORM_ACTOR_Y_OFFSET",
     "value": "4"
    },
    {
     "doc": "Result bits returned by actor movement/step calls. More than one contact can be reported by one move (for example, ground plus a collectible).",
     "header": "components/prg32/include/prg32.h",
-    "line": 450,
+    "line": 443,
     "name": "PRG32_PLATFORM_COLLECT",
     "value": "(1u << 5)"
    },
    {
     "doc": "Result bits returned by actor movement/step calls. More than one contact can be reported by one move (for example, ground plus a collectible).",
     "header": "components/prg32/include/prg32.h",
-    "line": 451,
+    "line": 444,
     "name": "PRG32_PLATFORM_HAZARD",
     "value": "(1u << 4)"
    },
    {
     "doc": "Result bits returned by actor movement/step calls. More than one contact can be reported by one move (for example, ground plus a collectible).",
     "header": "components/prg32/include/prg32.h",
-    "line": 452,
+    "line": 445,
     "name": "PRG32_PLATFORM_HIT_HEAD",
     "value": "(1u << 3)"
    },
    {
     "doc": "Result bits returned by actor movement/step calls. More than one contact can be reported by one move (for example, ground plus a collectible).",
     "header": "components/prg32/include/prg32.h",
-    "line": 453,
+    "line": 446,
     "name": "PRG32_PLATFORM_HIT_LEFT",
     "value": "(1u << 1)"
    },
    {
     "doc": "Result bits returned by actor movement/step calls. More than one contact can be reported by one move (for example, ground plus a collectible).",
     "header": "components/prg32/include/prg32.h",
-    "line": 454,
+    "line": 447,
     "name": "PRG32_PLATFORM_HIT_RIGHT",
     "value": "(1u << 2)"
    },
    {
     "doc": "Result bits returned by actor movement/step calls. More than one contact can be reported by one move (for example, ground plus a collectible).",
     "header": "components/prg32/include/prg32.h",
-    "line": 455,
+    "line": 448,
     "name": "PRG32_PLATFORM_ON_GROUND",
     "value": "(1u << 0)"
    },
    {
     "doc": "Physical framebuffer and cartridge-visible game viewport dimensions. The 320x200 game viewport is centered vertically in the 320x240 framebuffer; the remaining 20-pixel bands are owned by the resident firmware.",
     "header": "components/prg32/include/prg32.h",
-    "line": 456,
+    "line": 449,
     "name": "PRG32_PLAYFIELD_COLS",
     "value": "64"
    },
    {
     "doc": "Physical framebuffer and cartridge-visible game viewport dimensions. The 320x200 game viewport is centered vertically in the 320x240 framebuffer; the remaining 20-pixel bands are owned by the resident firmware.",
     "header": "components/prg32/include/prg32.h",
-    "line": 457,
+    "line": 450,
     "name": "PRG32_PLAYFIELD_LAYERS",
     "value": "2"
    },
    {
     "doc": "Physical framebuffer and cartridge-visible game viewport dimensions. The 320x200 game viewport is centered vertically in the 320x240 framebuffer; the remaining 20-pixel bands are owned by the resident firmware.",
     "header": "components/prg32/include/prg32.h",
-    "line": 458,
+    "line": 451,
     "name": "PRG32_PLAYFIELD_ROWS",
     "value": "32"
    },
    {
     "doc": "Physical framebuffer and cartridge-visible game viewport dimensions. The 320x200 game viewport is centered vertically in the 320x240 framebuffer; the remaining 20-pixel bands are owned by the resident firmware.",
     "header": "components/prg32/include/prg32.h",
-    "line": 459,
+    "line": 452,
     "name": "PRG32_SCOREBOARD_TOP_MAX",
     "value": "5"
    },
    {
     "doc": "Supported packed palette-index widths. Rows are densely packed, most significant index first; palettes contain RGB565 entries.",
     "header": "components/prg32/include/prg32.h",
-    "line": 460,
+    "line": 453,
     "name": "PRG32_SPRITE_BPP_1",
     "value": "1"
    },
    {
     "doc": "Supported packed palette-index widths. Rows are densely packed, most significant index first; palettes contain RGB565 entries.",
     "header": "components/prg32/include/prg32.h",
-    "line": 461,
+    "line": 454,
     "name": "PRG32_SPRITE_BPP_2",
     "value": "2"
    },
    {
     "doc": "Supported packed palette-index widths. Rows are densely packed, most significant index first; palettes contain RGB565 entries.",
     "header": "components/prg32/include/prg32.h",
-    "line": 462,
+    "line": 455,
     "name": "PRG32_SPRITE_BPP_4",
     "value": "4"
    },
    {
     "doc": "Supported packed palette-index widths. Rows are densely packed, most significant index first; palettes contain RGB565 entries.",
     "header": "components/prg32/include/prg32.h",
-    "line": 463,
+    "line": 456,
     "name": "PRG32_SPRITE_BPP_8",
     "value": "8"
    },
    {
     "doc": "Physical framebuffer and cartridge-visible game viewport dimensions. The 320x200 game viewport is centered vertically in the 320x240 framebuffer; the remaining 20-pixel bands are owned by the resident firmware.",
     "header": "components/prg32/include/prg32.h",
-    "line": 464,
+    "line": 457,
     "name": "PRG32_TEXT_COLS",
     "value": "40"
    },
    {
     "doc": "Physical framebuffer and cartridge-visible game viewport dimensions. The 320x200 game viewport is centered vertically in the 320x240 framebuffer; the remaining 20-pixel bands are owned by the resident firmware.",
     "header": "components/prg32/include/prg32.h",
-    "line": 465,
+    "line": 458,
     "name": "PRG32_TEXT_ROWS",
     "value": "25"
    },
    {
     "doc": "Physical framebuffer and cartridge-visible game viewport dimensions. The 320x200 game viewport is centered vertically in the 320x240 framebuffer; the remaining 20-pixel bands are owned by the resident firmware.",
     "header": "components/prg32/include/prg32.h",
-    "line": 466,
+    "line": 459,
     "name": "PRG32_TILE_COLS",
     "value": "40"
    },
    {
     "doc": "Per-tile collision properties used by the platform helpers. Applications may combine flags; unknown bits must remain clear for forward compatibility.",
     "header": "components/prg32/include/prg32.h",
-    "line": 467,
+    "line": 460,
     "name": "PRG32_TILE_FLAG_COLLECT",
     "value": "(1u << 3)"
    },
    {
     "doc": "Per-tile collision properties used by the platform helpers. Applications may combine flags; unknown bits must remain clear for forward compatibility.",
     "header": "components/prg32/include/prg32.h",
-    "line": 468,
+    "line": 461,
     "name": "PRG32_TILE_FLAG_HAZARD",
     "value": "(1u << 2)"
    },
    {
     "doc": "Per-tile collision properties used by the platform helpers. Applications may combine flags; unknown bits must remain clear for forward compatibility.",
     "header": "components/prg32/include/prg32.h",
-    "line": 469,
+    "line": 462,
     "name": "PRG32_TILE_FLAG_PLATFORM",
     "value": "(1u << 1)"
    },
    {
     "doc": "Per-tile collision properties used by the platform helpers. Applications may combine flags; unknown bits must remain clear for forward compatibility.",
     "header": "components/prg32/include/prg32.h",
-    "line": 470,
+    "line": 463,
     "name": "PRG32_TILE_FLAG_SOLID",
     "value": "(1u << 0)"
    },
    {
     "doc": "Physical framebuffer and cartridge-visible game viewport dimensions. The 320x200 game viewport is centered vertically in the 320x240 framebuffer; the remaining 20-pixel bands are owned by the resident firmware.",
     "header": "components/prg32/include/prg32.h",
-    "line": 471,
+    "line": 464,
     "name": "PRG32_TILE_H",
     "value": "8"
    },
    {
     "doc": "Physical framebuffer and cartridge-visible game viewport dimensions. The 320x200 game viewport is centered vertically in the 320x240 framebuffer; the remaining 20-pixel bands are owned by the resident firmware.",
     "header": "components/prg32/include/prg32.h",
-    "line": 472,
+    "line": 465,
     "name": "PRG32_TILE_ROWS",
     "value": "25"
    },
    {
     "doc": "Physical framebuffer and cartridge-visible game viewport dimensions. The 320x200 game viewport is centered vertically in the 320x240 framebuffer; the remaining 20-pixel bands are owned by the resident firmware.",
     "header": "components/prg32/include/prg32.h",
-    "line": 473,
+    "line": 466,
     "name": "PRG32_TILE_W",
     "value": "8"
    }
@@ -1968,30 +1968,6 @@
     "group": "Basic audio and RGB indicator",
     "header": "components/prg32/include/prg32.h",
     "line": 21,
-    "name": "prg32_buzzer_tone",
-    "params": [
-     {
-      "name": "hz",
-      "type": "uint32_t"
-     },
-     {
-      "name": "ms",
-      "type": "uint32_t"
-     },
-     {
-      "name": "duty",
-      "type": "uint16_t"
-     }
-    ],
-    "returns": "void",
-    "signature": "void prg32_buzzer_tone(uint32_t hz, uint32_t ms, uint16_t duty)",
-    "summary": "Play a tone on the buzzer: frequency in Hz, duration in ms, duty sets the volume."
-   },
-   {
-    "feature": "audio",
-    "group": "Basic audio and RGB indicator",
-    "header": "components/prg32/include/prg32.h",
-    "line": 23,
     "name": "prg32_audio_note",
     "params": [
      {
@@ -2021,53 +1997,9 @@
    },
    {
     "feature": "audio",
-    "group": "Basic audio and RGB indicator",
-    "header": "components/prg32/include/prg32.h",
-    "line": 25,
-    "name": "prg32_buzzer_play_notes",
-    "params": [
-     {
-      "name": "notes",
-      "type": "const prg32_note_t *"
-     },
-     {
-      "name": "count",
-      "type": "size_t"
-     }
-    ],
-    "returns": "void",
-    "signature": "void prg32_buzzer_play_notes(const prg32_note_t *notes, size_t count)",
-    "summary": "Basic audio and RGB indicator."
-   },
-   {
-    "feature": "audio",
-    "group": "Basic audio and RGB indicator",
-    "header": "components/prg32/include/prg32.h",
-    "line": 27,
-    "name": "prg32_buzzer_sample_u8",
-    "params": [
-     {
-      "name": "samples",
-      "type": "const uint8_t *"
-     },
-     {
-      "name": "count",
-      "type": "size_t"
-     },
-     {
-      "name": "sample_rate",
-      "type": "uint32_t"
-     }
-    ],
-    "returns": "void",
-    "signature": "void prg32_buzzer_sample_u8(const uint8_t *samples, size_t count, uint32_t sample_rate)",
-    "summary": "Basic audio and RGB indicator."
-   },
-   {
-    "feature": "audio",
     "group": "Audio engine",
     "header": "components/prg32_audio/include/prg32_audio.h",
-    "line": 31,
+    "line": 25,
     "name": "prg32_audio_init",
     "params": [
      {
@@ -2083,7 +2015,7 @@
     "feature": "audio",
     "group": "Audio engine",
     "header": "components/prg32_audio/include/prg32_audio.h",
-    "line": 33,
+    "line": 27,
     "name": "prg32_audio_shutdown",
     "params": [],
     "returns": "void",
@@ -2094,7 +2026,7 @@
     "feature": "audio",
     "group": "Audio engine",
     "header": "components/prg32_audio/include/prg32_audio.h",
-    "line": 35,
+    "line": 29,
     "name": "prg32_audio_get_mode",
     "params": [],
     "returns": "prg32_audio_mode_t",
@@ -2105,7 +2037,7 @@
     "feature": "audio",
     "group": "Audio engine",
     "header": "components/prg32_audio/include/prg32_audio.h",
-    "line": 37,
+    "line": 31,
     "name": "prg32_audio_play_sample",
     "params": [
      {
@@ -2129,7 +2061,7 @@
     "feature": "audio",
     "group": "Audio engine",
     "header": "components/prg32_audio/include/prg32_audio.h",
-    "line": 39,
+    "line": 33,
     "name": "prg32_audio_play_sample_pan",
     "params": [
      {
@@ -2157,7 +2089,7 @@
     "feature": "audio",
     "group": "Audio engine",
     "header": "components/prg32_audio/include/prg32_audio.h",
-    "line": 41,
+    "line": 35,
     "name": "prg32_audio_stop_channel",
     "params": [
      {
@@ -2173,7 +2105,7 @@
     "feature": "audio",
     "group": "Audio engine",
     "header": "components/prg32_audio/include/prg32_audio.h",
-    "line": 43,
+    "line": 37,
     "name": "prg32_audio_stop_all",
     "params": [],
     "returns": "void",
@@ -2184,7 +2116,7 @@
     "feature": "audio",
     "group": "Audio engine",
     "header": "components/prg32_audio/include/prg32_audio.h",
-    "line": 45,
+    "line": 39,
     "name": "prg32_audio_note_on",
     "params": [
      {
@@ -2212,7 +2144,7 @@
     "feature": "audio",
     "group": "Audio engine",
     "header": "components/prg32_audio/include/prg32_audio.h",
-    "line": 47,
+    "line": 41,
     "name": "prg32_audio_note_on_pan",
     "params": [
      {
@@ -2244,7 +2176,7 @@
     "feature": "audio",
     "group": "Basic audio and RGB indicator",
     "header": "components/prg32/include/prg32.h",
-    "line": 51,
+    "line": 45,
     "name": "prg32_audio_note_off",
     "params": [
      {
@@ -2260,7 +2192,7 @@
     "feature": "audio",
     "group": "Basic audio and RGB indicator",
     "header": "components/prg32/include/prg32.h",
-    "line": 53,
+    "line": 47,
     "name": "prg32_audio_notes",
     "params": [
      {
@@ -2292,7 +2224,7 @@
     "feature": "audio",
     "group": "Audio engine",
     "header": "components/prg32_audio/include/prg32_audio.h",
-    "line": 57,
+    "line": 51,
     "name": "prg32_audio_play_track",
     "params": [
      {
@@ -2308,7 +2240,7 @@
     "feature": "audio",
     "group": "Audio engine",
     "header": "components/prg32_audio/include/prg32_audio.h",
-    "line": 59,
+    "line": 53,
     "name": "prg32_audio_stop_track",
     "params": [],
     "returns": "void",
@@ -2319,7 +2251,7 @@
     "feature": "audio",
     "group": "Audio engine",
     "header": "components/prg32_audio/include/prg32_audio.h",
-    "line": 61,
+    "line": 55,
     "name": "prg32_audio_set_tempo",
     "params": [
      {
@@ -2335,7 +2267,7 @@
     "feature": "audio",
     "group": "Audio engine",
     "header": "components/prg32_audio/include/prg32_audio.h",
-    "line": 63,
+    "line": 57,
     "name": "prg32_audio_set_master_volume",
     "params": [
      {
@@ -2351,7 +2283,7 @@
     "feature": "audio",
     "group": "Audio engine",
     "header": "components/prg32_audio/include/prg32_audio.h",
-    "line": 65,
+    "line": 59,
     "name": "prg32_audio_set_channel_volume",
     "params": [
      {
@@ -2371,7 +2303,7 @@
     "feature": "audio",
     "group": "Audio engine",
     "header": "components/prg32_audio/include/prg32_audio.h",
-    "line": 67,
+    "line": 61,
     "name": "prg32_audio_set_channel_pan",
     "params": [
      {
@@ -2391,7 +2323,7 @@
     "feature": "wifi",
     "group": "Network setup and score service",
     "header": "components/prg32/include/prg32.h",
-    "line": 71,
+    "line": 65,
     "name": "prg32_wifi_start_mode",
     "params": [
      {
@@ -2407,7 +2339,7 @@
     "feature": "wifi",
     "group": "Network setup and score service",
     "header": "components/prg32/include/prg32.h",
-    "line": 73,
+    "line": 67,
     "name": "prg32_wifi_current_mode",
     "params": [],
     "returns": "prg32_wifi_mode_t",
@@ -2418,7 +2350,7 @@
     "feature": "wifi",
     "group": "Network setup and score service",
     "header": "components/prg32/include/prg32.h",
-    "line": 75,
+    "line": 69,
     "name": "prg32_wifi_current_ip",
     "params": [],
     "returns": "const char *",
@@ -2429,7 +2361,7 @@
     "feature": "wifi",
     "group": "Network setup and score service",
     "header": "components/prg32/include/prg32.h",
-    "line": 77,
+    "line": 71,
     "name": "prg32_wifi_current_ssid",
     "params": [],
     "returns": "const char *",
@@ -2440,7 +2372,7 @@
     "feature": "wifi",
     "group": "Network setup and score service",
     "header": "components/prg32/include/prg32.h",
-    "line": 79,
+    "line": 73,
     "name": "prg32_wifi_setup_requested",
     "params": [],
     "returns": "int",
@@ -2451,7 +2383,7 @@
     "feature": "wifi",
     "group": "Network setup and score service",
     "header": "components/prg32/include/prg32.h",
-    "line": 81,
+    "line": 75,
     "name": "prg32_wifi_setup_run",
     "params": [],
     "returns": "int",
@@ -2462,7 +2394,7 @@
     "feature": "multiplayer",
     "group": "Multiplayer",
     "header": "components/prg32/include/prg32_multiplayer.h",
-    "line": 85,
+    "line": 79,
     "name": "prg32_multiplayer_init",
     "params": [],
     "returns": "void",
@@ -2473,7 +2405,7 @@
     "feature": "multiplayer",
     "group": "Multiplayer",
     "header": "components/prg32/include/prg32_multiplayer.h",
-    "line": 87,
+    "line": 81,
     "name": "prg32_multiplayer_available",
     "params": [],
     "returns": "bool",
@@ -2484,7 +2416,7 @@
     "feature": "multiplayer",
     "group": "Multiplayer",
     "header": "components/prg32/include/prg32_multiplayer.h",
-    "line": 89,
+    "line": 83,
     "name": "prg32_multiplayer_join",
     "params": [
      {
@@ -2504,7 +2436,7 @@
     "feature": "multiplayer",
     "group": "Multiplayer",
     "header": "components/prg32/include/prg32_multiplayer.h",
-    "line": 91,
+    "line": 85,
     "name": "prg32_multiplayer_leave",
     "params": [],
     "returns": "int",
@@ -2515,7 +2447,7 @@
     "feature": "multiplayer",
     "group": "Multiplayer",
     "header": "components/prg32/include/prg32_multiplayer.h",
-    "line": 93,
+    "line": 87,
     "name": "prg32_multiplayer_tick",
     "params": [],
     "returns": "void",
@@ -2526,7 +2458,7 @@
     "feature": "multiplayer",
     "group": "Multiplayer",
     "header": "components/prg32/include/prg32_multiplayer.h",
-    "line": 95,
+    "line": 89,
     "name": "prg32_multiplayer_set_local_state",
     "params": [
      {
@@ -2554,7 +2486,7 @@
     "feature": "multiplayer",
     "group": "Multiplayer",
     "header": "components/prg32/include/prg32_multiplayer.h",
-    "line": 97,
+    "line": 91,
     "name": "prg32_multiplayer_set_input",
     "params": [
      {
@@ -2570,7 +2502,7 @@
     "feature": "multiplayer",
     "group": "Multiplayer",
     "header": "components/prg32/include/prg32_multiplayer.h",
-    "line": 99,
+    "line": 93,
     "name": "prg32_multiplayer_get_peer_count",
     "params": [],
     "returns": "int",
@@ -2581,7 +2513,7 @@
     "feature": "multiplayer",
     "group": "Multiplayer",
     "header": "components/prg32/include/prg32_multiplayer.h",
-    "line": 101,
+    "line": 95,
     "name": "prg32_multiplayer_get_peer",
     "params": [
      {
@@ -2601,7 +2533,7 @@
     "feature": "core",
     "group": "Cartridge loader and slots",
     "header": "components/prg32/include/prg32.h",
-    "line": 105,
+    "line": 99,
     "name": "prg32_cart_stored_count",
     "params": [],
     "returns": "int",
@@ -2612,7 +2544,7 @@
     "feature": "core",
     "group": "Cartridge loader and slots",
     "header": "components/prg32/include/prg32.h",
-    "line": 107,
+    "line": 101,
     "name": "prg32_cart_get_slot_info",
     "params": [
      {
@@ -2632,7 +2564,7 @@
     "feature": "core",
     "group": "Cartridge loader and slots",
     "header": "components/prg32/include/prg32.h",
-    "line": 109,
+    "line": 103,
     "name": "prg32_cart_select_slot",
     "params": [
      {
@@ -2648,7 +2580,7 @@
     "feature": "core",
     "group": "Cartridge loader and slots",
     "header": "components/prg32/include/prg32.h",
-    "line": 111,
+    "line": 105,
     "name": "prg32_cart_default_slot",
     "params": [],
     "returns": "int",
@@ -2659,7 +2591,7 @@
     "feature": "core",
     "group": "Cartridge loader and slots",
     "header": "components/prg32/include/prg32.h",
-    "line": 113,
+    "line": 107,
     "name": "prg32_cart_set_default_slot",
     "params": [
      {
@@ -2675,7 +2607,7 @@
     "feature": "core",
     "group": "Cartridge loader and slots",
     "header": "components/prg32/include/prg32.h",
-    "line": 115,
+    "line": 109,
     "name": "prg32_cart_select_default",
     "params": [],
     "returns": "int",
@@ -2686,7 +2618,7 @@
     "feature": "core",
     "group": "Text console",
     "header": "components/prg32/include/prg32.h",
-    "line": 119,
+    "line": 113,
     "name": "prg32_console_clear",
     "params": [],
     "returns": "void",
@@ -2697,7 +2629,7 @@
     "feature": "core",
     "group": "Text console",
     "header": "components/prg32/include/prg32.h",
-    "line": 121,
+    "line": 115,
     "name": "prg32_console_putc",
     "params": [
      {
@@ -2713,7 +2645,7 @@
     "feature": "core",
     "group": "Text console",
     "header": "components/prg32/include/prg32.h",
-    "line": 123,
+    "line": 117,
     "name": "prg32_console_write",
     "params": [
      {
@@ -2729,7 +2661,7 @@
     "feature": "core",
     "group": "Text console",
     "header": "components/prg32/include/prg32.h",
-    "line": 125,
+    "line": 119,
     "name": "prg32_console_hex32",
     "params": [
      {
@@ -2745,7 +2677,7 @@
     "feature": "core",
     "group": "Immediate-mode graphics and status bands",
     "header": "components/prg32/include/prg32.h",
-    "line": 129,
+    "line": 123,
     "name": "prg32_gfx_clear",
     "params": [
      {
@@ -2761,7 +2693,7 @@
     "feature": "core",
     "group": "Immediate-mode graphics and status bands",
     "header": "components/prg32/include/prg32.h",
-    "line": 131,
+    "line": 125,
     "name": "prg32_gfx_present",
     "params": [],
     "returns": "void",
@@ -2772,7 +2704,7 @@
     "feature": "core",
     "group": "Immediate-mode graphics and status bands",
     "header": "components/prg32/include/prg32.h",
-    "line": 133,
+    "line": 127,
     "name": "prg32_gfx_set_fullscreen",
     "params": [
      {
@@ -2788,7 +2720,7 @@
     "feature": "core",
     "group": "Immediate-mode graphics and status bands",
     "header": "components/prg32/include/prg32.h",
-    "line": 135,
+    "line": 129,
     "name": "prg32_gfx_fullscreen_enabled",
     "params": [],
     "returns": "int",
@@ -2799,7 +2731,7 @@
     "feature": "core",
     "group": "Immediate-mode graphics and status bands",
     "header": "components/prg32/include/prg32.h",
-    "line": 137,
+    "line": 131,
     "name": "prg32_gfx_pixel",
     "params": [
      {
@@ -2823,7 +2755,7 @@
     "feature": "core",
     "group": "Immediate-mode graphics and status bands",
     "header": "components/prg32/include/prg32.h",
-    "line": 139,
+    "line": 133,
     "name": "prg32_gfx_rect",
     "params": [
      {
@@ -2855,7 +2787,7 @@
     "feature": "core",
     "group": "Immediate-mode graphics and status bands",
     "header": "components/prg32/include/prg32.h",
-    "line": 141,
+    "line": 135,
     "name": "prg32_gfx_text8",
     "params": [
      {
@@ -2887,7 +2819,7 @@
     "feature": "core",
     "group": "Immediate-mode graphics and status bands",
     "header": "components/prg32/include/prg32.h",
-    "line": 143,
+    "line": 137,
     "name": "prg32_gfx_snapshot_row_rgb565",
     "params": [
      {
@@ -2911,7 +2843,7 @@
     "feature": "core",
     "group": "Immediate-mode graphics and status bands",
     "header": "components/prg32/include/prg32.h",
-    "line": 145,
+    "line": 139,
     "name": "prg32_band_set_mode",
     "params": [
      {
@@ -2931,7 +2863,7 @@
     "feature": "core",
     "group": "Immediate-mode graphics and status bands",
     "header": "components/prg32/include/prg32.h",
-    "line": 147,
+    "line": 141,
     "name": "prg32_band_mode",
     "params": [
      {
@@ -2947,7 +2879,7 @@
     "feature": "core",
     "group": "Immediate-mode graphics and status bands",
     "header": "components/prg32/include/prg32.h",
-    "line": 149,
+    "line": 143,
     "name": "prg32_band_mode_name",
     "params": [
      {
@@ -2963,7 +2895,7 @@
     "feature": "core",
     "group": "Immediate-mode graphics and status bands",
     "header": "components/prg32/include/prg32.h",
-    "line": 151,
+    "line": 145,
     "name": "prg32_band_set_text",
     "params": [
      {
@@ -2983,7 +2915,7 @@
     "feature": "core",
     "group": "Immediate-mode graphics and status bands",
     "header": "components/prg32/include/prg32.h",
-    "line": 153,
+    "line": 147,
     "name": "prg32_band_set_game_info",
     "params": [
      {
@@ -2999,7 +2931,7 @@
     "feature": "core",
     "group": "Immediate-mode graphics and status bands",
     "header": "components/prg32/include/prg32.h",
-    "line": 155,
+    "line": 149,
     "name": "prg32_band_log",
     "params": [
      {
@@ -3015,7 +2947,7 @@
     "feature": "core",
     "group": "Immediate-mode graphics and status bands",
     "header": "components/prg32/include/prg32.h",
-    "line": 157,
+    "line": 151,
     "name": "prg32_band_set_colors",
     "params": [
      {
@@ -3039,7 +2971,7 @@
     "feature": "core",
     "group": "Immediate-mode graphics and status bands",
     "header": "components/prg32/include/prg32.h",
-    "line": 159,
+    "line": 153,
     "name": "prg32_band_use_default_colors",
     "params": [
      {
@@ -3055,7 +2987,7 @@
     "feature": "core",
     "group": "Immediate-mode graphics and status bands",
     "header": "components/prg32/include/prg32.h",
-    "line": 161,
+    "line": 155,
     "name": "prg32_band_load_config",
     "params": [],
     "returns": "void",
@@ -3066,7 +2998,7 @@
     "feature": "core",
     "group": "Immediate-mode graphics and status bands",
     "header": "components/prg32/include/prg32.h",
-    "line": 163,
+    "line": 157,
     "name": "prg32_band_save_config",
     "params": [],
     "returns": "void",
@@ -3077,7 +3009,7 @@
     "feature": "core",
     "group": "Immediate-mode graphics and status bands",
     "header": "components/prg32/include/prg32.h",
-    "line": 165,
+    "line": 159,
     "name": "prg32_splash_draw",
     "params": [
      {
@@ -3109,7 +3041,7 @@
     "feature": "core",
     "group": "Immediate-mode graphics and status bands",
     "header": "components/prg32/include/prg32.h",
-    "line": 167,
+    "line": 161,
     "name": "prg32_splash_show",
     "params": [
      {
@@ -3145,7 +3077,7 @@
     "feature": "core",
     "group": "Immediate-mode graphics and status bands",
     "header": "components/prg32/include/prg32.h",
-    "line": 169,
+    "line": 163,
     "name": "prg32_splash_draw_game",
     "params": [
      {
@@ -3177,7 +3109,7 @@
     "feature": "core",
     "group": "Immediate-mode graphics and status bands",
     "header": "components/prg32/include/prg32.h",
-    "line": 171,
+    "line": 165,
     "name": "prg32_splash_show_game",
     "params": [
      {
@@ -3213,7 +3145,7 @@
     "feature": "core",
     "group": "Immediate-mode graphics and status bands",
     "header": "components/prg32/include/prg32.h",
-    "line": 173,
+    "line": 167,
     "name": "prg32_splash_show_default",
     "params": [],
     "returns": "void",
@@ -3224,7 +3156,7 @@
     "feature": "core",
     "group": "Immediate-mode graphics and status bands",
     "header": "components/prg32/include/prg32.h",
-    "line": 175,
+    "line": 169,
     "name": "prg32_debug_overlay_draw",
     "params": [
      {
@@ -3256,7 +3188,7 @@
     "feature": "core",
     "group": "Runtime and input",
     "header": "components/prg32/include/prg32.h",
-    "line": 179,
+    "line": 173,
     "name": "prg32_input_wait_released",
     "params": [
      {
@@ -3272,7 +3204,7 @@
     "feature": "keyboard",
     "group": "On-screen text entry",
     "header": "components/prg32/include/prg32.h",
-    "line": 183,
+    "line": 177,
     "name": "prg32_keyboard_init",
     "params": [
      {
@@ -3296,7 +3228,7 @@
     "feature": "keyboard",
     "group": "On-screen text entry",
     "header": "components/prg32/include/prg32.h",
-    "line": 185,
+    "line": 179,
     "name": "prg32_keyboard_update",
     "params": [
      {
@@ -3316,7 +3248,7 @@
     "feature": "keyboard",
     "group": "On-screen text entry",
     "header": "components/prg32/include/prg32.h",
-    "line": 187,
+    "line": 181,
     "name": "prg32_keyboard_draw",
     "params": [
      {
@@ -3340,7 +3272,7 @@
     "feature": "keyboard",
     "group": "On-screen text entry",
     "header": "components/prg32/include/prg32.h",
-    "line": 189,
+    "line": 183,
     "name": "prg32_text_input",
     "params": [
      {
@@ -3364,7 +3296,7 @@
     "feature": "tilemap",
     "group": "Tiles and scrolling playfields",
     "header": "components/prg32/include/prg32.h",
-    "line": 193,
+    "line": 187,
     "name": "prg32_tile_clear",
     "params": [
      {
@@ -3380,7 +3312,7 @@
     "feature": "tilemap",
     "group": "Tiles and scrolling playfields",
     "header": "components/prg32/include/prg32.h",
-    "line": 195,
+    "line": 189,
     "name": "prg32_tile_define",
     "params": [
      {
@@ -3408,7 +3340,7 @@
     "feature": "tilemap",
     "group": "Tiles and scrolling playfields",
     "header": "components/prg32/include/prg32.h",
-    "line": 197,
+    "line": 191,
     "name": "prg32_tile_put",
     "params": [
      {
@@ -3432,7 +3364,7 @@
     "feature": "tilemap",
     "group": "Tiles and scrolling playfields",
     "header": "components/prg32/include/prg32.h",
-    "line": 199,
+    "line": 193,
     "name": "prg32_tile_present",
     "params": [],
     "returns": "void",
@@ -3443,7 +3375,7 @@
     "feature": "tilemap",
     "group": "Tiles and scrolling playfields",
     "header": "components/prg32/include/prg32.h",
-    "line": 201,
+    "line": 195,
     "name": "prg32_playfield_clear",
     "params": [
      {
@@ -3463,7 +3395,7 @@
     "feature": "tilemap",
     "group": "Tiles and scrolling playfields",
     "header": "components/prg32/include/prg32.h",
-    "line": 203,
+    "line": 197,
     "name": "prg32_playfield_put",
     "params": [
      {
@@ -3491,7 +3423,7 @@
     "feature": "tilemap",
     "group": "Tiles and scrolling playfields",
     "header": "components/prg32/include/prg32.h",
-    "line": 205,
+    "line": 199,
     "name": "prg32_playfield_get",
     "params": [
      {
@@ -3515,7 +3447,7 @@
     "feature": "tilemap",
     "group": "Tiles and scrolling playfields",
     "header": "components/prg32/include/prg32.h",
-    "line": 207,
+    "line": 201,
     "name": "prg32_playfield_scroll",
     "params": [
      {
@@ -3539,7 +3471,7 @@
     "feature": "tilemap",
     "group": "Tiles and scrolling playfields",
     "header": "components/prg32/include/prg32.h",
-    "line": 209,
+    "line": 203,
     "name": "prg32_playfield_scroll_by",
     "params": [
      {
@@ -3563,7 +3495,7 @@
     "feature": "tilemap",
     "group": "Tiles and scrolling playfields",
     "header": "components/prg32/include/prg32.h",
-    "line": 211,
+    "line": 205,
     "name": "prg32_playfield_parallax",
     "params": [
      {
@@ -3587,7 +3519,7 @@
     "feature": "tilemap",
     "group": "Tiles and scrolling playfields",
     "header": "components/prg32/include/prg32.h",
-    "line": 213,
+    "line": 207,
     "name": "prg32_playfield_camera",
     "params": [
      {
@@ -3607,7 +3539,7 @@
     "feature": "tilemap",
     "group": "Tiles and scrolling playfields",
     "header": "components/prg32/include/prg32.h",
-    "line": 215,
+    "line": 209,
     "name": "prg32_playfield_camera_x",
     "params": [],
     "returns": "int",
@@ -3618,7 +3550,7 @@
     "feature": "tilemap",
     "group": "Tiles and scrolling playfields",
     "header": "components/prg32/include/prg32.h",
-    "line": 217,
+    "line": 211,
     "name": "prg32_playfield_camera_y",
     "params": [],
     "returns": "int",
@@ -3629,7 +3561,7 @@
     "feature": "tilemap",
     "group": "Tiles and scrolling playfields",
     "header": "components/prg32/include/prg32.h",
-    "line": 219,
+    "line": 213,
     "name": "prg32_playfield_draw",
     "params": [
      {
@@ -3649,7 +3581,7 @@
     "feature": "tilemap",
     "group": "Tiles and scrolling playfields",
     "header": "components/prg32/include/prg32.h",
-    "line": 221,
+    "line": 215,
     "name": "prg32_playfield_draw_dual",
     "params": [],
     "returns": "void",
@@ -3660,7 +3592,7 @@
     "feature": "tilemap",
     "group": "Tiles and scrolling playfields",
     "header": "components/prg32/include/prg32.h",
-    "line": 223,
+    "line": 217,
     "name": "prg32_playfield_present",
     "params": [],
     "returns": "void",
@@ -3671,7 +3603,7 @@
     "feature": "tilemap",
     "group": "Platform collision helpers",
     "header": "components/prg32/include/prg32.h",
-    "line": 227,
+    "line": 221,
     "name": "prg32_platform_tile_flags",
     "params": [
      {
@@ -3691,7 +3623,7 @@
     "feature": "tilemap",
     "group": "Platform collision helpers",
     "header": "components/prg32/include/prg32.h",
-    "line": 229,
+    "line": 223,
     "name": "prg32_platform_tile_flags_get",
     "params": [
      {
@@ -3707,7 +3639,7 @@
     "feature": "tilemap",
     "group": "Platform collision helpers",
     "header": "components/prg32/include/prg32.h",
-    "line": 231,
+    "line": 225,
     "name": "prg32_platform_tile_at",
     "params": [
      {
@@ -3731,7 +3663,7 @@
     "feature": "platformer",
     "group": "Platform collision helpers",
     "header": "components/prg32/include/prg32.h",
-    "line": 233,
+    "line": 227,
     "name": "prg32_platform_solid_at",
     "params": [
      {
@@ -3755,7 +3687,7 @@
     "feature": "platformer",
     "group": "Platform collision helpers",
     "header": "components/prg32/include/prg32.h",
-    "line": 235,
+    "line": 229,
     "name": "prg32_platform_actor_init",
     "params": [
      {
@@ -3791,7 +3723,7 @@
     "feature": "platformer",
     "group": "Platform collision helpers",
     "header": "components/prg32/include/prg32.h",
-    "line": 237,
+    "line": 231,
     "name": "prg32_platform_actor_move",
     "params": [
      {
@@ -3815,7 +3747,7 @@
     "feature": "platformer",
     "group": "Platform collision helpers",
     "header": "components/prg32/include/prg32.h",
-    "line": 239,
+    "line": 233,
     "name": "prg32_platform_actor_step",
     "params": [
      {
@@ -3851,7 +3783,7 @@
     "feature": "platformer",
     "group": "Platform collision helpers",
     "header": "components/prg32/include/prg32.h",
-    "line": 241,
+    "line": 235,
     "name": "prg32_platform_camera_follow",
     "params": [
      {
@@ -3875,7 +3807,7 @@
     "feature": "sprites",
     "group": "Sprites and animation",
     "header": "components/prg32/include/prg32.h",
-    "line": 245,
+    "line": 239,
     "name": "prg32_sprite_hitbox",
     "params": [
      {
@@ -3919,7 +3851,7 @@
     "feature": "sprites",
     "group": "Sprites and animation",
     "header": "components/prg32/include/prg32.h",
-    "line": 247,
+    "line": 241,
     "name": "prg32_sprite_draw_8x8",
     "params": [
      {
@@ -3951,7 +3883,7 @@
     "feature": "sprites",
     "group": "Sprites and animation",
     "header": "components/prg32/include/prg32.h",
-    "line": 249,
+    "line": 243,
     "name": "prg32_sprite_draw_16x16",
     "params": [
      {
@@ -3975,7 +3907,7 @@
     "feature": "sprites",
     "group": "Sprites and animation",
     "header": "components/prg32/include/prg32.h",
-    "line": 251,
+    "line": 245,
     "name": "prg32_sprite_anim_frame",
     "params": [
      {
@@ -3999,7 +3931,7 @@
     "feature": "sprites",
     "group": "Sprites and animation",
     "header": "components/prg32/include/prg32.h",
-    "line": 253,
+    "line": 247,
     "name": "prg32_sprite_draw_frame",
     "params": [
      {
@@ -4039,7 +3971,7 @@
     "feature": "sprites",
     "group": "Sprites and animation",
     "header": "components/prg32/include/prg32.h",
-    "line": 255,
+    "line": 249,
     "name": "prg32_sprite_anim_init",
     "params": [
      {
@@ -4079,7 +4011,7 @@
     "feature": "sprites",
     "group": "Sprites and animation",
     "header": "components/prg32/include/prg32.h",
-    "line": 257,
+    "line": 251,
     "name": "prg32_sprite_anim_update",
     "params": [
      {
@@ -4099,7 +4031,7 @@
     "feature": "sprites",
     "group": "Sprites and animation",
     "header": "components/prg32/include/prg32.h",
-    "line": 259,
+    "line": 253,
     "name": "prg32_sprite_anim_draw",
     "params": [
      {
@@ -4123,7 +4055,7 @@
     "feature": "core",
     "group": "Network setup and score service",
     "header": "components/prg32/include/prg32.h",
-    "line": 263,
+    "line": 257,
     "name": "prg32_score_submit",
     "params": [
      {
@@ -4147,7 +4079,7 @@
     "feature": "sprites",
     "group": "Sprites and animation",
     "header": "components/prg32/include/prg32.h",
-    "line": 267,
+    "line": 261,
     "name": "prg32_sprite_draw_24x24",
     "params": [
      {
@@ -4171,7 +4103,7 @@
     "feature": "core",
     "group": "Network setup and score service",
     "header": "components/prg32/include/prg32.h",
-    "line": 271,
+    "line": 265,
     "name": "prg32_score_player_get",
     "params": [
      {
@@ -4191,7 +4123,7 @@
     "feature": "core",
     "group": "Network setup and score service",
     "header": "components/prg32/include/prg32.h",
-    "line": 273,
+    "line": 267,
     "name": "prg32_score_player_set",
     "params": [
      {
@@ -4207,7 +4139,7 @@
     "feature": "core",
     "group": "Network setup and score service",
     "header": "components/prg32/include/prg32.h",
-    "line": 275,
+    "line": 269,
     "name": "prg32_score_player_prompt",
     "params": [],
     "returns": "int",
@@ -4218,7 +4150,7 @@
     "feature": "core",
     "group": "Network setup and score service",
     "header": "components/prg32/include/prg32.h",
-    "line": 277,
+    "line": 271,
     "name": "prg32_score_submit_current_player",
     "params": [
      {
@@ -4238,7 +4170,7 @@
     "feature": "core",
     "group": "Network setup and score service",
     "header": "components/prg32/include/prg32.h",
-    "line": 279,
+    "line": 273,
     "name": "prg32_score_sync_remote",
     "params": [],
     "returns": "int",
@@ -4249,7 +4181,7 @@
     "feature": "core",
     "group": "Network setup and score service",
     "header": "components/prg32/include/prg32.h",
-    "line": 281,
+    "line": 275,
     "name": "prg32_score_count",
     "params": [
      {
@@ -4265,7 +4197,7 @@
     "feature": "core",
     "group": "Network setup and score service",
     "header": "components/prg32/include/prg32.h",
-    "line": 283,
+    "line": 277,
     "name": "prg32_score_get",
     "params": [
      {
@@ -4289,7 +4221,7 @@
     "feature": "core",
     "group": "Network setup and score service",
     "header": "components/prg32/include/prg32.h",
-    "line": 285,
+    "line": 279,
     "name": "prg32_scoreboard_show",
     "params": [
      {
@@ -4309,7 +4241,7 @@
     "feature": "sprites",
     "group": "Sprites and animation",
     "header": "components/prg32/include/prg32.h",
-    "line": 289,
+    "line": 283,
     "name": "prg32_sprite_draw_indexed",
     "params": [
      {
@@ -4337,7 +4269,7 @@
     "feature": "sprites",
     "group": "Sprites and animation",
     "header": "components/prg32/include/prg32.h",
-    "line": 291,
+    "line": 285,
     "name": "prg32_sprite_draw_bitplanes",
     "params": [
      {
@@ -4365,7 +4297,7 @@
     "feature": "metrics",
     "group": "Performance metrics",
     "header": "components/prg32/include/prg32_metrics.h",
-    "line": 295,
+    "line": 289,
     "name": "prg32_perf_now_us",
     "params": [],
     "returns": "uint64_t",
@@ -4376,7 +4308,7 @@
     "feature": "metrics",
     "group": "Performance metrics",
     "header": "components/prg32/include/prg32_metrics.h",
-    "line": 297,
+    "line": 291,
     "name": "prg32_perf_begin",
     "params": [
      {
@@ -4392,7 +4324,7 @@
     "feature": "metrics",
     "group": "Performance metrics",
     "header": "components/prg32/include/prg32_metrics.h",
-    "line": 299,
+    "line": 293,
     "name": "prg32_perf_case_begin",
     "params": [
      {
@@ -4412,7 +4344,7 @@
     "feature": "metrics",
     "group": "Performance metrics",
     "header": "components/prg32/include/prg32_metrics.h",
-    "line": 301,
+    "line": 295,
     "name": "prg32_perf_record",
     "params": [
      {
@@ -4428,7 +4360,7 @@
     "feature": "metrics",
     "group": "Performance metrics",
     "header": "components/prg32/include/prg32_metrics.h",
-    "line": 303,
+    "line": 297,
     "name": "prg32_perf_case_end",
     "params": [],
     "returns": "int",
@@ -4439,7 +4371,7 @@
     "feature": "metrics",
     "group": "Performance metrics",
     "header": "components/prg32/include/prg32_metrics.h",
-    "line": 305,
+    "line": 299,
     "name": "prg32_perf_end",
     "params": [],
     "returns": "int",
@@ -4450,7 +4382,7 @@
     "feature": "metrics",
     "group": "Performance metrics",
     "header": "components/prg32/include/prg32_metrics.h",
-    "line": 307,
+    "line": 301,
     "name": "prg32_perf_abort",
     "params": [],
     "returns": "int",
@@ -4461,7 +4393,7 @@
     "feature": "metrics",
     "group": "Performance metrics",
     "header": "components/prg32/include/prg32_metrics.h",
-    "line": 309,
+    "line": 303,
     "name": "prg32_perf_get_state",
     "params": [
      {
@@ -4477,7 +4409,7 @@
     "feature": "metrics",
     "group": "Performance metrics",
     "header": "components/prg32/include/prg32_metrics.h",
-    "line": 311,
+    "line": 305,
     "name": "prg32_perf_get_summary",
     "params": [
      {
@@ -4493,7 +4425,7 @@
     "feature": "graphics",
     "group": "Immediate-mode graphics and status bands",
     "header": "components/prg32/include/prg32.h",
-    "line": 315,
+    "line": 309,
     "name": "prg32_palette_set",
     "params": [
      {
@@ -4513,7 +4445,7 @@
     "feature": "graphics",
     "group": "Immediate-mode graphics and status bands",
     "header": "components/prg32/include/prg32.h",
-    "line": 317,
+    "line": 311,
     "name": "prg32_palette_get",
     "params": [
      {
@@ -4529,7 +4461,7 @@
     "feature": "graphics",
     "group": "Immediate-mode graphics and status bands",
     "header": "components/prg32/include/prg32.h",
-    "line": 319,
+    "line": 313,
     "name": "prg32_gfx_pixel_indexed",
     "params": [
      {
@@ -4553,7 +4485,7 @@
     "feature": "graphics",
     "group": "Immediate-mode graphics and status bands",
     "header": "components/prg32/include/prg32.h",
-    "line": 321,
+    "line": 315,
     "name": "prg32_gfx_rect_indexed",
     "params": [
      {
@@ -4585,7 +4517,7 @@
     "feature": "graphics",
     "group": "Immediate-mode graphics and status bands",
     "header": "components/prg32/include/prg32.h",
-    "line": 323,
+    "line": 317,
     "name": "prg32_gfx_clear_indexed",
     "params": [
      {
@@ -4601,7 +4533,7 @@
     "feature": "core",
     "group": "More functions",
     "header": "components/prg32/include/prg32.h",
-    "line": 327,
+    "line": 321,
     "name": "prg32_random_number",
     "params": [
      {
@@ -4636,6 +4568,24 @@
    "stdbool.h",
    "stddef.h",
    "stdint.h"
+  ],
+  "obsolete": [
+   {
+    "instead": "prg32_audio_play_track with an AudioStudio soundtrack",
+    "name": "prg32_buzzer_play_notes"
+   },
+   {
+    "instead": "prg32_audio_play_sample_pan with a sample from the cartridge's audio block",
+    "name": "prg32_buzzer_sample_u8"
+   },
+   {
+    "instead": "prg32_audio_note_on_pan (a voice playing an instrument), or an AudioStudio sound effect",
+    "name": "prg32_buzzer_tone"
+   },
+   {
+    "instead": "prg32_midi_note_t (prg32_audio_notes) or an AudioStudio soundtrack",
+    "name": "prg32_note_t"
+   }
   ],
   "preprocessor": [
    "include",
@@ -5048,152 +4998,147 @@
   "types": [
    {
     "header": "components/prg32/include/prg32.h",
-    "line": 330,
+    "line": 324,
     "name": "prg32_anim_sprite_t"
    },
    {
     "header": "components/prg32_audio/include/prg32_audio.h",
-    "line": 331,
+    "line": 325,
     "name": "prg32_audio_block_header_t"
    },
    {
     "header": "components/prg32_audio/include/prg32_audio.h",
-    "line": 332,
+    "line": 326,
     "name": "prg32_audio_command_t"
    },
    {
     "header": "components/prg32_audio/include/prg32_audio.h",
-    "line": 333,
+    "line": 327,
     "name": "prg32_audio_config_t"
    },
    {
     "header": "components/prg32_audio/include/prg32_audio.h",
-    "line": 334,
+    "line": 328,
     "name": "prg32_audio_event_t"
    },
    {
     "header": "components/prg32_audio/include/prg32_audio.h",
-    "line": 335,
+    "line": 329,
     "name": "prg32_audio_mode_t"
    },
    {
     "header": "components/prg32_audio/include/prg32_audio.h",
-    "line": 336,
+    "line": 330,
     "name": "prg32_audio_track_desc_t"
    },
    {
     "header": "components/prg32/include/prg32.h",
-    "line": 337,
+    "line": 331,
     "name": "prg32_band_mode_t"
    },
    {
     "header": "components/prg32/include/prg32.h",
-    "line": 338,
+    "line": 332,
     "name": "prg32_cart_header_t"
    },
    {
     "header": "components/prg32/include/prg32.h",
-    "line": 339,
+    "line": 333,
     "name": "prg32_cart_header_v2_t"
    },
    {
     "header": "components/prg32/include/prg32.h",
-    "line": 340,
+    "line": 334,
     "name": "prg32_cart_info_t"
    },
    {
     "header": "components/prg32/include/prg32.h",
-    "line": 341,
+    "line": 335,
     "name": "prg32_indexed_sprite_t"
    },
    {
     "header": "components/prg32_audio/include/prg32_audio.h",
-    "line": 342,
+    "line": 336,
     "name": "prg32_instrument_desc_t"
    },
    {
     "header": "components/prg32/include/prg32.h",
-    "line": 343,
+    "line": 337,
     "name": "prg32_keyboard_t"
    },
    {
     "header": "components/prg32/include/prg32.h",
-    "line": 344,
+    "line": 338,
     "name": "prg32_memory_stats_t"
    },
    {
     "header": "components/prg32/include/prg32_metrics.h",
-    "line": 345,
+    "line": 339,
     "name": "prg32_metric_sample_t"
    },
    {
     "header": "components/prg32/include/prg32_metrics.h",
-    "line": 346,
+    "line": 340,
     "name": "prg32_metrics_config_t"
    },
    {
     "header": "components/prg32_audio/include/prg32_audio.h",
-    "line": 347,
+    "line": 341,
     "name": "prg32_midi_note_t"
    },
    {
-    "header": "components/prg32/include/prg32.h",
-    "line": 348,
-    "name": "prg32_note_t"
-   },
-   {
     "header": "components/prg32/include/prg32_metrics.h",
-    "line": 349,
+    "line": 342,
     "name": "prg32_perf_case_desc_t"
    },
    {
     "header": "components/prg32/include/prg32_metrics.h",
-    "line": 350,
+    "line": 343,
     "name": "prg32_perf_sample_t"
    },
    {
     "header": "components/prg32/include/prg32_metrics.h",
-    "line": 351,
+    "line": 344,
     "name": "prg32_perf_state_t"
    },
    {
     "header": "components/prg32/include/prg32_metrics.h",
-    "line": 352,
+    "line": 345,
     "name": "prg32_perf_suite_desc_t"
    },
    {
     "header": "components/prg32/include/prg32_metrics.h",
-    "line": 353,
+    "line": 346,
     "name": "prg32_performance_summary_t"
    },
    {
     "header": "components/prg32/include/prg32.h",
-    "line": 354,
+    "line": 347,
     "name": "prg32_platform_actor_t"
    },
    {
     "header": "components/prg32/include/prg32_multiplayer.h",
-    "line": 355,
+    "line": 348,
     "name": "prg32_player_state_t"
    },
    {
     "header": "components/prg32_audio/include/prg32_audio.h",
-    "line": 356,
+    "line": 349,
     "name": "prg32_sample_desc_t"
    },
    {
     "header": "components/prg32/include/prg32.h",
-    "line": 357,
+    "line": 350,
     "name": "prg32_score_t"
    },
    {
     "header": "components/prg32/include/prg32.h",
-    "line": 358,
+    "line": 351,
     "name": "prg32_wifi_config_t"
    },
    {
     "header": "components/prg32/include/prg32.h",
-    "line": 359,
+    "line": 352,
     "name": "prg32_wifi_mode_t"
    }
   ]
@@ -5201,7 +5146,7 @@
  "generated_by": "tools/build_language_index.py",
  "header": {
   "name": "prg32.h (portable API)",
-  "text": "/* PRG32 portable cartridge API: ABI 1.6 (hash 0x260f6136).\n * Generated by tools/build_language_index.py from the PRG32 SDK at 679dfb5.\n * Read-only, for learning. Your game still writes  #include \"prg32.h\".\n * A PRG32 cartridge can call exactly the functions listed here. */\n\n\n/* ==== Runtime and input ==== */\n/* Milliseconds since the console started. Compare differences, not absolute times.  [feature: core] */\nuint32_t prg32_ticks_ms(void);\n/* Read the buttons held down now. Test one with  & PRG32_BTN_LEFT  and so on.  [feature: core] */\nuint32_t prg32_input_read(void);\n/* Read the buttons of player 1 or 2.  [feature: core] */\nuint32_t prg32_input_read_player(uint8_t player);\n/* Runtime and input.  [feature: core] */\nuint32_t prg32_input_read_menu(void);\n/* Runtime and input.  [feature: core] */\nuint32_t prg32_controller_read(void);\n\n/* ==== Basic audio and RGB indicator ==== */\n/* Play a tone on the buzzer: frequency in Hz, duration in ms, duty sets the volume.  [feature: audio] */\nvoid prg32_buzzer_tone(uint32_t hz, uint32_t ms, uint16_t duty);\n/* Play a MIDI note (0-127) on a channel for duration_ms milliseconds.  [feature: audio] */\nvoid prg32_audio_note(uint8_t channel, uint8_t instrument, uint8_t note, uint8_t volume, uint32_t duration_ms);\n/* Basic audio and RGB indicator.  [feature: audio] */\nvoid prg32_buzzer_play_notes(const prg32_note_t *notes, size_t count);\n/* Basic audio and RGB indicator.  [feature: audio] */\nvoid prg32_buzzer_sample_u8(const uint8_t *samples, size_t count, uint32_t sample_rate);\n\n/* ==== Audio engine ==== */\n/* Audio engine.  [feature: audio] */\nbool prg32_audio_init(const prg32_audio_config_t *config);\n/* Audio engine.  [feature: audio] */\nvoid prg32_audio_shutdown(void);\n/* Audio engine.  [feature: audio] */\nprg32_audio_mode_t prg32_audio_get_mode(void);\n/* Audio engine.  [feature: audio] */\nint prg32_audio_play_sample(uint16_t sample_id, uint8_t volume, uint16_t pitch);\n/* Audio engine.  [feature: audio] */\nint prg32_audio_play_sample_pan(uint16_t sample_id, uint8_t volume, uint16_t pitch, int8_t pan);\n/* Audio engine.  [feature: audio] */\nvoid prg32_audio_stop_channel(int channel);\n/* Stop every sound.  [feature: audio] */\nvoid prg32_audio_stop_all(void);\n/* Audio engine.  [feature: audio] */\nvoid prg32_audio_note_on(uint8_t channel, uint8_t instrument, uint8_t note, uint8_t volume);\n/* Audio engine.  [feature: audio] */\nvoid prg32_audio_note_on_pan(uint8_t channel, uint8_t instrument, uint8_t note, uint8_t volume, int8_t pan);\n\n/* ==== Basic audio and RGB indicator ==== */\n/* Stop the note on a channel.  [feature: audio] */\nvoid prg32_audio_note_off(uint8_t channel);\n/* Basic audio and RGB indicator.  [feature: audio] */\nvoid prg32_audio_notes(uint8_t channel, uint8_t instrument, uint8_t volume, const prg32_midi_note_t *notes, size_t count);\n\n/* ==== Audio engine ==== */\n/* Audio engine.  [feature: audio] */\nvoid prg32_audio_play_track(uint16_t track_id);\n/* Audio engine.  [feature: audio] */\nvoid prg32_audio_stop_track(void);\n/* Audio engine.  [feature: audio] */\nvoid prg32_audio_set_tempo(uint16_t bpm);\n/* Audio engine.  [feature: audio] */\nvoid prg32_audio_set_master_volume(uint8_t volume);\n/* Audio engine.  [feature: audio] */\nvoid prg32_audio_set_channel_volume(uint8_t channel, uint8_t volume);\n/* Audio engine.  [feature: audio] */\nvoid prg32_audio_set_channel_pan(uint8_t channel, int8_t pan);\n\n/* ==== Network setup and score service ==== */\n/* Network setup and score service.  [feature: wifi] */\nint prg32_wifi_start_mode(const prg32_wifi_config_t *config);\n/* Network setup and score service.  [feature: wifi] */\nprg32_wifi_mode_t prg32_wifi_current_mode(void);\n/* Network setup and score service.  [feature: wifi] */\nconst char *prg32_wifi_current_ip(void);\n/* Network setup and score service.  [feature: wifi] */\nconst char *prg32_wifi_current_ssid(void);\n/* Network setup and score service.  [feature: wifi] */\nint prg32_wifi_setup_requested(void);\n/* Network setup and score service.  [feature: wifi] */\nint prg32_wifi_setup_run(void);\n\n/* ==== Multiplayer ==== */\n/* Multiplayer.  [feature: multiplayer] */\nvoid prg32_multiplayer_init(void);\n/* Multiplayer.  [feature: multiplayer] */\nbool prg32_multiplayer_available(void);\n/* Multiplayer.  [feature: multiplayer] */\nint prg32_multiplayer_join(const char *cartridge_signature, uint32_t flags);\n/* Multiplayer.  [feature: multiplayer] */\nint prg32_multiplayer_leave(void);\n/* Multiplayer.  [feature: multiplayer] */\nvoid prg32_multiplayer_tick(void);\n/* Multiplayer.  [feature: multiplayer] */\nint prg32_multiplayer_set_local_state(int16_t x, int16_t y, uint16_t sprite, uint16_t flags);\n/* Multiplayer.  [feature: multiplayer] */\nint prg32_multiplayer_set_input(uint32_t input);\n/* Multiplayer.  [feature: multiplayer] */\nint prg32_multiplayer_get_peer_count(void);\n/* Multiplayer.  [feature: multiplayer] */\nint prg32_multiplayer_get_peer(int index, prg32_player_state_t *out);\n\n/* ==== Cartridge loader and slots ==== */\n/* Cartridge loader and slots.  [feature: core] */\nint prg32_cart_stored_count(void);\n/* Cartridge loader and slots.  [feature: core] */\nint prg32_cart_get_slot_info(uint8_t slot, prg32_cart_info_t *info);\n/* Cartridge loader and slots.  [feature: core] */\nint prg32_cart_select_slot(uint8_t slot);\n/* Cartridge loader and slots.  [feature: core] */\nint prg32_cart_default_slot(void);\n/* Cartridge loader and slots.  [feature: core] */\nint prg32_cart_set_default_slot(int slot);\n/* Cartridge loader and slots.  [feature: core] */\nint prg32_cart_select_default(void);\n\n/* ==== Text console ==== */\n/* Text console.  [feature: core] */\nvoid prg32_console_clear(void);\n/* Text console.  [feature: core] */\nvoid prg32_console_putc(int ch);\n/* Write text on the 40x25 text console.  [feature: core] */\nvoid prg32_console_write(const char *s);\n/* Text console.  [feature: core] */\nvoid prg32_console_hex32(uint32_t value);\n\n/* ==== Immediate-mode graphics and status bands ==== */\n/* Fill the whole game screen with one colour. Call it first in your draw function.  [feature: core] */\nvoid prg32_gfx_clear(uint16_t color);\n/* Show the finished frame. The kit's runtime does this for you after draw.  [feature: core] */\nvoid prg32_gfx_present(void);\n/* Immediate-mode graphics and status bands.  [feature: core] */\nvoid prg32_gfx_set_fullscreen(int enabled);\n/* Immediate-mode graphics and status bands.  [feature: core] */\nint prg32_gfx_fullscreen_enabled(void);\n/* Colour one pixel at (x, y).  [feature: core] */\nvoid prg32_gfx_pixel(int x, int y, uint16_t color);\n/* Draw a filled rectangle: top-left corner (x, y), width w, height h, colour.  [feature: core] */\nvoid prg32_gfx_rect(int x, int y, int w, int h, uint16_t color);\n/* Write text with the 8x8 font, top-left corner at (x, y).  [feature: core] */\nvoid prg32_gfx_text8(int x, int y, const char *s, uint16_t fg, uint16_t bg);\n/* Immediate-mode graphics and status bands.  [feature: core] */\nint prg32_gfx_snapshot_row_rgb565(int y, uint16_t *out, size_t pixels);\n/* Immediate-mode graphics and status bands.  [feature: core] */\nvoid prg32_band_set_mode(uint8_t band, prg32_band_mode_t mode);\n/* Immediate-mode graphics and status bands.  [feature: core] */\nprg32_band_mode_t prg32_band_mode(uint8_t band);\n/* Immediate-mode graphics and status bands.  [feature: core] */\nconst char *prg32_band_mode_name(prg32_band_mode_t mode);\n/* Immediate-mode graphics and status bands.  [feature: core] */\nvoid prg32_band_set_text(uint8_t band, const char *text);\n/* Immediate-mode graphics and status bands.  [feature: core] */\nvoid prg32_band_set_game_info(const char *text);\n/* Immediate-mode graphics and status bands.  [feature: core] */\nvoid prg32_band_log(const char *message);\n/* Immediate-mode graphics and status bands.  [feature: core] */\nvoid prg32_band_set_colors(uint8_t band, uint16_t fg, uint16_t bg);\n/* Immediate-mode graphics and status bands.  [feature: core] */\nvoid prg32_band_use_default_colors(uint8_t band);\n/* Immediate-mode graphics and status bands.  [feature: core] */\nvoid prg32_band_load_config(void);\n/* Immediate-mode graphics and status bands.  [feature: core] */\nvoid prg32_band_save_config(void);\n/* Immediate-mode graphics and status bands.  [feature: core] */\nvoid prg32_splash_draw(const char *title, const char *subtitle, uint16_t bg, uint16_t fg, uint16_t accent);\n/* Immediate-mode graphics and status bands.  [feature: core] */\nvoid prg32_splash_show(const char *title, const char *subtitle, uint32_t duration_ms, uint16_t bg, uint16_t fg, uint16_t accent);\n/* Immediate-mode graphics and status bands.  [feature: core] */\nvoid prg32_splash_draw_game(const char *title, const char *subtitle, uint16_t bg, uint16_t fg, uint16_t accent);\n/* Immediate-mode graphics and status bands.  [feature: core] */\nvoid prg32_splash_show_game(const char *title, const char *subtitle, uint32_t duration_ms, uint16_t bg, uint16_t fg, uint16_t accent);\n/* Immediate-mode graphics and status bands.  [feature: core] */\nvoid prg32_splash_show_default(void);\n/* Immediate-mode graphics and status bands.  [feature: core] */\nvoid prg32_debug_overlay_draw(int enabled, int x, int y, uint32_t input_mask, uint32_t frame);\n\n/* ==== Runtime and input ==== */\n/* Runtime and input.  [feature: core] */\nvoid prg32_input_wait_released(uint32_t mask);\n\n/* ==== On-screen text entry ==== */\n/* On-screen text entry.  [feature: keyboard] */\nvoid prg32_keyboard_init(prg32_keyboard_t *keyboard, char *buffer, size_t capacity);\n/* On-screen text entry.  [feature: keyboard] */\nint prg32_keyboard_update(prg32_keyboard_t *keyboard, uint32_t input_mask);\n/* On-screen text entry.  [feature: keyboard] */\nvoid prg32_keyboard_draw(const prg32_keyboard_t *keyboard, int x, int y);\n/* On-screen text entry.  [feature: keyboard] */\nint prg32_text_input(char *buffer, size_t capacity, const char *title);\n\n/* ==== Tiles and scrolling playfields ==== */\n/* Tiles and scrolling playfields.  [feature: tilemap] */\nvoid prg32_tile_clear(uint16_t color);\n/* Tiles and scrolling playfields.  [feature: tilemap] */\nvoid prg32_tile_define(uint8_t id, const uint8_t *bitmap8x8, uint16_t fg, uint16_t bg);\n/* Tiles and scrolling playfields.  [feature: tilemap] */\nvoid prg32_tile_put(uint8_t tx, uint8_t ty, uint8_t id);\n/* Tiles and scrolling playfields.  [feature: tilemap] */\nvoid prg32_tile_present(void);\n/* Tiles and scrolling playfields.  [feature: tilemap] */\nvoid prg32_playfield_clear(uint8_t layer, uint8_t tile_id);\n/* Tiles and scrolling playfields.  [feature: tilemap] */\nvoid prg32_playfield_put(uint8_t layer, uint8_t tx, uint8_t ty, uint8_t id);\n/* Tiles and scrolling playfields.  [feature: tilemap] */\nuint8_t prg32_playfield_get(uint8_t layer, uint8_t tx, uint8_t ty);\n/* Tiles and scrolling playfields.  [feature: tilemap] */\nvoid prg32_playfield_scroll(uint8_t layer, int x, int y);\n/* Tiles and scrolling playfields.  [feature: tilemap] */\nvoid prg32_playfield_scroll_by(uint8_t layer, int dx, int dy);\n/* Tiles and scrolling playfields.  [feature: tilemap] */\nvoid prg32_playfield_parallax(uint8_t layer, int x_q8, int y_q8);\n/* Tiles and scrolling playfields.  [feature: tilemap] */\nvoid prg32_playfield_camera(int x, int y);\n/* Tiles and scrolling playfields.  [feature: tilemap] */\nint prg32_playfield_camera_x(void);\n/* Tiles and scrolling playfields.  [feature: tilemap] */\nint prg32_playfield_camera_y(void);\n/* Tiles and scrolling playfields.  [feature: tilemap] */\nvoid prg32_playfield_draw(uint8_t layer, int transparent_zero);\n/* Tiles and scrolling playfields.  [feature: tilemap] */\nvoid prg32_playfield_draw_dual(void);\n/* Tiles and scrolling playfields.  [feature: tilemap] */\nvoid prg32_playfield_present(void);\n\n/* ==== Platform collision helpers ==== */\n/* Platform collision helpers.  [feature: tilemap] */\nvoid prg32_platform_tile_flags(uint8_t tile_id, uint8_t flags);\n/* Platform collision helpers.  [feature: tilemap] */\nuint8_t prg32_platform_tile_flags_get(uint8_t tile_id);\n/* Platform collision helpers.  [feature: tilemap] */\nuint8_t prg32_platform_tile_at(uint8_t layer, int pixel_x, int pixel_y);\n/* Platform collision helpers.  [feature: platformer] */\nint prg32_platform_solid_at(uint8_t layer, int pixel_x, int pixel_y);\n/* Platform collision helpers.  [feature: platformer] */\nvoid prg32_platform_actor_init(prg32_platform_actor_t *actor, uint8_t layer, int x, int y, int w, int h);\n/* Platform collision helpers.  [feature: platformer] */\nuint16_t prg32_platform_actor_move(prg32_platform_actor_t *actor, int dx, int dy);\n/* Platform collision helpers.  [feature: platformer] */\nuint16_t prg32_platform_actor_step(prg32_platform_actor_t *actor, uint32_t input_mask, int move_speed, int jump_speed, int gravity, int max_fall);\n/* Platform collision helpers.  [feature: platformer] */\nvoid prg32_platform_camera_follow(const prg32_platform_actor_t *actor, int deadzone_x, int deadzone_y);\n\n/* ==== Sprites and animation ==== */\n/* Check whether two rectangles overlap (for collisions).  [feature: sprites] */\nint prg32_sprite_hitbox(int ax, int ay, int aw, int ah, int bx, int by, int bw, int bh);\n/* Draw an 8x8 sprite (RGB565 pixels) at (x, y).  [feature: sprites] */\nvoid prg32_sprite_draw_8x8(int x, int y, const uint8_t *bits, uint16_t fg, uint16_t bg);\n/* Draw a 16x16 sprite (RGB565 pixels) at (x, y).  [feature: sprites] */\nvoid prg32_sprite_draw_16x16(int x, int y, const uint16_t *rgb565);\n/* Sprites and animation.  [feature: sprites] */\nuint32_t prg32_sprite_anim_frame(uint32_t now_ms, uint32_t frame_count, uint32_t frame_ms);\n/* Sprites and animation.  [feature: sprites] */\nvoid prg32_sprite_draw_frame(int x, int y, int w, int h, const uint16_t *frames, uint32_t frame, uint16_t transparent);\n/* Sprites and animation.  [feature: sprites] */\nvoid prg32_sprite_anim_init(prg32_anim_sprite_t *sprite, const uint16_t *frames, uint16_t width, uint16_t height, uint16_t frame_count, uint16_t frame_ms, uint16_t transparent);\n/* Sprites and animation.  [feature: sprites] */\nvoid prg32_sprite_anim_update(prg32_anim_sprite_t *sprite, uint32_t now_ms);\n/* Sprites and animation.  [feature: sprites] */\nvoid prg32_sprite_anim_draw(const prg32_anim_sprite_t *sprite, int x, int y);\n\n/* ==== Network setup and score service ==== */\n/* Save a score for a game and a player.  [feature: core] */\nint prg32_score_submit(const char *game, const char *player, uint32_t score);\n\n/* ==== Sprites and animation ==== */\n/* Sprites and animation.  [feature: sprites] */\nvoid prg32_sprite_draw_24x24(int x, int y, const uint16_t *rgb565);\n\n/* ==== Network setup and score service ==== */\n/* Network setup and score service.  [feature: core] */\nint prg32_score_player_get(char *out_player, size_t max_len);\n/* Network setup and score service.  [feature: core] */\nint prg32_score_player_set(const char *player);\n/* Network setup and score service.  [feature: core] */\nint prg32_score_player_prompt(void);\n/* Network setup and score service.  [feature: core] */\nint prg32_score_submit_current_player(const char *game, uint32_t score);\n/* Network setup and score service.  [feature: core] */\nint prg32_score_sync_remote(void);\n/* Network setup and score service.  [feature: core] */\nint prg32_score_count(const char *game);\n/* Network setup and score service.  [feature: core] */\nint prg32_score_get(const char *game, int index, prg32_score_t *out_score);\n/* Network setup and score service.  [feature: core] */\nint prg32_scoreboard_show(const char *game, const char *title);\n\n/* ==== Sprites and animation ==== */\n/* Draw a packed indexed-color frame without expanding it in cartridge memory.  [feature: sprites] */\nvoid prg32_sprite_draw_indexed(int x, int y, const prg32_indexed_sprite_t *sprite, uint32_t frame);\n/* Draw a planar indexed-color frame without expanding it in cartridge memory.  [feature: sprites] */\nvoid prg32_sprite_draw_bitplanes(int x, int y, const prg32_indexed_sprite_t *sprite, uint32_t frame);\n\n/* ==== Performance metrics ==== */\n/* Return the monotonic device timestamp in microseconds.  [feature: metrics] */\nuint64_t prg32_perf_now_us(void);\n/* Begin a versioned pluggable measurement suite.  [feature: metrics] */\nint prg32_perf_begin(const prg32_perf_suite_desc_t *suite);\n/* Begin a named case and allocate its temporary percentile workspace.  [feature: metrics] */\nint prg32_perf_case_begin(const prg32_perf_case_desc_t *desc, uint32_t expected_samples);\n/* Record one caller-measured frame in the active case.  [feature: metrics] */\nint prg32_perf_record(const prg32_perf_sample_t *sample);\n/* Aggregate the active case and release its temporary workspace.  [feature: metrics] */\nint prg32_perf_case_end(void);\n/* Complete and publish the active suite.  [feature: metrics] */\nint prg32_perf_end(void);\n/* Abort safely and release all session workspace.  [feature: metrics] */\nint prg32_perf_abort(void);\n/* Copy versioned lifecycle and heap state.  [feature: metrics] */\nint prg32_perf_get_state(prg32_perf_state_t *out);\n/* Copy the compact completed-run summary.  [feature: metrics] */\nint prg32_perf_get_summary(prg32_performance_summary_t *out);\n\n/* ==== Immediate-mode graphics and status bands ==== */\n/* Set one system-palette entry from a native RGB565 value.  [feature: graphics] */\nvoid prg32_palette_set(uint8_t index, uint16_t rgb565);\n/* Read one system-palette entry as native RGB565.  [feature: graphics] */\nuint16_t prg32_palette_get(uint8_t index);\n/* Draw one system-palette index.  [feature: graphics] */\nvoid prg32_gfx_pixel_indexed(int x, int y, uint8_t index);\n/* Fill a clipped rectangle with one system-palette index.  [feature: graphics] */\nvoid prg32_gfx_rect_indexed(int x, int y, int w, int h, uint8_t index);\n/* Clear the game viewport to one system-palette index.  [feature: graphics] */\nvoid prg32_gfx_clear_indexed(uint8_t index);\n\n/* ==== More functions ==== */\n/* A random number. Use  % n  to get a number from 0 to n-1.  [feature: core] */\nuint32_t prg32_random_number(uint32_t min, uint32_t max);\n\n/* ==== Types ==== */\n/* prg32_anim_sprite_t: see prg32.h in the PRG32 SDK. */\n/* prg32_audio_block_header_t: see prg32_audio.h in the PRG32 SDK. */\n/* prg32_audio_command_t: see prg32_audio.h in the PRG32 SDK. */\n/* prg32_audio_config_t: see prg32_audio.h in the PRG32 SDK. */\n/* prg32_audio_event_t: see prg32_audio.h in the PRG32 SDK. */\n/* prg32_audio_mode_t: see prg32_audio.h in the PRG32 SDK. */\n/* prg32_audio_track_desc_t: see prg32_audio.h in the PRG32 SDK. */\n/* prg32_band_mode_t: see prg32.h in the PRG32 SDK. */\n/* prg32_cart_header_t: see prg32.h in the PRG32 SDK. */\n/* prg32_cart_header_v2_t: see prg32.h in the PRG32 SDK. */\n/* prg32_cart_info_t: see prg32.h in the PRG32 SDK. */\n/* prg32_indexed_sprite_t: see prg32.h in the PRG32 SDK. */\n/* prg32_instrument_desc_t: see prg32_audio.h in the PRG32 SDK. */\n/* prg32_keyboard_t: see prg32.h in the PRG32 SDK. */\n/* prg32_memory_stats_t: see prg32.h in the PRG32 SDK. */\n/* prg32_metric_sample_t: see prg32_metrics.h in the PRG32 SDK. */\n/* prg32_metrics_config_t: see prg32_metrics.h in the PRG32 SDK. */\n/* prg32_midi_note_t: see prg32_audio.h in the PRG32 SDK. */\n/* prg32_note_t: see prg32.h in the PRG32 SDK. */\n/* prg32_perf_case_desc_t: see prg32_metrics.h in the PRG32 SDK. */\n/* prg32_perf_sample_t: see prg32_metrics.h in the PRG32 SDK. */\n/* prg32_perf_state_t: see prg32_metrics.h in the PRG32 SDK. */\n/* prg32_perf_suite_desc_t: see prg32_metrics.h in the PRG32 SDK. */\n/* prg32_performance_summary_t: see prg32_metrics.h in the PRG32 SDK. */\n/* prg32_platform_actor_t: see prg32.h in the PRG32 SDK. */\n/* prg32_player_state_t: see prg32_multiplayer.h in the PRG32 SDK. */\n/* prg32_sample_desc_t: see prg32_audio.h in the PRG32 SDK. */\n/* prg32_score_t: see prg32.h in the PRG32 SDK. */\n/* prg32_wifi_config_t: see prg32.h in the PRG32 SDK. */\n/* prg32_wifi_mode_t: see prg32.h in the PRG32 SDK. */\n\n/* ==== Constants ==== */\n#define PRG32_AUDIO_BLOCK_MAGIC \"AUD0\"\n#define PRG32_AUDIO_BLOCK_VERSION 1\n#define PRG32_AUDIO_PAN_CENTER 0\n#define PRG32_AUDIO_PAN_LEFT (-64)\n#define PRG32_AUDIO_PAN_RIGHT 63\n#define PRG32_AUDIO_SAMPLE_LOOP (1u << 0)\n#define PRG32_AUDIO_SYNTH_MARKER 0x8000u\n#define PRG32_AUDIO_SYNTH_WAVE_NOISE 3u\n#define PRG32_AUDIO_SYNTH_WAVE_PULSE 2u\n#define PRG32_AUDIO_SYNTH_WAVE_SAW 1u\n#define PRG32_AUDIO_SYNTH_WAVE_TRIANGLE 0u\n#define PRG32_BAND_BOTTOM 1\n#define PRG32_BAND_TOP 0\n#define PRG32_BTN_A (1u << 4)\n#define PRG32_BTN_B (1u << 5)\n#define PRG32_BTN_DOWN (1u << 3)\n#define PRG32_BTN_LEFT (1u << 0)\n#define PRG32_BTN_RIGHT (1u << 1)\n#define PRG32_BTN_SELECT PRG32_BTN_START\n#define PRG32_BTN_START (1u << 6)\n#define PRG32_BTN_UP (1u << 2)\n#define PRG32_CART_ABI_MAJOR 1\n#define PRG32_CART_ABI_MINOR 1\n#define PRG32_CART_ARCH_ESP32C6 \"esp32c6\"\n#define PRG32_CART_ARCH_QEMU \"qemu\"\n#define PRG32_CART_COLOPHON_ABI \"prg32-colophon-1.0\"\n#define PRG32_CART_FLAG_ABI_TABLE (1u << 2)\n#define PRG32_CART_FLAG_AUDIO_BLOCK (1u << 0)\n#define PRG32_CART_FLAG_MULTIPLAYER (1u << 1)\n#define PRG32_CART_FLAG_RELOCATABLE (1u << 3)\n#define PRG32_CART_LOAD_ADDR 0x40800000u\n#define PRG32_CART_MAGIC \"PRG2\"\n#define PRG32_CART_MAX_SIZE ((uint32_t)CONFIG_PRG32_CART_MAX_KIB * 1024u)\n#define PRG32_CART_META_ABI \"prg32-metadata-1.0\"\n#define PRG32_CART_META_BLOCK_COLOPHON \"COLO\"\n#define PRG32_CART_META_BLOCK_ICON \"ICON\"\n#define PRG32_CART_META_BLOCK_META \"META\"\n#define PRG32_CART_META_BLOCK_SCREENSHOT \"SCRN\"\n#define PRG32_CART_META_BLOCK_SIGNATURE \"SIGN\"\n#define PRG32_CART_META_MAGIC \"PRG32META\"\n#define PRG32_CART_META_VERSION 1\n#define PRG32_CART_NAME_LEN 32\n#define PRG32_CART_RAM_SIZE ((uint32_t)CONFIG_PRG32_CART_RAM_KIB * 1024u)\n#define PRG32_CART_SLOT_COUNT 8\n#define PRG32_COLOR_BLACK 0x0000\n#define PRG32_COLOR_BLUE 0x001f\n#define PRG32_COLOR_CYAN 0x07ff\n#define PRG32_COLOR_GREEN 0x07e0\n#define PRG32_COLOR_MAGENTA 0xf81f\n#define PRG32_COLOR_RED 0xf800\n#define PRG32_COLOR_WHITE 0xffff\n#define PRG32_COLOR_YELLOW 0xffe0\n#define PRG32_DEFAULT_INSTRUMENT_ID 0\n#define PRG32_FIRMWARE_VERSION \"dev\"\n#define PRG32_GAME_H 200\n#define PRG32_GAME_W 320\n#define PRG32_IMPORT_MODEL_ABI_TABLE 1u\n#define PRG32_IMPORT_MODEL_LEGACY_ABSOLUTE 0u\n#define PRG32_LCD_H 240\n#define PRG32_LCD_W 320\n#define PRG32_MP_FLAG_ENABLE (1u << 0)\n#define PRG32_MP_MAX_PEERS 8\n#define PRG32_P2_BTN_A (1u << 12)\n#define PRG32_P2_BTN_B (1u << 13)\n#define PRG32_P2_BTN_DOWN (1u << 11)\n#define PRG32_P2_BTN_LEFT (1u << 8)\n#define PRG32_P2_BTN_RIGHT (1u << 9)\n#define PRG32_P2_BTN_SELECT PRG32_P2_BTN_START\n#define PRG32_P2_BTN_START (1u << 14)\n#define PRG32_P2_BTN_UP (1u << 10)\n#define PRG32_PARALLAX_1X 256\n#define PRG32_PERF_ABI_VERSION 1u\n#define PRG32_PERF_COLOR_CUSTOM 2u\n#define PRG32_PERF_COLOR_INDEXED 1u\n#define PRG32_PERF_COLOR_RGB565 0u\n#define PRG32_PERF_STATE_ABORTED 3u\n#define PRG32_PERF_STATE_COMPLETE 2u\n#define PRG32_PERF_STATE_IDLE 0u\n#define PRG32_PERF_STATE_RUNNING 1u\n#define PRG32_PLATFORM_ACTOR_H_OFFSET 18\n#define PRG32_PLATFORM_ACTOR_LAYER_OFFSET 22\n#define PRG32_PLATFORM_ACTOR_SIZE 24\n#define PRG32_PLATFORM_ACTOR_STATE_OFFSET 20\n#define PRG32_PLATFORM_ACTOR_VX_OFFSET 8\n#define PRG32_PLATFORM_ACTOR_VY_OFFSET 12\n#define PRG32_PLATFORM_ACTOR_W_OFFSET 16\n#define PRG32_PLATFORM_ACTOR_X_OFFSET 0\n#define PRG32_PLATFORM_ACTOR_Y_OFFSET 4\n#define PRG32_PLATFORM_COLLECT (1u << 5)\n#define PRG32_PLATFORM_HAZARD (1u << 4)\n#define PRG32_PLATFORM_HIT_HEAD (1u << 3)\n#define PRG32_PLATFORM_HIT_LEFT (1u << 1)\n#define PRG32_PLATFORM_HIT_RIGHT (1u << 2)\n#define PRG32_PLATFORM_ON_GROUND (1u << 0)\n#define PRG32_PLAYFIELD_COLS 64\n#define PRG32_PLAYFIELD_LAYERS 2\n#define PRG32_PLAYFIELD_ROWS 32\n#define PRG32_SCOREBOARD_TOP_MAX 5\n#define PRG32_SPRITE_BPP_1 1\n#define PRG32_SPRITE_BPP_2 2\n#define PRG32_SPRITE_BPP_4 4\n#define PRG32_SPRITE_BPP_8 8\n#define PRG32_TEXT_COLS 40\n#define PRG32_TEXT_ROWS 25\n#define PRG32_TILE_COLS 40\n#define PRG32_TILE_FLAG_COLLECT (1u << 3)\n#define PRG32_TILE_FLAG_HAZARD (1u << 2)\n#define PRG32_TILE_FLAG_PLATFORM (1u << 1)\n#define PRG32_TILE_FLAG_SOLID (1u << 0)\n#define PRG32_TILE_H 8\n#define PRG32_TILE_ROWS 25\n#define PRG32_TILE_W 8\n"
+  "text": "/* PRG32 portable cartridge API: ABI 1.6 (hash 0x260f6136).\n * Generated by tools/build_language_index.py from the PRG32 SDK at 679dfb5.\n * Read-only, for learning. Your game still writes  #include \"prg32.h\".\n * A PRG32 cartridge can call exactly the functions listed here. */\n\n\n/* ==== Runtime and input ==== */\n/* Milliseconds since the console started. Compare differences, not absolute times.  [feature: core] */\nuint32_t prg32_ticks_ms(void);\n/* Read the buttons held down now. Test one with  & PRG32_BTN_LEFT  and so on.  [feature: core] */\nuint32_t prg32_input_read(void);\n/* Read the buttons of player 1 or 2.  [feature: core] */\nuint32_t prg32_input_read_player(uint8_t player);\n/* Runtime and input.  [feature: core] */\nuint32_t prg32_input_read_menu(void);\n/* Runtime and input.  [feature: core] */\nuint32_t prg32_controller_read(void);\n\n/* ==== Basic audio and RGB indicator ==== */\n/* Play a MIDI note (0-127) on a channel for duration_ms milliseconds.  [feature: audio] */\nvoid prg32_audio_note(uint8_t channel, uint8_t instrument, uint8_t note, uint8_t volume, uint32_t duration_ms);\n\n/* ==== Audio engine ==== */\n/* Audio engine.  [feature: audio] */\nbool prg32_audio_init(const prg32_audio_config_t *config);\n/* Audio engine.  [feature: audio] */\nvoid prg32_audio_shutdown(void);\n/* Audio engine.  [feature: audio] */\nprg32_audio_mode_t prg32_audio_get_mode(void);\n/* Audio engine.  [feature: audio] */\nint prg32_audio_play_sample(uint16_t sample_id, uint8_t volume, uint16_t pitch);\n/* Audio engine.  [feature: audio] */\nint prg32_audio_play_sample_pan(uint16_t sample_id, uint8_t volume, uint16_t pitch, int8_t pan);\n/* Audio engine.  [feature: audio] */\nvoid prg32_audio_stop_channel(int channel);\n/* Stop every sound.  [feature: audio] */\nvoid prg32_audio_stop_all(void);\n/* Audio engine.  [feature: audio] */\nvoid prg32_audio_note_on(uint8_t channel, uint8_t instrument, uint8_t note, uint8_t volume);\n/* Audio engine.  [feature: audio] */\nvoid prg32_audio_note_on_pan(uint8_t channel, uint8_t instrument, uint8_t note, uint8_t volume, int8_t pan);\n\n/* ==== Basic audio and RGB indicator ==== */\n/* Stop the note on a channel.  [feature: audio] */\nvoid prg32_audio_note_off(uint8_t channel);\n/* Basic audio and RGB indicator.  [feature: audio] */\nvoid prg32_audio_notes(uint8_t channel, uint8_t instrument, uint8_t volume, const prg32_midi_note_t *notes, size_t count);\n\n/* ==== Audio engine ==== */\n/* Audio engine.  [feature: audio] */\nvoid prg32_audio_play_track(uint16_t track_id);\n/* Audio engine.  [feature: audio] */\nvoid prg32_audio_stop_track(void);\n/* Audio engine.  [feature: audio] */\nvoid prg32_audio_set_tempo(uint16_t bpm);\n/* Audio engine.  [feature: audio] */\nvoid prg32_audio_set_master_volume(uint8_t volume);\n/* Audio engine.  [feature: audio] */\nvoid prg32_audio_set_channel_volume(uint8_t channel, uint8_t volume);\n/* Audio engine.  [feature: audio] */\nvoid prg32_audio_set_channel_pan(uint8_t channel, int8_t pan);\n\n/* ==== Network setup and score service ==== */\n/* Network setup and score service.  [feature: wifi] */\nint prg32_wifi_start_mode(const prg32_wifi_config_t *config);\n/* Network setup and score service.  [feature: wifi] */\nprg32_wifi_mode_t prg32_wifi_current_mode(void);\n/* Network setup and score service.  [feature: wifi] */\nconst char *prg32_wifi_current_ip(void);\n/* Network setup and score service.  [feature: wifi] */\nconst char *prg32_wifi_current_ssid(void);\n/* Network setup and score service.  [feature: wifi] */\nint prg32_wifi_setup_requested(void);\n/* Network setup and score service.  [feature: wifi] */\nint prg32_wifi_setup_run(void);\n\n/* ==== Multiplayer ==== */\n/* Multiplayer.  [feature: multiplayer] */\nvoid prg32_multiplayer_init(void);\n/* Multiplayer.  [feature: multiplayer] */\nbool prg32_multiplayer_available(void);\n/* Multiplayer.  [feature: multiplayer] */\nint prg32_multiplayer_join(const char *cartridge_signature, uint32_t flags);\n/* Multiplayer.  [feature: multiplayer] */\nint prg32_multiplayer_leave(void);\n/* Multiplayer.  [feature: multiplayer] */\nvoid prg32_multiplayer_tick(void);\n/* Multiplayer.  [feature: multiplayer] */\nint prg32_multiplayer_set_local_state(int16_t x, int16_t y, uint16_t sprite, uint16_t flags);\n/* Multiplayer.  [feature: multiplayer] */\nint prg32_multiplayer_set_input(uint32_t input);\n/* Multiplayer.  [feature: multiplayer] */\nint prg32_multiplayer_get_peer_count(void);\n/* Multiplayer.  [feature: multiplayer] */\nint prg32_multiplayer_get_peer(int index, prg32_player_state_t *out);\n\n/* ==== Cartridge loader and slots ==== */\n/* Cartridge loader and slots.  [feature: core] */\nint prg32_cart_stored_count(void);\n/* Cartridge loader and slots.  [feature: core] */\nint prg32_cart_get_slot_info(uint8_t slot, prg32_cart_info_t *info);\n/* Cartridge loader and slots.  [feature: core] */\nint prg32_cart_select_slot(uint8_t slot);\n/* Cartridge loader and slots.  [feature: core] */\nint prg32_cart_default_slot(void);\n/* Cartridge loader and slots.  [feature: core] */\nint prg32_cart_set_default_slot(int slot);\n/* Cartridge loader and slots.  [feature: core] */\nint prg32_cart_select_default(void);\n\n/* ==== Text console ==== */\n/* Text console.  [feature: core] */\nvoid prg32_console_clear(void);\n/* Text console.  [feature: core] */\nvoid prg32_console_putc(int ch);\n/* Write text on the 40x25 text console.  [feature: core] */\nvoid prg32_console_write(const char *s);\n/* Text console.  [feature: core] */\nvoid prg32_console_hex32(uint32_t value);\n\n/* ==== Immediate-mode graphics and status bands ==== */\n/* Fill the whole game screen with one colour. Call it first in your draw function.  [feature: core] */\nvoid prg32_gfx_clear(uint16_t color);\n/* Show the finished frame. The kit's runtime does this for you after draw.  [feature: core] */\nvoid prg32_gfx_present(void);\n/* Immediate-mode graphics and status bands.  [feature: core] */\nvoid prg32_gfx_set_fullscreen(int enabled);\n/* Immediate-mode graphics and status bands.  [feature: core] */\nint prg32_gfx_fullscreen_enabled(void);\n/* Colour one pixel at (x, y).  [feature: core] */\nvoid prg32_gfx_pixel(int x, int y, uint16_t color);\n/* Draw a filled rectangle: top-left corner (x, y), width w, height h, colour.  [feature: core] */\nvoid prg32_gfx_rect(int x, int y, int w, int h, uint16_t color);\n/* Write text with the 8x8 font, top-left corner at (x, y).  [feature: core] */\nvoid prg32_gfx_text8(int x, int y, const char *s, uint16_t fg, uint16_t bg);\n/* Immediate-mode graphics and status bands.  [feature: core] */\nint prg32_gfx_snapshot_row_rgb565(int y, uint16_t *out, size_t pixels);\n/* Immediate-mode graphics and status bands.  [feature: core] */\nvoid prg32_band_set_mode(uint8_t band, prg32_band_mode_t mode);\n/* Immediate-mode graphics and status bands.  [feature: core] */\nprg32_band_mode_t prg32_band_mode(uint8_t band);\n/* Immediate-mode graphics and status bands.  [feature: core] */\nconst char *prg32_band_mode_name(prg32_band_mode_t mode);\n/* Immediate-mode graphics and status bands.  [feature: core] */\nvoid prg32_band_set_text(uint8_t band, const char *text);\n/* Immediate-mode graphics and status bands.  [feature: core] */\nvoid prg32_band_set_game_info(const char *text);\n/* Immediate-mode graphics and status bands.  [feature: core] */\nvoid prg32_band_log(const char *message);\n/* Immediate-mode graphics and status bands.  [feature: core] */\nvoid prg32_band_set_colors(uint8_t band, uint16_t fg, uint16_t bg);\n/* Immediate-mode graphics and status bands.  [feature: core] */\nvoid prg32_band_use_default_colors(uint8_t band);\n/* Immediate-mode graphics and status bands.  [feature: core] */\nvoid prg32_band_load_config(void);\n/* Immediate-mode graphics and status bands.  [feature: core] */\nvoid prg32_band_save_config(void);\n/* Immediate-mode graphics and status bands.  [feature: core] */\nvoid prg32_splash_draw(const char *title, const char *subtitle, uint16_t bg, uint16_t fg, uint16_t accent);\n/* Immediate-mode graphics and status bands.  [feature: core] */\nvoid prg32_splash_show(const char *title, const char *subtitle, uint32_t duration_ms, uint16_t bg, uint16_t fg, uint16_t accent);\n/* Immediate-mode graphics and status bands.  [feature: core] */\nvoid prg32_splash_draw_game(const char *title, const char *subtitle, uint16_t bg, uint16_t fg, uint16_t accent);\n/* Immediate-mode graphics and status bands.  [feature: core] */\nvoid prg32_splash_show_game(const char *title, const char *subtitle, uint32_t duration_ms, uint16_t bg, uint16_t fg, uint16_t accent);\n/* Immediate-mode graphics and status bands.  [feature: core] */\nvoid prg32_splash_show_default(void);\n/* Immediate-mode graphics and status bands.  [feature: core] */\nvoid prg32_debug_overlay_draw(int enabled, int x, int y, uint32_t input_mask, uint32_t frame);\n\n/* ==== Runtime and input ==== */\n/* Runtime and input.  [feature: core] */\nvoid prg32_input_wait_released(uint32_t mask);\n\n/* ==== On-screen text entry ==== */\n/* On-screen text entry.  [feature: keyboard] */\nvoid prg32_keyboard_init(prg32_keyboard_t *keyboard, char *buffer, size_t capacity);\n/* On-screen text entry.  [feature: keyboard] */\nint prg32_keyboard_update(prg32_keyboard_t *keyboard, uint32_t input_mask);\n/* On-screen text entry.  [feature: keyboard] */\nvoid prg32_keyboard_draw(const prg32_keyboard_t *keyboard, int x, int y);\n/* On-screen text entry.  [feature: keyboard] */\nint prg32_text_input(char *buffer, size_t capacity, const char *title);\n\n/* ==== Tiles and scrolling playfields ==== */\n/* Tiles and scrolling playfields.  [feature: tilemap] */\nvoid prg32_tile_clear(uint16_t color);\n/* Tiles and scrolling playfields.  [feature: tilemap] */\nvoid prg32_tile_define(uint8_t id, const uint8_t *bitmap8x8, uint16_t fg, uint16_t bg);\n/* Tiles and scrolling playfields.  [feature: tilemap] */\nvoid prg32_tile_put(uint8_t tx, uint8_t ty, uint8_t id);\n/* Tiles and scrolling playfields.  [feature: tilemap] */\nvoid prg32_tile_present(void);\n/* Tiles and scrolling playfields.  [feature: tilemap] */\nvoid prg32_playfield_clear(uint8_t layer, uint8_t tile_id);\n/* Tiles and scrolling playfields.  [feature: tilemap] */\nvoid prg32_playfield_put(uint8_t layer, uint8_t tx, uint8_t ty, uint8_t id);\n/* Tiles and scrolling playfields.  [feature: tilemap] */\nuint8_t prg32_playfield_get(uint8_t layer, uint8_t tx, uint8_t ty);\n/* Tiles and scrolling playfields.  [feature: tilemap] */\nvoid prg32_playfield_scroll(uint8_t layer, int x, int y);\n/* Tiles and scrolling playfields.  [feature: tilemap] */\nvoid prg32_playfield_scroll_by(uint8_t layer, int dx, int dy);\n/* Tiles and scrolling playfields.  [feature: tilemap] */\nvoid prg32_playfield_parallax(uint8_t layer, int x_q8, int y_q8);\n/* Tiles and scrolling playfields.  [feature: tilemap] */\nvoid prg32_playfield_camera(int x, int y);\n/* Tiles and scrolling playfields.  [feature: tilemap] */\nint prg32_playfield_camera_x(void);\n/* Tiles and scrolling playfields.  [feature: tilemap] */\nint prg32_playfield_camera_y(void);\n/* Tiles and scrolling playfields.  [feature: tilemap] */\nvoid prg32_playfield_draw(uint8_t layer, int transparent_zero);\n/* Tiles and scrolling playfields.  [feature: tilemap] */\nvoid prg32_playfield_draw_dual(void);\n/* Tiles and scrolling playfields.  [feature: tilemap] */\nvoid prg32_playfield_present(void);\n\n/* ==== Platform collision helpers ==== */\n/* Platform collision helpers.  [feature: tilemap] */\nvoid prg32_platform_tile_flags(uint8_t tile_id, uint8_t flags);\n/* Platform collision helpers.  [feature: tilemap] */\nuint8_t prg32_platform_tile_flags_get(uint8_t tile_id);\n/* Platform collision helpers.  [feature: tilemap] */\nuint8_t prg32_platform_tile_at(uint8_t layer, int pixel_x, int pixel_y);\n/* Platform collision helpers.  [feature: platformer] */\nint prg32_platform_solid_at(uint8_t layer, int pixel_x, int pixel_y);\n/* Platform collision helpers.  [feature: platformer] */\nvoid prg32_platform_actor_init(prg32_platform_actor_t *actor, uint8_t layer, int x, int y, int w, int h);\n/* Platform collision helpers.  [feature: platformer] */\nuint16_t prg32_platform_actor_move(prg32_platform_actor_t *actor, int dx, int dy);\n/* Platform collision helpers.  [feature: platformer] */\nuint16_t prg32_platform_actor_step(prg32_platform_actor_t *actor, uint32_t input_mask, int move_speed, int jump_speed, int gravity, int max_fall);\n/* Platform collision helpers.  [feature: platformer] */\nvoid prg32_platform_camera_follow(const prg32_platform_actor_t *actor, int deadzone_x, int deadzone_y);\n\n/* ==== Sprites and animation ==== */\n/* Check whether two rectangles overlap (for collisions).  [feature: sprites] */\nint prg32_sprite_hitbox(int ax, int ay, int aw, int ah, int bx, int by, int bw, int bh);\n/* Draw an 8x8 sprite (RGB565 pixels) at (x, y).  [feature: sprites] */\nvoid prg32_sprite_draw_8x8(int x, int y, const uint8_t *bits, uint16_t fg, uint16_t bg);\n/* Draw a 16x16 sprite (RGB565 pixels) at (x, y).  [feature: sprites] */\nvoid prg32_sprite_draw_16x16(int x, int y, const uint16_t *rgb565);\n/* Sprites and animation.  [feature: sprites] */\nuint32_t prg32_sprite_anim_frame(uint32_t now_ms, uint32_t frame_count, uint32_t frame_ms);\n/* Sprites and animation.  [feature: sprites] */\nvoid prg32_sprite_draw_frame(int x, int y, int w, int h, const uint16_t *frames, uint32_t frame, uint16_t transparent);\n/* Sprites and animation.  [feature: sprites] */\nvoid prg32_sprite_anim_init(prg32_anim_sprite_t *sprite, const uint16_t *frames, uint16_t width, uint16_t height, uint16_t frame_count, uint16_t frame_ms, uint16_t transparent);\n/* Sprites and animation.  [feature: sprites] */\nvoid prg32_sprite_anim_update(prg32_anim_sprite_t *sprite, uint32_t now_ms);\n/* Sprites and animation.  [feature: sprites] */\nvoid prg32_sprite_anim_draw(const prg32_anim_sprite_t *sprite, int x, int y);\n\n/* ==== Network setup and score service ==== */\n/* Save a score for a game and a player.  [feature: core] */\nint prg32_score_submit(const char *game, const char *player, uint32_t score);\n\n/* ==== Sprites and animation ==== */\n/* Sprites and animation.  [feature: sprites] */\nvoid prg32_sprite_draw_24x24(int x, int y, const uint16_t *rgb565);\n\n/* ==== Network setup and score service ==== */\n/* Network setup and score service.  [feature: core] */\nint prg32_score_player_get(char *out_player, size_t max_len);\n/* Network setup and score service.  [feature: core] */\nint prg32_score_player_set(const char *player);\n/* Network setup and score service.  [feature: core] */\nint prg32_score_player_prompt(void);\n/* Network setup and score service.  [feature: core] */\nint prg32_score_submit_current_player(const char *game, uint32_t score);\n/* Network setup and score service.  [feature: core] */\nint prg32_score_sync_remote(void);\n/* Network setup and score service.  [feature: core] */\nint prg32_score_count(const char *game);\n/* Network setup and score service.  [feature: core] */\nint prg32_score_get(const char *game, int index, prg32_score_t *out_score);\n/* Network setup and score service.  [feature: core] */\nint prg32_scoreboard_show(const char *game, const char *title);\n\n/* ==== Sprites and animation ==== */\n/* Draw a packed indexed-color frame without expanding it in cartridge memory.  [feature: sprites] */\nvoid prg32_sprite_draw_indexed(int x, int y, const prg32_indexed_sprite_t *sprite, uint32_t frame);\n/* Draw a planar indexed-color frame without expanding it in cartridge memory.  [feature: sprites] */\nvoid prg32_sprite_draw_bitplanes(int x, int y, const prg32_indexed_sprite_t *sprite, uint32_t frame);\n\n/* ==== Performance metrics ==== */\n/* Return the monotonic device timestamp in microseconds.  [feature: metrics] */\nuint64_t prg32_perf_now_us(void);\n/* Begin a versioned pluggable measurement suite.  [feature: metrics] */\nint prg32_perf_begin(const prg32_perf_suite_desc_t *suite);\n/* Begin a named case and allocate its temporary percentile workspace.  [feature: metrics] */\nint prg32_perf_case_begin(const prg32_perf_case_desc_t *desc, uint32_t expected_samples);\n/* Record one caller-measured frame in the active case.  [feature: metrics] */\nint prg32_perf_record(const prg32_perf_sample_t *sample);\n/* Aggregate the active case and release its temporary workspace.  [feature: metrics] */\nint prg32_perf_case_end(void);\n/* Complete and publish the active suite.  [feature: metrics] */\nint prg32_perf_end(void);\n/* Abort safely and release all session workspace.  [feature: metrics] */\nint prg32_perf_abort(void);\n/* Copy versioned lifecycle and heap state.  [feature: metrics] */\nint prg32_perf_get_state(prg32_perf_state_t *out);\n/* Copy the compact completed-run summary.  [feature: metrics] */\nint prg32_perf_get_summary(prg32_performance_summary_t *out);\n\n/* ==== Immediate-mode graphics and status bands ==== */\n/* Set one system-palette entry from a native RGB565 value.  [feature: graphics] */\nvoid prg32_palette_set(uint8_t index, uint16_t rgb565);\n/* Read one system-palette entry as native RGB565.  [feature: graphics] */\nuint16_t prg32_palette_get(uint8_t index);\n/* Draw one system-palette index.  [feature: graphics] */\nvoid prg32_gfx_pixel_indexed(int x, int y, uint8_t index);\n/* Fill a clipped rectangle with one system-palette index.  [feature: graphics] */\nvoid prg32_gfx_rect_indexed(int x, int y, int w, int h, uint8_t index);\n/* Clear the game viewport to one system-palette index.  [feature: graphics] */\nvoid prg32_gfx_clear_indexed(uint8_t index);\n\n/* ==== More functions ==== */\n/* A random number. Use  % n  to get a number from 0 to n-1.  [feature: core] */\nuint32_t prg32_random_number(uint32_t min, uint32_t max);\n\n/* ==== Types ==== */\n/* prg32_anim_sprite_t: see prg32.h in the PRG32 SDK. */\n/* prg32_audio_block_header_t: see prg32_audio.h in the PRG32 SDK. */\n/* prg32_audio_command_t: see prg32_audio.h in the PRG32 SDK. */\n/* prg32_audio_config_t: see prg32_audio.h in the PRG32 SDK. */\n/* prg32_audio_event_t: see prg32_audio.h in the PRG32 SDK. */\n/* prg32_audio_mode_t: see prg32_audio.h in the PRG32 SDK. */\n/* prg32_audio_track_desc_t: see prg32_audio.h in the PRG32 SDK. */\n/* prg32_band_mode_t: see prg32.h in the PRG32 SDK. */\n/* prg32_cart_header_t: see prg32.h in the PRG32 SDK. */\n/* prg32_cart_header_v2_t: see prg32.h in the PRG32 SDK. */\n/* prg32_cart_info_t: see prg32.h in the PRG32 SDK. */\n/* prg32_indexed_sprite_t: see prg32.h in the PRG32 SDK. */\n/* prg32_instrument_desc_t: see prg32_audio.h in the PRG32 SDK. */\n/* prg32_keyboard_t: see prg32.h in the PRG32 SDK. */\n/* prg32_memory_stats_t: see prg32.h in the PRG32 SDK. */\n/* prg32_metric_sample_t: see prg32_metrics.h in the PRG32 SDK. */\n/* prg32_metrics_config_t: see prg32_metrics.h in the PRG32 SDK. */\n/* prg32_midi_note_t: see prg32_audio.h in the PRG32 SDK. */\n/* prg32_perf_case_desc_t: see prg32_metrics.h in the PRG32 SDK. */\n/* prg32_perf_sample_t: see prg32_metrics.h in the PRG32 SDK. */\n/* prg32_perf_state_t: see prg32_metrics.h in the PRG32 SDK. */\n/* prg32_perf_suite_desc_t: see prg32_metrics.h in the PRG32 SDK. */\n/* prg32_performance_summary_t: see prg32_metrics.h in the PRG32 SDK. */\n/* prg32_platform_actor_t: see prg32.h in the PRG32 SDK. */\n/* prg32_player_state_t: see prg32_multiplayer.h in the PRG32 SDK. */\n/* prg32_sample_desc_t: see prg32_audio.h in the PRG32 SDK. */\n/* prg32_score_t: see prg32.h in the PRG32 SDK. */\n/* prg32_wifi_config_t: see prg32.h in the PRG32 SDK. */\n/* prg32_wifi_mode_t: see prg32.h in the PRG32 SDK. */\n\n/* ==== Constants ==== */\n#define PRG32_AUDIO_BLOCK_MAGIC \"AUD0\"\n#define PRG32_AUDIO_BLOCK_VERSION 1\n#define PRG32_AUDIO_PAN_CENTER 0\n#define PRG32_AUDIO_PAN_LEFT (-64)\n#define PRG32_AUDIO_PAN_RIGHT 63\n#define PRG32_AUDIO_SAMPLE_LOOP (1u << 0)\n#define PRG32_AUDIO_SYNTH_MARKER 0x8000u\n#define PRG32_AUDIO_SYNTH_WAVE_NOISE 3u\n#define PRG32_AUDIO_SYNTH_WAVE_PULSE 2u\n#define PRG32_AUDIO_SYNTH_WAVE_SAW 1u\n#define PRG32_AUDIO_SYNTH_WAVE_TRIANGLE 0u\n#define PRG32_BAND_BOTTOM 1\n#define PRG32_BAND_TOP 0\n#define PRG32_BTN_A (1u << 4)\n#define PRG32_BTN_B (1u << 5)\n#define PRG32_BTN_DOWN (1u << 3)\n#define PRG32_BTN_LEFT (1u << 0)\n#define PRG32_BTN_RIGHT (1u << 1)\n#define PRG32_BTN_SELECT PRG32_BTN_START\n#define PRG32_BTN_START (1u << 6)\n#define PRG32_BTN_UP (1u << 2)\n#define PRG32_CART_ABI_MAJOR 1\n#define PRG32_CART_ABI_MINOR 1\n#define PRG32_CART_ARCH_ESP32C6 \"esp32c6\"\n#define PRG32_CART_ARCH_QEMU \"qemu\"\n#define PRG32_CART_COLOPHON_ABI \"prg32-colophon-1.0\"\n#define PRG32_CART_FLAG_ABI_TABLE (1u << 2)\n#define PRG32_CART_FLAG_AUDIO_BLOCK (1u << 0)\n#define PRG32_CART_FLAG_MULTIPLAYER (1u << 1)\n#define PRG32_CART_FLAG_RELOCATABLE (1u << 3)\n#define PRG32_CART_LOAD_ADDR 0x40800000u\n#define PRG32_CART_MAGIC \"PRG2\"\n#define PRG32_CART_MAX_SIZE ((uint32_t)CONFIG_PRG32_CART_MAX_KIB * 1024u)\n#define PRG32_CART_META_ABI \"prg32-metadata-1.0\"\n#define PRG32_CART_META_BLOCK_COLOPHON \"COLO\"\n#define PRG32_CART_META_BLOCK_ICON \"ICON\"\n#define PRG32_CART_META_BLOCK_META \"META\"\n#define PRG32_CART_META_BLOCK_SCREENSHOT \"SCRN\"\n#define PRG32_CART_META_BLOCK_SIGNATURE \"SIGN\"\n#define PRG32_CART_META_MAGIC \"PRG32META\"\n#define PRG32_CART_META_VERSION 1\n#define PRG32_CART_NAME_LEN 32\n#define PRG32_CART_RAM_SIZE ((uint32_t)CONFIG_PRG32_CART_RAM_KIB * 1024u)\n#define PRG32_CART_SLOT_COUNT 8\n#define PRG32_COLOR_BLACK 0x0000\n#define PRG32_COLOR_BLUE 0x001f\n#define PRG32_COLOR_CYAN 0x07ff\n#define PRG32_COLOR_GREEN 0x07e0\n#define PRG32_COLOR_MAGENTA 0xf81f\n#define PRG32_COLOR_RED 0xf800\n#define PRG32_COLOR_WHITE 0xffff\n#define PRG32_COLOR_YELLOW 0xffe0\n#define PRG32_DEFAULT_INSTRUMENT_ID 0\n#define PRG32_FIRMWARE_VERSION \"dev\"\n#define PRG32_GAME_H 200\n#define PRG32_GAME_W 320\n#define PRG32_IMPORT_MODEL_ABI_TABLE 1u\n#define PRG32_IMPORT_MODEL_LEGACY_ABSOLUTE 0u\n#define PRG32_LCD_H 240\n#define PRG32_LCD_W 320\n#define PRG32_MP_FLAG_ENABLE (1u << 0)\n#define PRG32_MP_MAX_PEERS 8\n#define PRG32_P2_BTN_A (1u << 12)\n#define PRG32_P2_BTN_B (1u << 13)\n#define PRG32_P2_BTN_DOWN (1u << 11)\n#define PRG32_P2_BTN_LEFT (1u << 8)\n#define PRG32_P2_BTN_RIGHT (1u << 9)\n#define PRG32_P2_BTN_SELECT PRG32_P2_BTN_START\n#define PRG32_P2_BTN_START (1u << 14)\n#define PRG32_P2_BTN_UP (1u << 10)\n#define PRG32_PARALLAX_1X 256\n#define PRG32_PERF_ABI_VERSION 1u\n#define PRG32_PERF_COLOR_CUSTOM 2u\n#define PRG32_PERF_COLOR_INDEXED 1u\n#define PRG32_PERF_COLOR_RGB565 0u\n#define PRG32_PERF_STATE_ABORTED 3u\n#define PRG32_PERF_STATE_COMPLETE 2u\n#define PRG32_PERF_STATE_IDLE 0u\n#define PRG32_PERF_STATE_RUNNING 1u\n#define PRG32_PLATFORM_ACTOR_H_OFFSET 18\n#define PRG32_PLATFORM_ACTOR_LAYER_OFFSET 22\n#define PRG32_PLATFORM_ACTOR_SIZE 24\n#define PRG32_PLATFORM_ACTOR_STATE_OFFSET 20\n#define PRG32_PLATFORM_ACTOR_VX_OFFSET 8\n#define PRG32_PLATFORM_ACTOR_VY_OFFSET 12\n#define PRG32_PLATFORM_ACTOR_W_OFFSET 16\n#define PRG32_PLATFORM_ACTOR_X_OFFSET 0\n#define PRG32_PLATFORM_ACTOR_Y_OFFSET 4\n#define PRG32_PLATFORM_COLLECT (1u << 5)\n#define PRG32_PLATFORM_HAZARD (1u << 4)\n#define PRG32_PLATFORM_HIT_HEAD (1u << 3)\n#define PRG32_PLATFORM_HIT_LEFT (1u << 1)\n#define PRG32_PLATFORM_HIT_RIGHT (1u << 2)\n#define PRG32_PLATFORM_ON_GROUND (1u << 0)\n#define PRG32_PLAYFIELD_COLS 64\n#define PRG32_PLAYFIELD_LAYERS 2\n#define PRG32_PLAYFIELD_ROWS 32\n#define PRG32_SCOREBOARD_TOP_MAX 5\n#define PRG32_SPRITE_BPP_1 1\n#define PRG32_SPRITE_BPP_2 2\n#define PRG32_SPRITE_BPP_4 4\n#define PRG32_SPRITE_BPP_8 8\n#define PRG32_TEXT_COLS 40\n#define PRG32_TEXT_ROWS 25\n#define PRG32_TILE_COLS 40\n#define PRG32_TILE_FLAG_COLLECT (1u << 3)\n#define PRG32_TILE_FLAG_HAZARD (1u << 2)\n#define PRG32_TILE_FLAG_PLATFORM (1u << 1)\n#define PRG32_TILE_FLAG_SOLID (1u << 0)\n#define PRG32_TILE_H 8\n#define PRG32_TILE_ROWS 25\n#define PRG32_TILE_W 8\n"
  },
  "schema": "prg32-language-index/1",
  "sdk": {

@@ -15,6 +15,8 @@ inputs are fixed, so the same SDK always gives the same index:
   the resident firmware only: a portable cartridge that calls it fails to link;
 - the kit's own validators (source_project.py), so the editor suggests exactly
   the headers and assembly directives that the server accepts, and no others;
+  the obsolete buzzer functions and type (source_project.OBSOLETE_*) are left out
+  of suggestions and listed as "obsolete", so the editor marks them as errors;
 - the tables below: RV32IMC + Zicsr instructions, registers and the calling
   convention, written for students.
 
@@ -72,7 +74,6 @@ STUDENT_HELP = {
     "prg32_audio_note": "Play a MIDI note (0-127) on a channel for duration_ms milliseconds.",
     "prg32_audio_note_off": "Stop the note on a channel.",
     "prg32_audio_stop_all": "Stop every sound.",
-    "prg32_buzzer_tone": "Play a tone on the buzzer: frequency in Hz, duration in ms, duty sets the volume.",
     "prg32_sprite_draw_8x8": "Draw an 8x8 sprite (RGB565 pixels) at (x, y).",
     "prg32_sprite_draw_16x16": "Draw a 16x16 sprite (RGB565 pixels) at (x, y).",
     "prg32_sprite_hitbox": "Check whether two rectangles overlap (for collisions).",
@@ -392,7 +393,11 @@ def build(sdk: Path) -> dict:
         if function["name"] in portable and function["group_doc"]:
             groups.setdefault(function["group"], function["group_doc"])
     functions, resident = [], []
+    obsolete = [{"name": name, "instead": instead}
+                for name, instead in {**source_project.OBSOLETE_FUNCTIONS, **source_project.OBSOLETE_TYPES}.items()]
     for name, function in declared.items():
+        if source_project._OBSOLETE.fullmatch(name):
+            continue
         row = abi["functions"].get(name, {})
         note = row.get("notes", "")
         summary = STUDENT_HELP.get(name) or (note if note and note != "PRG32 cartridge ABI entry point." else "") \
@@ -407,8 +412,10 @@ def build(sdk: Path) -> dict:
             resident.append({"name": name, "signature": entry["signature"], "group": function["group"]})
     functions.sort(key=lambda item: abi["imports"].index(item["name"]))
     resident.sort(key=lambda item: item["name"])
-    constants = sorted({row["name"]: row for row in parsed["constants"]}.values(), key=lambda item: item["name"])
-    types = sorted({row["name"]: row for row in parsed["types"]}.values(), key=lambda item: item["name"])
+    constants = sorted({row["name"]: row for row in parsed["constants"]
+                        if not source_project._OBSOLETE.fullmatch(row["name"])}.values(), key=lambda item: item["name"])
+    types = sorted({row["name"]: row for row in parsed["types"]
+                    if not source_project._OBSOLETE.fullmatch(row["name"])}.values(), key=lambda item: item["name"])
     revision = sdk_revision(sdk)
     header, lines = portable_header(abi, revision, functions, constants, types)
     for item in functions + constants + types:
@@ -425,6 +432,7 @@ def build(sdk: Path) -> dict:
             "functions": functions,
             "groups": groups,
             "resident_only": resident,
+            "obsolete": sorted(obsolete, key=lambda item: item["name"]),
             "constants": constants,
             "types": types,
             "features": sorted(source_project.FEATURES),

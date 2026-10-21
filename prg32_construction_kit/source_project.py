@@ -14,6 +14,25 @@ _DIRECTIVE_START = re.compile(r"^\s*(?:#|%:)")
 # Words that let C code reach the host at compile time (inline assembly can
 # `.incbin` any file) or build forbidden words out of pieces.
 _FORBIDDEN_WORDS = re.compile(r"\b(?:asm|__asm|__asm__|_Pragma|__has_include|__has_include_next|__has_embed)\b")
+# The buzzer is obsolete (contracts/prg32-audio-contract-1.json, "legacy_buzzer"): PRG32 games use
+# the eight-voice audio engine. The SDK still lists these functions, so they are refused here, by
+# name, with what to use instead. The IDE's language index takes the same list.
+OBSOLETE_FUNCTIONS = {
+    "prg32_buzzer_tone": "prg32_audio_note_on_pan (a voice playing an instrument), or an AudioStudio sound effect",
+    "prg32_buzzer_play_notes": "prg32_audio_play_track with an AudioStudio soundtrack",
+    "prg32_buzzer_sample_u8": "prg32_audio_play_sample_pan with a sample from the cartridge's audio block",
+}
+OBSOLETE_TYPES = {"prg32_note_t": "prg32_midi_note_t (prg32_audio_notes) or an AudioStudio soundtrack"}
+_OBSOLETE = re.compile(r"\b(prg32_buzzer_\w*|prg32_note_t|PRG32_PIN_BUZZER)\b")
+
+
+def _refuse_obsolete(code: str, where=lambda _offset: "") -> None:
+    found = _OBSOLETE.search(code)
+    if found:
+        name = found.group(1)
+        instead = OBSOLETE_FUNCTIONS.get(name) or OBSOLETE_TYPES.get(name) or "the PRG32 audio engine (prg32_audio_*)"
+        raise ValueError(f"{where(found.start())}{name} belongs to the old PRG32 buzzer, which is no longer "
+                         f"supported. Use {instead}.")
 
 
 def _without_comments(source: str) -> str:
@@ -145,6 +164,7 @@ def validate_c_source(source: str, title: str) -> str:
     forbidden = _FORBIDDEN_WORDS.search(bare)
     if forbidden:
         raise ValueError(f"'{forbidden.group(0)}' is not supported in PRG32 cartridge C")
+    _refuse_obsolete(bare)
     prefix = c_identifier(title, "prg32_game")
     found = set(re.findall(_LIFECYCLE.format(prefix=re.escape(prefix)), bare))
     required = {f"{prefix}_{phase}" for phase in ("init", "update", "draw")}
@@ -212,6 +232,8 @@ def validate_asm_source(source: str, title: str) -> str:
     found = _ASM_FILE_WORDS.search(code)
     if found:
         raise ValueError(f"'{found.group(0)}' is not allowed in PRG32 cartridge assembly: it could read files on the server")
+    lines = bare.splitlines()
+    _refuse_obsolete("\n".join(lines), lambda offset: f"Line {source_line[bare[:offset].count(chr(10))]}: ")
     for index, line in enumerate(bare.splitlines()):
         number = source_line[index]
         if _DIRECTIVE_START.match(line):

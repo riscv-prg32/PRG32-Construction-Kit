@@ -979,7 +979,7 @@
  {
   "expected": {
    "column": 1,
-   "line": 129,
+   "line": 123,
    "target": "sdk"
   },
   "name": "c: go to the declaration of a PRG32 function",
@@ -996,7 +996,7 @@
  {
   "expected": {
    "column": 1,
-   "line": 406,
+   "line": 399,
    "target": "sdk"
   },
   "name": "c: go to the declaration of a PRG32 constant",
@@ -1047,7 +1047,7 @@
  {
   "expected": {
    "column": 1,
-   "line": 129,
+   "line": 123,
    "target": "sdk"
   },
   "name": "asm: go to the declaration of a PRG32 call",
@@ -1459,6 +1459,247 @@
    "op": "normalize",
    "output": "Line 3: something\nC source must define void demo_init/update/draw(void)",
    "source": "#include \"prg32.h\"\n\nvoid demo_init(void) {}\nvoid demo_update(void) {}\nvoid demo_draw(void) {\n    prg32_gfx_clear(PRG32_COLOR_BLACK);\n}\n"
+  }
+ },
+ {
+  "expected": [
+   {
+    "code": "obsolete-buzzer",
+    "column": 24,
+    "endColumn": 41,
+    "endLine": 2,
+    "explanation": "The buzzer is obsolete: PRG32 games use the eight-voice audio engine (instruments with ADSR envelopes, stereo pan, sound effects and soundtracks made in AudioStudio). The server refuses this name.",
+    "line": 2,
+    "message": "prg32_buzzer_tone belongs to the old PRG32 buzzer, which is no longer supported. Use prg32_audio_note_on_pan (a voice playing an instrument), or an AudioStudio sound effect.",
+    "severity": "error"
+   }
+  ],
+  "name": "c: the obsolete buzzer is an error that says what to use",
+  "request": {
+   "language": "c",
+   "op": "diagnostics",
+   "source": "#include \"prg32.h\"\nvoid demo_init(void) { prg32_buzzer_tone(440, 100, 512); }\nvoid demo_update(void) {}\nvoid demo_draw(void) {}\n",
+   "title": "demo"
+  }
+ },
+ {
+  "expected": [
+   {
+    "code": "obsolete-buzzer",
+    "column": 10,
+    "endColumn": 33,
+    "endLine": 5,
+    "explanation": "The buzzer is obsolete: PRG32 games use the eight-voice audio engine (instruments with ADSR envelopes, stereo pan, sound effects and soundtracks made in AudioStudio). The server refuses this name.",
+    "line": 5,
+    "message": "prg32_buzzer_play_notes belongs to the old PRG32 buzzer, which is no longer supported. Use prg32_audio_play_track with an AudioStudio soundtrack.",
+    "severity": "error"
+   }
+  ],
+  "name": "asm: the obsolete buzzer is an error that says what to use",
+  "request": {
+   "language": "asm",
+   "op": "diagnostics",
+   "source": ".globl demo_init\n.globl demo_update\n.globl demo_draw\ndemo_init:\n    call prg32_buzzer_play_notes\n    ret\ndemo_update:\n    ret\ndemo_draw:\n    ret\n",
+   "title": "demo"
+  }
+ },
+ {
+  "expected": {
+   "contents": "**Obsolete: the old buzzer.** Use prg32_audio_note_on_pan (a voice playing an instrument), or an AudioStudio sound effect.\n\nThe buzzer is obsolete: PRG32 games use the eight-voice audio engine (instruments with ADSR envelopes, stereo pan, sound effects and soundtracks made in AudioStudio). The server refuses this name.",
+   "range": {
+    "column": 24,
+    "endColumn": 41,
+    "line": 2,
+    "word": "prg32_buzzer_tone"
+   }
+  },
+  "name": "c: hover on the obsolete buzzer",
+  "request": {
+   "language": "c",
+   "op": "hover",
+   "position": {
+    "column": 30,
+    "line": 2
+   },
+   "source": "#include \"prg32.h\"\nvoid demo_init(void) { prg32_buzzer_tone(440, 100, 512); }\nvoid demo_update(void) {}\nvoid demo_draw(void) {}\n"
+  }
+ },
+ {
+  "expected": {
+   "items": [
+    {
+     "detail": "void prg32_band_set_mode(uint8_t band, prg32_band_mode_t mode)",
+     "documentation": "```c\nvoid prg32_band_set_mode(uint8_t band, prg32_band_mode_t mode);\n```\nImmediate-mode graphics and status bands.\n\n*Immediate-mode graphics and status bands:* Cartridge coordinates address the 320x200 viewport unless fullscreen mode is enabled by resident UI. Drawing is clipped; non-positive rectangle sizes draw nothing. `present` publishes the completed back buffer. Cartridge draw callbacks are already serialized by the runtime and normally should not acquire the graphics lock themselves. Snapshot rows copy RGB565 pixels into caller storage and return the number copied or a negative error. Band text is copied by the runtime. Fullscreen, persistent band configuration, and lock management are primarily resident firmware services and should be used cautiously by cartridges.\n\nPortable PRG32 ABI 1.6 \u00b7 feature: core",
+     "insertText": "prg32_band_set_mode(${1:band}, ${2:mode})",
+     "kind": "function",
+     "label": "prg32_band_set_mode",
+     "snippet": true
+    },
+    {
+     "detail": "prg32_band_mode_t prg32_band_mode(uint8_t band)",
+     "documentation": "```c\nprg32_band_mode_t prg32_band_mode(uint8_t band);\n```\nImmediate-mode graphics and status bands.\n\n*Immediate-mode graphics and status bands:* Cartridge coordinates address the 320x200 viewport unless fullscreen mode is enabled by resident UI. Drawing is clipped; non-positive rectangle sizes draw nothing. `present` publishes the completed back buffer. Cartridge draw callbacks are already serialized by the runtime and normally should not acquire the graphics lock themselves. Snapshot rows copy RGB565 pixels into caller storage and return the number copied or a negative error. Band text is copied by the runtime. Fullscreen, persistent band configuration, and lock management are primarily resident firmware services and should be used cautiously by cartridges.\n\nPortable PRG32 ABI 1.6 \u00b7 feature: core",
+     "insertText": "prg32_band_mode(${1:band})",
+     "kind": "function",
+     "label": "prg32_band_mode",
+     "snippet": true
+    },
+    {
+     "detail": "const char *prg32_band_mode_name(prg32_band_mode_t mode)",
+     "documentation": "```c\nconst char *prg32_band_mode_name(prg32_band_mode_t mode);\n```\nImmediate-mode graphics and status bands.\n\n*Immediate-mode graphics and status bands:* Cartridge coordinates address the 320x200 viewport unless fullscreen mode is enabled by resident UI. Drawing is clipped; non-positive rectangle sizes draw nothing. `present` publishes the completed back buffer. Cartridge draw callbacks are already serialized by the runtime and normally should not acquire the graphics lock themselves. Snapshot rows copy RGB565 pixels into caller storage and return the number copied or a negative error. Band text is copied by the runtime. Fullscreen, persistent band configuration, and lock management are primarily resident firmware services and should be used cautiously by cartridges.\n\nPortable PRG32 ABI 1.6 \u00b7 feature: core",
+     "insertText": "prg32_band_mode_name(${1:mode})",
+     "kind": "function",
+     "label": "prg32_band_mode_name",
+     "snippet": true
+    },
+    {
+     "detail": "void prg32_band_set_text(uint8_t band, const char *text)",
+     "documentation": "```c\nvoid prg32_band_set_text(uint8_t band, const char *text);\n```\nImmediate-mode graphics and status bands.\n\n*Immediate-mode graphics and status bands:* Cartridge coordinates address the 320x200 viewport unless fullscreen mode is enabled by resident UI. Drawing is clipped; non-positive rectangle sizes draw nothing. `present` publishes the completed back buffer. Cartridge draw callbacks are already serialized by the runtime and normally should not acquire the graphics lock themselves. Snapshot rows copy RGB565 pixels into caller storage and return the number copied or a negative error. Band text is copied by the runtime. Fullscreen, persistent band configuration, and lock management are primarily resident firmware services and should be used cautiously by cartridges.\n\nPortable PRG32 ABI 1.6 \u00b7 feature: core",
+     "insertText": "prg32_band_set_text(${1:band}, ${2:text})",
+     "kind": "function",
+     "label": "prg32_band_set_text",
+     "snippet": true
+    },
+    {
+     "detail": "void prg32_band_set_game_info(const char *text)",
+     "documentation": "```c\nvoid prg32_band_set_game_info(const char *text);\n```\nImmediate-mode graphics and status bands.\n\n*Immediate-mode graphics and status bands:* Cartridge coordinates address the 320x200 viewport unless fullscreen mode is enabled by resident UI. Drawing is clipped; non-positive rectangle sizes draw nothing. `present` publishes the completed back buffer. Cartridge draw callbacks are already serialized by the runtime and normally should not acquire the graphics lock themselves. Snapshot rows copy RGB565 pixels into caller storage and return the number copied or a negative error. Band text is copied by the runtime. Fullscreen, persistent band configuration, and lock management are primarily resident firmware services and should be used cautiously by cartridges.\n\nPortable PRG32 ABI 1.6 \u00b7 feature: core",
+     "insertText": "prg32_band_set_game_info(${1:text})",
+     "kind": "function",
+     "label": "prg32_band_set_game_info",
+     "snippet": true
+    },
+    {
+     "detail": "void prg32_band_log(const char *message)",
+     "documentation": "```c\nvoid prg32_band_log(const char *message);\n```\nImmediate-mode graphics and status bands.\n\n*Immediate-mode graphics and status bands:* Cartridge coordinates address the 320x200 viewport unless fullscreen mode is enabled by resident UI. Drawing is clipped; non-positive rectangle sizes draw nothing. `present` publishes the completed back buffer. Cartridge draw callbacks are already serialized by the runtime and normally should not acquire the graphics lock themselves. Snapshot rows copy RGB565 pixels into caller storage and return the number copied or a negative error. Band text is copied by the runtime. Fullscreen, persistent band configuration, and lock management are primarily resident firmware services and should be used cautiously by cartridges.\n\nPortable PRG32 ABI 1.6 \u00b7 feature: core",
+     "insertText": "prg32_band_log(${1:message})",
+     "kind": "function",
+     "label": "prg32_band_log",
+     "snippet": true
+    },
+    {
+     "detail": "void prg32_band_set_colors(uint8_t band, uint16_t fg, uint16_t bg)",
+     "documentation": "```c\nvoid prg32_band_set_colors(uint8_t band, uint16_t fg, uint16_t bg);\n```\nImmediate-mode graphics and status bands.\n\n*Immediate-mode graphics and status bands:* Cartridge coordinates address the 320x200 viewport unless fullscreen mode is enabled by resident UI. Drawing is clipped; non-positive rectangle sizes draw nothing. `present` publishes the completed back buffer. Cartridge draw callbacks are already serialized by the runtime and normally should not acquire the graphics lock themselves. Snapshot rows copy RGB565 pixels into caller storage and return the number copied or a negative error. Band text is copied by the runtime. Fullscreen, persistent band configuration, and lock management are primarily resident firmware services and should be used cautiously by cartridges.\n\nPortable PRG32 ABI 1.6 \u00b7 feature: core",
+     "insertText": "prg32_band_set_colors(${1:band}, ${2:fg}, ${3:bg})",
+     "kind": "function",
+     "label": "prg32_band_set_colors",
+     "snippet": true
+    },
+    {
+     "detail": "void prg32_band_use_default_colors(uint8_t band)",
+     "documentation": "```c\nvoid prg32_band_use_default_colors(uint8_t band);\n```\nImmediate-mode graphics and status bands.\n\n*Immediate-mode graphics and status bands:* Cartridge coordinates address the 320x200 viewport unless fullscreen mode is enabled by resident UI. Drawing is clipped; non-positive rectangle sizes draw nothing. `present` publishes the completed back buffer. Cartridge draw callbacks are already serialized by the runtime and normally should not acquire the graphics lock themselves. Snapshot rows copy RGB565 pixels into caller storage and return the number copied or a negative error. Band text is copied by the runtime. Fullscreen, persistent band configuration, and lock management are primarily resident firmware services and should be used cautiously by cartridges.\n\nPortable PRG32 ABI 1.6 \u00b7 feature: core",
+     "insertText": "prg32_band_use_default_colors(${1:band})",
+     "kind": "function",
+     "label": "prg32_band_use_default_colors",
+     "snippet": true
+    },
+    {
+     "detail": "void prg32_band_load_config(void)",
+     "documentation": "```c\nvoid prg32_band_load_config(void);\n```\nImmediate-mode graphics and status bands.\n\n*Immediate-mode graphics and status bands:* Cartridge coordinates address the 320x200 viewport unless fullscreen mode is enabled by resident UI. Drawing is clipped; non-positive rectangle sizes draw nothing. `present` publishes the completed back buffer. Cartridge draw callbacks are already serialized by the runtime and normally should not acquire the graphics lock themselves. Snapshot rows copy RGB565 pixels into caller storage and return the number copied or a negative error. Band text is copied by the runtime. Fullscreen, persistent band configuration, and lock management are primarily resident firmware services and should be used cautiously by cartridges.\n\nPortable PRG32 ABI 1.6 \u00b7 feature: core",
+     "insertText": "prg32_band_load_config()",
+     "kind": "function",
+     "label": "prg32_band_load_config",
+     "snippet": true
+    },
+    {
+     "detail": "void prg32_band_save_config(void)",
+     "documentation": "```c\nvoid prg32_band_save_config(void);\n```\nImmediate-mode graphics and status bands.\n\n*Immediate-mode graphics and status bands:* Cartridge coordinates address the 320x200 viewport unless fullscreen mode is enabled by resident UI. Drawing is clipped; non-positive rectangle sizes draw nothing. `present` publishes the completed back buffer. Cartridge draw callbacks are already serialized by the runtime and normally should not acquire the graphics lock themselves. Snapshot rows copy RGB565 pixels into caller storage and return the number copied or a negative error. Band text is copied by the runtime. Fullscreen, persistent band configuration, and lock management are primarily resident firmware services and should be used cautiously by cartridges.\n\nPortable PRG32 ABI 1.6 \u00b7 feature: core",
+     "insertText": "prg32_band_save_config()",
+     "kind": "function",
+     "label": "prg32_band_save_config",
+     "snippet": true
+    },
+    {
+     "detail": "#define PRG32_BAND_BOTTOM 1",
+     "documentation": "Firmware-owned status-band identifiers.",
+     "insertText": "PRG32_BAND_BOTTOM",
+     "kind": "constant",
+     "label": "PRG32_BAND_BOTTOM"
+    },
+    {
+     "detail": "#define PRG32_BAND_TOP 0",
+     "documentation": "Firmware-owned status-band identifiers.",
+     "insertText": "PRG32_BAND_TOP",
+     "kind": "constant",
+     "label": "PRG32_BAND_TOP"
+    },
+    {
+     "detail": "#define PRG32_BTN_A (1u << 4)",
+     "documentation": "Controller bitmask. Player 1 occupies bits 0..6 and player 2 occupies bits 8..14. SELECT and START are names for the same physical input.",
+     "insertText": "PRG32_BTN_A",
+     "kind": "constant",
+     "label": "PRG32_BTN_A"
+    },
+    {
+     "detail": "#define PRG32_BTN_B (1u << 5)",
+     "documentation": "Controller bitmask. Player 1 occupies bits 0..6 and player 2 occupies bits 8..14. SELECT and START are names for the same physical input.",
+     "insertText": "PRG32_BTN_B",
+     "kind": "constant",
+     "label": "PRG32_BTN_B"
+    },
+    {
+     "detail": "#define PRG32_BTN_DOWN (1u << 3)",
+     "documentation": "Controller bitmask. Player 1 occupies bits 0..6 and player 2 occupies bits 8..14. SELECT and START are names for the same physical input.",
+     "insertText": "PRG32_BTN_DOWN",
+     "kind": "constant",
+     "label": "PRG32_BTN_DOWN"
+    },
+    {
+     "detail": "#define PRG32_BTN_LEFT (1u << 0)",
+     "documentation": "Controller bitmask. Player 1 occupies bits 0..6 and player 2 occupies bits 8..14. SELECT and START are names for the same physical input.",
+     "insertText": "PRG32_BTN_LEFT",
+     "kind": "constant",
+     "label": "PRG32_BTN_LEFT"
+    },
+    {
+     "detail": "#define PRG32_BTN_RIGHT (1u << 1)",
+     "documentation": "Controller bitmask. Player 1 occupies bits 0..6 and player 2 occupies bits 8..14. SELECT and START are names for the same physical input.",
+     "insertText": "PRG32_BTN_RIGHT",
+     "kind": "constant",
+     "label": "PRG32_BTN_RIGHT"
+    },
+    {
+     "detail": "#define PRG32_BTN_SELECT PRG32_BTN_START",
+     "documentation": "Controller bitmask. Player 1 occupies bits 0..6 and player 2 occupies bits 8..14. SELECT and START are names for the same physical input.",
+     "insertText": "PRG32_BTN_SELECT",
+     "kind": "constant",
+     "label": "PRG32_BTN_SELECT"
+    },
+    {
+     "detail": "#define PRG32_BTN_START (1u << 6)",
+     "documentation": "Controller bitmask. Player 1 occupies bits 0..6 and player 2 occupies bits 8..14. SELECT and START are names for the same physical input.",
+     "insertText": "PRG32_BTN_START",
+     "kind": "constant",
+     "label": "PRG32_BTN_START"
+    },
+    {
+     "detail": "#define PRG32_BTN_UP (1u << 2)",
+     "documentation": "Controller bitmask. Player 1 occupies bits 0..6 and player 2 occupies bits 8..14. SELECT and START are names for the same physical input.",
+     "insertText": "PRG32_BTN_UP",
+     "kind": "constant",
+     "label": "PRG32_BTN_UP"
+    },
+    {
+     "detail": "PRG32 type",
+     "documentation": "",
+     "insertText": "prg32_band_mode_t",
+     "kind": "struct",
+     "label": "prg32_band_mode_t"
+    }
+   ],
+   "range": {
+    "column": 16,
+    "endColumn": 23,
+    "line": 1
+   }
+  },
+  "name": "c: the buzzer is never suggested",
+  "request": {
+   "language": "c",
+   "op": "completions",
+   "position": {
+    "column": 23,
+    "line": 1
+   },
+   "source": "void f(void) { prg32_b"
   }
  }
 ]

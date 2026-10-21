@@ -41,10 +41,13 @@ SDK = Path(os.environ.get("PRG32_SDK_DIR") or ROOT.parent / "PRG32")
 # The live checks that repeat a server rule; the others (registers, instructions, resident-only
 # calls) are extra help about what the compiler or linker would refuse later.
 SERVER_RULES = {"empty", "too-big", "trigraph", "comment", "c-include", "c-directive", "c-token-paste", "c-forbidden",
-                "c-entry", "asm-file-access", "asm-preprocessor", "asm-directive", "asm-section", "asm-entry"}
+                "c-entry", "asm-file-access", "asm-preprocessor", "asm-directive", "asm-section", "asm-entry",
+                "obsolete-buzzer"}
 needs_node = pytest.mark.skipif(shutil.which("node") is None, reason="Node.js is not installed")
 sys.path.insert(0, str(ROOT / "tools"))
 import build_language_index  # noqa: E402
+
+from prg32_construction_kit import source_project  # noqa: E402
 
 INDEX = build_language_index.read_committed()
 C_LIFECYCLE = "void demo_init(void) {}\nvoid demo_update(void) {}\nvoid demo_draw(void) {}\n"
@@ -256,7 +259,18 @@ def test_index_is_up_to_date_with_the_sdk():
         pytest.skip(f"the PRG32 SDK checkout ({built['sdk']['revision']}) is not the one the index was made from "
                     f"({INDEX['sdk']['revision']})")
     assert build_language_index.render(built) == INDEX_FILE.read_text()
-    assert [function["name"] for function in built["c"]["functions"]] == build_language_index.load_abi(SDK)["imports"]
+    obsolete = set(source_project.OBSOLETE_FUNCTIONS)
+    assert [function["name"] for function in built["c"]["functions"]] == [
+        name for name in build_language_index.load_abi(SDK)["imports"] if name not in obsolete]
+
+
+def test_the_obsolete_buzzer_is_never_offered():
+    """Not a completion, not in the read-only header, not a type: only in the "obsolete" list."""
+    offered = {item["name"] for key in ("functions", "resident_only", "constants", "types") for item in INDEX["c"][key]}
+    assert not {name for name in offered if "buzzer" in name.lower() or name == "prg32_note_t"}
+    assert "buzzer" not in INDEX["header"]["text"].lower()
+    assert {item["name"] for item in INDEX["c"]["obsolete"]} == {*source_project.OBSOLETE_FUNCTIONS,
+                                                                 *source_project.OBSOLETE_TYPES}
 
 
 # --- the server's messages and the compiler's --------------------------------------------------------

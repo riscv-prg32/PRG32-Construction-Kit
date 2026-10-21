@@ -1,0 +1,125 @@
+{
+  "contract": "prg32-audio-contract-1",
+  "description": "The PRG32 audio engine as the firmware implements it: what the Construction Kit's browser runtime, AudioStudio and packager must match. Every value comes from the PRG32 SDK sources named below; tests/test_audio_contract.py checks them against a checkout. docs/audio_engine.md explains them.",
+  "reference": {
+    "repository": "riscv-prg32/PRG32",
+    "checked_against": "679dfb58783bd007125de9ca0b75eaa077908739",
+    "code": [
+      "components/prg32_audio/include/prg32_audio.h",
+      "components/prg32_audio/audio_config.h",
+      "components/prg32_audio/Kconfig",
+      "components/prg32_audio/audio.c",
+      "components/prg32_audio/audio_mixer.c",
+      "components/prg32_audio/audio_synth.c",
+      "components/prg32_audio/audio_tracker.c",
+      "components/prg32_audio/audio_assets.c",
+      "components/prg32/prg32_cart.c",
+      "components/prg32/include/prg32_abi_index.h",
+      "tools/prg32audio_pack.py"
+    ]
+  },
+  "voices": {
+    "count": 8,
+    "numbering": "0..7",
+    "kconfig_default": 8,
+    "profiles": 8,
+    "audio_config_h_fallback": 6,
+    "kit_policy": "The kit builds its engine with exactly 8 voices and its tests fail with fewer. The 6 in audio_config.h applies only to builds without an sdkconfig; it is reported upstream.",
+    "explicit_channel": "a note or sample on an explicit voice replaces whatever that voice was playing",
+    "allocation": "prg32_audio_play_sample takes the first inactive voice, else voice 0"
+  },
+  "output": {
+    "sample_rate_hz": 22050,
+    "sample_format": "int16, signed",
+    "channels": 2,
+    "channel_order": "interleaved left, right",
+    "mix": "sum of every active voice, then clamp to -32768..32767 per channel",
+    "step_period_ms": 20,
+    "frames_per_step": 441,
+    "default_mode": "stereo (the kit's target is PRG32 Audio Plus); a mono cartridge's mix is written to both channels"
+  },
+  "volume": {
+    "range": "0..255",
+    "voice_then_channel_then_master": "pcm = (pcm * voice) >> 8; pcm = (pcm * channel) >> 8; pcm = (pcm * master) >> 9",
+    "headroom": "the master shift of 9 halves the level (6 dB) so several voices rarely clip",
+    "default_master": 96,
+    "note_volume_zero_means": "the instrument's default volume"
+  },
+  "pan": {
+    "left": -64,
+    "center": 0,
+    "right": 63,
+    "left_gain": "pan <= 0: 255, else 255 - pan * 255 / 63",
+    "right_gain": "pan >= 0: 255, else 255 - (-pan) * 255 / 64",
+    "applied": "left += pcm * left_gain / 255; right += pcm * right_gain / 255",
+    "note_pan_center_means": "the instrument's default pan"
+  },
+  "synth": {
+    "marker": 32768,
+    "layout": "bit 15 marker; bits 11:10 resonance (0..3); bits 9:6 cutoff (0..15); bits 5:2 pulse width (0..15); bits 1:0 waveform",
+    "waveforms": {"triangle": 0, "saw": 1, "pulse": 2, "noise": 3},
+    "pulse_threshold": "((pulse_width + 1) << 32) / 17 of the phase",
+    "noise": {"lfsr_seed": 8388600, "lfsr_mask": 8388607, "taps": [22, 17], "clocked": "when the phase wraps"},
+    "filter_cutoff_q15": [384, 512, 704, 960, 1280, 1696, 2208, 2848, 3616, 4512, 5536, 6688, 7936, 9280, 10752, 12288],
+    "filter_damping_q15": [32767, 24576, 16384, 8192],
+    "filter_limit": 4194304,
+    "midi0_semitones_q16": [535808, 567673, 601430, 637194, 675084, 715221, 757750, 802808, 850542, 901120, 954692, 1011457]
+  },
+  "adsr": {
+    "attack_decay_release_range": "0..255",
+    "time_ms": "0 = immediate; otherwise 1 + v * v * 2000 / 65025 (1 is about 1 ms, 255 about 2001 ms)",
+    "sustain_range": "0..255",
+    "sustain_level": "sustain * 257 of 65535",
+    "envelope_max": 65535,
+    "applied": "sample = (oscillator * level) >> 16, then the filter",
+    "note_off": "a synth voice enters release; a sample voice stops at once",
+    "release_end": "the voice becomes inactive when the level reaches 0",
+    "timed_note": "prg32_audio_note(..., duration_ms) releases (synth) or stops (sample) after duration_ms of engine time"
+  },
+  "samples": {
+    "format": "unsigned 8-bit PCM centred on 128",
+    "pitch_q10_base": 1024,
+    "note_ratio_q10": [1024, 1085, 1149, 1218, 1290, 1367, 1448, 1534, 1625, 1722, 1825, 1933],
+    "loop_flag": 1,
+    "default_sample": {"id": 62, "base_note": 60, "length": 30, "loop": true},
+    "default_instruments": {"ids": [0, 31], "sample_id": 62, "default_volume": 150, "default_pan": 0, "sustain": 255}
+  },
+  "tracker": {
+    "tick_ms": "60000 / (bpm * 4)",
+    "bpm": {"default": 120, "min": 30, "max": 300},
+    "max_events_per_step": 256,
+    "note_on_instrument": "a track's NOTE_ON on voice N plays instrument N",
+    "commands": {"NOTE_ON": 1, "NOTE_OFF": 2, "SET_VOLUME": 3, "SET_PAN": 4, "SET_TEMPO": 5, "PLAY_SAMPLE": 6, "JUMP": 7, "END": 255},
+    "jump_target": "arg1 << 8 | arg0; out of range stops the track",
+    "delta_zero": "events with delta 0 run in the same tick (a chord)"
+  },
+  "block": {
+    "magic": "AUD0",
+    "version": 1,
+    "header_bytes": 40,
+    "header_layout": "<4sHHHHHHIIIIII: magic, version, header_size, sample_count, instrument_count, track_count, reserved, samples_offset, instruments_offset, tracks_offset, events_offset, data_offset, block_size",
+    "sample_desc": {"bytes": 20, "layout": "<IIIIHBB: offset, length, loop_start, loop_end, base_note, flags, reserved"},
+    "instrument_desc": {"bytes": 8, "layout": "<HBbBBBB: sample_id, default_volume, default_pan, attack, decay, sustain, release"},
+    "track_desc": {"bytes": 8, "layout": "<II: event_offset, event_count"},
+    "event": {"bytes": 4, "layout": "<BBBB: delta_ticks, command, arg0, arg1"},
+    "max_samples": 64,
+    "max_instruments": 32,
+    "max_tracks": 16,
+    "in_cartridge": "after the PRG2 header and code, when the header's AUDIO flag (bit 0) is set; loading it replaces the previous assets after restoring the defaults"
+  },
+  "abi": {
+    "portable_table_indices": {
+      "prg32_audio_note": 6, "prg32_audio_init": 9, "prg32_audio_shutdown": 10, "prg32_audio_get_mode": 11,
+      "prg32_audio_play_sample": 12, "prg32_audio_play_sample_pan": 13, "prg32_audio_stop_channel": 14,
+      "prg32_audio_stop_all": 15, "prg32_audio_note_on": 16, "prg32_audio_note_on_pan": 17, "prg32_audio_note_off": 18,
+      "prg32_audio_notes": 19, "prg32_audio_play_track": 20, "prg32_audio_stop_track": 21, "prg32_audio_set_tempo": 22,
+      "prg32_audio_set_master_volume": 23, "prg32_audio_set_channel_volume": 24, "prg32_audio_set_channel_pan": 25
+    },
+    "blocking": "prg32_audio_notes blocks the calling cartridge for the sum of the note durations"
+  },
+  "legacy_buzzer": {
+    "portable_table_indices": {"prg32_buzzer_tone": 5, "prg32_buzzer_play_notes": 7, "prg32_buzzer_sample_u8": 8},
+    "firmware": "PWM on PRG32_PIN_BUZZER; nothing when the board has no buzzer pin",
+    "kit_policy": "obsolete and unsupported: never offered (blocks, completions, examples), refused in Advanced C and handwritten assembly with an explanation, and silent in the browser runtime for old cartridges (counted, like a board without a buzzer). Its removal from the SDK's portable ABI is proposed upstream."
+  }
+}

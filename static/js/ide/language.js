@@ -57,6 +57,8 @@
     'c-resident-only': 'This function exists only inside the PRG32 firmware. A portable cartridge can call ' +
       'only the functions in the PRG32 ABI, so the build would stop with "undefined reference".',
     'c-unknown-api': 'This name starts with prg32_ but is not part of the PRG32 API. Check the spelling.',
+    'obsolete-buzzer': 'The buzzer is obsolete: PRG32 games use the eight-voice audio engine (instruments with ' +
+      'ADSR envelopes, stereo pan, sound effects and soundtracks made in AudioStudio). The server refuses this name.',
     'asm-file-access': 'include, incbin and _Pragma could read files on the server, so they are not allowed.',
     'asm-preprocessor': 'In assembly only  #define NAME value  and #if / #ifdef / #ifndef / #elif / #else / ' +
       '#endif / #undef are allowed as preprocessor lines.',
@@ -99,6 +101,7 @@
       tables = {
         functions: new Map(c.functions.map(f => [f.name, f])),
         resident: new Map(c.resident_only.map(f => [f.name, f])),
+        obsolete: new Map((c.obsolete || []).map(o => [o.name, o])),
         constants: new Map(c.constants.map(k => [k.name, k])),
         types: new Map(c.types.map(t => [t.name, t])),
         headers: new Set(c.headers),
@@ -300,8 +303,10 @@
     }
     // Beyond the server's checks: calls the portable ABI cannot make.
     const defined = new Set([...bare.text.matchAll(/\b([A-Za-z_]\w*)\s*\([^;{}]*\)\s*\{/g)].map(match => match[1]));
+    obsoleteChecks(source, bare, problems);
     for (const match of bare.text.matchAll(/\bprg32_\w+\b/g)) {
       const name = match[0];
+      if (idx().obsolete.has(name)) continue;
       if (idx().resident.has(name)) {
         problems.push(problem(source, bare, match.index, match.index + name.length, 'error', 'c-resident-only',
           `${name} belongs to the resident PRG32 firmware, not to the portable cartridge ABI ` +
@@ -435,7 +440,18 @@
           `Assembly source must make ${name} visible with .globl ${name}`));
       }
     }
+    obsoleteChecks(source, bare, problems);
     return sortProblems(problems);
+  }
+
+  // The old buzzer (prg32_buzzer_*, prg32_note_t): refused by the server, so an error here too, saying what to use.
+  function obsoleteChecks(source, bare, problems) {
+    for (const match of bare.text.matchAll(/\b(?:prg32_buzzer_\w*|prg32_note_t|PRG32_PIN_BUZZER)\b/g)) {
+      const entry = idx().obsolete.get(match[0]);
+      problems.push(problem(source, bare, match.index, match.index + match[0].length, 'error', 'obsolete-buzzer',
+        `${match[0]} belongs to the old PRG32 buzzer, which is no longer supported. Use ` +
+        `${entry ? entry.instead : 'the PRG32 audio engine (prg32_audio_*)'}.`));
+    }
   }
 
   const REGISTER_LIKE = /^(?:x\d+|a\d+|s\d+|t\d+)$/i;
@@ -663,6 +679,8 @@
         text = asmCallDoc(t.functions.get(word.word));
       } else if (t.resident.has(word.word)) {
         text = residentDoc(t.resident.get(word.word));
+      } else if (t.obsolete.has(word.word)) {
+        text = obsoleteDoc(t.obsolete.get(word.word));
       }
       return text ? { range: word, contents: text } : null;
     }
@@ -672,6 +690,7 @@
     let text = null;
     if (t.functions.has(word.word)) text = functionDoc(t.functions.get(word.word));
     else if (t.resident.has(word.word)) text = residentDoc(t.resident.get(word.word));
+    else if (t.obsolete.has(word.word)) text = obsoleteDoc(t.obsolete.get(word.word));
     else if (t.constants.has(word.word)) {
       const k = t.constants.get(word.word);
       text = '```c\n#define ' + k.name + ' ' + k.value + '\n```\n' + (k.doc || '');
@@ -682,6 +701,10 @@
   function isMnemonic(source, word) {
     const before = lineText(source, word.line).slice(0, word.column - 1);
     return /^\s*(?:(?:[A-Za-z_.$][\w.$]*|\d+)\s*:\s*)*$/.test(before) || /;\s*$/.test(before);
+  }
+
+  function obsoleteDoc(entry) {
+    return '**Obsolete: the old buzzer.** Use ' + entry.instead + '.\n\n' + EXPLAIN['obsolete-buzzer'];
   }
 
   function residentDoc(fn) {
