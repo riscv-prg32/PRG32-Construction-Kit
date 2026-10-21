@@ -644,6 +644,9 @@ def api_connect(name: str):
              "scope": item.scopes, "state": state, "code_challenge": challenge, "code_challenge_method": "S256",
              **item.authorize_extra()}
     security.record("cloud_consent", target_type="cloud", target_id=name, metadata={"scopes": item.scopes})
+    from . import privacy
+
+    privacy.record_notice(principal.id, "cloud", name)   # ADR-0022: the notice was beside the consent box
     return jsonify({"redirect": item.authorize_endpoint() + "?" + urlencode(query)})
 
 

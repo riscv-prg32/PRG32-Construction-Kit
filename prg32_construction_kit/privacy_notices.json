@@ -1,0 +1,53 @@
+{
+  "_comment": "The privacy notices shown where the kit collects personal data (docs/privacy/notices.md). Change 'summary' or the full notice only together with a new 'version' and a line in docs/privacy/CHANGELOG.md; the kit records which version each person was shown.",
+  "notices": [
+    {
+      "id": "guest",
+      "version": "1.0",
+      "effective": "2026-10-21",
+      "where": "sign-in page, 'Try without an account'",
+      "summary": "Without an account, your games stay in this browser only. Nothing is sent to the server. Clearing the browser's data deletes them.",
+      "full": "docs/privacy/notices/guest.md"
+    },
+    {
+      "id": "account",
+      "version": "1.0",
+      "effective": "2026-10-21",
+      "where": "account registration, every sign-in until this version has been shown",
+      "summary": "Your school runs this kit. It keeps your username, email, role and classes, and the games, sprites and sounds you make, so you and your teachers can work on them. You can see, download, correct or ask to delete them on your Account page.",
+      "full": "docs/privacy/notices/account.md"
+    },
+    {
+      "id": "school_sign_in",
+      "version": "1.0",
+      "effective": "2026-10-21",
+      "where": "school sign-in button, first school sign-in",
+      "summary": "Signing in with your school account sends you to your school's sign-in page. The kit receives a number that identifies you there, your email and, if your school sends it, whether you are a student or a teacher. Nothing else.",
+      "full": "docs/privacy/notices/school_sign_in.md"
+    },
+    {
+      "id": "cloud",
+      "version": "1.0",
+      "effective": "2026-10-21",
+      "where": "Account page, before 'Connect' for Google Drive or OneDrive",
+      "summary": "Connecting a cloud account lets the kit save copies of your games in a folder of your own Google Drive or OneDrive, and only there. You can disconnect at any time; the copies in your cloud stay yours.",
+      "full": "docs/privacy/notices/cloud.md"
+    },
+    {
+      "id": "publishing",
+      "version": "1.0",
+      "effective": "2026-10-21",
+      "where": "Publish page, before sending a game to the Cartridge Store",
+      "summary": "Publishing sends your game, its title and the author name you chose to the Cartridge Store, where other people can see it after a teacher has checked it. Use a nickname, not your full name.",
+      "full": "docs/privacy/notices/publishing.md"
+    },
+    {
+      "id": "classes",
+      "version": "1.0",
+      "effective": "2026-10-21",
+      "where": "Classes page, when a teacher adds a student",
+      "summary": "Teachers and facilitators of your class can open your games to help you. They can read them but not change or publish them.",
+      "full": "docs/privacy/notices/classes.md"
+    }
+  ]
+}

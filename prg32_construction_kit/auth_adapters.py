@@ -47,6 +47,9 @@ def _finish_external_login(issuer: str, subject: str, email: str, username: str)
                         metadata={"reason": refusal.reason}, actor=None)
         return Response(str(refusal) + "\n", status=403)
     principal = principal_from_user(user)
+    from . import privacy
+
+    privacy.record_notice(principal.id, "school_sign_in", "saml")   # ADR-0022
     sign_in(principal)
     security.record("saml_sign_in", target_type="identity_provider", target_id="saml", actor=principal,
                     metadata={"account_created": created})

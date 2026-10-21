@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "_privacy_notice.html" import notice %}
 {% block title %}Create an account - PRG32-Construction-Kit{% endblock %}
 {% block content %}
 <div class="row justify-content-center">
@@ -14,6 +15,7 @@
             <input class="form-control" id="email" name="email" type="email" autocomplete="email" required autofocus></div>
           <button class="btn btn-primary" type="submit">Send the link</button>
         </form>
+        {{ notice("account") }}
         {% else %}
         <div class="alert alert-info mb-0">Registration is closed. Ask your teacher to create an account for you.</div>
         {% endif %}

@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "_privacy_notice.html" import notice %}
 {% block title %}My account - PRG32-Construction-Kit{% endblock %}
 {% block content %}
 <div class="row g-4">
@@ -80,7 +81,33 @@
       <div class="card-body">
         <p class="small text-muted">Keep copies of your projects in your own Google Drive or OneDrive, to work on
           them from another computer. Optional: the kit works the same without it.</p>
-        <div class="vstack gap-3" id="cloudProviders"></div>
+        {{ notice("cloud") }}
+        <div class="vstack gap-3 mt-3" id="cloudProviders"></div>
+      </div>
+    </div>
+    <div class="card shadow-sm mt-4" id="privacy">
+      <div class="card-header"><strong><i class="bi bi-shield-lock" aria-hidden="true"></i> Your data</strong></div>
+      <div class="card-body">
+        <p class="small">Everything the kit keeps about you, as one file you can keep or take elsewhere (your games,
+          sprites and sounds, your account, classes, cloud connections, and the log of what was done with your account).
+          <a href="/privacy">What the kit keeps and why</a>.</p>
+        <a class="btn btn-outline-primary" href="/api/me/privacy/export" id="downloadMyData" download>
+          <i class="bi bi-download" aria-hidden="true"></i> Download my data</a>
+        <form class="vstack gap-2 mt-4" id="privacyRequestForm">
+          <div><label class="form-label" for="privacyKind">Ask the school to</label>
+            <select class="form-select" id="privacyKind" name="kind" required>
+              <option value="rectification">correct something about me</option>
+              <option value="erasure">delete my account and everything in it</option>
+              <option value="restriction">pause the use of my data (I can still read and download it)</option>
+              <option value="objection">stop a use of my data I object to</option>
+              <option value="withdrawal">withdraw a permission I gave</option>
+            </select></div>
+          <div><label class="form-label" for="privacyDetails">What, and why (optional)</label>
+            <textarea class="form-control" id="privacyDetails" name="details" rows="2" maxlength="2000"></textarea></div>
+          <div><button class="btn btn-outline-secondary" type="submit">Send the request</button></div>
+        </form>
+        <p class="small text-muted mt-2 mb-0">The school answers within one month. Deleting cannot be undone.</p>
+        <div class="list-group mt-3" id="privacyRequests" aria-live="polite"></div>
       </div>
     </div>
   </div>
@@ -89,4 +116,5 @@
 {% block scripts %}
 <script src="{{ url_for('static', filename='js/account.js') }}"></script>
 <script src="{{ url_for('static', filename='js/cloud.js') }}"></script>
+<script src="{{ url_for('static', filename='js/privacy.js') }}"></script>
 {% endblock %}

@@ -545,6 +545,9 @@ def callback(slug: str):
     except SignInRefused as refusal:
         return _refuse(str(refusal), refusal.reason, slug, 403)
     principal = principal_from_user(user)
+    from . import privacy
+
+    privacy.record_notice(principal.id, "school_sign_in", slug)   # ADR-0022
     sign_in(principal)
     session["auth_via"] = slug   # signing out ends the kit session only (see auth.logout)
     security.record("oidc_sign_in", target_type="identity_provider", target_id=slug, actor=principal,

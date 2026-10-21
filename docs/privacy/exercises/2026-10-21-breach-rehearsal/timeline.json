@@ -1,0 +1,105 @@
+{
+ "exercise": "technical rehearsal (not a staffed exercise)",
+ "run_at": "2026-10-21T18:26:54+00:00",
+ "t0": "2026-10-21T18:26:54+00:00",
+ "deadline_72h": "2026-10-24T18:26:54+00:00",
+ "timeline": [
+  {
+   "at": "2026-10-21T18:26:53+00:00",
+   "step": "setup",
+   "what": "throwaway kit: 5 synthetic pupils in class 3B, one project each"
+  },
+  {
+   "at": "2026-10-21T18:26:53+00:00",
+   "step": "incident",
+   "what": "someone signs in as s03 from the attacker's address, downloads s03's data, makes an API token and reads projects with it",
+   "tables_in_download": [
+    "audit_events",
+    "class_members",
+    "privacy_notice_records",
+    "privacy_requests",
+    "projects",
+    "users"
+   ],
+   "projects_read": {
+    "own": 1,
+    "shared_examples_without_owner": 24,
+    "other_pupils": 0
+   },
+   "other_pupils_reachable": false
+  },
+  {
+   "at": "2026-10-21T18:26:54+00:00",
+   "step": "T0 detection",
+   "what": "the audit log shows sign-in activity and a data download for s03 from an address never seen before",
+   "t0": "2026-10-21T18:26:54+00:00",
+   "events_from_that_address": 4,
+   "actions": [
+    "api_token_create",
+    "login",
+    "login_failed",
+    "privacy_export"
+   ]
+  },
+  {
+   "at": "2026-10-21T18:26:54+00:00",
+   "step": "containment",
+   "what": "sessions ended, account switched off and on again (its API tokens are deleted), password reset",
+   "token_after": 401,
+   "attacker_session_after": 401,
+   "tokens_deleted": true
+  },
+  {
+   "at": "2026-10-21T18:26:54+00:00",
+   "step": "evidence",
+   "what": "audit events of the incident exported",
+   "file": "audit-extract.json",
+   "sha256": "e2e9c184395e82f302e8ad2176eb069c0a4ee8051dc46921fdf9b3e0b37086bd",
+   "events": 10
+  },
+  {
+   "at": "2026-10-21T18:26:54+00:00",
+   "step": "assessment",
+   "what": "risk assessed and notification decided (rehearsed by the maintainers; a real decision is the controller's and the DPO's)",
+   "deadline_72h": "2026-10-24T18:26:54+00:00"
+  }
+ ],
+ "assessment": {
+  "people": 1,
+  "children": true,
+  "data": "one pupil's account details (username, email, class), notice records, own projects and the audit events about them; no other pupil's data; no password or token in clear",
+  "consequences": "the pupil's email and school class known to an unauthorised person; their games read",
+  "risk": "risk (not high): a minor's contact details and school class disclosed; contained within minutes",
+  "notify_authority": "yes, within 72 hours of T0 (2026-10-24T18:26:54+00:00), because a minor's data was disclosed and the risk is not unlikely",
+  "tell_the_person": "Art. 34 not required (not high risk); the school's policy is to tell the pupil and family anyway, with what to do (new password, watch for phishing)",
+  "processors_to_tell": "none involved",
+  "measures": [
+   "sessions ended",
+   "API tokens deleted",
+   "password reset",
+   "consider: alert on sign-ins from new addresses (finding F-2)"
+  ]
+ },
+ "findings": [
+  {
+   "id": "F-1",
+   "finding": "Local sign-ins were not in the audit log before this work; added (login, login_failed with the address, never the typed text)",
+   "status": "fixed"
+  },
+  {
+   "id": "F-2",
+   "finding": "No alert on sign-ins from a new address: detection relies on someone reading the audit log",
+   "status": "open"
+  },
+  {
+   "id": "F-3",
+   "finding": "Ordinary reads of projects are not audited (S-5): the extent of what an API token read is inferred from its scope and last_used",
+   "status": "open"
+  },
+  {
+   "id": "F-4",
+   "finding": "Contacts in the playbook are blank until the controller fills them in (D-10)",
+   "status": "open"
+  }
+ ]
+}

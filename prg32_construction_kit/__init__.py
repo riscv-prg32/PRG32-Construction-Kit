@@ -7,7 +7,7 @@ from pathlib import Path
 import click
 from flask import Flask
 
-from . import audio_studio_api, auth, classes, cloud_storage, identity, security, sso  # noqa: F401 - their tables must exist before create_all
+from . import audio_studio_api, auth, classes, cloud_storage, identity, privacy, security, sso  # noqa: F401 - their tables must exist before create_all
 from .config import Config
 from .db import db
 from .db import init_app as init_db_app
@@ -41,6 +41,8 @@ def create_app(test_config: dict | None = None) -> Flask:
     audio_studio_api.init_app(app)
     sso.init_app(app)
     app.register_blueprint(bp)
+    app.register_blueprint(privacy.bp)
+    privacy.init_app(app)
     app.before_request(new_csp_nonce)
     app.after_request(browser_security_headers)
 
@@ -76,6 +78,24 @@ def create_app(test_config: dict | None = None) -> Flask:
         from . import retention
 
         print(json.dumps(retention.apply(app.config, dry_run=not apply_changes), indent=2))
+
+    @app.cli.command("prg32-privacy-erasures")
+    @click.option("--out", type=click.Path(), required=True, help="where to write the erasure register (JSON)")
+    def privacy_erasures_command(out: str):
+        """Write the pseudonyms of everyone erased (keep the file outside the backups; ADR-0022)."""
+        import json
+
+        Path(out).write_text(json.dumps({"erased": privacy.erased_subjects()}, indent=1) + "\n")
+        print(f"Wrote {out}")
+
+    @app.cli.command("prg32-privacy-reapply")
+    @click.option("--register", type=click.Path(exists=True), required=True, help="the erasure register (JSON)")
+    def privacy_reapply_command(register: str):
+        """After restoring a backup: erase again everyone the register lists (docs/privacy/retention.md)."""
+        import json
+
+        subjects = json.loads(Path(register).read_text())["erased"]
+        print(json.dumps(privacy.reapply_erasures(subjects), indent=1))
 
     return app
 

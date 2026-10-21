@@ -694,6 +694,26 @@
       "note": "Session epochs (password/role change, deactivation, sign out everywhere) and absolute session lifetime done. No hash-locked dependencies, quotas, retention or broad rate limits."
     },
     {
+      "id": "GDPR-01",
+      "title": "Personal data: accountability, rights and incident response",
+      "status": "partial",
+      "audit_score": 0,
+      "source": [
+        "prg32_construction_kit/privacy.py::erase_account",
+        "prg32_construction_kit/privacy.py::export_personal_data",
+        "docs/privacy/ropa.json",
+        "tools/breach_rehearsal.py::run"
+      ],
+      "tests": [
+        "tests/test_privacy_rights.py::test_erasure_reaches_everything_the_kit_holds",
+        "tests/test_privacy_rights.py::test_the_export_holds_everything_and_no_secret",
+        "tests/test_privacy_rights.py::test_a_restored_backup_does_not_bring_an_erased_student_back",
+        "tests/test_privacy_records.py::test_the_record_of_processing_names_every_column_once",
+        "tests/test_privacy_records.py::test_nothing_claims_the_gdpr_gate_while_a_blocker_is_open"
+      ],
+      "note": "docs/privacy/: field-level record of processing (every column), proposed roles and legal bases, retention, processors and transfers, children/DPIA/DPO screening, notices with recorded versions, rights workflows (export, register with deadlines, restriction, erasure across tables, folders, files, cloud tokens, audit pseudonyms, backups re-apply), Article 32 review, breach playbook and a technical rehearsal (ADR-0022). NO-GO remains: the controller's legal decisions D-0 to D-10, DPO/counsel review, DPIA and a staffed exercise are open (docs/privacy/decisions.md)."
+    },
+    {
       "id": "OPS-01",
       "title": "CI, Docker, migrations, health",
       "status": "implemented",
@@ -729,6 +749,18 @@
         "tests/test_doc_consistency.py::test_every_refinement_phase_commit_is_a_listed_milestone"
       ],
       "note": ""
+    },
+    {
+      "id": "DOC-02",
+      "title": "Truthful entry point, architecture and visual freshness",
+      "status": "partial",
+      "audit_score": 1,
+      "source": [
+        "README.md",
+        "docs/architecture.md"
+      ],
+      "tests": [],
+      "note": "In progress after the GDPR and documentation audit of 7c83e71."
     },
     {
       "id": "QLT-01",

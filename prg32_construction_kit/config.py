@@ -93,6 +93,12 @@ class Config:
     PRG32_KIT_AUTOSAVE_SNAPSHOT_MINUTES = int(os.environ.get("PRG32_KIT_AUTOSAVE_SNAPSHOT_MINUTES", "10"))
     PRG32_KIT_TRASH_DAYS = int(os.environ.get("PRG32_KIT_TRASH_DAYS", "30"))
     PRG32_KIT_KEEP_BUILDS = int(os.environ.get("PRG32_KIT_KEEP_BUILDS", "10"))
+    # ADR-0022: how long the audit log and backups are kept (docs/privacy/retention.md).
+    PRG32_KIT_AUDIT_DAYS = int(os.environ.get("PRG32_KIT_AUDIT_DAYS", "365"))
+    PRG32_KIT_BACKUP_DAYS = int(os.environ.get("PRG32_KIT_BACKUP_DAYS", "35"))
+    # Shown on /privacy: who runs this kit (the controller) and where to send privacy requests.
+    PRG32_PRIVACY_CONTROLLER = os.environ.get("PRG32_PRIVACY_CONTROLLER", "")
+    PRG32_PRIVACY_CONTACT = os.environ.get("PRG32_PRIVACY_CONTACT", "")
     # "local": the sign-in page offers "Try without an account" (this browser only); "off": it does not.
     PRG32_GUEST_MODE = os.environ.get("PRG32_GUEST_MODE", "local")
     MAX_CONTENT_LENGTH = int(os.environ.get("PRG32_KIT_MAX_UPLOAD", str(32 * 1024 * 1024)))

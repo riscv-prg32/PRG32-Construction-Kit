@@ -9,6 +9,8 @@
   removed once it is an hour old, so a build that is running is never touched.
 - Switched-off accounts (ADR-0016) are listed for an administrator to review; their
   items are never deleted automatically.
+- Audit events older than PRG32_KIT_AUDIT_DAYS (365) are removed, and sign-up links that
+  expired or were used more than a day ago (ADR-0022, docs/privacy/retention.md).
 
 Run it with ``flask --app app prg32-retention`` (shows what it would do) or
 ``--apply``, or ``POST /api/admin/retention``; builds are also pruned for a project
@@ -60,13 +62,36 @@ def _build_artifacts(build: Build) -> list[str]:
     return sorted(item for item in ids if item)
 
 
+def delete_artifact(artifact_id: str) -> bool:
+    """Delete an artifact and its file, when the file is the kit's own and no other artifact uses it.
+
+    Build outputs live in their build's folder (removed with it); uploads live in
+    ARTIFACT_ROOT. A path outside the kit's folders, or the database and key files, is
+    never touched (routes.stored_file decides, as for downloads)."""
+    from flask import current_app
+
+    from .routes import stored_file
+
+    artifact = db.session.get(Artifact, artifact_id)
+    if artifact is None:
+        return False
+    path = stored_file(artifact.path)
+    shared = path is not None and db.session.scalar(
+        select(literal_column("COUNT(*)")).select_from(Artifact).where(Artifact.path == artifact.path,
+                                                                        Artifact.id != artifact_id))
+    deleted = delete_resource("artifacts", artifact_id)
+    if deleted and path is not None and not shared and path.is_relative_to(Path(current_app.config["ARTIFACT_ROOT"]).resolve()):
+        path.unlink(missing_ok=True)
+    return deleted
+
+
 def _remove_build(build: Build, build_root: Path, dry_run: bool) -> dict[str, Any]:
     artifacts = _build_artifacts(build)
     folder = _folder(build_root, build.id)
     if not dry_run:
         delete_resource("builds", build.id)
         for artifact_id in artifacts:
-            delete_resource("artifacts", artifact_id)
+            delete_artifact(artifact_id)
         if folder is not None:
             shutil.rmtree(folder, ignore_errors=True)
     return {"build": build.id, "project": build.project_id, "artifacts": len(artifacts), "folder": folder is not None}
@@ -84,7 +109,7 @@ def purge_project(project_id: str, build_root: Path) -> None:
     """Remove a project for good, with everything that only exists because of it."""
     prune_builds(project_id, 0, build_root)
     for artifact_id in db.session.scalars(select(Artifact.id).where(Artifact.project_id == project_id)).all():
-        delete_resource("artifacts", artifact_id)
+        delete_artifact(artifact_id)
     delete_resource("projects", project_id)
 
 
@@ -114,7 +139,30 @@ def apply(config: dict[str, Any], *, dry_run: bool = True, now: datetime | None 
                     shutil.rmtree(folder, ignore_errors=True)
     for user in db.session.scalars(select(User).where(User.disabled_at.is_not(None)).order_by(User.disabled_at)):
         report["switched_off_accounts"].append({"id": user.id, "username": user.username, "since": user.disabled_at})
+    report.update(_expire_records(config, now, dry_run))
     return report
+
+
+def _expire_records(config: dict[str, Any], now: datetime, dry_run: bool) -> dict[str, int]:
+    """The audit log and sign-up links are kept only as long as docs/privacy/retention.md says."""
+    from sqlalchemy import delete, or_
+
+    from .auth import RegistrationToken
+    from .security import AuditEvent
+
+    audit_cutoff = _iso_days_ago(int(config.get("PRG32_KIT_AUDIT_DAYS", 365)), now)
+    link_cutoff = _iso_days_ago(1, now)
+    old_events = select(AuditEvent.id).where(AuditEvent.created_at < audit_cutoff)
+    old_links = select(RegistrationToken.id).where(or_(RegistrationToken.expires_at < link_cutoff,
+                                                       RegistrationToken.used_at < link_cutoff))
+    counts = {"expired_audit_events": len(db.session.scalars(old_events).all()),
+              "expired_signup_links": len(db.session.scalars(old_links).all())}
+    if not dry_run:
+        db.session.execute(delete(AuditEvent).where(AuditEvent.created_at < audit_cutoff))
+        db.session.execute(delete(RegistrationToken).where(or_(RegistrationToken.expires_at < link_cutoff,
+                                                               RegistrationToken.used_at < link_cutoff)))
+        db.session.commit()
+    return counts
 
 
 def delete_account_items(user_id: int, build_root: Path) -> dict[str, int]:
@@ -134,7 +182,10 @@ def delete_account_items(user_id: int, build_root: Path) -> dict[str, int]:
                 folder = _folder(build_root, item_id)
                 if folder is not None:
                     shutil.rmtree(folder, ignore_errors=True)
-            delete_resource(resource, item_id)
+            if resource == "artifacts":
+                delete_artifact(item_id)
+            else:
+                delete_resource(resource, item_id)
         counts[resource] = len(rows)
     # AudioStudio sample sounds live in one folder per owner (audio_studio_api.store_sample).
     from flask import current_app

@@ -3,6 +3,7 @@
     python3 tools/backup_restore.py backup  --data /srv/prg32-kit/data --out kit-backup.tar
     python3 tools/backup_restore.py restore --archive kit-backup.tar --data /srv/new/data
     python3 tools/backup_restore.py verify  --archive kit-backup.tar --data /srv/new/data
+    python3 tools/backup_restore.py prune   --folder /srv/backups --keep-days 35
 
 SQLite deployments (the default). With PostgreSQL, back up the database with
 ``pg_dump`` and use this tool for the folders only (``--skip-database``).
@@ -14,6 +15,9 @@ SQLite deployments (the default). With PostgreSQL, back up the database with
 - **restore** refuses a folder that is not empty, checks every hash before writing,
   and then rewrites the stored file paths of artifacts from the old data folder to
   the new one (they are absolute paths).
+- **prune** deletes the archives in a folder older than ``--keep-days`` (by the date in
+  their manifest), so personal data erased from the kit is gone from backups too after
+  that many days (PRG32_KIT_BACKUP_DAYS, docs/privacy/retention.md). ``--dry-run`` lists.
 - **verify** compares the row counts with the manifest, checks that every artifact
   file exists inside the new folder and that every build's bundle artifact exists,
   and starts the kit on the restored folder.
@@ -22,6 +26,7 @@ SQLite deployments (the default). With PostgreSQL, back up the database with
 from __future__ import annotations
 
 import argparse
+import datetime
 import hashlib
 import io
 import json
@@ -61,7 +66,8 @@ def backup(data: Path, out: Path, database: Path | None, skip_database: bool) ->
             archive.addfile(info, io.BytesIO(payload))
             entries[name] = sha256(payload)
 
-        manifest: dict = {"format": FORMAT, "data_dir": str(data), "counts": {}}
+        manifest: dict = {"format": FORMAT, "data_dir": str(data), "counts": {},
+                          "created": datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds")}
         if not skip_database:
             source = sqlite3.connect(database or data / DATABASE)
             with tempfile.TemporaryDirectory() as folder:
@@ -81,6 +87,31 @@ def backup(data: Path, out: Path, database: Path | None, skip_database: bool) ->
         manifest["files"] = entries
         add("MANIFEST.json", json.dumps(manifest, indent=1, sort_keys=True).encode())
     return manifest
+
+
+def created_at(archive_path: Path) -> datetime.datetime:
+    """When a backup was made: its manifest's date (archives made before it existed: the file's time)."""
+    try:
+        with tarfile.open(archive_path, "r") as archive:
+            member = archive.getmember("MANIFEST.json")
+            stamp = json.loads(archive.extractfile(member).read()).get("created")
+        if stamp:
+            return datetime.datetime.fromisoformat(stamp)
+    except (KeyError, tarfile.TarError, ValueError, AttributeError):
+        pass
+    return datetime.datetime.fromtimestamp(archive_path.stat().st_mtime, datetime.timezone.utc)
+
+
+def prune(folder: Path, keep_days: int, dry_run: bool = False, now: datetime.datetime | None = None) -> list[str]:
+    """Delete the backups older than keep_days; return their names."""
+    now = now or datetime.datetime.now(datetime.timezone.utc)
+    removed = []
+    for path in sorted(folder.glob("*.tar")):
+        if now - created_at(path) > datetime.timedelta(days=keep_days):
+            removed.append(path.name)
+            if not dry_run:
+                path.unlink()
+    return removed
 
 
 def read_archive(archive_path: Path) -> tuple[dict, dict[str, bytes]]:
@@ -170,7 +201,15 @@ def main(argv: list[str] | None = None) -> int:
         command = commands.add_parser(name)
         command.add_argument("--archive", type=Path, required=True)
         command.add_argument("--data", type=Path, required=True)
+    old = commands.add_parser("prune")
+    old.add_argument("--folder", type=Path, required=True)
+    old.add_argument("--keep-days", type=int, required=True)
+    old.add_argument("--dry-run", action="store_true")
     args = parser.parse_args(argv)
+    if args.command == "prune":
+        removed = prune(args.folder, args.keep_days, args.dry_run)
+        print(("Would delete: " if args.dry_run else "Deleted: ") + (", ".join(removed) or "nothing"))
+        return 0
     if args.command == "backup":
         manifest = backup(args.data, args.out, args.database, args.skip_database)
         print(f"Wrote {args.out}: {len(manifest['files'])} files, rows {manifest['counts']}")

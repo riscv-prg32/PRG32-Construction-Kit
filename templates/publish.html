@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "_privacy_notice.html" import notice %}
 {% block title %}Publish - PRG32-Construction-Kit{% endblock %}
 {% block content %}
 {% if not can_publish %}
@@ -28,6 +29,7 @@
       </div>
       <div class="card-body">
         <p class="text-muted">Publishing has two steps: <strong>Review</strong> shows exactly what will be sent (Store, cartridge, versions, file fingerprints); then you <strong>confirm</strong>. Only bundles with compiled cartridges can be published.</p>
+        {{ notice("publishing") }}
         <div id="bundleList" class="vstack gap-3"></div>
       </div>
     </div>

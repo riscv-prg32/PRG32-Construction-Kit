@@ -391,6 +391,11 @@ def api_item(resource: str, item_id: str):
         if resource == "projects":
             # Projects go to "Recently deleted" first, so a wrong click can be undone.
             set_project_deleted(item_id, True)
+        elif resource == "artifacts":
+            from .retention import delete_artifact
+
+            if not delete_artifact(item_id):   # the uploaded file goes with it (ADR-0022)
+                return json_error("Not found", 404)
         elif not delete_resource(resource, item_id):
             return json_error("Not found", 404)
         return jsonify({"deleted": True, "id": item_id})
@@ -1391,6 +1396,10 @@ def api_publish_review():
     if error:
         return error
     token = publishing.make_review_token(current_app.config["SECRET_KEY"], summary, current_principal().id)
+    from . import privacy
+
+    privacy.record_notice(current_principal().id, "publishing", summary["store"]["host"])   # ADR-0022
+    summary["privacy_notice"] = privacy.notices()["publishing"]["summary"]
     security.record("publish_review", target_type="artifact", target_id=summary["bundle"]["artifact_id"],
                     metadata={"store_host": summary["store"]["host"], "profile_id": profile["id"],
                               "cartridge": summary["cartridge"]["id"], "version": summary["cartridge"]["version"]})

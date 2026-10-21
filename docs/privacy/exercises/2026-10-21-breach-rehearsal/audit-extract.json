@@ -1,0 +1,144 @@
+{
+ "events": [
+  {
+   "action": "user_reactivate",
+   "actor_id": 1,
+   "actor_name": "admin",
+   "client": "198.51.100.10",
+   "created_at": "2026-10-21T18:26:54+00:00",
+   "id": 26,
+   "metadata": {
+    "username": "s03"
+   },
+   "outcome": "success",
+   "target_id": "4",
+   "target_type": "user"
+  },
+  {
+   "action": "user_update",
+   "actor_id": 1,
+   "actor_name": "admin",
+   "client": "198.51.100.10",
+   "created_at": "2026-10-21T18:26:54+00:00",
+   "id": 25,
+   "metadata": {
+    "credentials_changed": true
+   },
+   "outcome": "success",
+   "target_id": "4",
+   "target_type": "user"
+  },
+  {
+   "action": "user_deactivate",
+   "actor_id": 1,
+   "actor_name": "admin",
+   "client": "198.51.100.10",
+   "created_at": "2026-10-21T18:26:54+00:00",
+   "id": 24,
+   "metadata": {
+    "username": "s03"
+   },
+   "outcome": "success",
+   "target_id": "4",
+   "target_type": "user"
+  },
+  {
+   "action": "sessions_revoke",
+   "actor_id": 1,
+   "actor_name": "admin",
+   "client": "198.51.100.10",
+   "created_at": "2026-10-21T18:26:54+00:00",
+   "id": 23,
+   "metadata": {
+    "by": "admin"
+   },
+   "outcome": "success",
+   "target_id": "4",
+   "target_type": "user"
+  },
+  {
+   "action": "api_token_create",
+   "actor_id": 4,
+   "actor_name": "s03",
+   "client": "203.0.113.50",
+   "created_at": "2026-10-21T18:26:53+00:00",
+   "id": 22,
+   "metadata": {
+    "expires_at": "",
+    "label": "x",
+    "scopes": [
+     "read"
+    ]
+   },
+   "outcome": "success",
+   "target_id": "1",
+   "target_type": "api_token"
+  },
+  {
+   "action": "privacy_export",
+   "actor_id": 4,
+   "actor_name": "s03",
+   "client": "203.0.113.50",
+   "created_at": "2026-10-21T18:26:53+00:00",
+   "id": 21,
+   "metadata": {},
+   "outcome": "success",
+   "target_id": "4",
+   "target_type": "user"
+  },
+  {
+   "action": "login",
+   "actor_id": 4,
+   "actor_name": "s03",
+   "client": "203.0.113.50",
+   "created_at": "2026-10-21T18:26:53+00:00",
+   "id": 20,
+   "metadata": {},
+   "outcome": "success",
+   "target_id": "4",
+   "target_type": "user"
+  },
+  {
+   "action": "login_failed",
+   "actor_id": null,
+   "actor_name": "anonymous",
+   "client": "203.0.113.50",
+   "created_at": "2026-10-21T18:26:53+00:00",
+   "id": 19,
+   "metadata": {},
+   "outcome": "denied",
+   "target_id": "4",
+   "target_type": "user"
+  },
+  {
+   "action": "login",
+   "actor_id": 4,
+   "actor_name": "s03",
+   "client": "198.51.100.10",
+   "created_at": "2026-10-21T18:26:53+00:00",
+   "id": 12,
+   "metadata": {},
+   "outcome": "success",
+   "target_id": "4",
+   "target_type": "user"
+  },
+  {
+   "action": "user_create",
+   "actor_id": 1,
+   "actor_name": "admin",
+   "client": "198.51.100.10",
+   "created_at": "2026-10-21T18:26:53+00:00",
+   "id": 10,
+   "metadata": {
+    "groups": [],
+    "kit_role": "student",
+    "role": "user",
+    "username": "s03"
+   },
+   "outcome": "success",
+   "target_id": "4",
+   "target_type": "user"
+  }
+ ],
+ "exported_at": "2026-10-21T18:26:54+00:00"
+}

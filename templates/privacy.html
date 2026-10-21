@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% from "_privacy_notice.html" import notice %}
+{% block title %}Your data - PRG32-Construction-Kit{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <h1 class="h3"><i class="bi bi-shield-lock" aria-hidden="true"></i> Your data</h1>
+    <p class="lead">This page says, in short, what the PRG32 Construction Kit keeps about you and why.
+      Each part links to the full notice.</p>
+    <div class="alert alert-secondary">
+      <strong>Who is responsible:</strong> {{ controller or "the school or organisation that runs this kit" }}.
+      {% if contact %}Questions or requests: <a href="mailto:{{ contact }}">{{ contact }}</a>.{% else %}
+      Ask your teacher who to contact.{% endif %}
+      They decide how the kit is used; the kit's makers do not see your data.
+    </div>
+    <h2 class="h5 mt-4">What you can do</h2>
+    <ul>
+      <li><strong>See and download</strong> everything the kit keeps about you: <a href="/account#privacy">Account page</a>, <em>Download my data</em>.</li>
+      <li><strong>Correct it</strong>, <strong>ask for it to be deleted</strong>, ask for its use to be <strong>paused</strong>
+        (restricted), or <strong>object</strong>: also on the Account page. The school answers within one month.</li>
+      <li><strong>Stop cloud copies</strong> at any time: disconnect Google Drive or OneDrive on the Account page.</li>
+      <li>If you are not happy with the answer, you can complain to your country's data protection authority.</li>
+    </ul>
+    <h2 class="h5 mt-4">Where your data goes</h2>
+    {% for item in notices %}
+    <section class="card mb-3" id="{{ item.id }}" aria-labelledby="notice-{{ item.id }}">
+      <div class="card-body">
+        <h3 class="h6" id="notice-{{ item.id }}">{{ item.where | capitalize }}</h3>
+        {{ notice(item.id) }}
+        <p class="small mt-2 mb-0"><a href="/docs/privacy/notices/{{ item.id }}.md">Full notice</a>
+          · version {{ item.version }}, from {{ item.effective }}</p>
+      </div>
+    </section>
+    {% endfor %}
+    <p class="small text-muted">For the people running the kit: <a href="/docs/privacy/README.md">docs/privacy</a>
+      (records of processing, roles and legal bases, retention, processors, incidents).</p>
+  </div>
+</div>
+{% endblock %}

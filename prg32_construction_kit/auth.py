@@ -92,6 +92,8 @@ class User(db.Model):
     kit_role: Mapped[str] = mapped_column(db.Text, nullable=False, default="student")
     disabled_at: Mapped[str | None] = mapped_column(db.Text)
     session_epoch: Mapped[int] = mapped_column(db.Integer, nullable=False, default=0)
+    # ADR-0022: set while a restriction of processing applies (privacy.set_restricted).
+    restricted_at: Mapped[str | None] = mapped_column(db.Text)
 
 
 class ApiToken(db.Model):
@@ -142,6 +144,8 @@ class Principal:
     kit_role: str = "student"
     # None for a browser session; the token's scopes when the request came with an API token.
     token_scopes: tuple[str, ...] | None = None
+    # ADR-0022: processing is restricted; the account may read and download, not change.
+    restricted: bool = False
 
     @property
     def username(self) -> str:
@@ -212,6 +216,7 @@ def principal_from_user(user: User | None, token_scopes: tuple[str, ...] | None 
         groups=groups_for_user(int(user.id)),
         kit_role=user.kit_role or "student",
         token_scopes=token_scopes,
+        restricted=bool(user.restricted_at),
     )
 
 
@@ -584,6 +589,15 @@ def sign_in(principal: Principal) -> None:
     session["epoch"] = (user.session_epoch or 0) if user is not None else 0
     session["signed_in_at"] = datetime.now(timezone.utc).timestamp()
     session.permanent = True
+    # ADR-0022: the account notice (and the class notice for class members) is shown at
+    # sign-in until its current version has been shown once; remember that it was.
+    from . import privacy
+    from .classes import ClassMember
+
+    if user is not None:
+        privacy.record_notice(user.id, "account", "sign-in")
+        if db.session.scalar(select(ClassMember.class_id).where(ClassMember.user_id == user.id)) is not None:
+            privacy.record_notice(user.id, "classes", "sign-in")
 
 
 def safe_next(default: str = "/") -> str:
@@ -645,7 +659,8 @@ def _send_registration_email(email: str, link: str) -> None:
 
 # Pages and files anyone may open without signing in.
 PUBLIC_PREFIXES = ("/auth/", "/static/", "/docs/", "/.well-known/")
-PUBLIC_PATHS = {"/documentation", "/favicon.ico", "/api/sso/users", "/service-worker.js"}
+PUBLIC_PATHS = {"/documentation", "/favicon.ico", "/api/sso/users", "/service-worker.js", "/privacy",
+                "/api/privacy/notices"}
 # Under /auth/ but only for a signed-in account (so API-token scopes apply to them too).
 ACCOUNT_PATHS = ("/auth/tokens", "/auth/password", "/auth/sessions", "/auth/identities")
 
@@ -678,6 +693,12 @@ def guard_request():
                             metadata={"needed": needed, "method": request.method})
             return jsonify({"error": f"this API token does not have the {needed!r} scope",
                             "code": "insufficient_scope"}), 403
+    from .privacy import restriction_blocks
+
+    if restriction_blocks(principal, request.method, path):
+        return jsonify({"error": "Processing of this account is restricted (a privacy request): you can read and "
+                                 "download your data, but not change, build or publish.",
+                        "code": "restricted"}), 423
     if (request.method == "POST" and not getattr(g, "prg32_auth_by_token", False)
             and not request.is_json and request.headers.get("X-PRG32-Kit") != "1"):
         # A web page on another site can submit a plain form (always a POST) to
@@ -744,11 +765,17 @@ def login():
     if not principal.authenticated:
         security.hit("login_user", address, username)
         security.hit("login_address", address)
+        # For incident investigation (docs/privacy/breach_playbook.md): when and from where. Never
+        # what was typed: people sometimes type their password into the username field.
+        known = db.session.scalar(select(User.id).where((User.username == username.strip())
+                                                         | (User.email == username.strip().lower())))
+        security.record("login_failed", target_type="user", target_id=known or "", outcome="denied", actor=None)
         if wants_json():
             return jsonify({"error": "invalid username or password"}), 401
         return render_template("auth_login.html", error="Invalid username or password.", **form_context), 401
     security.reset("login_user", address, username)
     sign_in(principal)
+    security.record("login", target_type="user", target_id=principal.id, actor=principal)
     if wants_json():
         return jsonify({"ok": True, "user": principal.as_dict()})
     return redirect(safe_next())
@@ -1157,7 +1184,7 @@ def handle_bad_value(exc: ValueError):
 
 _NEW_COLUMNS = {
     "users": {"kit_role": "TEXT NOT NULL DEFAULT 'student'", "disabled_at": "TEXT",
-              "session_epoch": "INTEGER NOT NULL DEFAULT 0"},
+              "session_epoch": "INTEGER NOT NULL DEFAULT 0", "restricted_at": "TEXT"},
     "api_tokens": {"scopes": "TEXT", "expires_at": "TEXT"},
 }
 

@@ -124,6 +124,13 @@ capability IDs.
   desktop Import menu was not used by a person. [STR-01] [DEP-02]
 - Credentials, throttling and audit log; quality gates without lint, type,
   coverage or performance budgets. [SEC-02] [QLT-01]
+- Personal data (ADR-0022, `docs/privacy/`): field-level record of processing,
+  notices with recorded versions, rights workflows (export, request register,
+  restriction, erasure across every table, folder, file and cloud token, backups
+  re-apply), breach playbook and a technical rehearsal. The controller's legal
+  decisions, DPO review, DPIA and a staffed exercise are open: NO-GO. [GDPR-01]
+- Entry point and architecture documents being refreshed after the audit of
+  7c83e71. [DOC-02]
 
 - Google Drive and OneDrive behind one provider interface (ADR-0019), proven
   against in-process fakes and a real browser; no live tenant run yet.
@@ -131,8 +138,8 @@ capability IDs.
 - Browser host with framebuffer, input, timing and an offline subset; its
   stereo sound is the firmware engine's PCM, bit-identical in the native build
   and in PRG32-QT with the kit's proposed firmware-audio patch, and equal to the
-  PRG32 firmware in QEMU between events (with the proposed SDK audio patch, over
-  most of the whole recording); no console recording yet (procedure, comparison
+  PRG32 firmware in QEMU over the whole recording (with the proposed SDK audio
+  patch: one frame-clock scheduling boundary); no console recording yet (procedure, comparison
   tool and evidence check ready). [WASM-02] [AUD-02]
 - Buzzer removal on the kit side: refused by the validators, obsolete-only in
   the editor, silent for old cartridges, guarded by a repository-wide test; the
