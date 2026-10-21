@@ -50,8 +50,6 @@ def inputs() -> dict[str, str]:
     """What the fixtures depend on besides their sources: the PRG32 SDK and the compiler."""
     import subprocess
 
-    import prg32
-
     def first_line(command: list[str]) -> str:
         try:
             lines = subprocess.run(command, capture_output=True, text=True, check=False).stdout.splitlines()
@@ -59,8 +57,12 @@ def inputs() -> dict[str, str]:
             return "unknown"
         return lines[0].strip() if lines else "unknown"
 
-    sdk = Path(prg32.__file__).resolve().parent.parent
-    return {"prg32_sdk": first_line(["git", "-C", str(sdk), "rev-parse", "--short=7", "HEAD"]),
+    # Read from the SDK's .git files (or PRG32_SDK_REVISION), as build provenance does: the
+    # toolchain image keeps the SDK's .git but not the git program.
+    from prg32_construction_kit.provenance import sdk_identity
+
+    revision = sdk_identity()["revision"]
+    return {"prg32_sdk": revision[:7] if revision else "unknown",
             "compiler": first_line(["riscv32-esp-elf-gcc", "--version"])}
 
 

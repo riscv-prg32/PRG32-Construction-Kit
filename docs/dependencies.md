@@ -6,7 +6,7 @@
 | --- | --- | --- | --- |
 | Python packages | `requirements.txt`, `requirements-production.txt` (ranges) | `requirements.lock` (exact versions and the SHA-256 of every file) | the Docker image installs with `pip install --require-hashes -r requirements.lock` |
 | Browser libraries | `tools/vendor_assets.py` | `static/vendor/VENDOR.json` (versions, licenses, integrity, file hashes) | `tools/vendor_assets.py --check`, served from `static/vendor/` only (ADR-0012) |
-| PRG32 SDK and RISC-V compiler | `Dockerfile` (`PRG32_REF`, toolchain version) | image labels, build provenance | CI container job |
+| PRG32 SDK and RISC-V compiler | `Dockerfile` (`PRG32_REF`, toolchain version) | image labels, build provenance; the fixtures record theirs in `tests/fixtures/*/BUILD.json` | CI container job: its test image builds the SDK at `static/wasm/BUILD.json` `audio.revision`, so the debugger and console-check rebuilds compare byte for byte |
 
 `docs/sbom.cdx.json` is the software bill of materials (CycloneDX 1.5): every Python
 package of the image and every vendored browser library, with versions and hashes.

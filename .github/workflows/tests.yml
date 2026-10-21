@@ -378,6 +378,12 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
 
+      # The test image builds with the PRG32 SDK commit the kit's fixtures were made with
+      # (static/wasm/BUILD.json "audio"), so the rebuild checks below compare byte for byte.
+      - name: Read the PRG32 SDK revision of the fixtures
+        id: sdk
+        run: echo "revision=$(python3 -c 'import json; print(json.load(open("static/wasm/BUILD.json"))["audio"]["revision"])')" >> "$GITHUB_OUTPUT"
+
       - name: Build the full toolchain image
         uses: docker/build-push-action@v7
         with:
@@ -387,6 +393,7 @@ jobs:
           tags: ${{ env.CI_IMAGE }}
           build-args: |
             PRG32_TOOLCHAIN=1
+            PRG32_REF=${{ steps.sdk.outputs.revision }}
             PRG32_KIT_REVISION=${{ github.sha }}
           cache-from: type=gha,scope=toolchain-image
           cache-to: type=gha,mode=max,scope=toolchain-image
@@ -444,6 +451,12 @@ jobs:
           docker run --rm ${{ env.SANDBOX_OPTS }} -v "$PWD/ci-evidence:/evidence" --entrypoint sh ${{ env.CI_IMAGE }} -c
           "python tools/build_debug_fixtures.py --check-if-comparable --out /evidence/debug-fixtures
           > /evidence/debug-fixtures.log 2>&1; status=$?; cat /evidence/debug-fixtures.log; exit $status"
+
+      - name: Rebuild the audio conformance fixtures with the image's toolchain
+        run: >-
+          docker run --rm ${{ env.SANDBOX_OPTS }} -v "$PWD/ci-evidence:/evidence" --entrypoint sh ${{ env.CI_IMAGE }} -c
+          "python tools/build_audio_fixtures.py --check > /evidence/audio-fixtures.log 2>&1;
+          status=$?; cat /evidence/audio-fixtures.log; exit $status"
 
       - name: Rebuild the console audio check with the image's toolchain
         run: >-
