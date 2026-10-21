@@ -57,6 +57,7 @@ hear is what the console plays. (The old *buzzer* is gone: games use the 8 voice
 | The same samples from the WebAssembly and native builds; a recorded PCM hash and envelope trace | `tests/test_audio_conformance.py`, `tests/fixtures/audio/expected.json` |
 | The Player schedules the frames, bounded, and stops on Pause | `tests/test_audio_browser.py` |
 | The buzzer is reachable nowhere | `tests/test_no_buzzer.py` |
+| An AudioStudio cartridge on a real console: built by the kit, compared with the browser core (I2S capture or microphones) | `hardware_audio_check.md`, `tests/test_hardware_audio_check.py` |
 
 Make the fixtures again (needs the PRG32 toolchain):
 

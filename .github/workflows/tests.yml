@@ -443,6 +443,12 @@ jobs:
           "python tools/build_debug_fixtures.py --check-if-comparable --out /evidence/debug-fixtures
           > /evidence/debug-fixtures.log 2>&1; status=$?; cat /evidence/debug-fixtures.log; exit $status"
 
+      - name: Rebuild the console audio check with the image's toolchain
+        run: >-
+          docker run --rm ${{ env.SANDBOX_OPTS }} -v "$PWD/ci-evidence:/evidence" --entrypoint sh ${{ env.CI_IMAGE }} -c
+          "python tools/build_hardware_audio_check.py --check-if-comparable --out /evidence/hardware-audio-check
+          > /evidence/hardware-audio-check.log 2>&1; status=$?; cat /evidence/hardware-audio-check.log; exit $status"
+
       - name: Keep this commit's container evidence
         if: always()
         uses: actions/upload-artifact@v7

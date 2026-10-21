@@ -9,6 +9,13 @@
   `tracker.delta`, checked against `audio_tracker.c`), and a test plays a soundtrack
   through the engine and checks each note starts on its step. Saved documents are
   unchanged; their cartridges are now correct when built again.
+- Console audio check (`hardware_audio_check.md`): an AudioStudio project built into real
+  PRG32 cartridges by the kit (8 voices with their own pans and envelopes, hard left and
+  right, a sample effect, "stop all sounds"), and `tools/hardware_audio_compare.py`, which
+  compares a console recording with the browser core. With an I2S logic-analyser capture
+  it checks digital silence, zero crosstalk and bit-exact single-voice stretches.
+- CI keeps the conformance PCM (WAV) and voice trace, browser failure screenshots, and
+  rebuilds the console check in the toolchain container.
 
 ### Sound: the console's engine in the browser; the buzzer is gone (audio audit of c0d115e)
 

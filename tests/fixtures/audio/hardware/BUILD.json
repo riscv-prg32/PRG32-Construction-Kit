@@ -1,0 +1,45 @@
+{
+ "buzzer_calls": 0,
+ "compiler": "riscv32-esp-elf-gcc (crosstool-NG esp-14.2.0_20241119) 14.2.0",
+ "frames": 330,
+ "prg32_sdk": "679dfb5",
+ "reference_pcm_fnv1a": "0d2f27bf04beecb1",
+ "reference_samples": 479808,
+ "sha256": {
+  "audio_check-esp32c6.prg32": "c90c925d0d3dd1ff6d1800ff9e1ffee93a3c5e148d5b8667c02163f4b4642ff3",
+  "audio_check-qemu.prg32": "c90c925d0d3dd1ff6d1800ff9e1ffee93a3c5e148d5b8667c02163f4b4642ff3",
+  "audio_check.aud": "28a65e5d5c2b22609cb8d248b89255d638da5a8f39623fda6c8d07d01f0e5577",
+  "audio_check.c": "6edfde1e64ca00ddfa48fe46751e9f0f019aa1094fd77878415426c7a0aa4200",
+  "audio_studio.json": "4bc055991402d8168a69478c16cf5ccfda34697b6bca92bad44c734edab34eaa"
+ },
+ "timeline_seconds": {
+  "chord": [
+   0.0,
+   2.0
+  ],
+  "drum": [
+   6.6,
+   6.8999999999999995
+  ],
+  "left_only": [
+   3.05,
+   3.95
+  ],
+  "long": [
+   7.59,
+   8.085
+  ],
+  "right_only": [
+   4.3,
+   5.25
+  ],
+  "silence_after_chord": [
+   2.45,
+   2.85
+  ],
+  "silence_after_stop": [
+   8.185,
+   10.790000000000001
+  ]
+ }
+}
