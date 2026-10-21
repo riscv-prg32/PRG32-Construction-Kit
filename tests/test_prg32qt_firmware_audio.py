@@ -2,8 +2,8 @@
 
 PRG32-QT renders sound with its own floating-point mixer, which has no ADSR, so it cannot be an
 audio reference as it is. The kit proposes a patch (it never changes the PRG32-QT checkout):
-an opt-in CMake option compiles the firmware's engine into PRG32-QT, as the kit's browser core
-does. This test applies the patch to a copy of the checkout, builds prg32qt-headless with it,
+PRG32-QT compiles the firmware's engine by default (PRG32QT_FIRMWARE_AUDIO, ON), as the kit's
+browser core does; OFF keeps the old mixer. This test applies the patch to a copy of the checkout, builds prg32qt-headless with it,
 and requires the same PCM, bit for bit, as the browser core on the conformance fixture and the
 console check. PRG32_REQUIRE_SDK=1 (the CI WebAssembly job) turns a missing checkout into a failure.
 """
@@ -57,7 +57,8 @@ def headless(tmp_path_factory):
     applied = subprocess.run(["git", "apply", "--directory=", str(PATCH)], cwd=copy, capture_output=True, text=True)
     assert applied.returncode == 0, "the patch no longer applies to this PRG32-QT: " + applied.stderr
     build = work / "build"
-    subprocess.run(["cmake", "-S", str(copy), "-B", str(build), "-DPRG32QT_BUILD_APP=OFF", "-DPRG32QT_FIRMWARE_AUDIO=ON",
+    # The default configuration (no PRG32QT_FIRMWARE_AUDIO option): the firmware engine is on by default.
+    subprocess.run(["cmake", "-S", str(copy), "-B", str(build), "-DPRG32QT_BUILD_APP=OFF",
                     f"-DPRG32_SDK_DIR={PRG32_SDK}", "-DCMAKE_BUILD_TYPE=Release"], check=True, capture_output=True)
     subprocess.run(["cmake", "--build", str(build), "--parallel", "--target", "prg32qt-headless"], check=True,
                    capture_output=True)

@@ -11,31 +11,38 @@ has no ADSR envelopes, so the desktop does not sound like the console and cannot
 reference.
 
 **Patch.** [`prg32-qt-firmware-audio.patch`](prg32-qt-firmware-audio.patch), against PRG32-QT
-`f6d80ad`. It adds an opt-in CMake option, `PRG32QT_FIRMWARE_AUDIO=ON` with `PRG32_SDK_DIR`, that
-compiles the SDK's `components/prg32_audio` unchanged into PRG32-QT. This is the same port as
-the kit's browser core (`src/core/firmware_audio/` is the kit's `wasm/audio/`). The patch adds:
+`f6d80ad`, compiles the SDK's `components/prg32_audio` unchanged into PRG32-QT. It uses the
+same port as the kit's browser core: `src/core/firmware_audio/` is the kit's `wasm/audio/`.
 
-- host-call hooks in `Runtime`;
-- `FirmwareAudio`, which drives the engine from the cartridge's audio calls;
-- in `prg32qt-headless`, `--audio-wav` and a printed `AUDIO … pcm_fnv1a=` line;
-- in the desktop app, the engine's PCM played through `QtAudioEngine` (resampled to the device).
+- **On by default** (`PRG32QT_FIRMWARE_AUDIO=ON`). With no `PRG32_SDK_DIR`, CMake fetches
+  the SDK at `PRG32_SDK_REVISION` (`679dfb5`), sources only, so the SDK's ESP-IDF build is
+  never configured. `-DPRG32QT_FIRMWARE_AUDIO=OFF` keeps the older mixer, documented as not
+  an audio reference.
+- It adds:
+  - host-call hooks in `Runtime`;
+  - `FirmwareAudio`, which drives the engine from the cartridge's audio calls;
+  - in `prg32qt-headless`, `--audio-wav` and an `AUDIO … pcm_fnv1a=` line;
+  - in the desktop app, the engine's PCM played through `QtAudioEngine` (resampled to the device).
+- **Output device test.** `prg32qt_audio_device_check` (a CTest test, skipped without an
+  output device) runs a cartridge in real time and plays it through the default output
+  device. It checks the device processed the time, and that the frames the device pulled are
+  exactly the engine's samples.
 
-The option is off by default, so the usual build is unchanged.
+**Proof:**
 
-**Proof** (`tests/test_prg32qt_firmware_audio.py`, also run by CI's WebAssembly job):
+| Check | Result |
+|---|---|
+| Clean PRG32-QT with the patch, default options (SDK fetched from GitHub at `679dfb5`) | builds; conformance hash `2e6c5af207d3d5f2`, as the browser core |
+| PRG32-QT's CTest suite (default options, desktop app included) | 5/5, including the device test |
+| Same, `-DPRG32QT_FIRMWARE_AUDIO=OFF` | 4/4 (no device test) |
+| Device test on macOS 26.6.2, Qt 6.11.2, *LG UltraFine Display Audio* | Bach 2.68 s and the console check 3.67 s processed; the device's frames equal the engine's samples (`docs/evidence/prg32qt-audio/2026-10-21/`) |
+| `tests/test_prg32qt_firmware_audio.py` (kit, in CI) | the patch applies; the default build of `prg32qt-headless` gives the browser core's hashes for the conformance fixture and the console check; old buzzer cartridges are silent and counted |
 
-- the patch applies to PRG32-QT;
-- `prg32qt-headless` builds with the option;
-- it renders the conformance fixture and the console check with the same PCM hash as the
-  browser core (`2e6c5af207d3d5f2`, `a3d2c6520ba8aea2`);
-- old buzzer cartridges stay silent, and their calls are counted.
-
-PRG32-QT's own tests pass with and without the option. With the patch the desktop app also
-builds (Qt 6, macOS), but its sound was not checked by ear.
+The device test proves what the device takes, not what a listener hears.
 
 ```bash
 cd PRG32-QT && git apply ../PRG32-Construction-Kit/docs/upstream/prg32-qt-firmware-audio.patch
-cmake -S . -B build -DPRG32QT_FIRMWARE_AUDIO=ON -DPRG32_SDK_DIR=../PRG32 && cmake --build build
+cmake -S . -B build && cmake --build build && (cd build && ctest)
 ```
 
 ## 2. PRG32 SDK: retire the buzzer from the portable ABI (patch)

@@ -1,0 +1,16 @@
+{
+ "device": "LG UltraFine Display Audio",
+ "sink_state": 0,
+ "processed_us": 2677346,
+ "firmware_frames_played": 58965,
+ "frames_pushed": 61740,
+ "played_equal_engine": true,
+ "exit": 0,
+ "qt": "6.11.2",
+ "macos": "26.6.2",
+ "cartridge": "Bach.prg32",
+ "cartridge_sha256": "3620b2652d679d9325b3bfb3c37e8ddfccf329951e7bab50cfbe2789a6aefef0",
+ "seconds": 3,
+ "prg32qt": "f6d80ad + docs/upstream/prg32-qt-firmware-audio.patch",
+ "prg32_sdk": "679dfb5"
+}
