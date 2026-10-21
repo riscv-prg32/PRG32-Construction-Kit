@@ -27,6 +27,10 @@
   --kit-shadow-rgb: 0, 0, 0;
 }
 
+/* The hidden attribute always hides, even on an element with a Bootstrap display utility
+   (d-flex is !important too and would win: a "0 games" banner showed). */
+[hidden][hidden] { display: none !important; }
+
 body {
   background: linear-gradient(180deg, var(--kit-page-top) 0%, var(--kit-page-bottom) 45%);
   color: var(--kit-ink);
@@ -389,7 +393,8 @@ body.dbg-mode-advanced .dbg-beginner { display: none !important; }
 
 /* --- footer and the storage note (base.html, storage_notice.js) ------------------------- */
 .kit-footer { background: var(--bs-tertiary-bg); }
-.kit-footer a { text-decoration: none; }
+.kit-footer a { color: var(--bs-body-color); text-decoration: underline; }
+.kit-storage-notice a { color: var(--bs-body-color); text-decoration: underline; }
 .kit-storage-notice {
   position: fixed;
   left: 1rem;

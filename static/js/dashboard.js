@@ -119,18 +119,37 @@
   // Games made in this browser without an account (ADR-0017): offer to move them in.
   // Each one is created on the server first and removed from the browser only after that.
   function checkGuestProjects() {
-    if (!window.PRG32GuestStore) return Promise.resolve();
+    // A guest's projects are the ones on this page already: nothing to move yet.
+    if (!window.PRG32GuestStore || Kit.guest) return Promise.resolve();
     return PRG32GuestStore.list().then(rows => {
-      const games = rows.filter(row => row.blocks_json && Object.keys(row.blocks_json).length);
+      const games = rows.filter(row => (row.blocks_json && Object.keys(row.blocks_json).length)
+        || (row.game_json && Object.keys(row.game_json).length) || row.audio);
       $('#guestProjectsBanner').prop('hidden', !games.length);
       $('#guestProjectsCount').text(games.length === 1 ? '1 game' : games.length + ' games');
     }).catch(() => { /* this browser cannot keep guest games: nothing to move */ });
   }
 
+  // One guest game into the account: the project, then its sound, then its sprites.
+  function moveOne(row, sprites) {
+    return Kit.api('/api/projects', { method: 'POST', body: { title: row.title, description: row.description,
+      author: row.author, tags: row.tags, blocks_json: row.blocks_json, game_json: row.game_json } })
+      .then(created => (row.audio && row.audio.document
+        ? Kit.api('/api/projects/' + encodeURIComponent(created.id) + '/audio', { method: 'PUT',
+          body: { document: row.audio.document, expected_version: 0 } })
+        : Promise.resolve())
+        .then(() => Promise.all(sprites.map(sprite => moveSprite(Object.assign({}, sprite, { project_id: created.id })))))
+        .then(() => created));
+  }
+
+  function moveSprite(sprite) {
+    return Kit.api('/api/sprites', { method: 'POST', body: { project_id: sprite.project_id, name: sprite.name,
+      width: sprite.width, height: sprite.height, pixels: sprite.pixels, data_url: sprite.data_url } });
+  }
+
   $('#moveGuestProjects').on('click', function () {
     $(this).prop('disabled', true);
-    PRG32GuestStore.moveToAccount(row => Kit.api('/api/projects', { method: 'POST',
-      body: { title: row.title, blocks_json: row.blocks_json } }))
+    PRG32GuestStore.moveToAccount(moveOne)
+      .then(result => PRG32GuestStore.moveSpritesToAccount(moveSprite).then(() => result, error => Object.assign(result, { error })))
       .then(result => {
         if (result.error) Kit.toast(`Moved ${result.moved.length}; ${result.left} stay in this browser: ${result.error.message}`, 'warning');
         else Kit.toast(`Moved ${result.moved.length} into your account`, 'success');

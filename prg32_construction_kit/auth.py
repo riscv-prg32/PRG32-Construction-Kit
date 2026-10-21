@@ -723,6 +723,29 @@ def required_scope(method: str, path: str) -> str:
     return "write"
 
 
+# The guest workspace (ADR-0023): without an account, these pages open and keep the games in the
+# browser; only these APIs answer, and they store nothing (guest_api.py). Everything else, such as
+# building a cartridge, publishing, classes and every saved resource, still asks for a sign-in.
+GUEST_PAGES = re.compile(r"^/(|sprites|player|audio-studio|(ide|projects|audio-studio)/[A-Za-z0-9_-]{1,64})$")
+GUEST_APIS = re.compile(r"^/api/(guest/.+|examples)$")
+
+
+def guest_workspace_open() -> bool:
+    """True when visitors without an account may use the kit (Settings: Access)."""
+    return not site_settings.get("LOGIN_REQUIRED") and site_settings.get("PRG32_GUEST_MODE") == "local"
+
+
+def guest_may(method: str, path: str) -> bool:
+    if not guest_workspace_open():
+        return False
+    if GUEST_PAGES.match(path):
+        return method in ("GET", "HEAD")
+    if GUEST_APIS.match(path):
+        return method in ("GET", "HEAD") if path == "/api/examples" or path.startswith("/api/guest/examples/") \
+            else method == "POST"
+    return False
+
+
 def guard_request():
     """Run before every request: ask for a sign-in, and block cross-site form posts."""
     path = request.path
@@ -730,6 +753,8 @@ def guard_request():
         return None
     principal = current_principal()
     if not principal.authenticated:
+        if guest_may(request.method, path):
+            return None
         return auth_failure("Please sign in first", 401)
     if principal.token_scopes is not None:
         needed = required_scope(request.method, path)
@@ -1281,6 +1306,8 @@ def init_app(app) -> None:
     def inject_current_user() -> dict[str, Any]:
         from . import sso
 
-        return {"current_user": current_principal(), "sso_enabled": sso.enabled()}
+        principal = current_principal()
+        return {"current_user": principal, "sso_enabled": sso.enabled(),
+                "guest_workspace": not principal.authenticated and guest_workspace_open()}
 
     auth_adapters.register(app)

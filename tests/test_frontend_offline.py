@@ -127,8 +127,11 @@ def test_offline_page_holds_no_account_data(anon):
     assert b"{{" not in page.data and b"current_user" not in page.data
 
 
-def test_ide_needs_a_sign_in_and_only_it_allows_style_attributes(client, anon):
+def test_ide_needs_a_sign_in_and_only_it_allows_style_attributes(app, client, anon):
+    app.config["LOGIN_REQUIRED"] = True
     assert anon.get("/ide/anything").status_code in (302, 401)
+    app.config["LOGIN_REQUIRED"] = False     # the guest workspace (ADR-0023) opens it
+    assert anon.get("/ide/anything").status_code == 200
     page = client.get("/ide/anything")
     assert page.status_code == 200
     html = page.get_data(as_text=True)

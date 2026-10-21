@@ -28,3 +28,4 @@ Short records of decisions for the full-IDE work. Each has a status:
 | [0020](0020-delivery-targets-and-evidence.md) | Delivery targets the kit claims, and how evidence is recorded | Accepted |
 | [0021](0021-firmware-audio-engine.md) | The PRG32 firmware's audio engine in the browser; the buzzer is obsolete | Accepted |
 | [0022](0022-personal-data-and-rights.md) | Personal data: one inventory, rights the kit can carry out, the school decides | Accepted |
+| [0023](0023-open-guest-workspace.md) | The kit opens without an account; guests keep their games in the browser | Accepted (amends 0017, 0012) |

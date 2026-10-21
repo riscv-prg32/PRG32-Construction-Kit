@@ -147,6 +147,8 @@ LIMITS = {
     "register_email": Limit("register_email", 3, 60 * 60),
     "register_complete": Limit("register_complete", 20, 60 * 60),  # bad or reused links from one address
     "token_create": Limit("token_create", 20, 60 * 60),  # new API tokens per user
+    # Code generation and sound previews for visitors without an account, from one address (ADR-0023).
+    "guest_api": Limit("guest_api", 600, 60 * 60),
 }
 
 

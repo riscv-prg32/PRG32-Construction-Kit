@@ -44,7 +44,8 @@ This file applies to the whole repository.
 - Save block programs as JSON in the `projects.blocks_json` field.
 - Save generated and uploaded artifacts through the artifact CRUD API.
 - Keep large bundles on disk and metadata in SQLite.
-- Storage policy (ADR-0017): project saves from the IDE/editor send `expected_version` and must never overwrite a newer version silently; check quotas (`storage_policy`) before writes and compiles; guests store nothing on the server (IndexedDB only); retention deletes whole `<build_id>/` folders only after their database rows.
+- Storage policy (ADR-0017, ADR-0023): project saves from the IDE/editor send `expected_version` and must never overwrite a newer version silently; check quotas (`storage_policy`) before writes and compiles; guests store nothing on the server (IndexedDB only, answered by `static/js/guest_api.js`); retention deletes whole `<build_id>/` folders only after their database rows.
+- Runtime settings (`settings.py`, docs/admin_settings.md): read registry settings through `settings.get`/`settings.view()`, never copy them at start-up; an environment variable locks its setting; secrets are sealed and never returned; audit setting changes by key name only.
 - Do not store bearer tokens in logs or public responses.
 - Maintain idempotent SQLite initialization with `CREATE TABLE IF NOT EXISTS`.
 - Generated C is stored as `c_source` artifacts and generated assembly as `asm_source` artifacts (handwritten assembly also uses `asm_source`).
@@ -77,7 +78,7 @@ Preserve these action routes:
 
 ## Security constraints
 
-- Every page and `/api/` route except sign-in, static files, docs and discovery requires a signed-in user.
+- Every page and `/api/` route except sign-in, static files, docs and discovery requires a signed-in user, unless the operator turned off **Sign-in required** (ADR-0023): then only the guest pages (`auth.GUEST_PAGES`) and the stateless guest API (`/api/guest/*`, `GET /api/examples`) open without an account. The guest API stores nothing, writes no files and logs no bodies; building, publishing, classes and every saved resource still need a signed-in user.
 - Keep the account model aligned with PRG32 Cartridge Store (roles, groups, API tokens, `/auth/*` routes).
 - Items belong to their creator (`owner_id`); items without an owner are shared and read-only for non-admins.
 - `prg32_construction_kit/sso_protocol.py` must stay identical to `cartridge_store/sso_protocol.py` in CartridgeStore.

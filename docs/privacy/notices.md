@@ -10,7 +10,7 @@ shown (`privacy_notice_records`). This happens once per version:
 
 | Notice | Shown | Recorded when |
 |---|---|---|
-| [guest](notices/guest.md) | sign-in page, "Try without an account" | not recorded (no account) |
+| [guest](notices/guest.md) | every page without an account (the guest workspace), and the sign-in page | not recorded (no account) |
 | [account](notices/account.md) | sign-in and registration pages | at each sign-in, until this version was recorded |
 | [school_sign_in](notices/school_sign_in.md) | beside the school sign-in buttons | at school sign-in |
 | [cloud](notices/cloud.md) | Account page, beside the consent box | when connecting |

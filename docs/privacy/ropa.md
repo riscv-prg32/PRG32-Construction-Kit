@@ -244,7 +244,7 @@ not decisions: see [decisions.md](decisions.md).
 | Store | Data | Where | Kept for | Deleted by | Personal |
 |---|---|---|---|---|---|
 | session_cookie | signed session cookie: account id, session number, sign-in time | the person's browser | PERMANENT_SESSION_LIFETIME (fixed from sign-in) | signing out; ending all sessions; erasure invalidates it | yes |
-| browser_storage | IndexedDB prg32-kit-guest: guest games; localStorage prg32-*: code view per project, debugger breakpoints and view, last AudioStudio project, storage notice read (list on /privacy#storage) | the person's browser only | until the person clears it | the person (Clear site data); never sent to the server for guests | yes |
+| browser_storage | IndexedDB prg32-kit-guest: guest games; localStorage prg32-*: code view per project, debugger breakpoints and view, last AudioStudio project, storage notice read (list on /privacy#storage) | the person's browser only | until the person clears it | the person (Clear site data); a guest's games are never kept on the server | yes |
 | service_worker_cache | static files only, never signed-in pages | the browser | until the next cache version | automatic | no |
 | build_folders | <data>/builds/<build_id>/: sources and outputs of one build | the server chosen by the operator (configure in the EU/EEA, see processors_and_transfers.md) | as builds | with the build | yes |
 | artifact_files | <data>/artifacts/: uploads and AudioStudio samples (one folder per owner) | the server chosen by the operator (configure in the EU/EEA, see processors_and_transfers.md) | as artifacts | with the artifact (retention.delete_artifact); erasure removes the owner's sample folder | yes |
@@ -253,3 +253,4 @@ not decisions: see [decisions.md](decisions.md).
 | email | sign-up and password emails | the operator's SMTP provider and the person's mailbox | the provider's | the provider's | yes |
 | tickets_in_transit | single sign-on tickets and OAuth codes and tokens, in transit | between the browser, the kit, the Store and the providers (HTTPS) | minutes; refresh tokens encrypted at rest (cloud) | expiry | yes |
 | support_evidence | screenshots, logs and recordings kept as release evidence (docs/evidence) | the kit's repository | kept with the release | never contains real people: synthetic users only (visual manifest checks) | no |
+| guest_requests | a guest's blocks, sound or sprite, sent to generate code or preview sound (ADR-0023) | server memory while one request is answered | none: not written, not logged | automatic at the end of the request | no |

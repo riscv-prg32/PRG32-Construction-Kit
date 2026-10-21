@@ -49,6 +49,7 @@ from .store_policy import StoreRefused, check_url, policy_from_config
 from .sample_data import example_catalog
 from .source_project import validate_asm_source, validate_c_source, validate_features
 from . import settings as site_settings
+from .auth import guest_workspace_open as auth_guest_workspace_open
 
 bp = Blueprint("kit", __name__)
 
@@ -322,6 +323,8 @@ def discovery():
                                  "architectures": list(SUPPORTED_ARCHITECTURES)},
             # "local": guests may make games kept in their own browser only; "off": no guest entry (ADR-0017).
             "guest_mode": site_settings.get("PRG32_GUEST_MODE"),
+            # True: the kit opens without an account, games kept in the browser (ADR-0023).
+            "guest_workspace": auth_guest_workspace_open(),
         }
     )
 
@@ -784,6 +787,25 @@ def _generate_project(project_id: str) -> tuple[dict[str, Any] | None, dict[str,
         return project, None, None, json_error("This is a shared classroom project: make your own copy to build it", 403)
     # Its AudioStudio document: sound-effect and soundtrack blocks become fixed numbers from it.
     project = {**project, "audio_studio": audio_studio_api.document_of(project_id)[0]}
+    game_ir, c_source, message = generate_sources(project)
+    if message is not None:
+        return project, None, None, json_error(message)
+    assert game_ir is not None
+    if game_ir.get("source_mode") not in ("c", "asm"):
+        # Store the IR only if no other browser saved the project since we read it;
+        # otherwise we would overwrite that newer save (for example Advanced C source).
+        update_if_unchanged("projects", project_id,
+                            {"blocks_json": project.get("blocks_json"), "game_json": project.get("game_json")},
+                            {"game_json": game_ir})
+    return project, game_ir, c_source, None
+
+
+def generate_sources(project: dict[str, Any]) -> tuple[dict[str, Any] | None, str | None, str | None]:
+    """Validated game IR and C for a project (stored or a guest's): (game_ir, c_source, refusal).
+
+    Pure: it reads nothing and stores nothing, so the guest workspace uses it too (guest_api.py).
+    ``project["audio_studio"]`` is the project's AudioStudio document, or None.
+    """
     saved = project.get("game_json") or {}
     if isinstance(saved, dict) and saved.get("source_mode") == "c":
         source = saved.get("source_c", "")
@@ -791,10 +813,10 @@ def _generate_project(project_id: str) -> tuple[dict[str, Any] | None, dict[str,
             prefix = validate_c_source(source, project.get("title") or "")
             required_features = validate_features(saved.get("required_features", []))
         except ValueError as exc:
-            return project, None, None, json_error(str(exc))
-        return project, {"abi": "prg32-construction-kit-c-1.0", "entry_prefix": prefix,
-                         "source_mode": "c", "source_c": source,
-                         "required_features": required_features, "warnings": []}, source, None
+            return None, None, str(exc)
+        return {"abi": "prg32-construction-kit-c-1.0", "entry_prefix": prefix,
+                "source_mode": "c", "source_c": source,
+                "required_features": required_features, "warnings": []}, source, None
     if isinstance(saved, dict) and saved.get("source_mode") == "asm":
         # Handwritten assembly: checked (docs/adr/0004-handwritten-assembly-mode.md), then built as written.
         source = saved.get("source_asm", "")
@@ -802,20 +824,15 @@ def _generate_project(project_id: str) -> tuple[dict[str, Any] | None, dict[str,
             prefix = validate_asm_source(source, project.get("title") or "")
             required_features = validate_features(saved.get("required_features", []))
         except ValueError as exc:
-            return project, None, None, json_error(str(exc))
-        return project, {"abi": "prg32-construction-kit-asm-1.0", "entry_prefix": prefix,
-                         "source_mode": "asm", "source_asm": source,
-                         "required_features": required_features, "warnings": []}, "", None
+            return None, None, str(exc)
+        return {"abi": "prg32-construction-kit-asm-1.0", "entry_prefix": prefix,
+                "source_mode": "asm", "source_asm": source,
+                "required_features": required_features, "warnings": []}, "", None
     try:
         game_ir, c_source = blocks_to_c(project.get("blocks_json") or {}, project)
     except Exception as exc:
-        return project, None, None, json_error(f"Conversion failed: {exc}")
-    # Store the IR only if no other browser saved the project since we read it;
-    # otherwise we would overwrite that newer save (for example Advanced C source).
-    update_if_unchanged("projects", project_id,
-                        {"blocks_json": project.get("blocks_json"), "game_json": project.get("game_json")},
-                        {"game_json": game_ir})
-    return project, game_ir, c_source, None
+        return None, None, f"Conversion failed: {exc}"
+    return game_ir, c_source, None
 
 
 def _changed_elsewhere(project: dict[str, Any], payload: dict[str, Any]) -> bool:

@@ -20,14 +20,17 @@ def student_client(app, name: str):
     return app.test_client(login=(name, STUDENT_PASSWORD))
 
 
-def test_signing_in_is_required(anon):
+def test_signing_in_is_required(app, anon):
+    app.config["LOGIN_REQUIRED"] = True     # Settings, Access: "Sign-in required for every page"
     assert anon.get("/api/projects").status_code == 401
+    assert anon.get("/").status_code == 302 and anon.get("/api/guest/audio", json={}).status_code in (401, 405)
     page = anon.get("/sprites")
     assert page.status_code == 302 and "/auth/login?next=/sprites" in page.headers["Location"]
     # Sign-in pages, static files, docs and discovery stay open.
     assert anon.get("/auth/login").status_code == 200
     assert anon.get("/static/js/app.js").status_code == 200
-    assert anon.get("/.well-known/prg32-construction-kit.json").get_json()["auth"]["required"] is True
+    discovery = anon.get("/.well-known/prg32-construction-kit.json").get_json()
+    assert discovery["auth"]["required"] is True and discovery["guest_workspace"] is False
 
 
 def test_login_logout_and_cookie(app, anon):

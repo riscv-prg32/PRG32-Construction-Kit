@@ -1,6 +1,7 @@
 # ADR-0017: Guest and registered storage policy
 
-**Status:** Accepted (2026-10-19, refinement phase 6 of the brief after audit `5dd98a9`, objective 3)
+**Status:** Accepted (2026-10-19, refinement phase 6 of the brief after audit `5dd98a9`, objective 3).
+Amended by ADR-0023: the guest workspace is now the full kit (rule 1 still holds: nothing kept on the server).
 
 ## Context
 

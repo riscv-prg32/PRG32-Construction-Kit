@@ -1,14 +1,18 @@
 # Trying the kit without an account
 
-*Notice version 1.0, from 2026-10-21.*
+*Notice version 1.1, from 2026-10-22.*
 
-**In short:** without an account, your games stay in this browser only. Nothing is sent to
-the server. Clearing the browser's data deletes them.
+**In short:** without an account, your games, sprites and sounds stay in this browser only.
+To show you the C code or play a sound, the server looks at them for a moment and keeps
+nothing. Clearing the browser's data deletes them.
 
 - **What is kept:** the games, sprites and sounds you make, in this browser's storage
   (IndexedDB) on this computer.
 - **Who can see it:** anyone who uses this browser on this computer. The school and the kit's
   makers cannot.
+- **What the server sees:** when you press *Generate* or listen to a sound, the game or sound
+  is sent to the school's kit server, which answers and forgets it: nothing is saved or
+  written to a log. Building a real cartridge needs an account.
 - **How long:** until you or someone else clears the browser's data.
 - **What you can do:** save a game to a file and keep it. To delete everything, clear the
   site's data in the browser settings.

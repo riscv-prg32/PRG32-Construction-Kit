@@ -19,9 +19,9 @@
 **In your own cloud** (optional, if the kit offers it): see `cloud_storage.md`.
 The same rule holds there: when both copies changed, you choose.
 
-**Without an account** (*Try without an account* on the sign-in page, or the
-offline page when the server cannot be reached), your games are kept **in this
-browser only**, on this computer:
+**Without an account** (the kit opens without one, see [guest_mode.md](guest_mode.md); or the
+offline page when the server cannot be reached), your games are kept **in this browser
+only**, on this computer:
 
 - make several games, give them names, play them;
 - **Save as file** downloads a game; **Open file** loads one back. The
@@ -32,13 +32,15 @@ browser only**, on this computer:
   **move them into your account**. Each game leaves the browser only after the
   server has it.
 
-Nothing you make as a guest is sent to the server.
+Nothing you make as a guest is kept on the server. To show you the generated C or play a
+sound, the server looks at it for one request and forgets it.
 
 ## For teachers and administrators
 
 | Setting | Default | Meaning |
 | --- | --- | --- |
-| `PRG32_GUEST_MODE` | `local` | `local`: the sign-in page offers *Try without an account*; `off`: it does not (the offline page still works, but stores nothing on the server either way) |
+| `PRG32_KIT_LOGIN_REQUIRED` | off | off: the kit opens without an account, games kept in the browser ([guest_mode.md](guest_mode.md)); on: every page asks for a sign-in |
+| `PRG32_GUEST_MODE` | `local` | `local`: visitors without an account may use the kit (and the sign-in page offers *Try without an account*); `off`: they may not (the offline page still works, but stores nothing on the server either way) |
 | `PRG32_KIT_QUOTA_PROJECTS` | `200` | Projects per student (0 = no limit; administrators have none) |
 | `PRG32_KIT_QUOTA_MB` | `200` | Space per student in MB: projects, history, sprites, assets, generated sources and their build files |
 | `PRG32_KIT_AUTOSAVE_SNAPSHOT_MINUTES` | `10` | Autosaves add to History at most this often |

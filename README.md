@@ -64,7 +64,9 @@ pip install -r requirements.txt
 python app.py
 ```
 
-Open <http://127.0.0.1:5090/> and sign in as `admin`. The first start writes a random
+Open <http://127.0.0.1:5090/>: anyone can make games there without an account, kept in their
+browser ([guest_mode.md](docs/guest_mode.md)). To build cartridges, publish and change the
+**Settings**, sign in as `admin`. The first start writes a random
 password to `data/initial_admin_password`, or uses `PRG32_ADMIN_PASSWORD` if you set a long
 one. Change the password on **My account**; the file is then deleted. Data is stored in
 `data/`, or in `PRG32_KIT_DATA` if set.

@@ -1,6 +1,15 @@
 {% extends "base.html" %}
+{% from "_privacy_notice.html" import notice %}
 {% block title %}Projects - {{ site.name }}{% endblock %}
 {% block content %}
+{% if guest_workspace %}
+<div class="alert alert-info" role="status" id="guestWelcome">
+  <strong><i class="bi bi-browser-chrome" aria-hidden="true"></i> You are using the kit without an account.</strong>
+  Make games with blocks, C or assembly, draw sprites and compose sounds: everything is kept in this browser.
+  To build a real cartridge, publish it or join a class, <a href="/auth/login">sign in</a>; your games come with you.
+  {{ notice("guest") }}
+</div>
+{% endif %}
 <div class="alert alert-info d-flex flex-wrap gap-2 align-items-center" id="guestProjectsBanner" role="status" hidden>
   <span><i class="bi bi-browser-chrome"></i> <strong id="guestProjectsCount"></strong> made in this browser without an account
     (kept only here).</span>
@@ -109,7 +118,7 @@
 </div>
 {% endblock %}
 {% block scripts %}
-<script src="{{ url_for('static', filename='js/guest_store.js') }}"></script>
+{% if not guest_workspace %}<script src="{{ url_for('static', filename='js/guest_store.js') }}"></script>{% endif %}
 <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 <script src="{{ url_for('static', filename='js/cloud.js') }}"></script>
 {% endblock %}

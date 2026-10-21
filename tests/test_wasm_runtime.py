@@ -114,9 +114,12 @@ def test_service_worker_caches_the_runtime_for_offline_use():
         assert f"'{path}'" in worker
 
 
-def test_player_page_needs_a_sign_in(client, anon):
+def test_player_page_needs_a_sign_in(app, client, anon):
     assert client.get("/player").status_code == 200
+    app.config["LOGIN_REQUIRED"] = True
     assert anon.get("/player").status_code in (302, 401)
+    app.config["LOGIN_REQUIRED"] = False     # the guest workspace plays local .prg32 files
+    assert anon.get("/player").status_code == 200
     assert client.get("/static/wasm/prg32-core.wasm").status_code == 200
 
 

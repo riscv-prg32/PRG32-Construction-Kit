@@ -6,6 +6,8 @@
   <meta name="theme-color" content="#14213d">
   {# Which account this window was opened as; app.js sends it with every API call. #}
   <meta name="prg32-user" content="{{ current_user.id if current_user.authenticated else '' }}">
+  {# "1": no account, so projects, sprites and sounds are kept in this browser (guest_api.js, ADR-0023). #}
+  <meta name="prg32-guest" content="{{ '1' if guest_workspace else '' }}">
   {# Read once by static/js/csp_nonce.js; the same nonce is in this page's CSP header. #}
   <meta name="csp-nonce" content="{{ csp_nonce }}">
   <script src="{{ url_for('static', filename='js/csp_nonce.js') }}"></script>
@@ -37,9 +39,13 @@
         <li class="nav-item"><a class="nav-link" href="/"><i class="bi bi-grid-3x3-gap"></i> Projects</a></li>
         <li class="nav-item"><a class="nav-link" href="/sprites"><i class="bi bi-brush"></i> Sprite Lab</a></li>
         <li class="nav-item"><a class="nav-link" href="/audio-studio"><i class="bi bi-music-note-beamed"></i> AudioStudio</a></li>
+        {% if current_user.authenticated %}
         <li class="nav-item"><a class="nav-link" href="/artifacts"><i class="bi bi-box-seam"></i> Artifacts</a></li>
+        {% endif %}
         <li class="nav-item"><a class="nav-link" href="/player"><i class="bi bi-cpu"></i> Player</a></li>
+        {% if current_user.authenticated %}
         <li class="nav-item"><a class="nav-link" href="/publish"><i class="bi bi-cloud-upload"></i> Publish</a></li>
+        {% endif %}
         {% if current_user.authenticated %}
         <li class="nav-item"><a class="nav-link" href="/classes"><i class="bi bi-mortarboard"></i> Classes</a></li>
         {% endif %}
@@ -58,7 +64,12 @@
         <form method="post" action="/auth/logout" class="m-0"><button class="btn btn-outline-light btn-sm" type="submit">Sign out</button></form>
       </div>
       {% else %}
-      <a class="btn btn-outline-light btn-sm" href="/auth/login">Sign in</a>
+      <div class="d-flex align-items-center gap-2">
+        {% if guest_workspace %}
+        <span class="badge text-bg-warning" title="Your games are kept only in this browser"><i class="bi bi-browser-chrome" aria-hidden="true"></i> Guest: games stay in this browser</span>
+        {% endif %}
+        <a class="btn btn-outline-light btn-sm" href="/auth/login">Sign in</a>
+      </div>
       {% endif %}
     </div>
   </div>
@@ -95,6 +106,10 @@
 <script src="{{ url_for('static', filename='vendor/jquery/3.7.1/jquery.min.js') }}"></script>
 <script src="{{ url_for('static', filename='vendor/bootstrap/5.3.3/js/bootstrap.bundle.min.js') }}"></script>
 <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+{% if guest_workspace %}
+<script src="{{ url_for('static', filename='js/guest_store.js') }}"></script>
+<script src="{{ url_for('static', filename='js/guest_api.js') }}"></script>
+{% endif %}
 <script src="{{ url_for('static', filename='js/storage_notice.js') }}"></script>
 {% block scripts %}{% endblock %}
 </body>

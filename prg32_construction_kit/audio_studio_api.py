@@ -167,6 +167,11 @@ def pick_project():
 
 @bp.get("/audio-studio/<project_id>")
 def page(project_id: str):
+    from .auth import current_principal
+
+    if not current_principal().authenticated:
+        # The guest workspace (ADR-0023): the project is in the browser; the page loads it there.
+        return render_template("audio_studio.html", project={"id": project_id, "title": ""}, can_edit=True)
     project = _project(project_id, write=False)
     from .routes import can_write
 

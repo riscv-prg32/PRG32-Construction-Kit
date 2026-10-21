@@ -3,10 +3,10 @@
   "notices": [
     {
       "id": "guest",
-      "version": "1.0",
-      "effective": "2026-10-21",
-      "where": "sign-in page, 'Try without an account'",
-      "summary": "Without an account, your games stay in this browser only. Nothing is sent to the server. Clearing the browser's data deletes them.",
+      "version": "1.1",
+      "effective": "2026-10-22",
+      "where": "every page without an account (the guest workspace), and the sign-in page",
+      "summary": "Without an account, your games, sprites and sounds stay in this browser only. To show you the C code or play a sound, the server looks at them for a moment and keeps nothing. Clearing the browser's data deletes them.",
       "full": "docs/privacy/notices/guest.md"
     },
     {

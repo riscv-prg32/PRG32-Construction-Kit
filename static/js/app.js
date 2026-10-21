@@ -1,5 +1,9 @@
 window.Kit = {
+  // No account (the guest workspace, ADR-0023): the pages' API calls are answered in this
+  // browser by guest_api.js, and nothing is saved on the server.
+  guest: $('meta[name="prg32-guest"]').attr('content') === '1',
   api(path, options) {
+    if (Kit.guest && window.PRG32GuestApi) return PRG32GuestApi.request(path, options);
     const opts = options || {};
     opts.headers = opts.headers || {};
     // Tells the server this request comes from the kit's own pages (blocks cross-site form posts).
@@ -35,6 +39,33 @@ window.Kit = {
       }
       return data;
     });
+  },
+  // Download a file the server makes (an export). For a guest, it is made in this browser.
+  download(path) {
+    if (Kit.guest && window.PRG32GuestApi) return PRG32GuestApi.download(path);
+    window.location.href = path;
+    return Promise.resolve();
+  },
+  // Something a guest tried needs an account (building, publishing, samples...). The work stays
+  // in this browser; signing in offers to move it into the account (Projects page).
+  signInNeeded(what) {
+    $('#signInNeeded').remove();
+    const back = encodeURIComponent(window.location.pathname);
+    const dialog = $(`<div class="modal" id="signInNeeded" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="signInNeededTitle">
+      <div class="modal-dialog"><div class="modal-content">
+        <div class="modal-header"><h2 class="modal-title h5" id="signInNeededTitle">Sign in to keep going</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+        <div class="modal-body"><p><strong class="what"></strong> needs an account.</p>
+          <p class="mb-0">Your games are safe in this browser. After you sign in, the Projects page offers to
+            move them into your account, so you can build real cartridges and share them.</p></div>
+        <div class="modal-footer">
+          <a class="btn btn-primary" href="/auth/login?next=${back}">Sign in</a>
+          <a class="btn btn-outline-secondary" href="/auth/register">Create an account</a>
+          <button type="button" class="btn btn-link" data-bs-dismiss="modal">Not now</button>
+        </div></div></div></div>`);
+    dialog.find('.what').text(what);
+    $('body').append(dialog);
+    new bootstrap.Modal(dialog[0]).show();
   },
   // A save refused because the project was saved elsewhere after this window loaded it
   // (409 version_conflict, ADR-0017). Nothing was overwritten; the student chooses.

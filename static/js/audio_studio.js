@@ -27,6 +27,9 @@
 
   function status(text) { $('#audioStatus').text(text); }
 
+  // Without an account the page does not know the game's title: it is in this browser (ADR-0023).
+  if (Kit.guest) Kit.api('/api/projects/' + projectId).then(project => $('#projectTitle').text(project.title)).catch(() => {});
+
   // ---- notes ---------------------------------------------------------------------------
   // MIDI note 60 is middle C, written C4.
   function noteName(note) { return NOTE_NAMES[note % 12] + (Math.floor(note / 12) - 1); }
@@ -122,7 +125,7 @@
     }).catch(err => status('Could not load the sound: ' + err.message));
   }
 
-  function download() { window.location.href = api + '/export'; }
+  function download() { Kit.download(api + '/export'); }
 
   function showMissing(names) {
     const box = $('#missingSamples');

@@ -88,6 +88,10 @@ def capture(names: list[str]) -> list[str]:
         if browser is None:
             raise SystemExit("needs Chrome or Playwright's Chromium (python3 -m playwright install chromium)")
         context = browser.new_context(viewport=VIEWPORT, color_scheme="light", locale="en-US", device_scale_factor=1)
+        # The storage note (base.html) is read once per browser: mark it read, so it is not in the pictures.
+        notices = json.loads((ROOT / "prg32_construction_kit" / "privacy_notices.json").read_text())["notices"]
+        version = next(item["version"] for item in notices if item["id"] == "storage")
+        context.add_init_script(f"try {{ localStorage.setItem('prg32-kit-storage-notice', '{version}'); }} catch (e) {{}}")
         page = context.new_page()
         page.goto(origin + "/auth/login")
         page.fill("#username", TEACHER[0])

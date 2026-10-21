@@ -213,7 +213,7 @@ jobs:
           PRG32_BROWSER_EVIDENCE: ${{ github.workspace }}/browser-evidence
         run: >-
           python -m pytest -q -rs --junitxml=browser-test-results.xml -o junit_suite_name=browser-${{ github.sha }}
-          tests/test_browser_offline.py tests/test_ide_browser.py tests/test_debugger_browser.py tests/test_accounts_browser.py tests/test_storage_browser.py tests/test_cloud_browser.py tests/test_performance_browser.py tests/test_audio_browser.py tests/test_frontend_offline.py
+          tests/test_browser_offline.py tests/test_ide_browser.py tests/test_debugger_browser.py tests/test_accounts_browser.py tests/test_storage_browser.py tests/test_cloud_browser.py tests/test_performance_browser.py tests/test_audio_browser.py tests/test_guest_ide_browser.py tests/test_frontend_offline.py
 
       - name: Upload the browser test results
         if: always()

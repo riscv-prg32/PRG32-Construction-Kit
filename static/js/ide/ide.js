@@ -190,7 +190,7 @@
   }
 
   function openSprite(spriteId) {
-    $.getJSON('/api/sprites/' + encodeURIComponent(spriteId)).then(sprite => IdeShell.openTab({
+    Kit.api('/api/sprites/' + encodeURIComponent(spriteId)).then(sprite => IdeShell.openTab({
       id: 'sprite-' + spriteId, title: sprite.name, closable: true,
       render(panel) {
         $(panel).append(`<div class="p-3"><p class="small text-muted">Sprites are drawn in the
@@ -263,7 +263,8 @@
     const version = project.version;
     checking = Kit.api(api + '/check', { method: 'POST', body: { source_language: mode } }).then(result => {
       if (!result.available) {
-        if (!options.quiet) setBuildStatus('Compiler check: no toolchain on this server');
+        if (!options.quiet) setBuildStatus(result.guest ? 'Compiler check: sign in to use the compiler'
+          : 'Compiler check: no toolchain on this server');
         return;
       }
       if (project.version !== version || result.project_version !== version) return;   // saved again since
