@@ -1,6 +1,6 @@
 # PRG32-Construction-Kit Documentation
 
-PRG32-Construction-Kit is a classroom web application for building PRG32 games with blocks, sprites, simulation, generated C, cartridge bundles, and Cartridge Store publishing.
+PRG32-Construction-Kit is a classroom web application for making PRG32 games with Blocks, C or RISC-V assembly: an IDE with real compiler messages, real `.prg32` cartridges, a WebAssembly runtime with a source and block debugger, Sprite Lab, AudioStudio, accounts with school sign-in, optional cloud copies, and Cartridge Store publishing.
 
 ## Read in this order
 
@@ -8,7 +8,11 @@ PRG32-Construction-Kit is a classroom web application for building PRG32 games w
 2. `docker.md` - container execution.
    - `install_cartridge_build.md` - install with real `.prg32` builds switched on (Docker, macOS, Linux, Windows).
 3. `ci_cd.md` - automated tests, real-cartridge checks and published container images.
-4. `architecture.md` - how the system is organized.
+4. `architecture.md` - components, trust boundaries, the build pipeline and personal-data flows (with diagrams).
+   - `ide.md` - the IDE: Blocks, Advanced C and assembly, compiler messages, debugging.
+   - `wasm_runtime.md` - running and debugging real cartridges in the browser, and its limits.
+   - `privacy/README.md` - personal data, for the school that runs the kit: records, notices, rights, incidents.
+   - `release_checklist.md` - what a person checks before a release; `figures/manifest.json` lists every picture.
 5. `blockly.md` - block vocabulary, expressions and JSON storage.
    - `prg32_feature_coverage.md` - which PRG32 services Blocks, the simulator and Advanced C reach.
 6. `sprite_editor.md` - sprite/image editor guide.

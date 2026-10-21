@@ -1,0 +1,994 @@
+{
+ "_comment": "Every picture in the documentation: what it shows, how it is made, what it shows the state of, and who looked at it (DOC-02). tools/check_docs.py checks this file.",
+ "visuals": {
+  "docs/evidence/delivery/2026-10-21-prg32qt-checked/screenshots/advanced-C-esp32c6.bmp": {
+   "browser": "n/a",
+   "captured": "2026-10-21",
+   "frozen": true,
+   "kind": "evidence",
+   "locale": "en-US",
+   "product_commit": "7ad7fb17bc753012a238655029d9b19afb2b0ab6",
+   "purpose": "release evidence: the device's own screenshot of a delivered cartridge",
+   "recipe": "python3 tools/delivery_check.py device ... --screenshots",
+   "review_note": "evidence is kept as recorded, never refreshed",
+   "reviewed": "2026-10-21",
+   "reviewer": "kit maintainers (AI-assisted review: Claude)",
+   "seed": "kit cartridges only (no people)",
+   "theme": "light",
+   "viewport": "n/a",
+   "watch": []
+  },
+  "docs/evidence/delivery/2026-10-21-prg32qt-checked/screenshots/audio_check-esp32c6.bmp": {
+   "browser": "n/a",
+   "captured": "2026-10-21",
+   "frozen": true,
+   "kind": "evidence",
+   "locale": "en-US",
+   "product_commit": "7ad7fb17bc753012a238655029d9b19afb2b0ab6",
+   "purpose": "release evidence: the device's own screenshot of a delivered cartridge",
+   "recipe": "python3 tools/delivery_check.py device ... --screenshots",
+   "review_note": "evidence is kept as recorded, never refreshed",
+   "reviewed": "2026-10-21",
+   "reviewer": "kit maintainers (AI-assisted review: Claude)",
+   "seed": "kit cartridges only (no people)",
+   "theme": "light",
+   "viewport": "n/a",
+   "watch": []
+  },
+  "docs/evidence/delivery/2026-10-21-prg32qt-checked/screenshots/blocks-generated-C-esp32c6.bmp": {
+   "browser": "n/a",
+   "captured": "2026-10-21",
+   "frozen": true,
+   "kind": "evidence",
+   "locale": "en-US",
+   "product_commit": "7ad7fb17bc753012a238655029d9b19afb2b0ab6",
+   "purpose": "release evidence: the device's own screenshot of a delivered cartridge",
+   "recipe": "python3 tools/delivery_check.py device ... --screenshots",
+   "review_note": "evidence is kept as recorded, never refreshed",
+   "reviewed": "2026-10-21",
+   "reviewer": "kit maintainers (AI-assisted review: Claude)",
+   "seed": "kit cartridges only (no people)",
+   "theme": "light",
+   "viewport": "n/a",
+   "watch": []
+  },
+  "docs/evidence/delivery/2026-10-21-prg32qt-checked/screenshots/blocks-generated-assembly-esp32c6.bmp": {
+   "browser": "n/a",
+   "captured": "2026-10-21",
+   "frozen": true,
+   "kind": "evidence",
+   "locale": "en-US",
+   "product_commit": "7ad7fb17bc753012a238655029d9b19afb2b0ab6",
+   "purpose": "release evidence: the device's own screenshot of a delivered cartridge",
+   "recipe": "python3 tools/delivery_check.py device ... --screenshots",
+   "review_note": "evidence is kept as recorded, never refreshed",
+   "reviewed": "2026-10-21",
+   "reviewer": "kit maintainers (AI-assisted review: Claude)",
+   "seed": "kit cartridges only (no people)",
+   "theme": "light",
+   "viewport": "n/a",
+   "watch": []
+  },
+  "docs/evidence/delivery/2026-10-21-prg32qt-checked/screenshots/handwritten-assembly-esp32c6.bmp": {
+   "browser": "n/a",
+   "captured": "2026-10-21",
+   "frozen": true,
+   "kind": "evidence",
+   "locale": "en-US",
+   "product_commit": "7ad7fb17bc753012a238655029d9b19afb2b0ab6",
+   "purpose": "release evidence: the device's own screenshot of a delivered cartridge",
+   "recipe": "python3 tools/delivery_check.py device ... --screenshots",
+   "review_note": "evidence is kept as recorded, never refreshed",
+   "reviewed": "2026-10-21",
+   "reviewer": "kit maintainers (AI-assisted review: Claude)",
+   "seed": "kit cartridges only (no people)",
+   "theme": "light",
+   "viewport": "n/a",
+   "watch": []
+  },
+  "docs/evidence/delivery/2026-10-21-prg32qt/screenshots/advanced-C-esp32c6.png": {
+   "browser": "n/a",
+   "captured": "2026-10-21",
+   "frozen": true,
+   "kind": "evidence",
+   "locale": "en-US",
+   "product_commit": "da5abd2663e3f8a3bd2c3f5110203474f7312c55",
+   "purpose": "release evidence: the device's own screenshot of a delivered cartridge",
+   "recipe": "python3 tools/delivery_check.py device ... --screenshots",
+   "review_note": "evidence is kept as recorded, never refreshed",
+   "reviewed": "2026-10-21",
+   "reviewer": "kit maintainers (AI-assisted review: Claude)",
+   "seed": "kit cartridges only (no people)",
+   "theme": "light",
+   "viewport": "n/a",
+   "watch": []
+  },
+  "docs/evidence/delivery/2026-10-21-prg32qt/screenshots/audio_check-esp32c6.png": {
+   "browser": "n/a",
+   "captured": "2026-10-21",
+   "frozen": true,
+   "kind": "evidence",
+   "locale": "en-US",
+   "product_commit": "da5abd2663e3f8a3bd2c3f5110203474f7312c55",
+   "purpose": "release evidence: the device's own screenshot of a delivered cartridge",
+   "recipe": "python3 tools/delivery_check.py device ... --screenshots",
+   "review_note": "evidence is kept as recorded, never refreshed",
+   "reviewed": "2026-10-21",
+   "reviewer": "kit maintainers (AI-assisted review: Claude)",
+   "seed": "kit cartridges only (no people)",
+   "theme": "light",
+   "viewport": "n/a",
+   "watch": []
+  },
+  "docs/evidence/delivery/2026-10-21-prg32qt/screenshots/blocks-generated-C-esp32c6.png": {
+   "browser": "n/a",
+   "captured": "2026-10-21",
+   "frozen": true,
+   "kind": "evidence",
+   "locale": "en-US",
+   "product_commit": "da5abd2663e3f8a3bd2c3f5110203474f7312c55",
+   "purpose": "release evidence: the device's own screenshot of a delivered cartridge",
+   "recipe": "python3 tools/delivery_check.py device ... --screenshots",
+   "review_note": "evidence is kept as recorded, never refreshed",
+   "reviewed": "2026-10-21",
+   "reviewer": "kit maintainers (AI-assisted review: Claude)",
+   "seed": "kit cartridges only (no people)",
+   "theme": "light",
+   "viewport": "n/a",
+   "watch": []
+  },
+  "docs/evidence/delivery/2026-10-21-prg32qt/screenshots/blocks-generated-assembly-esp32c6.png": {
+   "browser": "n/a",
+   "captured": "2026-10-21",
+   "frozen": true,
+   "kind": "evidence",
+   "locale": "en-US",
+   "product_commit": "da5abd2663e3f8a3bd2c3f5110203474f7312c55",
+   "purpose": "release evidence: the device's own screenshot of a delivered cartridge",
+   "recipe": "python3 tools/delivery_check.py device ... --screenshots",
+   "review_note": "evidence is kept as recorded, never refreshed",
+   "reviewed": "2026-10-21",
+   "reviewer": "kit maintainers (AI-assisted review: Claude)",
+   "seed": "kit cartridges only (no people)",
+   "theme": "light",
+   "viewport": "n/a",
+   "watch": []
+  },
+  "docs/evidence/delivery/2026-10-21-prg32qt/screenshots/handwritten-assembly-esp32c6.png": {
+   "browser": "n/a",
+   "captured": "2026-10-21",
+   "frozen": true,
+   "kind": "evidence",
+   "locale": "en-US",
+   "product_commit": "da5abd2663e3f8a3bd2c3f5110203474f7312c55",
+   "purpose": "release evidence: the device's own screenshot of a delivered cartridge",
+   "recipe": "python3 tools/delivery_check.py device ... --screenshots",
+   "review_note": "evidence is kept as recorded, never refreshed",
+   "reviewed": "2026-10-21",
+   "reviewer": "kit maintainers (AI-assisted review: Claude)",
+   "seed": "kit cartridges only (no people)",
+   "theme": "light",
+   "viewport": "n/a",
+   "watch": []
+  },
+  "docs/figures/PRG32-Construction-Kit_01.png": {
+   "browser": "chromium 155.0.8059.85 (headless)",
+   "captured": "2026-10-21",
+   "kind": "screenshot",
+   "locale": "en-US",
+   "product_commit": "d68a0e74ebe456102953b81f714211f2e68f9b96",
+   "purpose": "The IDE with the Pong project: project tree, Blocks editor, generated C, Problems and Run panels",
+   "recipe": "python3 tools/capture_visuals.py ide-hero",
+   "review_note": "looked at after capture: current layout, synthetic accounts and sample projects only",
+   "reviewed": "2026-10-21",
+   "reviewer": "kit maintainers (AI-assisted review: Claude)",
+   "seed": "sample_data.seed_if_empty (sample projects, no real author); synthetic accounts admin, teacher1@example.test",
+   "theme": "light",
+   "viewport": "1440x900",
+   "watch": [
+    "templates/ide.html",
+    "static/js/ide/",
+    "static/css/"
+   ]
+  },
+  "docs/figures/architecture.svg": {
+   "browser": "n/a",
+   "captured": "2026-10-21",
+   "kind": "diagram",
+   "locale": "en-US",
+   "product_commit": "d68a0e74ebe456102953b81f714211f2e68f9b96",
+   "purpose": "Components and trust boundaries (docs/architecture.md)",
+   "recipe": "python3 tools/build_diagrams.py",
+   "review_note": "drawn from the data in tools/build_diagrams.py; checked against the code on this date",
+   "reviewed": "2026-10-21",
+   "reviewer": "kit maintainers (AI-assisted review: Claude)",
+   "seed": "none (no people)",
+   "theme": "light",
+   "viewport": "n/a",
+   "watch": [
+    "tools/build_diagrams.py"
+   ]
+  },
+  "docs/figures/data_flow.svg": {
+   "browser": "n/a",
+   "captured": "2026-10-21",
+   "kind": "diagram",
+   "locale": "en-US",
+   "product_commit": "d68a0e74ebe456102953b81f714211f2e68f9b96",
+   "purpose": "Personal data, retention and recipients (docs/architecture.md, docs/privacy/)",
+   "recipe": "python3 tools/build_diagrams.py",
+   "review_note": "drawn from the data in tools/build_diagrams.py; checked against the code on this date",
+   "reviewed": "2026-10-21",
+   "reviewer": "kit maintainers (AI-assisted review: Claude)",
+   "seed": "none (no people)",
+   "theme": "light",
+   "viewport": "n/a",
+   "watch": [
+    "tools/build_diagrams.py"
+   ]
+  },
+  "docs/figures/game_loop.svg": {
+   "browser": "n/a",
+   "captured": "2026-10-21",
+   "kind": "diagram",
+   "locale": "en-US",
+   "product_commit": "d68a0e74ebe456102953b81f714211f2e68f9b96",
+   "purpose": "The PRG32 game loop and the audio frame clock (docs/architecture.md)",
+   "recipe": "python3 tools/build_diagrams.py",
+   "review_note": "drawn from the data in tools/build_diagrams.py; checked against the code on this date",
+   "reviewed": "2026-10-21",
+   "reviewer": "kit maintainers (AI-assisted review: Claude)",
+   "seed": "none (no people)",
+   "theme": "light",
+   "viewport": "n/a",
+   "watch": [
+    "tools/build_diagrams.py"
+   ]
+  },
+  "docs/figures/games/asteroids-editor.jpg": {
+   "browser": "chromium 155.0.8059.85 (headless)",
+   "captured": "2026-10-21",
+   "kind": "screenshot",
+   "locale": "en-US",
+   "product_commit": "d68a0e74ebe456102953b81f714211f2e68f9b96",
+   "purpose": "The Asteroids project in the Blocks editor, with its preview",
+   "recipe": "python3 tools/capture_visuals.py asteroids-editor",
+   "review_note": "looked at after capture: current layout, synthetic accounts and sample projects only",
+   "reviewed": "2026-10-21",
+   "reviewer": "kit maintainers (AI-assisted review: Claude)",
+   "seed": "sample_data.seed_if_empty (sample projects, no real author); synthetic accounts admin, teacher1@example.test",
+   "theme": "light",
+   "viewport": "1440x900",
+   "watch": [
+    "templates/editor.html",
+    "static/js/editor.js",
+    "static/css/"
+   ]
+  },
+  "docs/figures/games/asteroids-prg32qt.png": {
+   "browser": "n/a",
+   "captured": "2026-10-21",
+   "kind": "runtime frame",
+   "locale": "en-US",
+   "product_commit": "d68a0e74ebe456102953b81f714211f2e68f9b96",
+   "purpose": "Asteroids: prg32qt frame in the game tutorial",
+   "recipe": "python3 tools/runtime_check.py --prg32 <PRG32 checkout> --qt-runner <prg32qt-headless> --figures docs/figures/games",
+   "review_note": "re-rendered at d68a0e7 (SDK 679dfb5, PRG32-QT f6d80ad): identical pixels",
+   "reviewed": "2026-10-21",
+   "reviewer": "kit maintainers (AI-assisted review: Claude)",
+   "seed": "none (no people)",
+   "theme": "light",
+   "viewport": "320x200 framebuffer scaled 2x",
+   "watch": [
+    "examples/games/asteroids.json",
+    "static/wasm/BUILD.json"
+   ]
+  },
+  "docs/figures/games/asteroids-qemu.png": {
+   "browser": "n/a",
+   "captured": "2026-10-15",
+   "kind": "runtime frame",
+   "locale": "en-US",
+   "product_commit": "48e3ac3876f5e75326915f93df40eecfa68d1b19",
+   "purpose": "Asteroids: qemu frame in the game tutorial",
+   "recipe": "python3 tools/runtime_check.py --prg32 <PRG32 checkout> --qemu --figures docs/figures/games",
+   "review_note": "not re-rendered (needs the SDK's cicd QEMU build); the game sources are unchanged since the capture",
+   "reviewed": "2026-10-21",
+   "reviewer": "kit maintainers (AI-assisted review: Claude)",
+   "seed": "none (no people)",
+   "theme": "light",
+   "viewport": "320x240 framebuffer scaled 2x",
+   "watch": [
+    "examples/games/asteroids.json"
+   ]
+  },
+  "docs/figures/games/asteroids-simulator.png": {
+   "browser": "n/a",
+   "captured": "2026-10-21",
+   "kind": "runtime frame",
+   "locale": "en-US",
+   "product_commit": "d68a0e74ebe456102953b81f714211f2e68f9b96",
+   "purpose": "Asteroids: simulator frame in the game tutorial",
+   "recipe": "python3 tools/runtime_check.py --prg32 <PRG32 checkout> --qt-runner <prg32qt-headless> --figures docs/figures/games",
+   "review_note": "re-rendered at d68a0e7 (SDK 679dfb5, PRG32-QT f6d80ad): identical pixels",
+   "reviewed": "2026-10-21",
+   "reviewer": "kit maintainers (AI-assisted review: Claude)",
+   "seed": "none (no people)",
+   "theme": "light",
+   "viewport": "320x200 framebuffer scaled 2x",
+   "watch": [
+    "examples/games/asteroids.json",
+    "static/js/simulator.js"
+   ]
+  },
+  "docs/figures/games/asteroids-title.png": {
+   "browser": "n/a",
+   "captured": "2026-10-21",
+   "kind": "runtime frame",
+   "locale": "en-US",
+   "product_commit": "d68a0e74ebe456102953b81f714211f2e68f9b96",
+   "purpose": "Asteroids: title screen in the game tutorial",
+   "recipe": "node tools/simulate.js examples/games/asteroids.json 1 out.ppm, scaled 2x (tools/runtime_check.py save_image)",
+   "review_note": "re-rendered at d68a0e7: identical pixels",
+   "reviewed": "2026-10-21",
+   "reviewer": "kit maintainers (AI-assisted review: Claude)",
+   "seed": "none (no people)",
+   "theme": "light",
+   "viewport": "320x200 framebuffer scaled 2x",
+   "watch": [
+    "examples/games/asteroids.json",
+    "static/js/simulator.js"
+   ]
+  },
+  "docs/figures/games/asteroids_physics.svg": {
+   "browser": "n/a",
+   "captured": "2026-10-15",
+   "kind": "diagram",
+   "locale": "en-US",
+   "product_commit": "48e3ac3876f5e75326915f93df40eecfa68d1b19",
+   "purpose": "Tutorial diagram (asteroids physics)",
+   "recipe": "hand-drawn SVG; its numbers are those of the game's Blocks project",
+   "review_note": "numbers checked against the game project; the project is unchanged since",
+   "reviewed": "2026-10-21",
+   "reviewer": "kit maintainers (AI-assisted review: Claude)",
+   "seed": "none (no people)",
+   "theme": "light",
+   "viewport": "n/a",
+   "watch": [
+    "examples/games/asteroids.json"
+   ]
+  },
+  "docs/figures/games/asteroids_rocks.svg": {
+   "browser": "n/a",
+   "captured": "2026-10-15",
+   "kind": "diagram",
+   "locale": "en-US",
+   "product_commit": "48e3ac3876f5e75326915f93df40eecfa68d1b19",
+   "purpose": "Tutorial diagram (asteroids rocks)",
+   "recipe": "hand-drawn SVG; its numbers are those of the game's Blocks project",
+   "review_note": "numbers checked against the game project; the project is unchanged since",
+   "reviewed": "2026-10-21",
+   "reviewer": "kit maintainers (AI-assisted review: Claude)",
+   "seed": "none (no people)",
+   "theme": "light",
+   "viewport": "n/a",
+   "watch": [
+    "examples/games/asteroids.json"
+   ]
+  },
+  "docs/figures/games/breakout-editor.jpg": {
+   "browser": "chromium 155.0.8059.85 (headless)",
+   "captured": "2026-10-21",
+   "kind": "screenshot",
+   "locale": "en-US",
+   "product_commit": "d68a0e74ebe456102953b81f714211f2e68f9b96",
+   "purpose": "The Breakout project in the Blocks editor, with its preview",
+   "recipe": "python3 tools/capture_visuals.py breakout-editor",
+   "review_note": "looked at after capture: current layout, synthetic accounts and sample projects only",
+   "reviewed": "2026-10-21",
+   "reviewer": "kit maintainers (AI-assisted review: Claude)",
+   "seed": "sample_data.seed_if_empty (sample projects, no real author); synthetic accounts admin, teacher1@example.test",
+   "theme": "light",
+   "viewport": "1440x900",
+   "watch": [
+    "templates/editor.html",
+    "static/js/editor.js",
+    "static/css/"
+   ]
+  },
+  "docs/figures/games/breakout-prg32qt.png": {
+   "browser": "n/a",
+   "captured": "2026-10-21",
+   "kind": "runtime frame",
+   "locale": "en-US",
+   "product_commit": "d68a0e74ebe456102953b81f714211f2e68f9b96",
+   "purpose": "Breakout: prg32qt frame in the game tutorial",
+   "recipe": "python3 tools/runtime_check.py --prg32 <PRG32 checkout> --qt-runner <prg32qt-headless> --figures docs/figures/games",
+   "review_note": "re-rendered at d68a0e7 (SDK 679dfb5, PRG32-QT f6d80ad): identical pixels",
+   "reviewed": "2026-10-21",
+   "reviewer": "kit maintainers (AI-assisted review: Claude)",
+   "seed": "none (no people)",
+   "theme": "light",
+   "viewport": "320x200 framebuffer scaled 2x",
+   "watch": [
+    "examples/games/breakout.json",
+    "static/wasm/BUILD.json"
+   ]
+  },
+  "docs/figures/games/breakout-qemu.png": {
+   "browser": "n/a",
+   "captured": "2026-10-15",
+   "kind": "runtime frame",
+   "locale": "en-US",
+   "product_commit": "48e3ac3876f5e75326915f93df40eecfa68d1b19",
+   "purpose": "Breakout: qemu frame in the game tutorial",
+   "recipe": "python3 tools/runtime_check.py --prg32 <PRG32 checkout> --qemu --figures docs/figures/games",
+   "review_note": "not re-rendered (needs the SDK's cicd QEMU build); the game sources are unchanged since the capture",
+   "reviewed": "2026-10-21",
+   "reviewer": "kit maintainers (AI-assisted review: Claude)",
+   "seed": "none (no people)",
+   "theme": "light",
+   "viewport": "320x240 framebuffer scaled 2x",
+   "watch": [
+    "examples/games/breakout.json"
+   ]
+  },
+  "docs/figures/games/breakout-simulator.png": {
+   "browser": "n/a",
+   "captured": "2026-10-21",
+   "kind": "runtime frame",
+   "locale": "en-US",
+   "product_commit": "d68a0e74ebe456102953b81f714211f2e68f9b96",
+   "purpose": "Breakout: simulator frame in the game tutorial",
+   "recipe": "python3 tools/runtime_check.py --prg32 <PRG32 checkout> --qt-runner <prg32qt-headless> --figures docs/figures/games",
+   "review_note": "re-rendered at d68a0e7 (SDK 679dfb5, PRG32-QT f6d80ad): identical pixels",
+   "reviewed": "2026-10-21",
+   "reviewer": "kit maintainers (AI-assisted review: Claude)",
+   "seed": "none (no people)",
+   "theme": "light",
+   "viewport": "320x200 framebuffer scaled 2x",
+   "watch": [
+    "examples/games/breakout.json",
+    "static/js/simulator.js"
+   ]
+  },
+  "docs/figures/games/breakout-title.png": {
+   "browser": "n/a",
+   "captured": "2026-10-21",
+   "kind": "runtime frame",
+   "locale": "en-US",
+   "product_commit": "d68a0e74ebe456102953b81f714211f2e68f9b96",
+   "purpose": "Breakout: title screen in the game tutorial",
+   "recipe": "node tools/simulate.js examples/games/breakout.json 1 out.ppm, scaled 2x (tools/runtime_check.py save_image)",
+   "review_note": "re-rendered at d68a0e7: identical pixels",
+   "reviewed": "2026-10-21",
+   "reviewer": "kit maintainers (AI-assisted review: Claude)",
+   "seed": "none (no people)",
+   "theme": "light",
+   "viewport": "320x200 framebuffer scaled 2x",
+   "watch": [
+    "examples/games/breakout.json",
+    "static/js/simulator.js"
+   ]
+  },
+  "docs/figures/games/breakout_paddle.svg": {
+   "browser": "n/a",
+   "captured": "2026-10-15",
+   "kind": "diagram",
+   "locale": "en-US",
+   "product_commit": "48e3ac3876f5e75326915f93df40eecfa68d1b19",
+   "purpose": "Tutorial diagram (breakout paddle)",
+   "recipe": "hand-drawn SVG; its numbers are those of the game's Blocks project",
+   "review_note": "numbers checked against the game project; the project is unchanged since",
+   "reviewed": "2026-10-21",
+   "reviewer": "kit maintainers (AI-assisted review: Claude)",
+   "seed": "none (no people)",
+   "theme": "light",
+   "viewport": "n/a",
+   "watch": [
+    "examples/games/breakout.json"
+   ]
+  },
+  "docs/figures/games/breakout_wall.svg": {
+   "browser": "n/a",
+   "captured": "2026-10-15",
+   "kind": "diagram",
+   "locale": "en-US",
+   "product_commit": "48e3ac3876f5e75326915f93df40eecfa68d1b19",
+   "purpose": "Tutorial diagram (breakout wall)",
+   "recipe": "hand-drawn SVG; its numbers are those of the game's Blocks project",
+   "review_note": "numbers checked against the game project; the project is unchanged since",
+   "reviewed": "2026-10-21",
+   "reviewer": "kit maintainers (AI-assisted review: Claude)",
+   "seed": "none (no people)",
+   "theme": "light",
+   "viewport": "n/a",
+   "watch": [
+    "examples/games/breakout.json"
+   ]
+  },
+  "docs/figures/games/feature_tour-prg32qt.png": {
+   "browser": "n/a",
+   "captured": "2026-10-21",
+   "kind": "runtime frame",
+   "locale": "en-US",
+   "product_commit": "d68a0e74ebe456102953b81f714211f2e68f9b96",
+   "purpose": "Feature tour: prg32qt frame in the game tutorial",
+   "recipe": "python3 tools/runtime_check.py --prg32 <PRG32 checkout> --qt-runner <prg32qt-headless> --figures docs/figures/games",
+   "review_note": "re-rendered at d68a0e7 (SDK 679dfb5, PRG32-QT f6d80ad): identical pixels",
+   "reviewed": "2026-10-21",
+   "reviewer": "kit maintainers (AI-assisted review: Claude)",
+   "seed": "none (no people)",
+   "theme": "light",
+   "viewport": "320x200 framebuffer scaled 2x",
+   "watch": [
+    "examples/games/feature_tour.json",
+    "static/wasm/BUILD.json"
+   ]
+  },
+  "docs/figures/games/feature_tour-qemu.png": {
+   "browser": "n/a",
+   "captured": "2026-10-15",
+   "kind": "runtime frame",
+   "locale": "en-US",
+   "product_commit": "48e3ac3876f5e75326915f93df40eecfa68d1b19",
+   "purpose": "Feature tour: qemu frame in the game tutorial",
+   "recipe": "python3 tools/runtime_check.py --prg32 <PRG32 checkout> --qemu --figures docs/figures/games",
+   "review_note": "not re-rendered (needs the SDK's cicd QEMU build); the game sources are unchanged since the capture",
+   "reviewed": "2026-10-21",
+   "reviewer": "kit maintainers (AI-assisted review: Claude)",
+   "seed": "none (no people)",
+   "theme": "light",
+   "viewport": "320x240 framebuffer scaled 2x",
+   "watch": [
+    "examples/games/feature_tour.json"
+   ]
+  },
+  "docs/figures/games/feature_tour-simulator.png": {
+   "browser": "n/a",
+   "captured": "2026-10-21",
+   "kind": "runtime frame",
+   "locale": "en-US",
+   "product_commit": "d68a0e74ebe456102953b81f714211f2e68f9b96",
+   "purpose": "Feature tour: simulator frame in the game tutorial",
+   "recipe": "python3 tools/runtime_check.py --prg32 <PRG32 checkout> --qt-runner <prg32qt-headless> --figures docs/figures/games",
+   "review_note": "re-rendered at d68a0e7 (SDK 679dfb5, PRG32-QT f6d80ad): identical pixels",
+   "reviewed": "2026-10-21",
+   "reviewer": "kit maintainers (AI-assisted review: Claude)",
+   "seed": "none (no people)",
+   "theme": "light",
+   "viewport": "320x200 framebuffer scaled 2x",
+   "watch": [
+    "examples/games/feature_tour.json",
+    "static/js/simulator.js"
+   ]
+  },
+  "docs/figures/games/invaders_bitmap.svg": {
+   "browser": "n/a",
+   "captured": "2026-10-15",
+   "kind": "diagram",
+   "locale": "en-US",
+   "product_commit": "48e3ac3876f5e75326915f93df40eecfa68d1b19",
+   "purpose": "Tutorial diagram (invaders bitmap)",
+   "recipe": "hand-drawn SVG; its numbers are those of the game's Blocks project",
+   "review_note": "numbers checked against the game project; the project is unchanged since",
+   "reviewed": "2026-10-21",
+   "reviewer": "kit maintainers (AI-assisted review: Claude)",
+   "seed": "none (no people)",
+   "theme": "light",
+   "viewport": "n/a",
+   "watch": [
+    "examples/games/space_invaders.json"
+   ]
+  },
+  "docs/figures/games/invaders_fleet.svg": {
+   "browser": "n/a",
+   "captured": "2026-10-15",
+   "kind": "diagram",
+   "locale": "en-US",
+   "product_commit": "48e3ac3876f5e75326915f93df40eecfa68d1b19",
+   "purpose": "Tutorial diagram (invaders fleet)",
+   "recipe": "hand-drawn SVG; its numbers are those of the game's Blocks project",
+   "review_note": "numbers checked against the game project; the project is unchanged since",
+   "reviewed": "2026-10-21",
+   "reviewer": "kit maintainers (AI-assisted review: Claude)",
+   "seed": "none (no people)",
+   "theme": "light",
+   "viewport": "n/a",
+   "watch": [
+    "examples/games/space_invaders.json"
+   ]
+  },
+  "docs/figures/games/pong-editor.jpg": {
+   "browser": "chromium 155.0.8059.85 (headless)",
+   "captured": "2026-10-21",
+   "kind": "screenshot",
+   "locale": "en-US",
+   "product_commit": "d68a0e74ebe456102953b81f714211f2e68f9b96",
+   "purpose": "The Pong project in the Blocks editor, with its preview",
+   "recipe": "python3 tools/capture_visuals.py pong-editor",
+   "review_note": "looked at after capture: current layout, synthetic accounts and sample projects only",
+   "reviewed": "2026-10-21",
+   "reviewer": "kit maintainers (AI-assisted review: Claude)",
+   "seed": "sample_data.seed_if_empty (sample projects, no real author); synthetic accounts admin, teacher1@example.test",
+   "theme": "light",
+   "viewport": "1440x900",
+   "watch": [
+    "templates/editor.html",
+    "static/js/editor.js",
+    "static/css/"
+   ]
+  },
+  "docs/figures/games/pong-prg32qt.png": {
+   "browser": "n/a",
+   "captured": "2026-10-21",
+   "kind": "runtime frame",
+   "locale": "en-US",
+   "product_commit": "d68a0e74ebe456102953b81f714211f2e68f9b96",
+   "purpose": "Pong: prg32qt frame in the game tutorial",
+   "recipe": "python3 tools/runtime_check.py --prg32 <PRG32 checkout> --qt-runner <prg32qt-headless> --figures docs/figures/games",
+   "review_note": "re-rendered at d68a0e7 (SDK 679dfb5, PRG32-QT f6d80ad): identical pixels",
+   "reviewed": "2026-10-21",
+   "reviewer": "kit maintainers (AI-assisted review: Claude)",
+   "seed": "none (no people)",
+   "theme": "light",
+   "viewport": "320x200 framebuffer scaled 2x",
+   "watch": [
+    "examples/games/pong.json",
+    "static/wasm/BUILD.json"
+   ]
+  },
+  "docs/figures/games/pong-qemu.png": {
+   "browser": "n/a",
+   "captured": "2026-10-15",
+   "kind": "runtime frame",
+   "locale": "en-US",
+   "product_commit": "48e3ac3876f5e75326915f93df40eecfa68d1b19",
+   "purpose": "Pong: qemu frame in the game tutorial",
+   "recipe": "python3 tools/runtime_check.py --prg32 <PRG32 checkout> --qemu --figures docs/figures/games",
+   "review_note": "not re-rendered (needs the SDK's cicd QEMU build); the game sources are unchanged since the capture",
+   "reviewed": "2026-10-21",
+   "reviewer": "kit maintainers (AI-assisted review: Claude)",
+   "seed": "none (no people)",
+   "theme": "light",
+   "viewport": "320x240 framebuffer scaled 2x",
+   "watch": [
+    "examples/games/pong.json"
+   ]
+  },
+  "docs/figures/games/pong-simulator.png": {
+   "browser": "n/a",
+   "captured": "2026-10-21",
+   "kind": "runtime frame",
+   "locale": "en-US",
+   "product_commit": "d68a0e74ebe456102953b81f714211f2e68f9b96",
+   "purpose": "Pong: simulator frame in the game tutorial",
+   "recipe": "python3 tools/runtime_check.py --prg32 <PRG32 checkout> --qt-runner <prg32qt-headless> --figures docs/figures/games",
+   "review_note": "re-rendered at d68a0e7 (SDK 679dfb5, PRG32-QT f6d80ad): identical pixels",
+   "reviewed": "2026-10-21",
+   "reviewer": "kit maintainers (AI-assisted review: Claude)",
+   "seed": "none (no people)",
+   "theme": "light",
+   "viewport": "320x200 framebuffer scaled 2x",
+   "watch": [
+    "examples/games/pong.json",
+    "static/js/simulator.js"
+   ]
+  },
+  "docs/figures/games/pong-title.png": {
+   "browser": "n/a",
+   "captured": "2026-10-21",
+   "kind": "runtime frame",
+   "locale": "en-US",
+   "product_commit": "d68a0e74ebe456102953b81f714211f2e68f9b96",
+   "purpose": "Pong: title screen in the game tutorial",
+   "recipe": "node tools/simulate.js examples/games/pong.json 1 out.ppm, scaled 2x (tools/runtime_check.py save_image)",
+   "review_note": "re-rendered at d68a0e7: identical pixels",
+   "reviewed": "2026-10-21",
+   "reviewer": "kit maintainers (AI-assisted review: Claude)",
+   "seed": "none (no people)",
+   "theme": "light",
+   "viewport": "320x200 framebuffer scaled 2x",
+   "watch": [
+    "examples/games/pong.json",
+    "static/js/simulator.js"
+   ]
+  },
+  "docs/figures/games/pong_court.svg": {
+   "browser": "n/a",
+   "captured": "2026-10-15",
+   "kind": "diagram",
+   "locale": "en-US",
+   "product_commit": "48e3ac3876f5e75326915f93df40eecfa68d1b19",
+   "purpose": "Tutorial diagram (pong court)",
+   "recipe": "hand-drawn SVG; its numbers are those of the game's Blocks project",
+   "review_note": "numbers checked against the game project; the project is unchanged since",
+   "reviewed": "2026-10-21",
+   "reviewer": "kit maintainers (AI-assisted review: Claude)",
+   "seed": "none (no people)",
+   "theme": "light",
+   "viewport": "n/a",
+   "watch": [
+    "examples/games/pong.json"
+   ]
+  },
+  "docs/figures/games/pong_modes.svg": {
+   "browser": "n/a",
+   "captured": "2026-10-15",
+   "kind": "diagram",
+   "locale": "en-US",
+   "product_commit": "48e3ac3876f5e75326915f93df40eecfa68d1b19",
+   "purpose": "Tutorial diagram (pong modes)",
+   "recipe": "hand-drawn SVG; its numbers are those of the game's Blocks project",
+   "review_note": "numbers checked against the game project; the project is unchanged since",
+   "reviewed": "2026-10-21",
+   "reviewer": "kit maintainers (AI-assisted review: Claude)",
+   "seed": "none (no people)",
+   "theme": "light",
+   "viewport": "n/a",
+   "watch": [
+    "examples/games/pong.json"
+   ]
+  },
+  "docs/figures/games/snake-editor.jpg": {
+   "browser": "chromium 155.0.8059.85 (headless)",
+   "captured": "2026-10-21",
+   "kind": "screenshot",
+   "locale": "en-US",
+   "product_commit": "d68a0e74ebe456102953b81f714211f2e68f9b96",
+   "purpose": "The Snake project in the Blocks editor, with its preview",
+   "recipe": "python3 tools/capture_visuals.py snake-editor",
+   "review_note": "looked at after capture: current layout, synthetic accounts and sample projects only",
+   "reviewed": "2026-10-21",
+   "reviewer": "kit maintainers (AI-assisted review: Claude)",
+   "seed": "sample_data.seed_if_empty (sample projects, no real author); synthetic accounts admin, teacher1@example.test",
+   "theme": "light",
+   "viewport": "1440x900",
+   "watch": [
+    "templates/editor.html",
+    "static/js/editor.js",
+    "static/css/"
+   ]
+  },
+  "docs/figures/games/snake-prg32qt.png": {
+   "browser": "n/a",
+   "captured": "2026-10-21",
+   "kind": "runtime frame",
+   "locale": "en-US",
+   "product_commit": "d68a0e74ebe456102953b81f714211f2e68f9b96",
+   "purpose": "Snake: prg32qt frame in the game tutorial",
+   "recipe": "python3 tools/runtime_check.py --prg32 <PRG32 checkout> --qt-runner <prg32qt-headless> --figures docs/figures/games",
+   "review_note": "re-rendered at d68a0e7 (SDK 679dfb5, PRG32-QT f6d80ad): identical pixels",
+   "reviewed": "2026-10-21",
+   "reviewer": "kit maintainers (AI-assisted review: Claude)",
+   "seed": "none (no people)",
+   "theme": "light",
+   "viewport": "320x200 framebuffer scaled 2x",
+   "watch": [
+    "examples/games/snake.json",
+    "static/wasm/BUILD.json"
+   ]
+  },
+  "docs/figures/games/snake-qemu.png": {
+   "browser": "n/a",
+   "captured": "2026-10-15",
+   "kind": "runtime frame",
+   "locale": "en-US",
+   "product_commit": "48e3ac3876f5e75326915f93df40eecfa68d1b19",
+   "purpose": "Snake: qemu frame in the game tutorial",
+   "recipe": "python3 tools/runtime_check.py --prg32 <PRG32 checkout> --qemu --figures docs/figures/games",
+   "review_note": "not re-rendered (needs the SDK's cicd QEMU build); the game sources are unchanged since the capture",
+   "reviewed": "2026-10-21",
+   "reviewer": "kit maintainers (AI-assisted review: Claude)",
+   "seed": "none (no people)",
+   "theme": "light",
+   "viewport": "320x240 framebuffer scaled 2x",
+   "watch": [
+    "examples/games/snake.json"
+   ]
+  },
+  "docs/figures/games/snake-simulator.png": {
+   "browser": "n/a",
+   "captured": "2026-10-21",
+   "kind": "runtime frame",
+   "locale": "en-US",
+   "product_commit": "d68a0e74ebe456102953b81f714211f2e68f9b96",
+   "purpose": "Snake: simulator frame in the game tutorial",
+   "recipe": "python3 tools/runtime_check.py --prg32 <PRG32 checkout> --qt-runner <prg32qt-headless> --figures docs/figures/games",
+   "review_note": "re-rendered at d68a0e7 (SDK 679dfb5, PRG32-QT f6d80ad): identical pixels",
+   "reviewed": "2026-10-21",
+   "reviewer": "kit maintainers (AI-assisted review: Claude)",
+   "seed": "none (no people)",
+   "theme": "light",
+   "viewport": "320x200 framebuffer scaled 2x",
+   "watch": [
+    "examples/games/snake.json",
+    "static/js/simulator.js"
+   ]
+  },
+  "docs/figures/games/snake-title.png": {
+   "browser": "n/a",
+   "captured": "2026-10-21",
+   "kind": "runtime frame",
+   "locale": "en-US",
+   "product_commit": "d68a0e74ebe456102953b81f714211f2e68f9b96",
+   "purpose": "Snake: title screen in the game tutorial",
+   "recipe": "node tools/simulate.js examples/games/snake.json 1 out.ppm, scaled 2x (tools/runtime_check.py save_image)",
+   "review_note": "re-rendered at d68a0e7: identical pixels",
+   "reviewed": "2026-10-21",
+   "reviewer": "kit maintainers (AI-assisted review: Claude)",
+   "seed": "none (no people)",
+   "theme": "light",
+   "viewport": "320x200 framebuffer scaled 2x",
+   "watch": [
+    "examples/games/snake.json",
+    "static/js/simulator.js"
+   ]
+  },
+  "docs/figures/games/snake_ring.svg": {
+   "browser": "n/a",
+   "captured": "2026-10-15",
+   "kind": "diagram",
+   "locale": "en-US",
+   "product_commit": "48e3ac3876f5e75326915f93df40eecfa68d1b19",
+   "purpose": "Tutorial diagram (snake ring)",
+   "recipe": "hand-drawn SVG; its numbers are those of the game's Blocks project",
+   "review_note": "numbers checked against the game project; the project is unchanged since",
+   "reviewed": "2026-10-21",
+   "reviewer": "kit maintainers (AI-assisted review: Claude)",
+   "seed": "none (no people)",
+   "theme": "light",
+   "viewport": "n/a",
+   "watch": [
+    "examples/games/snake.json"
+   ]
+  },
+  "docs/figures/games/snake_tiles.svg": {
+   "browser": "n/a",
+   "captured": "2026-10-15",
+   "kind": "diagram",
+   "locale": "en-US",
+   "product_commit": "48e3ac3876f5e75326915f93df40eecfa68d1b19",
+   "purpose": "Tutorial diagram (snake tiles)",
+   "recipe": "hand-drawn SVG; its numbers are those of the game's Blocks project",
+   "review_note": "numbers checked against the game project; the project is unchanged since",
+   "reviewed": "2026-10-21",
+   "reviewer": "kit maintainers (AI-assisted review: Claude)",
+   "seed": "none (no people)",
+   "theme": "light",
+   "viewport": "n/a",
+   "watch": [
+    "examples/games/snake.json"
+   ]
+  },
+  "docs/figures/games/space_invaders-editor.jpg": {
+   "browser": "chromium 155.0.8059.85 (headless)",
+   "captured": "2026-10-21",
+   "kind": "screenshot",
+   "locale": "en-US",
+   "product_commit": "d68a0e74ebe456102953b81f714211f2e68f9b96",
+   "purpose": "The Space Invaders project in the Blocks editor, with its preview",
+   "recipe": "python3 tools/capture_visuals.py space_invaders-editor",
+   "review_note": "looked at after capture: current layout, synthetic accounts and sample projects only",
+   "reviewed": "2026-10-21",
+   "reviewer": "kit maintainers (AI-assisted review: Claude)",
+   "seed": "sample_data.seed_if_empty (sample projects, no real author); synthetic accounts admin, teacher1@example.test",
+   "theme": "light",
+   "viewport": "1440x900",
+   "watch": [
+    "templates/editor.html",
+    "static/js/editor.js",
+    "static/css/"
+   ]
+  },
+  "docs/figures/games/space_invaders-prg32qt.png": {
+   "browser": "n/a",
+   "captured": "2026-10-21",
+   "kind": "runtime frame",
+   "locale": "en-US",
+   "product_commit": "d68a0e74ebe456102953b81f714211f2e68f9b96",
+   "purpose": "Space Invaders: prg32qt frame in the game tutorial",
+   "recipe": "python3 tools/runtime_check.py --prg32 <PRG32 checkout> --qt-runner <prg32qt-headless> --figures docs/figures/games",
+   "review_note": "re-rendered at d68a0e7 (SDK 679dfb5, PRG32-QT f6d80ad): identical pixels",
+   "reviewed": "2026-10-21",
+   "reviewer": "kit maintainers (AI-assisted review: Claude)",
+   "seed": "none (no people)",
+   "theme": "light",
+   "viewport": "320x200 framebuffer scaled 2x",
+   "watch": [
+    "examples/games/space_invaders.json",
+    "static/wasm/BUILD.json"
+   ]
+  },
+  "docs/figures/games/space_invaders-qemu.png": {
+   "browser": "n/a",
+   "captured": "2026-10-15",
+   "kind": "runtime frame",
+   "locale": "en-US",
+   "product_commit": "48e3ac3876f5e75326915f93df40eecfa68d1b19",
+   "purpose": "Space Invaders: qemu frame in the game tutorial",
+   "recipe": "python3 tools/runtime_check.py --prg32 <PRG32 checkout> --qemu --figures docs/figures/games",
+   "review_note": "not re-rendered (needs the SDK's cicd QEMU build); the game sources are unchanged since the capture",
+   "reviewed": "2026-10-21",
+   "reviewer": "kit maintainers (AI-assisted review: Claude)",
+   "seed": "none (no people)",
+   "theme": "light",
+   "viewport": "320x240 framebuffer scaled 2x",
+   "watch": [
+    "examples/games/space_invaders.json"
+   ]
+  },
+  "docs/figures/games/space_invaders-simulator.png": {
+   "browser": "n/a",
+   "captured": "2026-10-21",
+   "kind": "runtime frame",
+   "locale": "en-US",
+   "product_commit": "d68a0e74ebe456102953b81f714211f2e68f9b96",
+   "purpose": "Space Invaders: simulator frame in the game tutorial",
+   "recipe": "python3 tools/runtime_check.py --prg32 <PRG32 checkout> --qt-runner <prg32qt-headless> --figures docs/figures/games",
+   "review_note": "re-rendered at d68a0e7 (SDK 679dfb5, PRG32-QT f6d80ad): identical pixels",
+   "reviewed": "2026-10-21",
+   "reviewer": "kit maintainers (AI-assisted review: Claude)",
+   "seed": "none (no people)",
+   "theme": "light",
+   "viewport": "320x200 framebuffer scaled 2x",
+   "watch": [
+    "examples/games/space_invaders.json",
+    "static/js/simulator.js"
+   ]
+  },
+  "docs/figures/games/space_invaders-title.png": {
+   "browser": "n/a",
+   "captured": "2026-10-21",
+   "kind": "runtime frame",
+   "locale": "en-US",
+   "product_commit": "d68a0e74ebe456102953b81f714211f2e68f9b96",
+   "purpose": "Space Invaders: title screen in the game tutorial",
+   "recipe": "node tools/simulate.js examples/games/space_invaders.json 1 out.ppm, scaled 2x (tools/runtime_check.py save_image)",
+   "review_note": "re-rendered at d68a0e7: identical pixels",
+   "reviewed": "2026-10-21",
+   "reviewer": "kit maintainers (AI-assisted review: Claude)",
+   "seed": "none (no people)",
+   "theme": "light",
+   "viewport": "320x200 framebuffer scaled 2x",
+   "watch": [
+    "examples/games/space_invaders.json",
+    "static/js/simulator.js"
+   ]
+  },
+  "docs/figures/pipeline.svg": {
+   "browser": "n/a",
+   "captured": "2026-10-21",
+   "kind": "diagram",
+   "locale": "en-US",
+   "product_commit": "d68a0e74ebe456102953b81f714211f2e68f9b96",
+   "purpose": "From Blocks, C or assembly to a cartridge (docs/architecture.md)",
+   "recipe": "python3 tools/build_diagrams.py",
+   "review_note": "drawn from the data in tools/build_diagrams.py; checked against the code on this date",
+   "reviewed": "2026-10-21",
+   "reviewer": "kit maintainers (AI-assisted review: Claude)",
+   "seed": "none (no people)",
+   "theme": "light",
+   "viewport": "n/a",
+   "watch": [
+    "tools/build_diagrams.py"
+   ]
+  },
+  "static/img/prg32-icon.svg": {
+   "browser": "n/a",
+   "captured": "2026-06-19",
+   "kind": "icon",
+   "locale": "en-US",
+   "product_commit": "de854a8391fa51e75c48086cc882cac7c18cd594",
+   "purpose": "the app's icon (manifest, favicon)",
+   "recipe": "hand-drawn SVG",
+   "review_note": "logo only",
+   "reviewed": "2026-10-21",
+   "reviewer": "kit maintainers (AI-assisted review: Claude)",
+   "seed": "none (no people)",
+   "theme": "light",
+   "viewport": "n/a",
+   "watch": []
+  }
+ }
+}

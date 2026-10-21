@@ -1,28 +1,59 @@
 # PRG32-Construction-Kit
 
-PRG32-Construction-Kit is a Flask, Bootstrap, jQuery, JavaScript, and Blockly progressive web application for classroom PRG32 game creation.
+A classroom web app for making PRG32 games. Students write a game with Blocks, C or RISC-V
+assembly, compile a real `.prg32` cartridge, and run and debug it in the browser. Teachers
+follow their classes' work. Flask, SQLite, Bootstrap, jQuery, Blockly and Monaco, installable
+as a PWA, with every library served by the kit itself. MIT License.
 
-![Construction Kit](docs/figures/PRG32-Construction-Kit_01.png)
+![The IDE with the Pong project: project tree, Blocks program, generated C and assembly](docs/figures/PRG32-Construction-Kit_01.png)
 
+## What it does
 
-Students can:
+- **Three ways to write a game, one IDE** ([ide.md](docs/ide.md)):
+  - Blocks, with the generated C and RV32IM assembly explained line by line
+    ([generated_code.md](docs/generated_code.md));
+  - Advanced C against the portable PRG32 ABI;
+  - handwritten assembly ([handwritten_assembly.md](docs/handwritten_assembly.md)).
+- **Real compiler, real cartridges.** Validators check the source first. Then the PRG32
+  toolchain compiles it in a sandbox, one folder per build, and its messages appear at their
+  lines ([build_sandbox.md](docs/build_sandbox.md),
+  [install_cartridge_build.md](docs/install_cartridge_build.md)).
+- **Run and debug in the browser.** The PRG32-QT core runs as WebAssembly, with breakpoints,
+  stepping and source and block debugging. Its limits are listed in
+  [wasm_runtime.md](docs/wasm_runtime.md).
+- **Sprite Lab and AudioStudio**:
+  - pixel sprites and tiles ([sprite_editor.md](docs/sprite_editor.md));
+  - eight voices with their own ADSR envelopes, samples, a soundtrack grid and stereo, played
+    by the PRG32 firmware's own audio engine ([audio_studio.md](docs/audio_studio.md),
+    [audio_engine.md](docs/audio_engine.md)).
+- **Accounts and boundaries**:
+  - guests keep their games in the browser only ([storage.md](docs/storage.md));
+  - registered and school sign-in accounts, classes with read-only supervision
+    ([accounts_and_sso.md](docs/accounts_and_sso.md),
+    [classes_and_roles.md](docs/classes_and_roles.md));
+  - optional copies in the student's own Google Drive or OneDrive
+    ([cloud_storage.md](docs/cloud_storage.md));
+  - reviewed publishing to a PRG32 Cartridge Store
+    ([cartridge_store_publish.md](docs/cartridge_store_publish.md)).
+- **Privacy.** The school or organisation that runs the kit is responsible for the personal
+  data in it. [docs/privacy/](docs/privacy/README.md) has the records, notices, rights
+  workflows and incident playbook. The legal decisions there are still open: read it before
+  going live.
 
-- create Scratch-inspired block programs with variables, lists, loops,
-  pictures, tiles, sound, scores and multiplayer;
-- start from five complete classic-inspired games (Pong, Breakout, Space
-  Invaders, Asteroids, Snake), each with a step-by-step tutorial deck;
-- save PRG32 block games as JSON;
-- edit sprites and imported images in a browser pixel editor;
-- play and debug games in an online JavaScript simulator that draws like the
-  PRG32 firmware (same font, RGB565 colours, 30 frames per second);
-- convert block programs to real PRG32-style C source, RISC-V assembly, or
-  both, each explained block by block and line by line;
-- author advanced C cartridges against the portable PRG32 ABI when a feature
-  is beyond the Blocks toolbox;
-- prepare Cartridge Store publishing bundles;
-- publish bundles to a PRG32 Cartridge Store instance.
+## What is verified, and what is not
 
-The app intentionally follows the same classroom-friendly shape as Cartridge Store: a small Flask service, installable PWA frontend, SQLite persistence, Docker support, `docs/` documentation, and simple HTTP APIs.
+| Path | Status | Evidence |
+|---|---|---|
+| Browser runtime (WebAssembly) | verified: same results as the native core and PRG32-QT | [wasm_runtime.md](docs/wasm_runtime.md) |
+| PRG32-QT (desktop) | verified through its web API; the Import menu has not been driven | [delivery.md](docs/delivery.md) |
+| PRG32 firmware in QEMU | verified, including sound over whole recordings | [audio_engine.md](docs/audio_engine.md) |
+| PRG32 console (ESP32-C6) | **not verified**: cartridges download, but no delivery or sound capture is recorded | [hardware_audio_check.md](docs/hardware_audio_check.md) |
+| PRG32-iOS | **unsupported** | [ADR-0020](docs/adr/0020-delivery-targets-and-evidence.md) |
+| School sign-in | verified against a throwaway Keycloak; no real school tenant | [identity_live_testing.md](docs/identity_live_testing.md) |
+| Google Drive, OneDrive | **not run against real accounts** | [cloud_storage.md](docs/cloud_storage.md) |
+| Cartridge Store | verified against a throwaway Store | [live_testing.md](docs/live_testing.md) |
+
+Every capability's status, source and tests: [capabilities.md](docs/capabilities.md).
 
 ## Quick start with Python
 
@@ -33,16 +64,10 @@ pip install -r requirements.txt
 python app.py
 ```
 
-Open <http://127.0.0.1:5090/> and sign in as `admin`. The first start writes a
-random password to `data/initial_admin_password` (or uses `PRG32_ADMIN_PASSWORD`
-if you set a long one). Change it on **My account**; the file is then deleted.
-
-Data is stored in `data/` by default. To move it:
-
-```bash
-export PRG32_KIT_DATA=/path/to/data
-python app.py
-```
+Open <http://127.0.0.1:5090/> and sign in as `admin`. The first start writes a random
+password to `data/initial_admin_password`, or uses `PRG32_ADMIN_PASSWORD` if you set a long
+one. Change the password on **My account**; the file is then deleted. Data is stored in
+`data/`, or in `PRG32_KIT_DATA` if set.
 
 ## Quick start with Docker Compose
 
@@ -52,68 +77,30 @@ docker compose up --build
 docker compose exec prg32-construction-kit python tools/check_build.py
 ```
 
-Open <http://127.0.0.1:5090/>. The image includes the RISC-V compiler and the
-PRG32 build tools, so **Compile Cartridge** and **Download .prg32** make real
-`.prg32` cartridges. The compose file mounts `./data` to `/data`.
+The image includes the RISC-V compiler and the PRG32 build tools, so **Compile Cartridge**
+makes real `.prg32` cartridges. The compose file mounts `./data` to `/data`.
 
-## Cartridge builds with Python
+## Cartridge builds without Docker
 
-The app always generates C. To also build `.prg32` cartridges without Docker,
-put a [PRG32](https://github.com/riscv-prg32/PRG32) checkout next to this one,
-install it into the kit's environment, and put ESP-IDF 5.4's
-`riscv32-esp-elf-gcc` on `PATH`:
+Put a [PRG32](https://github.com/riscv-prg32/PRG32) checkout next to this one, install it
+into the kit's environment, and put ESP-IDF 5.4's `riscv32-esp-elf-gcc` on `PATH`:
 
 ```bash
 .venv/bin/pip install --no-deps -e ../PRG32
 examples/deploy/start-kit.sh   # finds the compiler, checks builds, starts the kit
 ```
 
-`tools/check_build.py` compiles real cartridges for several students in
-several browser windows at once and reports anything missing. Step-by-step
-instructions for Docker, macOS, Linux and Windows, plus troubleshooting:
-`docs/install_cartridge_build.md`.
-
-Without the toolchain, **Compile Cartridge** still creates a source bundle with
-the generated C, project JSON, game IR and manifest.
-
-## Repository layout
-
-```text
-app.py                         Flask entrypoint
-prg32_construction_kit/        Flask app package, CRUD API, C and assembly generators, packager, publisher
-templates/                     Bootstrap/Jinja pages
-static/                        PWA assets, JavaScript, CSS, Blockly integration
-examples/                      Example Blocks JSON and sprite JSON
-examples/games/                Five complete Blocks games
-tools/                         Example game and tutorial builders, simulator CLI, runtime and build checks
-wasm/                          C interface + build of PRG32-QT's core for the browser (static/wasm/)
-docs/                          Setup, API, architecture, Docker, tutorials, how-to guides
-tests/                         pytest tests
-.github/workflows/tests.yml    GitHub Actions CI and GHCR container delivery
-Dockerfile                     Container image (with the PRG32 cartridge toolchain)
-docker/                        Container entrypoint
-examples/deploy/               Classroom env file, systemd unit, start script
-docker-compose.yml             Local persistent deployment
-AGENTS.md                      Formal development constraints
-LICENSE                        MIT License
-```
+Without the toolchain, **Compile Cartridge** makes a source bundle (generated C, project,
+game IR, manifest). Step by step for Docker, macOS, Linux and Windows:
+[install_cartridge_build.md](docs/install_cartridge_build.md).
 
 ## Documentation
 
-Start with:
-
-- `docs/setup.md`
-- `docs/docker.md`
-- `docs/install_cartridge_build.md` (install with cartridge builds switched on)
-- `docs/ci_cd.md` (CI checks and published container images)
-- `docs/architecture.md`
-- `docs/api.md`
-- `docs/generated_code.md` (reading the generated C and RISC-V assembly)
-- `docs/concurrent_builds.md` (many students building at once)
-- `docs/accounts_and_sso.md` (accounts and single sign-on with Cartridge Store)
-- `docs/tutorials/01_first_project.md`
-- `docs/tutorials/games/README.md` (classic games and slide decks)
-- `docs/prg32_feature_coverage.md`
+- [docs/index.md](docs/index.md): every guide, for students, teachers and operators;
+- [architecture.md](docs/architecture.md): components, trust boundaries, data flows;
+- [privacy/](docs/privacy/README.md): personal data, for the school running the kit;
+- [release_checklist.md](docs/release_checklist.md): what a person checks before a release;
+- [AGENTS.md](AGENTS.md): the rules for contributors.
 
 ## License
 

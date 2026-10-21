@@ -46,7 +46,10 @@ def test_the_recorded_live_run():
         text = path.read_text()
         assert str(Path.home()) not in text, path.name
         if path.suffix == ".xml":
-            assert 'hostname="<host>"' in text, path.name
+            import xml.etree.ElementTree as ElementTree
+
+            assert 'hostname="redacted-host"' in text, path.name
+            ElementTree.parse(path)                          # still well-formed after redaction
 
 
 def test_a_run_where_everything_skipped_is_not_a_pass(tmp_path, monkeypatch):

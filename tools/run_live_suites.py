@@ -87,7 +87,7 @@ def redact(text: str, secrets: list[str]) -> str:
     """Secret values out, and nothing about this computer: its name and the home folder."""
     for value in sorted(secrets, key=len, reverse=True):
         text = text.replace(value, "<redacted>")
-    text = re.sub(r'hostname="[^"]*"', 'hostname="<host>"', text)
+    text = re.sub(r'hostname="[^"]*"', 'hostname="redacted-host"', text)
     return text.replace(str(Path.home()), "~")
 
 

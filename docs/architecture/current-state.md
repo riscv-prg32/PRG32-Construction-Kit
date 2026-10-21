@@ -1,8 +1,8 @@
 # Current state
 
-What the PRG32 repositories contain **now**: `development` at `5dd98a9`
-(refinement phase 4, audited as 79/132) and the changes after it listed under
-**Milestones**, read from source and from the test runs below. The per-requirement
+What the PRG32 repositories contain **now**: `development` at `7c83e71`
+(audited as 127/156 in the GDPR and documentation audit, NO-GO) and the changes
+after it listed under **Milestones**, read from source and from the test runs below. The per-requirement
 status, with the source symbol and test behind every claim, is
 `../capabilities.md` (generated from `../capabilities.json`). The lists below
 are a summary of that file, and `tests/test_doc_consistency.py` fails when they
@@ -12,9 +12,9 @@ disagree with it. Audit scores belong to the auditor (`../../audit/`).
 
 | Repository | Branch | Commit | Role |
 | --- | --- | --- | --- |
-| PRG32-Construction-Kit | `development` | `5dd98a9` (refinement phases 0–4) | This repository. Flask + SQLAlchemy + Bootstrap + jQuery + Blockly + Monaco PWA, all served from `static/vendor/`. MIT. |
-| PRG32 | `main` | `679dfb5` | SDK, firmware, `prg32` CLI, portable cartridge builder, ABI 1.6 (`prg32/abi/abi_generated.py`). |
-| PRG32-QT | `main` | `f6d80ad` (0.4.1) | Qt host; its Qt-free `src/core` is compiled into the kit's browser runtime (`static/wasm/BUILD.json`). |
+| PRG32-Construction-Kit | `development` | `7c83e71` (audited); later work under Milestones | This repository. Flask + SQLAlchemy + Bootstrap + jQuery + Blockly + Monaco PWA, all served from `static/vendor/`. MIT. |
+| PRG32 | `main` | `679dfb5` | SDK, firmware, `prg32` CLI, portable cartridge builder, ABI 1.6 (`prg32/abi/abi_generated.py`). Open, unmerged proposals from the kit: riscv-prg32/PRG32#45 (buzzer retired, ABI 1.7), #46 (audio frame clock, fresh mixer). |
+| PRG32-QT | `main` | `f6d80ad` (0.4.1) | Qt host; its Qt-free `src/core` is compiled into the kit's browser runtime (`static/wasm/BUILD.json`). Open, unmerged proposal: riscv-prg32/PRG32-QT#1 (firmware audio engine). |
 | CartridgeStore | `main` | `820f74b` local (upstream `fb33fda`: CI/metrics only) | Store, accounts, `/api/publish/bundle` (pending review). `sso_protocol.py` identical to the kit's. |
 | PRG32-iOS | `main` | `547fa45` (read 2026-10-18, not checked out here) | Private. Imports cartridges with a SwiftUI file importer; no URL scheme, no debugger. |
 
@@ -40,7 +40,26 @@ commit; a milestone is recorded once its commit exists.
 | Shared Store contract, disposable live Store | `c6eb9482f4d1a479e91f8c3377d338d7d7e2098c` | ADR-0018, `tests/test_store_contract.py`, `tests/test_store_live.py` |
 | Google Drive and OneDrive behind one interface | `fea31c02348af2adc28e96c3795d38ae18a8f8e9` | ADR-0019, `tests/test_cloud_storage.py`, `tests/test_cloud_browser.py` (audited: 103/132) |
 
+| Audio on one frame clock; whole QEMU recordings equal; upstream PRs | `dc0222fa0e3fe93758c13931b7e266fa28a8446a` | ADR-0021, `tests/test_audio_conformance.py`, `../evidence/qemu-audio/2026-10-21-frame-clock/` |
+| Live suites in one step | `7c83e716796ae8b2a5771173d885d5f20a390209` | `../live_testing.md`, `../evidence/live/2026-10-21/` (audited: 127/156) |
+| Personal data: inventory, notices, rights, breach playbook | `d68a0e74ebe456102953b81f714211f2e68f9b96` | ADR-0022, `../privacy/`, `tests/test_privacy_rights.py`, `tests/test_privacy_records.py` |
+
 How each kind of evidence is produced and checked: `../evidence.md`.
+
+## Test runs (2026-10-21, macOS, at `ea005c9` plus the documentation work)
+
+| Command | Result |
+| --- | --- |
+| `python3 -m pytest -q -rs` with `PRG32_REQUIRE_BROWSER=1 PRG32_REQUIRE_SDK=1`, `riscv32-esp-elf-gcc` 14.2.0 and `PYTHONPATH=../PRG32` | 1218 passed, 45 skipped |
+| `tools/run_live_suites.py`: throwaway Store, disposable Keycloak 26.0.7, PRG32 firmware in QEMU | 11, 9 and 1 passed; school tenant and cloud accounts not run (none) |
+| `tools/check_docs.py`, `build_diagrams.py --check`, `render_ropa.py --check`, `render_capabilities.py --check`, `service_worker_lock.py --check`, `ruff check .` | clean |
+
+The 45 skips:
+
+- run separately or without a service here: 11 live Store, 9 live OIDC, 7 live cloud, 1 live QEMU;
+- Linux only: 6 bubblewrap, 1 `RLIMIT_AS`;
+- 9 assembly/C differential tests that need a host GCC;
+- 1 empty console-evidence set (no physical capture yet).
 
 ## Test runs (2026-10-19, macOS, at `5dd98a9`)
 

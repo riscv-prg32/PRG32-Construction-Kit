@@ -757,10 +757,20 @@
       "audit_score": 1,
       "source": [
         "README.md",
-        "docs/architecture.md"
+        "docs/architecture.md",
+        "tools/build_diagrams.py::architecture",
+        "tools/check_docs.py::check_manifest",
+        "tools/capture_visuals.py::capture",
+        "docs/figures/manifest.json"
       ],
-      "tests": [],
-      "note": "In progress after the GDPR and documentation audit of 7c83e71."
+      "tests": [
+        "tests/test_docs_check.py::test_the_documentation_passes",
+        "tests/test_docs_check.py::test_a_stale_or_unreviewed_picture_is_found",
+        "tests/test_docs_check.py::test_broken_links_and_missing_alt_text_are_found",
+        "tests/test_docs_check.py::test_obsolete_settings_routes_and_abi_versions_are_found",
+        "tests/test_docs_check.py::test_the_diagrams_and_the_record_of_processing_are_regenerated"
+      ],
+      "note": "README rewritten (IDE modes, real compiler and builds, WASM runtime and debugger, Sprite Lab and AudioStudio, accounts and boundaries, privacy, a verified/not-verified table). docs/architecture.md rebuilt around generated diagrams: components and trust boundaries, pipeline, game loop and frame clock, personal data and retention. Every picture is in docs/figures/manifest.json (purpose, recipe, viewport, browser, theme, locale, seed, commit, capture and review); screenshots re-captured from synthetic data, runtime frames re-rendered (identical pixels). tools/check_docs.py in CI: links, images, alt text, orphans, stale pictures, obsolete settings/routes/ABI, ADR and capability IDs; a human release checklist (docs/release_checklist.md)."
     },
     {
       "id": "QLT-01",

@@ -1,0 +1,148 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 815" role="img" aria-labelledby="title desc" font-family="Helvetica, Arial, sans-serif">
+  <title id="title">PRG32 Construction Kit architecture: components and trust boundaries</title>
+  <desc id="desc">Three trust zones. The student&#x27;s browser runs the IDE, the Blocks editor, the Player, Sprite Lab and AudioStudio; the PRG32-QT core and the firmware audio engine as WebAssembly with the debugger; a JavaScript IR simulator for quick Blocks previews; guest games in IndexedDB; a service worker caching static files only. The kit server (the operator&#x27;s host) runs Flask with a signed session cookie, authorization and the privacy workflows; validators for Blocks IR, C and assembly; deterministic C, RV32IM assembly and AUD0 generators; the PRG32 toolchain in a bubblewrap sandbox with one folder per build; SQLite; build and artifact folders; and backups. External services are separate parties: the school identity provider, Google Drive or OneDrive, the Cartridge Store, an SMTP provider; cartridges go to PRG32-QT (verified through its web API), a PRG32 console (not verified) or PRG32-iOS (unsupported).</desc>
+  <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#334155"/></marker></defs>
+  <rect width="1240" height="815" fill="#ffffff"/>
+  <text x="620" y="34" font-size="22" text-anchor="middle" fill="#0f172a" font-weight="bold">Components and trust boundaries</text>
+  <rect x="20" y="60" width="380" height="690" rx="16" fill="#e0f2fe" fill-opacity="0.45" stroke="#0369a1" stroke-width="2" stroke-dasharray="8 6"/>
+  <text x="34" y="86" font-size="17" font-weight="bold" fill="#0369a1">Student&#x27;s browser (untrusted client)</text>
+  <rect x="38" y="100" width="344" height="82" rx="10" fill="#e0f2fe" stroke="#0369a1" stroke-width="1.5"/>
+  <text x="48" y="121" font-size="14" font-weight="bold" fill="#0f172a">Pages</text>
+  <text x="48" y="140" font-size="12.5" fill="#475569">IDE (Blocks, Advanced C, assembly), Blocks editor,</text>
+  <text x="48" y="157" font-size="12.5" fill="#475569">Player, Sprite Lab, AudioStudio, Account</text>
+  <rect x="38" y="194" width="344" height="82" rx="10" fill="#e0f2fe" stroke="#0369a1" stroke-width="1.5"/>
+  <text x="48" y="215" font-size="14" font-weight="bold" fill="#0f172a">Editors and offline checks</text>
+  <text x="48" y="234" font-size="12.5" fill="#475569">Blockly, Monaco, language index</text>
+  <text x="48" y="251" font-size="12.5" fill="#475569">(only what the validators accept)</text>
+  <rect x="38" y="288" width="344" height="100" rx="10" fill="#e0f2fe" stroke="#0369a1" stroke-width="1.5"/>
+  <text x="48" y="309" font-size="14" font-weight="bold" fill="#0f172a">WebAssembly runtime</text>
+  <text x="48" y="328" font-size="12.5" fill="#475569">PRG32-QT core (RV32IMAC) + firmware audio engine</text>
+  <text x="48" y="345" font-size="12.5" fill="#475569">8 voices, ADSR, stereo, one frame clock</text>
+  <text x="48" y="362" font-size="12.5" fill="#475569">debugger: breakpoints, source and block maps</text>
+  <rect x="304" y="295" width="70" height="17" rx="8" fill="#15803d"/>
+  <text x="339" y="307" font-size="11" text-anchor="middle" fill="#ffffff">verified</text>
+  <rect x="38" y="400" width="344" height="64" rx="10" fill="#e0f2fe" stroke="#0369a1" stroke-width="1.5"/>
+  <text x="48" y="421" font-size="14" font-weight="bold" fill="#0f172a">JavaScript IR simulator</text>
+  <text x="48" y="440" font-size="12.5" fill="#475569">quick Blocks preview (editor, offline page)</text>
+  <rect x="38" y="476" width="344" height="82" rx="10" fill="#fff7ed" stroke="#c2410c" stroke-width="1.5"/>
+  <text x="48" y="497" font-size="14" font-weight="bold" fill="#0f172a">IndexedDB</text>
+  <text x="48" y="516" font-size="12.5" fill="#475569">guest games, unsaved work</text>
+  <text x="48" y="533" font-size="12.5" fill="#475569">never sent for guests; cleared by the person</text>
+  <rect x="304" y="483" width="70" height="17" rx="8" fill="#c2410c"/>
+  <text x="339" y="495" font-size="11" text-anchor="middle" fill="#ffffff">personal</text>
+  <rect x="38" y="570" width="344" height="64" rx="10" fill="#e0f2fe" stroke="#0369a1" stroke-width="1.5"/>
+  <text x="48" y="591" font-size="14" font-weight="bold" fill="#0f172a">Service worker</text>
+  <text x="48" y="610" font-size="12.5" fill="#475569">static files only, never signed-in pages</text>
+  <rect x="38" y="646" width="344" height="82" rx="10" fill="#fff7ed" stroke="#c2410c" stroke-width="1.5"/>
+  <text x="48" y="667" font-size="14" font-weight="bold" fill="#0f172a">Session cookie (signed)</text>
+  <text x="48" y="686" font-size="12.5" fill="#475569">account id, session number, sign-in time</text>
+  <text x="48" y="703" font-size="12.5" fill="#475569">ends a fixed time after sign-in</text>
+  <rect x="304" y="653" width="70" height="17" rx="8" fill="#c2410c"/>
+  <text x="339" y="665" font-size="11" text-anchor="middle" fill="#ffffff">personal</text>
+  <rect x="430" y="60" width="400" height="690" rx="16" fill="#ecfccb" fill-opacity="0.45" stroke="#4d7c0f" stroke-width="2" stroke-dasharray="8 6"/>
+  <text x="444" y="86" font-size="17" font-weight="bold" fill="#4d7c0f">Kit server (operator&#x27;s host)</text>
+  <rect x="448" y="100" width="364" height="82" rx="10" fill="#ecfccb" stroke="#4d7c0f" stroke-width="1.5"/>
+  <text x="458" y="121" font-size="14" font-weight="bold" fill="#0f172a">Flask app</text>
+  <text x="458" y="140" font-size="12.5" fill="#475569">sign-in, roles, ownership, quotas, CSP, CSRF</text>
+  <text x="458" y="157" font-size="12.5" fill="#475569">privacy: export, requests, erasure, notices</text>
+  <rect x="448" y="194" width="364" height="64" rx="10" fill="#fef9c3" stroke="#a16207" stroke-width="1.5"/>
+  <text x="458" y="215" font-size="14" font-weight="bold" fill="#0f172a">Validators (before anything is compiled)</text>
+  <text x="458" y="234" font-size="12.5" fill="#475569">Blocks -&gt; game IR, Advanced C, handwritten asm</text>
+  <rect x="448" y="270" width="364" height="82" rx="10" fill="#ecfccb" stroke="#4d7c0f" stroke-width="1.5"/>
+  <text x="458" y="291" font-size="14" font-weight="bold" fill="#0f172a">Deterministic generators</text>
+  <text x="458" y="310" font-size="12.5" fill="#475569">C and RV32IM assembly with explanations,</text>
+  <text x="458" y="327" font-size="12.5" fill="#475569">AudioStudio -&gt; AUD0 block, source maps</text>
+  <rect x="448" y="364" width="364" height="82" rx="10" fill="#ecfccb" stroke="#4d7c0f" stroke-width="1.5"/>
+  <text x="458" y="385" font-size="14" font-weight="bold" fill="#0f172a">Build sandbox</text>
+  <text x="458" y="404" font-size="12.5" fill="#475569">PRG32 toolchain in bubblewrap + seccomp,</text>
+  <text x="458" y="421" font-size="12.5" fill="#475569">no network, one &lt;build_id&gt;/ folder, budgets</text>
+  <rect x="448" y="458" width="364" height="82" rx="10" fill="#fff7ed" stroke="#c2410c" stroke-width="1.5"/>
+  <text x="458" y="479" font-size="14" font-weight="bold" fill="#0f172a">SQLite</text>
+  <text x="458" y="498" font-size="12.5" fill="#475569">accounts, projects, history, audit log (365 d),</text>
+  <text x="458" y="515" font-size="12.5" fill="#475569">notice records, request register</text>
+  <rect x="749" y="465" width="55" height="17" rx="8" fill="#b91c1c"/>
+  <text x="776" y="477" font-size="11" text-anchor="middle" fill="#ffffff">secret</text>
+  <rect x="675" y="465" width="70" height="17" rx="8" fill="#c2410c"/>
+  <text x="710" y="477" font-size="11" text-anchor="middle" fill="#ffffff">personal</text>
+  <rect x="448" y="552" width="364" height="82" rx="10" fill="#fff7ed" stroke="#c2410c" stroke-width="1.5"/>
+  <text x="458" y="573" font-size="14" font-weight="bold" fill="#0f172a">Files</text>
+  <text x="458" y="592" font-size="12.5" fill="#475569">builds/&lt;build_id&gt;/ (newest 10 per project),</text>
+  <text x="458" y="609" font-size="12.5" fill="#475569">artifacts/ (uploads, AudioStudio samples)</text>
+  <rect x="734" y="559" width="70" height="17" rx="8" fill="#c2410c"/>
+  <text x="769" y="571" font-size="11" text-anchor="middle" fill="#ffffff">personal</text>
+  <rect x="448" y="646" width="364" height="82" rx="10" fill="#fff7ed" stroke="#c2410c" stroke-width="1.5"/>
+  <text x="458" y="667" font-size="14" font-weight="bold" fill="#0f172a">Backups</text>
+  <text x="458" y="686" font-size="12.5" fill="#475569">database + folders + secret key</text>
+  <text x="458" y="703" font-size="12.5" fill="#475569">35 days, prune; erasures re-applied</text>
+  <rect x="727" y="653" width="77" height="17" rx="8" fill="#1d4ed8"/>
+  <text x="766" y="665" font-size="11" text-anchor="middle" fill="#ffffff">retention</text>
+  <rect x="668" y="653" width="55" height="17" rx="8" fill="#b91c1c"/>
+  <text x="696" y="665" font-size="11" text-anchor="middle" fill="#ffffff">secret</text>
+  <rect x="594" y="653" width="70" height="17" rx="8" fill="#c2410c"/>
+  <text x="629" y="665" font-size="11" text-anchor="middle" fill="#ffffff">personal</text>
+  <rect x="860" y="60" width="360" height="690" rx="16" fill="#f5f3ff" fill-opacity="0.45" stroke="#6d28d9" stroke-width="2" stroke-dasharray="8 6"/>
+  <text x="874" y="86" font-size="17" font-weight="bold" fill="#6d28d9">External services (separate parties)</text>
+  <rect x="878" y="100" width="324" height="82" rx="10" fill="#f5f3ff" stroke="#6d28d9" stroke-width="1.5"/>
+  <text x="888" y="121" font-size="14" font-weight="bold" fill="#0f172a">School identity provider</text>
+  <text x="888" y="140" font-size="12.5" fill="#475569">OIDC + PKCE or SAML; keeps issuer,</text>
+  <text x="888" y="157" font-size="12.5" fill="#475569">subject, email (live: Keycloak)</text>
+  <rect x="1124" y="107" width="70" height="17" rx="8" fill="#15803d"/>
+  <text x="1159" y="119" font-size="11" text-anchor="middle" fill="#ffffff">verified</text>
+  <rect x="878" y="194" width="324" height="82" rx="10" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4 4"/>
+  <text x="888" y="215" font-size="14" font-weight="bold" fill="#0f172a">Google Drive / OneDrive</text>
+  <text x="888" y="234" font-size="12.5" fill="#475569">the person&#x27;s own app folder, by consent;</text>
+  <text x="888" y="251" font-size="12.5" fill="#475569">tokens encrypted; no live tenant yet</text>
+  <rect x="1110" y="201" width="84" height="17" rx="8" fill="#64748b"/>
+  <text x="1152" y="213" font-size="11" text-anchor="middle" fill="#ffffff">unverified</text>
+  <rect x="878" y="288" width="324" height="82" rx="10" fill="#f5f3ff" stroke="#6d28d9" stroke-width="1.5"/>
+  <text x="888" y="309" font-size="14" font-weight="bold" fill="#0f172a">PRG32 Cartridge Store</text>
+  <text x="888" y="328" font-size="12.5" fill="#475569">reviewed publishing, shared accounts</text>
+  <text x="888" y="345" font-size="12.5" fill="#475569">(live: throwaway loopback Store)</text>
+  <rect x="1124" y="295" width="70" height="17" rx="8" fill="#15803d"/>
+  <text x="1159" y="307" font-size="11" text-anchor="middle" fill="#ffffff">verified</text>
+  <rect x="878" y="382" width="324" height="64" rx="10" fill="#f5f3ff" stroke="#6d28d9" stroke-width="1.5"/>
+  <text x="888" y="403" font-size="14" font-weight="bold" fill="#0f172a">SMTP provider</text>
+  <text x="888" y="422" font-size="12.5" fill="#475569">sign-up and password emails</text>
+  <rect x="878" y="458" width="324" height="82" rx="10" fill="#f5f3ff" stroke="#6d28d9" stroke-width="1.5"/>
+  <text x="888" y="479" font-size="14" font-weight="bold" fill="#0f172a">PRG32-QT</text>
+  <text x="888" y="498" font-size="12.5" fill="#475569">cartridges through its web API,</text>
+  <text x="888" y="515" font-size="12.5" fill="#475569">integrity-checked delivery</text>
+  <rect x="1124" y="465" width="70" height="17" rx="8" fill="#15803d"/>
+  <text x="1159" y="477" font-size="11" text-anchor="middle" fill="#ffffff">verified</text>
+  <rect x="878" y="552" width="324" height="64" rx="10" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4 4"/>
+  <text x="888" y="573" font-size="14" font-weight="bold" fill="#0f172a">PRG32 console (ESP32-C6)</text>
+  <text x="888" y="592" font-size="12.5" fill="#475569">download works; no recorded delivery</text>
+  <rect x="1110" y="559" width="84" height="17" rx="8" fill="#64748b"/>
+  <text x="1152" y="571" font-size="11" text-anchor="middle" fill="#ffffff">unverified</text>
+  <rect x="878" y="628" width="324" height="64" rx="10" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4 4"/>
+  <text x="888" y="649" font-size="14" font-weight="bold" fill="#0f172a">PRG32-iOS</text>
+  <text x="888" y="668" font-size="12.5" fill="#475569">unsupported (ADR-0020)</text>
+  <rect x="1103" y="635" width="91" height="17" rx="8" fill="#64748b"/>
+  <text x="1148" y="647" font-size="11" text-anchor="middle" fill="#ffffff">unsupported</text>
+  <path d="M382,141 L448,141" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#arrow)" marker-start="url(#arrow)"/>
+  <text x="415" y="132" font-size="12" text-anchor="middle" fill="#0f172a" paint-order="stroke" stroke="#ffffff" stroke-width="4">HTTPS</text>
+  <path d="M448,405 L415,405 L415,338 L382,338" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="415" y="398" font-size="12" text-anchor="middle" fill="#0f172a" paint-order="stroke" stroke="#ffffff" stroke-width="4">cartridge</text>
+  <path d="M812,120 L878,120" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#arrow)" marker-start="url(#arrow)"/>
+  <text x="845" y="112" font-size="12" text-anchor="middle" fill="#0f172a" paint-order="stroke" stroke="#ffffff" stroke-width="4">OIDC</text>
+  <path d="M812,150 L878,220" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#arrow)" marker-start="url(#arrow)"/>
+  <text x="858" y="176" font-size="12" text-anchor="middle" fill="#0f172a" paint-order="stroke" stroke="#ffffff" stroke-width="4">OAuth</text>
+  <path d="M812,311 L878,325" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="845" y="304" font-size="12" text-anchor="middle" fill="#0f172a" paint-order="stroke" stroke="#ffffff" stroke-width="4">publish</text>
+  <path d="M812,170 L840,170 L840,414 L878,414" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="858" y="400" font-size="12" text-anchor="middle" fill="#0f172a" paint-order="stroke" stroke="#ffffff" stroke-width="4">email</text>
+  <path d="M210,728 L210,772 L1040,772 L1040,750" fill="none" stroke="#334155" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#arrow)"/>
+  <text x="625" y="767" font-size="12" text-anchor="middle" fill="#0f172a" paint-order="stroke" stroke="#ffffff" stroke-width="4">.prg32 download (Player) or upload (delivery tool)</text>
+  <text x="24" y="800" font-size="13" text-anchor="start" fill="#0f172a" font-weight="bold">Legend:</text>
+  <text x="88" y="800" font-size="13" text-anchor="start" fill="#475569">dashed frame = trust boundary;  dashed box = not verified or unsupported;</text>
+  <rect x="544" y="788" width="70" height="17" rx="8" fill="#c2410c"/>
+  <text x="579" y="800" font-size="11" text-anchor="middle" fill="#ffffff">personal</text>
+  <rect x="622" y="788" width="55" height="17" rx="8" fill="#b91c1c"/>
+  <text x="649" y="800" font-size="11" text-anchor="middle" fill="#ffffff">secret</text>
+  <rect x="685" y="788" width="77" height="17" rx="8" fill="#1d4ed8"/>
+  <text x="723" y="800" font-size="11" text-anchor="middle" fill="#ffffff">retention</text>
+  <rect x="770" y="788" width="70" height="17" rx="8" fill="#15803d"/>
+  <text x="804" y="800" font-size="11" text-anchor="middle" fill="#ffffff">verified</text>
+  <rect x="847" y="788" width="84" height="17" rx="8" fill="#64748b"/>
+  <text x="889" y="800" font-size="11" text-anchor="middle" fill="#ffffff">unverified</text>
+</svg>

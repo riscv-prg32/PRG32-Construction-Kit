@@ -94,6 +94,7 @@ def save_image(ppm: Path, png: Path, scale: int = 2) -> Path:
         return ppm
     image = Image.open(ppm)
     image = image.resize((image.width * scale, image.height * scale), Image.NEAREST)
+    png.parent.mkdir(parents=True, exist_ok=True)
     image.save(png, optimize=True)
     return png
 

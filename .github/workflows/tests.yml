@@ -35,6 +35,8 @@ jobs:
     steps:
       - name: Check out the repository
         uses: actions/checkout@v7
+        with:
+          fetch-depth: 0   # the visual manifest names commits (tools/check_docs.py)
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v7
@@ -62,6 +64,12 @@ jobs:
           for file in static/js/*.js static/service-worker.js tools/*.mjs; do
             node --check "$file"
           done
+
+      - name: Documentation and privacy records match the product
+        run: |
+          python tools/check_docs.py
+          python tools/build_diagrams.py --check
+          python tools/render_ropa.py --check
 
       - name: Run the test suite
         run: python -m pytest -q --junitxml="test-results-${{ matrix.python-version }}.xml"
@@ -322,6 +330,8 @@ jobs:
     steps:
       - name: Check out the repository
         uses: actions/checkout@v7
+        with:
+          fetch-depth: 0   # tests/test_docs_check.py reads the visual manifest's commits
 
       - name: Set up Python
         uses: actions/setup-python@v7

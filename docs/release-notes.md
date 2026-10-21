@@ -2,6 +2,46 @@
 
 ## Unreleased
 
+### Privacy and documentation (after the GDPR and documentation audit of 7c83e71)
+
+- Personal data (ADR-0022, `privacy/`). The school or operator running the kit is the
+  controller. The kit now has:
+  - a field-level record of processing that tests keep in step with every database column;
+  - proposed roles and legal bases; retention; processors and transfers; a children, DPIA
+    and DPO screening;
+  - an Article 32 review, a breach playbook and a scripted breach rehearsal.
+
+  **The deployment stays NO-GO** until the controller and its DPO decide the open questions
+  in `privacy/decisions.md`. No legal review has happened yet.
+- Rights in the kit:
+  - "Download my data": one structured document, without secrets;
+  - requests to correct, delete, pause or object, answered by staff within one month;
+  - restriction (read and download only);
+  - erasure that reaches every table, build folder, file and cloud token, keeps the audit
+    log under a pseudonym, and is re-applied after a backup is restored.
+- Short notices where data is collected, on a new `/privacy` page and in the Account page's
+  "Your data" section. The version each person was shown is recorded.
+- Fixed:
+  - deleting an artifact now deletes its uploaded file;
+  - local sign-ins and their failures are now in the audit log;
+  - the session cookie is sent only when it changes. Before, a slow page request could
+    overwrite a school sign-in or cloud connection that had just started.
+- Retention also removes audit events after 365 days and old sign-up links. Backups record
+  their date, and `tools/backup_restore.py prune` deletes old ones.
+- README rewritten for today's product. `architecture.md` rebuilt around generated diagrams
+  (`tools/build_diagrams.py`): trust boundaries, pipeline, game loop and frame clock,
+  personal data.
+- Every picture is listed in `figures/manifest.json`. Screenshots were re-captured with
+  synthetic data (`tools/capture_visuals.py`), and the runtime frames were re-rendered with
+  identical pixels.
+- `tools/check_docs.py` runs in CI. It checks:
+  - links, images and alt text;
+  - orphan and stale pictures;
+  - settings, routes and ABI versions named in the docs;
+  - ADR and capability IDs.
+
+  A human checklist goes with it (`release_checklist.md`).
+
 ### Sound on one clock everywhere, and the patches proposed upstream (after the audit of 951f782)
 
 - One scheduling boundary between cartridge frames and audio buffers (ADR-0021): audio calls
