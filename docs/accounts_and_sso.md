@@ -228,4 +228,3 @@ The protocol is in `prg32_construction_kit/sso_protocol.py`, the same file as
   - a publisher's bundle reaches the Store as a pending submission with a one-time API ticket;
   - the same ticket again, a forged one, or a sign-in ticket used for the API is refused;
   - a student's publish is refused by the kit, with nothing sent.
-
