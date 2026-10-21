@@ -224,7 +224,7 @@ not decisions: see [decisions.md](decisions.md).
 
 | | |
 |---|---|
-| Data | school sign-in settings and group names (no person) |
+| Data | school sign-in settings, the admin Settings page values (sealed secrets) and group names (no person) |
 | People | none |
 | Purpose | running the kit |
 | Legal basis | not personal data |
@@ -237,7 +237,7 @@ not decisions: see [decisions.md](decisions.md).
 | Transfers | none |
 | Review owner | the operator's privacy lead (name it in decisions.md) |
 | Next review | 2027-10-21 or on any change to the kit's data model |
-| Fields | `identity_providers`: id, slug, name, issuer, client_id, client_secret_ref, scopes, role_claim, role_map, new_account_role, allowed_domains, enabled, created_at, updated_at; `groups`: id, name, created_at |
+| Fields | `identity_providers`: id, slug, name, issuer, client_id, client_secret_ref, scopes, role_claim, role_map, new_account_role, allowed_domains, enabled, created_at, updated_at; `groups`: id, name, created_at; `site_settings`: key, value, updated_at, revision |
 
 ## Outside the database
 

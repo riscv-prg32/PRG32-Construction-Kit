@@ -45,6 +45,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from . import project_format, security
 from .db import db, utcnow
+from . import settings as site_settings
 
 FLOW_SECONDS = 600
 HTTP_TIMEOUT = 20
@@ -368,11 +369,13 @@ PROVIDER_CLASSES = {"google": GoogleDrive, "onedrive": OneDrive}
 
 
 def configured() -> dict[str, CloudProvider]:
-    config = current_app.config
+    config = site_settings.view()
     found: dict[str, CloudProvider] = {}
-    if config.get("CLOUD_GOOGLE_CLIENT_ID"):
+    # A provider needs its app credentials on the server and must not be switched off on the
+    # Settings page (CLOUD_*_ENABLED).
+    if config.get("CLOUD_GOOGLE_CLIENT_ID") and config.get("CLOUD_GOOGLE_ENABLED"):
         found["google"] = GoogleDrive(config["CLOUD_GOOGLE_CLIENT_ID"], config.get("CLOUD_GOOGLE_CLIENT_SECRET") or "")
-    if config.get("CLOUD_ONEDRIVE_CLIENT_ID"):
+    if config.get("CLOUD_ONEDRIVE_CLIENT_ID") and config.get("CLOUD_ONEDRIVE_ENABLED"):
         found["onedrive"] = OneDrive(config["CLOUD_ONEDRIVE_CLIENT_ID"], config.get("CLOUD_ONEDRIVE_CLIENT_SECRET") or "",
                                      config.get("CLOUD_ONEDRIVE_TENANT") or "common")
     return found
@@ -601,7 +604,7 @@ def _own(project_id: str) -> dict[str, Any]:
 
 
 def _redirect_uri(name: str) -> str:
-    base = str(current_app.config.get("PUBLIC_URL") or "").rstrip("/")
+    base = str(site_settings.get("PUBLIC_URL") or "").rstrip("/")
     path = f"/cloud/{name}/callback"
     return base + path if base else request.host_url.rstrip("/") + path
 

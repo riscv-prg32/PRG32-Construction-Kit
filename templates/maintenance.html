@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Maintenance - {{ site.name }}{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-7 col-lg-6">
+    <div class="alert alert-info" role="status">
+      <h1 class="h5"><i class="bi bi-tools" aria-hidden="true"></i> Back soon</h1>
+      <p class="mb-0">{{ message }}</p>
+    </div>
+    <p class="small text-muted">Your games are safe: nothing is lost while the kit is being updated.
+      Games you made without an account are still in this browser.</p>
+  </div>
+</div>
+{% endblock %}

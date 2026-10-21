@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Projects - PRG32-Construction-Kit{% endblock %}
+{% block title %}Projects - {{ site.name }}{% endblock %}
 {% block content %}
 <div class="alert alert-info d-flex flex-wrap gap-2 align-items-center" id="guestProjectsBanner" role="status" hidden>
   <span><i class="bi bi-browser-chrome"></i> <strong id="guestProjectsCount"></strong> made in this browser without an account
@@ -12,7 +12,7 @@
     <div class="col-lg-8">
       <div class="badge text-bg-warning mb-3">Scratch-inspired PRG32 game studio</div>
       <h1 class="display-5 fw-bold mb-3">Build cartridges with blocks, sprites, simulation, C, and publishing.</h1>
-      <p class="lead mb-4">Students assemble game logic visually, play it in the browser, inspect generated C, package it as PRG32 cartridge material, and submit bundles to Cartridge Store.</p>
+      <p class="lead mb-4">{% if site.welcome %}{{ site.welcome }}{% else %}Students assemble game logic visually, play it in the browser, inspect generated C, package it as PRG32 cartridge material, and submit bundles to Cartridge Store.{% endif %}</p>
       <div class="d-flex flex-wrap gap-2">
         <button class="btn btn-primary btn-lg" data-bs-toggle="modal" data-bs-target="#newProjectModal"><i class="bi bi-plus-circle"></i> New Project</button>
         <button class="btn btn-outline-light btn-lg" data-bs-toggle="modal" data-bs-target="#examplesModal"><i class="bi bi-collection-play"></i> Examples</button>

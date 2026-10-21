@@ -48,6 +48,7 @@ from .publisher import StorePublishFailed, publish_bundle
 from .store_policy import StoreRefused, check_url, policy_from_config
 from .sample_data import example_catalog
 from .source_project import validate_asm_source, validate_c_source, validate_features
+from . import settings as site_settings
 
 bp = Blueprint("kit", __name__)
 
@@ -150,7 +151,7 @@ def checked_payload(resource: str, payload: dict[str, Any]) -> dict[str, Any]:
             payload["bearer_token"] = secrets_at_rest.seal(str(payload["bearer_token"] or ""))
     if resource == "publish_profiles" and "store_url" in payload:
         # Only Stores the administrator approved (ADR-0008); StoreRefused is a 400 with a student-safe reason.
-        check_url(str(payload["store_url"] or ""), policy_from_config(current_app.config))
+        check_url(str(payload["store_url"] or ""), policy_from_config(site_settings.view()))
     for column, target in LINKS.items():
         if payload.get(column) and column in RESOURCE_COLUMNS[resource]:
             linked = get_resource(target, str(payload[column]))
@@ -170,7 +171,7 @@ def handle_forbidden(exc: PermissionError):
 
 def _token_expires_on(profile: dict[str, Any]) -> str:
     """The date after which the kit stops using this profile's Store token ("" = never or no token)."""
-    days = int(current_app.config.get("STORE_TOKEN_MAX_DAYS") or 0)
+    days = int(site_settings.get("STORE_TOKEN_MAX_DAYS") or 0)
     if not profile.get("bearer_token") or not days or not profile.get("token_set_at"):
         return ""
     from datetime import datetime, timedelta
@@ -320,7 +321,7 @@ def discovery():
             "cartridge_builds": {"available": builds_available(current_app.config["PRG32_BUILD_COMMAND"]),
                                  "architectures": list(SUPPORTED_ARCHITECTURES)},
             # "local": guests may make games kept in their own browser only; "off": no guest entry (ADR-0017).
-            "guest_mode": current_app.config["PRG32_GUEST_MODE"],
+            "guest_mode": site_settings.get("PRG32_GUEST_MODE"),
         }
     )
 
@@ -342,7 +343,7 @@ def _size(value: Any) -> int:
 
 def quota(adding_bytes: int = 0, adding_projects: int = 0) -> None:
     """Refuse (413) a change that takes the current account over its limits (ADR-0017)."""
-    storage_policy.check(current_principal(), current_app.config, adding_bytes=adding_bytes,
+    storage_policy.check(current_principal(), site_settings.view(), adding_bytes=adding_bytes,
                          adding_projects=adding_projects)
 
 
@@ -357,7 +358,7 @@ def quota_exceeded(error: storage_policy.QuotaExceeded):
 def api_storage():
     """This account's usage and limits (ADR-0017)."""
     principal = current_principal()
-    answer = storage_policy.usage(principal.id, current_app.config)
+    answer = storage_policy.usage(principal.id, site_settings.view())
     if principal.is_admin:
         answer.update(quota_bytes=0, quota_projects=0)  # administrators have no limit
     return jsonify(answer)
@@ -444,7 +445,7 @@ def _history_is_old(project_id: str) -> bool:
                                 .order_by(ProjectRevision.seq.desc()).limit(1)).first()
     if newest is None:
         return True
-    minutes = int(current_app.config["PRG32_KIT_AUTOSAVE_SNAPSHOT_MINUTES"])
+    minutes = int(site_settings.get("PRG32_KIT_AUTOSAVE_SNAPSHOT_MINUTES"))
     age = datetime.now(timezone.utc) - datetime.fromisoformat(newest)
     return age.total_seconds() >= minutes * 60
 
@@ -573,7 +574,7 @@ def api_retention():
     if not current_principal().is_admin:
         return json_error("Only teachers with the admin role can do this", 403)
     dry_run = request_json().get("dry_run", True) is not False
-    report = retention.apply(current_app.config, dry_run=dry_run)
+    report = retention.apply(site_settings.view(), dry_run=dry_run)
     if not dry_run:
         security.record("retention_run", target_type="storage", metadata={
             "purged_projects": len(report["purged_projects"]), "pruned_builds": len(report["pruned_builds"]),
@@ -602,7 +603,7 @@ def save_revision(project: dict[str, Any], reason: str) -> dict[str, Any] | None
     # The manifest lists the sprite files, then the asset files, in the order of these rows.
     entries = json.loads(files[project_format.MANIFEST_NAME])["assets"]
     child_ids = {entry["path"]: row["id"] for entry, row in zip(entries, [*sprites, *assets])}
-    return add_revision(project, files, reason, keep=current_app.config["PRG32_KIT_MAX_REVISIONS"],
+    return add_revision(project, files, reason, keep=site_settings.get("PRG32_KIT_MAX_REVISIONS"),
                         child_ids=child_ids)
 
 
@@ -947,11 +948,11 @@ def api_package_project(project_id: str):
     release_connection()
     try:
         with build_slot(current_app.config["BUILD_ROOT"] / ".slots",
-                        current_app.config["PRG32_MAX_PARALLEL_BUILDS"],
-                        current_app.config["PRG32_BUILD_QUEUE_TIMEOUT"]), \
+                        site_settings.get("PRG32_MAX_PARALLEL_BUILDS"),
+                        site_settings.get("PRG32_BUILD_QUEUE_TIMEOUT")), \
                 build_budget.reserve(current_app.config["BUILD_ROOT"],
-                                     current_app.config["PRG32_BUILD_MAX_MB"] * 1024 * 1024,
-                                     current_app.config["PRG32_BUILD_ROOT_MAX_MB"] * 1024 * 1024):
+                                     site_settings.get("PRG32_BUILD_MAX_MB") * 1024 * 1024,
+                                     site_settings.get("PRG32_BUILD_ROOT_MAX_MB") * 1024 * 1024):
             return _run_package_build(project_id, project, game_ir, _generated_sources(language, game_ir, c_source),
                                       requested, audio)
     except BuildServerBusy as exc:
@@ -996,16 +997,16 @@ def api_check_project(project_id: str):
     release_connection()
     try:
         with build_slot(current_app.config["BUILD_ROOT"] / ".slots",
-                        current_app.config["PRG32_MAX_PARALLEL_BUILDS"],
-                        current_app.config["PRG32_BUILD_QUEUE_TIMEOUT"]), \
+                        site_settings.get("PRG32_MAX_PARALLEL_BUILDS"),
+                        site_settings.get("PRG32_BUILD_QUEUE_TIMEOUT")), \
                 build_budget.reserve(current_app.config["BUILD_ROOT"],
-                                     current_app.config["PRG32_BUILD_MAX_MB"] * 1024 * 1024,
-                                     current_app.config["PRG32_BUILD_ROOT_MAX_MB"] * 1024 * 1024):
+                                     site_settings.get("PRG32_BUILD_MAX_MB") * 1024 * 1024,
+                                     site_settings.get("PRG32_BUILD_ROOT_MAX_MB") * 1024 * 1024):
             ok, log = check_source(build_root=current_app.config["BUILD_ROOT"], project=project, game_ir=game_ir,
                                    source=source, language=language, build_command=build_command,
-                                   cart_ram_kib=current_app.config["PRG32_CART_RAM_KIB"],
-                                   timeout=current_app.config["PRG32_BUILD_TIMEOUT"],
-                                   sandbox=settings_from_config(current_app.config))
+                                   cart_ram_kib=site_settings.get("PRG32_CART_RAM_KIB"),
+                                   timeout=site_settings.get("PRG32_BUILD_TIMEOUT"),
+                                   sandbox=settings_from_config(site_settings.view()))
     except BuildServerBusy as exc:
         response, status = json_error(str(exc), 503)
         response.headers["Retry-After"] = "10"
@@ -1035,7 +1036,7 @@ def _run_package_build(project_id: str, project: dict[str, Any], game_ir: dict[s
         return build_provenance(build_id=build["id"], started_at=started_at, finished_at=utcnow(), status=status,
                                 build_command=build_command, game_ir=game_ir, sources=sources,
                                 built_from=built_from, requested=targets,
-                                cart_ram_kib=current_app.config["PRG32_CART_RAM_KIB"],
+                                cart_ram_kib=site_settings.get("PRG32_CART_RAM_KIB"),
                                 cartridges=(result or {}).get("cartridges", []),
                                 attempts=(result or {}).get("attempts", []),
                                 sandbox=(result or {}).get("sandbox", "not run"))
@@ -1052,12 +1053,12 @@ def _run_package_build(project_id: str, project: dict[str, Any], game_ir: dict[s
             build_language=built_from,
             build_id=build["id"],
             build_command=build_command,
-            cart_ram_kib=current_app.config["PRG32_CART_RAM_KIB"],
+            cart_ram_kib=site_settings.get("PRG32_CART_RAM_KIB"),
             project_json=project,
             architectures=requested,
-            build_timeout=current_app.config["PRG32_BUILD_TIMEOUT"],
-            sandbox=settings_from_config(current_app.config),
-            debug_info_enabled=current_app.config["PRG32_DEBUG_INFO"],
+            build_timeout=site_settings.get("PRG32_BUILD_TIMEOUT"),
+            sandbox=settings_from_config(site_settings.view()),
+            debug_info_enabled=site_settings.get("PRG32_DEBUG_INFO"),
             audio=audio,
         )
     except Exception as exc:
@@ -1127,7 +1128,7 @@ def _run_package_build(project_id: str, project: dict[str, Any], game_ir: dict[s
         },
     )
     # Keep the project's newest builds only (ADR-0017); this one is the newest.
-    retention.prune_builds(project_id, current_app.config["PRG32_KIT_KEEP_BUILDS"], current_app.config["BUILD_ROOT"])
+    retention.prune_builds(project_id, site_settings.get("PRG32_KIT_KEEP_BUILDS"), current_app.config["BUILD_ROOT"])
     return jsonify({
         "build": public("builds", build),
         "c_artifact": public("artifacts", c_artifact) if c_artifact else None,
@@ -1350,7 +1351,7 @@ def _prepare_publish(payload: dict[str, Any], stage_action: str):
             stage_action, payload, profile, "not_publishable", publishing.MESSAGES["not_publishable"], 400)
     # The Store must be approved now (ADR-0008), not only when the profile was saved.
     try:
-        target = check_url(profile.get("store_url", ""), policy_from_config(current_app.config))
+        target = check_url(profile.get("store_url", ""), policy_from_config(site_settings.view()))
     except StoreRefused as refused:
         return None, profile, artifact, path, None, _publish_refusal(stage_action, payload, profile,
                                                                      refused.reason, str(refused), 400)

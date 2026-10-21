@@ -32,6 +32,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from . import sso_protocol as protocol
 from .db import db, utcnow
+from . import settings as site_settings
 
 AUDIENCE_HERE = protocol.AUDIENCE_KIT
 AUDIENCE_PEER = protocol.AUDIENCE_STORE
@@ -56,16 +57,16 @@ class SsoOutbox(db.Model):
 # --- settings -----------------------------------------------------------------
 
 def enabled() -> bool:
-    config = current_app.config
+    config = site_settings.view()
     return protocol.secret_is_usable(config.get("SSO_SECRET")) and bool(peer_url())
 
 
 def peer_url() -> str:
-    return str(current_app.config.get("SSO_PEER_URL") or "").strip().rstrip("/")
+    return str(site_settings.get("SSO_PEER_URL") or "").strip().rstrip("/")
 
 
 def _secret() -> str:
-    return str(current_app.config["SSO_SECRET"])
+    return str(site_settings.get("SSO_SECRET"))
 
 
 def same_service(url: str) -> bool:
@@ -88,7 +89,7 @@ Transport = Callable[[str, str, dict[str, str], bytes], tuple[int, bytes]]
 def _urllib_transport(method: str, url: str, headers: dict[str, str], body: bytes) -> tuple[int, bytes]:
     req = urllib.request.Request(url, data=body if method != "GET" else None, headers=headers, method=method)
     try:
-        with urllib.request.urlopen(req, timeout=float(current_app.config.get("SSO_TIMEOUT", 5))) as response:
+        with urllib.request.urlopen(req, timeout=float(site_settings.get("SSO_TIMEOUT"))) as response:
             return response.status, response.read()
     except urllib.error.HTTPError as exc:
         return exc.code, exc.read()

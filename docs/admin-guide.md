@@ -2,18 +2,21 @@
 
 1. **Install:** `deployment.md` (it links the detailed guides).
 2. **First sign-in:** see *The first admin* below.
-3. **Users, roles and groups:** `accounts_and_sso.md`. The **Users** page is
+3. **Settings:** the **Settings** menu item changes access, maintenance mode, email,
+   appearance, classroom limits, privacy contacts, Store and cloud, and build limits without a
+   restart: `admin_settings.md`.
+4. **Users, roles and groups:** `accounts_and_sso.md`. The **Users** page is
    for admins.
-4. **Single sign-on with a Cartridge Store:** `accounts_and_sso.md`.
-5. **Builds under load:** `concurrent_builds.md`; tune
+5. **Single sign-on with a Cartridge Store:** `accounts_and_sso.md`.
+6. **Builds under load:** `concurrent_builds.md`; tune
    `PRG32_MAX_PARALLEL_BUILDS`, `PRG32_BUILD_QUEUE_TIMEOUT` and
    `PRG32_BUILD_TIMEOUT`.
-6. **What made a cartridge:** `build_provenance.md`. **How compiles are isolated:** `build_sandbox.md`.
-7. **Project history and deleted projects:** `project_history.md`; tune
+7. **What made a cartridge:** `build_provenance.md`. **How compiles are isolated:** `build_sandbox.md`.
+8. **Project history and deleted projects:** `project_history.md`; tune
    `PRG32_KIT_MAX_REVISIONS`. Admins can delete a project for good from
    Recently deleted.
-8. **Sign-in limits and the audit log:** below, and `security.md`.
-9. **What is planned:** `implementation-plan.md`, `implementation-status.md`.
+9. **Sign-in limits and the audit log:** below, and `security.md`.
+10. **What is planned:** `implementation-plan.md`, `implementation-status.md`.
 
 ## The first admin
 

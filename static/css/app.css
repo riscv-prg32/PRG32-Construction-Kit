@@ -4,22 +4,43 @@
   --kit-gold: #fca311;
   --kit-paper: #f8fafc;
   --kit-ink: #111827;
+  /* The colours a skin (static/css/themes/<skin>.css) may change; illustrations keep their own. */
+  --kit-deep: #111827;          /* the dark end of the menu bar and the welcome panel */
+  --kit-bright: #1d4ed8;        /* the bright end */
+  --kit-accent-rgb: 252, 163, 17;
+  --kit-page-top: #f6f8ff;
+  --kit-page-bottom: #ffffff;
+  --kit-card-bg: #ffffff;
+  --kit-pill-bg: #eef2ff;
+  --kit-pill-ink: #3730a3;
+  --kit-shadow-rgb: 17, 24, 39;
+}
+
+/* Dark colour scheme (Settings, Appearance): Bootstrap switches its own colours with data-bs-theme. */
+[data-bs-theme=dark] {
+  --kit-ink: #e5e7eb;
+  --kit-page-top: #0b1220;
+  --kit-page-bottom: #111827;
+  --kit-card-bg: #1f2937;
+  --kit-pill-bg: #312e81;
+  --kit-pill-ink: #e0e7ff;
+  --kit-shadow-rgb: 0, 0, 0;
 }
 
 body {
-  background: linear-gradient(180deg, #f6f8ff 0%, #ffffff 45%);
+  background: linear-gradient(180deg, var(--kit-page-top) 0%, var(--kit-page-bottom) 45%);
   color: var(--kit-ink);
 }
 
 .kit-navbar {
-  background: linear-gradient(90deg, #111827 0%, var(--kit-navy) 55%, #1d4ed8 100%);
+  background: linear-gradient(90deg, var(--kit-deep) 0%, var(--kit-navy) 55%, var(--kit-bright) 100%);
 }
 
 .kit-hero {
   color: white;
   background:
-    radial-gradient(circle at 80% 10%, rgba(252, 163, 17, 0.35), transparent 24rem),
-    linear-gradient(135deg, #111827 0%, #14213d 50%, #1d4ed8 100%);
+    radial-gradient(circle at 80% 10%, rgba(var(--kit-accent-rgb), 0.35), transparent 24rem),
+    linear-gradient(135deg, var(--kit-deep) 0%, var(--kit-navy) 50%, var(--kit-bright) 100%);
   box-shadow: 0 1rem 3rem rgba(20, 33, 61, 0.2);
 }
 
@@ -85,9 +106,9 @@ body {
 .metric-card {
   padding: 1rem;
   border-radius: 1rem;
-  background: white;
-  border: 1px solid rgba(17, 24, 39, .08);
-  box-shadow: 0 .5rem 1rem rgba(17, 24, 39, .05);
+  background: var(--kit-card-bg);
+  border: 1px solid rgba(var(--kit-shadow-rgb), .08);
+  box-shadow: 0 .5rem 1rem rgba(var(--kit-shadow-rgb), .05);
 }
 
 .metric {
@@ -100,20 +121,20 @@ body {
   border: 0;
   border-radius: 1.25rem;
   overflow: hidden;
-  box-shadow: 0 .8rem 2rem rgba(17, 24, 39, .08);
+  box-shadow: 0 .8rem 2rem rgba(var(--kit-shadow-rgb), .08);
   transition: transform .15s ease, box-shadow .15s ease;
 }
 
 .project-card:hover {
   transform: translateY(-3px);
-  box-shadow: 0 1rem 2.4rem rgba(17, 24, 39, .12);
+  box-shadow: 0 1rem 2.4rem rgba(var(--kit-shadow-rgb), .12);
 }
 
 .project-icon {
   height: 120px;
   background:
-    radial-gradient(circle at 70% 35%, #fca311 0 16px, transparent 17px),
-    linear-gradient(135deg, #14213d, #2563eb);
+    radial-gradient(circle at 70% 35%, var(--kit-gold) 0 16px, transparent 17px),
+    linear-gradient(135deg, var(--kit-navy), var(--kit-blue));
 }
 
 .tag-pill {
@@ -121,8 +142,8 @@ body {
   font-size: .75rem;
   padding: .2rem .55rem;
   border-radius: 999px;
-  background: #eef2ff;
-  color: #3730a3;
+  background: var(--kit-pill-bg);
+  color: var(--kit-pill-ink);
   margin: 0 .25rem .25rem 0;
 }
 
@@ -352,7 +373,7 @@ body.dbg-mode-advanced .dbg-beginner { display: none !important; }
 .ide-problems { list-style: none; padding: 0; margin: 0; }
 .ide-problem { border: 0; background: transparent; text-align: left; width: 100%; padding: .2rem .25rem; font-family: var(--bs-font-monospace); font-size: .85rem; }
 .ide-problem:hover, .ide-problem:focus-visible { background: var(--bs-tertiary-bg); }
-.ide-status { grid-area: status; display: flex; gap: 1.25rem; padding: .2rem .75rem; font-size: .8rem; background: #14213d; color: #fff; }
+.ide-status { grid-area: status; display: flex; gap: 1.25rem; padding: .2rem .75rem; font-size: .8rem; background: var(--kit-navy); color: #fff; }
 .ide-sprite { image-rendering: pixelated; width: 8rem; border: 1px solid var(--bs-border-color); }
 /* Small screens: one column; the file tree slides in over the editor (Files button, Alt+0). */
 @media (max-width: 991.98px) {

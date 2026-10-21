@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% from "_privacy_notice.html" import notice %}
-{% block title %}Publish - PRG32-Construction-Kit{% endblock %}
+{% block title %}Publish - {{ site.name }}{% endblock %}
 {% block content %}
 {% if not can_publish %}
 <div class="alert alert-info" id="publisherNotice"><i class="bi bi-info-circle"></i> Publishing needs the publisher role. You can still compile and download cartridges; ask your teacher to publish for you or to give you the publisher role.</div>

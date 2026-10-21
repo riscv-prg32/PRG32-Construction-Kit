@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Settings - {{ site.name }}{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+  <div>
+    <h1 class="h3 mb-1"><i class="bi bi-gear" aria-hidden="true"></i> Settings</h1>
+    <p class="text-muted mb-0">How this kit works for everybody. A change applies at once, without a restart.
+      Settings marked <span class="badge text-bg-secondary">set on the server</span> come from the server's
+      environment and can only be changed there (<a href="/docs/admin_settings.md">how</a>).</p>
+  </div>
+  <a class="btn btn-outline-secondary" href="/admin/users"><i class="bi bi-people" aria-hidden="true"></i> Users</a>
+</div>
+
+<ul class="nav nav-tabs flex-wrap" id="settingsTabs" role="tablist">
+  {% for key, label in groups %}
+  <li class="nav-item" role="presentation">
+    <button class="nav-link{% if loop.first %} active{% endif %}" id="tab-{{ key }}" data-bs-toggle="tab"
+            data-bs-target="#pane-{{ key }}" type="button" role="tab" aria-controls="pane-{{ key }}"
+            aria-selected="{{ 'true' if loop.first else 'false' }}">{{ label }}</button>
+  </li>
+  {% endfor %}
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="tab-server" data-bs-toggle="tab" data-bs-target="#pane-server" type="button"
+            role="tab" aria-controls="pane-server" aria-selected="false">Server only</button>
+  </li>
+</ul>
+
+<div class="tab-content border border-top-0 rounded-bottom p-3 mb-4" id="settingsPanes">
+  {% for key, label in groups %}
+  <div class="tab-pane fade{% if loop.first %} show active{% endif %}" id="pane-{{ key }}" role="tabpanel"
+       aria-labelledby="tab-{{ key }}" tabindex="0">
+    <form class="settings-form vstack gap-3" data-group="{{ key }}" novalidate>
+      <div class="settings-fields vstack gap-3"><p class="text-muted mb-0">Loading…</p></div>
+      {% if key == 'signin' %}
+      <p class="small mb-0"><i class="bi bi-mortarboard" aria-hidden="true"></i> School sign-in (OpenID Connect)
+        providers have their own page: <a href="/admin/identity">School sign-in providers</a>.</p>
+      {% endif %}
+      <div class="d-flex flex-wrap gap-2">
+        <button class="btn btn-primary" type="submit"><i class="bi bi-save" aria-hidden="true"></i> Save {{ label }}</button>
+        {% if key == 'email' %}
+        <button class="btn btn-outline-primary" type="button" id="smtpTest"><i class="bi bi-envelope-check" aria-hidden="true"></i> Send a test mail to me</button>
+        {% endif %}
+      </div>
+    </form>
+  </div>
+  {% endfor %}
+  <div class="tab-pane fade" id="pane-server" role="tabpanel" aria-labelledby="tab-server" tabindex="0">
+    <p>These decide how the server itself runs, so they are set only in its environment
+      (<code>docker-compose.yml</code>, <code>examples/deploy/</code>) and need a restart.</p>
+    <table class="table table-sm">
+      <thead><tr><th scope="col">Variable</th><th scope="col">What it decides</th></tr></thead>
+      <tbody>
+      {% for name, why in environment_only %}
+        <tr><td><code>{{ name }}</code></td><td>{{ why }}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/admin_settings.js') }}"></script>
+{% endblock %}

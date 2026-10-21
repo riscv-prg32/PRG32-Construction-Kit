@@ -1,0 +1,27 @@
+/* Skin "contrast": black, white and yellow, for students who need strong contrast. */
+:root {
+  --kit-navy: #000000;
+  --kit-blue: #0b3d91;
+  --kit-gold: #ffd400;
+  --kit-ink: #000000;
+  --kit-deep: #000000;
+  --kit-bright: #000000;
+  --kit-accent-rgb: 255, 212, 0;
+  --kit-page-top: #ffffff;
+  --kit-page-bottom: #ffffff;
+  --kit-card-bg: #ffffff;
+  --kit-pill-bg: #000000;
+  --kit-pill-ink: #ffffff;
+  --kit-shadow-rgb: 0, 0, 0;
+}
+[data-bs-theme=dark] {
+  --kit-blue: #8ab4ff;
+  --kit-ink: #ffffff;
+  --kit-page-top: #000000;
+  --kit-page-bottom: #000000;
+  --kit-card-bg: #000000;
+  --kit-pill-bg: #ffd400;
+  --kit-pill-ink: #000000;
+}
+.kit-navbar .nav-link, .kit-footer a { text-decoration: underline; }
+.project-card, .metric-card { border: 2px solid currentColor; }

@@ -58,6 +58,7 @@ PRG32-Construction-Kit is a classroom web application for making PRG32 games wit
 ## Full-IDE roadmap
 
 - `user-guide.md` and `admin-guide.md` - where to start as a student/teacher or as an administrator.
+- `admin_settings.md` - the admin Settings page: what each tab changes and which server variable locks it.
 - `architecture/current-state.md` - what the PRG32 repositories contain today (capability matrix).
 - `implementation-plan.md` - phased plan (gates G0-G8); `adr/` - decisions.
 - `implementation-status.md`, `traceability.md` - progress and evidence per requirement.

@@ -16,10 +16,11 @@ from typing import Any, ClassVar
 
 import certifi
 import urllib3
-from flask import current_app, has_app_context
+from flask import has_app_context
 
 from . import store_contract, store_policy
 from .store_policy import StorePolicy, StoreRefused
+from . import settings as site_settings
 
 log = logging.getLogger(__name__)
 
@@ -77,7 +78,7 @@ def publish_bundle(store_url: str, token: str, bundle_path: Path, policy: StoreP
     if policy is None:
         if not has_app_context():
             raise StoreRefused("not_allowed")
-        policy = store_policy.policy_from_config(current_app.config)
+        policy = store_policy.policy_from_config(site_settings.view())
     target = store_policy.check_url(store_url, policy)
     address = store_policy.choose_address(target, policy)
     bundle_path = Path(bundle_path)

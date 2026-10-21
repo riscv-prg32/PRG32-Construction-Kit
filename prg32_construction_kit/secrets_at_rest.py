@@ -17,13 +17,13 @@ from flask import current_app
 PREFIX = "enc1:"
 
 
-def _fernet():
+def _fernet(purpose: bytes = b"store-tokens"):
     from cryptography.fernet import Fernet
     from cryptography.hazmat.primitives import hashes
     from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 
     secret = str(current_app.config["SECRET_KEY"]).encode()
-    key = HKDF(algorithm=hashes.SHA256(), length=32, salt=b"prg32-construction-kit", info=b"store-tokens").derive(secret)
+    key = HKDF(algorithm=hashes.SHA256(), length=32, salt=b"prg32-construction-kit", info=purpose).derive(secret)
     return Fernet(base64.urlsafe_b64encode(key))
 
 
@@ -31,15 +31,18 @@ def is_sealed(value: str) -> bool:
     return str(value or "").startswith(PREFIX)
 
 
-def seal(value: str) -> str:
-    """Encrypt a secret for the database ("" stays "", an already sealed value stays as it is)."""
+def seal(value: str, purpose: bytes = b"store-tokens") -> str:
+    """Encrypt a secret for the database ("" stays "", an already sealed value stays as it is).
+
+    ``purpose`` gives each kind of secret its own key (Store tokens keep the original one).
+    """
     value = str(value or "")
     if not value or is_sealed(value):
         return value
-    return PREFIX + _fernet().encrypt(value.encode()).decode()
+    return PREFIX + _fernet(purpose).encrypt(value.encode()).decode()
 
 
-def unseal(value: str) -> str | None:
+def unseal(value: str, purpose: bytes = b"store-tokens") -> str | None:
     """The secret in clear; None when it cannot be read (the secret key changed)."""
     from cryptography.fernet import InvalidToken
 
@@ -47,7 +50,7 @@ def unseal(value: str) -> str | None:
     if not is_sealed(value):
         return value          # nothing stored ("" ), or a value from before encryption
     try:
-        return _fernet().decrypt(value[len(PREFIX):].encode()).decode()
+        return _fernet(purpose).decrypt(value[len(PREFIX):].encode()).decode()
     except InvalidToken:
         return None
 

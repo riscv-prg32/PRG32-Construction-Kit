@@ -42,6 +42,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from .auth import admin_required
 from .db import db, utcnow
+from . import settings as site_settings
 
 bp = Blueprint("privacy", __name__)
 
@@ -80,6 +81,7 @@ PERSONAL_TABLES: dict[str, tuple[str, str]] = {
 NOT_PERSONAL: dict[str, str] = {
     "groups": "group names chosen by the administrator; membership is in user_groups",
     "identity_providers": "school sign-in settings; the client secret is a reference to the environment",
+    "site_settings": "the admin Settings page; who changed what is in the audit log, secrets are sealed",
     "sso_nonces": "random single-use ticket values, kept until they expire (minutes)",
     "auth_throttle": "sign-in attempt counters keyed by a SHA-256 hash, never a name or address in clear; "
                      "each window lasts minutes",
@@ -232,7 +234,7 @@ def export_personal_data(user_id: int) -> dict[str, Any]:
 
 def not_held_by_the_kit() -> list[dict[str, str]]:
     """Where else data about the person may be: the controller answers for these separately."""
-    days = int(current_app.config.get("PRG32_KIT_BACKUP_DAYS", 35))
+    days = int(site_settings.get("PRG32_KIT_BACKUP_DAYS"))
     return [
         {"where": "this browser (IndexedDB)", "what": "guest games and unsaved work, on the person's own device",
          "how": "Clear site data in the browser."},
@@ -442,7 +444,7 @@ def erase_account(user_id: int, handled_by: str) -> dict[str, Any]:
     step("audit_events", audit)
     step("request_register", requests_register)
     step("account", account)
-    days = int(current_app.config.get("PRG32_KIT_BACKUP_DAYS", 35))
+    days = int(site_settings.get("PRG32_KIT_BACKUP_DAYS"))
     outcome["backups_expire_by"] = _days_from(utcnow(), days)
     outcome["outside_the_kit"] += [item for item in not_held_by_the_kit()
                                    if item["where"] in ("this browser (IndexedDB)", "school sign-in service",
@@ -520,8 +522,8 @@ def privacy_page():
     from flask import render_template
 
     return render_template("privacy.html", notices=list(notices().values()), storage=BROWSER_STORAGE,
-                           controller=current_app.config.get("PRG32_PRIVACY_CONTROLLER", ""),
-                           contact=current_app.config.get("PRG32_PRIVACY_CONTACT", ""))
+                           controller=site_settings.get("PRG32_PRIVACY_CONTROLLER"),
+                           contact=site_settings.get("PRG32_PRIVACY_CONTACT"))
 
 
 def init_app(app) -> None:

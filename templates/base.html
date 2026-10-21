@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-color-scheme="{{ site.color_scheme }}" data-bs-theme="{{ 'light' if site.color_scheme == 'auto' else site.color_scheme }}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -9,13 +9,17 @@
   {# Read once by static/js/csp_nonce.js; the same nonce is in this page's CSP header. #}
   <meta name="csp-nonce" content="{{ csp_nonce }}">
   <script src="{{ url_for('static', filename='js/csp_nonce.js') }}"></script>
-  <title>{% block title %}PRG32-Construction-Kit{% endblock %}</title>
+  {# Colour scheme "auto": follow the computer's light/dark setting before the page is drawn. #}
+  <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
+  <title>{% block title %}{{ site.name }}{% endblock %}</title>
   <link rel="manifest" href="{{ url_for('static', filename='manifest.webmanifest') }}">
   <link rel="icon" href="{{ url_for('static', filename='img/prg32-icon.svg') }}" type="image/svg+xml">
   {# Every library is served by the kit itself (static/vendor, VENDOR.json): offline and CSP-friendly. #}
   <link href="{{ url_for('static', filename='vendor/bootstrap/5.3.3/css/bootstrap.min.css') }}" rel="stylesheet">
   <link href="{{ url_for('static', filename='vendor/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css') }}" rel="stylesheet">
   <link href="{{ url_for('static', filename='css/app.css') }}" rel="stylesheet">
+  {# The skin chosen on the Settings page: it only changes the --kit-* colours of app.css. #}
+  <link href="{{ url_for('static', filename=site.skin_css) }}" rel="stylesheet">
   {% block head %}{% endblock %}
 </head>
 <body class="{% block body_class %}{% endblock %}" data-admin="{{ '1' if current_user and current_user.is_admin else '0' }}">
@@ -23,7 +27,7 @@
   <div class="container-fluid">
     <a class="navbar-brand d-flex align-items-center gap-2" href="/">
       <img src="{{ url_for('static', filename='img/prg32-icon.svg') }}" alt="" width="32" height="32">
-      <span>PRG32-Construction-Kit</span>
+      <span>{{ site.name }}</span>
     </a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#topNav">
       <span class="navbar-toggler-icon"></span>
@@ -42,6 +46,7 @@
         <li class="nav-item"><a class="nav-link" href="/documentation"><i class="bi bi-book"></i> Docs</a></li>
         {% if current_user.is_admin %}
         <li class="nav-item"><a class="nav-link" href="/admin/users"><i class="bi bi-people"></i> Users</a></li>
+        <li class="nav-item"><a class="nav-link" href="/admin/settings"><i class="bi bi-gear"></i> Settings</a></li>
         {% endif %}
       </ul>
       {% if current_user.authenticated %}
@@ -60,12 +65,16 @@
 </nav>
 
 <main class="container-fluid px-3 px-lg-4 py-4">
+  {% if site.maintenance and current_user.is_admin %}
+  <div class="alert alert-warning py-2" role="status"><i class="bi bi-tools" aria-hidden="true"></i>
+    Maintenance mode is on: only admins can use the kit. <a href="/admin/settings#maintenance">Turn it off</a></div>
+  {% endif %}
   {% block content %}{% endblock %}
 </main>
 
 <footer class="kit-footer border-top small">
   <div class="container-fluid px-3 px-lg-4 py-3 d-flex flex-wrap gap-3 align-items-center">
-    <span class="text-body-secondary">PRG32-Construction-Kit{% if kit_version %} {{ kit_version }}{% endif %}</span>
+    <span class="text-body-secondary">{{ site.name }}{% if kit_version %} {{ kit_version }}{% endif %}</span>
     <a href="/privacy"><i class="bi bi-shield-lock" aria-hidden="true"></i> Privacy &amp; your data</a>
     <a href="/privacy#storage"><i class="bi bi-cookie" aria-hidden="true"></i> Cookies &amp; storage</a>
     <a href="/documentation"><i class="bi bi-book" aria-hidden="true"></i> Docs</a>

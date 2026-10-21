@@ -480,7 +480,7 @@
   },
   {
    "id": "configuration",
-   "data": "school sign-in settings and group names (no person)",
+   "data": "school sign-in settings, the admin Settings page values (sealed secrets) and group names (no person)",
    "fields": {
     "identity_providers": [
      "id",
@@ -502,6 +502,12 @@
      "id",
      "name",
      "created_at"
+    ],
+    "site_settings": [
+     "key",
+     "value",
+     "updated_at",
+     "revision"
     ]
    },
    "subjects": [],

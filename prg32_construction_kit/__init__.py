@@ -13,6 +13,7 @@ from .db import db
 from .db import init_app as init_db_app
 from .routes import bp
 from .sample_data import seed_if_empty
+from . import settings as site_settings
 
 
 def _kit_version() -> str:
@@ -52,6 +53,7 @@ def create_app(test_config: dict | None = None) -> Flask:
 
     init_db_app(app)
     auth.init_app(app)
+    site_settings.init_app(app)   # after auth: the maintenance gate runs after the sign-in guard
     identity.init_app(app)
     classes.init_app(app)
     cloud_storage.init_app(app)
@@ -97,7 +99,7 @@ def create_app(test_config: dict | None = None) -> Flask:
 
         from . import retention
 
-        print(json.dumps(retention.apply(app.config, dry_run=not apply_changes), indent=2))
+        print(json.dumps(retention.apply(site_settings.view(), dry_run=not apply_changes), indent=2))
 
     @app.cli.command("prg32-privacy-erasures")
     @click.option("--out", type=click.Path(), required=True, help="where to write the erasure register (JSON)")
@@ -186,12 +188,12 @@ def content_security_policy(config, nonce: str = "", editor_page: bool = False) 
 
 def browser_security_headers(response):
     """CSP and friends on every answer; signed-in pages and API answers are never cached."""
-    from flask import current_app, g, request
+    from flask import g, request
 
     nonce = getattr(g, "csp_nonce", "") if response.mimetype == "text/html" else ""
     editor_page = request.path.startswith("/ide/")
     response.headers.setdefault("Content-Security-Policy",
-                                content_security_policy(current_app.config, nonce, editor_page))
+                                content_security_policy(site_settings.view(), nonce, editor_page))
     response.headers.setdefault("X-Content-Type-Options", "nosniff")
     response.headers.setdefault("Referrer-Policy", "same-origin")
     if request.path.startswith("/static/vendor/"):

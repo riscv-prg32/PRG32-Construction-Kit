@@ -35,12 +35,13 @@ from typing import Any, Callable
 from urllib.parse import urlencode, urlsplit
 
 import requests
-from flask import Blueprint, current_app, jsonify, redirect, render_template, request, session, url_for
+from flask import Blueprint, jsonify, redirect, render_template, request, session, url_for
 from sqlalchemy import UniqueConstraint, select
 from sqlalchemy.orm import Mapped, mapped_column
 
 from . import security
 from .db import db, utcnow
+from . import settings as site_settings
 
 FLOW_SECONDS = 600          # a sign-in must come back within 10 minutes
 MAX_FLOWS = 5               # sign-ins started in parallel (several tabs) per browser
@@ -408,7 +409,7 @@ def complete_external_sign_in(*, provider_slug: str, issuer: str, subject: str, 
         raise SignInRefused("An account with this email already exists. Sign in to it the usual way, then link "
                             "your school account on the Account page.", "email_in_use")
     user = create_user(unique_username(username or email, email), email, None,
-                       role=current_app.config["DEFAULT_ROLE"])
+                       role=site_settings.get("DEFAULT_ROLE"))
     user.kit_role = kit_role if kit_role in ACADEMIC_ROLES else "student"
     db.session.add(ExternalIdentity(user_id=user.id, provider=provider_slug, issuer=issuer, subject=subject,
                                     email=email, last_login=utcnow()))
@@ -428,7 +429,7 @@ def _pkce_pair() -> tuple[str, str]:
 
 
 def _redirect_uri(slug: str) -> str:
-    base = str(current_app.config.get("PUBLIC_URL") or "").rstrip("/")
+    base = str(site_settings.get("PUBLIC_URL") or "").rstrip("/")
     path = url_for("identity.callback", slug=slug)
     return base + path if base else url_for("identity.callback", slug=slug, _external=True)
 

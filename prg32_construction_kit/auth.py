@@ -52,6 +52,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from . import security
 from .db import db, utcnow
 from .sso_protocol import timestamp_now
+from . import settings as site_settings
 
 ROLE_LEVELS = {
     "reader": 0,
@@ -634,7 +635,7 @@ def _load_registration_token(token: str) -> RegistrationToken | None:
 
 
 def _send_registration_email(email: str, link: str) -> None:
-    config = current_app.config
+    config = site_settings.view()
     if config.get("TESTING"):
         current_app.extensions["prg32_last_registration"] = {"email": email, "link": link,
                                                             "token": link.rsplit("token=", 1)[-1]}
@@ -653,7 +654,7 @@ def _send_registration_email(email: str, link: str) -> None:
 
 
 def _smtp_send(message: EmailMessage) -> None:
-    config = current_app.config
+    config = site_settings.view()
     with smtplib.SMTP(str(config["SMTP_HOST"]).strip(), int(config["SMTP_PORT"]), timeout=10) as smtp:
         if config.get("SMTP_TLS", True):
             smtp.starttls()
@@ -680,7 +681,7 @@ def note_new_address(user: User) -> bool:
     if db.session.scalar(earlier.where(security.AuditEvent.client == address).limit(1)) is not None:
         return False
     security.record("login_new_address", target_type="user", target_id=user.id, actor=principal_from_user(user))
-    config = current_app.config
+    config = site_settings.view()
     text = ("Your PRG32-Construction-Kit account was just signed in to from a computer or network it has not "
             "used before.\n\nIf it was you, there is nothing to do. If not, change your password at once "
             "(Account page) and tell your teacher.\n")
@@ -777,7 +778,7 @@ def login_form():
 
     return render_template("auth_login.html", next=safe_next(""), sso=sso.status(),
                            external_logins=auth_adapters.enabled_logins(current_app),
-                           guest_mode=current_app.config["PRG32_GUEST_MODE"])
+                           guest_mode=site_settings.get("PRG32_GUEST_MODE"))
 
 
 def too_many(error: security.Throttled, template: str | None = None, **context: Any):
@@ -800,7 +801,7 @@ def login():
     username = request.form.get("username", "")
     address = security.client_address()
     form_context = {"next": safe_next(""), "sso": sso.status(), "external_logins": auth_adapters.enabled_logins(current_app),
-                    "guest_mode": current_app.config["PRG32_GUEST_MODE"]}
+                    "guest_mode": site_settings.get("PRG32_GUEST_MODE")}
     try:
         # Failures are counted per address+name (so one student's typos lock only that name)
         # and, with a much larger limit, per address.
@@ -853,7 +854,7 @@ def me():
 
 @bp.get("/auth/register")
 def register_form():
-    return render_template("auth_register.html", allowed=current_app.config["ALLOW_REGISTRATION"])
+    return render_template("auth_register.html", allowed=site_settings.get("ALLOW_REGISTRATION"))
 
 
 @bp.post("/auth/register")
@@ -862,20 +863,20 @@ def register():
     errors = []
     if not EMAIL_RE.fullmatch(email):
         errors.append("email must be valid")
-    if not current_app.config["ALLOW_REGISTRATION"]:
+    if not site_settings.get("ALLOW_REGISTRATION"):
         errors.append("registration is closed; ask your teacher for an account")
-    domain = str(current_app.config.get("REQUIRE_EMAIL_DOMAIN") or "").lower().lstrip("@")
+    domain = str(site_settings.get("REQUIRE_EMAIL_DOMAIN") or "").lower().lstrip("@")
     if domain and not email.endswith("@" + domain):
         errors.append(f"email must belong to {domain}")
     if errors:
         if wants_json():
             return jsonify({"error": "; ".join(errors)}), 400
-        return render_template("auth_register.html", errors=errors, allowed=current_app.config["ALLOW_REGISTRATION"]), 400
+        return render_template("auth_register.html", errors=errors, allowed=site_settings.get("ALLOW_REGISTRATION")), 400
     try:
         security.check_and_hit("register_address", security.client_address())
         security.check_and_hit("register_email", email)
     except security.Throttled as error:
-        return too_many(error, "auth_register.html", allowed=current_app.config["ALLOW_REGISTRATION"])
+        return too_many(error, "auth_register.html", allowed=site_settings.get("ALLOW_REGISTRATION"))
     # Say the same thing whether or not the account exists, so nobody can test emails.
     if find_user_by_email(email) is None:
         token = _create_registration_token(email)
@@ -925,7 +926,7 @@ def register_complete():
         if wants_json():
             return jsonify({"error": "account already exists"}), 400
         return render_template("error.html", error="This account already exists. Sign in instead."), 400
-    role = current_app.config["DEFAULT_ROLE"]
+    role = site_settings.get("DEFAULT_ROLE")
     user = create_user(unique_username(record.email, record.email), record.email, password, role=role)
     security.record("user_registered", target_type="user", target_id=user.id, actor=None,
                     metadata={"role": user.role})

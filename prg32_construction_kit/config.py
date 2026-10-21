@@ -55,6 +55,9 @@ class Config:
     CLOUD_ONEDRIVE_CLIENT_ID = os.environ.get("PRG32_CLOUD_ONEDRIVE_CLIENT_ID") or None
     CLOUD_ONEDRIVE_CLIENT_SECRET = os.environ.get("PRG32_CLOUD_ONEDRIVE_CLIENT_SECRET") or None
     CLOUD_ONEDRIVE_TENANT = os.environ.get("PRG32_CLOUD_ONEDRIVE_TENANT") or "common"
+    # An admin can switch a configured provider off on the Settings page.
+    CLOUD_GOOGLE_ENABLED = _flag("PRG32_CLOUD_GOOGLE_ENABLED", True)
+    CLOUD_ONEDRIVE_ENABLED = _flag("PRG32_CLOUD_ONEDRIVE_ENABLED", True)
     # Encrypts stored cloud tokens; derived from SECRET_KEY when unset.
     CLOUD_TOKEN_KEY = os.environ.get("PRG32_CLOUD_TOKEN_KEY") or None
     # Store API tokens do not expire in the Cartridge Store (contract tokens.known_store_gap):
@@ -104,6 +107,18 @@ class Config:
     PRG32_PRIVACY_CONTACT = os.environ.get("PRG32_PRIVACY_CONTACT", "")
     # "local": the sign-in page offers "Try without an account" (this browser only); "off": it does not.
     PRG32_GUEST_MODE = os.environ.get("PRG32_GUEST_MODE", "local")
+    # Off (default): anyone may open the kit and make games kept in their own browser; building,
+    # publishing and classes still need a sign-in (ADR-0023). On: every page needs a sign-in.
+    LOGIN_REQUIRED = _flag("PRG32_KIT_LOGIN_REQUIRED", False)
+    # Maintenance mode: only admins can use the kit; everybody else sees the message.
+    MAINTENANCE_MODE = _flag("PRG32_KIT_MAINTENANCE", False)
+    MAINTENANCE_MESSAGE = os.environ.get("PRG32_KIT_MAINTENANCE_MESSAGE",
+                                         "The kit is being updated. Please come back in a few minutes.")
+    # Appearance (docs/admin_settings.md). Skins are static/css/themes/<skin>.css.
+    SITE_NAME = os.environ.get("PRG32_KIT_SITE_NAME", "PRG32-Construction-Kit")
+    WELCOME_TEXT = os.environ.get("PRG32_KIT_WELCOME_TEXT", "")
+    COLOR_SCHEME = os.environ.get("PRG32_KIT_COLOR_SCHEME", "light")
+    SKIN = os.environ.get("PRG32_KIT_SKIN", "classic")
     MAX_CONTENT_LENGTH = int(os.environ.get("PRG32_KIT_MAX_UPLOAD", str(32 * 1024 * 1024)))
     JSON_SORT_KEYS = False
 

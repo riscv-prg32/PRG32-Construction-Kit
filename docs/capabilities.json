@@ -722,14 +722,18 @@
         "tools/check_build.py::main",
         "docker/entrypoint.sh",
         ".github/workflows/tests.yml",
-        "tools/backup_restore.py::restore"
+        "tools/backup_restore.py::restore",
+        "prg32_construction_kit/settings.py::get"
       ],
       "tests": [
         "tests/test_api.py::test_discovery_reports_whether_cartridges_can_be_built",
         "tests/test_db.py::test_sqlalchemy_creates_the_compatible_resource_schema",
-        "tests/test_backup_restore.py::test_backup_restore_verify_and_use"
+        "tests/test_backup_restore.py::test_backup_restore_verify_and_use",
+        "tests/test_settings.py::test_the_environment_wins_and_locks_the_setting",
+        "tests/test_settings.py::test_another_process_sees_a_change",
+        "tests/test_settings.py::test_maintenance_lets_admins_in_and_tells_everybody_else"
       ],
-      "note": "Restore drill automated (tools/backup_restore.py, tests/test_backup_restore.py); hash-locked image dependencies and a CycloneDX SBOM; no metrics/SLO or TLS proof."
+      "note": "Restore drill automated (tools/backup_restore.py, tests/test_backup_restore.py); hash-locked image dependencies and a CycloneDX SBOM; no metrics/SLO or TLS proof. Runtime settings on the admin Settings page (docs/admin_settings.md): environment wins and locks, values checked, secrets sealed, maintenance mode."
     },
     {
       "id": "DOC-01",
