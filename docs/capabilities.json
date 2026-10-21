@@ -198,9 +198,10 @@
         "tests/test_audio_conformance.py::test_eight_voices_sound_at_once_each_with_its_own_envelope",
         "tests/test_audio_conformance.py::test_sustain_levels_are_exactly_sustain_times_257",
         "tests/test_audio_conformance.py::test_a_slow_attack_lasts_its_time_and_releases_end",
-        "tests/test_audio_contract.py::test_eight_voices_and_the_upstream_fallback"
+        "tests/test_audio_contract.py::test_eight_voices_and_the_upstream_fallback",
+        "tests/test_audio_studio.py::test_the_engine_plays_each_note_on_its_step"
       ],
-      "note": "The browser core runs the PRG32 firmware's own audio engine (ADR-0021): 8 voices, SID-like synth with filter, independent ADSR, samples, tracker; checked against the contract's formulas on a toolchain-built 8-voice fixture. Not recorded from firmware hardware or QEMU."
+      "note": "The browser core runs the PRG32 firmware's own audio engine (ADR-0021): 8 voices, SID-like synth with filter, independent ADSR, samples, tracker; checked against the contract's formulas on a toolchain-built 8-voice fixture. The real firmware in QEMU renders the same samples between events (docs/evidence/qemu-audio). No console recording yet (docs/hardware_audio_check.md)."
     },
     {
       "id": "AUD-02",
@@ -209,15 +210,20 @@
       "audit_score": 3,
       "source": [
         "static/js/prg32_runtime.js::PcmAudioOutput",
-        "wasm/audio/audio_port.c::step"
+        "wasm/audio/audio_port.c::step",
+        "tools/qemu_audio_capture.py::record_firmware",
+        "tools/hardware_audio_compare.py::compare"
       ],
       "tests": [
         "tests/test_audio_conformance.py::test_hard_left_and_hard_right_are_separate",
         "tests/test_audio_conformance.py::test_the_native_build_renders_the_same_samples",
         "tests/test_audio_conformance.py::test_the_run_is_deterministic_and_matches_the_record",
-        "tests/test_audio_browser.py::test_the_player_plays_the_engines_stereo_frames"
+        "tests/test_audio_browser.py::test_the_player_plays_the_engines_stereo_frames",
+        "tests/test_audio_conformance.py::test_the_qemu_firmware_evidence_still_holds",
+        "tests/test_prg32qt_firmware_audio.py::test_patched_prg32qt_renders_the_conformance_fixture_like_the_browser",
+        "tests/test_hardware_audio_check.py::test_an_exact_i2s_capture_passes_the_strict_checks"
       ],
-      "note": "Stereo PCM from the firmware's mixer, identical between the WebAssembly and native builds and pinned by hash; hard left/right separation, clipping and silence tested. PRG32-QT's mixer differs (no ADSR) and the QEMU firmware does not stream audio at SDK 679dfb5, so no cross-runtime recording yet."
+      "note": "Stereo PCM from the firmware's mixer: WebAssembly, native and PRG32-QT patched with the firmware engine (docs/upstream) are bit-identical on the conformance fixture and the console check; the PRG32 firmware in QEMU is equal sample for sample between events (76/234 and 66/269 sounding chunks; its QEMU clock places events earlier, upstream). Not yet: the PRG32-QT change merged upstream, and a console capture (tool and procedure ready)."
     },
     {
       "id": "AUD-03",
@@ -237,9 +243,12 @@
         "tests/test_audio_studio.py::test_generated_c_and_assembly_use_the_documents_numbers",
         "tests/test_audio_studio.py::test_the_cartridge_build_gets_the_audio_block",
         "tests/test_audio_studio.py::test_the_project_archive_carries_the_sound_and_imports_again",
-        "tests/test_audio_browser.py::test_audio_studio_edits_previews_saves_and_reloads"
+        "tests/test_audio_browser.py::test_audio_studio_edits_previews_saves_and_reloads",
+        "tests/test_audio_browser.py::test_audio_studio_works_with_the_keyboard_only",
+        "tests/test_audio_browser.py::test_audio_studio_sound_goes_into_the_archive_and_the_cartridge",
+        "tests/test_audio_studio.py::test_the_engine_plays_each_note_on_its_step"
       ],
-      "note": "AudioStudio page parallel to Sprite Lab: 8 voice instruments with ADSR, sound effects, an 8-row soundtrack grid, WAV samples; previewed through the PRG32 engine; one versioned audio_studio asset per project (expected_version, 409, quotas, ownership); named blocks become fixed instrument/track numbers in the generated C and assembly; the AUD0 block is packed deterministically into the cartridge build; archive, copy and export carry the samples. Not yet heard on hardware or QEMU."
+      "note": "AudioStudio page parallel to Sprite Lab: 8 voice instruments with ADSR, sound effects, an 8-row soundtrack grid, WAV samples; previewed through the PRG32 engine; one versioned audio_studio asset per project (expected_version, 409, quotas, ownership); named blocks become fixed instrument/track numbers in the generated C and assembly; the AUD0 block is packed deterministically into the cartridge build; archive, copy and export carry the samples. Soundtrack timing fixed to the tracker's wait-after deltas (13766c9 played notes one gap early). Keyboard-only, archive and Compile paths checked in a real browser; the console check cartridge is built from an AudioStudio project. No screen-reader session or console recording yet."
     },
     {
       "id": "AUD-04",
@@ -256,7 +265,7 @@
         "tests/test_no_buzzer.py::test_c_projects_using_it_get_a_clear_message",
         "tests/test_audio_conformance.py::test_an_old_buzzer_cartridge_is_silent_and_counted"
       ],
-      "note": "Kit side complete: refused in C and assembly with what to use instead, obsolete-only in the language index, silent and counted for old cartridges, a repository-wide guard. The SDK still lists the buzzer in its portable ABI (upstream change)."
+      "note": "Kit side complete: refused in C and assembly with what to use instead, obsolete-only in the language index, silent and counted for old cartridges (browser core, and PRG32-QT with the proposed patch), a repository-wide guard. The SDK still lists the buzzer in its portable ABI; the retirement is proposed with an inventory in docs/upstream (the kit does not change the SDK)."
     },
     {
       "id": "DBG-01",

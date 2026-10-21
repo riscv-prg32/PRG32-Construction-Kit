@@ -128,12 +128,14 @@ capability IDs.
   against in-process fakes and a real browser; no live tenant run yet.
   [CLD-01] [CLD-02]
 - Browser host with framebuffer, input, timing and an offline subset; its
-  stereo sound is the firmware engine's PCM, identical between builds, but not
-  yet recorded against the firmware itself (QEMU audio does not stream at SDK
-  679dfb5) or PRG32-QT (no ADSR). [WASM-02] [AUD-02]
+  stereo sound is the firmware engine's PCM, bit-identical in the native build
+  and in PRG32-QT with the kit's proposed firmware-audio patch, and equal to the
+  PRG32 firmware in QEMU between events; no console recording yet (procedure
+  and comparison tool ready). [WASM-02] [AUD-02]
 - Buzzer removal on the kit side: refused by the validators, obsolete-only in
   the editor, silent for old cartridges, guarded by a repository-wide test; the
-  SDK's portable ABI still lists it. [AUD-04]
+  SDK's portable ABI still lists it (retirement proposed in
+  `docs/upstream/`). [AUD-04]
 
 ### Not implemented
 

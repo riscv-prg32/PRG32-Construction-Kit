@@ -17,6 +17,8 @@
 - The PRG32 firmware's sound recorded in QEMU (`tools/qemu_audio_capture.py --build`) and
   compared with the browser core: equal sample for sample between cartridge events
   (`docs/evidence/qemu-audio/`). The console check now sets the master volume itself.
+- PRG32-QT: a proposed patch (`docs/upstream/`) renders sound with the firmware's engine;
+  tested bit-exact against the browser core. Upstream findings are listed there too.
 - CI keeps the conformance PCM (WAV) and voice trace, browser failure screenshots, and
   rebuilds the console check in the toolchain container.
 

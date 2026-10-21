@@ -160,7 +160,10 @@ def test_ci_runs_every_browser_suite_and_forbids_skipping():
     for suite in sorted(path.name for path in (ROOT / "tests").glob("test_*browser*.py")) + ["test_frontend_offline.py"]:
         assert f"tests/{suite}" in job, f"{suite} is not run by the CI browser job"
     assert 'PRG32_REQUIRE_BROWSER: "1"' in job
-    assert "--junitxml=browser-test-results.xml" in job and "path: browser-test-results.xml" in job
+    assert "--junitxml=browser-test-results.xml" in job
+    # The upload keeps the junit file (and the failure screenshots in browser-evidence/).
+    upload = re.search(r"path: \|?\n?((?:\s+\S+\n)+|\S+)", job.split("upload-artifact", 1)[1])
+    assert upload and "browser-test-results.xml" in upload.group(0) and "browser-evidence/" in upload.group(0)
 
 
 def test_ci_keeps_commit_specific_evidence():
