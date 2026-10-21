@@ -30,6 +30,8 @@ ALLOWED = {
     "static/js/prg32_runtime.js": "reports how many obsolete buzzer calls an old cartridge made",
     "tools/build_audio_fixtures.py": "builds the legacy test cartridge that proves old cartridges stay silent",
     "tools/audio_capture.mjs": "records how many obsolete calls a test cartridge made",
+    "tools/build_hardware_audio_check.py": "records that the console check makes no obsolete calls",
+    "tools/hardware_audio_compare.py": "explains that a buzzer would show in the silence checks",
 }
 
 
