@@ -12,10 +12,10 @@ Scores: 0 missing, 1 prototype, 2 partial, 3 implemented/tested with an evidence
 | BLD-01 | 2 | Partial | Real local toolchain build unavailable during this audit. |
 | BLD-02 | 3 | Implemented/tested | Isolation/provenance/diagnostics/debug identity; Linux rerun unavailable. |
 | WASM-01 | 4 | Reference-verified | Committed browser core and golden execution tests. |
-| WASM-02 | 3 | Implemented/tested | Browser uses the firmware audio engine and schedules its stereo PCM; exact firmware-device/Qt parity remains external. |
-| AUD-01 | 3 | Implemented/tested | Eight simultaneous SID-like synth voices with distinct ADSR/waveform/volume/pan pass contract and native/WASM tests; no firmware/QEMU capture. |
-| AUD-02 | 3 | Implemented/tested | Deterministic stereo PCM, separation, clipping, silence and native/WASM identity pass; PRG32-QT remains a divergent non-ADSR mixer. |
-| AUD-03 | 3 | Implemented/tested | AudioStudio CRUD, accessible browser editing/preview, conflicts, imports, named blocks and deterministic AUD0 cartridge packing pass; no device/QEMU run. |
+| WASM-02 | 4 | Reference-verified | Browser graphics/input/timing/offline evidence remains strong; its firmware-engine PCM is now compared with retained real-firmware QEMU output. |
+| AUD-01 | 4 | Reference-verified | Eight simultaneous SID-like voices and independent ADSR/waveform/volume/pan pass native/WASM tests and retained real-firmware QEMU sample comparison. |
+| AUD-02 | 3 | Implemented/tested | Native/WASM PCM is deterministic and a tested Qt patch is bit-identical; canonical Qt remains unpatched, QEMU event timing differs and no console capture exists. |
+| AUD-03 | 4 | Reference-verified | Real-browser CRUD/keyboard/archive/compile paths pass; a real-toolchain AudioStudio cartridge and its AUD0 data run through retained firmware/QEMU evidence. |
 | AUD-04 | 2 | Partial | Kit UI/index/generation refuse buzzer and legacy cartridges are silent, but the canonical PRG32 SDK still lists buzzer in its portable ABI. |
 | DBG-01 | 4 | Reference-verified | Address debugger and execution controls covered. |
 | DBG-02 | 4 | Reference-verified | Breakpoints and compressed stepping covered. |
@@ -42,6 +42,6 @@ Scores: 0 missing, 1 prototype, 2 partial, 3 implemented/tested with an evidence
 | DOC-01 | 3 | Implemented/tested | Consistency checks pass; one current-state row still says “this change”. |
 | QLT-01 | 4 | Reference-verified | Required browser CI, lint/coverage gates, performance budgets, accessibility evidence and regression coverage are present. |
 
-Domain totals: IDE 12/16; Project 3/4; Build 5/8; WASM 7/8; Audio 11/16; Debug 22/24; Accounts 8/8; SSO 15/16; Cloud 6/8; Store 7/8; Delivery 2/12; Security 7/8; Operations 4/4; Documentation 3/4; Quality 4/4.
+Domain totals: IDE 12/16; Project 3/4; Build 5/8; WASM 8/8; Audio 13/16; Debug 22/24; Accounts 8/8; SSO 15/16; Cloud 6/8; Store 7/8; Delivery 2/12; Security 7/8; Operations 4/4; Documentation 3/4; Quality 4/4.
 
-**Total: 116/148 (78.4%).**
+**Total: 119/148 (80.4%).**

@@ -1,54 +1,43 @@
 # Findings
 
-## Resolved since audit `c0d115e`
+## Closed or materially improved
 
-- The browser now renders stereo PCM from the PRG32 firmware engine, not simple Web Audio oscillators.
-- Eight concurrent voices with distinct SID-like waveforms, ADSR, volume and pan are exercised.
-- Deterministic native/WASM PCM, envelope traces, separation, clipping, silence, pan/volume changes and busy-voice replacement are tested.
-- AudioStudio provides instruments, effects, soundtracks, WAV samples, accessible preview, version conflicts, ownership/quotas, import/export, named Blocks and deterministic cartridge audio blocks.
-- Reachable Kit paths reject or omit the buzzer; old cartridges remain silent and diagnosed.
-
-## Critical
-
-No exploitable critical security issue was confirmed.
+- Real PRG32 firmware/QEMU captures now confirm the browser engine's stereo samples between cartridge events.
+- A tested PRG32-QT patch replaces the divergent floating-point mixer with the firmware engine and produces bit-identical hashes.
+- AudioStudio's keyboard-only, archive and Compile workflows run in real Chrome, with PCM/traces and failure screenshots retained by CI.
+- A real-toolchain AudioStudio cartridge, AUD0 block and strict physical-capture comparison tool are committed.
+- The discovered soundtrack delta-timing defect was fixed and regression-tested.
 
 ## High
 
-### H-01 — Canonical SDK still advertises the obsolete buzzer
+### H-01 — Canonical SDK still supports the obsolete buzzer
 
-- Evidence: ADR-0021 and `docs/capabilities.json` explicitly record that PRG32 SDK revision `679dfb5` still lists the buzzer in its portable ABI.
-- Kit mitigation: `tests/test_no_buzzer.py` ensures no normal Kit UI/code path offers it and validators reject its use.
-- Impact: the ecosystem contract remains contradictory; other SDK consumers can create cartridges using a removed feature.
-- Remedy: remove buzzer functions/types/import slots from the canonical SDK through an ABI-versioned migration, update firmware/Qt behavior, then regenerate the Kit language index and fixtures.
+The SDK at `679dfb5` still declares and exports buzzer calls at portable ABI indices 5, 7 and 8. The Kit refuses new C/assembly use and makes legacy calls silent, but `docs/upstream/README.md` is only a proposal. Remove/version the feature upstream, reserve the indices safely and regenerate every consumer.
 
 ## Medium
 
-### M-01 — Stereo reference parity stops at native/WASM builds of the same engine
+### M-01 — Stereo parity changes are not canonical upstream
 
-`tests/test_audio_conformance.py` proves deterministic identity between native and WASM builds, but not an independent firmware/QEMU or physical-device capture. PRG32-QT's current floating-point mixer lacks the firmware ADSR semantics. Update PRG32-QT to the canonical engine or clearly retire it as an audio reference, enable QEMU capture, and compare the same fixture across targets.
+`docs/upstream/prg32-qt-firmware-audio.patch` is well tested, but the released PRG32-QT checkout still uses its non-ADSR mixer. Merge an equivalent change upstream and test the released artifact.
 
-### M-02 — AudioStudio has no QEMU/hardware playback evidence
+### M-02 — QEMU event timing diverges
 
-The generated AUD0 block and PRG32 cartridge are tested structurally and in the browser engine, but no recorded PRG32/QEMU or hardware stereo result demonstrates the full authoring-to-device chain.
+The firmware/QEMU path advances envelopes and the tracker by emulated wall time while emitting fixed 20 ms buffers, so events occur early. Fix the upstream QEMU audio clock to advance from rendered sample count, then require whole-recording parity.
 
-### M-03 — Audio fixture reproduction is toolchain-dependent
+### M-03 — Physical stereo path remains unverified
 
-`tools/build_audio_fixtures.py --check` could not run on this host because the PRG32 toolchain is absent. CI must preserve the toolchain-built fixture and PCM evidence as immutable artifacts.
+The cartridge, capture procedure and comparator are ready, but `docs/hardware_audio_check.md` explicitly records that no console capture exists. Run it on a stereo-wired ESP32-C6 PRG32 and retain delivery, firmware and I2S evidence.
 
-### M-04 — External delivery and cloud evidence remains incomplete
+### M-04 — Local fixture reproduction unavailable
 
-Physical-device transfer, end-user Qt import, iOS handoff and real Google/Microsoft tenant runs remain unverified.
+The audit host lacks the PRG32 RISC-V toolchain, so the committed audio fixture rebuild checks skipped. CI documents an equipped job, but this audit independently verified only stored hashes and tests.
 
 ## Low
 
-### L-01 — AudioStudio UI coverage is strong but not a recorded screen-reader session
+### L-01 — Human assistive-technology evidence remains open
 
-Keyboard and axe checks pass; retain a short human screen-reader session for the new envelope, tracker grid and status announcements.
-
-### L-02 — Legacy buzzer behavior needs an ecosystem migration note
-
-The Kit refuses new source and silently renders old cartridges without buzzer sound while counting calls. Document the ABI/version transition for non-Kit cartridges and SDK users before upstream removal.
+Keyboard and automated accessibility scenarios pass. Complete the AudioStudio tasks in `docs/accessibility_session.md` with a human screen-reader session.
 
 ## Release conclusion
 
-The AudioStudio classroom preview is credible. The complete audio release remains **NO-GO** until the canonical SDK no longer exposes buzzer support and stereo/ADSR behavior is demonstrated against an independent firmware/QEMU or device reference, with PRG32-QT aligned or explicitly de-scoped.
+The Construction Kit's AudioStudio classroom workflow is credible and reference-tested through browser and firmware/QEMU. Complete ecosystem audio release remains **NO-GO** until upstream buzzer removal, canonical Qt integration, corrected QEMU timing and physical stereo capture are complete.

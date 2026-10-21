@@ -2,28 +2,20 @@
 
 Audit date: 2026-10-21 (Europe/Rome)
 
-Audited revision: `ide/refine-after-e2d0cef` at `13766c9173353f10d4b89222df0c1e60291725a5`
+Audited revision: `ide/refine-after-e2d0cef` at `f4b74bcfe2f0b70563daae4fd76cc1c1b8acaf78`
 
-Recommendation: **NO-GO for the complete audio release; CONDITIONAL GO for an AudioStudio classroom preview**
+Recommendation: **NO-GO for the complete ecosystem audio release; GO for the Construction Kit AudioStudio classroom workflow**
 
-The three audio refinement commits close most of the previous blockers. The browser core now compiles and runs the PRG32 firmware audio engine rather than approximating it in JavaScript. A toolchain-built conformance cartridge proves eight simultaneous SID-like voices, independent ADSR, waveforms, volumes and pans; native and WASM builds render identical deterministic stereo PCM. AudioStudio now manages eight voice instruments, effects, soundtracks and WAV samples, previews through the same engine, saves conflict-safe versioned assets, drives named Blocks/generated C and assembly, and packs a deterministic AUD0 block into every relevant PRG32 cartridge.
+The refinement after `13766c9` closes three former reference gaps. Retained captures now compare the browser engine with the real PRG32 firmware in Espressif QEMU; a patch applies the same firmware engine to PRG32-QT and produces bit-identical fixture hashes; and a real-toolchain cartridge built from an AudioStudio project is exercised through the firmware/QEMU path. Real-browser scenarios cover keyboard-only editing, save/reload, archive round-trip, compile/package and stereo playback.
 
-Kit-side buzzer removal is strong: it is absent from suggestions/blocks/examples, refused in C and assembly, guarded by a repository-wide test, and old buzzer cartridges stay silent. However, the canonical PRG32 SDK at the inspected revision still includes buzzer functions in its portable ABI. The updated audit requires complete removal, so `AUD-04` remains partial.
+This supports score 4 for `WASM-02`, `AUD-01` and `AUD-03`. `AUD-02` remains 3 because the PRG32-QT change is a proposal rather than the released canonical runtime, QEMU advances events early relative to rendered samples, and no physical stereo-console capture exists. `AUD-04` remains 2 because the canonical SDK still exports buzzer functions; the Kit correctly refuses new use and renders legacy calls silently, but an upstream proposal is not removal.
 
-Full stereo reference parity also remains incomplete. Native and WASM builds of the firmware engine match bit-for-bit, but the installed PRG32/QEMU path cannot currently stream the capture and PRG32-QT still uses a different floating-point mixer without ADSR. No hardware stereo capture was performed. This keeps `AUD-01`/`AUD-02`/`AUD-03` at 3 rather than 4.
+Fresh evidence:
 
-## Executed evidence
+- focused audio/conformance/AudioStudio/QEMU/Qt-patch suite: **113 passed, 1 toolchain-dependent skip**;
+- mandatory Chrome suite, including four AudioStudio scenarios: **87 passed**;
+- broad feasible suite: **988 passed, 75 skipped, 1 deselected**, with four sandbox-denied loopback setups; the permitted delivery rerun passed **6/6**;
+- Python/JavaScript syntax and all locally feasible reproducibility checks passed;
+- committed audio fixture rebuilds could not be repeated locally because the PRG32 toolchain is absent.
 
-- Audio-focused backend/conformance suite: **95 passed**.
-- Broad feasible suite: **965 passed**; capability/document consistency: **156 passed**; mandatory Chrome suites, including AudioStudio: **85 passed**; loopback delivery: **6 passed**. Environment skips and limitations are itemized in `audit/TEST_REPORT.md`.
-- Syntax, cache lock, language index, Store fixtures, dependency lock and SBOM checks passed.
-- Audio fixture regeneration check was blocked locally because the PRG32 toolchain is not installed; committed fixture provenance was inspected.
-
-## Audio verdict
-
-- Eight simultaneous SID-like ADSR voices: **implemented and meaningfully tested**.
-- Stereo PCM: **native/WASM verified; firmware-device/PRG32-QT convergence incomplete**.
-- AudioStudio: **implemented and browser-tested; device/QEMU playback unverified**.
-- Buzzer removal: **complete inside the Kit, incomplete in the canonical SDK ABI**.
-
-Scored coverage is **116/148 (78.4%)**. The complete Full IDE/audio release remains NO-GO because the mandatory no-buzzer/reference-parity gate is not fully satisfied.
+Scored coverage is **119/148 (80.4%)**. Construction Kit AudioStudio is ready for classroom use within the evidenced browser/QEMU scope. The complete ecosystem release remains NO-GO until the canonical SDK retires buzzer, the Qt patch is upstream, QEMU timing is corrected, and physical stereo output is captured.

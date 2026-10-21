@@ -172,7 +172,7 @@
       "id": "WASM-02",
       "title": "Browser host: framebuffer, input, timing, audio, offline",
       "status": "partial",
-      "audit_score": 3,
+      "audit_score": 4,
       "source": [
         "static/js/prg32_runtime.js::PRG32CartridgePlayer",
         "static/service-worker.js"
@@ -188,7 +188,7 @@
       "id": "AUD-01",
       "title": "Eight SID-like voices with independent ADSR",
       "status": "implemented",
-      "audit_score": 3,
+      "audit_score": 4,
       "source": [
         "wasm/prg32_core_api.cpp::afterHostCall",
         "wasm/audio/audio_port.c::prg32_kit_audio_advance_ms",
@@ -229,7 +229,7 @@
       "id": "AUD-03",
       "title": "AudioStudio instruments, sound effects and soundtracks",
       "status": "implemented",
-      "audit_score": 3,
+      "audit_score": 4,
       "source": [
         "prg32_construction_kit/audio_studio.py::compile_document",
         "prg32_construction_kit/audio_studio_api.py::put_audio",

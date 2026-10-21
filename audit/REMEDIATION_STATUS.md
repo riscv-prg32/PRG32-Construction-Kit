@@ -1,15 +1,14 @@
 # Remediation status
 
-Status at `13766c9173353f10d4b89222df0c1e60291725a5`.
+Status at `f4b74bcfe2f0b70563daae4fd76cc1c1b8acaf78`.
 
 | Item | Status |
 |---|---|
-| IDE/language/debug baseline | Reference-verified for documented scope |
-| Identity, guest/registered storage, Store contract | Reference-verified |
-| Sandbox/operations/quality | Strong implemented evidence; shared UID/external delivery gaps remain |
-| Eight SID-like ADSR voices | Implemented; native/WASM conformance verified; device/reference coverage incomplete |
-| Stereo sample parity | Native/WASM bit-identical; PRG32-QT, QEMU capture and hardware remain incomplete |
-| AudioStudio | Implemented with versioned assets, preview, generation, archives and browser coverage |
-| Buzzer removal | Complete in the Kit; incomplete in the canonical PRG32 SDK ABI |
+| Eight SID-like ADSR voices | Reference-verified in native/WASM and retained real-firmware QEMU segments |
+| Stereo engine parity | Strong evidence; Qt integration remains unmerged and QEMU event timing differs |
+| AudioStudio | Reference-verified through browser, real-toolchain cartridge and firmware/QEMU evidence |
+| Buzzer removal | Complete in the Kit; canonical SDK retirement is only proposed |
+| Physical console | Procedure and strict comparator ready; no recording |
+| Accessibility | Automated and keyboard coverage pass; human screen-reader session absent |
 
-Release recommendation: **NO-GO for the complete audio release; CONDITIONAL GO for a supervised AudioStudio classroom preview**. The mandatory upstream no-buzzer and cross-runtime/device evidence gates remain open.
+Recommendation: **GO for the evidenced Construction Kit classroom workflow; NO-GO for complete ecosystem audio release**.

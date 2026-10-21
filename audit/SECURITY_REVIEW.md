@@ -1,9 +1,7 @@
 # Security review
 
-No new critical security exploit was confirmed. AudioStudio uses the established authenticated ownership, optimistic-version and quota controls. Its validator bounds document structure, voice/instrument/event values and WAV-derived sample data; the cartridge packer checks references and sizes before producing deterministic `AUD0` data. Preview executes the same compiled audio engine under the existing strict CSP rather than uploaded code.
+No new critical security issue was confirmed. AudioStudio preserves authenticated ownership, version conflicts, quotas, bounded document/WAV validation and deterministic packaging. Browser preview executes the compiled firmware engine rather than uploaded code. Archive imports remap owned samples, and the normal generation pipeline still refuses arbitrary unvalidated LLM C.
 
-The implementation retains the important trust boundary: Blockly JSON and AudioStudio data are validated inputs to deterministic generation; arbitrary LLM-supplied C is not accepted by the normal pipeline. Archive import remaps owned audio samples instead of trusting foreign identifiers. Legacy buzzer calls are rejected in authored C/assembly and silenced in old cartridges rather than reinterpreted.
+The added QEMU, patch-application and hardware-check tooling operates on explicit copies/artifacts and has negative tests for malformed or misleading captures. Legacy buzzer calls are never reinterpreted as another sound operation.
 
-Residual audio risk is principally compatibility and availability, not a demonstrated exploit: canonical SDK buzzer symbols remain reachable outside the Kit; toolchain-built fixture reproduction was unavailable on this audit host; and physical-device resource behavior has not been measured. Fuzzing malformed `AUD0`/WAV inputs and sustained eight-voice playback under target memory/CPU limits remains advisable.
-
-The previously documented non-audio residuals remain: shared host UID outside namespaces, absent real cloud-tenant/device-delivery evidence and upstream Store lifecycle limitations.
+Residual risks are primarily availability and supply-chain reproducibility: local toolchain rebuilds were unavailable; the upstream patches are not canonical releases; and target CPU/memory behavior lacks physical-device observation. Existing non-audio residuals—shared host UID outside namespaces and absent real external-provider/device-delivery evidence—remain.
