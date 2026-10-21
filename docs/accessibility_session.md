@@ -6,10 +6,10 @@ actually make a game. That needs a real session, by a person, recorded here.
 
 **Status:** no session has been conducted yet.
 
-## How to run one (about 45 minutes)
+## How to run one (about 60 minutes)
 
 Use one of: NVDA with Firefox or Chrome (Windows), VoiceOver with Safari (macOS,
-Cmd+F5), or ChromeVox (Chromebook). Do not use the mouse. Note for each task whether it
+Cmd+F5), or ChromeVox (Chromebook). Do not use the mouse. Tasks 10–14 cover AudioStudio (`audio_studio.md`). Note for each task whether it
 was done, how long it took, and anything that was not announced or could not be
 reached.
 
@@ -24,7 +24,12 @@ reached.
 | 7 | Compile; hear the result; download the PRG32 cartridge | | |
 | 8 | Play it in the Player; start, pause, step a frame | | |
 | 9 | In the debugger, set a breakpoint on a line, run to it, read a variable | | |
-| 10 | Sign out | | |
+| 10 | Open AudioStudio from a project; hear the four tabs and move between them with the arrow keys | | |
+| 11 | Change voice 0's attack with the slider; hear its value and the envelope description | | |
+| 12 | Make a sound effect, rename it, play it (Try it) and stop it with Escape | | |
+| 13 | In a soundtrack, type notes in the grid, move with the arrow keys and hear each step's voice and number | | |
+| 14 | Save; hear the status line; handle the "changed in another window" question | | |
+| 15 | Sign out | | |
 
 ## Recording the result
 

@@ -141,7 +141,17 @@ jobs:
           PRG32QT_DIR: ${{ github.workspace }}/PRG32-QT
           PRG32_SOURCE: ${{ github.workspace }}/PRG32
           PRG32_REQUIRE_SDK: "1"
+          PRG32_AUDIO_EVIDENCE: ${{ github.workspace }}/audio-evidence
         run: python -m pytest -q -rs tests/test_audio_contract.py tests/test_audio_block.py tests/test_audio_conformance.py
+
+      # The conformance run's stereo PCM (WAV) and per-frame voice trace (JSON), kept as evidence.
+      - name: Keep the audio evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: audio-evidence-${{ github.sha }}
+          path: audio-evidence/
+          retention-days: 90
 
       - name: Golden tests with a fresh build of the module
         env:
@@ -190,6 +200,7 @@ jobs:
         env:
           PRG32QT_DIR: ${{ github.workspace }}/PRG32-QT
           PRG32_REQUIRE_BROWSER: "1"
+          PRG32_BROWSER_EVIDENCE: ${{ github.workspace }}/browser-evidence
         run: >-
           python -m pytest -q -rs --junitxml=browser-test-results.xml -o junit_suite_name=browser-${{ github.sha }}
           tests/test_browser_offline.py tests/test_ide_browser.py tests/test_debugger_browser.py tests/test_accounts_browser.py tests/test_storage_browser.py tests/test_cloud_browser.py tests/test_performance_browser.py tests/test_audio_browser.py tests/test_frontend_offline.py
@@ -199,7 +210,9 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: browser-test-results-${{ github.sha }}
-          path: browser-test-results.xml
+          path: |
+            browser-test-results.xml
+            browser-evidence/
           retention-days: 90
 
   # The shared Store contract against the Cartridge Store's own code, at the commit the

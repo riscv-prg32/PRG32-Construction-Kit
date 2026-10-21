@@ -33,11 +33,20 @@ FRAMES = 170
 needs_node = pytest.mark.skipif(shutil.which("node") is None, reason="Node.js is not installed")
 
 
-def capture(cartridge: str, frames: int = FRAMES, module: str | None = None) -> dict:
+def capture(cartridge: str, frames: int = FRAMES, module: str | None = None, label: str | None = None) -> dict:
+    """Run a fixture cartridge in the browser core. With PRG32_AUDIO_EVIDENCE=<folder> (CI sets it),
+    its stereo PCM (WAV) and the per-frame voice trace (JSON) are kept there as evidence."""
+    evidence = os.environ.get("PRG32_AUDIO_EVIDENCE")
+    wav = []
+    if evidence and label:
+        Path(evidence).mkdir(parents=True, exist_ok=True)
+        wav = [str(Path(evidence) / f"{label}.wav")]
     command = ["node", str(ROOT / "tools" / "audio_capture.mjs"), *(["--module", module] if module else []),
-               str(FIXTURES / cartridge), str(frames)]
+               str(FIXTURES / cartridge), str(frames), *wav]
     result = subprocess.run(command, capture_output=True, text=True, timeout=300)
     assert result.returncode == 0, result.stderr
+    if wav:
+        (Path(evidence) / f"{label}.json").write_text(result.stdout)
     return json.loads(result.stdout)
 
 
@@ -45,7 +54,7 @@ def capture(cartridge: str, frames: int = FRAMES, module: str | None = None) -> 
 def run():
     if shutil.which("node") is None:
         pytest.skip("Node.js is not installed")
-    return capture("conformance.prg32")
+    return capture("conformance.prg32", label="conformance-wasm")
 
 
 def frame(run, number):
@@ -151,7 +160,7 @@ def test_the_run_is_deterministic_and_matches_the_record(run):
 
 @needs_node
 def test_an_old_buzzer_cartridge_is_silent_and_counted():
-    legacy = capture("legacy_buzzer.prg32", frames=10)
+    legacy = capture("legacy_buzzer.prg32", frames=10, label="legacy-buzzer-wasm")
     assert legacy["buzzer_calls"] == 2
     assert all(item["peakLeft"] == 0 and item["peakRight"] == 0 for item in legacy["frames"])
 
