@@ -15,7 +15,8 @@ The checks:
 - **orphans:** every picture is used somewhere, except release evidence;
 - **freshness:** a picture is stale when the files it shows (its "watch" paths) differ now from
   the commit it shows, unless a person acknowledged that change ("acknowledged": a later commit,
-  with a reviewer and a date). Evidence is frozen;
+  with a reviewer and a date). Evidence is frozen. Generated diagrams say how their freshness
+  is checked instead (tools/build_diagrams.py --check, in CI);
 - **obsolete names:** settings (PRG32_...) and API routes (/api/...) named in the docs exist in
   the code; ABI versions in the docs are the kit's, unless the line is about a proposal;
 - **ID drift:** ADR-00NN names an existing ADR; capability IDs exist in docs/capabilities.json;
@@ -149,11 +150,14 @@ def check_manifest() -> list[str]:
             continue
         if entry.get("kind") != "evidence" and visual in visuals and not used_somewhere(visual):
             problems.append(f"{visual}: not used by any document or page (an orphan)")
+        if entry.get("kind") == "diagram" and "build_diagrams.py" in entry.get("recipe", "") and not entry.get("freshness"):
+            problems.append(f"manifest: {visual} is generated: say how its freshness is checked (freshness)")
         if entry.get("frozen") or not entry.get("watch") or not commit:
             continue
         acknowledged = entry.get("acknowledged") or {}
         base = acknowledged.get("commit") if acknowledged.get("commit") and ancestor(acknowledged["commit"]) else commit
-        changed = subprocess.run(["git", "-C", str(ROOT), "diff", "--quiet", base, "HEAD", "--", *entry["watch"]]).returncode
+        # Against the working tree, so a change not yet committed counts too.
+        changed = subprocess.run(["git", "-C", str(ROOT), "diff", "--quiet", base, "--", *entry["watch"]]).returncode
         if changed:
             problems.append(f"{visual}: stale: {', '.join(entry['watch'])} changed since {base[:12]}; capture it again "
                             f"({entry['recipe']}) or acknowledge the change in the manifest")

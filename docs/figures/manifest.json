@@ -194,9 +194,10 @@
   "docs/figures/architecture.svg": {
    "browser": "n/a",
    "captured": "2026-10-21",
+   "freshness": "generated: python3 tools/build_diagrams.py --check (CI) fails if the file differs from what the script draws",
    "kind": "diagram",
    "locale": "en-US",
-   "product_commit": "d68a0e74ebe456102953b81f714211f2e68f9b96",
+   "product_commit": "b12b4e8c4477827f9cfde35f6c8f99d59b364dc7",
    "purpose": "Components and trust boundaries (docs/architecture.md)",
    "recipe": "python3 tools/build_diagrams.py",
    "review_note": "drawn from the data in tools/build_diagrams.py; checked against the code on this date",
@@ -205,16 +206,15 @@
    "seed": "none (no people)",
    "theme": "light",
    "viewport": "n/a",
-   "watch": [
-    "tools/build_diagrams.py"
-   ]
+   "watch": []
   },
   "docs/figures/data_flow.svg": {
    "browser": "n/a",
    "captured": "2026-10-21",
+   "freshness": "generated: python3 tools/build_diagrams.py --check (CI) fails if the file differs from what the script draws",
    "kind": "diagram",
    "locale": "en-US",
-   "product_commit": "d68a0e74ebe456102953b81f714211f2e68f9b96",
+   "product_commit": "b12b4e8c4477827f9cfde35f6c8f99d59b364dc7",
    "purpose": "Personal data, retention and recipients (docs/architecture.md, docs/privacy/)",
    "recipe": "python3 tools/build_diagrams.py",
    "review_note": "drawn from the data in tools/build_diagrams.py; checked against the code on this date",
@@ -223,16 +223,15 @@
    "seed": "none (no people)",
    "theme": "light",
    "viewport": "n/a",
-   "watch": [
-    "tools/build_diagrams.py"
-   ]
+   "watch": []
   },
   "docs/figures/game_loop.svg": {
    "browser": "n/a",
    "captured": "2026-10-21",
+   "freshness": "generated: python3 tools/build_diagrams.py --check (CI) fails if the file differs from what the script draws",
    "kind": "diagram",
    "locale": "en-US",
-   "product_commit": "d68a0e74ebe456102953b81f714211f2e68f9b96",
+   "product_commit": "b12b4e8c4477827f9cfde35f6c8f99d59b364dc7",
    "purpose": "The PRG32 game loop and the audio frame clock (docs/architecture.md)",
    "recipe": "python3 tools/build_diagrams.py",
    "review_note": "drawn from the data in tools/build_diagrams.py; checked against the code on this date",
@@ -241,9 +240,7 @@
    "seed": "none (no people)",
    "theme": "light",
    "viewport": "n/a",
-   "watch": [
-    "tools/build_diagrams.py"
-   ]
+   "watch": []
   },
   "docs/figures/games/asteroids-editor.jpg": {
    "browser": "chromium 155.0.8059.85 (headless)",
@@ -959,9 +956,10 @@
   "docs/figures/pipeline.svg": {
    "browser": "n/a",
    "captured": "2026-10-21",
+   "freshness": "generated: python3 tools/build_diagrams.py --check (CI) fails if the file differs from what the script draws",
    "kind": "diagram",
    "locale": "en-US",
-   "product_commit": "d68a0e74ebe456102953b81f714211f2e68f9b96",
+   "product_commit": "b12b4e8c4477827f9cfde35f6c8f99d59b364dc7",
    "purpose": "From Blocks, C or assembly to a cartridge (docs/architecture.md)",
    "recipe": "python3 tools/build_diagrams.py",
    "review_note": "drawn from the data in tools/build_diagrams.py; checked against the code on this date",
@@ -970,9 +968,7 @@
    "seed": "none (no people)",
    "theme": "light",
    "viewport": "n/a",
-   "watch": [
-    "tools/build_diagrams.py"
-   ]
+   "watch": []
   },
   "static/img/prg32-icon.svg": {
    "browser": "n/a",
