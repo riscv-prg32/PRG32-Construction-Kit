@@ -107,10 +107,14 @@ def wait_until(page, expression: str, timeout: float = 15.0):
     """
     import time
 
+    # Only true/false comes back (a promise is awaited first): returning the expression's value
+    # (a Blockly workspace, say) would make Playwright serialize a large object graph on every
+    # poll, which can be slow or fail on a busy CI runner and look like a page that never loads.
+    check = f"(async () => !!(await ({expression})))()"
     deadline = time.monotonic() + timeout
     while True:
         try:
-            if page.evaluate(expression):
+            if page.evaluate(check):
                 return
         except playwright_api.Error:
             pass  # the page is still loading
@@ -223,8 +227,7 @@ def test_an_open_page_keeps_working_when_the_network_goes(browser, live_kit):
     sign_in(page, live_kit)
     project = first_project(page, live_kit)
     page.goto(f"{live_kit}/projects/{project}")
-    # The editor loads Blockly and the sound engine; a busy CI runner can take longer than 15 s.
-    wait_until(page, "window.PRG32Blocks && PRG32Blocks.getWorkspace()", timeout=45)
+    wait_until(page, "window.PRG32Blocks && PRG32Blocks.getWorkspace()")
     context.set_offline(True)
     assert blockly_is_editable(page)
     page.click("#runGame")
