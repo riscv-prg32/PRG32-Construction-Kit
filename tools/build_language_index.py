@@ -287,7 +287,9 @@ def load_abi(sdk: Path) -> dict:
     exec(compile((sdk / SDK_ABI[0]).read_text(), SDK_ABI[0], "exec"), namespace)  # noqa: S102 - pinned SDK data file
     table = json.loads((sdk / SDK_ABI[1]).read_text())
     return {"major": namespace["ABI_MAJOR"], "minor": namespace["ABI_MINOR"], "hash": f"0x{namespace['ABI_HASH']:08x}",
-            "imports": list(namespace["IMPORT_NAMES"]), "functions": {row["name"]: row for row in table["functions"]}}
+            # A retired ABI slot has no import name (None): it keeps its index but is not an API.
+            "imports": [name for name in namespace["IMPORT_NAMES"] if name is not None],
+            "functions": {row["name"]: row for row in table["functions"] if not row.get("retired")}}
 
 
 def clean_comment(lines: list[str]) -> str:

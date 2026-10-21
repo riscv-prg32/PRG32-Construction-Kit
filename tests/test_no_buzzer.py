@@ -117,3 +117,24 @@ def test_a_project_using_it_cannot_be_compiled(client):
     project = project.get_json()
     answer = client.post(f"/api/projects/{project['id']}/convert", json={})
     assert answer.status_code == 400 and "no longer supported" in answer.get_json()["error"]
+
+
+def test_the_index_builder_skips_retired_abi_slots(tmp_path):
+    """The proposed SDK change (docs/upstream/prg32-sdk-retire-buzzer.patch) keeps the buzzer's ABI slots
+    but without a name (None) and marks them "retired": the language index must not offer them."""
+    import json
+    import sys
+
+    sys.path.insert(0, str(ROOT / "tools"))
+    import build_language_index
+
+    abi = tmp_path / "prg32" / "abi"
+    abi.mkdir(parents=True)
+    (abi / "abi_generated.py").write_text("ABI_MAJOR = 1\nABI_MINOR = 7\nABI_HASH = 0xb32d1d76\n"
+                                          "IMPORT_NAMES = ['prg32_ticks_ms', None, 'prg32_audio_note']\n")
+    (abi / "prg32_abi.json").write_text(json.dumps({"functions": [
+        {"name": "prg32_ticks_ms"}, {"name": "prg32_buzzer_tone", "retired": {"since": "1.7"}},
+        {"name": "prg32_audio_note"}]}))
+    loaded = build_language_index.load_abi(tmp_path)
+    assert loaded["imports"] == ["prg32_ticks_ms", "prg32_audio_note"]
+    assert "prg32_buzzer_tone" not in loaded["functions"]

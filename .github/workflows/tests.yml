@@ -144,7 +144,7 @@ jobs:
           PRG32_AUDIO_EVIDENCE: ${{ github.workspace }}/audio-evidence
         run: >-
           python -m pytest -q -rs tests/test_audio_contract.py tests/test_audio_block.py tests/test_audio_conformance.py
-          tests/test_prg32qt_firmware_audio.py
+          tests/test_prg32qt_firmware_audio.py tests/test_upstream_sdk_patches.py
 
       # The conformance run's stereo PCM (WAV) and per-frame voice trace (JSON), kept as evidence.
       - name: Keep the audio evidence

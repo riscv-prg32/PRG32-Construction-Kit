@@ -38,32 +38,49 @@ cd PRG32-QT && git apply ../PRG32-Construction-Kit/docs/upstream/prg32-qt-firmwa
 cmake -S . -B build -DPRG32QT_FIRMWARE_AUDIO=ON -DPRG32_SDK_DIR=../PRG32 && cmake --build build
 ```
 
-## 2. PRG32 SDK: retire the buzzer from the portable ABI (proposal, no patch)
+## 2. PRG32 SDK: retire the buzzer from the portable ABI (patch)
 
-The kit already treats the buzzer as obsolete. It refuses it in C and assembly, lists it only
-as obsolete in the editor, and keeps old cartridges silent while counting their calls
-(contract `legacy_buzzer`). The SDK at `679dfb5` still publishes it:
+[`prg32-sdk-retire-buzzer.patch`](prg32-sdk-retire-buzzer.patch), against PRG32 SDK `679dfb5`
+(it applies together with §3's patch), implements this policy:
 
-| Where | What |
+- **ABI 1.7.** Entries 5, 7 and 8 (`prg32_buzzer_tone`, `_play_notes`, `_sample_u8`) are
+  marked `"retired"` in `prg32_abi.json`. They keep their slot, so the other 136 entries
+  never move, and point at one silent stub, `prg32_abi_retired_silent`, which returns 0.
+  They have no import name (`IMPORT_NAMES` holds `None`), and the generator writes
+  `PRG32_ABI_FN_RETIRED_n`. `abi_gen.py` and its users understand retired slots.
+- **Old cartridges.** The 1.6 hash (`0x260f6136`) is in `compatible_hashes`, so cartridges
+  built for 1.6 still load, and their buzzer calls do nothing. No call is reinterpreted as a
+  synthesizer call.
+- **New source.** `prg32.h` no longer declares the calls or `prg32_note_t`. C calling them
+  fails to compile, and assembly calling them fails to link (the portable stubs have no
+  symbol). The firmware keeps its own PWM driver for boards with a buzzer pin, in a private
+  header (`components/prg32/prg32_buzzer.h`), for the setup menu and the splash.
+- **Examples and docs.** 4 C games, 13 assembly files and `devicedemo` play
+  `prg32_audio_note` or `prg32_audio_notes`, with the nearest MIDI note in a comment. The
+  sound lab, the tutorial, the framework manual and the audio pages say what to use instead.
+
+What was checked in a clean clone:
+
+| Check | Result |
 |---|---|
-| `components/prg32/include/prg32.h` | `prg32_buzzer_tone`, `prg32_buzzer_play_notes`, `prg32_buzzer_sample_u8` |
-| `prg32/abi/prg32_abi.json` → `abi_gen.py` → `prg32_abi_index.h`, `abi_generated.py`, `prg32_abi_table.c`, `prg32_abi_exports.c` | ABI entries 5, 7, 8 |
-| `examples/games/*` (4 C files and 13 assembly files), `cartridges/devicedemo` | calls to `prg32_buzzer_tone` |
-| `components/prg32/prg32_audio.c`, `prg32_system.c`, `prg32_splash.c`, `prg32_led.c`, `Kconfig`, `main/prg32_config.h`, a pin profile | the board's PWM buzzer driver (setup and splash sounds) |
-| 13 documentation pages | the buzzer API and wiring |
+| The SDK's own tests, with 2 new tests (retired slots, no public buzzer, stub offsets) | 89 passed (87 before) |
+| `python3 -m prg32 abi check` | generated files match |
+| The 18 changed example and cartridge sources, built with the RISC-V toolchain (`--portable`) | 18 built |
+| A C file calling `prg32_buzzer_tone` | does not compile (implicit declaration) |
+| The same call in assembly | does not link (`undefined reference`); it builds with the unpatched SDK |
+| QEMU firmware with the patch, running the kit's 1.6 `legacy_buzzer.prg32` | loads; 3 s of exact silence, equal to the browser core |
+| The kit's language index from the patched SDK (ABI pin set to 1.7) | identical apart from the ABI version |
 
-The kit's proposed policy:
+`tests/test_upstream_sdk_patches.py` (in CI) applies both SDK patches to a copy of the
+checkout and repeats the ABI, header and example checks.
 
-- keep indices 5, 7 and 8 reserved, so no other entry moves, and point them at one silent
-  stub;
-- remove the declarations and the JSON entries, and regenerate the derived files;
-- bump the ABI's minor version;
-- move the examples to `prg32_audio_note`;
-- keep the PWM driver private to the firmware, or remove it, as the SDK decides.
+**When it lands upstream:**
 
-Do not reinterpret old calls as another sound command. When the SDK changes, run
-`tools/build_language_index.py` in the kit. `tests/test_audio_contract.py` reads the SDK
-and will show what moved.
+1. Set `project_format.SDK_ABI` to 1.7 and the new hash.
+2. Run `tools/build_language_index.py`.
+3. Rebuild the fixtures (`build_audio_fixtures.py`, `build_debug_fixtures.py`,
+   `build_hardware_audio_check.py`): new cartridges carry the 1.7 hash.
+4. Move `static/wasm/BUILD.json` `audio.revision` to the new SDK commit.
 
 ## 3. PRG32 SDK: QEMU audio clock, and a fresh mixer per cartridge (patch)
 
