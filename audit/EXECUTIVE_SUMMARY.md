@@ -2,9 +2,24 @@
 
 Audit date: 2026-10-21 (Europe/Rome)
 
-Audited revision: `ide/refine-after-e2d0cef` at `951f782f3c54a306d2bad70396127fc74a596158`
+Audited revision: `ide/refine-after-e2d0cef` at `7c83e716796ae8b2a5771173d885d5f20a390209`, with the pre-existing dirty documentation worktree recorded in `audit/EVIDENCE_INDEX.md`
 
-Recommendation: **GO for the evidenced Construction Kit browser, build, PRG32-QT delivery and AudioStudio workflows; NO-GO for complete ecosystem audio/hardware release**
+Recommendation: **NO-GO**
+
+The newly mandatory GDPR and documentation-freshness gates fail. There is no
+maintained `docs/privacy/` area, field-level processing inventory/ROPA,
+controller/processor and legal-basis decision record, complete data-subject
+rights workflow, processor/transfer register, breach exercise, DPIA/DPO
+determination, or qualified counsel/DPO approval. This is a technical and
+operational evidence finding, not a legal conclusion that the deployment
+violates the GDPR.
+
+Documentation is extensive, but the root README still presents the older
+Blocks/JavaScript-simulator product shape and omits the Full IDE, WASM runtime,
+debugger, AudioStudio, account/cloud boundaries and privacy responsibilities.
+`docs/architecture.md` has the same stale pipeline, and the repository has no
+visual provenance/freshness manifest or automated complete link/image/claim
+gate. These are release-blocking misrepresentations under `DOC-02`.
 
 The revision adds credible reference evidence beyond the previous audio work. A pinned Docker toolchain rebuilt all four authoring paths for ESP32-C6 and QEMU and matched macOS hashes. Canonical PRG32-QT stored, launched and drew five hashed cartridges. IDE C and assembly diagnostics now combine safe validator feedback with the actual PRG32 compiler after each saved edit. Fresh disposable HTTP tests verify shared Kit/CartridgeStore accounts, one-time sign-on tickets and publisher-authorized upload tickets. Documentation milestones now identify their commits.
 
@@ -19,4 +34,9 @@ Fresh execution:
 - broad feasible suite: **1,009 passed, 85 skipped, 1 deselected**, with only the five sandbox-denied delivery setups;
 - syntax and locally feasible reproducibility checks passed; toolchain fixture rebuilds were verified from retained Docker evidence but could not run locally.
 
-The reassessed score is **126/148 (85.1%)**. Remaining release blockers are canonical upstream adoption of the audio patches, physical PRG32 stereo evidence, complete QEMU/frame-event alignment, human AudioStudio screen-reader evidence, physical-console delivery, and iOS handoff.
+The expanded matrix score is **127/156 (81.4%)**: `GDPR-01` is **0/4** and
+`DOC-02` is **1/4**. The former 37-row assessment remains useful for the
+implementation baseline, but its bounded GO statement is superseded by the new
+hard gates. Other blockers remain canonical upstream audio-patch adoption,
+physical PRG32 stereo evidence, complete QEMU/frame-event alignment, human
+AudioStudio screen-reader evidence, physical-console delivery, and iOS handoff.

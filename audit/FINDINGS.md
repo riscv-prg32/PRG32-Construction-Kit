@@ -11,6 +11,32 @@
 
 ## High
 
+### H-00 — Mandatory GDPR accountability and rights evidence is absent
+
+No `docs/privacy/` program exists, and repository search/source inspection found
+no complete ROPA, role/legal-basis matrix, notices, rights workflows,
+processor/transfer records, DPIA/DPO determinations, breach exercise or legal
+approval. Existing project export, retention and admin deletion functions do
+not cover the complete personal-data lifecycle. Reproduce with
+`find docs/privacy -type f` (no directory) and compare the limited project
+export/account deletion paths at `prg32_construction_kit/project_format.py:183`
+and `prg32_construction_kit/retention.py:120` with the required data stores.
+Expected: current technical, operational and counsel/DPO evidence. Actual:
+partial privacy-supporting controls only. Create the privacy evidence program
+and implement/test end-to-end rights before reassessment.
+
+### H-00B — README, architecture and visuals materially lag the product
+
+`README.md:8-23` advertises the older Blocks and JavaScript-simulator workflow
+but omits the Full IDE, real WASM guest, debugger and AudioStudio.
+`docs/architecture.md:17-44` likewise shows a linear Blocks-to-simulator pipeline
+without account, cloud, Store, privacy, build-isolation, debugger or audio trust
+boundaries. The only README hero (`README.md:5`) has no recorded commit, capture
+recipe or review date, and no visual freshness manifest/checker was found.
+Expected: current, reproducible, accessible documentation tied to the audited
+revision. Actual: extensive but materially stale entry-point and architecture
+evidence. Refresh the documentation and add automated freshness gates.
+
 ### H-01 — Required audio changes are not canonical upstream
 
 The buzzer-retirement, firmware-audio Qt integration and QEMU clock/reset fixes exist only as patches under `docs/upstream/`. The pinned SDK still publicly exports buzzer and released PRG32-QT still defaults to its divergent mixer. Submit, review and merge equivalent upstream changes before declaring ecosystem compatibility.
@@ -41,4 +67,6 @@ Automated accessibility and keyboard scenarios pass, but AudioStudio tasks 10–
 
 ## Release conclusion
 
-The Construction Kit itself is increasingly release credible and scores **126/148**. The complete ecosystem audio/hardware release remains **NO-GO** until upstream patch adoption and physical stereo evidence.
+The expanded assessment scores **127/156**. The release is **NO-GO** because
+`GDPR-01` and `DOC-02` fail mandatory gates, independently of the remaining
+audio/hardware blockers.

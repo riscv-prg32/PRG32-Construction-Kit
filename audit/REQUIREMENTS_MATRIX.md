@@ -38,10 +38,12 @@ Scores: 0 missing, 1 prototype, 2 partial, 3 implemented/tested with an evidence
 | DEP-03 | 0 | Missing | iOS handoff not verified. |
 | SEC-01 | 3 | Implemented/tested | SSRF/sandbox boundaries tested; per-build UID/AppArmor/disk limit gaps remain. |
 | SEC-02 | 4 | Reference-verified | Credential/session controls, retention, auditing, throttling, CSP, hash-locked dependencies and SBOM are covered. |
+| GDPR-01 | 0 | Missing | No maintained privacy area, field-level ROPA, legal-basis/role matrix, complete rights workflows, processor/transfer records, breach exercise, DPIA/DPO decisions or counsel/DPO approval exists. Existing security, retention and per-project export/delete controls are not complete lifecycle GDPR evidence. |
 | OPS-01 | 4 | Reference-verified | CI/deployment/migrations and a tested backup/restore drill are documented and exercised. |
 | DOC-01 | 4 | Reference-verified | Capability IDs, generated status, traceability and commit-named milestones pass consistency tests with no ambiguous “this change” rows. |
+| DOC-02 | 1 | Prototype/stale | The repository has extensive docs and visuals, but README and `docs/architecture.md` materially describe the older product, architecture visuals lack a provenance/freshness manifest, and no complete automated link/image/alt/claim-freshness gate was found. |
 | QLT-01 | 4 | Reference-verified | Required browser CI, lint/coverage gates, performance budgets, accessibility evidence and regression coverage are present. |
 
-Domain totals: IDE 14/16; Project 3/4; Build 7/8; WASM 8/8; Audio 13/16; Debug 22/24; Accounts 8/8; SSO 16/16; Cloud 6/8; Store 7/8; Delivery 3/12; Security 7/8; Operations 4/4; Documentation 4/4; Quality 4/4.
+Domain totals: IDE 14/16; Project 3/4; Build 7/8; WASM 8/8; Audio 13/16; Debug 22/24; Accounts 8/8; SSO 16/16; Cloud 6/8; Store 7/8; Delivery 3/12; Security 7/8; GDPR 0/4; Operations 4/4; Documentation 5/8; Quality 4/4.
 
-**Total: 126/148 (85.1%).**
+**Total: 127/156 (81.4%).**

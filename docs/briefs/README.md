@@ -12,6 +12,8 @@ be traced back to the text they answer (ADR-0011).
 | `CLAUDE_PRG32_REFINEMENT_AFTER_AUDIT_731E378.md` | 2026-10-19 | After the audit of 731e378: IDE browser suite in CI, documentation drift, language intelligence (phase 3) onward. |
 | `CLAUDE_PRG32_REFINEMENT_AFTER_AUDIT_5DD98A9.md` | 2026-10-19 | After the audit of 5dd98a9: evidence drift, academic identity, storage policies, contracts, cloud, isolation, debugger polish, delivery. |
 | `CLAUDE_PRG32_REFINEMENT_AFTER_AUDIT_E2D0CEF.md` | 2026-10-19 | After the audit of e2d0cef: release records, live IdP harness, shared Store contracts, cloud storage, build hardening, delivery, debugger polish. The current work order. |
+| `CODEX_PRG32_CONSTRUCTION_KIT_QUALITY_AUDIT_AUDIOSTUDIO.md` | 2026-10-21 | Current independent audit specification, including hard audio, GDPR and documentation/visual freshness gates. |
+| `CLAUDE_PRG32_GDPR_DOCUMENTATION_REFINEMENT_AUDIT_951F782.md` | 2026-10-21 | Refinement work order for GDPR accountability, privacy operations, the main README, screenshots, images and architecture schemas. |
 
 The briefs are inputs, not evidence: what is implemented is recorded in
 `../capabilities.json` / `../capabilities.md`, `../traceability.md` and the

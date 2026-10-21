@@ -1,11 +1,12 @@
 # Test report
 
-Audited HEAD: `951f782f3c54a306d2bad70396127fc74a596158` on 2026-10-21.
+Audited HEAD: `7c83e716796ae8b2a5771173d885d5f20a390209` on 2026-10-21. The implementation evidence below was retained from the immediately preceding audit; this refinement audit added source inspection and a fresh focused run.
 
 ## Fresh execution
 
 | Scope | Result |
 |---|---|
+| Documentation, capability, authentication, authorization, storage, cloud, backup and API selection | **331 passed** in 34.42 s |
 | Audio, upstream-patch, compiler-check, delivery, live-SSO, documentation and capability selection | **294 passed, 9 skipped, 5 sandbox setup errors** |
 | Delivery tests with loopback permission | **8 passed** |
 | Mandatory Chrome suites with `PRG32_REQUIRE_BROWSER=1` | **88 passed** |
@@ -29,6 +30,8 @@ The nine focused skips were explicit: live QEMU opt-in, local toolchain-dependen
 
 ## Limitations
 
+- No live data-subject request, deletion propagation into real cloud/Store/backups, breach tabletop, DPIA/DPO decision or legal review was available.
+- External links were not treated as verified merely because a URL appears in Markdown; no repository-wide freshness manifest/checker exists.
 - SDK and PRG32-QT audio fixes are patches in this repository, not merged canonical commits.
 - Frame-triggered QEMU effects can differ by one 20 ms audio buffer; whole-recording hashes are not identical.
 - No physical stereo PRG32 recording or physical-console delivery exists.

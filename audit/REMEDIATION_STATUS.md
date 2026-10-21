@@ -1,6 +1,6 @@
 # Remediation status
 
-Status at `951f782f3c54a306d2bad70396127fc74a596158`.
+Status at `7c83e716796ae8b2a5771173d885d5f20a390209`.
 
 | Item | Status |
 |---|---|
@@ -13,5 +13,8 @@ Status at `951f782f3c54a306d2bad70396127fc74a596158`.
 | PRG32-QT delivery | Implemented/tested through canonical web API; desktop Import UI untested |
 | Physical console/iOS | Missing |
 | Human screen reader | Missing |
+| GDPR lifecycle evidence | Missing: no ROPA, role/legal-basis matrix, complete rights evidence, processor/transfer register, DPIA/DPO/counsel decisions or breach exercise |
+| README/architecture/visual freshness | Failed: primary entry point and architecture are stale; no visual manifest or complete freshness CI gate |
 
-Recommendation: **GO for evidenced Kit workflows; NO-GO for complete ecosystem audio/hardware release**.
+Recommendation: **NO-GO**. The new GDPR and documentation hard gates supersede
+the previous bounded workflow recommendation.
