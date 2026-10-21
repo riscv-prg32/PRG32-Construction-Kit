@@ -201,7 +201,7 @@
         "tests/test_audio_contract.py::test_eight_voices_and_the_upstream_fallback",
         "tests/test_audio_studio.py::test_the_engine_plays_each_note_on_its_step"
       ],
-      "note": "The browser core runs the PRG32 firmware's own audio engine (ADR-0021): 8 voices, SID-like synth with filter, independent ADSR, samples, tracker; checked against the contract's formulas on a toolchain-built 8-voice fixture. The real firmware in QEMU renders the same samples between events (docs/evidence/qemu-audio). No console recording yet (docs/hardware_audio_check.md)."
+      "note": "The browser core runs the PRG32 firmware's own audio engine (ADR-0021): 8 voices, SID-like synth with filter, independent ADSR, samples, tracker; checked against the contract's formulas on a toolchain-built 8-voice fixture. The real firmware in QEMU renders the same samples between events, and with the proposed SDK patch the console check's whole soundtrack (8-voice chord, envelopes, hard left/right, silences) is equal sample for sample (docs/evidence/qemu-audio). No console recording yet (docs/hardware_audio_check.md)."
     },
     {
       "id": "AUD-02",
@@ -221,9 +221,11 @@
         "tests/test_audio_browser.py::test_the_player_plays_the_engines_stereo_frames",
         "tests/test_audio_conformance.py::test_the_qemu_firmware_evidence_still_holds",
         "tests/test_prg32qt_firmware_audio.py::test_patched_prg32qt_renders_the_conformance_fixture_like_the_browser",
-        "tests/test_hardware_audio_check.py::test_an_exact_i2s_capture_passes_the_strict_checks"
+        "tests/test_hardware_audio_check.py::test_an_exact_i2s_capture_passes_the_strict_checks",
+        "tests/test_audio_conformance.py::test_patched_qemu_firmware_lines_up_over_the_whole_recording",
+        "tests/test_audio_conformance.py::test_the_whole_console_check_soundtrack_is_equal_in_qemu"
       ],
-      "note": "Stereo PCM from the firmware's mixer: WebAssembly, native and PRG32-QT patched with the firmware engine (docs/upstream) are bit-identical on the conformance fixture and the console check; the PRG32 firmware in QEMU is equal sample for sample between events (76/234 and 66/269 sounding chunks; its QEMU clock places events earlier, upstream). Not yet: the PRG32-QT change merged upstream, and a console capture (tool and procedure ready)."
+      "note": "Stereo PCM from the firmware's mixer: WebAssembly, native and PRG32-QT with the proposed patch (firmware audio by default, real output device checked) are bit-identical on the conformance fixture and the console check. With the proposed SDK patch (QEMU audio clock, fresh mixer per cartridge) the QEMU firmware lines up over whole recordings at one shift: console check 531/546 chunks equal (first 6.6 s exact), conformance 279/348; frame-timed effects still land one 20 ms buffer apart. Not yet: the patches merged upstream, and a console capture (procedure, comparator and evidence check ready)."
     },
     {
       "id": "AUD-03",
@@ -263,9 +265,11 @@
       "tests": [
         "tests/test_no_buzzer.py::test_nothing_reachable_names_the_buzzer_except_its_refusal",
         "tests/test_no_buzzer.py::test_c_projects_using_it_get_a_clear_message",
-        "tests/test_audio_conformance.py::test_an_old_buzzer_cartridge_is_silent_and_counted"
+        "tests/test_audio_conformance.py::test_an_old_buzzer_cartridge_is_silent_and_counted",
+        "tests/test_upstream_sdk_patches.py::test_the_buzzer_slots_are_retired_and_every_other_slot_keeps_its_index",
+        "tests/test_no_buzzer.py::test_the_index_builder_skips_retired_abi_slots"
       ],
-      "note": "Kit side complete: refused in C and assembly with what to use instead, obsolete-only in the language index, silent and counted for old cartridges (browser core, and PRG32-QT with the proposed patch), a repository-wide guard. The SDK still lists the buzzer in its portable ABI; the retirement is proposed with an inventory in docs/upstream (the kit does not change the SDK)."
+      "note": "Kit side complete: refused in C and assembly, obsolete-only in the language index, silent and counted for old cartridges, a repository-wide guard. The SDK retirement is a tested patch (docs/upstream/prg32-sdk-retire-buzzer.patch: ABI 1.7, slots 5/7/8 kept and silent, the 1.6 hash compatible, no public declaration, examples migrated; SDK tests 89 passed); the canonical SDK still exports the buzzer until it is merged."
     },
     {
       "id": "DBG-01",

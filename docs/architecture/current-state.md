@@ -130,12 +130,13 @@ capability IDs.
 - Browser host with framebuffer, input, timing and an offline subset; its
   stereo sound is the firmware engine's PCM, bit-identical in the native build
   and in PRG32-QT with the kit's proposed firmware-audio patch, and equal to the
-  PRG32 firmware in QEMU between events; no console recording yet (procedure
-  and comparison tool ready). [WASM-02] [AUD-02]
+  PRG32 firmware in QEMU between events (with the proposed SDK audio patch, over
+  most of the whole recording); no console recording yet (procedure, comparison
+  tool and evidence check ready). [WASM-02] [AUD-02]
 - Buzzer removal on the kit side: refused by the validators, obsolete-only in
   the editor, silent for old cartridges, guarded by a repository-wide test; the
-  SDK's portable ABI still lists it (retirement proposed in
-  `docs/upstream/`). [AUD-04]
+  SDK's portable ABI still lists it (retirement delivered as a tested
+  patch in `docs/upstream/`). [AUD-04]
 
 ### Not implemented
 

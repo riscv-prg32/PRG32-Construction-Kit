@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+### Sound: upstream patches proven, console sessions ready (after the audit of f4b74bc)
+
+- PRG32 SDK patches (`docs/upstream/`, the SDK itself is not changed):
+  - the buzzer retired from the portable ABI (1.7, same slots, old cartridges silent, examples
+    moved to the 8-voice API);
+  - QEMU audio on the emulated clock;
+  - a fresh mixer for every cartridge. This fixes the console playing a cartridge's
+    soundtrack quieter after the setup menu's sounds.
+- PRG32-QT patch: the firmware audio engine by default, checked through a real output device.
+- QEMU recordings now line up over whole recordings (`docs/evidence/qemu-audio/2026-10-21-patched`).
+- The console capture and the AudioStudio screen-reader session are ready to run: a
+  procedure, record formats, and a test that refuses incomplete console evidence.
+
 ### Sound: soundtracks on time, and a console check (after the audit of 13766c9)
 
 - Fixed: AudioStudio soundtracks played each note one gap early. The PRG32 tracker runs an
