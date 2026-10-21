@@ -72,10 +72,10 @@ index c055275..b779d22 100644
    qt_add_resources(PRG32_QT prg32qt_assets PREFIX "/prg32qt" FILES assets/prg32_logo.png assets/prg32_title.png assets/prg32_appicon_1024.png)
 diff --git a/src/core/FirmwareAudio.cpp b/src/core/FirmwareAudio.cpp
 new file mode 100644
-index 0000000..b220b27
+index 0000000..00e8f7b
 --- /dev/null
 +++ b/src/core/FirmwareAudio.cpp
-@@ -0,0 +1,172 @@
+@@ -0,0 +1,178 @@
 +#include "FirmwareAudio.h"
 +#include <algorithm>
 +#include <cstring>
@@ -110,7 +110,8 @@ index 0000000..b220b27
 +
 +bool FirmwareAudio::attach(Runtime& runtime, std::span<const uint8_t> cartridge, std::string& error) {
 +    runtime_ = &runtime;
-+    audioNanoseconds_ = runtime.virtualNanoseconds();
++    frames_ = 0;
++    audioNanoseconds_ = 0;
 +    if (prg32_kit_audio_start() != 0) {
 +        error = "the audio engine did not start";
 +        return false;
@@ -124,8 +125,13 @@ index 0000000..b220b27
 +    return true;
 +}
 +
-+void FirmwareAudio::sync() {
-+    const uint64_t now = runtime_->virtualNanoseconds();
++void FirmwareAudio::frameDone() {
++    ++frames_;
++    catchUp();
++}
++
++void FirmwareAudio::catchUp() {
++    const uint64_t now = frames_ * VirtualClock::FramePeriodNanoseconds;
 +    if (now <= audioNanoseconds_)
 +        return;
 +    const uint64_t ms = (now - audioNanoseconds_) / 1000000ull;
@@ -150,7 +156,7 @@ index 0000000..b220b27
 +void FirmwareAudio::before(uint32_t index) {
 +    if (index < FirstAudioCall || index > LastAudioCall)
 +        return;
-+    sync(); // the call happens at this point of virtual time
++    catchUp(); // the call takes effect at the start of the frame that makes it
 +    for (int n = 0; n < 8; ++n)
 +        args_[n] = runtime_->registerValue(10 + n);
 +}
@@ -250,10 +256,10 @@ index 0000000..b220b27
 +} // namespace prg32
 diff --git a/src/core/FirmwareAudio.h b/src/core/FirmwareAudio.h
 new file mode 100644
-index 0000000..f92a133
+index 0000000..d91512f
 --- /dev/null
 +++ b/src/core/FirmwareAudio.h
-@@ -0,0 +1,40 @@
+@@ -0,0 +1,47 @@
 +#pragma once
 +// The PRG32 firmware's own audio engine (components/prg32_audio of the PRG32 SDK), driven by
 +// a Runtime's host calls, so PRG32-QT renders exactly what the console mixes: 8 voices, the
@@ -274,8 +280,13 @@ index 0000000..f92a133
 +    /** Start the engine as the console does for a cartridge: its AUD0 block (if any) replaces the assets.
 +     *  The Runtime's own AudioSink must be a NullAudioSink: the engine makes the sound. */
 +    bool attach(Runtime& runtime, std::span<const uint8_t> cartridge, std::string& error);
-+    /** Let the engine follow the cartridge's virtual time (call after every frame). */
-+    void sync();
++    /** One frame (update + draw) has run: render the audio up to the next frame's start.
++     *
++     *  The scheduling boundary (the same in the PRG32 firmware under QEMU and in the
++     *  Construction Kit's browser core): frame N, counting from 0 after init, starts at
++     *  N x 33 ms, and every audio call made by init or by that frame takes effect at its
++     *  start, whatever the instruction count. The engine renders whole 20 ms buffers. */
++    void frameDone();
 +    /** Interleaved signed 16-bit stereo frames mixed since the last take (left, right, ...). */
 +    std::vector<int16_t> take();
 +    /** 64-bit FNV-1a over every sample mixed since attach (equal on every build of the same sound). */
@@ -287,9 +298,11 @@ index 0000000..f92a133
 +  private:
 +    void before(uint32_t index);
 +    void after(uint32_t index);
++    void catchUp();
 +    Runtime* runtime_ = nullptr;
 +    std::vector<uint8_t> block_;
-+    uint64_t audioNanoseconds_ = 0;
++    uint64_t frames_ = 0;             // frames run since attach
++    uint64_t audioNanoseconds_ = 0;   // cartridge time the engine has reached
 +    uint32_t args_[8]{};
 +    uint32_t buzzerCalls_ = 0;
 +};
@@ -671,7 +684,7 @@ index 0000000..7bfc509
 +
 +#endif
 diff --git a/src/core/headless.cpp b/src/core/headless.cpp
-index 166f68a..14b8152 100644
+index 166f68a..a82456a 100644
 --- a/src/core/headless.cpp
 +++ b/src/core/headless.cpp
 @@ -1,5 +1,9 @@
@@ -731,7 +744,7 @@ index 166f68a..14b8152 100644
              return 5;
          }
 +#ifdef PRG32QT_FIRMWARE_AUDIO
-+        firmwareAudio.sync();
++        firmwareAudio.frameDone();
 +        auto mixed = firmwareAudio.take();
 +        if (!audioPath.empty())
 +            pcm.insert(pcm.end(), mixed.begin(), mixed.end());
@@ -769,7 +782,7 @@ index 166f68a..14b8152 100644
          std::cout << "MEDIA graphics_non_black=" << maximumNonBlackPixels
                    << " unique_frame_hashes=" << frameHashes.size() << " audio_declared=" << bool(c->audio())
 diff --git a/src/qt/AppController.cpp b/src/qt/AppController.cpp
-index 89c4d0d..36f4f4b 100644
+index 89c4d0d..3c6b80b 100644
 --- a/src/qt/AppController.cpp
 +++ b/src/qt/AppController.cpp
 @@ -48,7 +48,9 @@ AppController::AppController(QObject* p)
@@ -782,17 +795,17 @@ index 89c4d0d..36f4f4b 100644
      rt_.setMultiplayerService(multiplayer_.get());
      rt_.setLEDCallback([this](prg32::RGBState v) {
          led_ = v;
-@@ -125,6 +127,10 @@ AppController::AppController(QObject* p)
-             return;
-         } else {
-             frameComplete = true;
-+#ifdef PRG32QT_FIRMWARE_AUDIO
-+            firmwareAudio_.sync(); // the engine follows the frame's virtual time
-+            audio_->pushFirmwarePcm(firmwareAudio_.take());
-+#endif
+@@ -128,6 +130,10 @@ AppController::AppController(QObject* p)
          }
          if (!frameComplete)
              return;
++#ifdef PRG32QT_FIRMWARE_AUDIO
++        firmwareAudio_.frameDone(); // a frame ran (or was stepped through): its audio
++        audio_->pushFirmwarePcm(firmwareAudio_.take());
++#endif
+         ++frameCount_;
+         ++frameRateCount_;
+         const qint64 elapsedMilliseconds = frameRateTimer_.elapsed();
 @@ -222,6 +228,14 @@ bool AppController::loadBytes(const QByteArray& d, const QString& suggestedName)
      }
      timer_.stop();
@@ -936,7 +949,7 @@ index 9e2087e..6327d89 100644
      float master_ = 0.86f;
 diff --git a/tests/audio_device_check.cpp b/tests/audio_device_check.cpp
 new file mode 100644
-index 0000000..f09a0c7
+index 0000000..d0041c3
 --- /dev/null
 +++ b/tests/audio_device_check.cpp
 @@ -0,0 +1,80 @@
@@ -995,7 +1008,7 @@ index 0000000..f09a0c7
 +            app.exit(4);
 +            return;
 +        }
-+        firmware.sync();
++        firmware.frameDone();
 +        auto pcm = firmware.take();
 +        pushed.insert(pushed.end(), pcm.begin(), pcm.end());
 +        output.pushFirmwarePcm(pcm);

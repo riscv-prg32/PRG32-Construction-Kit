@@ -202,9 +202,17 @@ std::vector<uint8_t> audioBlockOf(const uint8_t* data, uint32_t size) {
     return {block, block + blockSize};
 }
 
-/** Let the engine catch up with the cartridge's virtual time (whole milliseconds). */
+/**
+ * Let the engine catch up with the cartridge's time (ADR-0021 scheduling boundary).
+ *
+ * The cartridge's time is its frame count: frame N (counting from 0 after init) starts at
+ * N x 33 ms, and every audio call made while init or that frame runs takes effect at its
+ * start. The engine renders 20 ms steps, so a sound started in frame N begins with the first
+ * step rendered after N x 33 ms - the same sample on every run and host, however many
+ * instructions update and draw retire (the firmware's QEMU path keeps the same rule).
+ */
 void syncAudio() {
-    const uint64_t now = session->runtime.virtualNanoseconds();
+    const uint64_t now = session->frames * prg32::VirtualClock::FramePeriodNanoseconds;
     if (now <= session->audioNanoseconds)
         return;
     const uint64_t ms = (now - session->audioNanoseconds) / 1000000ull;

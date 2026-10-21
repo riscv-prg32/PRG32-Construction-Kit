@@ -234,10 +234,11 @@
         "tests/test_audio_conformance.py::test_the_qemu_firmware_evidence_still_holds",
         "tests/test_prg32qt_firmware_audio.py::test_patched_prg32qt_renders_the_conformance_fixture_like_the_browser",
         "tests/test_hardware_audio_check.py::test_an_exact_i2s_capture_passes_the_strict_checks",
-        "tests/test_audio_conformance.py::test_patched_qemu_firmware_lines_up_over_the_whole_recording",
-        "tests/test_audio_conformance.py::test_the_whole_console_check_soundtrack_is_equal_in_qemu"
+        "tests/test_audio_conformance.py::test_qemu_firmware_equals_the_browser_core_over_the_whole_recording",
+        "tests/test_audio_conformance.py::test_frame_triggered_effects_sound_from_their_frames_buffer",
+        "tests/test_audio_conformance.py::test_a_one_buffer_shift_of_one_effect_breaks_whole_recording_equality"
       ],
-      "note": "Stereo PCM from the firmware's mixer: WebAssembly, native and PRG32-QT with the proposed patch (firmware audio by default, real output device checked) are bit-identical on the conformance fixture and the console check. With the proposed SDK patch (QEMU audio clock, fresh mixer per cartridge) the QEMU firmware lines up over whole recordings at one shift: console check 531/546 chunks equal (first 6.6 s exact), conformance 279/348; frame-timed effects still land one 20 ms buffer apart. Not yet: the patches merged upstream, and a console capture (procedure, comparator and evidence check ready)."
+      "note": "Stereo PCM from the firmware's mixer: WebAssembly, native and PRG32-QT with the proposed patch (firmware audio by default, real output device checked) are bit-identical on the conformance fixture and the console check. One scheduling boundary (ADR-0021 frame clock): audio calls take effect at their frame's start, N x 33 ms, so effects sound from buffer floor(N x 33 / 20). With the proposed SDK patch the QEMU firmware equals the browser core over the whole recording in three runs each: console check 546/546 buffers, conformance 348/348, same SHA-256 (PRG32-QT with its patch too). Patches proposed as riscv-prg32/PRG32#45, #46 and riscv-prg32/PRG32-QT#1 (open, not merged). Not yet: the patches merged upstream, and a console capture (procedure, comparator and evidence check ready)."
     },
     {
       "id": "AUD-03",

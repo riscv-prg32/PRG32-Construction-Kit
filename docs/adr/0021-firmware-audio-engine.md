@@ -31,9 +31,17 @@ sound.
    core still handles every call itself (timing, state, its own record); the after-hook
    gives audio calls 6 and 9–25, with their arguments, to the firmware engine and returns
    its results (for example the voice `prg32_audio_play_sample` chose).
-4. **Virtual time, exact steps.** The engine follows the core's virtual clock in 20 ms
-   steps of 441 frames (as the firmware under QEMU), catching up before every audio call
-   and after every frame or debugger run, so normal and debugged runs sound the same.
+4. **One scheduling boundary: the frame clock.** The engine renders 20 ms steps of 441
+   frames. The cartridge's time is its frame count: frame N (from 0, run together with
+   init) starts at N × 33 ms, and every audio call made by init or by that frame takes
+   effect at its start, however many instructions update and draw retire. A sound started
+   in frame N therefore sounds from 20 ms buffer ⌊N × 33 / 20⌋, sample ⌊N × 33 / 20⌋ × 441,
+   on every run (`test_frame_triggered_effects_sound_from_their_frames_buffer`). Normal and
+   debugged runs sound the same. (Until 2026-10-21 the engine followed the core's
+   instruction-timed virtual clock; for every recorded fixture the samples are identical.)
+   PRG32-QT's firmware audio and the firmware under QEMU follow the same rule
+   (`docs/upstream/`), so whole recordings are equal; the physical console's I2S path is
+   not changed: there the DMA paces the audio.
    Cartridge audio blocks load as on the console; a block the engine refuses stops the
    cartridge from loading.
 5. **The browser plays exactly that PCM.** `PcmAudioOutput` schedules the 22050 Hz signed

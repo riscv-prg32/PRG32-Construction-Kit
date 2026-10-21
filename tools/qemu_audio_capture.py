@@ -44,6 +44,7 @@ OVERLAY = ROOT / "tests" / "fixtures" / "audio" / "sdkconfig.qemu-stereo"
 MENU = b"setup_menu => prg32_input_read_menu()"
 STARTED = b"prg32_init => cart_is_loaded()"     # printed once the cartridge runs
 # Extra QEMU options, e.g. "-icount shift=3,sleep=off": emulated time from instructions, not the host.
+MARGIN_CHUNKS = 10
 QEMU_EXTRA = os.environ.get("PRG32_QEMU_EXTRA", "").split()
 DEFAULT_QEMU = next(iter(sorted(Path.home().glob(".espressif/tools/qemu-riscv32/*/qemu/bin/qemu-system-riscv32"))),
                     None)
@@ -136,7 +137,8 @@ def record_firmware(firmware: Path, cartridge: Path, seconds: float, sdk: Path, 
         audio.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
         audio.settimeout(60)
         started, pressed, deadline = None, 0.0, time.monotonic() + 120
-        while started is None or len(chunks) - started < int(seconds * 50):
+        # A margin after the browser's length, so an alignment shift still pairs every chunk.
+        while started is None or len(chunks) - started < int(seconds * 50) + MARGIN_CHUNKS:
             if time.monotonic() > deadline:
                 raise SystemExit("the cartridge did not start in QEMU (see qemu.log and firmware-serial.log)")
             if started is None and MENU in serial and time.monotonic() - pressed > 2:
@@ -220,7 +222,14 @@ def aligned(firmware: bytes, browser: bytes, reach: int = 10) -> dict:
         if best is None or equal > best["equal_chunks"]:
             best = {"shift_chunks": shift, "equal_chunks": equal, "compared_chunks": len(pairs),
                     "differing_chunks": [i for i in range(len(br)) if 0 <= i + shift < len(fw) and br[i] != fw[i + shift]]}
-    best["whole_recording_equal"] = not best["differing_chunks"]
+    # Whole-recording equality: every browser chunk has its firmware chunk at that one shift,
+    # and they are all equal - so the aligned firmware slice hashes like the browser's PCM.
+    shift = best["shift_chunks"]
+    covered = best["compared_chunks"] == len(br) and len(br) > 0
+    best["whole_recording_equal"] = covered and not best["differing_chunks"]
+    if covered:
+        best["firmware_aligned_sha256"] = hashlib.sha256(b"".join(fw[shift:shift + len(br)])).hexdigest()
+    best["browser_sha256"] = hashlib.sha256(b"".join(br)).hexdigest()
     return best
 
 
@@ -253,7 +262,8 @@ def main() -> int:
     parser.add_argument("--firmware", type=Path, help="folder with qemu_flash.bin and sdkconfig (else --build)")
     parser.add_argument("--build", action="store_true", help="build the QEMU firmware from --sdk first (ESP-IDF)")
     parser.add_argument("--patch", type=Path, action="append", default=[],
-                        help="with --build: apply this SDK patch to the clone first (repeatable)")
+                        help="with --build: apply this SDK patch to the clone first; with --firmware: a patch that "
+                             "firmware was built with (recorded only). Repeatable")
     parser.add_argument("--sdk", type=Path, default=Path(os.environ.get("PRG32_SOURCE") or ROOT.parent / "PRG32"))
     parser.add_argument("--qemu", type=Path, default=DEFAULT_QEMU)
     parser.add_argument("--seconds", type=float, default=7.0)

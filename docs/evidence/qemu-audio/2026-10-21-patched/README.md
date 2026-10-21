@@ -1,5 +1,9 @@
 # PRG32 firmware in QEMU with the proposed audio fixes (2026-10-21)
 
+> **Superseded** by [`../2026-10-21-frame-clock/`](../2026-10-21-frame-clock/): the patch now adds the
+> audio frame clock, and the whole recordings are equal. This folder records the first version
+> of the patch; `tests/test_audio_conformance.py` only checks that its recordings are intact.
+
 These recordings were made the same way as `../2026-10-21/`. The firmware was built with
 [`docs/upstream/prg32-sdk-audio-clock-and-reset.patch`](../../../upstream/prg32-sdk-audio-clock-and-reset.patch)
 applied to a clean clone of PRG32 SDK `679dfb5`, and QEMU ran with

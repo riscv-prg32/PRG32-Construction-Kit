@@ -4,6 +4,19 @@ The kit never changes the PRG32 SDK, PRG32-QT or the Cartridge Store. When kit w
 something one of them should change, it is written here. If the kit could prove the change,
 it is a patch, built and tested against a copy of that repository.
 
+**Pull requests (2026-10-21, open, not merged).** Each was made from a fresh clone of the
+canonical head (PRG32 `679dfb5`, PRG32-QT `f6d80ad`) with the patch below applied unchanged,
+and checked again there:
+
+| Patch | Pull request |
+|---|---|
+| §1 `prg32-qt-firmware-audio.patch` | [riscv-prg32/PRG32-QT#1](https://github.com/riscv-prg32/PRG32-QT/pull/1) |
+| §2 `prg32-sdk-retire-buzzer.patch` | [riscv-prg32/PRG32#45](https://github.com/riscv-prg32/PRG32/pull/45) |
+| §3 `prg32-sdk-audio-clock-and-reset.patch` | [riscv-prg32/PRG32#46](https://github.com/riscv-prg32/PRG32/pull/46) |
+
+The kit keeps pinning `679dfb5` and `f6d80ad` until the maintainers merge. After that, follow
+"When it lands upstream" in §2 and move `static/wasm/BUILD.json` to the merged SDK commit.
+
 ## 1. PRG32-QT: render sound with the PRG32 firmware's engine (patch)
 
 **Problem.** PRG32-QT mixes sound with its own floating-point renderer (`QtAudioEngine`). It
@@ -23,6 +36,11 @@ same port as the kit's browser core: `src/core/firmware_audio/` is the kit's `wa
   - `FirmwareAudio`, which drives the engine from the cartridge's audio calls;
   - in `prg32qt-headless`, `--audio-wav` and an `AUDIO … pcm_fnv1a=` line;
   - in the desktop app, the engine's PCM played through `QtAudioEngine` (resampled to the device).
+- **The frame clock** (ADR-0021, §3): `FirmwareAudio::frameDone()` after every frame, run or
+  stepped in the debugger. Audio calls take effect at their frame's start (N × 33 ms), so
+  whole recordings equal the browser core's and the firmware's in QEMU: the console check
+  over 331 frames and the conformance cartridge over 211 frames have the same SHA-256 in all
+  three (`a035b9ed…`, `a5af4874…`).
 - **Output device test.** `prg32qt_audio_device_check` (a CTest test, skipped without an
   output device) runs a cartridge in real time and plays it through the default output
   device. It checks the device processed the time, and that the frames the device pulled are
@@ -89,28 +107,40 @@ checkout and repeats the ABI, header and example checks.
    `build_hardware_audio_check.py`): new cartridges carry the 1.7 hash.
 4. Move `static/wasm/BUILD.json` `audio.revision` to the new SDK commit.
 
-## 3. PRG32 SDK: QEMU audio clock, and a fresh mixer per cartridge (patch)
+## 3. PRG32 SDK: the audio frame clock in QEMU, and a fresh mixer per cartridge (patch)
 
 [`prg32-sdk-audio-clock-and-reset.patch`](prg32-sdk-audio-clock-and-reset.patch), against
-PRG32 SDK `679dfb5`, changes two files in `components/prg32_audio`:
+PRG32 SDK `679dfb5`, changes `components/prg32_audio` and `main/main.c`:
 
-- **QEMU path only.** The engine advances by the audio it renders, 20 ms per buffer, and
-  the buffer period stays on the emulated clock (`vTaskDelayUntil`).
+- **One scheduling boundary (QEMU path only).** While a cartridge runs, its frames drive
+  the audio. Frame N (from 0, run together with init) starts at N × 33 ms, and every audio
+  call made by init or by that frame takes effect at its start. After each frame
+  (`prg32_audio_cartridge_frame(33)`, in `main.c`) the audio task renders the whole 20 ms
+  buffers up to the next frame's start and the cartridge waits for them. The waits inside
+  `prg32_audio_notes` are rendered the same way. A sound started in frame N sounds from
+  buffer ⌊N × 33 / 20⌋ on every run. The kit's browser core and PRG32-QT (§1) follow the
+  same rule (ADR-0021). The rule is declared in a new header,
+  `prg32_audio_frame_clock.h`.
+- **Outside a cartridge** (setup menu, QEMU path), the engine advances by the audio it
+  renders, 20 ms per buffer, on the emulated clock (`vTaskDelayUntil`).
+- **On the console nothing changes.** The I2S DMA paces the audio task there, and the
+  three `prg32_audio_cartridge_*` calls do nothing.
 - **Cartridge start** (`prg32_audio_load_block`, `prg32_audio_clear_assets`) stops the voices
   and the tracker, and sets channel volumes to 255 and pans to centre. Without this, sounds
   played before a cartridge, such as the setup menu's, change how loud its soundtrack notes
   are on the console.
 
-With both, QEMU recordings line up over the whole recording at one fixed shift:
+Result in QEMU (`-icount shift=3,sleep=off`): **the whole recordings equal the browser core's,
+sample for sample, in every run.** Three runs of each, with the same aligned SHA-256:
 
-- console check: 531 of 546 chunks equal, against 120 of 540 before;
-- conformance: 279 of 348, against 117 of 348.
+| Recording | Before the patch | First version of the patch | Now |
+|---|---|---|---|
+| Console check, 11 s | 120 of 540 chunks | 531 of 546 (two phases) | **546 of 546** |
+| Conformance, 7 s | 117 of 348 | 279 of 348 | **348 of 348** |
 
-The remaining chunks are frame-timed effects one 20 ms buffer apart, which come from the
-phase between the audio buffers and the cartridge's frames.
-
-The SDK's own tests pass (87) with the patch. Evidence and the full explanation are in
-`docs/evidence/qemu-audio/2026-10-21-patched/`.
+Evidence: `docs/evidence/qemu-audio/2026-10-21-frame-clock/`. The patched SDK's own tests pass
+(87; 89 together with §2), the firmware builds for the ESP32-C6 console with no warnings, and the kit's browser core built from the
+patched audio sources gives the recorded hashes (`2e6c5af207d3d5f2`, `a3d2c6520ba8aea2`).
 
 The background, before the patch:
 

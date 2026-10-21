@@ -56,6 +56,7 @@ hear is what the console plays. (The old *buzzer* is gone: games use the 8 voice
 | 8 voices at once, sustain levels, attack and release times, hard left/right separation, pan and volume changes, clipping, exact silence, soundtrack (instrument N on voice N), voice replacement, old cartridges silent, damaged blocks refused | `tests/test_audio_conformance.py` on `tests/fixtures/audio/conformance.prg32` |
 | The same samples from the WebAssembly and native builds; a recorded PCM hash and envelope trace | `tests/test_audio_conformance.py`, `tests/fixtures/audio/expected.json` |
 | The PRG32 firmware in QEMU gives the same samples between events; the recordings stay valid | `docs/evidence/qemu-audio/`, `test_the_qemu_firmware_evidence_still_holds` |
+| With the frame clock, QEMU's whole recordings equal the browser core's; an effect one buffer off fails | `docs/evidence/qemu-audio/2026-10-21-frame-clock/`, `test_qemu_firmware_equals_the_browser_core_over_the_whole_recording`, `test_frame_triggered_effects_sound_from_their_frames_buffer` |
 | The Player schedules the frames, bounded, and stops on Pause | `tests/test_audio_browser.py` |
 | The buzzer is reachable nowhere | `tests/test_no_buzzer.py` |
 | An AudioStudio cartridge on a real console: built by the kit, compared with the browser core (I2S capture or microphones) | `hardware_audio_check.md`, `tests/test_hardware_audio_check.py` |
@@ -82,3 +83,9 @@ nowhere. The recordings in `docs/evidence/qemu-audio/2026-10-21/` match the brow
 sample between cartridge events: 76 of 234 sounding chunks for the conformance cartridge,
 66 of 269 for the console check. The runs break at events because, in QEMU, the firmware
 advances its engine by the emulated clock rather than by the samples it renders (upstream).
+
+With the proposed SDK patch (`docs/upstream/`, riscv-prg32/PRG32#46) the firmware follows the
+same frame clock as the browser core: a sound a cartridge starts in frame N begins in 20 ms
+buffer ⌊N × 33 / 20⌋. The whole recordings are then equal, sample for sample, in every run:
+546 of 546 buffers for the console check and 348 of 348 for the conformance cartridge
+(`docs/evidence/qemu-audio/2026-10-21-frame-clock/`).

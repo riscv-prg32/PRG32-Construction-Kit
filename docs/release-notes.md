@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+### Sound on one clock everywhere, and the patches proposed upstream (after the audit of 951f782)
+
+- One scheduling boundary between cartridge frames and audio buffers (ADR-0021): audio calls
+  take effect at the start of their frame (N × 33 ms). The browser core counts frames instead
+  of instructions; every recorded sound is unchanged.
+- The SDK patch adds the same frame clock to the firmware's QEMU path, and PRG32-QT's patch
+  to its firmware audio. The whole recordings are now equal in all three, sample for sample,
+  run after run (`docs/evidence/qemu-audio/2026-10-21-frame-clock/`). A test fails if an
+  effect moves by one 20 ms buffer.
+- The three patches are open pull requests (not merged): riscv-prg32/PRG32#45 (buzzer
+  retired), riscv-prg32/PRG32#46 (frame clock, fresh mixer), riscv-prg32/PRG32-QT#1 (firmware
+  audio engine). Links in `docs/upstream/README.md`.
+
 ### The compiler in the IDE, and shared accounts checked live
 
 - IDE: after every save of C or assembly, the real PRG32 compiler checks the saved file

@@ -159,6 +159,46 @@ def test_the_run_is_deterministic_and_matches_the_record(run):
     assert json.loads(EXPECTED.read_text()) == record
 
 
+FRAME_MS, BUFFER_MS, BUFFER_FRAMES = 33, 20, 441
+
+
+def buffer_of_frame(frame: int) -> int:
+    """The scheduling boundary (ADR-0021): an audio call made in frame N (from 0, with init)
+    takes effect at N x 33 ms, so it sounds from the 20 ms buffer that holds that moment."""
+    return frame * FRAME_MS // BUFFER_MS
+
+
+def pcm_buffers(cartridge: Path, frames: int, folder: Path) -> list[bytes]:
+    import wave
+
+    wav = folder / "pcm.wav"
+    result = subprocess.run(["node", str(ROOT / "tools" / "audio_capture.mjs"), str(cartridge), str(frames), str(wav)],
+                            capture_output=True, text=True, timeout=300)
+    assert result.returncode == 0, result.stderr
+    with wave.open(str(wav)) as source:
+        pcm = source.readframes(source.getnframes())
+    size = BUFFER_FRAMES * 4
+    return [pcm[index:index + size] for index in range(0, len(pcm) - size + 1, size)]
+
+
+def first_sounding(buffers: list[bytes], start: int) -> int:
+    return next(index for index in range(start, len(buffers)) if any(buffers[index]))
+
+
+@needs_node
+def test_frame_triggered_effects_sound_from_their_frames_buffer(tmp_path):
+    """The console check's drum (frame 200), held note (230) and stop (245) start exactly at
+    sample buffer_of_frame(N) x 441 - not one 20 ms buffer earlier or later. The QEMU firmware
+    and PRG32-QT keep the same boundary, so their recordings equal the browser core's."""
+    buffers = pcm_buffers(FIXTURES / "hardware" / "audio_check-qemu.prg32", 300, tmp_path)
+    drum, held, stop = buffer_of_frame(200), buffer_of_frame(230), buffer_of_frame(245)
+    assert (drum, held, stop) == (330, 379, 404)
+    assert not any(b"".join(buffers[drum - 20:drum])) and any(buffers[drum])    # silence, then the drum
+    assert first_sounding(buffers, held - 10) == held                            # after the drum has ended
+    assert all(any(buffer) for buffer in buffers[held:stop])                     # held until the stop
+    assert not any(b"".join(buffers[stop:stop + 40]))                            # exact silence from the stop
+
+
 @needs_node
 def test_an_old_buzzer_cartridge_is_silent_and_counted():
     legacy = capture("legacy_buzzer.prg32", frames=10, label="legacy-buzzer-wasm")
@@ -238,20 +278,34 @@ def test_the_qemu_firmware_evidence_still_holds():
         assert again["segments"] == report["segments"]
 
 
+# 2026-10-21-patched: the first SDK patch (QEMU audio on the emulated clock, a fresh mixer per
+# cartridge). Whole recordings lined up at one shift but frame-triggered effects could land one
+# 20 ms buffer apart, in two phases from run to run. Kept as history; its patch has moved on.
 PATCHED = ROOT / "docs" / "evidence" / "qemu-audio" / "2026-10-21-patched"
-PATCHED_CARTRIDGES = {"conformance": FIXTURES / "conformance.prg32",
-                      "audio_check-qemu-phase-a": FIXTURES / "hardware" / "audio_check-qemu.prg32",
-                      "audio_check-qemu-phase-b": FIXTURES / "hardware" / "audio_check-qemu.prg32"}
-# With docs/upstream/prg32-sdk-audio-clock-and-reset.patch, QEMU keeps audio on the emulated clock:
-# whole recordings line up at one fixed shift. Before it, they drifted (2026-10-21: 117/348, 120/540).
-ALIGNED_AT_LEAST = {"conformance": 0.75, "audio_check-qemu-phase-a": 0.95, "audio_check-qemu-phase-b": 0.9}
+# 2026-10-21-frame-clock: the patch as it is now, with the audio frame clock (ADR-0021): the whole
+# recordings are equal sample for sample, in every run.
+FRAME_CLOCK = ROOT / "docs" / "evidence" / "qemu-audio" / "2026-10-21-frame-clock"
+FRAME_CLOCK_CARTRIDGES = {"conformance": FIXTURES / "conformance.prg32",
+                          "audio_check-qemu": FIXTURES / "hardware" / "audio_check-qemu.prg32"}
+
+
+def test_the_earlier_patched_recordings_are_intact():
+    import hashlib
+    import wave
+
+    for name in ("conformance", "audio_check-qemu-phase-a", "audio_check-qemu-phase-b"):
+        report = json.loads((PATCHED / name / "comparison.json").read_text())
+        with wave.open(str(PATCHED / name / "firmware.wav")) as source:
+            assert hashlib.sha256(source.readframes(source.getnframes())).hexdigest() == report["firmware_pcm_sha256"]
+        assert not report["aligned"]["whole_recording_equal"]          # what the frame clock fixed
 
 
 @needs_node
-@pytest.mark.parametrize("name", sorted(PATCHED_CARTRIDGES))
-def test_patched_qemu_firmware_lines_up_over_the_whole_recording(name, tmp_path):
-    """docs/evidence/qemu-audio/2026-10-21-patched: the recordings are intact, this browser core still renders
-    the recorded browser side, and at one fixed shift most 20 ms chunks are equal sample for sample."""
+@pytest.mark.parametrize("name", sorted(FRAME_CLOCK_CARTRIDGES))
+def test_qemu_firmware_equals_the_browser_core_over_the_whole_recording(name, tmp_path):
+    """docs/evidence/qemu-audio/2026-10-21-frame-clock: the firmware recording is intact and made with
+    today's SDK patch; this browser core renders the recorded browser side; and at shift 0 every
+    20 ms chunk is equal, so the aligned firmware PCM has the browser PCM's SHA-256. Three runs."""
     import hashlib
     import sys
     import wave
@@ -259,12 +313,12 @@ def test_patched_qemu_firmware_lines_up_over_the_whole_recording(name, tmp_path)
     sys.path.insert(0, str(ROOT / "tools"))
     from qemu_audio_capture import aligned
 
-    report = json.loads((PATCHED / name / "comparison.json").read_text())
-    cartridge = PATCHED_CARTRIDGES[name]
+    report = json.loads((FRAME_CLOCK / name / "comparison.json").read_text())
+    cartridge = FRAME_CLOCK_CARTRIDGES[name]
     assert hashlib.sha256(cartridge.read_bytes()).hexdigest() == report["cartridge"]["sha256"]
     patch = ROOT / "docs" / "upstream" / "prg32-sdk-audio-clock-and-reset.patch"
     assert report["firmware"]["patches"][0]["sha256"] == hashlib.sha256(patch.read_bytes()).hexdigest()
-    with wave.open(str(PATCHED / name / "firmware.wav")) as source:
+    with wave.open(str(FRAME_CLOCK / name / "firmware.wav")) as source:
         firmware = source.readframes(source.getnframes())
     assert hashlib.sha256(firmware).hexdigest() == report["firmware_pcm_sha256"]
     wav = tmp_path / "browser.wav"
@@ -276,23 +330,47 @@ def test_patched_qemu_firmware_lines_up_over_the_whole_recording(name, tmp_path)
     assert hashlib.sha256(browser).hexdigest() == report["browser_pcm_sha256"]
     again = aligned(firmware, browser)
     assert again == report["aligned"]
-    assert again["equal_chunks"] / again["compared_chunks"] >= ALIGNED_AT_LEAST[name]
+    # The shift is where the recorder noticed the start line on the serial console (0 or 1 chunk):
+    # capture timing, not sound. At it, every chunk is equal.
+    assert again["shift_chunks"] in (0, 1) and again["whole_recording_equal"]
+    assert again["compared_chunks"] == report["browser_chunks"] == len(browser) // (441 * 4)   # every chunk
+    assert again["firmware_aligned_sha256"] == again["browser_sha256"] == hashlib.sha256(browser[:again["compared_chunks"] * 441 * 4]).hexdigest()
+    for repeat in sorted((FRAME_CLOCK / name).glob("run*-comparison.json")):    # the same in every run
+        other = json.loads(repeat.read_text())
+        assert other["firmware"]["flash_sha256"] == report["firmware"]["flash_sha256"]
+        assert other["aligned"]["whole_recording_equal"], repeat.name
+        assert other["aligned"]["firmware_aligned_sha256"] == report["aligned"]["firmware_aligned_sha256"], repeat.name
 
 
-def test_the_whole_console_check_soundtrack_is_equal_in_qemu():
-    """Phase A: everything before the first frame-timed effect (the 8-voice chord, hard left, hard right,
-    silences: 6.6 s) is equal sample for sample; only the frame-timed effects may land one 20 ms
-    buffer away (the console's audio buffers and the cartridge's frames have their own phases)."""
-    report = json.loads((PATCHED / "audio_check-qemu-phase-a" / "comparison.json").read_text())
-    differing = report["aligned"]["differing_chunks"]
-    assert report["aligned"]["shift_chunks"] == 0 and differing and min(differing) >= 329
+@needs_node
+def test_a_one_buffer_shift_of_one_effect_breaks_whole_recording_equality():
+    """The comparison itself: moving the console check's drum one 20 ms buffer later or earlier in
+    the firmware recording (what the old QEMU path did) is reported as a difference."""
+    import sys
+    import wave
+
+    sys.path.insert(0, str(ROOT / "tools"))
+    from qemu_audio_capture import CHUNK_BYTES, aligned
+
+    with wave.open(str(FRAME_CLOCK / "audio_check-qemu" / "firmware.wav")) as source:
+        firmware = source.readframes(source.getnframes())
+    report = json.loads((FRAME_CLOCK / "audio_check-qemu" / "comparison.json").read_text())
+    browser = firmware[:report["aligned"]["compared_chunks"] * CHUNK_BYTES]
+    assert aligned(firmware, browser)["whole_recording_equal"]
+    chunks = [firmware[i:i + CHUNK_BYTES] for i in range(0, len(firmware), CHUNK_BYTES)]
+    drum = buffer_of_frame(200)
+    for moved in (chunks[:drum] + [bytes(CHUNK_BYTES)] + chunks[drum:-1],          # one buffer late
+                  chunks[:drum - 1] + chunks[drum:] + [bytes(CHUNK_BYTES)]):       # one buffer early
+        result = aligned(b"".join(moved), browser)
+        assert not result["whole_recording_equal"]
+        assert drum in result["differing_chunks"] or drum - 1 in result["differing_chunks"]
 
 
 @pytest.mark.skipif(os.environ.get("PRG32_LIVE_QEMU") != "1",
                     reason="live QEMU firmware run is opt-in: PRG32_LIVE_QEMU=1 (needs ESP-IDF and Espressif QEMU)")
 def test_live_qemu_audio_does_not_drift(tmp_path):
     """Builds the PRG32 firmware with the proposed SDK patch, records the console check in QEMU and
-    fails if the whole recording no longer lines up (the QEMU audio clock drifting again)."""
+    fails unless the whole recording equals the browser core's, sample for sample."""
     out = tmp_path / "evidence"
     env = {**os.environ, "PRG32_QEMU_EXTRA": "-icount shift=3,sleep=off"}
     # ESP-IDF's own Python (export.sh sets IDF_PYTHON_ENV_PATH): the firmware build runs idf.py with it.
@@ -304,4 +382,4 @@ def test_live_qemu_audio_does_not_drift(tmp_path):
                             capture_output=True, text=True, timeout=3600, env=env)
     assert result.returncode == 0, result.stderr[-3000:]
     aligned = json.loads((out / "comparison.json").read_text())["aligned"]
-    assert aligned["equal_chunks"] / aligned["compared_chunks"] >= 0.9, aligned
+    assert aligned["whole_recording_equal"], aligned
