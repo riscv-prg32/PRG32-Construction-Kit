@@ -49,6 +49,7 @@ TITLE = "Audio Check"
 FRAME_MS = 33           # PRG32_FRAME_MS in the firmware (and the browser core's frame)
 FRAMES = 330            # one programme
 DRUM, LONG, STOP = 200, 230, 245
+MASTER_VOLUME = 160     # set by the game, so the console's own volume setting cannot change the check
 TIMELINE = {"chord": (0.0, 2.0), "silence_after_chord": (2.45, 2.85), "left_only": (3.05, 3.95),
             "right_only": (4.3, 5.25), "drum": (DRUM * FRAME_MS / 1000, DRUM * FRAME_MS / 1000 + 0.3),
             "long": (LONG * FRAME_MS / 1000, STOP * FRAME_MS / 1000),
@@ -117,7 +118,8 @@ def blocks() -> dict:
     def at(frame, *inner):
         return block("prg32_if", list(inner), COND=f"t == {frame}")
 
-    start = [block("prg32_set_state", VAR="t", VALUE="0")]
+    # The master volume is the console's setting (its setup menu) unless the game sets it.
+    start = [block("prg32_set_state", VAR="t", VALUE="0"), block("prg32_audio_volume", VOLUME=str(MASTER_VOLUME))]
     update = [at(0, block("prg32_soundtrack_play", TRACK="Check")),
               at(DRUM, block("prg32_sound_effect", EFFECT="Drum")),
               at(LONG, block("prg32_sound_effect", EFFECT="Long")),

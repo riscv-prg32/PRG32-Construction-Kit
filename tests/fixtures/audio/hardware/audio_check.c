@@ -145,6 +145,8 @@ void audio_check_init(void) {
     t = 0;                                              /* t starts again from 0 */
     /* Block "set t to 0": store 0 in the variable t. */
     t = 0;                                              /* C syntax: '=' stores the value on the right in the variable on the left */
+    /* Block "set volume": master volume 160 (0 is silent, 255 is loudest). */
+    prg32_audio_set_master_volume(160);
 }
 
 /*

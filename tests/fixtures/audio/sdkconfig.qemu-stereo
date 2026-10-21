@@ -1,4 +1,9 @@
 # The firmware build for the QEMU audio comparison (tools/qemu_audio_capture.py, ADR-0021):
-# the PRG32 QEMU and CI profiles with stereo output (PRG32 Audio Plus).
+# the PRG32 QEMU profile with stereo output (PRG32 Audio Plus). The QEMU profile sets the
+# I2S pins to -1, and the firmware's audio set-up refuses -1 pins even though QEMU sends the
+# sound over UART1 instead; any free ESP32-C3 pins make it start (4 and 5 are UART1).
 # CONFIG_PRG32_AUDIO_MODE_MONO is not set
 CONFIG_PRG32_AUDIO_MODE_STEREO=y
+CONFIG_PRG32_AUDIO_I2S_BCLK_GPIO=6
+CONFIG_PRG32_AUDIO_I2S_LRCLK_GPIO=7
+CONFIG_PRG32_AUDIO_I2S_DATA_GPIO=10

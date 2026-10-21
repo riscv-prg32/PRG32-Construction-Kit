@@ -199,3 +199,39 @@ def test_the_native_build_renders_the_same_samples(run, tmp_path_factory):
     wasm = {item["frame"]: item for item in run["frames"]}
     assert native[-1]["audio_pcm_fnv1a"] == run["pcm_fnv1a"]
     assert native[-1]["frames"] == FRAMES and wasm[FRAMES]["count"] > 0
+
+
+@needs_node
+def test_the_qemu_firmware_evidence_still_holds():
+    """docs/evidence/qemu-audio: the firmware recordings are intact, this browser core still renders the
+    recorded browser side, and comparing them again gives the recorded equal runs."""
+    import hashlib
+    import sys
+    import wave
+
+    sys.path.insert(0, str(ROOT / "tools"))
+    from qemu_audio_capture import compare
+
+    evidence = ROOT / "docs" / "evidence" / "qemu-audio" / "2026-10-21"
+    cartridges = {"conformance": FIXTURES / "conformance.prg32",
+                  "audio_check-qemu": FIXTURES / "hardware" / "audio_check-qemu.prg32"}
+    for name, cartridge in cartridges.items():
+        report = json.loads((evidence / name / "comparison.json").read_text())
+        assert hashlib.sha256(cartridge.read_bytes()).hexdigest() == report["cartridge"]["sha256"], name
+        with wave.open(str(evidence / name / "firmware.wav")) as source:
+            firmware = source.readframes(source.getnframes())
+        assert hashlib.sha256(firmware).hexdigest() == report["firmware_pcm_sha256"]
+        seconds = report.get("seconds") or round(report["browser_chunks"] / 50)   # what --seconds was
+        run = subprocess.run(["node", str(ROOT / "tools" / "audio_capture.mjs"), str(cartridge),
+                              str(int(seconds * 30) + 1), str(evidence / name / "browser-check.wav")],
+                             capture_output=True, text=True, timeout=300)
+        assert run.returncode == 0, run.stderr
+        try:
+            with wave.open(str(evidence / name / "browser-check.wav")) as source:
+                browser = source.readframes(source.getnframes())
+        finally:
+            (evidence / name / "browser-check.wav").unlink()
+        assert hashlib.sha256(browser).hexdigest() == report["browser_pcm_sha256"], name
+        again = compare(firmware, browser)
+        assert again["identical_sounding_chunks"] == report["identical_sounding_chunks"] > 0
+        assert again["segments"] == report["segments"]

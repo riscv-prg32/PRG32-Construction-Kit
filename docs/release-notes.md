@@ -14,6 +14,9 @@
   right, a sample effect, "stop all sounds"), and `tools/hardware_audio_compare.py`, which
   compares a console recording with the browser core. With an I2S logic-analyser capture
   it checks digital silence, zero crosstalk and bit-exact single-voice stretches.
+- The PRG32 firmware's sound recorded in QEMU (`tools/qemu_audio_capture.py --build`) and
+  compared with the browser core: equal sample for sample between cartridge events
+  (`docs/evidence/qemu-audio/`). The console check now sets the master volume itself.
 - CI keeps the conformance PCM (WAV) and voice trace, browser failure screenshots, and
   rebuilds the console check in the toolchain container.
 

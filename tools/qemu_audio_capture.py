@@ -3,8 +3,11 @@
     python3 tools/qemu_audio_capture.py --firmware build/qemu-audio tests/fixtures/audio/conformance.prg32 \\
         --seconds 7 --out build/audio-evidence
 
+    python3 tools/qemu_audio_capture.py --build tests/fixtures/audio/conformance.prg32 --seconds 7 --out DIR
+
 Opt-in evidence, not a CI test: it needs Espressif's QEMU for ESP32-C3 and a PRG32 firmware
-built with the QEMU, CI and stereo profiles (docs/audio_engine.md says how). The firmware
+built with the QEMU profile and the kit's overlay (--build makes one from a clean clone of
+--sdk with ESP-IDF; the SDK checkout itself is never changed). The firmware
 streams every 20 ms of its stereo mix (441 frames, 22050 Hz, signed 16-bit) over its second
 serial port and waits for one acknowledgement byte per chunk (components/prg32_audio/audio.c,
 tools/qemu_audio_player.py in the SDK); this tool is that listener.
@@ -29,6 +32,7 @@ import socket
 import subprocess
 import sys
 import tempfile
+import threading
 import time
 import wave
 from pathlib import Path
@@ -36,6 +40,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 CHUNK_FRAMES = 441
 CHUNK_BYTES = CHUNK_FRAMES * 4          # stereo, 16-bit
+OVERLAY = ROOT / "tests" / "fixtures" / "audio" / "sdkconfig.qemu-stereo"
+MENU = b"setup_menu => prg32_input_read_menu()"
+STARTED = b"prg32_init => cart_is_loaded()"     # printed once the cartridge runs
 DEFAULT_QEMU = next(iter(sorted(Path.home().glob(".espressif/tools/qemu-riscv32/*/qemu/bin/qemu-system-riscv32"))),
                     None)
 
@@ -46,55 +53,118 @@ def free_port() -> int:
         return probe.getsockname()[1]
 
 
+def build_firmware(sdk: Path, work: Path) -> Path:
+    """Build the QEMU firmware from a clean clone of the SDK checkout (never the checkout itself) with the
+    kit's overlay (tests/fixtures/audio/sdkconfig.qemu-stereo): stereo output, and I2S pin numbers so the
+    firmware's audio set-up accepts the QEMU board. Needs ESP-IDF (``. $HOME/esp-idf/export.sh``)."""
+    source = work / "prg32"
+    subprocess.run(["git", "clone", "-q", "--no-hardlinks", str(sdk), str(source)], check=True)
+    defaults = f"profiles/sdkconfig.defaults;profiles/sdkconfig.defaults.qemu;{OVERLAY}"
+    for action in ("set-target", "build"):
+        command = ["idf.py", "-B", "build-qemu", "-D", "SDKCONFIG=build-qemu/sdkconfig", "-D",
+                   f"SDKCONFIG_DEFAULTS={defaults}", *(["set-target", "esp32c3"] if action == "set-target" else ["build"])]
+        subprocess.run(command, cwd=source, check=True, capture_output=True)
+    build = source / "build-qemu"
+    subprocess.run([sys.executable, "-m", "esptool", "--chip=esp32c3", "merge_bin", "--output=qemu_flash.bin",
+                    "--fill-flash-size=4MB", "@flash_args"], cwd=build, check=True, capture_output=True)
+    sys.path.insert(0, str(source))
+    cwd = os.getcwd()
+    try:
+        os.chdir(source)
+        from prg32.utilities.environment_check import ensure_qemu_efuse
+
+        ensure_qemu_efuse()
+    finally:
+        os.chdir(cwd)
+    return build
+
+
 def record_firmware(firmware: Path, cartridge: Path, seconds: float, sdk: Path, qemu: Path, work: Path) -> bytes:
+    """The firmware's stereo chunks from the moment the cartridge starts, for ``seconds``.
+
+    Two things QEMU needs that a person at the keyboard provides: a display that refreshes
+    (Espressif's QEMU RGB panel only finishes a frame when its display is drawn, and the
+    firmware waits for that; SDL's "dummy" driver draws nowhere), and Enter on RUN CARTRIDGE
+    in the setup menu, typed on the first serial port.
+    """
     flash = work / "qemu_flash.bin"
     shutil.copyfile(firmware / "qemu_flash.bin", flash)
     shutil.copyfile(firmware / "sdkconfig", work / "sdkconfig")
     efuse = work / "qemu_efuse.bin"
-    shutil.copyfile(sdk / "build-qemu" / "qemu_efuse.bin", efuse)
+    shutil.copyfile(firmware / "qemu_efuse.bin" if (firmware / "qemu_efuse.bin").is_file()
+                    else sdk / "build-qemu" / "qemu_efuse.bin", efuse)
     sys.path.insert(0, str(sdk))
     from prg32.qemu.upload_qemu import inject_cartridge
 
     inject_cartridge(str(cartridge), flash=str(flash))
-    port = free_port()
-    log = (work / "firmware.log").open("w")
+    console_port, audio_port = free_port(), free_port()
+    log = (work / "qemu.log").open("w")
     process = subprocess.Popen([str(qemu), "-M", "esp32c3", "-m", "4M",
                                 "-drive", f"file={flash},if=mtd,format=raw",
                                 "-drive", f"file={efuse},if=none,format=raw,id=efuse",
                                 "-global", "driver=nvram.esp32c3.efuse,property=drive,value=efuse",
                                 "-global", "driver=timer.esp32c3.timg,property=wdt_disable,value=true",
-                                "-nic", "user,model=open_eth", "-display", "none",
-                                "-serial", f"file:{work / 'serial0.log'}",
-                                "-serial", f"tcp:127.0.0.1:{port},server,wait,nodelay"],
-                               stdout=log, stderr=subprocess.STDOUT)
-    chunks = []
+                                "-nic", "user,model=open_eth", "-display", "sdl",
+                                "-serial", f"tcp:127.0.0.1:{console_port},server,nowait",
+                                "-serial", f"tcp:127.0.0.1:{audio_port},server,wait,nodelay"],
+                               stdout=log, stderr=subprocess.STDOUT, env={**os.environ, "SDL_VIDEODRIVER": "dummy"})
+    serial = bytearray()
+    chunks: list[bytes] = []
     try:
-        for _ in range(200):
-            try:
-                connection = socket.create_connection(("127.0.0.1", port), timeout=1)
-                break
-            except OSError:
-                time.sleep(0.1)
-        else:
-            raise SystemExit("QEMU did not open its audio port")
-        connection.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
-        connection.settimeout(60)
-        wanted = int(seconds * 50)
-        while len(chunks) < wanted:
+        audio, console = connect(audio_port), connect(console_port)
+        stop = threading.Event()
+
+        def read_console():
+            console.settimeout(0.5)
+            while not stop.is_set():
+                try:
+                    data = console.recv(4096)
+                except socket.timeout:
+                    continue
+                except OSError:
+                    return
+                if not data:
+                    return
+                serial.extend(data)
+
+        threading.Thread(target=read_console, daemon=True).start()
+        audio.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+        audio.settimeout(60)
+        started, pressed, deadline = None, 0.0, time.monotonic() + 120
+        while started is None or len(chunks) - started < int(seconds * 50):
+            if time.monotonic() > deadline:
+                raise SystemExit("the cartridge did not start in QEMU (see qemu.log and firmware-serial.log)")
+            if started is None and MENU in serial and time.monotonic() - pressed > 2:
+                console.sendall(b"\r")                     # RUN CARTRIDGE is the first menu entry
+                pressed = time.monotonic()
+            if started is None and STARTED in serial:
+                started = len(chunks)
             data = b""
             while len(data) < CHUNK_BYTES:
-                part = connection.recv(CHUNK_BYTES - len(data))
+                part = audio.recv(CHUNK_BYTES - len(data))
                 if not part:
                     raise SystemExit("the firmware stopped sending audio")
                 data += part
             chunks.append(data)
-            connection.sendall(b"K")
-        connection.close()
+            audio.sendall(b"K")
+        stop.set()
+        audio.close()
+        console.close()
     finally:
         process.terminate()
         process.wait(timeout=10)
         log.close()
-    return b"".join(chunks)
+        (work / "serial0.log").write_bytes(bytes(serial))
+    return b"".join(chunks[started:])
+
+
+def connect(port: int) -> socket.socket:
+    for _ in range(200):
+        try:
+            return socket.create_connection(("127.0.0.1", port), timeout=1)
+        except OSError:
+            time.sleep(0.1)
+    raise SystemExit("QEMU did not open its serial ports")
 
 
 def record_browser(cartridge: Path, seconds: float, work: Path) -> bytes:
@@ -142,6 +212,13 @@ def write_wav(path: Path, pcm: bytes) -> None:
         out.writeframes(pcm)
 
 
+def qemu_version(qemu: Path) -> str:
+    try:
+        return subprocess.run([str(qemu), "--version"], capture_output=True, text=True, timeout=30).stdout.splitlines()[0]
+    except (OSError, subprocess.SubprocessError, IndexError):
+        return qemu.name
+
+
 def revision(path: Path) -> str:
     try:
         return subprocess.run(["git", "-C", str(path), "rev-parse", "HEAD"], capture_output=True, text=True,
@@ -153,7 +230,8 @@ def revision(path: Path) -> str:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("cartridge", type=Path)
-    parser.add_argument("--firmware", type=Path, required=True, help="folder with qemu_flash.bin and sdkconfig")
+    parser.add_argument("--firmware", type=Path, help="folder with qemu_flash.bin and sdkconfig (else --build)")
+    parser.add_argument("--build", action="store_true", help="build the QEMU firmware from --sdk first (ESP-IDF)")
     parser.add_argument("--sdk", type=Path, default=Path(os.environ.get("PRG32_SOURCE") or ROOT.parent / "PRG32"))
     parser.add_argument("--qemu", type=Path, default=DEFAULT_QEMU)
     parser.add_argument("--seconds", type=float, default=7.0)
@@ -162,19 +240,30 @@ def main() -> int:
     if not args.qemu or not Path(args.qemu).is_file():
         print("Espressif's qemu-system-riscv32 was not found (--qemu)", file=sys.stderr)
         return 2
+    if not args.firmware and not args.build:
+        parser.error("give --firmware or --build")
     args.out.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory() as tmp:
-        firmware = record_firmware(args.firmware.resolve(), args.cartridge.resolve(), args.seconds + 3,
-                                   args.sdk.resolve(), Path(args.qemu), Path(tmp))
+        if args.build:
+            args.firmware = build_firmware(args.sdk.resolve(), Path(tmp))
+            shutil.copyfile(args.firmware / "sdkconfig", args.out / "firmware-sdkconfig")
+        try:
+            firmware = record_firmware(args.firmware.resolve(), args.cartridge.resolve(), args.seconds,
+                                       args.sdk.resolve(), Path(args.qemu), Path(tmp))
+        finally:
+            for name, kept in (("serial0.log", "firmware-serial.log"), ("qemu.log", "qemu.log")):
+                if (Path(tmp) / name).is_file():
+                    shutil.copyfile(Path(tmp) / name, args.out / kept)
         browser = record_browser(args.cartridge.resolve(), args.seconds, Path(tmp))
-        shutil.copyfile(Path(tmp) / "serial0.log", args.out / "firmware-serial.log")
+        flash_sha256 = hashlib.sha256((args.firmware / "qemu_flash.bin").read_bytes()).hexdigest()
     write_wav(args.out / "firmware.wav", firmware)
     write_wav(args.out / "browser.wav", browser)
     report = {
         "cartridge": {"file": args.cartridge.name, "sha256": hashlib.sha256(args.cartridge.read_bytes()).hexdigest()},
-        "firmware": {"sdk_revision": revision(args.sdk), "flash_sha256": hashlib.sha256(
-            (args.firmware / "qemu_flash.bin").read_bytes()).hexdigest(), "qemu": str(args.qemu)},
+        "firmware": {"sdk_revision": revision(args.sdk), "flash_sha256": flash_sha256, "qemu": qemu_version(Path(args.qemu)),
+                     "overlay": OVERLAY.read_text()},
         "kit_revision": revision(ROOT),
+        "seconds": args.seconds,
         "firmware_pcm_sha256": hashlib.sha256(firmware).hexdigest(),
         "browser_pcm_sha256": hashlib.sha256(browser).hexdigest(),
         **compare(firmware, browser),

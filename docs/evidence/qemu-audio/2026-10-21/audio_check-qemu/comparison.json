@@ -1,0 +1,45 @@
+{
+ "cartridge": {
+  "file": "audio_check-qemu.prg32",
+  "sha256": "4f821b3047dcb9d000cc1a94f7b7c4ab8f2d707f018593eee66b787cf379d712"
+ },
+ "firmware": {
+  "sdk_revision": "679dfb58783bd007125de9ca0b75eaa077908739",
+  "flash_sha256": "0d152d152f6b64b07a31b1999c2bd1839d9825468af59e7d52606791d740cfd8",
+  "qemu": "QEMU emulator version 9.0.0 (esp_develop_9.0.0_20240606)",
+  "overlay": "# The firmware build for the QEMU audio comparison (tools/qemu_audio_capture.py, ADR-0021):\n# the PRG32 QEMU profile with stereo output (PRG32 Audio Plus). The QEMU profile sets the\n# I2S pins to -1, and the firmware's audio set-up refuses -1 pins even though QEMU sends the\n# sound over UART1 instead; any free ESP32-C3 pins make it start (4 and 5 are UART1).\n# CONFIG_PRG32_AUDIO_MODE_MONO is not set\nCONFIG_PRG32_AUDIO_MODE_STEREO=y\nCONFIG_PRG32_AUDIO_I2S_BCLK_GPIO=6\nCONFIG_PRG32_AUDIO_I2S_LRCLK_GPIO=7\nCONFIG_PRG32_AUDIO_I2S_DATA_GPIO=10\n"
+ },
+ "kit_revision": "37614c51413c57532a737bcdfa33ea0d524061a6",
+ "firmware_pcm_sha256": "288bb443f21743680ccfc2605648e4a36482dd5488e4a9e8d5e9842210de0bc6",
+ "browser_pcm_sha256": "a035b9ed5602d759112eb1e7617909bc89a9c1fda7fa3c8e735bf6ef6b025ef3",
+ "browser_chunks": 546,
+ "firmware_chunks": 550,
+ "browser_sounding_chunks": 269,
+ "identical_sounding_chunks": 66,
+ "segments": [
+  {
+   "browser_chunk": 212,
+   "firmware_chunk": 154,
+   "identical_chunks": 36,
+   "identical_ms": 720
+  },
+  {
+   "browser_chunk": 330,
+   "firmware_chunk": 234,
+   "identical_chunks": 10,
+   "identical_ms": 200
+  },
+  {
+   "browser_chunk": 379,
+   "firmware_chunk": 270,
+   "identical_chunks": 19,
+   "identical_ms": 380
+  },
+  {
+   "browser_chunk": 402,
+   "firmware_chunk": 283,
+   "identical_chunks": 1,
+   "identical_ms": 20
+  }
+ ]
+}

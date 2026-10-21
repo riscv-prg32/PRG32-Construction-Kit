@@ -55,6 +55,7 @@ hear is what the console plays. (The old *buzzer* is gone: games use the 8 voice
 | The kit's audio-block packer writes the SDK packer's bytes; bad blocks refused | `tests/test_audio_block.py` |
 | 8 voices at once, sustain levels, attack and release times, hard left/right separation, pan and volume changes, clipping, exact silence, soundtrack (instrument N on voice N), voice replacement, old cartridges silent, damaged blocks refused | `tests/test_audio_conformance.py` on `tests/fixtures/audio/conformance.prg32` |
 | The same samples from the WebAssembly and native builds; a recorded PCM hash and envelope trace | `tests/test_audio_conformance.py`, `tests/fixtures/audio/expected.json` |
+| The PRG32 firmware in QEMU gives the same samples between events; the recordings stay valid | `docs/evidence/qemu-audio/`, `test_the_qemu_firmware_evidence_still_holds` |
 | The Player schedules the frames, bounded, and stops on Pause | `tests/test_audio_browser.py` |
 | The buzzer is reachable nowhere | `tests/test_no_buzzer.py` |
 | An AudioStudio cartridge on a real console: built by the kit, compared with the browser core (I2S capture or microphones) | `hardware_audio_check.md`, `tests/test_hardware_audio_check.py` |
@@ -71,6 +72,13 @@ Record a cartridge's sound from the browser core, with a WAV file:
 node tools/audio_capture.mjs tests/fixtures/audio/conformance.prg32 170 conformance.wav
 ```
 
-`tools/qemu_audio_capture.py` records the real firmware in QEMU and compares it chunk by
-chunk. At PRG32 `679dfb5` the QEMU firmware does not start its audio stream (its I2S
-pins are −1), so no such recording exists yet.
+`tools/qemu_audio_capture.py` records the real PRG32 firmware in Espressif's QEMU and
+compares it with the browser core, 20 ms chunk by chunk. `--build` builds the firmware
+from a clean clone of the SDK with the kit's overlay (`tests/fixtures/audio/sdkconfig.qemu-stereo`).
+Two things were needed. The QEMU profile's I2S pins are −1, which the firmware's audio set-up
+refuses, so the overlay gives it pin numbers. And the QEMU RGB display only finishes a frame
+when it is drawn, so the firmware hangs with `-display none`; SDL's "dummy" driver draws
+nowhere. The recordings in `docs/evidence/qemu-audio/2026-10-21/` match the browser sample for
+sample between cartridge events: 76 of 234 sounding chunks for the conformance cartridge,
+66 of 269 for the console check. The runs break at events because, in QEMU, the firmware
+advances its engine by the emulated clock rather than by the samples it renders (upstream).
