@@ -29,12 +29,25 @@ def bmp(pixel: bytes) -> bytes:
                                                                               len(row), 0, 0, 0, 0) + row
 
 
+def runtime_cart(cartridge: bytes) -> dict:
+    """What PRG32-QT and the console report about the running cartridge."""
+    if not cartridge:
+        return {"loaded": False, "name": "", "code_size": 0}
+    facts = delivery_check.cartridge_facts_from_bytes(cartridge)
+    return {"loaded": True, "name": facts["name"], "code_size": facts["code_size"]}
+
+
 class FakeDevice(BaseHTTPRequestHandler):
     slots: dict[str, bytes] = {}
     selected = ""
     requests: list[str] = []
     refuse = False
     host = "fake"
+    running = b""          # the cartridge the device reports as running
+    lag = 0                # runtime answers that still show the previous cartridge after a select
+    stale = False          # never reports the newly selected cartridge
+    swap_after_shot = b""  # another cartridge starts right after the screenshot
+    frame_count = 0
     screen = bmp(b"\x10\x80\xff")
 
     def log_message(self, *_args):
@@ -50,10 +63,20 @@ class FakeDevice(BaseHTTPRequestHandler):
 
     def do_GET(self):
         type(self).requests.append("GET " + self.path)
+        device = type(self)
         if self.path == "/api/runtime":
-            return self.answer(200, {"abi": "1.6", "host": type(self).host})
+            device.frame_count += 10
+            if device.lag:
+                device.lag -= 1
+                shown = device.previous
+            else:
+                shown = device.previous if device.stale else device.running
+            return self.answer(200, {"abi": "1.6", "host": device.host, "diag": {"frame_count": device.frame_count},
+                                     "cart": runtime_cart(shown)})
         if self.path == "/api/screenshot.bmp":
-            return self.answer(200, type(self).screen, "image/bmp")
+            if device.swap_after_shot:
+                device.running = device.swap_after_shot
+            return self.answer(200, device.screen, "image/bmp")
         self.answer(404, {"ok": False})
 
     def do_POST(self):
@@ -62,6 +85,7 @@ class FakeDevice(BaseHTTPRequestHandler):
         slot = self.path.split("slot=", 1)[-1]
         if self.path.startswith("/api/games/select"):
             type(self).selected = slot
+            type(self).previous, type(self).running = type(self).running, type(self).slots.get(slot, b"")
             return self.answer(200, {"ok": True, "slot": slot})
         if self.path.startswith("/api/games"):
             if type(self).refuse or body[:4] != b"PRG2":
@@ -75,6 +99,8 @@ class FakeDevice(BaseHTTPRequestHandler):
 def device():
     FakeDevice.slots, FakeDevice.selected, FakeDevice.requests = {}, "", []
     FakeDevice.refuse, FakeDevice.screen, FakeDevice.host = False, bmp(b"\x10\x80\xff"), "fake"
+    FakeDevice.running = FakeDevice.previous = FakeDevice.swap_after_shot = b""
+    FakeDevice.lag, FakeDevice.stale, FakeDevice.frame_count = 0, False, 0
     server = ThreadingHTTPServer(("127.0.0.1", 0), FakeDevice)
     threading.Thread(target=server.serve_forever, daemon=True).start()
     yield f"http://127.0.0.1:{server.server_port}"
@@ -82,6 +108,8 @@ def device():
 
 
 def run(*args, out):
+    if args and args[0] == "device":
+        args = (*args, "--settle", "3")
     code = delivery_check.main([*args, "--out", str(out)])
     return code, json.loads(out.read_text())
 
@@ -163,3 +191,32 @@ def test_the_recorded_prg32_qt_delivery_matches_the_reproduced_builds():
     # The same Blocks game as C and as generated assembly draws the same screen; the others differ.
     assert shots["blocks-generated-C-esp32c6.prg32"] == shots["blocks-generated-assembly-esp32c6.prg32"]
     assert len(set(shots.values())) == 4
+
+
+def test_a_device_that_reports_the_new_cartridge_late_is_waited_for(tmp_path, device):
+    FakeDevice.lag = 3
+    code, record = run("device", "--url", device, "--slot", "cart1", "--wait", "0", str(CARTRIDGES[0]),
+                       out=tmp_path / "late.json")
+    item = record["cartridges"][0]
+    assert code == 0 and item["outcome"] == "launched"
+    assert item["runtime_selected"]["cart"]["name"] == item["name"]
+    assert item["runtime_after_screenshot"]["cart"]["name"] == item["name"]
+
+
+def test_stale_runtime_state_is_never_evidence(tmp_path, device):
+    """A device still reporting the previous cartridge: no screenshot is taken as this one's."""
+    run("device", "--url", device, "--slot", "cart1", "--wait", "0", str(CARTRIDGES[0]), out=tmp_path / "first.json")
+    FakeDevice.stale = True
+    code, record = run("device", "--url", device, "--slot", "cart1", "--wait", "0", str(CARTRIDGES[1]),
+                       out=tmp_path / "stale.json")
+    item = record["cartridges"][0]
+    assert code == 1 and item["outcome"] == "failed" and "never reported" in item["error"]
+    assert "screenshot" not in item
+
+
+def test_a_cartridge_change_during_the_screenshot_is_caught(tmp_path, device):
+    FakeDevice.swap_after_shot = CARTRIDGES[2].read_bytes()
+    code, record = run("device", "--url", device, "--slot", "cart1", "--wait", "0", str(CARTRIDGES[0]),
+                       out=tmp_path / "swap.json")
+    item = record["cartridges"][0]
+    assert code == 1 and item["outcome"] == "failed" and "another cartridge" in item["error"]

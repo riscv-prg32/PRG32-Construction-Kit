@@ -60,6 +60,11 @@ python3 tools/delivery_check.py device --url http://192.168.4.1 --slot cart7 --t
   assembly. `tools/check_build.py --save-cartridges DIR` builds all of them.
 - PRG32-QT has four slots (`cart0` … `cart3`); the tool refuses a slot the device does
   not have before sending anything. `--screenshots DIR` keeps each screenshot.
+- Before taking the screenshot, the tool waits until the device reports the cartridge
+  just selected as running (name, code size, loaded) and, where it counts frames, has
+  run 30 frames of it. After the screenshot it checks again. A device that still shows
+  the previous game, or switches games in between, gives `failed`, never a stale
+  screenshot (`--settle` seconds, default 20).
 - `launched` means the device stored and started the cartridge and drew something.
   Watch it too, and write what you saw in `--notes`.
 - `record` (instead of `device`) writes the hashes only, for example before
