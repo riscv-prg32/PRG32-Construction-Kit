@@ -47,8 +47,6 @@ needs_node = pytest.mark.skipif(shutil.which("node") is None, reason="Node.js is
 sys.path.insert(0, str(ROOT / "tools"))
 import build_language_index  # noqa: E402
 
-from prg32_construction_kit import source_project  # noqa: E402
-
 INDEX = build_language_index.read_committed()
 C_LIFECYCLE = "void demo_init(void) {}\nvoid demo_update(void) {}\nvoid demo_draw(void) {}\n"
 

@@ -72,6 +72,7 @@
     "sustain_level": "sustain * 257 of 65535",
     "envelope_max": 65535,
     "applied": "sample = (oscillator * level) >> 16, then the filter",
+    "steps": "a stage moves the level by a whole step per sample, step = ceil(distance / samples) with samples = sample_rate * ms / 1000, so it lasts ceil(distance / step) samples: a release from a low sustain ends sooner than its nominal time",
     "note_off": "a synth voice enters release; a sample voice stops at once",
     "release_end": "the voice becomes inactive when the level reaches 0",
     "timed_note": "prg32_audio_note(..., duration_ms) releases (synth) or stops (sample) after duration_ms of engine time"

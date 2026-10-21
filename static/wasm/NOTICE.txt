@@ -1,7 +1,10 @@
 prg32-core.wasm / prg32-core.js
 
 Built from the Qt-free core of PRG32-QT (https://github.com/riscv-prg32/PRG32-QT,
-src/core, commit in BUILD.json) and wasm/prg32_core_api.cpp of PRG32-Construction-Kit.
+src/core, commit in BUILD.json), the audio engine of the PRG32 firmware
+(https://github.com/riscv-prg32/PRG32, components/prg32_audio, commit in BUILD.json)
+and wasm/prg32_core_api.cpp and wasm/audio/ of PRG32-Construction-Kit.
 
 PRG32-QT: MIT License, Copyright (c) 2026 Raffaele Montella.
+PRG32 (audio engine): MIT License, Copyright (c) 2026 Raffaele Montella.
 PRG32-Construction-Kit: MIT License (see LICENSE).

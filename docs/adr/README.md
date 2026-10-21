@@ -26,3 +26,4 @@ Short records of decisions for the full-IDE work. Each has a status:
 | [0018](0018-shared-store-contract.md) | One versioned Store contract for the kit and the Cartridge Store | Accepted |
 | [0019](0019-provider-neutral-cloud-storage.md) | Provider-neutral cloud storage (Google Drive, OneDrive) | Accepted |
 | [0020](0020-delivery-targets-and-evidence.md) | Delivery targets the kit claims, and how evidence is recorded | Accepted |
+| [0021](0021-firmware-audio-engine.md) | The PRG32 firmware's audio engine in the browser; the buzzer is obsolete | Accepted |

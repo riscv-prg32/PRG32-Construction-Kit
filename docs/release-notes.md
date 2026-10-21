@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+### Sound: the console's engine in the browser; the buzzer is gone (audio audit of c0d115e)
+
+- The Player now plays the PRG32 firmware's own audio engine, compiled into the browser
+  core: 8 voices, SID-like synth sounds with filter, ADSR envelopes, samples, soundtracks
+  and the stereo mix, exactly as the console renders them (ADR-0021, `audio_engine.md`).
+- The obsolete buzzer is refused in Advanced C and assembly (with what to use instead),
+  no longer suggested by the editor, and silent in old cartridges (the Player says so).
+- The audio contract (`contracts/prg32-audio-contract-1.json`) is checked against the PRG32
+  SDK; an 8-voice conformance cartridge pins the sound by hash and envelope trace.
+- Service worker `prg32-kit-v18`.
+
 ### Delivery and evidence (after the audit of fea31c0)
 
 - `delivery.md`: putting a game on the PRG32 console, PRG32-QT or the browser.

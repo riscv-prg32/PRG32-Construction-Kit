@@ -26,6 +26,8 @@ ROOT = Path(__file__).resolve().parent.parent
 STATIC_WASM = ROOT / "static" / "wasm"
 MODULE = Path(os.environ.get("PRG32_WASM_MODULE") or STATIC_WASM / "prg32-core.js")
 PRG32QT = Path(os.environ.get("PRG32QT_DIR") or ROOT.parent / "PRG32-QT").resolve()
+# The browser core's audio engine is the PRG32 firmware's (ADR-0021): the build needs the SDK too.
+PRG32_SDK = Path(os.environ.get("PRG32_SOURCE") or ROOT.parent / "PRG32").resolve()
 GOLDEN = ("Asteroids", "Bach", "PerformanceTest")
 
 
@@ -53,8 +55,10 @@ def native_harness(tmp_path_factory, prg32qt):
     if shutil.which("cmake") is None or not (shutil.which("c++") or shutil.which("g++") or shutil.which("clang++")):
         pytest.skip("CMake or a C++ compiler is not installed")
     build = tmp_path_factory.mktemp("native-harness")
+    if not (PRG32_SDK / "components" / "prg32_audio" / "audio_synth.c").is_file():
+        pytest.skip(f"no PRG32 SDK checkout at {PRG32_SDK} (set PRG32_SOURCE)")
     configure = run(["cmake", "-S", str(ROOT / "wasm"), "-B", str(build), f"-DPRG32QT_DIR={prg32qt}",
-                     "-DCMAKE_BUILD_TYPE=Release"])
+                     f"-DPRG32_DIR={PRG32_SDK}", "-DCMAKE_BUILD_TYPE=Release"])
     assert configure.returncode == 0, configure.stderr
     built = run(["cmake", "--build", str(build), "--parallel"])
     assert built.returncode == 0, built.stdout + built.stderr

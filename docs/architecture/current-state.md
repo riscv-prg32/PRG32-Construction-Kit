@@ -82,6 +82,9 @@ capability IDs.
   bubblewrap + seccomp + limits, with provenance and SHA-256. [BLD-01] [BLD-02]
 - Browser runtime: the PRG32-QT core as WebAssembly, equal to the native core
   and `prg32qt-headless`. [WASM-01]
+- Eight-voice audio in the browser: the PRG32 firmware's own engine (8 voices,
+  SID-like synth, independent ADSR, samples, tracker) behind a host-call hook,
+  checked against the audio contract on a toolchain-built fixture (ADR-0021). [AUD-01]
 - Player debugger: pause, continue, restart, speeds, instruction/over/out
   stepping, address breakpoints, browser state equal to PRG32-QT's. [DBG-01] [DBG-02] [DBG-03] [DBG-06]
 - Source and block debugging for kit-compiled cartridges (ADR-0015): a saved
@@ -119,16 +122,19 @@ capability IDs.
 - Google Drive and OneDrive behind one provider interface (ADR-0019), proven
   against in-process fakes and a real browser; no live tenant run yet.
   [CLD-01] [CLD-02]
-- Browser host with framebuffer, input, timing and an offline subset; audio
-  calls and stereo pan reach Web Audio, but the host is approximate and
-  eight-voice ADSR/sample parity is unproved. [WASM-02] [AUD-01] [AUD-02]
+- Browser host with framebuffer, input, timing and an offline subset; its
+  stereo sound is the firmware engine's PCM, identical between builds, but not
+  yet recorded against the firmware itself (QEMU audio does not stream at SDK
+  679dfb5) or PRG32-QT (no ADSR). [WASM-02] [AUD-02]
+- Buzzer removal on the kit side: refused by the validators, obsolete-only in
+  the editor, silent for old cartridges, guarded by a repository-wide test; the
+  SDK's portable ABI still lists it. [AUD-04]
 
 ### Not implemented
 
 - Verified hardware delivery (a recording tool exists, no run recorded) and
   PRG32-iOS handoff (deferred, ADR-0020). [DEP-01] [DEP-03]
-- AudioStudio is absent, and obsolete buzzer APIs and teaching material remain
-  reachable without an explicit legacy migration or rejection. [AUD-03] [AUD-04]
+- AudioStudio. [AUD-03]
 
 ## Risks
 

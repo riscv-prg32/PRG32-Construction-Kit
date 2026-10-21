@@ -23,7 +23,7 @@ which ones also have blocks.
 | Sprites (`sprite_hitbox`, `sprite_draw_8x8`) | *touches*, *draw 8x8 sprite* | yes | 16x16/24x24 RGB565, animation, indexed and bitplane sprites (Sprite Lab produces the C arrays) |
 | Tiles and playfields (`tilemap`) | define tile, fill, put, `tile()`, scroll, camera, draw | yes | text-tile screen (`tile_put`, `tile_present`), `scroll_by`, `parallax`, `draw_dual`, tile flags |
 | Platformer helpers (`platformer`) | - | - | `platform_actor_*`, `platform_solid_at`, camera follow |
-| Audio (`audio`) | beep, MIDI note, stop, master volume | yes (oscillator) | note on/off with pan, samples, tracks, tempo, channel volume/pan, buzzer |
+| Audio (`audio`) | beep, MIDI note, stop, master volume | yes (the firmware's 8-voice engine) | note on/off with pan, samples, tracks, tempo, channel volume/pan |
 | Status bands | *show in status band* (game info) | shown in the debug line | band modes, colours, log |
 | Splash | *show splash* | yes | `splash_draw`, `splash_show_default` |
 | Scores | *save high score*, *show scoreboard*, *ask the player's name* | messages only | `score_player_get/set`, `score_count/get`, `score_sync_remote` |
@@ -59,7 +59,7 @@ game logic; a few presentation details differ by design:
 | Text font | 8 x 8 firmware font | its own 5 x 7 font | 8 x 8 firmware font |
 | Undefined tile | painted with black | skipped | painted with black |
 | Status bands | 20-pixel bands above and below | optional, off by default | debug line |
-| Audio | I2S (board), UART PCM stream (QEMU) | Qt Multimedia | Web Audio oscillator |
+| Audio | I2S (board), UART PCM stream (QEMU) | Qt Multimedia | the firmware's engine in WebAssembly, played as PCM |
 
 `tools/runtime_check.py` builds every example and runs it in the simulator,
 on QEMU and on PRG32-QT (see `runtime_check.md`).

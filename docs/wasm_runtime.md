@@ -31,7 +31,7 @@ console really runs it.
   `static/wasm/` and the runtime script).
 - Timing is PRG32-QT's accurate ESP32-C6 profile (160 MHz virtual clock, one
   frame = 33 ms), so a game that is too slow on the console is late here too.
-- Sound is an approximation (see `compatibility.md`).
+- Sound is the PRG32 firmware's audio engine, compiled in (ADR-0021, `audio_engine.md`).
 
 ## How it is built
 
@@ -39,7 +39,7 @@ console really runs it.
 PRG32-QT src/core (C++, Qt-free)  ──┐
 wasm/prg32_core_api.cpp (C API)  ───┼─ Emscripten ─► static/wasm/prg32-core.{js,wasm}  (≈ 145 KB)
                                     └─ C++ compiler ► prg32-core-harness (golden tests)
-static/js/prg32_runtime.js: canvas, buttons, timing, Web Audio  ─► templates/player.html
+static/js/prg32_runtime.js: canvas, buttons, timing, plays the engine's PCM  ─► templates/player.html
 ```
 
 - The core is **not copied** into this repository: `wasm/CMakeLists.txt`
@@ -107,7 +107,7 @@ remembered too (`prg32-kit-debugger-view`).
 | Native build = PRG32-QT's `prg32qt-headless` | The last frame after 450 frames is byte-identical (PPM) for `Asteroids` and `Bach`. |
 | Kit cartridges | Blocks (Pong), generated assembly, Advanced C and handwritten assembly cartridges built with the real toolchain give the same states in both builds and draw pixels. |
 | Reproducible module | A fresh build from the recorded PRG32-QT commit with the recorded Emscripten gives the same bytes. |
-| Audio | Calls made by `Bach` reach the browser host with valid kinds. |
+| Audio | Calls made by `Bach` reach the browser host with valid kinds; the PCM hash is part of every compared state, so the WebAssembly and native builds render identical samples (`audio_engine.md`). |
 | Debugger = native | A script of single steps, step over/out, breakpoints, continue, frames and playback slices gives identical PC, x0–x31, phase, breakpoints, hit counts, retired instructions and cycles after every command, on the golden cartridges and on kit cartridges (`--debug` mode of both harnesses). |
 | Debugger semantics | N single steps = one `step:N`; a breakpoint on update stops once per frame and resume leaves it once; a stop without moving is not a new hit; playback slices stay on a breakpoint; step over runs a whole call; step out of update lands on draw; 29 instrumented frames = 29 normal frames (same registers, cycles and framebuffer). |
 | Player protocol | `PRG32CartridgePlayer.debug()` in Node: PRG32-QT's error words, speed list, breakpoint validation, state fields, breakpoints remembered per SHA-256. |
@@ -120,8 +120,9 @@ them against the committed module and against a fresh build.
 
 - Not done: multiplayer (no transport in the browser), Wi-Fi, score upload,
   the PRG32-QT performance overlay. Scores stay in memory.
-- Sound: tones and notes are simple oscillators, PCM is played as recorded;
-  PRG32-QT's mixer, envelopes and filters are not reproduced exactly.
+- Sound follows the PRG32 firmware, not PRG32-QT's desktop mixer (which has no ADSR);
+  `prg32_audio_notes` plays its notes in engine time while the game keeps running
+  (on the console the game waits).
 - One cartridge per page at a time.
 - Debugger: source, block, variable, call-stack, watch and condition
   features need a cartridge compiled by the kit (debug map and block map,

@@ -6,6 +6,12 @@
     "version": "0.4.1",
     "license": "MIT"
   },
+  "audio": {
+    "repository": "https://github.com/riscv-prg32/PRG32",
+    "revision": "679dfb58783bd007125de9ca0b75eaa077908739",
+    "sources": "components/prg32_audio (audio.c, audio_assets.c, audio_mixer.c, audio_synth.c, audio_tracker.c)",
+    "license": "MIT"
+  },
   "abi": {
     "major": 1,
     "minor": 6,
@@ -14,12 +20,12 @@
   "emscripten": "emcc (Emscripten gcc/clang-like replacement + linker emulating GNU ld) 6.0.12-git",
   "files": {
     "prg32-core.js": {
-      "sha256": "5896c2100b666a4ae0b4f21519764380f360f9ae80180e38b88219e9f83c59fd",
-      "bytes": 16059
+      "sha256": "b0693c83578e5b9ff70dbfbec68bcc05457bd7a64d85ed0603ae08d51e4073e8",
+      "bytes": 16756
     },
     "prg32-core.wasm": {
-      "sha256": "3a19c44f2ead629196899ef187d8c87418d6277b90eadad07cff4052184d371f",
-      "bytes": 131527
+      "sha256": "b97f488d59a3abd734e3cfa8645aed2423498b8d29d704f271453ad892c0f1e1",
+      "bytes": 143002
     }
   }
 }

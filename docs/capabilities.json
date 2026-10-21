@@ -182,21 +182,25 @@
         "tests/test_browser_offline.py::test_offline_player_runs_a_real_cartridge",
         "tests/test_browser_offline.py::test_cold_offline_start_shows_an_editable_scratchpad"
       ],
-      "note": "Framebuffer/input/timing/offline behavior is covered, but the browser explicitly approximates audio with Web Audio oscillators and has no ADSR/sample parity proof."
+      "note": "Framebuffer/input/timing/offline covered; sound is the firmware's audio engine played as PCM (ADR-0021)."
     },
     {
       "id": "AUD-01",
       "title": "Eight SID-like voices with independent ADSR",
-      "status": "partial",
+      "status": "implemented",
       "audit_score": 1,
       "source": [
-        "static/js/prg32_runtime.js::AudioHost",
-        "prg32_construction_kit/generator.py::parse_statement"
+        "wasm/prg32_core_api.cpp::afterHostCall",
+        "wasm/audio/audio_port.c::prg32_kit_audio_advance_ms",
+        "contracts/prg32-audio-contract-1.json"
       ],
       "tests": [
-        "tests/test_wasm_runtime.py::test_audio_calls_reach_the_browser_host"
+        "tests/test_audio_conformance.py::test_eight_voices_sound_at_once_each_with_its_own_envelope",
+        "tests/test_audio_conformance.py::test_sustain_levels_are_exactly_sustain_times_257",
+        "tests/test_audio_conformance.py::test_a_slow_attack_lasts_its_time_and_releases_end",
+        "tests/test_audio_contract.py::test_eight_voices_and_the_upstream_fallback"
       ],
-      "note": "The portable audio calls reach the browser and PRG32/PRG32-QT contain synth support, but the browser host substitutes simple oscillators, ignores ADSR parameters, and has no eight-active-voice envelope test."
+      "note": "The browser core runs the PRG32 firmware's own audio engine (ADR-0021): 8 voices, SID-like synth with filter, independent ADSR, samples, tracker; checked against the contract's formulas on a toolchain-built 8-voice fixture. Not recorded from firmware hardware or QEMU."
     },
     {
       "id": "AUD-02",
@@ -204,13 +208,16 @@
       "status": "partial",
       "audit_score": 2,
       "source": [
-        "static/js/prg32_runtime.js::AudioHost",
-        "wasm/prg32_core_api.cpp::setChannelPan"
+        "static/js/prg32_runtime.js::PcmAudioOutput",
+        "wasm/audio/audio_port.c::step"
       ],
       "tests": [
-        "tests/test_wasm_runtime.py::test_audio_calls_reach_the_browser_host"
+        "tests/test_audio_conformance.py::test_hard_left_and_hard_right_are_separate",
+        "tests/test_audio_conformance.py::test_the_native_build_renders_the_same_samples",
+        "tests/test_audio_conformance.py::test_the_run_is_deterministic_and_matches_the_record",
+        "tests/test_audio_browser.py::test_the_player_plays_the_engines_stereo_frames"
       ],
-      "note": "The browser uses StereoPannerNode and forwards pan calls, but tests count audio calls rather than compare left/right PCM, envelopes, clipping or deterministic samples with firmware and PRG32-QT."
+      "note": "Stereo PCM from the firmware's mixer, identical between the WebAssembly and native builds and pinned by hash; hard left/right separation, clipping and silence tested. PRG32-QT's mixer differs (no ADSR) and the QEMU firmware does not stream audio at SDK 679dfb5, so no cross-runtime recording yet."
     },
     {
       "id": "AUD-03",
@@ -224,14 +231,19 @@
     {
       "id": "AUD-04",
       "title": "Obsolete buzzer removal",
-      "status": "missing",
+      "status": "partial",
       "audit_score": 0,
       "source": [
+        "prg32_construction_kit/source_project.py::OBSOLETE_FUNCTIONS",
         "tools/build_language_index.py",
-        "static/js/ide/prg32_language_index.js"
+        "static/js/ide/language.js"
       ],
-      "tests": [],
-      "note": "Buzzer functions remain in the generated portable API index and buzzer-era examples/documentation remain reachable; no rejection or migration test exists."
+      "tests": [
+        "tests/test_no_buzzer.py::test_nothing_reachable_names_the_buzzer_except_its_refusal",
+        "tests/test_no_buzzer.py::test_c_projects_using_it_get_a_clear_message",
+        "tests/test_audio_conformance.py::test_an_old_buzzer_cartridge_is_silent_and_counted"
+      ],
+      "note": "Kit side complete: refused in C and assembly with what to use instead, obsolete-only in the language index, silent and counted for old cartridges, a repository-wide guard. The SDK still lists the buzzer in its portable ABI (upstream change)."
     },
     {
       "id": "DBG-01",

@@ -28,6 +28,8 @@ ALLOWED = {
     "tools/build_language_index.py": "keeps it out of suggestions and lists it as obsolete",
     "wasm/prg32_core_api.cpp": "old cartridges calling it are silent and counted (like a board without a buzzer)",
     "static/js/prg32_runtime.js": "reports how many obsolete buzzer calls an old cartridge made",
+    "tools/build_audio_fixtures.py": "builds the legacy test cartridge that proves old cartridges stay silent",
+    "tools/audio_capture.mjs": "records how many obsolete calls a test cartridge made",
 }
 
 

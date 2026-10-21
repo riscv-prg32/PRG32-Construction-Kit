@@ -30,6 +30,7 @@ def symbol_exists(reference: str) -> bool:
         ".js": [rf"\bfunction {re.escape(name)}\b", rf"\bclass {re.escape(name)}\b", rf"^\s+{re.escape(name)}\([^)]*\)\s*\{{",
                 rf"\b{re.escape(name)}\s*="],
         ".cpp": [rf"\b{re.escape(name)}\s*\("],
+        ".c": [rf"\b{re.escape(name)}\s*\("],
     }
     return any(re.search(pattern, text, re.MULTILINE) for pattern in patterns.get(path.suffix, []))
 

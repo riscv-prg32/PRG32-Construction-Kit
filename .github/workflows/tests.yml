@@ -93,6 +93,18 @@ jobs:
           ref: ${{ steps.core.outputs.revision }}
           path: PRG32-QT
 
+      # The core's sound is the PRG32 firmware's audio engine (ADR-0021), compiled from the SDK.
+      - name: Read the PRG32 SDK revision of the audio engine
+        id: audio
+        run: echo "revision=$(python3 -c 'import json; print(json.load(open("static/wasm/BUILD.json"))["audio"]["revision"])')" >> "$GITHUB_OUTPUT"
+
+      - name: Check out the PRG32 SDK at that revision
+        uses: actions/checkout@v7
+        with:
+          repository: riscv-prg32/PRG32
+          ref: ${{ steps.audio.outputs.revision }}
+          path: PRG32
+
       - name: Set up Python
         uses: actions/setup-python@v7
         with:
@@ -121,14 +133,23 @@ jobs:
       - name: Golden tests with the committed module
         env:
           PRG32QT_DIR: ${{ github.workspace }}/PRG32-QT
+          PRG32_SOURCE: ${{ github.workspace }}/PRG32
         run: python -m pytest -q -rs tests/test_wasm_runtime.py
+
+      - name: Audio contract, packer and eight-voice conformance (the SDK is required here)
+        env:
+          PRG32QT_DIR: ${{ github.workspace }}/PRG32-QT
+          PRG32_SOURCE: ${{ github.workspace }}/PRG32
+          PRG32_REQUIRE_SDK: "1"
+        run: python -m pytest -q -rs tests/test_audio_contract.py tests/test_audio_block.py tests/test_audio_conformance.py
 
       - name: Golden tests with a fresh build of the module
         env:
           PRG32QT_DIR: ${{ github.workspace }}/PRG32-QT
           PRG32_WASM_MODULE: ${{ github.workspace }}/build/wasm-ci/prg32-core.js
+          PRG32_SOURCE: ${{ github.workspace }}/PRG32
         run: |
-          emcmake cmake -S wasm -B build/wasm-ci -G Ninja -DPRG32QT_DIR="$PRG32QT_DIR" -DCMAKE_BUILD_TYPE=Release
+          emcmake cmake -S wasm -B build/wasm-ci -G Ninja -DPRG32QT_DIR="$PRG32QT_DIR" -DPRG32_DIR="$PRG32_SOURCE" -DCMAKE_BUILD_TYPE=Release
           cmake --build build/wasm-ci
           python -m pytest -q -rs tests/test_wasm_runtime.py -k "golden or audio or refused"
 
@@ -171,7 +192,7 @@ jobs:
           PRG32_REQUIRE_BROWSER: "1"
         run: >-
           python -m pytest -q -rs --junitxml=browser-test-results.xml -o junit_suite_name=browser-${{ github.sha }}
-          tests/test_browser_offline.py tests/test_ide_browser.py tests/test_debugger_browser.py tests/test_accounts_browser.py tests/test_storage_browser.py tests/test_cloud_browser.py tests/test_performance_browser.py tests/test_frontend_offline.py
+          tests/test_browser_offline.py tests/test_ide_browser.py tests/test_debugger_browser.py tests/test_accounts_browser.py tests/test_storage_browser.py tests/test_cloud_browser.py tests/test_performance_browser.py tests/test_audio_browser.py tests/test_frontend_offline.py
 
       - name: Upload the browser test results
         if: always()

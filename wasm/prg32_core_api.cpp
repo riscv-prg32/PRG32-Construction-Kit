@@ -8,11 +8,20 @@
 //
 // The core is not copied into this repository: wasm/CMakeLists.txt compiles PRG32-QT's
 // src/core files from a checkout (see docs/wasm_runtime.md and docs/adr/0003).
+//
+// Sound (ADR-0021): the audio calls a cartridge makes are played by the PRG32 firmware's
+// own audio engine (components/prg32_audio, compiled from a PRG32 checkout), so the
+// browser renders the same 8 voices, ADSR envelopes and stereo samples as the console.
+// PRG32-QT's runtime still sees every call (its timing and state stay as they are); a
+// hook after each audio call gives the call, with its arguments, to that engine.
 
 #include "Cartridge.h"
 #include "RiscVDisassembler.h"
 #include "Runtime.h"
+#include "audio_port.h"
+#include "prg32_audio.h"
 
+#include <algorithm>
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
@@ -133,6 +142,11 @@ class QueueAudioSink final : public prg32::AudioSink {
 struct Session {
     prg32::Runtime runtime;
     QueueAudioSink audio;
+    // The firmware audio engine (see the top of this file).
+    std::vector<uint8_t> audioBlock;   // the cartridge's AUD0 block; the engine reads it in place
+    uint32_t audioArgs[8] = {};        // a0..a7 of the audio call being made
+    uint64_t audioNanoseconds = 0;     // virtual time the engine has reached
+    uint64_t buzzerCalls = 0;          // obsolete prg32_buzzer_* calls: silent, as on a console without one
     std::vector<uint16_t> pixels;
     std::string name;
     std::string metadata;
@@ -166,6 +180,144 @@ bool fail(const std::string& message) {
     return false;
 }
 
+// --- Sound: the PRG32 firmware's audio engine (ADR-0021) ----------------------------------
+
+constexpr uint32_t FirstAudioCall = 5, LastAudioCall = 25;   // the portable ABI's audio entries
+
+/** The cartridge's AUD0 block, found where the console looks: after the header and the code. */
+std::vector<uint8_t> audioBlockOf(const uint8_t* data, uint32_t size) {
+    if (size < 20)
+        return {};
+    const uint32_t headerSize = uint32_t(data[8]) | uint32_t(data[9]) << 8;
+    const uint32_t codeSize = uint32_t(data[16]) | uint32_t(data[17]) << 8 | uint32_t(data[18]) << 16 |
+                              uint32_t(data[19]) << 24;
+    const uint64_t offset = uint64_t(headerSize) + codeSize;
+    if (offset + 40 > size || std::memcmp(data + offset, "AUD0", 4) != 0)
+        return {};
+    const uint8_t* block = data + offset;
+    const uint32_t blockSize = uint32_t(block[36]) | uint32_t(block[37]) << 8 | uint32_t(block[38]) << 16 |
+                               uint32_t(block[39]) << 24;
+    if (blockSize < 40 || offset + blockSize > size)
+        return {};
+    return {block, block + blockSize};
+}
+
+/** Let the engine catch up with the cartridge's virtual time (whole milliseconds). */
+void syncAudio() {
+    const uint64_t now = session->runtime.virtualNanoseconds();
+    if (now <= session->audioNanoseconds)
+        return;
+    const uint64_t ms = (now - session->audioNanoseconds) / 1000000ull;
+    if (ms == 0)
+        return;
+    session->audioNanoseconds += ms * 1000000ull;
+    prg32_kit_audio_advance_ms(uint32_t(std::min<uint64_t>(ms, 60000)));
+}
+
+void beforeHostCall(uint32_t index) {
+    if (index < FirstAudioCall || index > LastAudioCall)
+        return;
+    syncAudio();   // the call happens at this point of virtual time
+    for (int n = 0; n < 8; ++n)
+        session->audioArgs[n] = session->runtime.registerValue(10 + n);
+}
+
+void afterHostCall(uint32_t index) {
+    if (index < FirstAudioCall || index > LastAudioCall)
+        return;
+    const uint32_t* a = session->audioArgs;
+    auto& runtime = session->runtime;
+    auto u8 = [](uint32_t v) { return uint8_t(v); };
+    auto i8 = [](uint32_t v) { return int8_t(uint8_t(v)); };
+    switch (index) {
+    case 5:   // prg32_buzzer_tone: obsolete (contracts/prg32-audio-contract-1.json "legacy_buzzer")
+    case 7:   // prg32_buzzer_play_notes: obsolete
+    case 8:   // prg32_buzzer_sample_u8: obsolete
+        ++session->buzzerCalls;
+        break;
+    case 6:
+        prg32_audio_note(u8(a[0]), u8(a[1]), u8(a[2]), u8(a[3]), a[4]);
+        break;
+    case 9: {
+        // prg32_audio_init(config): the console starts the engine again (forgetting the
+        // cartridge's assets, as the firmware does). The kit keeps 22050 Hz and 8 voices.
+        prg32_audio_config_t config{};
+        config.sample_rate = 22050;
+        config.mode = PRG32_AUDIO_MODE_STEREO;
+        config.max_voices = 8;
+        if (a[0]) {
+            const auto bytes = runtime.debugMemory(a[0], 9);
+            if (bytes.size() == 9) {
+                const uint32_t mode = uint32_t(bytes[4]) | uint32_t(bytes[5]) << 8;
+                config.mode = mode == PRG32_AUDIO_MODE_MONO ? PRG32_AUDIO_MODE_MONO : PRG32_AUDIO_MODE_STEREO;
+                config.max_voices = bytes[8] && bytes[8] < 8 ? bytes[8] : 8;
+            }
+        }
+        config.gpio_bclk = config.gpio_lrclk = config.gpio_data = config.gpio_sd = -1;
+        runtime.setHostResult(prg32_audio_init(&config) ? 1 : 0);
+        break;
+    }
+    case 10:
+        prg32_audio_shutdown();
+        break;
+    case 11:
+        runtime.setHostResult(uint32_t(prg32_audio_get_mode()));
+        break;
+    case 12:
+        runtime.setHostResult(uint32_t(prg32_audio_play_sample(uint16_t(a[0]), u8(a[1]), uint16_t(a[2]))));
+        break;
+    case 13:
+        runtime.setHostResult(uint32_t(prg32_audio_play_sample_pan(uint16_t(a[0]), u8(a[1]), uint16_t(a[2]), i8(a[3]))));
+        break;
+    case 14:
+        prg32_audio_stop_channel(int32_t(a[0]));
+        break;
+    case 15:
+        prg32_audio_stop_all();
+        break;
+    case 16:
+        prg32_audio_note_on(u8(a[0]), u8(a[1]), u8(a[2]), u8(a[3]));
+        break;
+    case 17:
+        prg32_audio_note_on_pan(u8(a[0]), u8(a[1]), u8(a[2]), u8(a[3]), i8(a[4]));
+        break;
+    case 18:
+        prg32_audio_note_off(u8(a[0]));
+        break;
+    case 19: {
+        // prg32_audio_notes(channel, instrument, volume, notes, count): the firmware plays the
+        // notes one after the other, waiting in between; here that waiting renders the audio.
+        const uint32_t count = std::min<uint32_t>(a[4], 256);
+        const auto bytes = runtime.debugMemory(a[3], size_t(count) * 4);
+        std::vector<prg32_midi_note_t> notes;
+        for (size_t n = 0; n + 4 <= bytes.size(); n += 4)
+            notes.push_back({bytes[n], uint16_t(bytes[n + 2] | bytes[n + 3] << 8)});
+        prg32_audio_notes(u8(a[0]), u8(a[1]), u8(a[2]), notes.data(), notes.size());
+        break;
+    }
+    case 20:
+        prg32_audio_play_track(uint16_t(a[0]));
+        break;
+    case 21:
+        prg32_audio_stop_track();
+        break;
+    case 22:
+        prg32_audio_set_tempo(uint16_t(a[0]));
+        break;
+    case 23:
+        prg32_audio_set_master_volume(u8(a[0]));
+        break;
+    case 24:
+        prg32_audio_set_channel_volume(u8(a[0]), u8(a[1]));
+        break;
+    case 25:
+        prg32_audio_set_channel_pan(u8(a[0]), i8(a[1]));
+        break;
+    default:
+        break;
+    }
+}
+
 } // namespace
 
 /** Load a .prg32 cartridge and run its init function. Returns 1 on success, 0 on error (see prg32_last_error). */
@@ -178,12 +330,23 @@ PRG32_EXPORT int prg32_load(const uint8_t* data, uint32_t size) {
         return fail(error.empty() ? "not a PRG32 cartridge" : error);
     auto next = std::make_unique<Session>();
     next->runtime.setAudioSink(&next->audio);
-    if (!next->runtime.load(*cartridge, error) || !next->runtime.init(error))
+    next->runtime.setHostHooks(beforeHostCall, afterHostCall);
+    // As the console: the engine is running before the cartridge starts, and the cartridge's
+    // audio block (if any) replaces the assets; a block the engine refuses stops the load.
+    if (prg32_kit_audio_start() != 0)
+        return fail("the audio engine did not start");
+    next->audioBlock = audioBlockOf(data, size);
+    if (prg32_kit_audio_load(next->audioBlock.data(), next->audioBlock.size()) != 0)
+        return fail("failed to load cartridge AUDIO block");
+    session = std::move(next);   // the hooks use the session while init runs
+    if (!session->runtime.load(*cartridge, error) || !session->runtime.init(error)) {
+        session.reset();
         return fail(error);
-    next->name = cartridge->name();
-    next->metadata = cartridge->metadataJson();
-    next->pixels = next->runtime.framebuffer().rgb565Pixels();
-    session = std::move(next);
+    }
+    session->name = cartridge->name();
+    session->metadata = cartridge->metadataJson();
+    session->pixels = session->runtime.framebuffer().rgb565Pixels();
+    syncAudio();
     return 1;
 }
 
@@ -211,6 +374,7 @@ PRG32_EXPORT int prg32_frame(uint32_t input) {
         return fail(error);
     session->pixels = session->runtime.framebuffer().rgb565Pixels();
     ++session->frames;
+    syncAudio();
     return 1;
 }
 
@@ -384,6 +548,7 @@ int run(uint32_t input, uint64_t budget, bool stopAtFrameEnd, Goal goal) {
 
 void refreshPixels() {
     session->pixels = session->runtime.framebuffer().rgb565Pixels();
+    syncAudio();   // whatever ran, the engine follows its virtual time (as prg32_frame does)
 }
 
 void appendNumber(std::string& out, uint32_t value) {
@@ -669,6 +834,45 @@ PRG32_EXPORT const char* prg32_state_json() {
     stateText += "],\"retired\":" + std::to_string(runtime.retiredInstructions()) +
                  ",\"cycles\":" + std::to_string(runtime.virtualCycles()) + ",\"framebuffer_fnv1a\":" + buffer +
                  ",\"non_black\":" + std::to_string(nonBlack) +
-                 ",\"audio_calls\":" + std::to_string(session->audio.total) + "}";
+                 ",\"audio_calls\":" + std::to_string(session->audio.total) +
+                 ",\"audio_pcm_fnv1a\":\"" + [] {
+                     char hash[32];
+                     std::snprintf(hash, sizeof hash, "%016llx", static_cast<unsigned long long>(prg32_kit_audio_hash()));
+                     return std::string(hash);
+                 }() + "\"}";
     return stateText.c_str();
+}
+
+// --- Sound output (ADR-0021) ------------------------------------------------------------
+// The browser takes the rendered stereo frames after each frame and plays them; tests read
+// them directly. Frames are signed 16-bit, interleaved left, right, at 22050 Hz.
+
+/** Stereo frames waiting to be played. */
+PRG32_EXPORT uint32_t prg32_audio_frames() {
+    return uint32_t(prg32_kit_audio_frames());
+}
+
+/** The waiting frames: 2 x prg32_audio_frames() signed 16-bit values (left, right, ...). */
+PRG32_EXPORT const int16_t* prg32_audio_samples() {
+    return prg32_kit_audio_pcm();
+}
+
+/** Forget the waiting frames (the browser has queued them for playing). */
+PRG32_EXPORT void prg32_audio_take() {
+    prg32_kit_audio_clear();
+}
+
+/** Frames dropped because nobody took them in time. */
+PRG32_EXPORT uint32_t prg32_audio_dropped() {
+    return prg32_kit_audio_dropped();
+}
+
+/** How many obsolete buzzer calls the cartridge made (they make no sound). */
+PRG32_EXPORT uint32_t prg32_audio_buzzer_calls() {
+    return session ? uint32_t(session->buzzerCalls) : 0;
+}
+
+/** One voice for envelope traces: out[6] = active, synth, envelope state, level, volume, pan. */
+PRG32_EXPORT void prg32_audio_voice(int voice, int32_t* out) {
+    prg32_kit_audio_voice(voice, out);
 }

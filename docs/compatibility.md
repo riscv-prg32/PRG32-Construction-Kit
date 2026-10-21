@@ -63,7 +63,7 @@ The browser runs PRG32-QT's own core (`docs/wasm_runtime.md`).
 | Accurate ESP32-C6 timing (virtual clock) | Yes (default) | Yes (default) |
 | 320 × 200 RGB565 framebuffer | Yes | Yes; identical frames to `prg32qt-headless` |
 | Buttons (keyboard map, latch of quick taps) | Yes | Yes, same keys; on-screen buttons |
-| Audio | Qt mixer | Approximate: oscillators for tones/notes, PCM as recorded |
+| Audio | Qt mixer (no ADSR, floating point) | The PRG32 firmware's own engine: 8 voices, ADSR, synth filter, samples, tracker, stereo mix (ADR-0021, `audio_engine.md`) |
 | Multiplayer, Wi-Fi, score upload | Yes | No |
 | Debugger UI | Yes | Yes (see the parity table above) |
 

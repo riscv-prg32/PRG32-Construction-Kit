@@ -25,7 +25,6 @@
     Enter: 'SELECT', NumpadEnter: 'SELECT', Space: 'SELECT'
   };
   const FRAME_MS = 33; // PRG32 VirtualClock::FramePeriodNanoseconds
-  const AUDIO_RECORD_WORDS = 12;
   // PRG32-QT's debugger speeds (AppController::setDebugSpeed).
   const SPEEDS = [0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2, 4];
   // prg32_debug_run results (wasm/prg32_core_api.cpp).
@@ -81,102 +80,65 @@
     return corePromise;
   }
 
-  // Plays the cartridge's audio calls with Web Audio. An approximation of
-  // PRG32-QT's mixer (see docs/compatibility.md): tones and notes are simple
-  // oscillators, PCM samples are played as recorded.
-  class AudioHost {
+  // Plays the sound the PRG32 firmware's audio engine renders inside the core (ADR-0021):
+  // after every frame the core hands over 22050 Hz signed 16-bit stereo frames, which are
+  // scheduled one after the other, so the 8 voices, their ADSR envelopes and the stereo
+  // mix are exactly the console's. At most 0.3 s is queued: if the page falls behind
+  // (a hidden tab), the oldest sound is dropped rather than played late.
+  class PcmAudioOutput {
     constructor() {
       this.context = null;
-      this.master = null;
-      this.voices = new Map();
-      this.channelGain = new Map();
-      this.masterVolume = 220 / 255;
+      this.gain = null;
       this.muted = false;
+      this.nextTime = 0;
+      this.sources = new Set();
     }
     ensure() {
-      if (this.context || this.muted) return this.context;
+      if (this.context) return this.context;
       const Context = window.AudioContext || window.webkitAudioContext;
       if (!Context) return null;
       this.context = new Context();
-      this.master = this.context.createGain();
-      this.master.gain.value = this.masterVolume * 0.3;
-      this.master.connect(this.context.destination);
+      this.gain = this.context.createGain();
+      this.gain.gain.value = this.muted ? 0 : 1;
+      this.gain.connect(this.context.destination);
       return this.context;
+    }
+    // Browsers start sound only after a click: call from the click that starts playing.
+    resume() {
+      if (this.ensure() && this.context.state === 'suspended') this.context.resume();
     }
     setMuted(muted) {
       this.muted = muted;
-      if (this.master) this.master.gain.value = muted ? 0 : this.masterVolume * 0.3;
+      if (this.gain) this.gain.gain.value = muted ? 0 : 1;
     }
-    stopChannel(channel) {
-      const voice = this.voices.get(channel);
-      if (voice) {
-        try { voice.stop(); } catch (_) { /* already ended */ }
-        this.voices.delete(channel);
+    // samples: Int16Array, interleaved left, right.
+    play(samples) {
+      const frames = samples.length >> 1;
+      if (!frames || !this.context || this.context.state !== 'running') return;
+      const now = this.context.currentTime;
+      if (this.nextTime < now + 0.03) this.nextTime = now + 0.03;
+      if (this.nextTime - now > 0.3) return;   // too far behind: drop, never pile up
+      const buffer = this.context.createBuffer(2, frames, 22050);
+      const left = buffer.getChannelData(0);
+      const right = buffer.getChannelData(1);
+      for (let frame = 0; frame < frames; frame += 1) {
+        left[frame] = samples[frame * 2] / 32768;
+        right[frame] = samples[frame * 2 + 1] / 32768;
       }
+      const source = this.context.createBufferSource();
+      source.buffer = buffer;
+      source.connect(this.gain);
+      source.onended = () => this.sources.delete(source);
+      source.start(this.nextTime);
+      this.sources.add(source);
+      this.nextTime += buffer.duration;
     }
     stopAll() {
-      for (const channel of Array.from(this.voices.keys())) this.stopChannel(channel);
-    }
-    output(channel, volume, pan) {
-      const gain = this.context.createGain();
-      gain.gain.value = (volume / 255) * ((this.channelGain.get(channel) ?? 255) / 255);
-      let node = gain;
-      if (this.context.createStereoPanner) {
-        const panner = this.context.createStereoPanner();
-        panner.pan.value = Math.max(-1, Math.min(1, pan / 127));
-        gain.connect(panner);
-        node = panner;
+      for (const source of this.sources) {
+        try { source.stop(); } catch (_) { /* already ended */ }
       }
-      node.connect(this.master);
-      return gain;
-    }
-    oscillator(channel, frequency, volume, pan, type, durationMs) {
-      this.stopChannel(channel);
-      const osc = this.context.createOscillator();
-      osc.type = type;
-      osc.frequency.value = Math.max(20, Math.min(12000, frequency));
-      osc.connect(this.output(channel, volume, pan));
-      osc.start();
-      if (durationMs) osc.stop(this.context.currentTime + durationMs / 1000);
-      this.voices.set(channel, osc);
-    }
-    // records: Int32Array view (12 words per call); floats: Float32Array view of the same memory.
-    play(records, floats, count, pcm) {
-      if (!count || !this.ensure()) return;
-      const waveforms = ['square', 'triangle', 'sawtooth', 'sine'];
-      for (let index = 0; index < count; index += 1) {
-        const at = index * AUDIO_RECORD_WORDS;
-        const kind = records[at];
-        const channel = records[at + 1];
-        const a = records[at + 2];
-        const b = records[at + 3];
-        const volume = records[at + 6];
-        const pan = records[at + 7];
-        if (kind === 2) this.oscillator(100, floats[at + 4], volume, 0, 'square', a); // tone
-        else if (kind === 3 || kind === 4) {
-          const frequency = 440 * Math.pow(2, (a - 69) / 12); // MIDI note
-          this.oscillator(channel, frequency, volume, pan, kind === 4 ? waveforms[records[at + 10] % 4] : 'square', 0);
-        } else if (kind === 5 || kind === 7) this.stopChannel(channel);
-        else if (kind === 6 && b > 0) { // PCM
-          this.stopChannel(channel);
-          const rate = Math.max(3000, Math.min(96000, floats[at + 4] || 22050));
-          const buffer = this.context.createBuffer(1, b, rate);
-          buffer.copyToChannel(pcm.slice(a, a + b), 0);
-          const source = this.context.createBufferSource();
-          source.buffer = buffer;
-          const loopEnd = records[at + 9];
-          if (loopEnd > 0) {
-            source.loop = true;
-            source.loopStart = records[at + 8] / rate;
-            source.loopEnd = loopEnd / rate;
-          }
-          source.connect(this.output(channel, volume, pan));
-          source.start();
-          this.voices.set(channel, source);
-        } else if (kind === 8) this.stopAll();
-        else if (kind === 9) { this.masterVolume = b / 255; this.setMuted(this.muted); }
-        else if (kind === 10) this.channelGain.set(channel, b);
-      }
+      this.sources.clear();
+      this.nextTime = 0;
     }
   }
 
@@ -201,7 +163,7 @@
       this.frames = 0;
       this.wallMs = 0;
       this.error = '';
-      this.audio = new AudioHost();
+      this.audio = new PcmAudioOutput();
       this.lastTime = 0;
       this.debt = 0;
       this.onDebug = options.onDebug || (() => {});
@@ -284,16 +246,16 @@
       return true;
     }
 
+    // The frames the engine rendered since the last call: played at normal speed, dropped
+    // otherwise (at debug speeds the sound would be meaningless and pile up).
     playAudio() {
-      const count = this.core._prg32_audio_count();
-      if (count) {
-        const records = this.core._prg32_audio_records() >> 2;
-        const words = this.core.HEAP32.subarray(records, records + count * AUDIO_RECORD_WORDS);
-        const floats = this.core.HEAPF32.subarray(records, records + count * AUDIO_RECORD_WORDS);
-        const pcmPointer = this.core._prg32_audio_pcm() >> 2;
-        this.audio.play(words, floats, count, this.core.HEAPF32.subarray(pcmPointer));
+      const frames = this.core._prg32_audio_frames();
+      if (frames) {
+        const at = this.core._prg32_audio_samples() >> 1;
+        if (this.running && this.speed === 1) this.audio.play(this.core.HEAP16.subarray(at, at + frames * 2));
+        this.core._prg32_audio_take();
       }
-      this.core._prg32_audio_clear();
+      this.core._prg32_audio_clear();   // PRG32-QT's own record of the calls: not needed here
     }
 
     draw() {
@@ -313,8 +275,7 @@
 
     start() {
       if (!this.loaded || this.running) return;
-      this.audio.ensure(); // browsers allow sound only after a click
-      if (this.audio.context && this.audio.context.state === 'suspended') this.audio.context.resume();
+      this.audio.resume(); // browsers allow sound only after a click
       this.running = true;
       this.canvas.focus({ preventScroll: true });  // the game keys now reach the game
       this.lastTime = performance.now();
@@ -580,7 +541,9 @@
       this.onStatus({
         loaded: this.loaded, running: this.running, speed: this.speed, error: this.error,
         frames: this.frames, guestMs: this.frames * FRAME_MS, wallMs: Math.round(this.wallMs),
-        retired: state ? state.retired : 0, pc: state ? state.pc : null
+        retired: state ? state.retired : 0, pc: state ? state.pc : null,
+        // An old cartridge that calls the obsolete buzzer: silent, as on a console without one.
+        legacySoundCalls: this.loaded ? this.core._prg32_audio_buzzer_calls() : 0
       });
     }
 
@@ -596,4 +559,5 @@
   window.PRG32CartridgePlayer.BUTTONS = BUTTONS;
   window.PRG32CartridgePlayer.SPEEDS = SPEEDS;
   window.PRG32CartridgePlayer.parseAddress = parseAddress;
+  window.PRG32PcmAudioOutput = PcmAudioOutput;
 })();

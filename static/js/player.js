@@ -24,7 +24,9 @@
       <span title="Time the cartridge sees: 33 ms per frame">Game time ${seconds(status.guestMs)}</span>
       <span title="Real time spent playing">Real time ${seconds(status.wallMs)}</span>
       <span title="RISC-V instructions executed so far">${Number(status.retired).toLocaleString()} instructions</span>
-      <span>Speed ${status.speed}×</span>`);
+      <span>Speed ${status.speed}×</span>
+      ${status.legacySoundCalls ? `<span class="text-warning" title="PRG32 games now use the eight-voice audio engine">
+        Old sound calls (${status.legacySoundCalls}): no longer supported, so they are silent</span>` : ''}`);
   }
 
   function open(bytes, label) {

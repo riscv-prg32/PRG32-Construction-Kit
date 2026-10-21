@@ -1,0 +1,4 @@
+# The firmware build for the QEMU audio comparison (tools/qemu_audio_capture.py, ADR-0021):
+# the PRG32 QEMU and CI profiles with stereo output (PRG32 Audio Plus).
+# CONFIG_PRG32_AUDIO_MODE_MONO is not set
+CONFIG_PRG32_AUDIO_MODE_STEREO=y

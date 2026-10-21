@@ -17,6 +17,7 @@ PRG32-Construction-Kit is a classroom web application for building PRG32 games w
    - `concurrent_builds.md` - many students building at the same time.
    - `videos/snake-workflow-demo.mov` - short screen recording of the Snake workflow.
 8. `cartridge_store_publish.md` - publishing bundles.
+   - `audio_engine.md` - how PRG32 games sound: 8 voices, ADSR, stereo, and how the browser matches the console.
    - `delivery.md` - getting a game onto a PRG32 console or PRG32-QT, and recording that it worked.
    - `backup_restore.md` - backing up the kit, restoring it into a clean folder, and the restore drill.
    - `dependencies.md` - the dependency lock, the SBOM and how security updates are handled.
