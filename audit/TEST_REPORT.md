@@ -1,42 +1,44 @@
 # Test report
 
-Audited HEAD: `c0d115e80c53b1d7d46afb639d104efd2b1c8516` on 2026-10-21.
+Audited HEAD: `13766c9173353f10d4b89222df0c1e60291725a5` on 2026-10-21.
 
-## Core gates
+## Audio-focused evidence
+
+Command covered `test_audio_contract.py`, `test_audio_block.py`, `test_audio_conformance.py`, `test_audio_studio.py` and `test_no_buzzer.py`: **95 passed**.
+
+Verified behaviors include eight active voices, independent ADSR traces, exact sustain values, deterministic native/WASM PCM hashes, stereo separation, clipping, silence, pan/volume updates, busy-voice replacement, malformed audio-block rejection, AudioStudio validation/CRUD/conflicts/ownership/quotas, deterministic AUD0 packing, archives, named generated C/assembly and Kit-side buzzer rejection.
+
+## Reproducibility gates
 
 | Gate | Result |
 |---|---|
-| Python and JavaScript syntax | Pass |
+| Python/JavaScript syntax | Pass |
 | Service-worker cache lock | Pass |
 | Language-index reproducibility | Pass |
-| Store-contract fixture reproducibility | Pass |
-| SBOM reproducibility | Pass |
-| Requirements lock and hashes | Pass: 28 packages |
-| Broad feasible pytest run | 857 passed, 70 skipped, 1 deselected; 4 sandbox loopback errors and 2 transient doc failures rerun separately |
-| Delivery fake-device tests | 6 passed after loopback permission |
-| Required Chromium suites | 81 passed, no skips |
-| Disposable Store contract/lifecycle suite | 51 passed |
-| Store-egress suite | 94 passed |
-| Capability/document consistency | 150 passed after audit capability rendering |
+| Store-contract fixtures | Pass |
+| SBOM | Pass |
+| Requirements lock | Pass: 28 hashed packages |
+| Audio fixtures | Not rerun: PRG32 toolchain absent |
 
-## Audio-specific inspection and execution
+## Broader regression evidence
 
-| Requirement | Evidence/result |
-|---|---|
-| Audio calls reach browser | Pass, but test checks only record kinds/counts |
-| Eight simultaneous voices | No dedicated fixture or assertion |
-| ADSR | Firmware and PRG32-QT contain envelope fields/logic; browser host does not apply them |
-| Stereo | Browser pan node and Qt stereo renderer exist; no left/right PCM comparison |
-| AudioStudio | No route, editor, asset format or tests found |
-| Buzzer removal | Fail: generated portable index exposes three buzzer functions; docs/examples remain |
+- Broad feasible suite: **965 passed, 72 skipped, 1 deselected**. The initial run also reported one expected audit-edit mismatch because `docs/capabilities.md` had not yet been regenerated, plus four sandbox-denied loopback fixture setups.
+- Generated capability/document consistency rerun after rendering: **156 passed**.
+- Mandatory real-browser suites with `PRG32_REQUIRE_BROWSER=1`, including both AudioStudio scenarios: **85 passed**.
+- Loopback delivery suite rerun with local-server permission: **6 passed**.
 
-## Environment limitations
+The 72 broad-suite skips were explicit environment/opt-in limitations: unavailable PRG32/RISC-V toolchains, Linux-only sandbox mechanisms, live external providers/Store, and browser tests that were then covered by the separate mandatory Chrome run.
 
-No physical PRG32 stereo output, real Google/Microsoft account, iOS target, local RISC-V/PRG32 toolchain rebuild or exact Emscripten rebuild was used. Linux-only bubblewrap/RLIMIT checks skipped locally; CI evidence was inspected. Browser and loopback suites were rerun outside the restricted sandbox where required.
+## Audio evidence limitations
+
+- No firmware/QEMU stereo capture at the inspected SDK revision.
+- No physical hardware stereo capture.
+- PRG32-QT uses a divergent non-ADSR floating-point renderer, so it is not sample-identical.
+- Canonical SDK still exposes buzzer ABI symbols even though the Kit refuses them.
 
 ## Reference revisions
 
-- Construction Kit: `c0d115e80c53b1d7d46afb639d104efd2b1c8516`
+- Construction Kit: `13766c9173353f10d4b89222df0c1e60291725a5`
 - PRG32: `679dfb58783bd007125de9ca0b75eaa077908739`
 - PRG32-QT: `f6d80addf49d0512c2e4390251a81d797a35b157`
 - CartridgeStore: `820f74bfe9364c8727db92cb0f15f3b9dd85feab`

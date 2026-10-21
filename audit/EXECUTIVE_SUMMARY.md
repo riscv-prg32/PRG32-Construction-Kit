@@ -2,30 +2,28 @@
 
 Audit date: 2026-10-21 (Europe/Rome)
 
-Audited revision: `ide/refine-after-e2d0cef` at `c0d115e80c53b1d7d46afb639d104efd2b1c8516`
+Audited revision: `ide/refine-after-e2d0cef` at `13766c9173353f10d4b89222df0c1e60291725a5`
 
-Recommendation: **NO-GO**
+Recommendation: **NO-GO for the complete audio release; CONDITIONAL GO for an AudioStudio classroom preview**
 
-The audit now contains 37 requirements, including four mandatory audio rows. The repository has strong IDE, identity, storage, Store, sandbox, debugger and operations evidence, but it does not satisfy the newly explicit audio release gate.
+The three audio refinement commits close most of the previous blockers. The browser core now compiles and runs the PRG32 firmware audio engine rather than approximating it in JavaScript. A toolchain-built conformance cartridge proves eight simultaneous SID-like voices, independent ADSR, waveforms, volumes and pans; native and WASM builds render identical deterministic stereo PCM. AudioStudio now manages eight voice instruments, effects, soundtracks and WAV samples, previews through the same engine, saves conflict-safe versioned assets, drives named Blocks/generated C and assembly, and packs a deterministic AUD0 block into every relevant PRG32 cartridge.
 
-The browser runtime labels its audio as an approximation and replaces PRG32 synth output with simple Web Audio oscillators. It forwards pan but does not reproduce ADSR envelopes or compare rendered left/right PCM with PRG32 firmware and PRG32-QT. No test gates eight independently enveloped voices simultaneously. There is no AudioStudio for instruments, sound effects or soundtracks. Obsolete `prg32_buzzer_*` functions remain in the generated portable language index, and buzzer-era examples and documentation remain reachable.
+Kit-side buzzer removal is strong: it is absent from suggestions/blocks/examples, refused in C and assembly, guarded by a repository-wide test, and old buzzer cartridges stay silent. However, the canonical PRG32 SDK at the inspected revision still includes buzzer functions in its portable ABI. The updated audit requires complete removal, so `AUD-04` remains partial.
 
-These are release blockers under the updated audit brief: fewer than eight demonstrated SID-like ADSR voices, missing stereo sample parity, missing AudioStudio, or a reachable buzzer path each requires NO-GO.
-
-Recent non-audio refinements are credible: disk budgets/AppArmor CI evidence, Store lifecycle guards, backup/restore, locked dependencies/SBOM, performance/accessibility gates and debugger regeneration/inlined-frame behavior are implemented and tested.
+Full stereo reference parity also remains incomplete. Native and WASM builds of the firmware engine match bit-for-bit, but the installed PRG32/QEMU path cannot currently stream the capture and PRG32-QT still uses a different floating-point mixer without ADSR. No hardware stereo capture was performed. This keeps `AUD-01`/`AUD-02`/`AUD-03` at 3 rather than 4.
 
 ## Executed evidence
 
-- Feasible broad suite: **857 passed, 70 skipped, 1 deselected**, plus two documentation failures caused by the audit adding new capability IDs while that run was active and four loopback permission errors.
-- All six delivery tests were rerun with loopback permission and passed; capability/document tests were rerun after rendering: **150 passed**.
-- Required Chromium: **81 passed**; disposable Store/contract/lifecycle: **51 passed**; Store egress: **94 passed**.
-- Syntax, service-worker lock, capability rendering, language index, Store fixtures, SBOM and requirements-lock reproducibility passed.
+- Audio-focused backend/conformance suite: **95 passed**.
+- Broad feasible suite: **965 passed**; capability/document consistency: **156 passed**; mandatory Chrome suites, including AudioStudio: **85 passed**; loopback delivery: **6 passed**. Environment skips and limitations are itemized in `audit/TEST_REPORT.md`.
+- Syntax, cache lock, language index, Store fixtures, dependency lock and SBOM checks passed.
+- Audio fixture regeneration check was blocked locally because the PRG32 toolchain is not installed; committed fixture provenance was inspected.
 
 ## Audio verdict
 
-- Eight simultaneous SID-like ADSR voices: **not demonstrated; browser ADSR absent**.
-- Stereo output: **partially wired; rendered stereo parity not demonstrated**.
-- AudioStudio: **missing**.
-- Buzzer removal: **failed; buzzer APIs remain reachable**.
+- Eight simultaneous SID-like ADSR voices: **implemented and meaningfully tested**.
+- Stereo PCM: **native/WASM verified; firmware-device/PRG32-QT convergence incomplete**.
+- AudioStudio: **implemented and browser-tested; device/QEMU playback unverified**.
+- Buzzer removal: **complete inside the Kit, incomplete in the canonical SDK ABI**.
 
-Scored coverage is **107/148 (72.3%)**. The score cannot override the mandatory audio blockers.
+Scored coverage is **116/148 (78.4%)**. The complete Full IDE/audio release remains NO-GO because the mandatory no-buzzer/reference-parity gate is not fully satisfied.

@@ -1,58 +1,54 @@
 # Findings
 
+## Resolved since audit `c0d115e`
+
+- The browser now renders stereo PCM from the PRG32 firmware engine, not simple Web Audio oscillators.
+- Eight concurrent voices with distinct SID-like waveforms, ADSR, volume and pan are exercised.
+- Deterministic native/WASM PCM, envelope traces, separation, clipping, silence, pan/volume changes and busy-voice replacement are tested.
+- AudioStudio provides instruments, effects, soundtracks, WAV samples, accessible preview, version conflicts, ownership/quotas, import/export, named Blocks and deterministic cartridge audio blocks.
+- Reachable Kit paths reject or omit the buzzer; old cartridges remain silent and diagnosed.
+
 ## Critical
 
 No exploitable critical security issue was confirmed.
 
 ## High
 
-### H-01 — Browser audio does not implement the canonical ADSR synth
+### H-01 — Canonical SDK still advertises the obsolete buzzer
 
-- Evidence: `static/js/prg32_runtime.js:84-180` explicitly describes an approximation; `AudioHost.oscillator` creates a constant-gain oscillator and never consumes attack, decay, sustain or release from synth records.
-- Existing test: `tests/test_wasm_runtime.py::test_audio_calls_reach_the_browser_host` asserts call kinds/counts, not samples or envelopes.
-- Impact: browser playback materially differs from the required PRG32 audio behavior and cannot demonstrate eight independent SID-like ADSR voices.
-- Remedy: transmit the complete synth parameters or render the canonical mixer, implement deterministic ADSR and add an eight-active-voice envelope fixture.
-
-### H-02 — AudioStudio is absent
-
-- Evidence: there is a SpriteLab route/template/documentation, but no AudioStudio route, editor, versioned audio asset CRUD, sequencer, soundtrack/effect management or browser suite.
-- Impact: students cannot create or manage instruments, soundtracks and effects as first-class project assets.
-- Remedy: add a safe, accessible AudioStudio parallel to SpriteLab with deterministic assets, preview, import/export, history/conflicts and cartridge integration.
-
-### H-03 — Obsolete buzzer support remains reachable
-
-- Evidence: `tools/build_language_index.py:75` describes `prg32_buzzer_tone`; the generated `static/js/ide/prg32_language_index.js` exposes `prg32_buzzer_tone`, `prg32_buzzer_play_notes` and `prg32_buzzer_sample_u8`. Teaching presentations still render “play beep” as buzzer-like UI.
-- Impact: the IDE recommends an API the product requirement says is no longer supported, creating incompatible new projects and misleading lessons.
-- Remedy: remove buzzer APIs from the portable SDK/index and all UI/examples, regenerate the index, and add an explicit legacy migration or unsupported-format diagnostic plus a repository-wide absence test.
+- Evidence: ADR-0021 and `docs/capabilities.json` explicitly record that PRG32 SDK revision `679dfb5` still lists the buzzer in its portable ABI.
+- Kit mitigation: `tests/test_no_buzzer.py` ensures no normal Kit UI/code path offers it and validators reject its use.
+- Impact: the ecosystem contract remains contradictory; other SDK consumers can create cartridges using a removed feature.
+- Remedy: remove buzzer functions/types/import slots from the canonical SDK through an ABI-versioned migration, update firmware/Qt behavior, then regenerate the Kit language index and fixtures.
 
 ## Medium
 
-### M-01 — Stereo behavior is wired but not verified as audio
+### M-01 — Stereo reference parity stops at native/WASM builds of the same engine
 
-`AudioHost.output` uses `StereoPannerNode`, and PRG32-QT renders two channels, but current tests compare guest state and audio call counts rather than left/right PCM, clipping, silence, reset and deterministic timing. Add fixed virtual-time PCM hashes/tolerances across firmware/QEMU, native/Qt and WASM/browser.
+`tests/test_audio_conformance.py` proves deterministic identity between native and WASM builds, but not an independent firmware/QEMU or physical-device capture. PRG32-QT's current floating-point mixer lacks the firmware ADSR semantics. Update PRG32-QT to the canonical engine or clearly retire it as an audio reference, enable QEMU capture, and compare the same fixture across targets.
 
-### M-02 — Audio asset packaging is not integrated
+### M-02 — AudioStudio has no QEMU/hardware playback evidence
 
-The canonical PRG32 audio block supports samples, instruments and tracks, but Construction Kit project/archive/artifact workflows do not expose a versioned AudioStudio asset model or prove deterministic audio-block packaging.
+The generated AUD0 block and PRG32 cartridge are tested structurally and in the browser engine, but no recorded PRG32/QEMU or hardware stereo result demonstrates the full authoring-to-device chain.
 
-### M-03 — Real cloud and delivery evidence remains incomplete
+### M-03 — Audio fixture reproduction is toolchain-dependent
 
-Google/Microsoft tenant runs, physical hardware, end-user Qt import and iOS handoff remain externally unverified.
+`tools/build_audio_fixtures.py --check` could not run on this host because the PRG32 toolchain is absent. CI must preserve the toolchain-built fixture and PCM evidence as immutable artifacts.
 
-### M-04 — Builds still share the host service identity
+### M-04 — External delivery and cloud evidence remains incomplete
 
-Disk budgets and AppArmor improve containment, but builds share one UID outside namespaces. Keep this limitation explicit and continue Linux escape/resource testing.
+Physical-device transfer, end-user Qt import, iOS handoff and real Google/Microsoft tenant runs remain unverified.
 
 ## Low
 
-### L-01 — Audio documentation is internally inconsistent
+### L-01 — AudioStudio UI coverage is strong but not a recorded screen-reader session
 
-`docs/wasm_runtime.md` and compatibility material admit approximation, while the old capability score claimed reference-verified audio. `docs/prg32_feature_coverage.md` still lists buzzer in advanced audio coverage.
+Keyboard and axe checks pass; retain a short human screen-reader session for the new envelope, tracker grid and status announcements.
 
-### L-02 — Upstream configuration fallback deserves alignment
+### L-02 — Legacy buzzer behavior needs an ecosystem migration note
 
-PRG32 Kconfig defaults to eight voices, but `audio_config.h` falls back to six when the sdkconfig symbol is absent. Audit host/reference builds must prove which configuration is used and reject fewer than eight voices for this product target.
+The Kit refuses new source and silently renders old cartridges without buzzer sound while counting calls. Document the ABI/version transition for non-Kit cartridges and SDK users before upstream removal.
 
 ## Release conclusion
 
-**NO-GO.** The non-audio platform has advanced substantially, but the updated mandatory audio contract is not implemented end to end.
+The AudioStudio classroom preview is credible. The complete audio release remains **NO-GO** until the canonical SDK no longer exposes buzzer support and stereo/ADSR behavior is demonstrated against an independent firmware/QEMU or device reference, with PRG32-QT aligned or explicitly de-scoped.

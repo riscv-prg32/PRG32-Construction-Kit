@@ -1,9 +1,9 @@
 # Security review
 
-No new critical security exploit was confirmed. Existing authentication, ownership, PKCE/cloud-token, Store-egress, CSP and build-sandbox controls remain strong. Disk budgets, AppArmor CI, locked dependencies and an SBOM improve the previous posture.
+No new critical security exploit was confirmed. AudioStudio uses the established authenticated ownership, optimistic-version and quota controls. Its validator bounds document structure, voice/instrument/event values and WAV-derived sample data; the cartridge packer checks references and sizes before producing deterministic `AUD0` data. Preview executes the same compiled audio engine under the existing strict CSP rather than uploaded code.
 
-AudioStudio will introduce untrusted sample, instrument and track inputs. Its design must bound sample counts/length/rate, event counts/durations, identifiers, archive expansion, decoded memory, preview CPU and final cartridge block size. Reject malformed offsets, integer overflow, invalid loop points, unsafe names/paths and cyclic/unbounded playback. Preview must never decode or execute arbitrary uploaded code and must obey ownership, quotas and CSP.
+The implementation retains the important trust boundary: Blockly JSON and AudioStudio data are validated inputs to deterministic generation; arbitrary LLM-supplied C is not accepted by the normal pipeline. Archive import remaps owned audio samples instead of trusting foreign identifiers. Legacy buzzer calls are rejected in authored C/assembly and silenced in old cartridges rather than reinterpreted.
 
-Removing buzzer support is also a compatibility/security boundary: legacy content must be explicitly migrated or rejected, never silently reinterpreted as a different audio operation. Generated audio assets must remain deterministic and validated before compilation/packaging.
+Residual audio risk is principally compatibility and availability, not a demonstrated exploit: canonical SDK buzzer symbols remain reachable outside the Kit; toolchain-built fixture reproduction was unavailable on this audit host; and physical-device resource behavior has not been measured. Fuzzing malformed `AUD0`/WAV inputs and sustained eight-voice playback under target memory/CPU limits remains advisable.
 
-Residual non-audio risks remain the shared host UID outside namespaces, absent real cloud tenants/device delivery and upstream Store lifecycle limitations.
+The previously documented non-audio residuals remain: shared host UID outside namespaces, absent real cloud-tenant/device-delivery evidence and upstream Store lifecycle limitations.

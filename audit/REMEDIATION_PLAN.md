@@ -1,13 +1,11 @@
 # Remediation plan
 
-| Priority | Owner | Size | Work | Acceptance evidence |
+| Priority | Owner | Size | Remaining work | Acceptance evidence |
 |---:|---|:---:|---|---|
-| 1 | Runtime/audio | L | Implement one canonical eight-voice SID-like stereo ADSR renderer for browser/WASM parity, preserving the portable ABI. | Eight concurrent voice fixture; per-voice ADSR traces; left/right PCM hashes/tolerances against PRG32-QT and firmware/QEMU. |
-| 2 | Product/frontend | L | Add accessible AudioStudio parallel to SpriteLab for instruments, effects and soundtracks. | Keyboard/browser scenario covering CRUD, preview, eight-voice arrangement, save/reload, import/export and project attachment. |
-| 3 | Assets/build | L | Define versioned audio assets and deterministic PRG32 audio-block generation/packaging. | Round trips, malformed/oversized rejection, reproducible source/block/cartridge hashes and all three source modes. |
-| 4 | SDK/docs | M | Remove buzzer from canonical portable API, index, blocks, examples and docs; define legacy migration/rejection. | Reproducible index plus repository-wide no-reachable-buzzer test and migration fixtures. |
-| 5 | Audio QA | M | Add stop/reset, clipping, master/channel volume/pan, voice exhaustion, timing and offline tests. | Cross-runtime PCM and no-stuck-note browser tests. |
-| 6 | Delivery | M | Validate stereo hardware, Qt import and iOS handoff. | Recorded tool versions, hashes and stereo capture/device results. |
-| 7 | Operations | M | Complete real cloud evidence and per-build identity evaluation. | Safe tenant suites and Linux isolation evidence. |
+| 1 | PRG32 SDK/ABI | M | Remove or version out every legacy buzzer entry in the canonical portable ABI and regenerate all consumers. | Repository-family search and ABI fixture prove no supported authoring/runtime surface exposes buzzer; documented legacy cartridges remain safely silent or receive an explicit migration error. |
+| 2 | Runtime/audio | L | Make PRG32-QT consume the canonical renderer, or explicitly remove it from the audio-reference set. | Same eight-voice fixture produces matching/tolerance-bounded L/R PCM, ADSR traces, clipping and stop/reset behavior. |
+| 3 | Firmware/QEMU | M | Add deterministic stereo capture to the firmware/QEMU validation path. | Toolchain-built fixture and recorded tool revisions produce auditable channel hashes/waveforms. |
+| 4 | Hardware QA | M | Exercise the complete AudioStudio -> cartridge -> device path. | Physical stereo capture verifies eight simultaneous voices, pan separation, envelopes, effects, tracks, silence/reset and no obsolete buzzer output. |
+| 5 | Product/accessibility | S | Complete human keyboard/screen-reader review and preserve browser/audio artifacts in CI. | Recorded accessibility findings and downloadable PCM/trace/browser artifacts for failing conformance runs. |
 
-Audio PRs must not weaken deterministic generation, server validation, cartridge/debug identity, CSP, ownership, offline use or educational source visibility.
+These changes must preserve deterministic generation, server validation, cartridge/debug identity, ownership, quotas, CSP, offline classroom use and inspectable generated C/assembly.
