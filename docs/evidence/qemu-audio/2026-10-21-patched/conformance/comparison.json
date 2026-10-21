@@ -1,0 +1,151 @@
+{
+ "cartridge": {
+  "file": "conformance.prg32",
+  "sha256": "382ea6956d83916c3276895f1d298f38955708cafe094de9b6e9c4599c3d42db"
+ },
+ "firmware": {
+  "sdk_revision": "679dfb58783bd007125de9ca0b75eaa077908739",
+  "flash_sha256": "cc09263f3396550b4d5913438bca0112aaa562392a0c838eb762dd7fa029d1ee",
+  "qemu": "QEMU emulator version 9.0.0 (esp_develop_9.0.0_20240606)",
+  "overlay": "# The firmware build for the QEMU audio comparison (tools/qemu_audio_capture.py, ADR-0021):\n# the PRG32 QEMU profile with stereo output (PRG32 Audio Plus). The QEMU profile sets the\n# I2S pins to -1, and the firmware's audio set-up refuses -1 pins even though QEMU sends the\n# sound over UART1 instead; any free ESP32-C3 pins make it start (4 and 5 are UART1).\n# CONFIG_PRG32_AUDIO_MODE_MONO is not set\nCONFIG_PRG32_AUDIO_MODE_STEREO=y\nCONFIG_PRG32_AUDIO_I2S_BCLK_GPIO=6\nCONFIG_PRG32_AUDIO_I2S_LRCLK_GPIO=7\nCONFIG_PRG32_AUDIO_I2S_DATA_GPIO=10\n",
+  "patches": [
+   {
+    "file": "docs/upstream/prg32-sdk-audio-clock-and-reset.patch",
+    "sha256": "3a29de21fbca59b72061d8f593f875bf5985a6af342ca82b3b4ddcf4d2c13313"
+   }
+  ]
+ },
+ "kit_revision": "5976c7d92d9e521795bcd417626cbcc27c14d82e",
+ "seconds": 7.0,
+ "firmware_pcm_sha256": "c19e42afa33790c99bf04152bbcc2a736170911e34db6e96335ea622d31023ac",
+ "browser_pcm_sha256": "a5af48747f363fc3fef3184ce55d9dd9fde78a78927c79f6219064025fc95b31",
+ "qemu_options": [
+  "-icount",
+  "shift=3,sleep=off"
+ ],
+ "aligned": {
+  "shift_chunks": 0,
+  "equal_chunks": 279,
+  "compared_chunks": 348,
+  "differing_chunks": [
+   1,
+   2,
+   3,
+   4,
+   5,
+   6,
+   7,
+   8,
+   9,
+   10,
+   11,
+   12,
+   13,
+   14,
+   15,
+   16,
+   17,
+   18,
+   19,
+   20,
+   21,
+   22,
+   23,
+   24,
+   25,
+   26,
+   27,
+   28,
+   29,
+   30,
+   31,
+   32,
+   33,
+   34,
+   35,
+   36,
+   37,
+   38,
+   39,
+   40,
+   41,
+   42,
+   43,
+   44,
+   45,
+   46,
+   47,
+   48,
+   49,
+   50,
+   51,
+   52,
+   53,
+   54,
+   55,
+   56,
+   57,
+   58,
+   59,
+   60,
+   61,
+   62,
+   63,
+   64,
+   65,
+   213,
+   234,
+   235,
+   236
+  ],
+  "whole_recording_equal": false
+ },
+ "browser_chunks": 348,
+ "firmware_chunks": 350,
+ "browser_sounding_chunks": 234,
+ "identical_sounding_chunks": 281,
+ "segments": [
+  {
+   "browser_chunk": 1,
+   "firmware_chunk": 2,
+   "identical_chunks": 14,
+   "identical_ms": 280
+  },
+  {
+   "browser_chunk": 19,
+   "firmware_chunk": 20,
+   "identical_chunks": 4,
+   "identical_ms": 80
+  },
+  {
+   "browser_chunk": 29,
+   "firmware_chunk": 30,
+   "identical_chunks": 2,
+   "identical_ms": 40
+  },
+  {
+   "browser_chunk": 57,
+   "firmware_chunk": 58,
+   "identical_chunks": 3,
+   "identical_ms": 60
+  },
+  {
+   "browser_chunk": 72,
+   "firmware_chunk": 72,
+   "identical_chunks": 141,
+   "identical_ms": 2820
+  },
+  {
+   "browser_chunk": 221,
+   "firmware_chunk": 221,
+   "identical_chunks": 13,
+   "identical_ms": 260
+  },
+  {
+   "browser_chunk": 244,
+   "firmware_chunk": 244,
+   "identical_chunks": 104,
+   "identical_ms": 2080
+  }
+ ]
+}

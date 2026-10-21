@@ -1,0 +1,84 @@
+diff --git a/components/prg32_audio/audio.c b/components/prg32_audio/audio.c
+index d27cc02..69437d7 100644
+--- a/components/prg32_audio/audio.c
++++ b/components/prg32_audio/audio.c
+@@ -20,9 +20,23 @@ void prg32_audio_set_default_master_volume(uint8_t volume) {
+ static void audio_task(void *arg) {
+   (void)arg;
+   int16_t buffer[PRG32_AUDIO_MIX_FRAMES * 2];
++#if PRG32_QEMU_AUDIO_REDIRECT
++  /* In QEMU nothing paces the task like the console's I2S DMA does, so the engine
++   * advances by the audio it renders (one buffer per period), and the period is
++   * kept on the emulated clock with vTaskDelayUntil. Events then land on the same
++   * timeline as the samples, and as the cartridge's frames. */
++  const uint32_t buffer_ms =
++      (uint32_t)(PRG32_AUDIO_MIX_FRAMES * 1000u / g_prg32_audio.config.sample_rate);
++  TickType_t next_wake = xTaskGetTickCount();
++#else
+   int64_t last_us = esp_timer_get_time();
++#endif
+ 
+   while (!g_prg32_audio.task_stop) {
++#if PRG32_QEMU_AUDIO_REDIRECT
++    prg32_audio_tracker_step(buffer_ms);
++    prg32_audio_voices_step(buffer_ms);
++#else
+     int64_t now_us = esp_timer_get_time();
+     uint32_t elapsed_ms = (uint32_t)((now_us - last_us) / 1000);
+     if (elapsed_ms > 0) {
+@@ -31,6 +45,7 @@ static void audio_task(void *arg) {
+ 
+       prg32_audio_voices_step(elapsed_ms);
+     }
++#endif
+ 
+     if (prg32_audio_get_mode() == PRG32_AUDIO_MODE_STEREO) {
+       prg32_audio_mix_stereo(buffer, PRG32_AUDIO_MIX_FRAMES);
+@@ -48,9 +63,9 @@ static void audio_task(void *arg) {
+       uint8_t ack;
+       prg32_qemu_audio_read_ack(&ack, 1);
+ 
+-      // Advance the QEMU virtual clock by exactly 20ms, which is the length of
+-      // the generated audio (441 frames at 22050MHz).
+-      vTaskDelay(pdMS_TO_TICKS(20));
++      // Wait for the rest of this buffer's 20 ms on the emulated clock (441
++      // frames at 22050 Hz), however long the acknowledgement took.
++      vTaskDelayUntil(&next_wake, pdMS_TO_TICKS(buffer_ms));
+ #else
+       prg32_audio_i2s_write(buffer, PRG32_AUDIO_MIX_FRAMES,
+                             g_prg32_audio.config.mode);
+diff --git a/components/prg32_audio/audio_assets.c b/components/prg32_audio/audio_assets.c
+index 3a06d1f..6390f0d 100644
+--- a/components/prg32_audio/audio_assets.c
++++ b/components/prg32_audio/audio_assets.c
+@@ -69,8 +69,22 @@ int prg32_audio_register_track(uint16_t track_id,
+     return 0;
+ }
+ 
++/* A cartridge starts with a silent mixer at full channel volume and centre pan,
++ * as after power-on: whatever played before (the setup menu, another cartridge)
++ * must not change how its notes sound. A started voice records its volume as the
++ * channel volume, and tracker notes use the channel volume. */
++static void reset_playback_locked(void) {
++    for (uint8_t i = 0; i < CONFIG_PRG32_AUDIO_MAX_VOICES; ++i) {
++        g_prg32_audio.voices[i].active = false;
++        g_prg32_audio.channel_volume[i] = 255;
++        g_prg32_audio.channel_pan[i] = PRG32_AUDIO_PAN_CENTER;
++    }
++    g_prg32_audio.tracker.active = false;
++}
++
+ void prg32_audio_clear_assets(void) {
+     prg32_audio_lock();
++    reset_playback_locked();
+     memset(g_prg32_audio.samples, 0, sizeof(g_prg32_audio.samples));
+     memset(g_prg32_audio.instruments, 0, sizeof(g_prg32_audio.instruments));
+     memset(g_prg32_audio.tracks, 0, sizeof(g_prg32_audio.tracks));
+@@ -123,6 +137,7 @@ int prg32_audio_load_block(const void *block, size_t block_size) {
+     size_t sample_data_size = header->block_size - header->data_offset;
+ 
+     prg32_audio_lock();
++    reset_playback_locked();
+     memset(g_prg32_audio.samples, 0, sizeof(g_prg32_audio.samples));
+     memset(g_prg32_audio.instruments, 0, sizeof(g_prg32_audio.instruments));
+     memset(g_prg32_audio.tracks, 0, sizeof(g_prg32_audio.tracks));

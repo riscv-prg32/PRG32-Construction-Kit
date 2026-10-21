@@ -43,6 +43,8 @@ CHUNK_BYTES = CHUNK_FRAMES * 4          # stereo, 16-bit
 OVERLAY = ROOT / "tests" / "fixtures" / "audio" / "sdkconfig.qemu-stereo"
 MENU = b"setup_menu => prg32_input_read_menu()"
 STARTED = b"prg32_init => cart_is_loaded()"     # printed once the cartridge runs
+# Extra QEMU options, e.g. "-icount shift=3,sleep=off": emulated time from instructions, not the host.
+QEMU_EXTRA = os.environ.get("PRG32_QEMU_EXTRA", "").split()
 DEFAULT_QEMU = next(iter(sorted(Path.home().glob(".espressif/tools/qemu-riscv32/*/qemu/bin/qemu-system-riscv32"))),
                     None)
 
@@ -53,19 +55,22 @@ def free_port() -> int:
         return probe.getsockname()[1]
 
 
-def build_firmware(sdk: Path, work: Path) -> Path:
+def build_firmware(sdk: Path, work: Path, patches: list[Path] | None = None) -> Path:
     """Build the QEMU firmware from a clean clone of the SDK checkout (never the checkout itself) with the
     kit's overlay (tests/fixtures/audio/sdkconfig.qemu-stereo): stereo output, and I2S pin numbers so the
     firmware's audio set-up accepts the QEMU board. Needs ESP-IDF (``. $HOME/esp-idf/export.sh``)."""
     source = work / "prg32"
     subprocess.run(["git", "clone", "-q", "--no-hardlinks", str(sdk), str(source)], check=True)
+    for patch in patches or []:          # proposed SDK changes (docs/upstream), applied to the clone only
+        subprocess.run(["git", "apply", str(patch.resolve())], cwd=source, check=True)
     defaults = f"profiles/sdkconfig.defaults;profiles/sdkconfig.defaults.qemu;{OVERLAY}"
     for action in ("set-target", "build"):
         command = ["idf.py", "-B", "build-qemu", "-D", "SDKCONFIG=build-qemu/sdkconfig", "-D",
                    f"SDKCONFIG_DEFAULTS={defaults}", *(["set-target", "esp32c3"] if action == "set-target" else ["build"])]
         subprocess.run(command, cwd=source, check=True, capture_output=True)
     build = source / "build-qemu"
-    subprocess.run([sys.executable, "-m", "esptool", "--chip=esp32c3", "merge_bin", "--output=qemu_flash.bin",
+    esptool = ["esptool.py"] if shutil.which("esptool.py") else [sys.executable, "-m", "esptool"]   # ESP-IDF's
+    subprocess.run([*esptool, "--chip=esp32c3", "merge_bin", "--output=qemu_flash.bin",
                     "--fill-flash-size=4MB", "@flash_args"], cwd=build, check=True, capture_output=True)
     sys.path.insert(0, str(source))
     cwd = os.getcwd()
@@ -104,7 +109,7 @@ def record_firmware(firmware: Path, cartridge: Path, seconds: float, sdk: Path, 
                                 "-drive", f"file={efuse},if=none,format=raw,id=efuse",
                                 "-global", "driver=nvram.esp32c3.efuse,property=drive,value=efuse",
                                 "-global", "driver=timer.esp32c3.timg,property=wdt_disable,value=true",
-                                "-nic", "user,model=open_eth", "-display", "sdl",
+                                "-nic", "user,model=open_eth", "-display", "sdl", *QEMU_EXTRA,
                                 "-serial", f"tcp:127.0.0.1:{console_port},server,nowait",
                                 "-serial", f"tcp:127.0.0.1:{audio_port},server,wait,nodelay"],
                                stdout=log, stderr=subprocess.STDOUT, env={**os.environ, "SDL_VIDEODRIVER": "dummy"})
@@ -204,6 +209,21 @@ def compare(firmware: bytes, browser: bytes) -> dict:
             "identical_sounding_chunks": matched, "segments": segments}
 
 
+def aligned(firmware: bytes, browser: bytes, reach: int = 10) -> dict:
+    """The whole recordings at one fixed alignment (the best shift of up to ``reach`` chunks):
+    how many 20 ms chunks are equal sample for sample, and whether all of them are."""
+    fw, br = chunks_of(firmware), chunks_of(browser)
+    best = None
+    for shift in range(-reach, reach + 1):
+        pairs = [(br[i], fw[i + shift]) for i in range(len(br)) if 0 <= i + shift < len(fw)]
+        equal = sum(a == b for a, b in pairs)
+        if best is None or equal > best["equal_chunks"]:
+            best = {"shift_chunks": shift, "equal_chunks": equal, "compared_chunks": len(pairs),
+                    "differing_chunks": [i for i in range(len(br)) if 0 <= i + shift < len(fw) and br[i] != fw[i + shift]]}
+    best["whole_recording_equal"] = not best["differing_chunks"]
+    return best
+
+
 def write_wav(path: Path, pcm: bytes) -> None:
     with wave.open(str(path), "wb") as out:
         out.setnchannels(2)
@@ -232,6 +252,8 @@ def main() -> int:
     parser.add_argument("cartridge", type=Path)
     parser.add_argument("--firmware", type=Path, help="folder with qemu_flash.bin and sdkconfig (else --build)")
     parser.add_argument("--build", action="store_true", help="build the QEMU firmware from --sdk first (ESP-IDF)")
+    parser.add_argument("--patch", type=Path, action="append", default=[],
+                        help="with --build: apply this SDK patch to the clone first (repeatable)")
     parser.add_argument("--sdk", type=Path, default=Path(os.environ.get("PRG32_SOURCE") or ROOT.parent / "PRG32"))
     parser.add_argument("--qemu", type=Path, default=DEFAULT_QEMU)
     parser.add_argument("--seconds", type=float, default=7.0)
@@ -245,7 +267,7 @@ def main() -> int:
     args.out.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory() as tmp:
         if args.build:
-            args.firmware = build_firmware(args.sdk.resolve(), Path(tmp))
+            args.firmware = build_firmware(args.sdk.resolve(), Path(tmp), args.patch)
             shutil.copyfile(args.firmware / "sdkconfig", args.out / "firmware-sdkconfig")
         try:
             firmware = record_firmware(args.firmware.resolve(), args.cartridge.resolve(), args.seconds,
@@ -261,15 +283,20 @@ def main() -> int:
     report = {
         "cartridge": {"file": args.cartridge.name, "sha256": hashlib.sha256(args.cartridge.read_bytes()).hexdigest()},
         "firmware": {"sdk_revision": revision(args.sdk), "flash_sha256": flash_sha256, "qemu": qemu_version(Path(args.qemu)),
+                     "patches": [{"file": patch.name, "sha256": hashlib.sha256(patch.read_bytes()).hexdigest()}
+                                 for patch in args.patch],
                      "overlay": OVERLAY.read_text()},
         "kit_revision": revision(ROOT),
         "seconds": args.seconds,
         "firmware_pcm_sha256": hashlib.sha256(firmware).hexdigest(),
         "browser_pcm_sha256": hashlib.sha256(browser).hexdigest(),
+        "qemu_options": QEMU_EXTRA,
+        "aligned": aligned(firmware, browser),
         **compare(firmware, browser),
     }
     (args.out / "comparison.json").write_text(json.dumps(report, indent=1) + "\n")
     print(json.dumps({key: report[key] for key in ("browser_sounding_chunks", "identical_sounding_chunks")}))
+    print(json.dumps({key: value for key, value in report["aligned"].items() if key != "differing_chunks"}))
     for segment in report["segments"]:
         print(segment)
     return 0

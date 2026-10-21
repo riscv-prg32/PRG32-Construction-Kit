@@ -65,7 +65,30 @@ Do not reinterpret old calls as another sound command. When the SDK changes, run
 `tools/build_language_index.py` in the kit. `tests/test_audio_contract.py` reads the SDK
 and will show what moved.
 
-## 3. PRG32 SDK: QEMU audio runs ahead of its own output
+## 3. PRG32 SDK: QEMU audio clock, and a fresh mixer per cartridge (patch)
+
+[`prg32-sdk-audio-clock-and-reset.patch`](prg32-sdk-audio-clock-and-reset.patch), against
+PRG32 SDK `679dfb5`, changes two files in `components/prg32_audio`:
+
+- **QEMU path only.** The engine advances by the audio it renders, 20 ms per buffer, and
+  the buffer period stays on the emulated clock (`vTaskDelayUntil`).
+- **Cartridge start** (`prg32_audio_load_block`, `prg32_audio_clear_assets`) stops the voices
+  and the tracker, and sets channel volumes to 255 and pans to centre. Without this, sounds
+  played before a cartridge, such as the setup menu's, change how loud its soundtrack notes
+  are on the console.
+
+With both, QEMU recordings line up over the whole recording at one fixed shift:
+
+- console check: 531 of 546 chunks equal, against 120 of 540 before;
+- conformance: 279 of 348, against 117 of 348.
+
+The remaining chunks are frame-timed effects one 20 ms buffer apart, which come from the
+phase between the audio buffers and the cartridge's frames.
+
+The SDK's own tests pass (87) with the patch. Evidence and the full explanation are in
+`docs/evidence/qemu-audio/2026-10-21-patched/`.
+
+The background, before the patch:
 
 On the QEMU path (`PRG32_QEMU_AUDIO_REDIRECT`), `audio_task` advances the tracker and envelopes
 by the emulated clock (`esp_timer`), about 28 ms per loop. Each loop still sends exactly 20 ms
