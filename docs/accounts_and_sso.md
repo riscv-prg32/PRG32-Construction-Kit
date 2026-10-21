@@ -212,3 +212,20 @@ The protocol is in `prg32_construction_kit/sso_protocol.py`, the same file as
 - Anyone who knows the secret can create admin accounts on both sides. Keep it
   like a password, and change it on both sides if it leaks.
 - Linking means an admin on one side is an admin on the other side too.
+- Publishing rights are checked by the **kit**: only a publisher, editor or admin can
+  publish, and a student's request is refused before anything is sent. The Store itself
+  accepts a bundle from any signed-in user and does not record who sent it (2026-10-21),
+  so keep publishing on the kit's side.
+
+### How it is checked
+
+- `tests/test_sso_with_cartridge_store.py` runs both services in one process.
+- `tests/test_sso_live.py` (with `PRG32_LIVE_STORE=local`, in CI's Store job) runs the kit
+  as an HTTP server and a throwaway Cartridge Store as a separate process, both on
+  127.0.0.1 with a test-only secret. Over real HTTP it checks:
+  - users and role changes sync both ways;
+  - single sign-on works both ways, and each ticket works only once;
+  - a publisher's bundle reaches the Store as a pending submission with a one-time API ticket;
+  - the same ticket again, a forged one, or a sign-in ticket used for the API is refused;
+  - a student's publish is refused by the kit, with nothing sent.
+

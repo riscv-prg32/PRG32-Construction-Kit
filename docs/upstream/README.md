@@ -144,3 +144,7 @@ chunk) on that path would make QEMU sound like the console.
 - API tokens have no expiry. The kit refuses tokens older than `PRG32_STORE_TOKEN_MAX_DAYS`.
 - The Store accepts the same cartridge id and version twice. The kit sends one bundle per id
   and version.
+- `POST /api/publish/bundle` asks only for a signed-in user, not the publisher role, and the
+  submission does not record who sent it. The kit's publisher check is what stops a student;
+  `tests/test_sso_live.py::test_store_bundle_upload_checks_sign_in_only` fails when the Store
+  changes this, so the record can be updated.

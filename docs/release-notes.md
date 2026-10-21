@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+### The compiler in the IDE, and shared accounts checked live
+
+- IDE: after every save of C or assembly, the real PRG32 compiler checks the saved file
+  (sandboxed, nothing kept) and its messages appear in Problems at their lines; **Check
+  with the compiler** in the palette (`ide.md`). Compiler errors after Compile now reach
+  their line as well (the build log's `<build>/` paths were not recognized).
+- Shared accounts with a real Cartridge Store over HTTP (`tests/test_sso_live.py`): sync,
+  single sign-on both ways, publishing with one-time tickets; the Store checks sign-in
+  only, recorded in `upstream/README.md`.
+- Milestones in `architecture/current-state.md` always name their commit.
+
 ### Builds and delivery, reproducible without the toolchain
 
 - `tools/check_build.py` also builds one game written each way (Blocks as C and as

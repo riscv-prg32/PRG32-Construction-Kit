@@ -256,6 +256,7 @@ jobs:
         run: >-
           python -m pytest -q -rs --junitxml=store-contract-results.xml
           tests/test_store_contract.py tests/test_store_live.py tests/test_sso_with_cartridge_store.py
+          tests/test_sso_live.py
 
       - name: Keep the results
         if: always()
