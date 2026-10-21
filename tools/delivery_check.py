@@ -38,6 +38,8 @@ from urllib.parse import urlsplit
 
 ROOT = Path(__file__).resolve().parent.parent
 SLOTS = [f"cart{number}" for number in range(8)]
+# PRG32-QT keeps 4 cartridge slots (cart0..cart3); the console has 8.
+SLOTS_BY_HOST = {"qt": SLOTS[:4]}
 TIMEOUT = 30
 
 
@@ -76,12 +78,16 @@ def http(method: str, url: str, body: bytes | None = None) -> tuple[int, bytes]:
         return error.code, error.read()
 
 
-def check_on_device(url: str, slot: str, cartridge: Path, wait: float) -> dict:
+def check_on_device(url: str, slot: str, cartridge: Path, wait: float, keep: Path | None = None) -> dict:
     facts = cartridge_facts(cartridge)
     base = url.rstrip("/")
     try:
         status, runtime = http("GET", base + "/api/runtime")
         facts["runtime"] = json.loads(runtime or b"{}") if status == 200 else {"status": status}
+        allowed = SLOTS_BY_HOST.get(facts["runtime"].get("host"), SLOTS)
+        if slot not in allowed:          # nothing is sent: say which slots this host has
+            return {**facts, "outcome": "refused",
+                    "error": f"{facts['runtime'].get('host')} has slots {allowed[0]}..{allowed[-1]}, not {slot}"}
         status, answer = http("POST", f"{base}/api/games?slot={slot}", cartridge.read_bytes())
         facts["upload"] = {"status": status, "answer": answer.decode("utf-8", "replace")[:500]}
         if status != 200:
@@ -92,6 +98,9 @@ def check_on_device(url: str, slot: str, cartridge: Path, wait: float) -> dict:
             return {**facts, "outcome": "refused"}
         time.sleep(wait)
         status, screenshot = http("GET", base + "/api/screenshot.bmp")
+        if keep and status == 200:
+            keep.mkdir(parents=True, exist_ok=True)
+            (keep / f"{cartridge.stem}.bmp").write_bytes(screenshot)
         facts["screenshot"] = {"status": status, "sha256": hashlib.sha256(screenshot).hexdigest(),
                                "drawn": status == 200 and drawn_something(screenshot)}
     except (urllib.error.URLError, OSError, ValueError) as error:
@@ -107,6 +116,7 @@ def main(argv: list[str] | None = None) -> int:
     device.add_argument("--url", required=True, help="the device, e.g. http://192.168.4.1 or http://127.0.0.1:8080")
     device.add_argument("--slot", required=True, choices=SLOTS, help="the slot to use; what is in it is replaced")
     device.add_argument("--wait", type=float, default=3.0, help="seconds to let the game draw before the screenshot")
+    device.add_argument("--screenshots", type=Path, help="keep each screenshot here as <cartridge>.bmp")
     for command in (record, device):
         command.add_argument("cartridges", nargs="+", type=Path)
         command.add_argument("--target", default="", help="what was used: 'PRG32 console', 'PRG32-QT 1.x on macOS', ...")
@@ -117,7 +127,7 @@ def main(argv: list[str] | None = None) -> int:
         parser.error("--url must start with http:// or https://")
     prg32_source = Path(os.environ.get("PRG32_SOURCE") or ROOT.parent / "PRG32")
     results = ([cartridge_facts(path) for path in args.cartridges] if args.command == "record" else
-               [check_on_device(args.url, args.slot, path, args.wait) for path in args.cartridges])
+               [check_on_device(args.url, args.slot, path, args.wait, args.screenshots) for path in args.cartridges])
     document = {"tool": "tools/delivery_check.py", "command": args.command,
                 "date": datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0).isoformat(),
                 "target": args.target, "url": getattr(args, "url", ""), "slot": getattr(args, "slot", ""),

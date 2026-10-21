@@ -443,7 +443,7 @@ jobs:
       - name: Compile real cartridges concurrently
         run: >-
           docker run --rm ${{ env.SANDBOX_OPTS }} -v "$PWD/ci-evidence:/evidence" --entrypoint sh ${{ env.CI_IMAGE }} -c
-          "python tools/check_build.py --students 2 --windows 2 > /evidence/check_build.log 2>&1;
+          "python tools/check_build.py --students 2 --windows 2 --evidence /evidence/check_build.json > /evidence/check_build.log 2>&1;
           status=$?; cat /evidence/check_build.log; exit $status"
 
       - name: Rebuild the debugger fixtures with the image's toolchain

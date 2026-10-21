@@ -20,7 +20,8 @@ python3 -m prg32 esp32c6 run --url http://192.168.4.1 --slot cart1
 ```
 
 Use the `esp32c6` cartridge for the console. Each slot (`cart0` … `cart7`) holds one
-game; uploading replaces what was in that slot. A Cartridge Store set up for the
+game; uploading replaces what was in that slot. (PRG32-QT has four slots, `cart0` …
+`cart3`.) A Cartridge Store set up for the
 class works too: publish from the kit, install from the Store on the console.
 
 ## In PRG32-QT (desktop)

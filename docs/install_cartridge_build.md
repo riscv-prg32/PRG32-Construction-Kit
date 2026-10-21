@@ -56,7 +56,10 @@ If a line says `FAIL`, the container stops instead of starting a server
 that can't build cartridges. See [Troubleshooting](#troubleshooting).
 
 Before a lesson, test a whole class compiling at the same moment (this uses
-throwaway data, so real projects are not touched):
+throwaway data, so real projects are not touched). It also builds one small game
+written each way: Blocks (as C and as assembly), Advanced C and handwritten
+assembly. With Node.js installed, each one is then run for 30 frames in the
+browser core, and `--evidence FILE` saves their SHA-256:
 
 ```bash
 docker compose exec prg32-construction-kit python tools/check_build.py --students 10 --windows 2

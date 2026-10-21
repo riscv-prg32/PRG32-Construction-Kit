@@ -34,6 +34,7 @@ class FakeDevice(BaseHTTPRequestHandler):
     selected = ""
     requests: list[str] = []
     refuse = False
+    host = "fake"
     screen = bmp(b"\x10\x80\xff")
 
     def log_message(self, *_args):
@@ -50,7 +51,7 @@ class FakeDevice(BaseHTTPRequestHandler):
     def do_GET(self):
         type(self).requests.append("GET " + self.path)
         if self.path == "/api/runtime":
-            return self.answer(200, {"abi": "1.6", "host": "fake"})
+            return self.answer(200, {"abi": "1.6", "host": type(self).host})
         if self.path == "/api/screenshot.bmp":
             return self.answer(200, type(self).screen, "image/bmp")
         self.answer(404, {"ok": False})
@@ -73,7 +74,7 @@ class FakeDevice(BaseHTTPRequestHandler):
 @pytest.fixture()
 def device():
     FakeDevice.slots, FakeDevice.selected, FakeDevice.requests = {}, "", []
-    FakeDevice.refuse, FakeDevice.screen = False, bmp(b"\x10\x80\xff")
+    FakeDevice.refuse, FakeDevice.screen, FakeDevice.host = False, bmp(b"\x10\x80\xff"), "fake"
     server = ThreadingHTTPServer(("127.0.0.1", 0), FakeDevice)
     threading.Thread(target=server.serve_forever, daemon=True).start()
     yield f"http://127.0.0.1:{server.server_port}"
@@ -131,3 +132,17 @@ def test_the_slot_must_be_chosen(device):
         delivery_check.main(["device", "--url", device, str(CARTRIDGES[0])])
     with pytest.raises(SystemExit):
         delivery_check.main(["device", "--url", device, "--slot", "factory", str(CARTRIDGES[0])])
+
+
+def test_prg32_qt_slots_are_checked_before_anything_is_uploaded(tmp_path, device):
+    """PRG32-QT keeps 4 slots (cart0..cart3): a higher slot is refused by the tool, nothing is sent."""
+    FakeDevice.host = "qt"
+    code, record = run("device", "--url", device, "--slot", "cart7", "--wait", "0", str(CARTRIDGES[0]),
+                       out=tmp_path / "qt7.json")
+    assert code == 1 and record["cartridges"][0]["outcome"] == "refused"
+    assert "cart0..cart3" in record["cartridges"][0]["error"]
+    assert not any(request.startswith("POST") for request in FakeDevice.requests)
+    code, record = run("device", "--url", device, "--slot", "cart3", "--wait", "0", str(CARTRIDGES[0]),
+                       "--screenshots", str(tmp_path / "shots"), out=tmp_path / "qt3.json")
+    assert code == 0 and set(FakeDevice.slots) == {"cart3"}
+    assert (tmp_path / "shots" / "pong.bmp").read_bytes() == FakeDevice.screen

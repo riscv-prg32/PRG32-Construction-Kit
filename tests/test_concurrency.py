@@ -204,3 +204,51 @@ def test_real_cartridges_for_many_students_and_windows(app):
     assert report["cartridges"] == 12
     assert {cartridge_name(item["data"]) for item in report["results"]} == {
         "lab-check-student1", "lab-check-student2", "lab-check-student3"}
+
+
+def test_source_modes_check_builds_each_way_of_writing_a_game(app, monkeypatch):
+    from prg32_construction_kit import build_check
+
+    sources = []
+
+    def compiler(command, **_kwargs):
+        source = next(Path(arg) for arg in command if arg.endswith(("game.c", "game.S")))
+        sources.append((source.name, source.read_text()))
+        Path(command[command.index("--out") + 1]).write_bytes(b"PRG2" + bytes(60))
+        return SimpleNamespace(returncode=0, stdout="", stderr="")
+
+    monkeypatch.setattr("prg32_construction_kit.packager.subprocess.run", compiler)
+    monkeypatch.setattr(build_check, "runs", lambda _data: None)
+    report = build_check.source_modes_check(app, architectures=["qemu"])
+    assert report["problems"] == []
+    assert [item["mode"] for item in report["results"]] == [
+        "blocks (generated C)", "blocks (generated assembly)", "advanced C", "handwritten assembly"]
+    names = [name for name, _text in sources]
+    assert names == ["game.c", "game.S", "game.c", "game.S"]
+    assert "mode_check_c_draw" in sources[2][1] and "mode_check_asm_update" in sources[3][1]
+
+
+def test_source_modes_check_reports_a_failed_build(app, monkeypatch):
+    from prg32_construction_kit import build_check
+
+    def broken(command, **_kwargs):
+        return SimpleNamespace(returncode=1, stdout="", stderr="error: something")
+
+    monkeypatch.setattr("prg32_construction_kit.packager.subprocess.run", broken)
+    report = build_check.source_modes_check(app, architectures=["qemu"])
+    assert len(report["problems"]) == 4 and report["results"] == []
+
+
+def test_real_cartridges_from_blocks_c_and_assembly(app):
+    """Uses the real PRG32 toolchain when it is installed (skipped otherwise); with Node.js each
+    cartridge also runs in the browser core."""
+    import pytest
+
+    from prg32_construction_kit.build_check import source_modes_check
+
+    if _real_toolchain_missing(app.config["PRG32_BUILD_COMMAND"]):
+        pytest.skip("PRG32 build toolchain is not installed")
+    report = source_modes_check(app)
+    assert report["problems"] == []
+    assert len(report["results"]) == 8
+    assert all(item["runs_in_browser_core"] is not False for item in report["results"])
