@@ -25,7 +25,7 @@
   {% block head %}{% endblock %}
 </head>
 <body class="{% block body_class %}{% endblock %}" data-admin="{{ '1' if current_user and current_user.is_admin else '0' }}">
-<nav class="navbar navbar-expand-lg navbar-dark kit-navbar sticky-top shadow-sm">
+<nav class="navbar navbar-expand-xl navbar-dark kit-navbar sticky-top shadow-sm">
   <div class="container-fluid">
     <a class="navbar-brand d-flex align-items-center gap-2" href="/">
       <img src="{{ url_for('static', filename='img/prg32-icon.svg') }}" alt="" width="32" height="32">
@@ -51,8 +51,14 @@
         {% endif %}
         <li class="nav-item"><a class="nav-link" href="/documentation"><i class="bi bi-book"></i> Docs</a></li>
         {% if current_user.is_admin %}
-        <li class="nav-item"><a class="nav-link" href="/admin/users"><i class="bi bi-people"></i> Users</a></li>
-        <li class="nav-item"><a class="nav-link" href="/admin/settings"><i class="bi bi-gear"></i> Settings</a></li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="adminMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-shield-check"></i> Admin</a>
+          <ul class="dropdown-menu" aria-labelledby="adminMenu">
+            <li><a class="dropdown-item" href="/admin/settings"><i class="bi bi-gear"></i> Settings</a></li>
+            <li><a class="dropdown-item" href="/admin/users"><i class="bi bi-people"></i> Users</a></li>
+            <li><a class="dropdown-item" href="/admin/identity"><i class="bi bi-mortarboard"></i> School sign-in</a></li>
+          </ul>
+        </li>
         {% endif %}
       </ul>
       {% if current_user.authenticated %}
@@ -60,8 +66,8 @@
         {% if sso_enabled %}
         <a class="btn btn-outline-light btn-sm" href="/auth/sso/peer" title="Open the Cartridge Store already signed in"><i class="bi bi-shop"></i> Cartridge Store</a>
         {% endif %}
-        <a class="nav-link text-light small" href="/account"><i class="bi bi-person-circle"></i> {{ current_user.username }}</a>
-        <form method="post" action="/auth/logout" class="m-0"><button class="btn btn-outline-light btn-sm" type="submit">Sign out</button></form>
+        <a class="nav-link text-light small text-nowrap" href="/account"><i class="bi bi-person-circle"></i> {{ current_user.username }}</a>
+        <form method="post" action="/auth/logout" class="m-0"><button class="btn btn-outline-light btn-sm text-nowrap" type="submit">Sign out</button></form>
       </div>
       {% else %}
       <div class="d-flex align-items-center gap-2">

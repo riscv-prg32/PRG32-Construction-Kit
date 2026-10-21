@@ -47,7 +47,8 @@
       notes.push(`<button type="button" class="btn btn-link btn-sm p-0 reset-setting" data-key="${item.key}">Back to the default</button>`);
     }
     if (item.kind !== 'secret' && !item.locked && item.default !== undefined && item.default !== null && item.default !== '') {
-      const shown = Array.isArray(item.default) ? item.default.join(', ') : String(item.default);
+      const shown = Array.isArray(item.default) ? item.default.join(', ')
+        : item.kind === 'bool' ? (item.default ? 'on' : 'off') : String(item.default);
       notes.push(`<span class="text-muted">default: ${Kit.escape(shown)}</span>`);
     }
     return `<div class="settings-field" data-key="${item.key}">${input(item)}

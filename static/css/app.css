@@ -392,9 +392,11 @@ body.dbg-mode-advanced .dbg-beginner { display: none !important; }
 .cloud-ready .cloud-only { display: inline-block; }
 
 /* --- footer and the storage note (base.html, storage_notice.js) ------------------------- */
+.kit-navbar .nav-link { white-space: nowrap; }
 .kit-footer { background: var(--bs-tertiary-bg); }
 .kit-footer a { color: var(--bs-body-color); text-decoration: underline; }
 .kit-storage-notice a { color: var(--bs-body-color); text-decoration: underline; }
+#guestWelcome a { color: inherit; font-weight: 600; text-decoration: underline; }
 .kit-storage-notice {
   position: fixed;
   left: 1rem;
