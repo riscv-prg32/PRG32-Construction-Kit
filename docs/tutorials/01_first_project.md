@@ -38,7 +38,7 @@ The downloaded file is a Blocks PRG32 game stored as JSON.
 
 ## 6. Get a cartridge for your PRG32
 
-Click **Download .prg32**. The app compiles your blocks and your browser saves
+Click **Compile**, then the **Download esp32c6 .prg32** link in the **Build** tab. The app compiles your blocks and your browser saves
 a file such as `first-square-esp32c6.prg32`. That file is your PRG32 cartridge:
 upload it to a cartridge slot on the board. To try it in the QEMU emulator,
 open the arrow next to the button and choose **QEMU emulator**.

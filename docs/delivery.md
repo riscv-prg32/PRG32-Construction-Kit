@@ -4,7 +4,7 @@ Everything here works on the classroom network, with no internet connection.
 
 ## For students
 
-1. In the editor or IDE, press **Download .prg32**. You get a **PRG32 cartridge**.
+1. In the IDE, press **Compile**, then a **Download .prg32** link in the **Build** tab. You get a **PRG32 cartridge**.
 2. Give it to your teacher, or put it on the PRG32 yourself as below.
 
 ## On the PRG32 console (ESP32-C6)
@@ -36,7 +36,7 @@ above works with `--url http://127.0.0.1:8080`.
 
 ## In the browser
 
-**Play in browser** in the kit, or open the `.prg32` on the **Player** page. This is
+**Run** in the kit, or open the `.prg32` on the **Player** page. This is
 the only target the kit checks automatically.
 
 ## PRG32-iOS

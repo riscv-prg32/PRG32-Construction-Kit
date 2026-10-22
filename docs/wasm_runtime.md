@@ -1,14 +1,14 @@
 # Running real cartridges in the browser
 
-The **Player** page (`/player`) runs a real `.prg32` cartridge in the
-browser. It is not the Blocks preview: the cartridge's RISC-V machine code
-runs in the same PRG32 core as PRG32-QT, compiled to WebAssembly. Blocks,
-Advanced C and handwritten assembly cartridges all run there.
+The simulator on the right of the IDE, and the **Player** page (`/player`), run a real
+`.prg32` cartridge in the browser: its RISC-V machine code runs in the same PRG32 core as
+PRG32-QT, compiled to WebAssembly. Blocks, C and handwritten assembly cartridges all run
+there.
 
 ## For students
 
-1. Compile your game (**Compile Cartridge**) and press **Play in browser**, or
-   open **Player** and choose **Open a .prg32 file**.
+1. In the IDE press **Run**: the kit builds the game and plays it on the right (also
+   without an account; nothing is kept). Or open **Player** and choose **Open a .prg32 file**.
 2. Press **Play**. Buttons: arrows or W A S D, **Z**/**J** = A, **X**/**K** = B,
    **Enter**/**Space** = Select. On a tablet, use the on-screen buttons.
 3. **Frame** runs exactly one frame (update + draw) and stops.
@@ -19,9 +19,9 @@ Advanced C and handwritten assembly cartridges all run there.
 5. The **Debugger** under the screen pauses the game on any RISC-V
    instruction: see `tutorials/07_debugger.md`.
 
-The Blocks **Play** button in the editor still shows the quick Blocks
-preview, which runs your blocks directly (no RISC-V). The Player is how the
-console really runs it.
+Only when the kit's server cannot compile does the IDE fall back to the quick Blocks
+preview, which runs your blocks directly (no RISC-V). The simulator is how the console
+really runs it.
 
 ## For teachers
 

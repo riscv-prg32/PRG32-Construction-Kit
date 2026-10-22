@@ -75,8 +75,8 @@ On Linux, `host.docker.internal` may need extra configuration. A simple classroo
 ## Cartridge builds in the container
 
 The image installs the RISC-V compiler (ESP-IDF 5.4's `riscv32-esp-elf-gcc`)
-and the PRG32 build tools by default, so **Compile Cartridge** and
-**Download .prg32** work straight away. Check it:
+and the PRG32 build tools by default, so **Compile** and
+the cartridge downloads work straight away. Check it:
 
 ```bash
 docker compose exec prg32-construction-kit python tools/check_build.py

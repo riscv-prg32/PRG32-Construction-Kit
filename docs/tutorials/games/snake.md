@@ -422,7 +422,7 @@ Text is drawn **after** the tiles (painter's algorithm), on a dark-gray backgrou
 
 <!-- column -->
 
-**Download .prg32** builds `snake-esp32c6.prg32`; the arrow next to it builds `snake-qemu.prg32`.
+**Compile** builds `snake-esp32c6.prg32` and `snake-qemu.prg32`; download them from the links in the IDE's **Build** tab.
 
 ```bash
 python3 -m prg32 qemu upload snake-qemu.prg32

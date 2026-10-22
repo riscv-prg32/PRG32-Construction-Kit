@@ -5,12 +5,11 @@ you are ready, you can write the whole game in assembly yourself.
 
 ## Start a project
 
-1. Create a project and give it a title, for example **Bouncer**.
-2. In the editor, set the mode menu to **Assembly (RISC-V)**.
-3. Optional: press **Copy generated Blocks assembly** to start from what your
-   blocks make, then change it.
-4. Press **Save**, then **Check Assembly**. When it is accepted, use
-   **Compile Cartridge** or **Download .prg32**.
+1. **New Project**, choose **Assembly (RISC-V)** and give it a title, for example **Bouncer**.
+   It starts from a small working game, explained line by line. (A Blocks project can also
+   become assembly once: **Project, Convert to Assembly…** in the IDE.)
+2. Change it, press **Save**: the compiler checks it and lists problems at their lines.
+3. **Run** plays it in the simulator on the right; **Compile** makes the cartridges.
 
 The browser simulator runs Blocks only. Test assembly cartridges on QEMU,
 PRG32-QT or a PRG32 console.

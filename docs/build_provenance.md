@@ -1,6 +1,6 @@
 # What made this cartridge? (build provenance)
 
-Every **Compile Cartridge** and **Download .prg32** records how the cartridge
+Every **Compile** records how the cartridge
 was made. Teachers can use it to check a hand-in; students can use it to see
 that the same game always gives the same cartridge.
 

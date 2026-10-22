@@ -1,10 +1,15 @@
-# Sprite and Image Editor
+# Sprite Lab
 
-The Sprite Lab provides a small pixel editor for classroom game assets.
+Sprite Lab is a small pixel editor for a game's pictures. It opens as a tab of the IDE, for
+the project that is open: **Sprites** in the project files (each sprite, or **New sprite…**),
+or the **Sprite Lab** menu item, which asks for the project first. It has the same layout as
+AudioStudio: the toolbar on top (**New**, **Save**, **Import**, **Export PNG**, **Delete**,
+**Convert to C**), the project's sprites on the left, the canvas in the centre, the
+properties and the generated C on the right.
 
 ## Features
 
-- Create, load, update, and delete sprite resources through `/api/sprites`.
+- Create, load, update and delete the project's sprites (`/api/sprites?project_id=...`).
 - Paint pixels on a grid.
 - Use an eraser for transparent pixels.
 - Import an image and downsample it to the sprite grid.

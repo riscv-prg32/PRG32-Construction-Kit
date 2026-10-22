@@ -2,19 +2,19 @@
 
 Goal: create a Cartridge Store bundle from a blocks project.
 
-## 1. Generate C
+## 1. Generate
 
-Open a project and click **Generate C**. Confirm that the generated C looks reasonable.
+Open a project and click **Generate**. Confirm that the generated C looks reasonable.
 
 ## 2. Prepare cartridge
 
-Click **Compile Cartridge**.
+Click **Compile**.
 
 If the PRG32 build toolchain is installed, the result should be a publishable store bundle containing `.prg32` files. If not, the app creates a source-only teaching bundle; the Docker image has the toolchain built in (see `../install_cartridge_build.md`).
 
-To test a single cartridge before publishing, use **Download .prg32** instead;
+To test a single cartridge before publishing, press **Run** (the simulator on the right) or download one from the **Build** tab;
 it builds one architecture and downloads that cartridge file. Publish the
-bundle from **Compile Cartridge** so the store gets every architecture.
+bundle from **Compile** so the store gets every architecture.
 
 ## 3. Configure a store profile
 

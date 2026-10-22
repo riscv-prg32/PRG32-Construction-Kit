@@ -1,6 +1,6 @@
 # The build sandbox: why a student's code cannot harm the server
 
-When you press **Compile Cartridge**, the server runs the RISC-V compiler on
+When you press **Compile**, the server runs the RISC-V compiler on
 the student's C or assembly. The kit checks that code first, but a compiler is
 a large program, so every compile also runs **inside a sandbox**.
 

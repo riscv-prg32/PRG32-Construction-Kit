@@ -13,7 +13,7 @@ status of each capability (implemented, partial, missing), with its source and t
 | **Browser** (untrusted) | Pages: IDE, Blocks editor, Player, Sprite Lab, AudioStudio, Account | `templates/`, `static/js/` | Bootstrap + jQuery; every library from `static/vendor/`; strict CSP (ADR-0012) |
 | | Editors and offline checks | `static/js/ide/`, `static/js/ide/prg32_language_index.js` | Blockly, Monaco; suggest only what the validators accept (ADR-0014) |
 | | WebAssembly runtime and debugger | `wasm/`, `static/wasm/`, `static/js/prg32_runtime.js`, `static/js/prg32_debugger.js` | PRG32-QT's core and the PRG32 firmware's audio engine (ADR-0021); source and block maps (ADR-0015) |
-| | JavaScript IR simulator | `static/js/simulator.js` | a quick preview of Blocks games in the editor and the offline page; the Player uses the WebAssembly core |
+| | JavaScript IR simulator | `static/js/simulator.js` | the offline page's Blocks preview, and the IDE's fallback when the server cannot compile; Run and the Player use the WebAssembly core |
 | | IndexedDB | `static/js/guest_store.js` | guest games and unsaved work, on the device only (ADR-0017) |
 | | Service worker | `/service-worker.js` | static files only, never signed-in pages |
 | **Kit server** (the operator's host) | Flask app, session, roles | `prg32_construction_kit/auth.py`, `routes.py`, `classes.py` | signed session cookie; ownership; quotas; `X-PRG32-Kit` and `X-PRG32-User` checks |
@@ -73,7 +73,7 @@ Threat model and controls: [security.md](security.md) and
    - a reviewed bundle to the Cartridge Store
      ([cartridge_store_publish.md](cartridge_store_publish.md)).
 
-Without the toolchain, **Compile Cartridge** stores a source bundle: generated C, project,
+Without the toolchain, **Compile** stores a source bundle: generated C, project,
 IR and manifest.
 
 ## The game loop and the frame clock

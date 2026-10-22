@@ -141,7 +141,7 @@ succeeds, the response's `cartridge_artifacts` array contains portable
 
 To build only some targets, send `{"architectures": ["esp32c6"]}` (or
 `["qemu"]`, or both). Unknown names are rejected with `400`. The editor's
-**Download .prg32** button uses this to compile one cartridge and download it
+The IDE's **Compile** button uses this; a script can ask for one architecture and download it
 directly.
 
 Many students, or one student in several browser windows, can build at the
@@ -163,7 +163,7 @@ Returns service URLs for projects, sprites, assets, artifacts, builds, publish p
 plus `auth` (sign-in is required), `sso` (`{"enabled": true|false, "abi": "prg32-sso-1.0"}`) and
 `cartridge_builds` (`{"available": true|false, "architectures": ["esp32c6", "qemu"]}`).
 `available` is `false` when this server has no working PRG32 build tools, so
-**Compile Cartridge** makes source bundles only (see `install_cartridge_build.md`).
+**Compile** makes source bundles only (see `install_cartridge_build.md`).
 The check runs once per server process.
 
 ## CRUD resources

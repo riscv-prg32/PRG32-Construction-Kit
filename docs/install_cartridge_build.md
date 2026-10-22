@@ -1,6 +1,6 @@
 # Installing Cartridge Builds
 
-When students click **Compile Cartridge** or **Download .prg32**, the server
+When students click **Compile**, the server
 turns their generated C into a PRG32 cartridge. To do that it needs two
 tools:
 

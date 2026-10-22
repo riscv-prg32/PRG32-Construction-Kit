@@ -12,17 +12,20 @@ almost every line carries an explanation.
 
 ## Choosing what to generate
 
-In the project editor, the **Generated code** list next to the Generate button
-has three choices:
+In the IDE, **Generate** makes both files from the blocks: `game.c` and `game.S`
+(and `game.ir.json`), each a read-only tab you can copy or **Download**. **Run** and
+**Compile** build from the C. In the **Build** tab, *Compile Blocks from* chooses what
+Compile builds:
 
-| Choice | Generate makes | Compile Cartridge builds from |
-| --- | --- | --- |
-| C | `generated C` | the C |
-| Assembly (RISC-V) | `generated assembly` | the assembly (`game.S`) |
-| C + Assembly | both files | the C; the bundle holds both files |
+| Choice | Compile builds from |
+| --- | --- |
+| the generated C | the C |
+| the generated assembly | the assembly (`game.S`) |
+| C (and put the assembly in the bundle too) | the C; the bundle holds both files |
 
-The editor remembers the choice for each project in this browser. Advanced C
-projects always use their own C: assembly is generated from Blocks only.
+The IDE remembers the choice for each project in this browser. C and assembly projects
+always build their own code: assembly is generated from Blocks only. To make a Blocks
+project into C or assembly for good, use **Project, Convert to C…** (one way).
 
 Through the API, send `{"source_language": "c" | "asm" | "both"}` to
 `POST /api/projects/<id>/convert` or `/package` (see `api.md`).

@@ -59,7 +59,7 @@ build tools, or when the compiler failed) cannot.
 ## Publish flow
 
 1. Open a project.
-2. Click **Compile Cartridge** so the bundle contains both architectures (**Download .prg32** builds only one).
+2. Click **Compile** so the bundle contains both architectures.
 3. Open **Publish**.
 4. Select the store profile.
 5. Click **Review & publish** on a store bundle. The kit opens the bundle and

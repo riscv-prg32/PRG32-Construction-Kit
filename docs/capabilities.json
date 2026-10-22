@@ -20,15 +20,19 @@
         "static/js/ide/shell.js::openPalette",
         "static/js/ide/shell.js::cycleRegion",
         "static/js/ide/shell.js::renderTree",
-        "static/js/ide/ide.js::compile"
+        "static/js/ide/ide.js::compile",
+        "templates/ide.html",
+        "static/js/ide/shell.js::showPane"
       ],
       "tests": [
         "tests/test_ide_browser.py::test_keyboard_only_c_workflow",
         "tests/test_ide_browser.py::test_ide_has_no_csp_violations_or_serious_accessibility_problems",
         "tests/test_ide_browser.py::test_small_screens_show_the_files_on_demand",
-        "tests/test_ide_browser.py::test_blocks_stay_editable_and_generated_code_is_read_only"
+        "tests/test_ide_browser.py::test_blocks_stay_editable_and_generated_code_is_read_only",
+        "tests/test_ide_layout_browser.py::test_panes_resize_hide_and_are_remembered",
+        "tests/test_ide_layout_browser.py::test_the_project_menu_replaces_the_classic_editor"
       ],
-      "note": "Tree, tabs, panels, palette, status bar, F6 regions, small-screen fallback (ADR-0013). axe-core scan only; no screen-reader session."
+      "note": "Tree, tabs, panels, palette, status bar, F6 regions, small-screen fallback (ADR-0013). axe-core scan only; no screen-reader session. JetBrains layout (ADR-0024): files | editor over the tool window (Problems, Build, Console, Debug, Git) | simulator; splitters, Alt+1/4/9; the classic editor is retired."
     },
     {
       "id": "IDE-02",
@@ -120,15 +124,17 @@
         "prg32_construction_kit/project_format.py::upgrade",
         "prg32_construction_kit/routes.py::save_revision",
         "prg32_construction_kit/routes.py::restore_plan",
-        "prg32_construction_kit/sample_data.py::starter_project"
+        "prg32_construction_kit/sample_data.py::starter_project",
+        "prg32_construction_kit/routes.py::api_convert_project_type"
       ],
       "tests": [
         "tests/test_project_format.py::test_archive_round_trip_keeps_blocks_sprites_and_assets",
         "tests/test_project_format.py::test_legacy_json_export_is_migrated",
         "tests/test_restore_relationships.py::test_restore_updates_in_place_adds_and_removes",
-        "tests/test_project_starters.py::test_c_and_assembly_starters_pass_the_handwritten_checks"
+        "tests/test_project_starters.py::test_c_and_assembly_starters_pass_the_handwritten_checks",
+        "tests/test_project_type.py::test_blocks_convert_once_and_the_blocks_stay_in_history"
       ],
-      "note": "Autosave and conflict-safe saves done (ADR-0017); no project search and no automatic merge of concurrent edits (the student chooses). New Project offers Blocks, C or assembly; C and assembly start from the starter game turned into code (/api/starters)."
+      "note": "Autosave and conflict-safe saves done (ADR-0017); no project search and no automatic merge of concurrent edits (the student chooses). New Project offers Blocks, C or assembly; C and assembly start from the starter game turned into code (/api/starters). Project types are fixed; Blocks convert to C or assembly once (ADR-0024)."
     },
     {
       "id": "BLD-01",
@@ -174,13 +180,16 @@
       "audit_score": 4,
       "source": [
         "wasm/prg32_core_api.cpp::prg32_frame",
-        "tools/build_wasm.py::build"
+        "tools/build_wasm.py::build",
+        "prg32_construction_kit/run_build.py::run"
       ],
       "tests": [
         "tests/test_wasm_runtime.py::test_wasm_runs_golden_cartridges_exactly_like_native",
-        "tests/test_wasm_runtime.py::test_native_harness_draws_exactly_like_prg32qt_headless"
+        "tests/test_wasm_runtime.py::test_native_harness_draws_exactly_like_prg32qt_headless",
+        "tests/test_run_build.py::test_every_project_type_runs_and_nothing_is_kept",
+        "tests/test_ide_layout_browser.py::test_a_guest_runs_blocks_c_and_assembly_in_the_simulator"
       ],
-      "note": "Reference: PRG32-QT prg32qt-headless and native core, revision in static/wasm/BUILD.json."
+      "note": "Reference: PRG32-QT prg32qt-headless and native core, revision in static/wasm/BUILD.json. Run builds (ADR-0024): every project type runs in the IDE simulator, for accounts and guests, nothing kept."
     },
     {
       "id": "WASM-02",
@@ -263,9 +272,10 @@
         "tests/test_audio_browser.py::test_audio_studio_edits_previews_saves_and_reloads",
         "tests/test_audio_browser.py::test_audio_studio_works_with_the_keyboard_only",
         "tests/test_audio_browser.py::test_audio_studio_sound_goes_into_the_archive_and_the_cartridge",
-        "tests/test_audio_studio.py::test_the_engine_plays_each_note_on_its_step"
+        "tests/test_audio_studio.py::test_the_engine_plays_each_note_on_its_step",
+        "tests/test_ide_layout_browser.py::test_sprite_lab_and_audio_studio_are_tabs_of_the_open_project"
       ],
-      "note": "AudioStudio page parallel to Sprite Lab: 8 voice instruments with ADSR, sound effects, an 8-row soundtrack grid, WAV samples; previewed through the PRG32 engine; one versioned audio_studio asset per project (expected_version, 409, quotas, ownership); named blocks become fixed instrument/track numbers in the generated C and assembly; the AUD0 block is packed deterministically into the cartridge build; archive, copy and export carry the samples. Soundtrack timing fixed to the tracker's wait-after deltas (13766c9 played notes one gap early). Keyboard-only, archive and Compile paths checked in a real browser; the console check cartridge is built from an AudioStudio project. No screen-reader session or console recording yet."
+      "note": "AudioStudio page parallel to Sprite Lab: 8 voice instruments with ADSR, sound effects, an 8-row soundtrack grid, WAV samples; previewed through the PRG32 engine; one versioned audio_studio asset per project (expected_version, 409, quotas, ownership); named blocks become fixed instrument/track numbers in the generated C and assembly; the AUD0 block is packed deterministically into the cartridge build; archive, copy and export carry the samples. Soundtrack timing fixed to the tracker's wait-after deltas (13766c9 played notes one gap early). Keyboard-only, archive and Compile paths checked in a real browser; the console check cartridge is built from an AudioStudio project. No screen-reader session or console recording yet. AudioStudio and Sprite Lab are tabs of the open project in the IDE, one layout (ADR-0024)."
     },
     {
       "id": "AUD-04",

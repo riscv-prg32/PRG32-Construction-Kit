@@ -9,8 +9,8 @@ PRG32-Construction-Kit.
 
 **Save your project as a file**
 
-1. Open your project and press **Save**.
-2. Choose **Export → Project archive (.zip)**.
+1. Open your project in the IDE and press **Save**.
+2. Choose **Project → Export project (.zip)**.
 3. Your browser downloads a file such as `my-game.prg32project.zip`.
 
 The file holds what you saved last. If the editor says you have unsaved
@@ -26,7 +26,7 @@ changes, save first.
 
 **Make a copy**
 
-Shared classroom games are read-only. Press **Make my copy** in the editor to
+Shared classroom games are read-only. Press **Make my copy** in the IDE to
 get your own version you can change.
 
 ## What is inside

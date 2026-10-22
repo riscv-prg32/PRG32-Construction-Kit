@@ -34,7 +34,7 @@ http://127.0.0.1:5090/
 | `DATABASE_URL` | unset | SQLAlchemy URL; overrides the SQLite path. |
 | `PRG32_KIT_PORT` | `5090` | HTTP port. |
 | `PRG32_STORE_URL` | `http://127.0.0.1:5080` | Default Cartridge Store URL. |
-| `PRG32_BUILD_COMMAND` | `<kit python> -m prg32 cartridge build` | Command used by Compile Cartridge and Download .prg32. The default uses the same Python that runs the kit. |
+| `PRG32_BUILD_COMMAND` | `<kit python> -m prg32 cartridge build` | Command used by Compile. The default uses the same Python that runs the kit. |
 | `PRG32_MAX_PARALLEL_BUILDS` | CPU cores | Compilers running at the same time (`concurrent_builds.md`). |
 | `PRG32_BUILD_QUEUE_TIMEOUT` | `180` | Seconds a build waits for a free compiler. |
 | `PRG32_BUILD_TIMEOUT` | `120` | Seconds one compiler run may take. |
@@ -101,6 +101,6 @@ export PATH="$HOME/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-
 The check compiles real cartridges for several pretend students in several
 browser windows at once, and says what is missing if anything is.
 
-Then open a project and click **Download .prg32** to get a cartridge file
-directly, or **Compile Cartridge** to build every target plus the Cartridge
+Then open a project, click **Compile**, and download a cartridge file from the IDE's **Build** tab
+directly, or **Compile** to build every target plus the Cartridge
 Store bundle.

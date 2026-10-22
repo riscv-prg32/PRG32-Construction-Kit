@@ -412,7 +412,7 @@ Each picture block becomes a constant array of eight bytes; the comment above it
 1. Dashboard, **Examples**, *Space Invaders* (complete game), **Add**.
 2. **Play**, then START; Z fires.
 3. Edit a picture block: change a `.` into `#` and watch the invader change at once.
-4. **Generate C**: each different picture becomes one `static const uint8_t ...[8]`.
+4. **Generate**: each different picture becomes one `static const uint8_t ...[8]`.
 
 ---
 
@@ -421,7 +421,7 @@ Each picture block becomes a constant array of eight bytes; the comment above it
 
 <!-- column -->
 
-**Download .prg32** builds `space-invaders-esp32c6.prg32`; the arrow next to it builds the QEMU file.
+**Compile** builds `space-invaders-esp32c6.prg32` and `space-invaders-qemu.prg32`; download them from the links in the IDE's **Build** tab.
 
 ```bash
 python3 -m prg32 qemu upload space-invaders-qemu.prg32

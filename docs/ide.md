@@ -1,31 +1,49 @@
 # The IDE
 
-Open a project and press **Open in IDE** (or **IDE** on the Projects page).
-The IDE shows everything about one project at once. The classic editor is
-still there (**Classic editor**, top right) and works the same as before.
-
-## What you see
+The IDE is where you make a game. Open a project on the Projects page (**Open**), or make
+one with **New Project**: choose **Blocks**, **C** or **Assembly (RISC-V)**. It is laid out
+like a JetBrains IDE (ADR-0024):
 
 | Part | What it does |
 | --- | --- |
-| Toolbar | Project type (Blocks, Advanced C, Assembly), **Save**, **Generate**, **Compile**, **Commands**. |
-| Files (left) | Your source: the Blocks program, `game.c` or `game.S`. For Blocks also the **generated** `game.c`, `game.S` and `game.ir.json` (read-only), and your sprites. |
-| Editor (middle) | One tab per open file. Blocks open in Blockly; C and assembly in a code editor with colours, suggestions and help (see below). Generated files have a **Copy** button. |
-| Panels (bottom) | **Problems** (click or press Enter on one to jump to its line), **Output** (the compiler's log), **Blocks preview**, **Run & debug** (after Compile: run the real cartridge in the Player, and debug it by block, by line or by instruction: lesson 7). |
+| Toolbar | The project's name and type, **Project** menu, **Save**, **Run**, **Generate**, **Compile**, **Commands**, and buttons to show or hide the side panes. |
+| Files (left) | Your source: the Blocks program, `game.c` or `game.S`. For Blocks also the **generated** `game.c`, `game.S` and `game.ir.json` (read-only, with **Copy** and **Download**). **Sprites** and **Sound** open Sprite Lab and AudioStudio. |
+| Editor (centre) | One tab per open file or tool. Blocks open in Blockly; C and assembly in a code editor with colours, suggestions and help (see below); Sprite Lab and AudioStudio as tabs of this project. |
+| Tool window (below the editor) | **Problems** (Enter on one jumps to its line), **Build** (the build log and the cartridge downloads), **Console** (what the kit did, read-only), **Debug** (stop at a block, a line or an instruction: lesson 7), **Git** (the project on GitHub: `github.md`). |
+| Simulator (right) | **Run** builds your game and plays it here, in the PRG32 core compiled to WebAssembly: Blocks, C and assembly alike, also without an account. Play/Pause, Frame, Restart, speed, sound and on-screen buttons. |
 | Status bar | Project type, saved or not, cursor line/column, build result. |
+
+Drag the lines between the panes to resize them, or move them with the arrow keys; the IDE
+remembers the layout in this browser.
+
+## The project type
+
+A project is **Blocks**, **C** or **Assembly**, chosen when you make it, and it stays that way.
+A Blocks project can become C or assembly **once**: **Project, Convert to C…** (or **to
+Assembly…**). The blocks become code, explained line by line, and from then on you change the
+code. It cannot be undone; the Blocks version stays in **History**, where you can download it.
+
+## The Project menu
+
+**Properties…** (title, author, summary, tags; for C and assembly the PRG32 features the
+cartridge needs), **History…** (go back to an earlier version, or download it), **Export
+project** (.zip or JSON), **Make a copy**, and for Blocks **Convert to C…** and **Convert to
+Assembly…**. A shared classroom project opens read-only, with **Make my copy**.
 
 ## Keyboard
 
 | Keys | Action |
 | --- | --- |
-| F6 / Shift+F6 | Next / previous area: toolbar, files, editor, panels |
+| F6 / Shift+F6 | Next / previous area: toolbar, files, editor, tool window, simulator |
 | Arrow keys, Home, End, Enter | Move in the file list and open a file |
 | Left / Right | Next / previous tab (in the tab bar) |
 | Delete | Close the tab (in the tab bar) |
 | Ctrl+Shift+P or F1 | Command palette: type, arrows, Enter |
 | Ctrl+S | Save |
+| Shift+F10 | Run in the simulator |
 | Ctrl+Shift+G | Generate (for C and assembly: check the source) |
-| Ctrl+Shift+B | Compile the cartridge |
+| Ctrl+Shift+B | Compile the cartridges to download (needs an account) |
+| Alt+1 / Alt+4 / Alt+9 | Show / hide the files, the tool window, the simulator |
 | Alt+0 | Show / hide the files on a small screen |
 
 ## Help while you type (C and assembly)

@@ -109,7 +109,7 @@ does not change the game, and the breakpoints stay.
 - Good first exercises: count how many instructions one frame needs (watch
   the instruction counter between two stops at the same breakpoint); find
   the instruction that changes the x position of a sprite; compare a Blocks
-  game with its generated assembly (**Generate Assembly** in the editor).
+  game with its generated assembly (**Generate** in the editor).
 - Source and block debugging needs a cartridge compiled by the kit: the kit
   compiles with debug information on the side (the cartridge itself is
   exactly the same, `../adr/0015-source-and-block-debugger.md`). A `.prg32`

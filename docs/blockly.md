@@ -13,7 +13,7 @@ Projects save the Blockly workspace serialization in JSON:
 }
 ```
 
-This is stored in `projects.blocks_json`. **Generate C** (or **Generate Assembly**, see `generated_code.md`) turns it into a
+This is stored in `projects.blocks_json`. **Generate** (or **Generate**, see `generated_code.md`) turns it into a
 checked game IR (`prg32-construction-kit-game-1.1`) and then into C; the
 browser simulator reads the same JSON into the same IR.
 
@@ -179,7 +179,7 @@ An expression may use:
 | `peers()`, `peer_x(i)`, `peer_y(i)`, `peer_look(i)` | other multiplayer players |
 
 Anything else is replaced by the block's default value, and the replacement is
-listed under **Warnings** after **Generate C**. That includes unknown
+listed under **Warnings** after **Generate**. That includes unknown
 functions (`rand()`), decimals (`1.5`), quotes, semicolons, braces,
 assignments, comments and `#` lines, so a text field can never add hidden C
 code.

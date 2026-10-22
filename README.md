@@ -5,27 +5,32 @@ assembly, compile a real `.prg32` cartridge, and run and debug it in the browser
 follow their classes' work. Flask, SQLite, Bootstrap, jQuery, Blockly and Monaco, installable
 as a PWA, with every library served by the kit itself. MIT License.
 
-![The IDE with the Pong project: project tree, Blocks program, generated C and assembly](docs/figures/PRG32-Construction-Kit_01.png)
+![The IDE with the Pong project: project files, the Blocks program, the tool window and the simulator](docs/figures/PRG32-Construction-Kit_01.png)
 
 ## What it does
 
-- **Three ways to write a game, one IDE** ([ide.md](docs/ide.md)):
+- **Three ways to write a game, one IDE** laid out like JetBrains: files, editor, tool window,
+  simulator ([ide.md](docs/ide.md)). The type is chosen in **New Project**; Blocks can be
+  converted to C or assembly once:
   - Blocks, with the generated C and RV32IM assembly explained line by line
     ([generated_code.md](docs/generated_code.md));
-  - Advanced C against the portable PRG32 ABI;
+  - C against the portable PRG32 ABI;
   - handwritten assembly ([handwritten_assembly.md](docs/handwritten_assembly.md)).
 - **Real compiler, real cartridges.** Validators check the source first. Then the PRG32
   toolchain compiles it in a sandbox, one folder per build, and its messages appear at their
   lines ([build_sandbox.md](docs/build_sandbox.md),
   [install_cartridge_build.md](docs/install_cartridge_build.md)).
-- **Run and debug in the browser.** The PRG32-QT core runs as WebAssembly, with breakpoints,
-  stepping and source and block debugging. Its limits are listed in
+- **Run and debug in the browser.** **Run** builds any game (also without an account, keeping
+  nothing) and plays it on the right in the PRG32-QT core compiled to WebAssembly, with
+  breakpoints, stepping and source and block debugging. Its limits are listed in
   [wasm_runtime.md](docs/wasm_runtime.md).
-- **Sprite Lab and AudioStudio**:
+- **Sprite Lab and AudioStudio**, as tabs of the open project:
   - pixel sprites and tiles ([sprite_editor.md](docs/sprite_editor.md));
   - eight voices with their own ADSR envelopes, samples, a soundtrack grid and stereo, played
     by the PRG32 firmware's own audio engine ([audio_studio.md](docs/audio_studio.md),
     [audio_engine.md](docs/audio_engine.md)).
+- **GitHub**: commit, push and pull a project from the IDE's Git tab, for signed-in users
+  ([github.md](docs/github.md)).
 - **Accounts and boundaries**:
   - guests keep their games in the browser only ([storage.md](docs/storage.md));
   - registered and school sign-in accounts, classes with read-only supervision
@@ -51,6 +56,7 @@ as a PWA, with every library served by the kit itself. MIT License.
 | PRG32-iOS | **unsupported** | [ADR-0020](docs/adr/0020-delivery-targets-and-evidence.md) |
 | School sign-in | verified against a throwaway Keycloak; no real school tenant | [identity_live_testing.md](docs/identity_live_testing.md) |
 | Google Drive, OneDrive | **not run against real accounts** | [cloud_storage.md](docs/cloud_storage.md) |
+| GitHub | **not run against real GitHub**: an in-process fake only | [github.md](docs/github.md) |
 | Cartridge Store | verified against a throwaway Store | [live_testing.md](docs/live_testing.md) |
 
 Every capability's status, source and tests: [capabilities.md](docs/capabilities.md).
@@ -79,7 +85,7 @@ docker compose up --build
 docker compose exec prg32-construction-kit python tools/check_build.py
 ```
 
-The image includes the RISC-V compiler and the PRG32 build tools, so **Compile Cartridge**
+The image includes the RISC-V compiler and the PRG32 build tools, so **Compile**
 makes real `.prg32` cartridges. The compose file mounts `./data` to `/data`.
 
 ## Cartridge builds without Docker
@@ -92,7 +98,7 @@ into the kit's environment, and put ESP-IDF 5.4's `riscv32-esp-elf-gcc` on `PATH
 examples/deploy/start-kit.sh   # finds the compiler, checks builds, starts the kit
 ```
 
-Without the toolchain, **Compile Cartridge** makes a source bundle (generated C, project,
+Without the toolchain, **Compile** makes a source bundle (generated C, project,
 game IR, manifest). Step by step for Docker, macOS, Linux and Windows:
 [install_cartridge_build.md](docs/install_cartridge_build.md).
 

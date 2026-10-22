@@ -1,8 +1,11 @@
 # AudioStudio
 
 AudioStudio is where a project gets its sound, the way Sprite Lab is where it gets its
-pictures. Open it from the **AudioStudio** menu (choose a game; the last one you opened is
-offered first), from a project (**AudioStudio** button) or from the dashboard (**Sound**). What you hear there is the PRG32 console's own sound engine
+pictures. It opens as a tab of the IDE, for the project that is open: **Sound** in the
+project files (voices, sound effects, soundtracks, samples), the **AudioStudio** menu item
+(choose a game; the last one you opened is offered first), or **Sound** on a project card.
+It has the same layout as Sprite Lab: the toolbar on top, the list on the left (with its
+section), the editor in the centre, and on the right the numbers the code uses. What you hear there is the PRG32 console's own sound engine
 (`audio_engine.md`).
 
 ## For students
