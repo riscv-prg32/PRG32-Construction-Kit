@@ -87,9 +87,15 @@
         { id: 'gen-asm', label: 'game.S', icon: 'bi-file-earmark-lock', readonly: true },
         { id: 'gen-ir', label: 'game.ir.json', icon: 'bi-file-earmark-lock', readonly: true }] });
     }
-    items.push({ id: 'folder-sprites', label: 'Sprites', children: sprites.length
-      ? sprites.map(sprite => ({ id: 'sprite-' + sprite.id, label: sprite.name, icon: 'bi-image', readonly: true }))
-      : [{ id: 'sprite-none', label: '(no sprites)', icon: 'bi-dash', readonly: true }] });
+    // Sprites and sound open Sprite Lab and AudioStudio as tabs, for this project (ADR-0024).
+    items.push({ id: 'folder-sprites', label: 'Sprites', children: sprites
+      .map(sprite => ({ id: 'sprite-' + sprite.id, label: sprite.name, icon: 'bi-image' }))
+      .concat([{ id: 'sprite-new', label: 'New sprite…', icon: 'bi-plus-circle' }]) });
+    items.push({ id: 'folder-sound', label: 'Sound', children: [
+      { id: 'sound-voices', label: 'Voices', icon: 'bi-soundwave' },
+      { id: 'sound-effects', label: 'Sound effects', icon: 'bi-music-note' },
+      { id: 'sound-tracks', label: 'Soundtracks', icon: 'bi-music-note-list' },
+      { id: 'sound-samples', label: 'Samples', icon: 'bi-mic' }] });
     IdeShell.renderTree(items, openFile);
   }
 
@@ -97,7 +103,9 @@
     if (id === 'blocks') return openBlocks(true);
     if (id === 'src') return openSource(true);
     if (id === 'gen-c' || id === 'gen-asm' || id === 'gen-ir') return openGenerated(id.slice(4), true);
-    if (id.startsWith('sprite-') && id !== 'sprite-none') return openSprite(id.slice(7));
+    if (id === 'sprite-new') { openTool('sprites'); return PRG32SpriteLab.create(); }
+    if (id.startsWith('sprite-')) { openTool('sprites'); return PRG32SpriteLab.open(id.slice(7)); }
+    if (id.startsWith('sound-')) return openTool('sound', id.slice(6));
   }
 
   // --- editors ---------------------------------------------------------------------------------
@@ -219,17 +227,34 @@
     if (focus) $('#blocklyDiv').data('focus')();
   }
 
-  function openSprite(spriteId) {
-    Kit.api('/api/sprites/' + encodeURIComponent(spriteId)).then(sprite => IdeShell.openTab({
-      id: 'sprite-' + spriteId, title: sprite.name, closable: true,
-      render(panel) {
-        $(panel).append(`<div class="p-3"><p class="small text-muted">Sprites are drawn in the
-          <a href="/sprites">Sprite Lab</a>.</p>${sprite.data_url
-          ? `<img class="ide-sprite" alt="Sprite ${Kit.escape(sprite.name)}" src="${Kit.escape(sprite.data_url)}">` : ''}
-          <p class="small">${sprite.width} &times; ${sprite.height} pixels</p></div>`);
-      },
-    }));
+  // Sprite Lab and AudioStudio are on the page once, hidden (#ideToolHolder); a tab borrows the
+  // tool while it is open and gives it back when closed (moving keeps every event handler).
+  const TOOLS = { sprites: { element: 'spriteLab', title: 'Sprite Lab' }, sound: { element: 'audioStudio', title: 'AudioStudio' } };
+  function openTool(name, section) {
+    const tool = TOOLS[name];
+    if (IdeShell.tabs.has('tool-' + name)) IdeShell.activateTab('tool-' + name);
+    else {
+      IdeShell.openTab({
+        id: 'tool-' + name, title: tool.title, closable: true,
+        render(panel) { $(panel).addClass('ide-tool-panel').append($('#' + tool.element)); },
+        onClose() { $('#ideToolHolder').append($('#' + tool.element)); },
+      });
+    }
+    if (section && window.PRG32KitTool) PRG32KitTool.show('#' + tool.element, section);
   }
+
+  function openToolFromHash() {
+    const wanted = window.location.hash.slice(1);
+    if (wanted === 'sprites' || wanted === 'sound') openTool(wanted);
+  }
+  window.addEventListener('hashchange', () => { if (project) openToolFromHash(); });
+
+  // A tool changed the project: the tree and the blocks follow.
+  $(document).on('prg32:sprites-changed', () => {
+    Kit.api('/api/sprites?project_id=' + encodeURIComponent(projectId))
+      .then(data => { spriteList = data.sprites || []; renderTree(spriteList); }).catch(() => {});
+  });
+  $(document).on('prg32:audio-saved', () => { loadAudio(); });
 
   // --- preview (Blocks) -------------------------------------------------------------------------
   function refreshPreview() {
@@ -535,6 +560,8 @@
     command('toggle-panel', 'Show or hide the tool window', 'Alt+4', () => IdeShell.showPane('panel'));
     command('toggle-simulator', 'Show or hide the simulator', 'Alt+9', () => IdeShell.showPane('sim'));
     command('properties', 'Project properties', '', () => showProperties());
+    command('sprite-lab', 'Open Sprite Lab', '', () => openTool('sprites'));
+    command('audio-studio', 'Open AudioStudio', '', () => openTool('sound'));
     command('history', 'History: earlier versions', '', () => showHistory());
     command('export-archive', 'Export project (.zip)', '', () => exportSaved('/archive'));
     command('export-json', 'Export project as JSON', '', () => exportSaved('/export'));
@@ -715,6 +742,9 @@
       applyMode(saved.source_mode === 'c' ? 'c' : saved.source_mode === 'asm' ? 'asm' : 'blocks', spriteList);
       setDirty(false);
       showShared();
+      $('#projectTitle').text(project.title);
+      // /ide/<id>#sprites or #sound (the Sprite Lab and AudioStudio menu items) open that tool.
+      openToolFromHash();
       $('#ide').attr('data-ready', 'true');
     })
     .catch(err => Kit.toast('The IDE could not start: ' + err.message, 'danger'));

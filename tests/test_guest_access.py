@@ -7,7 +7,7 @@ from sqlalchemy import func, select
 
 from prg32_construction_kit.sample_data import default_blocks
 
-GUEST_PAGES = ("/", "/sprites", "/player", "/audio-studio", "/ide/guest-abc", "/audio-studio/guest-abc")
+GUEST_PAGES = ("/", "/sprites", "/player", "/audio-studio", "/ide/guest-abc")
 CLOSED = [("GET", "/api/projects"), ("POST", "/api/projects"), ("GET", "/api/sprites"), ("GET", "/api/artifacts"),
           ("POST", "/api/projects/x/package"), ("POST", "/api/projects/x/check"), ("POST", "/api/publish"),
           ("GET", "/api/classes"), ("GET", "/api/cloud"), ("GET", "/artifacts"), ("GET", "/publish"),
@@ -42,6 +42,8 @@ def test_the_classic_editor_address_opens_the_ide(client, anon):
     for browser in (client, anon):
         answer = browser.get("/projects/guest-abc")
         assert answer.status_code == 302 and answer.headers["Location"].endswith("/ide/guest-abc")
+        answer = browser.get("/audio-studio/guest-abc")
+        assert answer.status_code == 302 and answer.headers["Location"].endswith("/ide/guest-abc#sound")
 
 
 def test_signed_in_pages_do_not_use_the_guest_workspace(client):

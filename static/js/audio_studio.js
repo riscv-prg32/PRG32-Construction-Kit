@@ -28,7 +28,7 @@
   function status(text) { $('#audioStatus').text(text); }
 
   // Without an account the page does not know the game's title: it is in this browser (ADR-0023).
-  if (Kit.guest) Kit.api('/api/projects/' + projectId).then(project => $('#projectTitle').text(project.title)).catch(() => {});
+  Kit.api('/api/projects/' + projectId).then(project => $('#projectTitle').text(project.title)).catch(() => {});
 
   // ---- notes ---------------------------------------------------------------------------
   // MIDI note 60 is middle C, written C4.
@@ -93,6 +93,8 @@
         version = answer.version;
         showMissing(answer.missing_samples);
         status('Saved (version ' + version + ').');
+        // The IDE refreshes the sound names on its blocks and the game's sound.
+        $(document).trigger('prg32:audio-saved', [answer]);
       })
       .catch(err => {
         if (err.code === 'audio_version_conflict') {

@@ -213,7 +213,8 @@ def test_only_the_owner_changes_a_projects_sound(app, client):
     assert bob.put(url, json={"document": song_document(), "expected_version": 1}).status_code == 404
     assert bob.post(f"{url}/preview", json={}).status_code == 404
     assert bob.get(f"{url}/export").status_code == 404
-    assert bob.get(f"/audio-studio/{project['id']}").status_code == 404
+    assert bob.get(f"/audio-studio/{project['id']}").status_code == 302          # AudioStudio is an IDE tab now
+    assert 'id="canEdit" value="no"' in bob.get(f"/ide/{project['id']}").get_data(as_text=True)
     upload = bob.post(f"{url}/samples", data={"file": (io.BytesIO(wav([0] * 100)), "a.wav")})
     assert upload.status_code == 404
     # The administrator may read (and change) any project.
@@ -329,13 +330,13 @@ def test_sound_counts_against_the_storage_quota(app, client):
     assert ada.post(f"{url}/samples", data={"file": (io.BytesIO(wav([0] * 1000)), "small.wav")}).status_code == 201
 
 
-def test_the_audio_studio_page_opens(client):
+def test_the_audio_studio_opens_as_a_tab_of_the_ide(client):
     project = new_project(client)
-    page = client.get(f"/audio-studio/{project['id']}")
-    assert page.status_code == 200
-    html = page.get_data(as_text=True)
-    assert "audio_studio.js" in html and "<script>" not in html.replace("<script src", "")
-    assert client.get("/audio-studio/missing").status_code == 404
+    old = client.get(f"/audio-studio/{project['id']}")
+    assert old.status_code == 302 and old.headers["Location"].endswith(f"/ide/{project['id']}#sound")
+    html = client.get(f"/ide/{project['id']}").get_data(as_text=True)
+    assert "audio_studio.js" in html and 'id="audioStudio"' in html and 'id="canEdit" value="yes"' in html
+    assert "<script>" not in html.replace("<script src", "")
 
 
 # --- generated code and packaging -------------------------------------------------------------

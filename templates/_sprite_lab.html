@@ -1,0 +1,44 @@
+{#
+  Sprite Lab (docs/sprite_editor.md), as an IDE tab for the open project (ADR-0024). The same
+  layout as AudioStudio (_audio_studio.html): the toolbar on top; the list on the left, the
+  canvas in the centre, the properties and the generated C on the right.
+  sprite_editor.js finds these ids; there is one Sprite Lab per page.
+#}
+<section class="kit-tool" id="spriteLab" aria-labelledby="spriteLabTitle">
+  <div class="kit-tool-bar" role="toolbar" aria-label="Sprite Lab">
+    <h2 class="h6 mb-0" id="spriteLabTitle"><i class="bi bi-brush" aria-hidden="true"></i> Sprite Lab</h2>
+    <button class="btn btn-outline-primary btn-sm" type="button" id="newSprite"><i class="bi bi-plus-circle" aria-hidden="true"></i> New</button>
+    <button class="btn btn-success btn-sm" type="button" id="saveSprite"><i class="bi bi-save" aria-hidden="true"></i> Save</button>
+    <label class="btn btn-outline-primary btn-sm mb-0"><i class="bi bi-upload" aria-hidden="true"></i> Import
+      <input class="d-none" type="file" id="imageImport" accept="image/*"></label>
+    <button class="btn btn-outline-primary btn-sm" type="button" id="downloadPng"><i class="bi bi-download" aria-hidden="true"></i> Export PNG</button>
+    <button class="btn btn-outline-danger btn-sm" type="button" id="deleteSprite"><i class="bi bi-trash" aria-hidden="true"></i> Delete</button>
+    <button class="btn btn-primary btn-sm ms-auto" type="button" id="convertSprite"><i class="bi bi-braces" aria-hidden="true"></i> Convert to C</button>
+  </div>
+  <div class="kit-tool-body">
+    <nav class="kit-tool-list" aria-label="Sprites">
+      <div class="kit-tool-heading">Sprites</div>
+      <div class="list-group list-group-flush" id="spriteList"></div>
+    </nav>
+    <div class="kit-tool-main">
+      <canvas id="spriteCanvas" width="512" height="512" class="sprite-canvas" aria-label="Sprite canvas: draw with the mouse, a pen or a finger"></canvas>
+    </div>
+    <aside class="kit-tool-side" tabindex="0" aria-label="Sprite properties">
+      <div class="kit-tool-heading">Properties</div>
+      <input type="hidden" id="spriteId">
+      <div class="mb-2"><label class="form-label small mb-1" for="spriteName">Name</label><input class="form-control form-control-sm" id="spriteName" value="sprite"></div>
+      <div class="row g-2 mb-2">
+        <div class="col"><label class="form-label small mb-1" for="spriteWidth">Width</label><input class="form-control form-control-sm" id="spriteWidth" type="number" min="4" max="64" value="16"></div>
+        <div class="col"><label class="form-label small mb-1" for="spriteHeight">Height</label><input class="form-control form-control-sm" id="spriteHeight" type="number" min="4" max="64" value="16"></div>
+      </div>
+      <label class="form-label small mb-1" for="paintColor">Paint colour</label>
+      <input class="form-control form-control-color mb-2" type="color" id="paintColor" value="#ffd800">
+      <div class="d-flex flex-wrap gap-2 mb-3">
+        <button class="btn btn-outline-secondary btn-sm" type="button" id="resizeSprite">Resize/Clear</button>
+        <button class="btn btn-outline-danger btn-sm" type="button" id="eraser" aria-pressed="false">Eraser</button>
+      </div>
+      <div class="kit-tool-heading">Generated C</div>
+      <pre class="code-panel small mb-0" tabindex="0"><code id="spriteC">Press Convert to C.</code></pre>
+    </aside>
+  </div>
+</section>

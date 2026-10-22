@@ -34,6 +34,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from flask import current_app, has_request_context, request
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -198,16 +199,23 @@ def hit(name: str, *parts: Any) -> None:
     """Count one attempt; a new window starts when the old one has ended."""
     rule = limit(name)
     key = _key(name, *parts)
-    now = _now()
-    row = db.session.get(ThrottleCounter, key)
-    if row is None:
-        db.session.add(ThrottleCounter(key=key, window_start=now, attempts=1))
-    elif now - row.window_start >= rule.window:
-        row.window_start = now
-        row.attempts = 1
-    else:
-        row.attempts += 1
-    db.session.commit()
+    for _attempt in range(2):
+        now = _now()
+        row = db.session.get(ThrottleCounter, key)
+        if row is None:
+            db.session.add(ThrottleCounter(key=key, window_start=now, attempts=1))
+        elif now - row.window_start >= rule.window:
+            row.window_start = now
+            row.attempts = 1
+        else:
+            row.attempts += 1
+        try:
+            db.session.commit()
+            return
+        except IntegrityError:
+            # Two requests from one address at once both found no counter and both added one:
+            # the other one won, so count this attempt on its row.
+            db.session.rollback()
 
 
 def check_and_hit(name: str, *parts: Any) -> None:

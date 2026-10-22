@@ -78,9 +78,9 @@ def test_audio_studio_edits_previews_saves_and_reloads(browser, live_kit):  # no
         wait_until(page, "!PRG32AudioStudio.engine.voices().some(v => v.active)", timeout=5)
 
         # A sound effect and a soundtrack, typed with the keyboard in the grid.
-        page.click("[data-bs-target='#effectsPanel']")
+        page.click("#audioStudio .kit-sections [data-section=effects]")
         page.click("#addEffect")
-        page.click("[data-bs-target='#tracksPanel']")
+        page.click("#audioStudio .kit-sections [data-section=tracks]")
         page.click("#addTrack")
         page.click(".track-step[data-voice='0'][data-step='0']")
         page.keyboard.type("C4")
@@ -124,7 +124,7 @@ def test_audio_studio_edits_previews_saves_and_reloads(browser, live_kit):  # no
         page.evaluate("""fetch('/api/projects/' + $('#projectId').val() + '/audio').then(r => r.json()).then(a =>
             fetch('/api/projects/' + $('#projectId').val() + '/audio', {method: 'PUT', headers: {'Content-Type':
             'application/json', 'X-PRG32-Kit': '1'}, body: JSON.stringify({document: a.document, expected_version: a.version})}))""")
-        page.click("[data-bs-target='#tracksPanel']")
+        page.click("#audioStudio .kit-sections [data-section=tracks]")
         page.fill("#trackEditor input[type=number] >> nth=0", "100")
         page.keyboard.press("Tab")
         page.click("#saveAudio")
@@ -132,8 +132,8 @@ def test_audio_studio_edits_previews_saves_and_reloads(browser, live_kit):  # no
         page.click("#versionConflict [data-choice='reload']")
 
         page.evaluate(AXE.read_text())
-        for panel in ("#voicesPanel", "#effectsPanel", "#tracksPanel", "#samplesPanel"):
-            page.click(f"[data-bs-target='{panel}']")
+        for panel in ("voices", "effects", "tracks", "samples"):
+            page.click(f"#audioStudio .kit-sections [data-section={panel}]")
             settled(page)
             results = page.evaluate("""axe.run(document, {runOnly: {type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21aa']}})
                 .then(r => r.violations.filter(v => v.impact === 'serious' || v.impact === 'critical')
@@ -159,11 +159,11 @@ def test_audio_studio_works_with_the_keyboard_only(browser, live_kit):  # noqa: 
     page.goto(f"{live_kit}/audio-studio/{project['id']}")
     wait_until(page, "!!window.PRG32AudioStudio && !!PRG32AudioStudio.document()", timeout=30)
     with evidence_on_failure(page, "audio-studio-keyboard"):
-        # Tabs: focus the Voices tab, arrow to Sound effects (Bootstrap's tab keyboard support).
-        page.focus("[data-bs-target='#voicesPanel']")
+        # Sections: focus Voices, arrow to Sound effects (a tab list, kit_tool.js).
+        page.focus("#audioStudio .kit-sections [data-section=voices]")
         page.keyboard.press("ArrowRight")
         page.keyboard.press("Enter")
-        wait_until(page, "document.getElementById('effectsPanel').classList.contains('active')")
+        wait_until(page, "document.getElementById('audioStudio').dataset.section === 'effects'")
         page.focus("#addEffect")
         page.keyboard.press("Enter")
         wait_until(page, "PRG32AudioStudio.document().effects.length === 1")

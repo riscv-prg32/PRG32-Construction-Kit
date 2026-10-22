@@ -161,21 +161,16 @@ def _answer(project: dict[str, Any], document: dict[str, Any], row: Asset | None
 
 @bp.get("/audio-studio")
 def pick_project():
-    """The AudioStudio menu item: choose which project's sound to open (sound belongs to a project)."""
-    return render_template("audio_studio_pick.html")
+    """The AudioStudio menu item: choose a project, then AudioStudio opens in its IDE (ADR-0024)."""
+    return render_template("audio_studio_pick.html", tool="sound")
 
 
 @bp.get("/audio-studio/<project_id>")
 def page(project_id: str):
-    from .auth import current_principal
+    """AudioStudio is a tab of the IDE now: old links open it there."""
+    from flask import redirect
 
-    if not current_principal().authenticated:
-        # The guest workspace (ADR-0023): the project is in the browser; the page loads it there.
-        return render_template("audio_studio.html", project={"id": project_id, "title": ""}, can_edit=True)
-    project = _project(project_id, write=False)
-    from .routes import can_write
-
-    return render_template("audio_studio.html", project=project, can_edit=can_write(project))
+    return redirect(f"/ide/{project_id}#sound", 302)
 
 
 @bp.get("/api/projects/<project_id>/audio")

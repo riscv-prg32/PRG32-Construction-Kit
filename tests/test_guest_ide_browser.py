@@ -69,7 +69,7 @@ def test_a_guest_makes_a_game_and_it_stays_in_this_browser(browser, live_kit):  
     wait_until(page, "document.getElementById('projectCount').textContent === '1'")
     page.goto(f"{live_kit}/audio-studio/{project['id']}")
     wait_until(page, "document.getElementById('projectTitle').textContent === 'Space chase'")
-    page.goto(live_kit + "/sprites")
+    page.goto(f"{live_kit}/ide/{project['id']}#sprites")         # Sprite Lab, a tab of the game's IDE
     wait_until(page, "document.querySelectorAll('.sprite-choice').length === 1")
     page.goto(live_kit + "/audio-studio")
     wait_until(page, "document.querySelectorAll('#audioProjects a').length === 1")

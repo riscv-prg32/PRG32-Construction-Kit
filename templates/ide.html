@@ -149,6 +149,12 @@
       <kbd>Z</kbd> is A, <kbd>X</kbd> is B, <kbd>Enter</kbd> is Start.</p>
   </aside>
 
+  {# Sprite Lab and AudioStudio wait here, hidden, until the IDE opens them in a tab (ide.js moves them). #}
+  <div id="ideToolHolder" hidden>
+    {% include "_sprite_lab.html" %}
+    {% include "_audio_studio.html" %}
+  </div>
+
   <footer class="ide-status" role="status" aria-live="polite" data-region="status">
     <span id="statusMode">Blocks</span>
     <span id="statusSaved">Saved</span>
@@ -247,6 +253,9 @@
 <script src="{{ url_for('static', filename='js/prg32_debugger.js') }}"></script>
 <script src="{{ url_for('static', filename='js/source_debug.js') }}"></script>
 <script src="{{ url_for('static', filename='js/source_debugger.js') }}"></script>
+<script src="{{ url_for('static', filename='js/kit_tool.js') }}"></script>
+<script src="{{ url_for('static', filename='js/sprite_editor.js') }}"></script>
+<script src="{{ url_for('static', filename='js/audio_studio.js') }}"></script>
 <script src="{{ url_for('static', filename='vendor/monaco-editor/0.52.2/min/vs/loader.js') }}"></script>
 <script src="{{ url_for('static', filename='js/ide/prg32_language_index.js') }}"></script>
 <script src="{{ url_for('static', filename='js/ide/language.js') }}"></script>

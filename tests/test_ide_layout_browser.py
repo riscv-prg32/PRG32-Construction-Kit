@@ -232,3 +232,47 @@ def test_a_student_copies_a_shared_project_to_change_it(browser, live_kit):  # n
     wait_until(page, "document.getElementById('ide').dataset.ready === 'true'", timeout=30)
     assert page.is_hidden("#ideShared") and page.is_enabled("#ideSave")
     context.close()
+
+
+def tools_follow_the_open_project(page, live_kit):  # noqa: F811
+    project = new_project(page, "blocks")
+    page.goto(f"{live_kit}/ide/{project}#sprites")
+    wait_until(page, "document.getElementById('ide').dataset.ready === 'true' && "
+                     "!!document.querySelector('#ideTabPanels #spriteLab')", timeout=30)
+    box = page.query_selector("#spriteCanvas").bounding_box()
+    page.mouse.click(box["x"] + 20, box["y"] + 20)
+    page.fill("#spriteName", "hero")
+    page.click("#saveSprite")
+    # The sprite is the project's, and the project tree shows it.
+    wait_until(page, f"Kit.api('/api/sprites?project_id={project}').then(d => d.sprites.length === 1)")
+    wait_until(page, "[...document.querySelectorAll('#ideTreeList [role=treeitem]')].some(e => e.textContent.trim() === 'hero')")
+    # AudioStudio, from the tree, in the same layout; a new sound effect is saved to the project.
+    page.click("#ideTreeList [role=treeitem]:has-text('Sound effects') >> nth=-1")
+    wait_until(page, "!!document.querySelector('#ideTabPanels #audioStudio') && "
+                     "document.getElementById('audioStudio').dataset.section === 'effects'")
+    assert page.is_visible("#audioStudio .kit-tool-list") and page.is_visible("#audioStudio .kit-tool-side")
+    page.click("#addEffect")
+    wait_until(page, f"Kit.api('/api/projects/{project}/audio').then(a => a.document.effects.length === 1)", timeout=15)
+    # Closing a tool's tab gives it back; opening it again works.
+    page.evaluate("IdeShell.closeTab('tool-sound')")
+    assert page.query_selector("#ideToolHolder #audioStudio") is not None
+    page.evaluate("location.hash = 'sound'")
+    wait_until(page, "!!document.querySelector('#ideTabPanels #audioStudio')")
+
+
+def test_sprite_lab_and_audio_studio_are_tabs_of_the_open_project(browser, live_kit):  # noqa: F811
+    context = browser.new_context(viewport={"width": 1440, "height": 900})
+    page = context.new_page()
+    sign_in(page, live_kit)
+    tools_follow_the_open_project(page, live_kit)
+    # The menu items choose a project, then open the tool in its IDE.
+    page.goto(live_kit + "/sprites")
+    wait_until(page, "document.querySelectorAll('#audioProjects a').length > 0")
+    assert page.get_attribute("#audioProjects a >> nth=0", "href").endswith("#sprites")
+    context.close()
+    context = browser.new_context(viewport={"width": 1440, "height": 900})
+    page = context.new_page()
+    page.goto(live_kit + "/")
+    wait_until(page, "window.Kit && Kit.guest === true")
+    tools_follow_the_open_project(page, live_kit)
+    context.close()

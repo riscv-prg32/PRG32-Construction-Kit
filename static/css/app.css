@@ -403,6 +403,27 @@ body.dbg-mode-advanced .dbg-beginner { display: none !important; }
 .ide-console li { padding: .05rem 0; border-bottom: 1px solid var(--bs-border-color-translucent); }
 .ide-console time { color: var(--bs-secondary-color); margin-right: .5rem; }
 .ide-console .text-danger, .ide-console .text-success { font-weight: 600; }
+/* Sprite Lab and AudioStudio (_sprite_lab.html, _audio_studio.html): one layout for both tools,
+   as IDE tabs. Toolbar on top; list | main | side below. */
+.kit-tool { display: flex; flex-direction: column; height: 100%; min-height: 0; gap: .25rem; }
+.kit-tool-bar { display: flex; flex-wrap: wrap; align-items: center; gap: .35rem; padding: .4rem .5rem; border-bottom: 1px solid var(--bs-border-color); }
+.kit-tool-body { flex: 1; min-height: 0; display: grid; grid-template-columns: 13rem minmax(0, 1fr) 17rem; }
+.kit-tool-list, .kit-tool-side { overflow: auto; padding: .5rem; background: var(--bs-tertiary-bg); }
+.kit-tool-list { border-right: 1px solid var(--bs-border-color); }
+.kit-tool-side { border-left: 1px solid var(--bs-border-color); }
+.kit-tool-main { overflow: auto; padding: .75rem; display: flex; justify-content: center; align-items: flex-start; }
+.kit-tool-main-form { display: block; }
+.kit-tool-heading { font-size: .75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--bs-secondary-color); margin: .25rem 0 .4rem; }
+.kit-tool .sprite-canvas { max-width: 100%; height: auto; }
+.kit-sections { margin-bottom: .5rem; }
+.kit-sections .nav-link { text-align: left; padding: .3rem .6rem; color: var(--bs-body-color); transition: none; }
+.kit-sections .nav-link.active { color: #fff; }
+.kit-sections .nav-link:not(.active):hover, .kit-sections .nav-link:not(.active):focus { color: var(--bs-body-color); background: var(--bs-secondary-bg); }
+.ide-tool-panel { overflow: hidden; }
+@media (max-width: 1199.98px) {
+  .kit-tool-body { grid-template-columns: 11rem minmax(0, 1fr); }
+  .kit-tool-side { grid-column: 1 / -1; border-left: 0; border-top: 1px solid var(--bs-border-color); }
+}
 .ide-panel #debuggerCard { margin-top: 0 !important; border: 0; box-shadow: none !important; }
 .ide-toolbar { grid-area: toolbar; display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; padding: .5rem .75rem; border-bottom: 1px solid var(--bs-border-color); }
 .ide-tree { grid-area: tree; overflow: auto; border-right: 1px solid var(--bs-border-color); padding: .5rem 0; background: var(--bs-tertiary-bg); }

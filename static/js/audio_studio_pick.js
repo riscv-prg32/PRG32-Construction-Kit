@@ -1,12 +1,14 @@
-// AudioStudio menu item (templates/audio_studio_pick.html): list the student's projects and
-// open the sound of the chosen one. The last project opened in the editor, the IDE or
+// The Sprite Lab and AudioStudio menu items (templates/audio_studio_pick.html): list the student's
+// projects and open the tool in the chosen one's IDE. The last project opened in the editor, the IDE or
 // AudioStudio is offered first (localStorage prg32-kit-last-project, see /privacy#storage).
 $(function () {
   const LAST = 'prg32-kit-last-project';
   let last = null;
   try { last = localStorage.getItem(LAST); } catch (_) { /* private window */ }
 
-  function studioUrl(id) { return '/audio-studio/' + encodeURIComponent(id); }
+  // Sprite Lab or AudioStudio: both open as a tab of the project's IDE.
+  const tab = $('#toolPicker').data('tool') === 'sprites' ? 'sprites' : 'sound';
+  function studioUrl(id) { return '/ide/' + encodeURIComponent(id) + '#' + tab; }
 
   Kit.api('/api/projects').then(data => {
     const projects = data.projects || [];

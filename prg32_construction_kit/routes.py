@@ -253,13 +253,19 @@ def project_editor(project_id: str):
 
 @bp.get("/ide/<project_id>")
 def project_ide(project_id: str):
-    """The IDE: project tree, tabs, Monaco and Blockly, panels, command palette (ADR-0013)."""
-    return render_template("ide.html", project_id=project_id)
+    """The IDE: project tree, tabs, Monaco and Blockly, panels, command palette (ADR-0013, ADR-0024)."""
+    signed_in = current_principal().authenticated
+    project = readable("projects", project_id) if signed_in else None
+    # A guest's project is in their browser (theirs to change); a missing or someone else's
+    # project is reported by the page itself, and its tools open read-only.
+    can_edit = can_write(project) if project is not None else not signed_in
+    return render_template("ide.html", project_id=project_id, can_edit=can_edit)
 
 
 @bp.get("/sprites")
 def sprite_editor():
-    return render_template("sprite_editor.html")
+    """The Sprite Lab menu item: choose a project, then Sprite Lab opens in its IDE (ADR-0024)."""
+    return render_template("audio_studio_pick.html", tool="sprites")
 
 
 @bp.get("/artifacts")
