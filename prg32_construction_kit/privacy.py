@@ -507,6 +507,8 @@ BROWSER_STORAGE = (
      "debugger", "how_long": "until you clear this site's data", "needed": True},
     {"name": "prg32-kit-debugger-view", "kind": "localStorage", "why": "beginner or advanced debugger view",
      "how_long": "until you clear this site's data", "needed": True},
+    {"name": "prg32-kit-ide-layout", "kind": "localStorage", "why": "the sizes of the IDE's panes and which "
+     "ones you hid", "how_long": "until you clear this site's data", "needed": True},
     {"name": "prg32-kit-last-project", "kind": "localStorage", "why": "the project AudioStudio offers to "
      "continue with", "how_long": "until you clear this site's data", "needed": True},
     {"name": "prg32-kit-storage-notice", "kind": "localStorage", "why": "that you have read this storage notice",

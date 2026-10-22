@@ -2,7 +2,10 @@
 // Nothing here knows about PRG32 projects; ide.js fills it in.
 //
 // Keyboard model (WAI-ARIA authoring practices):
-// - F6 / Shift+F6 move focus between regions: toolbar, project tree, editor, panels.
+// - F6 / Shift+F6 move focus between regions: toolbar, project tree, editor, tool window, simulator.
+// - The splitters between the panes move with the mouse, or with the arrow keys when focused;
+//   Alt+1 / Alt+4 / Alt+9 show or hide the files, the tool window and the simulator (as in
+//   JetBrains IDEs). The sizes are remembered in this browser (prg32-kit-ide-layout).
 // - Tree: Up/Down move, Right opens a folder (or moves into it), Left closes (or moves to the
 //   parent), Home/End, Enter or Space opens the file. One item is in the Tab order at a time.
 // - Tab lists: Left/Right move between tabs, Home/End, Delete closes an editor tab.
@@ -13,7 +16,7 @@ window.IdeShell = (function () {
   const shortcuts = [];
 
   // --- regions ---------------------------------------------------------------------
-  const REGIONS = ['toolbar', 'tree', 'editor', 'panel'];
+  const REGIONS = ['toolbar', 'tree', 'editor', 'panel', 'simulator'];
 
   function focusRegion(name) {
     if (name === 'tree') return focusTree();
@@ -25,6 +28,7 @@ window.IdeShell = (function () {
       return (active.length ? active : $('#ideEditorArea')).trigger('focus');
     }
     if (name === 'panel') return $('#idePanelTabs [role=tab][aria-selected=true]').trigger('focus');
+    if (name === 'simulator') return $('#playerScreen').is(':visible') ? $('#playerScreen').trigger('focus') : $('#ideSim').trigger('focus');
     return $('.ide-toolbar').find('button, select, a').filter(':visible').first().trigger('focus');
   }
 
@@ -36,7 +40,11 @@ window.IdeShell = (function () {
   function cycleRegion(step) {
     const index = REGIONS.indexOf(currentRegion());
     let next = REGIONS[(index + step + REGIONS.length) % REGIONS.length];
-    if (next === 'tree' && !$('#ideTree').is(':visible')) next = REGIONS[(REGIONS.indexOf(next) + step + REGIONS.length) % REGIONS.length];
+    const hidden = region => (region === 'tree' && !$('#ideTree').is(':visible'))
+      || (region === 'panel' && !$('#idePanel').is(':visible')) || (region === 'simulator' && !$('#ideSim').is(':visible'));
+    for (let tries = 0; hidden(next) && tries < REGIONS.length; tries += 1) {
+      next = REGIONS[(REGIONS.indexOf(next) + step + REGIONS.length) % REGIONS.length];
+    }
     focusRegion(next);
   }
 
@@ -180,9 +188,10 @@ window.IdeShell = (function () {
 
   function showPanel(name) {
     $('#idePanelTabs [role=tab]').attr({ 'aria-selected': 'false', tabindex: '-1' });
-    $('.ide-panel [role=tabpanel]').attr('hidden', true);
+    $('.ide-panel > [role=tabpanel]').attr('hidden', true);   // not the debugger's own tab panes
     $(`#panelTab-${name}`).attr({ 'aria-selected': 'true', tabindex: '0' });
     $(`#panel-${name}`).removeAttr('hidden');
+    if ($('#ide').attr('data-panel') === 'closed') showPane('panel', true);   // asked for: show the tool window
   }
 
   // --- command palette ---------------------------------------------------------------------
@@ -274,6 +283,83 @@ window.IdeShell = (function () {
   $('#ideTreeToggle').on('click', () => toggleTree());
   addShortcut({ key: '0', alt: true, run: () => toggleTree() });
 
-  return { renderTree, focusTree, openTab, activateTab, closeTab, activeTabId, showPanel, addCommand,
+  // --- panes: splitters and show/hide (JetBrains-style layout) ---------------------------------
+  const LAYOUT_KEY = 'prg32-kit-ide-layout';
+  const SIZES = { tree: ['--ide-tree-w', 120, 480], sim: ['--ide-sim-w', 240, 900], panel: ['--ide-panel-h', 80, 700] };
+  let layout = {};
+  try { layout = JSON.parse(localStorage.getItem(LAYOUT_KEY) || '{}') || {}; } catch (_) { layout = {}; }
+
+  function rememberLayout() {
+    try { localStorage.setItem(LAYOUT_KEY, JSON.stringify(layout)); } catch (_) { /* private window */ }
+  }
+
+  function setSize(pane, pixels) {
+    const [variable, min, max] = SIZES[pane];
+    const size = Math.round(Math.max(min, Math.min(max, pixels)));
+    document.getElementById('ide').style.setProperty(variable, size + 'px');
+    $(`.ide-splitter[data-split=${pane}]`).attr({ 'aria-valuenow': size, 'aria-valuemin': min, 'aria-valuemax': max });
+    layout[pane] = size;
+    $(window).trigger('resize');   // Monaco and Blockly measure themselves again
+  }
+
+  function showPane(pane, show) {
+    const ide = $('#ide');
+    const open = show === undefined ? ide.attr('data-' + pane) === 'closed' : show;
+    ide.attr('data-' + pane, open ? 'open' : 'closed');
+    $(`.ide-pane-toggle[data-pane=${pane}]`).attr('aria-pressed', String(open));
+    layout['hide_' + pane] = !open;
+    rememberLayout();
+    $(window).trigger('resize');
+    return open;
+  }
+
+  function currentSize(pane) {
+    if (pane === 'panel') return $('#idePanel').outerHeight();
+    return pane === 'tree' ? $('#ideTree').outerWidth() : $('#ideSim').outerWidth();
+  }
+
+  $('.ide-splitter').each(function () {
+    const pane = $(this).data('split');
+    $(this).on('pointerdown', event => {
+      event.preventDefault();
+      const splitter = $(this).addClass('is-dragging');
+      const start = { x: event.clientX, y: event.clientY, size: currentSize(pane) };
+      const move = moved => {
+        const delta = pane === 'panel' ? start.y - moved.clientY : pane === 'tree' ? moved.clientX - start.x : start.x - moved.clientX;
+        setSize(pane, start.size + delta);
+      };
+      const stop = () => {
+        splitter.removeClass('is-dragging');
+        window.removeEventListener('pointermove', move);
+        window.removeEventListener('pointerup', stop);
+        rememberLayout();
+      };
+      window.addEventListener('pointermove', move);
+      window.addEventListener('pointerup', stop);
+    }).on('keydown', event => {
+      const grow = { tree: ['ArrowRight', 'ArrowLeft'], sim: ['ArrowLeft', 'ArrowRight'], panel: ['ArrowUp', 'ArrowDown'] }[pane];
+      const step = event.shiftKey ? 80 : 20;
+      if (event.key === grow[0]) setSize(pane, currentSize(pane) + step);
+      else if (event.key === grow[1]) setSize(pane, currentSize(pane) - step);
+      else return;
+      event.preventDefault();
+      rememberLayout();
+    });
+  });
+  $('.ide-pane-toggle').on('click', function () { showPane($(this).data('pane')); });
+  for (const pane of Object.keys(SIZES)) {
+    if (layout[pane]) setSize(pane, layout[pane]);
+    else {   // a focusable splitter says how big its pane is (ARIA "separator")
+      const [, min, max] = SIZES[pane];
+      $(`.ide-splitter[data-split=${pane}]`).attr({ 'aria-valuenow': Math.round(currentSize(pane) || min),
+                                                    'aria-valuemin': min, 'aria-valuemax': max });
+    }
+    if (layout['hide_' + pane]) showPane(pane, false);
+  }
+  addShortcut({ key: '1', alt: true, run: () => showPane('tree') });
+  addShortcut({ key: '4', alt: true, run: () => showPane('panel') });
+  addShortcut({ key: '9', alt: true, run: () => showPane('sim') });
+
+  return { renderTree, focusTree, openTab, activateTab, closeTab, activeTabId, showPanel, showPane, addCommand,
     addShortcut, openPalette, focusRegion, toggleTree, tabs };
 })();

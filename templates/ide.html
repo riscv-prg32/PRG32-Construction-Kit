@@ -3,13 +3,17 @@
 {% block body_class %}ide-page{% endblock %}
 {% block content %}
 {#
-  The IDE (ADR-0013). Regions, from top to bottom: toolbar, project tree + editor tabs,
-  bottom panels, status bar. Keyboard: F6 / Shift+F6 move between regions, Ctrl+Shift+P
-  (or F1) opens the command palette, Ctrl+S saves. Everything is reachable without a mouse.
+  The IDE (ADR-0013, laid out like a JetBrains IDE, ADR-0024): the toolbar on top; the project
+  files on the left; the editor tabs in the centre; the simulator on the right (the PRG32 core in
+  WebAssembly, for Blocks, C and assembly alike); the tool window below the editor (Problems,
+  Build, Console, Debug); the status bar at the bottom. The splitters between them can be
+  dragged or moved with the arrow keys, and each side can be hidden. Keyboard: F6 / Shift+F6
+  move between regions, Ctrl+Shift+P (or F1) opens the command palette, Ctrl+S saves,
+  Shift+F10 runs. Everything is reachable without a mouse.
 #}
 <input type="hidden" id="projectId" value="{{ project_id }}">
 <a class="visually-hidden-focusable" href="#ideEditorArea">Skip to the editor</a>
-<div class="ide" id="ide">
+<div class="ide" id="ide" data-tree="open" data-sim="open" data-panel="open">
   <header class="ide-toolbar" role="toolbar" aria-label="Project actions" data-region="toolbar" tabindex="-1">
     <button class="btn btn-outline-secondary btn-sm d-lg-none" id="ideTreeToggle" type="button"
             aria-controls="ideTree" aria-expanded="false" aria-keyshortcuts="Alt+0">
@@ -23,53 +27,103 @@
     </select>
     <button class="btn btn-outline-secondary btn-sm" id="ideSave" type="button" aria-keyshortcuts="Control+S">
       <i class="bi bi-save" aria-hidden="true"></i> Save</button>
+    <button class="btn btn-success btn-sm" id="ideRun" type="button" aria-keyshortcuts="Shift+F10"
+            title="Build the game and run it in the simulator (Shift+F10)">
+      <i class="bi bi-play-fill" aria-hidden="true"></i> Run</button>
     <button class="btn btn-primary btn-sm" id="ideGenerate" type="button" aria-keyshortcuts="Control+Shift+G">
       <i class="bi bi-code-slash" aria-hidden="true"></i> Generate</button>
-    <button class="btn btn-dark btn-sm" id="ideCompile" type="button" aria-keyshortcuts="Control+Shift+B">
+    <button class="btn btn-dark btn-sm" id="ideCompile" type="button" aria-keyshortcuts="Control+Shift+B"
+            title="Make the cartridges to download or publish (needs an account)">
       <i class="bi bi-cpu" aria-hidden="true"></i> Compile</button>
     <button class="btn btn-outline-primary btn-sm" id="idePalette" type="button" aria-keyshortcuts="Control+Shift+P F1"
             aria-haspopup="dialog">
       <i class="bi bi-command" aria-hidden="true"></i> Commands</button>
-    <a class="btn btn-link btn-sm ms-auto" href="/projects/{{ project_id }}">Classic editor</a>
+    <div class="btn-group btn-group-sm ms-auto d-none d-lg-inline-flex" role="group" aria-label="Show or hide panes">
+      <button class="btn btn-outline-secondary ide-pane-toggle" type="button" data-pane="tree" aria-pressed="true"
+              title="Project files (Alt+1)"><i class="bi bi-layout-sidebar" aria-hidden="true"></i><span class="visually-hidden">Project files</span></button>
+      <button class="btn btn-outline-secondary ide-pane-toggle" type="button" data-pane="panel" aria-pressed="true"
+              title="Tool window (Alt+4)"><i class="bi bi-layout-split" aria-hidden="true"></i><span class="visually-hidden">Tool window</span></button>
+      <button class="btn btn-outline-secondary ide-pane-toggle" type="button" data-pane="sim" aria-pressed="true"
+              title="Simulator (Alt+9)"><i class="bi bi-layout-sidebar-reverse" aria-hidden="true"></i><span class="visually-hidden">Simulator</span></button>
+    </div>
+    <a class="btn btn-link btn-sm" href="/projects/{{ project_id }}">Classic editor</a>
   </header>
 
   <nav class="ide-tree" id="ideTree" aria-label="Project files" data-region="tree">
     <ul role="tree" id="ideTreeList" aria-label="Project files"></ul>
   </nav>
+  <div class="ide-splitter ide-splitter-tree" role="separator" aria-orientation="vertical" aria-label="Resize the project files"
+       aria-controls="ideTree" tabindex="0" data-split="tree"></div>
 
   <main class="ide-editor" id="ideEditorArea" data-region="editor" tabindex="-1">
     <div role="tablist" class="ide-tabs" id="ideTabs" aria-label="Open files"></div>
     <div class="ide-tab-panels" id="ideTabPanels"></div>
   </main>
+  <div class="ide-splitter ide-splitter-panel" role="separator" aria-orientation="horizontal" aria-label="Resize the tool window"
+       aria-controls="idePanel" tabindex="0" data-split="panel"></div>
 
-  <section class="ide-panel" aria-label="Panels" data-region="panel">
-    <div role="tablist" class="ide-tabs ide-panel-tabs" id="idePanelTabs" aria-label="Panels">
-      <button role="tab" id="panelTab-problems" aria-controls="panel-problems" aria-selected="true" tabindex="0">Problems <span class="badge text-bg-secondary" id="problemCount">0</span></button>
-      <button role="tab" id="panelTab-output" aria-controls="panel-output" aria-selected="false" tabindex="-1">Output</button>
-      <button role="tab" id="panelTab-preview" aria-controls="panel-preview" aria-selected="false" tabindex="-1">Blocks preview</button>
-      <button role="tab" id="panelTab-run" aria-controls="panel-run" aria-selected="false" tabindex="-1">Run &amp; debug</button>
+  <section class="ide-panel" id="idePanel" aria-label="Tool window" data-region="panel">
+    <div role="tablist" class="ide-tabs ide-panel-tabs" id="idePanelTabs" aria-label="Tool window">
+      <button role="tab" id="panelTab-problems" aria-controls="panel-problems" aria-selected="true" tabindex="0"><i class="bi bi-exclamation-octagon" aria-hidden="true"></i> Problems <span class="badge text-bg-secondary" id="problemCount">0</span></button>
+      <button role="tab" id="panelTab-build" aria-controls="panel-build" aria-selected="false" tabindex="-1"><i class="bi bi-hammer" aria-hidden="true"></i> Build</button>
+      <button role="tab" id="panelTab-console" aria-controls="panel-console" aria-selected="false" tabindex="-1"><i class="bi bi-terminal" aria-hidden="true"></i> Console</button>
+      <button role="tab" id="panelTab-debug" aria-controls="panel-debug" aria-selected="false" tabindex="-1"><i class="bi bi-bug" aria-hidden="true"></i> Debug</button>
     </div>
     <div role="tabpanel" id="panel-problems" aria-labelledby="panelTab-problems" tabindex="0">
       <ul class="ide-problems" id="ideProblems" aria-label="Problems"><li class="text-muted">No problems.</li></ul>
     </div>
-    <div role="tabpanel" id="panel-output" aria-labelledby="panelTab-output" tabindex="0" hidden>
-      <pre class="ide-output" id="ideOutput">Nothing yet.</pre>
+    <div role="tabpanel" id="panel-build" aria-labelledby="panelTab-build" tabindex="0" hidden>
+      <div id="ideCartridges" class="d-flex flex-wrap gap-2 mb-2"></div>
+      <pre class="ide-output" id="ideOutput">Nothing built yet. Run builds the game for the simulator; Compile makes the cartridges to download.</pre>
     </div>
-    <div role="tabpanel" id="panel-preview" aria-labelledby="panelTab-preview" tabindex="0" hidden>
-      <div class="d-flex flex-wrap gap-3 align-items-start">
-        <canvas id="gameCanvas" width="320" height="200" class="game-canvas" tabindex="0" aria-label="Blocks preview screen. Click or focus it to use the game keys."></canvas>
-        <div class="d-flex flex-column gap-2">
-          <button class="btn btn-success btn-sm" id="idePreviewPlay" type="button">Play</button>
-          <button class="btn btn-warning btn-sm" id="idePreviewStep" type="button">Step</button>
-          <div class="debug-strip" id="debugState">The preview runs Blocks projects.</div>
-        </div>
-      </div>
+    <div role="tabpanel" id="panel-console" aria-labelledby="panelTab-console" tabindex="0" hidden>
+      {# Read-only: what the kit did and what the game reported. There is no shell on the server. #}
+      <ol class="ide-console" id="ideConsole" aria-label="Console" aria-live="polite"></ol>
     </div>
-    <div role="tabpanel" id="panel-run" aria-labelledby="panelTab-run" tabindex="0" hidden>
-      <p class="mb-2">Compile, then run and debug the real RISC-V cartridge in the Player: stop on a block or a line, and see your variables.</p>
-      <div id="ideCartridges" class="d-flex flex-wrap gap-2"></div>
+    <div role="tabpanel" id="panel-debug" aria-labelledby="panelTab-debug" tabindex="0" hidden>
+      {% include "_debugger.html" %}
     </div>
   </section>
+  <div class="ide-splitter ide-splitter-sim" role="separator" aria-orientation="vertical" aria-label="Resize the simulator"
+       aria-controls="ideSim" tabindex="0" data-split="sim"></div>
+
+  <aside class="ide-sim" id="ideSim" aria-label="Simulator" data-region="simulator" tabindex="-1">
+    <div class="ide-sim-toolbar" role="toolbar" aria-label="Simulator controls">
+      <button class="btn btn-success btn-sm" id="playPause" type="button" disabled><i class="bi bi-play-fill"></i> Play</button>
+      <button class="btn btn-warning btn-sm" id="stepFrame" type="button" disabled title="Run exactly one frame (update + draw)"><i class="bi bi-skip-forward"></i> Frame</button>
+      <button class="btn btn-outline-secondary btn-sm" id="ideReset" type="button" disabled title="Start the game again from the beginning"><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i><span class="visually-hidden">Restart</span></button>
+      <label class="visually-hidden" for="speed">Speed</label>
+      <select class="form-select form-select-sm w-auto" id="speed" title="Frames per real second; the cartridge always sees 33 ms per frame">
+        <option value="0.1">0.1×</option><option value="0.25">0.25×</option><option value="0.5">0.5×</option>
+        <option value="1" selected>1×</option><option value="2">2×</option><option value="4">4×</option>
+      </select>
+      <button class="btn btn-outline-secondary btn-sm" id="mute" type="button" title="Sound on/off"><i class="bi bi-volume-up"></i></button>
+    </div>
+    <div class="ide-sim-screen">
+      <canvas id="playerScreen" class="prg32-screen" tabindex="0" aria-label="PRG32 screen, 320 by 200 pixels. Focus it to use the game keys."></canvas>
+      {# Only when this server cannot compile: Blocks still run in the JavaScript preview. #}
+      <canvas id="gameCanvas" class="prg32-screen" width="320" height="200" tabindex="0" hidden
+              aria-label="Blocks preview screen. Focus it to use the game keys."></canvas>
+    </div>
+    <div class="small text-truncate px-2" id="cartridgeName">Press <strong>Run</strong> to play your game here.</div>
+    <div class="small px-2 ide-sim-status" id="playerStatus" aria-live="polite"></div>
+    <div class="debug-strip small px-2" id="debugState" hidden></div>
+    <div class="ide-gamepad" id="touchButtons" aria-label="On-screen buttons">
+      <div class="ide-dpad">
+        <button class="btn btn-outline-secondary btn-sm touch-button" type="button" data-button="UP" data-game-button="UP" aria-label="Up"><i class="bi bi-caret-up-fill" aria-hidden="true"></i></button>
+        <button class="btn btn-outline-secondary btn-sm touch-button" type="button" data-button="LEFT" data-game-button="LEFT" aria-label="Left"><i class="bi bi-caret-left-fill" aria-hidden="true"></i></button>
+        <button class="btn btn-outline-secondary btn-sm touch-button" type="button" data-button="RIGHT" data-game-button="RIGHT" aria-label="Right"><i class="bi bi-caret-right-fill" aria-hidden="true"></i></button>
+        <button class="btn btn-outline-secondary btn-sm touch-button" type="button" data-button="DOWN" data-game-button="DOWN" aria-label="Down"><i class="bi bi-caret-down-fill" aria-hidden="true"></i></button>
+      </div>
+      <button class="btn btn-secondary btn-sm touch-button" type="button" data-button="SELECT" data-game-button="START">Start</button>
+      <div class="d-flex gap-2">
+        <button class="btn btn-danger btn-sm rounded-circle touch-button ide-ab" type="button" data-button="B" data-game-button="B">B</button>
+        <button class="btn btn-danger btn-sm rounded-circle touch-button ide-ab" type="button" data-button="A" data-game-button="A">A</button>
+      </div>
+    </div>
+    <p class="small text-muted px-2 mb-2">Keys (click the screen first): arrows or <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> move,
+      <kbd>Z</kbd> is A, <kbd>X</kbd> is B, <kbd>Enter</kbd> is Start.</p>
+  </aside>
 
   <footer class="ide-status" role="status" aria-live="polite" data-region="status">
     <span id="statusMode">Blocks</span>
@@ -96,12 +150,17 @@
 </div>
 {% endblock %}
 {% block scripts %}
-{# Blockly first: Monaco's AMD loader would otherwise capture it as a module. #}
+{# Blockly first: Monaco's AMD loader would otherwise capture it as a module. The player (player.js)
+   is created before the debugger scripts, which drive it. #}
 <script src="{{ url_for('static', filename='vendor/blockly/11.2.1/blockly.min.js') }}"></script>
 <script src="{{ url_for('static', filename='js/blockly_blocks.js') }}"></script>
 <script src="{{ url_for('static', filename='js/simulator.js') }}"></script>
 <script src="{{ url_for('static', filename='js/prg32_runtime.js') }}"></script>
 <script src="{{ url_for('static', filename='js/prg32_audio.js') }}"></script>
+<script src="{{ url_for('static', filename='js/player.js') }}"></script>
+<script src="{{ url_for('static', filename='js/prg32_debugger.js') }}"></script>
+<script src="{{ url_for('static', filename='js/source_debug.js') }}"></script>
+<script src="{{ url_for('static', filename='js/source_debugger.js') }}"></script>
 <script src="{{ url_for('static', filename='vendor/monaco-editor/0.52.2/min/vs/loader.js') }}"></script>
 <script src="{{ url_for('static', filename='js/ide/prg32_language_index.js') }}"></script>
 <script src="{{ url_for('static', filename='js/ide/language.js') }}"></script>

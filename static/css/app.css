@@ -350,14 +350,60 @@ body.dbg-mode-advanced .dbg-beginner { display: none !important; }
   .ide-page > main.container-fluid { flex: 1 1 auto; min-height: 0; }
 }
 .ide-page > .kit-footer { display: none; }
+/* JetBrains-style (ADR-0024): files | editor over the tool window | simulator. The pane sizes are
+   CSS variables the splitters change (shell.js); a hidden pane takes no room. */
 .ide {
+  --ide-tree-w: 15rem;
+  --ide-sim-w: 360px;
+  --ide-panel-h: 30vh;
+  --ide-split: 5px;
+  --ide-split-tree: var(--ide-split);
+  --ide-split-sim: var(--ide-split);
+  --ide-split-panel: var(--ide-split);
   display: grid;
-  grid-template-columns: 15rem minmax(0, 1fr);
-  grid-template-rows: auto minmax(12rem, 1fr) minmax(9rem, 30vh) auto;
-  grid-template-areas: "toolbar toolbar" "tree editor" "tree panel" "status status";
+  grid-template-columns: var(--ide-tree-w) var(--ide-split-tree) minmax(0, 1fr) var(--ide-split-sim) var(--ide-sim-w);
+  grid-template-rows: auto minmax(8rem, 1fr) var(--ide-split-panel) var(--ide-panel-h) auto;
+  grid-template-areas:
+    "toolbar toolbar toolbar toolbar toolbar"
+    "tree splitTree editor splitSim sim"
+    "tree splitTree splitPanel splitSim sim"
+    "tree splitTree panel splitSim sim"
+    "status status status status status";
   height: 100%;
   background: var(--bs-body-bg);
 }
+.ide[data-tree=closed] { --ide-tree-w: 0px; --ide-split-tree: 0px; }
+.ide[data-sim=closed] { --ide-sim-w: 0px; --ide-split-sim: 0px; }
+.ide[data-panel=closed] { --ide-panel-h: 0px; --ide-split-panel: 0px; }
+.ide[data-tree=closed] .ide-tree, .ide[data-tree=closed] .ide-splitter-tree,
+.ide[data-sim=closed] .ide-sim, .ide[data-sim=closed] .ide-splitter-sim,
+.ide[data-panel=closed] .ide-panel, .ide[data-panel=closed] .ide-splitter-panel { display: none; }
+.ide-splitter { background: var(--bs-border-color); touch-action: none; }
+.ide-splitter:hover, .ide-splitter:focus-visible, .ide-splitter.is-dragging { background: #0d6efd; outline: none; }
+.ide-splitter-tree { grid-area: splitTree; cursor: col-resize; }
+.ide-splitter-sim { grid-area: splitSim; cursor: col-resize; }
+.ide-splitter-panel { grid-area: splitPanel; cursor: row-resize; }
+.ide-pane-toggle[aria-pressed=true] { background: var(--bs-secondary-bg); }
+/* The simulator pane: the PRG32 screen, its controls and the on-screen buttons. */
+.ide-sim { grid-area: sim; display: flex; flex-direction: column; gap: .5rem; min-width: 0; min-height: 0; overflow: auto;
+           background: var(--bs-tertiary-bg); padding-bottom: .5rem; }
+.ide-sim-toolbar { display: flex; flex-wrap: wrap; gap: .35rem; align-items: center; padding: .5rem .5rem 0; }
+.ide-sim-screen { background: #000; padding: .5rem; }
+.ide-sim-screen canvas { display: block; width: 100%; height: auto; aspect-ratio: 320 / 200; image-rendering: pixelated; }
+.ide-sim-screen canvas[hidden] { display: none; }
+.ide-sim-status { min-height: 1.2em; display: flex; flex-wrap: wrap; gap: .25rem .75rem; }
+.ide-gamepad { display: flex; align-items: center; justify-content: space-around; gap: .5rem; padding: 0 .5rem; }
+.ide-dpad { display: grid; grid-template-columns: repeat(3, 2.2rem); grid-template-rows: repeat(3, 2.2rem); gap: 2px; }
+.ide-dpad [data-button=UP] { grid-area: 1 / 2; }
+.ide-dpad [data-button=LEFT] { grid-area: 2 / 1; }
+.ide-dpad [data-button=RIGHT] { grid-area: 2 / 3; }
+.ide-dpad [data-button=DOWN] { grid-area: 3 / 2; }
+.ide-ab { width: 2.6rem; height: 2.6rem; font-weight: 700; }
+.ide-console { list-style: none; margin: 0; padding: 0; font-family: var(--bs-font-monospace); font-size: .85rem; }
+.ide-console li { padding: .05rem 0; border-bottom: 1px solid var(--bs-border-color-translucent); }
+.ide-console time { color: var(--bs-secondary-color); margin-right: .5rem; }
+.ide-console .text-danger, .ide-console .text-success { font-weight: 600; }
+.ide-panel #debuggerCard { margin-top: 0 !important; border: 0; box-shadow: none !important; }
 .ide-toolbar { grid-area: toolbar; display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; padding: .5rem .75rem; border-bottom: 1px solid var(--bs-border-color); }
 .ide-tree { grid-area: tree; overflow: auto; border-right: 1px solid var(--bs-border-color); padding: .5rem 0; background: var(--bs-tertiary-bg); }
 .ide-tree ul { list-style: none; margin: 0; padding-left: .75rem; }
@@ -366,7 +412,8 @@ body.dbg-mode-advanced .dbg-beginner { display: none !important; }
 .ide-tree [role=treeitem]:focus { outline: none; }
 .ide-tree [role=treeitem]:focus > .ide-tree-label { outline: 2px solid #0d6efd; outline-offset: -2px; background: rgba(13, 110, 253, .1); }
 .ide-tree [role=treeitem][aria-expanded=false] > [role=group] { display: none; }
-.ide-editor { grid-area: editor; display: flex; flex-direction: column; min-height: 0; }
+.ide-editor { grid-area: editor; display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+.ide #blocklyDiv { height: auto; min-height: 0; border-radius: 0; }   /* fills the tab, not the classic editor's 72vh */
 .ide-tab-panels { flex: 1; min-height: 0; position: relative; }
 .ide-tab-panel { position: absolute; inset: 0; display: flex; flex-direction: column; }
 .ide-tab-panel[hidden] { display: none; }
@@ -378,8 +425,8 @@ body.dbg-mode-advanced .dbg-beginner { display: none !important; }
 .ide-tabs [role=tab]:focus-visible { outline: 2px solid #0d6efd; outline-offset: -2px; }
 .ide-tab-close { margin-left: .4rem; opacity: .6; }
 .ide-panel { grid-area: panel; display: flex; flex-direction: column; min-height: 0; border-top: 1px solid var(--bs-border-color); }
-.ide-panel [role=tabpanel] { flex: 1; overflow: auto; padding: .5rem .75rem; }
-.ide-panel [role=tabpanel][hidden] { display: none; }
+.ide-panel > [role=tabpanel] { flex: 1; overflow: auto; padding: .5rem .75rem; }
+.ide-panel > [role=tabpanel][hidden] { display: none; }
 .ide-output { margin: 0; white-space: pre-wrap; font-size: .85rem; }
 .ide-problems { list-style: none; padding: 0; margin: 0; }
 .ide-problem { border: 0; background: transparent; text-align: left; width: 100%; padding: .2rem .25rem; font-family: var(--bs-font-monospace); font-size: .85rem; }
@@ -388,8 +435,11 @@ body.dbg-mode-advanced .dbg-beginner { display: none !important; }
 .ide-sprite { image-rendering: pixelated; width: 8rem; border: 1px solid var(--bs-border-color); }
 /* Small screens: one column; the file tree slides in over the editor (Files button, Alt+0). */
 @media (max-width: 991.98px) {
-  .ide { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(16rem, 1fr) minmax(10rem, 35vh) auto;
-         grid-template-areas: "toolbar" "editor" "panel" "status"; height: auto; min-height: calc(100vh - 62px); }
+  .ide { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(16rem, 1fr) auto minmax(10rem, 35vh) auto;
+         grid-template-areas: "toolbar" "editor" "sim" "panel" "status"; height: auto; min-height: calc(100vh - 62px); }
+  .ide-splitter { display: none; }
+  .ide[data-sim=closed] .ide-sim, .ide[data-panel=closed] .ide-panel { display: flex; }
+  .ide-sim-screen { max-width: 480px; margin: 0 auto; width: 100%; }
   .ide-tree { display: none; }
   .ide.ide-tree-open .ide-tree { display: block; position: fixed; z-index: 1040; top: 0; bottom: 0; left: 0; width: min(80vw, 18rem); box-shadow: 0 0 1rem rgba(0,0,0,.3); }
 }

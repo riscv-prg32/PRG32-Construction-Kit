@@ -1,4 +1,6 @@
-// The Cartridge Player page: open a .prg32 file (or a compiled artifact) and run it.
+// The Cartridge Player: open a .prg32 file (or a compiled artifact) and run it. Used by the
+// Player page and by the IDE's simulator pane (the same element ids); the IDE loads the
+// cartridges it builds through window.PRG32PlayerPage.open.
 (function () {
   const player = new PRG32CartridgePlayer(document.getElementById('playerScreen'), {
     onStatus: showStatus,
@@ -29,15 +31,21 @@
         Old sound calls (${status.legacySoundCalls}): no longer supported, so they are silent</span>` : ''}`);
   }
 
-  function open(bytes, label) {
+  // options.quiet: no "loaded" toast, and a failure is passed on to the caller (the IDE says it itself).
+  function open(bytes, label, options = {}) {
     return player.load(bytes)
       .then(info => {
         $('#cartridgeName').text(info.name || label);
         if (window.PRG32Debugger) window.PRG32Debugger.loaded();
-        Kit.toast('Cartridge loaded. Press Play.', 'success');
+        if (!options.quiet) Kit.toast('Cartridge loaded. Press Play.', 'success');
+        return info;
       })
-      .catch(err => Kit.toast('This is not a cartridge the PRG32 core can run: ' + err.message, 'danger'));
+      .catch(err => {
+        if (options.quiet) throw err;
+        Kit.toast('This is not a cartridge the PRG32 core can run: ' + err.message, 'danger');
+      });
   }
+  window.PRG32PlayerPage = { open, player };
 
   $('#cartridgeFile').on('change', function () {
     const file = this.files[0];

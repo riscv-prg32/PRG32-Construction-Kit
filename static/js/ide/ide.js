@@ -1,6 +1,11 @@
-// The IDE page for one project (ADR-0013): fills the shell with the project's files and wires
-// Save, Generate and Compile to the same API as the classic editor.
+// The IDE page for one project (ADR-0013, ADR-0024): fills the shell with the project's files and
+// wires Save, Run, Generate and Compile.
 //
+// - Run builds the saved project for the simulator on the right (a run build: nothing is kept,
+//   /api/projects/<id>/run) and starts it in the PRG32 core, with the debugger in the tool
+//   window's Debug tab. Blocks, C and assembly run the same way. Only when the server cannot
+//   compile do Blocks fall back to the JavaScript preview.
+// - Compile makes the cartridges to download or publish (needs an account).
 // - Blocks projects: the Blockly workspace is the source (Blockly JSON stays canonical); the
 //   generated C, assembly and IR open as read-only Monaco tabs that can be copied.
 // - Advanced C / assembly projects: the source is a Monaco editor (C, or the prg32-asm grammar).
@@ -25,6 +30,8 @@
   let liveProblems = [];   // from the live checks of the open source
   let serverProblems = []; // from the last Generate or Compile
   let liveChecks = null;
+  let lastRun = null;      // {bytes, debug}: Restart loads the same cartridge again
+  let previewMode = false; // true: Blocks run in the JavaScript preview (no toolchain on this server)
 
   // Autosave (ADR-0017): 5 seconds after the last change, and when the window is hidden.
   // Every save names the version it started from; a conflict pauses autosave until the
@@ -50,6 +57,18 @@
     if (!autosavePaused) autosaveTimer = setTimeout(() => { if (dirty) save({ autosave: true }).catch(() => {}); }, AUTOSAVE_MS);
   }
   function setBuildStatus(text) { $('#statusBuild').text(text); }
+
+  // The Console tab: what the kit did, newest last (read-only; there is no shell on the server).
+  function log(text, kind) {
+    const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    const line = $('<li></li>').toggleClass('text-danger', kind === 'error').toggleClass('text-success', kind === 'ok');
+    line.append($('<time></time>').text(time)).append(document.createTextNode(text));
+    $('#ideConsole').append(line);
+    const list = $('#ideConsole').children();
+    if (list.length > 300) list.first().remove();
+    const panel = document.getElementById('panel-console');
+    panel.scrollTop = panel.scrollHeight;
+  }
   function trackCursor(editor) {
     editor.onDidChangeCursorPosition(event => $('#statusCursor').text(`Ln ${event.position.lineNumber}, Col ${event.position.column}`));
   }
@@ -203,7 +222,7 @@
 
   // --- preview (Blocks) -------------------------------------------------------------------------
   function refreshPreview() {
-    if (!blocklyReady || !simulator) return;
+    if (!previewMode || !blocklyReady || !simulator) return;
     simulator.loadBlocks(PRG32Blocks.save());
   }
 
@@ -298,7 +317,7 @@
       : { source_mode: 'asm', source_asm: text, required_features: features } };
   }
 
-  // options: {autosave: true} (quiet), {baseVersion: n} (save over a newer version on purpose)
+  // options: {autosave: true} (quiet), {quiet: true} (no toast), {baseVersion: n} (save over a newer version on purpose)
   function save(options = {}) {
     if (saving) return saving.then(() => save(options), () => save(options));  // one save at a time
     clearTimeout(autosaveTimer);
@@ -310,7 +329,7 @@
       if (changes === started) setDirty(false); else scheduleAutosave();
       const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       $('#statusSaved').text(dirty ? 'Unsaved changes' : (options.autosave ? 'Autosaved ' + time : 'Saved'));
-      if (!options.autosave) Kit.toast('Saved', 'success');
+      if (!options.autosave && !options.quiet) Kit.toast('Saved', 'success');
       if (!options.noCheck) compilerCheck({ quiet: options.autosave });
       return saved;
     }).catch(err => {
@@ -369,7 +388,9 @@
   function compile() {
     setBuildStatus('Compiling…');
     $('#ideOutput').text('Compiling…');
-    IdeShell.showPanel('output');
+    $('#ideCartridges').empty();
+    IdeShell.showPanel('build');
+    log('Compile: building the cartridges to download…');
     return save({ noCheck: true }).then(() => Kit.api(api + '/package', { method: 'POST',
       body: Object.assign({ source_language: mode === 'blocks' ? 'c' : mode }, expectedVersion()) }))
       .then(result => {
@@ -378,14 +399,88 @@
         setBuildStatus(cartridges.length ? 'Cartridge ready' : result.build.status === 'failed' ? 'Build failed' : 'Source bundle only');
         showProblems(result.build.status === 'failed' ? parseProblems(result.build.log) : []);
         $('#ideCartridges').html(cartridges.map(artifact => `
-          <a class="btn btn-outline-success btn-sm" target="_blank" rel="noopener" href="/player?artifact=${encodeURIComponent(artifact.id)}">
-            <i class="bi bi-cpu" aria-hidden="true"></i> Run &amp; debug ${Kit.escape(artifact.metadata.architecture)}</a>
           <a class="btn btn-outline-primary btn-sm" href="/api/artifacts/${encodeURIComponent(artifact.id)}/download">
             <i class="bi bi-download" aria-hidden="true"></i> Download ${Kit.escape(artifact.metadata.architecture)} .prg32</a>`).join('')
-          || '<span class="text-muted">No cartridge was made. See Output.</span>');
-        if (cartridges.length) IdeShell.showPanel('run');
+          || '<span class="text-muted">No cartridge was made: see the log below.</span>');
+        log(cartridges.length ? `Compile: ${cartridges.length} cartridge(s) ready to download.` : 'Compile: no cartridge was made.',
+            cartridges.length ? 'ok' : 'error');
       })
-      .catch(err => { $('#ideOutput').text(err.message); showProblems(parseProblems(err.message)); setBuildStatus('Build failed'); });
+      .catch(err => {
+        $('#ideOutput').text(err.message); showProblems(parseProblems(err.message)); setBuildStatus('Build failed');
+        log('Compile: ' + err.message, 'error');
+      });
+  }
+
+  // --- run: the game in the simulator on the right -------------------------------------------------
+  function base64Bytes(text) {
+    const binary = atob(text);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
+    return bytes;
+  }
+
+  function usePreview(on) {
+    previewMode = on;
+    $('#gameCanvas, #debugState').prop('hidden', !on);
+    $('#playerScreen').prop('hidden', on);
+  }
+
+  function startCartridge(bytes, debug) {
+    if (simulator) simulator.stop();
+    usePreview(false);
+    return PRG32PlayerPage.open(bytes, project.title, { quiet: true }).then(() => {
+      if (window.PRG32SourceDebugger) PRG32SourceDebugger.attach(debug || null);
+      PRG32PlayerPage.player.start();
+      $('#ideReset').prop('disabled', false);
+      $('#playerScreen').trigger('focus');
+    });
+  }
+
+  function run() {
+    if (IdeShell.showPane && $('#ide').attr('data-sim') === 'closed') IdeShell.showPane('sim', true);
+    setBuildStatus('Building to run…');
+    $('#ideRun').prop('disabled', true);
+    log('Run: building ' + project.title + ' for the simulator…');
+    return save({ noCheck: true, quiet: true }).then(() => Kit.api(api + '/run', { method: 'POST', body: {} }))
+      .then(answer => {
+        $('#ideOutput').text(answer.log || 'No log.');
+        $('#ideCartridges').empty();
+        if (!answer.ok) {
+          showProblems(parseProblems(answer.log));
+          setBuildStatus('Build failed');
+          IdeShell.showPanel('build');
+          log('Run: the game did not build. See Build and Problems.', 'error');
+          return null;
+        }
+        showProblems([], true);
+        lastRun = { bytes: base64Bytes(answer.cartridge), debug: answer.debug };
+        return startCartridge(lastRun.bytes, lastRun.debug).then(() => {
+          setBuildStatus('Running');
+          log('Run: running in the simulator. Click the screen to use the game keys.', 'ok');
+        });
+      })
+      .catch(err => {
+        if (err.code === 'no_toolchain' && mode === 'blocks' && blocklyReady) {
+          // This server cannot compile: Blocks still run in the JavaScript preview.
+          usePreview(true);
+          simulator.loadBlocks(PRG32Blocks.save());
+          if (!simulator.running) simulator.toggle();
+          setBuildStatus('Running (Blocks preview)');
+          log('Run: this server cannot compile, so the Blocks preview runs instead of the PRG32 core.', 'error');
+          return;
+        }
+        setBuildStatus('Not running');
+        log('Run: ' + err.message, 'error');
+        if (err.code !== 'sign_in_required') Kit.toast(err.message, 'danger');
+      })
+      .finally(() => $('#ideRun').prop('disabled', false));
+  }
+
+  function restart() {
+    if (previewMode) { simulator.reset(); return Promise.resolve(); }
+    if (!lastRun) return run();
+    log('Restart: the game starts again.');
+    return startCartridge(lastRun.bytes, lastRun.debug);
   }
 
   // --- mode ----------------------------------------------------------------------------------------
@@ -397,7 +492,6 @@
       if (id !== 'blocks' && id !== 'src') IdeShell.closeTab(id);
     }
     if (IdeShell.tabs.has('src')) { const spec = IdeShell.tabs.get('src'); spec.closable = true; IdeShell.closeTab('src'); }
-    $('#idePreviewPlay, #idePreviewStep').prop('disabled', mode !== 'blocks');
     renderTree(sprites);
     if (mode === 'blocks') openBlocks(false); else openSource(false);
     if (mode !== 'blocks' && IdeShell.tabs.has('blocks')) $('#tab-blocks').attr('hidden', true);
@@ -409,7 +503,9 @@
     const command = (id, title, keys, run) => IdeShell.addCommand({ id, title, keys, run });
     command('save', 'Save project', 'Ctrl+S', () => save());
     command('generate', 'Generate C and assembly (check the source)', 'Ctrl+Shift+G', () => generate());
-    command('compile', 'Compile cartridge', 'Ctrl+Shift+B', () => compile());
+    command('run', 'Run in the simulator', 'Shift+F10', () => run());
+    command('restart', 'Restart the game', '', () => restart());
+    command('compile', 'Compile cartridges to download', 'Ctrl+Shift+B', () => compile());
     command('compiler-check', 'Check with the compiler', '', () => save({ noCheck: true }).then(() => compilerCheck()));
     command('open-source', 'Open source', '', () => (mode === 'blocks' ? openBlocks(true) : openSource(true)));
     command('open-gen-c', 'Open generated C', '', () => mode === 'blocks' && openGenerated('c', true));
@@ -418,9 +514,13 @@
     command('focus-tree', 'Focus project files', 'F6', () => { IdeShell.toggleTree(true); IdeShell.focusTree(); });
     command('focus-editor', 'Focus editor', 'F6', () => IdeShell.focusRegion('editor'));
     command('show-problems', 'Show problems', '', () => { IdeShell.showPanel('problems'); IdeShell.focusRegion('panel'); });
-    command('show-output', 'Show output', '', () => { IdeShell.showPanel('output'); IdeShell.focusRegion('panel'); });
-    command('show-preview', 'Show Blocks preview', '', () => { IdeShell.showPanel('preview'); IdeShell.focusRegion('panel'); });
-    command('show-run', 'Show run & debug', '', () => { IdeShell.showPanel('run'); IdeShell.focusRegion('panel'); });
+    command('show-build', 'Show the build log', '', () => { IdeShell.showPanel('build'); IdeShell.focusRegion('panel'); });
+    command('show-console', 'Show the console', '', () => { IdeShell.showPanel('console'); IdeShell.focusRegion('panel'); });
+    command('show-debug', 'Show the debugger', '', () => { IdeShell.showPanel('debug'); IdeShell.focusRegion('panel'); });
+    command('focus-simulator', 'Focus the simulator', '', () => { IdeShell.showPane('sim', true); IdeShell.focusRegion('simulator'); });
+    command('toggle-files', 'Show or hide the project files', 'Alt+1', () => IdeShell.showPane('tree'));
+    command('toggle-panel', 'Show or hide the tool window', 'Alt+4', () => IdeShell.showPane('panel'));
+    command('toggle-simulator', 'Show or hide the simulator', 'Alt+9', () => IdeShell.showPane('sim'));
     command('mode-blocks', 'Switch to Blocks', '', () => switchMode('blocks'));
     command('mode-c', 'Switch to Advanced C', '', () => switchMode('c'));
     command('mode-asm', 'Switch to Assembly (RISC-V)', '', () => switchMode('asm'));
@@ -428,6 +528,7 @@
     IdeShell.addShortcut({ key: 's', ctrl: true, run: () => save() });
     IdeShell.addShortcut({ key: 'g', ctrl: true, shift: true, run: () => generate() });
     IdeShell.addShortcut({ key: 'b', ctrl: true, shift: true, run: () => compile() });
+    IdeShell.addShortcut({ key: 'F10', shift: true, run: () => run() });
   }
 
   let spriteList = [];
@@ -442,12 +543,11 @@
   $('#ideSave').on('click', () => save());
   $('#ideGenerate').on('click', () => generate());
   $('#ideCompile').on('click', () => compile());
-  $('#idePreviewPlay').on('click', function () {
-    if (!simulator) return;
-    const running = simulator.toggle();
-    $(this).text(running ? 'Pause' : 'Play');
-  });
-  $('#idePreviewStep').on('click', () => simulator && simulator.step());
+  $('#ideRun').on('click', () => run());
+  $('#ideReset').on('click', () => restart());
+  // In the Blocks preview (no toolchain), Play and Frame drive the JavaScript simulator instead.
+  $('#playPause').on('click', () => { if (previewMode) simulator.toggle(); });
+  $('#stepFrame').on('click', () => { if (previewMode) simulator.step(); });
   window.addEventListener('beforeunload', event => { if (dirty) { event.preventDefault(); event.returnValue = ''; } });
 
   // --- start -----------------------------------------------------------------------------------------
@@ -483,7 +583,7 @@
     })
     .catch(err => Kit.toast('The IDE could not start: ' + err.message, 'danger'));
 
-  window.PRG32Ide = { save, generate, compile, editors, openSdkHeader, get mode() { return mode; },
+  window.PRG32Ide = { save, generate, compile, run, restart, log, editors, openSdkHeader, get mode() { return mode; },
     get version() { return project && project.version; }, get autosavePaused() { return autosavePaused; },
     get dirty() { return dirty; }, get problems() { return $('#ideProblems').data('problems') || []; },
     get serverProblems() { return serverProblems; } };

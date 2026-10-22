@@ -112,6 +112,17 @@ window.PRG32GuestApi = (function () {
     });
   }
 
+  // Run: the server builds the game for the simulator and keeps nothing (/api/guest/run).
+  function runGame(id) {
+    return store.get(id).then(row => row ? server('/api/guest/run', {
+      project: pick(row, ['title', 'blocks_json', 'game_json']),
+      audio_studio: row.audio ? row.audio.document : null,
+    }).then(answer => {
+      if (answer.debug && answer.debug.cartridge) answer.debug.cartridge.project_id = id;   // breakpoints per game
+      return answer;
+    }) : notFound());
+  }
+
   // A project file chosen on the Projects page: a blocks project (.json) opens here; an archive
   // (.zip, with sprites and sounds) needs an account.
   function importProject(form) {
@@ -197,7 +208,8 @@ window.PRG32GuestApi = (function () {
     ['POST', new RegExp('^/api/projects/' + ID + '/duplicate$'), (m, q, body) => duplicate(m[1], body)],
     ['POST', new RegExp('^/api/projects/' + ID + '/convert$'), (m, q, body) => convert(m[1], body)],
     ['POST', new RegExp('^/api/projects/' + ID + '/check$'), () => Promise.resolve({ available: false, guest: true })],
-    ['POST', new RegExp('^/api/projects/' + ID + '/package$'), () => needsAccount('Building a cartridge')],
+    ['POST', new RegExp('^/api/projects/' + ID + '/package$'), () => needsAccount('Making a cartridge to download')],
+    ['POST', new RegExp('^/api/projects/' + ID + '/run$'), m => runGame(m[1])],
     ['GET', new RegExp('^/api/projects/' + ID + '/revisions$'), () => Promise.resolve({ revisions: [] })],
     ['GET', new RegExp('^/api/projects/' + ID + '/audio$'), m => getAudio(m[1])],
     ['PUT', new RegExp('^/api/projects/' + ID + '/audio$'), (m, q, body) => putAudio(m[1], body || {})],
