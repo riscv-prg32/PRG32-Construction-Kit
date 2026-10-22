@@ -19,7 +19,7 @@ $(function () {
         .attr('href', studioUrl(project.id));
       item.append($('<i class="bi bi-music-note-list" aria-hidden="true"></i>'));
       item.append($('<span class="flex-grow-1"></span>').text(project.title || 'Untitled'));
-      item.append($('<small class="text-muted"></small>').text(project.updated_at || ''));
+      item.append($('<small class="text-muted"></small>').text(Kit.when(project.updated_at)));
       list.append(item);
       if (project.id === last) {
         $('#audioContinueTitle').text(project.title || 'Untitled');

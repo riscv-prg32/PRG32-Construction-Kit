@@ -33,7 +33,7 @@
             <button class="btn btn-outline-danger btn-sm delete-project" data-id="${Kit.escape(project.id)}" aria-label="Delete ${Kit.escape(project.title)}"><i class="bi bi-trash" aria-hidden="true"></i></button>
           </div>
         </div>
-        <div class="card-footer small text-muted">Updated ${Kit.escape(project.updated_at)}</div>
+        <div class="card-footer small text-muted">Updated ${Kit.escape(Kit.when(project.updated_at))}</div>
       </div>
     </div>`;
   }

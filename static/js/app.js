@@ -119,6 +119,12 @@ window.Kit = {
   escape(text) {
     return $('<div>').text(text == null ? '' : String(text)).html();
   },
+  // A saved time (ISO 8601, from the server or this browser) as the student's local date and time.
+  when(value) {
+    const time = Date.parse(value);
+    if (!value || Number.isNaN(time)) return value || '';
+    return new Date(time).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+  },
   tags(value) {
     if (!Array.isArray(value)) return '';
     return value.map(tag => `<span class="tag-pill">${Kit.escape(tag)}</span>`).join('');
