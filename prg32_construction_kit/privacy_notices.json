@@ -3,10 +3,10 @@
   "notices": [
     {
       "id": "guest",
-      "version": "1.1",
+      "version": "1.2",
       "effective": "2026-10-22",
       "where": "every page without an account (the guest workspace), and the sign-in page",
-      "summary": "Without an account, your games, sprites and sounds stay in this browser only. To show you the C code or play a sound, the server looks at them for a moment and keeps nothing. Clearing the browser's data deletes them.",
+      "summary": "Without an account, your games, sprites and sounds stay in this browser only. To show you the C code, play a sound or run your game, the server works on them for a moment and keeps nothing. Clearing the browser's data deletes them.",
       "full": "docs/privacy/notices/guest.md"
     },
     {
@@ -27,10 +27,10 @@
     },
     {
       "id": "cloud",
-      "version": "1.0",
-      "effective": "2026-10-21",
+      "version": "1.1",
+      "effective": "2026-10-22",
       "where": "Account page, before 'Connect' for Google Drive or OneDrive",
-      "summary": "Connecting a cloud account lets the kit save copies of your games in a folder of your own Google Drive or OneDrive, and only there. You can disconnect at any time; the copies in your cloud stay yours.",
+      "summary": "Connecting a cloud account lets the kit save copies of your games in a folder of your own Google Drive or OneDrive, or in a GitHub repository you choose, and only there. You can disconnect at any time; the copies stay yours.",
       "full": "docs/privacy/notices/cloud.md"
     },
     {

@@ -1,4 +1,5 @@
-"""Keeping projects in Google Drive or OneDrive (ADR-0019, docs/cloud_storage.md).
+"""Keeping projects in Google Drive, OneDrive or a GitHub repository (ADR-0019, ADR-0025,
+docs/cloud_storage.md, docs/github.md).
 
 Optional: a kit without cloud settings works exactly as before, and guests never use it
 (their games stay in the browser). A registered student connects a cloud account on
@@ -71,6 +72,14 @@ class CloudAccount(db.Model):
     tokens: Mapped[str] = mapped_column(db.Text, nullable=False, default="")   # encrypted JSON
     needs_reconnect: Mapped[bool] = mapped_column(db.Boolean, nullable=False, default=False)
     connected_at: Mapped[str] = mapped_column(db.String(40), nullable=False, default=utcnow)
+    # Provider choices of this account, as JSON: GitHub's {"repository": "owner/name", "branch": "main"}.
+    options: Mapped[str] = mapped_column(db.Text, nullable=False, default="{}")
+
+    def option(self, key: str, default: Any = None) -> Any:
+        try:
+            return (json.loads(self.options or "{}") or {}).get(key, default)
+        except ValueError:
+            return default
 
 
 class CloudLink(db.Model):
@@ -365,7 +374,200 @@ class OneDrive(CloudProvider):
     # Microsoft account (docs/cloud_storage.md).
 
 
-PROVIDER_CLASSES = {"google": GoogleDrive, "onedrive": OneDrive}
+class GitHub(CloudProvider):
+    """A GitHub repository as the project's remote (ADR-0025, docs/github.md).
+
+    A **GitHub App** (not an OAuth App): its user tokens expire and refresh, and it reaches only
+    the repositories the student installed it on (permissions: Contents read and write,
+    Metadata read). The student chooses one of them, and a branch (``CloudAccount.options``).
+    Each project is one top-level folder of that repository, holding the project archive's
+    files as ordinary files (prg32.project.json, src/..., assets/..., audio/...), so the code can
+    be read and changed on GitHub. The interface stays the cloud one: the "file" is the
+    folder, its "revision" the folder's tree hash, and a save is one commit, made only on top of
+    the commit the kit expected (``RemoteChanged`` otherwise).
+    """
+
+    name, title = "github", "GitHub"
+    scopes = ""                        # a GitHub App's permissions are set on the App itself
+    hosts = ("github.com", "api.github.com")
+    revokes_at_provider = True
+    API = "https://api.github.com"
+    HEADERS = {"Accept": "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28"}
+    commit_message = ""                # set per request by the push route (a new provider per request)
+
+    def __init__(self, client_id: str, client_secret: str = "", tenant: str = "common", app_slug: str = ""):
+        super().__init__(client_id, client_secret, tenant)
+        self.app_slug = app_slug
+
+    def authorize_endpoint(self): return "https://github.com/login/oauth/authorize"
+    def token_endpoint(self): return "https://github.com/login/oauth/access_token"
+
+    def install_url(self) -> str:
+        """Where the student chooses the repositories the App may use."""
+        return f"https://github.com/apps/{quote(self.app_slug)}/installations/new" if self.app_slug else ""
+
+    # --- helpers -----------------------------------------------------------------------------
+    def _get(self, api, path, accept=(200,)):
+        status, data = api.call("GET", self.API + path, headers=self.HEADERS, accept=accept)
+        return status, _json(data)
+
+    def _send(self, api, method, path, payload, accept=(200, 201)):
+        status, data = api.call(method, self.API + path, body=json.dumps(payload).encode(), headers=self.HEADERS,
+                                content_type="application/json", accept=accept, retry=False)
+        return status, _json(data)
+
+    @staticmethod
+    def _where(api) -> tuple[str, str]:
+        repository = str(api.account.option("repository") or "")
+        if "/" not in repository:
+            raise CloudError("no_repository", "Choose the GitHub repository for your projects first (Account page).", 400)
+        return repository, str(api.account.option("branch") or "main")
+
+    def _head(self, api) -> tuple[str, str]:
+        """(commit, root tree) at the tip of the chosen branch."""
+        repository, branch = self._where(api)
+        status, data = self._get(api, f"/repos/{repository}/branches/{quote(branch, safe='')}", accept=(200, 404))
+        if status == 404:
+            raise CloudError("no_branch", f"The branch {branch} is not in {repository}. Choose another on the Account "
+                                          "page, or make it on GitHub first.", 404)
+        return data["commit"]["sha"], data["commit"]["commit"]["tree"]["sha"]
+
+    def _top(self, api, tree: str) -> dict[str, dict[str, Any]]:
+        repository, _branch = self._where(api)
+        _status, data = self._get(api, f"/repos/{repository}/git/trees/{tree}")
+        return {entry["path"]: entry for entry in (data or {}).get("tree", [])}
+
+    @staticmethod
+    def folder_of(name: str) -> str:
+        return name.removesuffix(project_format.ARCHIVE_SUFFIX)
+
+    def _remote(self, folder: str, entry: dict[str, Any] | None) -> RemoteFile | None:
+        return RemoteFile(folder, folder, entry["sha"]) if entry and entry.get("type") == "tree" else None
+
+    # --- the cloud interface ------------------------------------------------------------------
+    def account(self, api):
+        _status, user = self._get(api, "/user")
+        return str(user["id"]), user.get("login", "")
+
+    def repositories(self, api) -> list[dict[str, Any]]:
+        """The repositories the student installed the kit's GitHub App on."""
+        _status, data = self._get(api, "/user/installations")
+        found = []
+        for installation in (data or {}).get("installations", [])[:10]:
+            _status, repos = self._get(api, f"/user/installations/{int(installation['id'])}/repositories?per_page=100")
+            found += [{"full_name": repo["full_name"], "default_branch": repo.get("default_branch", "main"),
+                       "private": bool(repo.get("private"))} for repo in (repos or {}).get("repositories", [])]
+        return found
+
+    def list(self, api):
+        _commit, tree = self._head(api)
+        repository, _branch = self._where(api)
+        _status, data = self._get(api, f"/repos/{repository}/git/trees/{tree}?recursive=1")
+        entries = (data or {}).get("tree", [])
+        manifests = {entry["path"].split("/")[0] for entry in entries
+                     if entry.get("path", "").count("/") == 1 and entry["path"].endswith("/" + project_format.MANIFEST_NAME)}
+        return [RemoteFile(entry["path"], entry["path"], entry["sha"]) for entry in entries
+                if entry.get("type") == "tree" and entry["path"] in manifests]
+
+    def metadata(self, api, file_id):
+        _commit, tree = self._head(api)
+        return self._remote(file_id, self._top(api, tree).get(file_id))
+
+    def load(self, api, file_id):
+        repository, _branch = self._where(api)
+        remote = self.metadata(api, file_id)
+        if remote is None:
+            raise CloudError("remote_missing", f"The folder {file_id} is not in {repository} any more.", 404)
+        _status, data = self._get(api, f"/repos/{repository}/git/trees/{remote.revision}?recursive=1")
+        blobs = [entry for entry in (data or {}).get("tree", []) if entry.get("type") == "blob"]
+        if len(blobs) > project_format.MAX_ENTRIES or (data or {}).get("truncated"):
+            raise CloudError("too_large", "This folder has more files than a project can have.", 413)
+        files: dict[str, bytes] = {}
+        for entry in blobs:
+            _status, blob = self._get(api, f"/repos/{repository}/git/blobs/{entry['sha']}")
+            files[entry["path"]] = base64.b64decode((blob or {}).get("content") or "")
+            if sum(len(content) for content in files.values()) > project_format.MAX_TOTAL_BYTES:
+                raise CloudError("too_large", "This folder is bigger than a project can be.", 413)
+        return remote, project_format.write_archive(files)
+
+    def find(self, api, name, project_id, digest):
+        folder = self.folder_of(name)
+        remote = self.metadata(api, folder)
+        if remote is None:
+            return None
+        _remote, data = self.load(api, folder)
+        return remote if hashlib.sha256(data).hexdigest() == digest else None
+
+    def _commit(self, api, folder: str, files: dict[str, bytes], expected_revision: str | None, message: str) -> RemoteFile:
+        """One commit that makes ``folder`` hold exactly ``files`` (None: delete it); on top of the expected tree only."""
+        repository, branch = self._where(api)
+        head, tree = self._head(api)
+        current = self._remote(folder, self._top(api, tree).get(folder))
+        if expected_revision is not None and (current.revision if current else "") != expected_revision:
+            raise RemoteChanged(current.revision if current else "")
+        entries: list[dict[str, Any]] = []
+        if current is not None:   # files that are no longer in the project leave the folder
+            _status, old = self._get(api, f"/repos/{repository}/git/trees/{current.revision}?recursive=1")
+            keep = set(files or {})
+            entries += [{"path": f"{folder}/{entry['path']}", "mode": "100644", "type": "blob", "sha": None}
+                        for entry in (old or {}).get("tree", []) if entry.get("type") == "blob" and entry["path"] not in keep]
+        for path, content in sorted((files or {}).items()):
+            _status, blob = self._send(api, "POST", f"/repos/{repository}/git/blobs",
+                                       {"content": base64.b64encode(content).decode(), "encoding": "base64"})
+            entries.append({"path": f"{folder}/{path}", "mode": "100644", "type": "blob", "sha": blob["sha"]})
+        _status, new_tree = self._send(api, "POST", f"/repos/{repository}/git/trees", {"base_tree": tree, "tree": entries})
+        _status, commit = self._send(api, "POST", f"/repos/{repository}/git/commits",
+                                     {"message": message, "tree": new_tree["sha"], "parents": [head]})
+        # Not forced: if the branch moved meanwhile, GitHub refuses (422) and nothing changed.
+        status, _ref = self._send(api, "PATCH", f"/repos/{repository}/git/refs/heads/{quote(branch, safe='')}",
+                                  {"sha": commit["sha"], "force": False}, accept=(200, 422))
+        if status == 422:
+            raise RemoteChanged("")
+        return self._remote(folder, self._top(api, new_tree["sha"]).get(folder)) or RemoteFile(folder, folder, "")
+
+    def create(self, api, name, data, project_id, digest):
+        folder = self.folder_of(name)
+        if self.metadata(api, folder) is not None:
+            raise CloudError("name_taken", f"A different folder {folder} is already in the repository.", 409)
+        return self._commit(api, folder, project_format.read_archive_files(data), "",
+                            self.commit_message or f"Add {folder} from PRG32-Construction-Kit")
+
+    def save(self, api, file_id, data, digest, expected_revision):
+        return self._commit(api, file_id, project_format.read_archive_files(data), expected_revision,
+                            self.commit_message or f"Update {file_id} from PRG32-Construction-Kit")
+
+    def delete(self, api, file_id, expected_revision):
+        if self.metadata(api, file_id) is None:
+            return
+        self._commit(api, file_id, {}, expected_revision, f"Remove {file_id} (PRG32-Construction-Kit)")
+
+    def commits(self, api, file_id: str, limit: int = 20) -> list[dict[str, str]]:
+        """The latest commits that changed the project's folder (the Git tab's history)."""
+        repository, branch = self._where(api)
+        _status, data = self._get(api, f"/repos/{repository}/commits?sha={quote(branch, safe='')}"
+                                       f"&path={quote(file_id, safe='')}&per_page={int(limit)}")
+        return [{"sha": item["sha"][:7], "message": (item.get("commit", {}).get("message") or "").split("\n")[0][:200],
+                 "author": ((item.get("commit") or {}).get("author") or {}).get("name", ""),
+                 "date": ((item.get("commit") or {}).get("author") or {}).get("date", ""),
+                 "url": item.get("html_url", "")} for item in (data if isinstance(data, list) else [])]
+
+    def revoke(self, tokens):
+        token = tokens.get("access_token")
+        if not token or not self.client_secret:
+            return False
+        url = f"{self.API}/applications/{quote(self.client_id)}/grant"
+        _allowed(url, self.hosts)
+        basic = base64.b64encode(f"{self.client_id}:{self.client_secret}".encode()).decode()
+        try:
+            status, _headers, _data = transport("DELETE", url, {**self.HEADERS, "Authorization": "Basic " + basic,
+                                                                "Content-Type": "application/json"},
+                                                json.dumps({"access_token": token}).encode())
+        except (requests.RequestException, CloudError):
+            return False
+        return status == 204
+
+
+PROVIDER_CLASSES = {"google": GoogleDrive, "onedrive": OneDrive, "github": GitHub}
 
 
 def configured() -> dict[str, CloudProvider]:
@@ -375,6 +577,9 @@ def configured() -> dict[str, CloudProvider]:
     # Settings page (CLOUD_*_ENABLED).
     if config.get("CLOUD_GOOGLE_CLIENT_ID") and config.get("CLOUD_GOOGLE_ENABLED"):
         found["google"] = GoogleDrive(config["CLOUD_GOOGLE_CLIENT_ID"], config.get("CLOUD_GOOGLE_CLIENT_SECRET") or "")
+    if config.get("CLOUD_GITHUB_CLIENT_ID") and config.get("CLOUD_GITHUB_ENABLED"):
+        found["github"] = GitHub(config["CLOUD_GITHUB_CLIENT_ID"], config.get("CLOUD_GITHUB_CLIENT_SECRET") or "",
+                                 app_slug=config.get("CLOUD_GITHUB_APP_SLUG") or "")
     if config.get("CLOUD_ONEDRIVE_CLIENT_ID") and config.get("CLOUD_ONEDRIVE_ENABLED"):
         found["onedrive"] = OneDrive(config["CLOUD_ONEDRIVE_CLIENT_ID"], config.get("CLOUD_ONEDRIVE_CLIENT_SECRET") or "",
                                      config.get("CLOUD_ONEDRIVE_TENANT") or "common")
@@ -425,6 +630,8 @@ def _token_request(item: CloudProvider, data: dict[str, str]) -> dict[str, Any]:
     except requests.RequestException as error:
         raise CloudError("unavailable", f"{item.title} could not be reached. Try again.", 503, retryable=True) from error
     answer = _json(body) or {}
+    if answer.get("error") in ("bad_refresh_token", "bad_verification_code", "incorrect_client_credentials"):
+        raise CloudError("reconnect", f"Your {item.title} connection has ended. Connect it again.", 401)
     if status in (400, 401) and answer.get("error") in ("invalid_grant", "unauthorized_client", "invalid_client"):
         raise CloudError("reconnect", f"Your {item.title} connection has ended. Connect it again.", 401)
     if status != 200 or not answer.get("access_token"):
@@ -622,10 +829,14 @@ def api_cloud():
     providers = []
     for name, item in configured().items():
         row = rows.get(name)
-        providers.append({"name": name, "title": item.title, "scopes": item.scopes.split(),
-                          "revokes_at_provider": item.revokes_at_provider, "connected": row is not None,
-                          "account_name": row.account_name if row else "",
-                          "needs_reconnect": bool(row and row.needs_reconnect)})
+        entry = {"name": name, "title": item.title, "scopes": item.scopes.split(),
+                 "revokes_at_provider": item.revokes_at_provider, "connected": row is not None,
+                 "account_name": row.account_name if row else "",
+                 "needs_reconnect": bool(row and row.needs_reconnect)}
+        if isinstance(item, GitHub):   # the repository and branch the projects go to
+            entry.update(install_url=item.install_url(), repository=row.option("repository", "") if row else "",
+                         branch=row.option("branch", "") if row else "")
+        providers.append(entry)
     return jsonify({"providers": providers})
 
 
@@ -735,6 +946,8 @@ def api_push(project_id: str, name: str):
     choice = data_in.get("choice")
     project = _own(project_id)
     item = provider_named(name)
+    if isinstance(item, GitHub):       # Commit & push: the student's message (one line, at most 200 characters)
+        item.commit_message = " ".join(str(data_in.get("message") or "").split())[:200]
     account = _account(item)
     api = Api(item, account)
     user_id = _principal().id
@@ -877,6 +1090,55 @@ def api_delete_file(name: str, file_id: str):
     db.session.commit()
     security.record("cloud_delete", target_type="cloud", target_id=name)
     return jsonify({"ok": True, "trashed": True})
+
+
+# --- GitHub: the repository and the history (ADR-0025) -------------------------------------------
+
+def _github() -> tuple[GitHub, CloudAccount]:
+    item = provider_named("github")
+    assert isinstance(item, GitHub)
+    return item, _account(item)
+
+
+@bp.get("/api/cloud/github/repositories")
+def api_github_repositories():
+    """The repositories the student installed the kit's GitHub App on, and where to install it."""
+    item, account = _github()
+    return jsonify({"repositories": item.repositories(Api(item, account)), "install_url": item.install_url(),
+                    "repository": account.option("repository", ""), "branch": account.option("branch", "")})
+
+
+@bp.put("/api/cloud/github/repository")
+def api_github_choose():
+    """Choose the repository (one the App may use) and the branch the projects are committed to."""
+    from .routes import request_json
+
+    item, account = _github()
+    data_in = request_json()
+    repository, branch = str(data_in.get("repository") or ""), str(data_in.get("branch") or "").strip()
+    allowed = {repo["full_name"]: repo for repo in item.repositories(Api(item, account))}
+    if repository not in allowed:
+        raise CloudError("unknown_repository", "Choose one of the repositories the kit's GitHub App may use.", 400)
+    branch = branch or allowed[repository]["default_branch"]
+    if len(branch) > 100 or any(ch.isspace() or ch in "~^:?*[\\" for ch in branch) or ".." in branch:
+        raise CloudError("bad_branch", "That is not a valid branch name.", 400)
+    account.options = json.dumps({"repository": repository, "branch": branch})
+    db.session.commit()
+    security.record("github_repository", target_type="cloud", target_id="github")
+    return jsonify({"repository": repository, "branch": branch})
+
+
+@bp.get("/api/projects/<project_id>/cloud/github/commits")
+def api_github_commits(project_id: str):
+    """The latest commits of the project's folder on GitHub (the IDE's Git tab)."""
+    _own(project_id)
+    item, account = _github()
+    link = link_of(_principal().id, "github", project_id)
+    if link is None:
+        return jsonify({"linked": False, "commits": []})
+    return jsonify({"linked": True, "folder": link.file_id, "repository": account.option("repository", ""),
+                    "branch": account.option("branch", ""), "synced_version": link.local_version,
+                    "commits": item.commits(Api(item, account), link.file_id)})
 
 
 def init_app(app) -> None:

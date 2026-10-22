@@ -129,20 +129,20 @@ not decisions: see [decisions.md](decisions.md).
 
 | | |
 |---|---|
-| Data | connected Google Drive or OneDrive account and which projects are synced |
+| Data | connected Google Drive, OneDrive or GitHub account, the chosen GitHub repository and branch, and which projects are synced |
 | People | students, teachers |
-| Purpose | copies of the person's own games in their own cloud folder (ADR-0019) |
+| Purpose | copies of the person's own games in their own cloud folder or GitHub repository (ADR-0019, ADR-0025) |
 | Legal basis | Art. 6(1)(a) consent of the person (or a parent, below the national age: decisions.md); PROPOSED - not decided: the controller confirms with its DPO (decisions.md) |
 | Special categories | none |
 | Who can see it | the person; tokens are encrypted and never shown to anyone |
-| Recipients | Google or Microsoft, chosen by the person |
+| Recipients | Google, Microsoft or GitHub, chosen by the person |
 | Where | the server chosen by the operator (configure in the EU/EEA, see processors_and_transfers.md); the copies are in the person's own cloud account |
-| Kept for | until disconnected; tokens are revoked at Google on disconnect |
+| Kept for | until disconnected; tokens are revoked at Google and GitHub on disconnect |
 | Deleted by | disconnect; erasure (revokes where possible) |
-| Transfers | Google LLC / Microsoft Corp.: EU-US Data Privacy Framework and SCCs; transfer assessment in processors_and_transfers.md |
+| Transfers | Google LLC / Microsoft Corp. / GitHub, Inc. (Microsoft): EU-US Data Privacy Framework and SCCs; transfer assessment in processors_and_transfers.md |
 | Review owner | the operator's privacy lead (name it in decisions.md) |
 | Next review | 2027-10-21 or on any change to the kit's data model |
-| Fields | `cloud_accounts`: id, user_id, provider, account_id, account_name, scopes, tokens, needs_reconnect, connected_at; `cloud_links`: id, user_id, provider, account_id, project_id, file_id, remote_revision, content_sha256, local_version, synced_at |
+| Fields | `cloud_accounts`: id, user_id, provider, account_id, account_name, scopes, tokens, needs_reconnect, connected_at, options; `cloud_links`: id, user_id, provider, account_id, project_id, file_id, remote_revision, content_sha256, local_version, synced_at |
 
 ## publishing
 
@@ -253,4 +253,4 @@ not decisions: see [decisions.md](decisions.md).
 | email | sign-up and password emails | the operator's SMTP provider and the person's mailbox | the provider's | the provider's | yes |
 | tickets_in_transit | single sign-on tickets and OAuth codes and tokens, in transit | between the browser, the kit, the Store and the providers (HTTPS) | minutes; refresh tokens encrypted at rest (cloud) | expiry | yes |
 | support_evidence | screenshots, logs and recordings kept as release evidence (docs/evidence) | the kit's repository | kept with the release | never contains real people: synthetic users only (visual manifest checks) | no |
-| guest_requests | a guest's blocks, sound or sprite, sent to generate code or preview sound (ADR-0023) | server memory while one request is answered | none: not written, not logged | automatic at the end of the request | no |
+| guest_requests | a guest's blocks, code, sound or sprite, sent to generate code, preview sound or build the game to run it (ADR-0023, ADR-0024) | server memory, and for a run build a private build folder removed as soon as the cartridge is read | none: not written, not logged | automatic at the end of the request | no |

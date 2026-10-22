@@ -15,7 +15,7 @@ a blocker is open fails.
 | D-3 | Consent for optional services from minors: collect it, or switch the services off | switch cloud copies off unless the school collects parental consent | controller | yes (if cloud is on) | open | | [roles_and_legal_bases.md](roles_and_legal_bases.md) |
 | D-4 | Legal basis for each activity | as proposed in roles_and_legal_bases.md | controller + DPO | yes | open | | [roles_and_legal_bases.md](roles_and_legal_bases.md) |
 | D-5 | Retention periods, including the request register and server logs | the defaults in retention.md | controller | yes | open | | [retention.md](retention.md) |
-| D-6 | Cloud providers: allowed or not; school-managed or personal accounts; transfer assessment | off by default; if on, school-managed accounts with the school's DPA | controller + DPO | yes (if cloud is on) | open | | [processors_and_transfers.md](processors_and_transfers.md) |
+| D-6 | Cloud providers and GitHub: allowed or not; school-managed or personal accounts; transfer assessment | off by default; if on, school-managed accounts with the school's DPA | controller + DPO | yes (if cloud is on) | open | | [processors_and_transfers.md](processors_and_transfers.md) |
 | D-7 | Cartridge Store: who runs it; the role; the agreement | the same school runs it; otherwise an Art. 26 arrangement | controller | yes (if the Store is used) | open | | [processors_and_transfers.md](processors_and_transfers.md) |
 | D-8 | DPO or counsel review of this whole folder | needed before go-live | DPO | yes | open: no review yet | | [children_dpia_dpo.md](children_dpia_dpo.md) |
 | D-9 | Processors: hosting and email agreements (Art. 28 checklist) | EU/EEA hosting | controller | yes | open | | [processors_and_transfers.md](processors_and_transfers.md) |

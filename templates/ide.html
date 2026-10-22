@@ -83,6 +83,7 @@
       <button role="tab" id="panelTab-build" aria-controls="panel-build" aria-selected="false" tabindex="-1"><i class="bi bi-hammer" aria-hidden="true"></i> Build</button>
       <button role="tab" id="panelTab-console" aria-controls="panel-console" aria-selected="false" tabindex="-1"><i class="bi bi-terminal" aria-hidden="true"></i> Console</button>
       <button role="tab" id="panelTab-debug" aria-controls="panel-debug" aria-selected="false" tabindex="-1"><i class="bi bi-bug" aria-hidden="true"></i> Debug</button>
+      <button role="tab" id="panelTab-git" aria-controls="panel-git" aria-selected="false" tabindex="-1"><i class="bi bi-git" aria-hidden="true"></i> Git</button>
     </div>
     <div role="tabpanel" id="panel-problems" aria-labelledby="panelTab-problems" tabindex="0">
       <ul class="ide-problems" id="ideProblems" aria-label="Problems"><li class="text-muted">No problems.</li></ul>
@@ -103,6 +104,10 @@
     <div role="tabpanel" id="panel-console" aria-labelledby="panelTab-console" tabindex="0" hidden>
       {# Read-only: what the kit did and what the game reported. There is no shell on the server. #}
       <ol class="ide-console" id="ideConsole" aria-label="Console" aria-live="polite"></ol>
+    </div>
+    <div role="tabpanel" id="panel-git" aria-labelledby="panelTab-git" tabindex="0" hidden>
+      {# GitHub as the project's remote (ADR-0025); filled by ide/git.js. #}
+      <div id="ideGit" aria-live="polite"><p class="small text-muted mb-0">Loading…</p></div>
     </div>
     <div role="tabpanel" id="panel-debug" aria-labelledby="panelTab-debug" tabindex="0" hidden>
       {% include "_debugger.html" %}
@@ -263,4 +268,5 @@
 <script src="{{ url_for('static', filename='js/ide/monaco_language.js') }}"></script>
 <script src="{{ url_for('static', filename='js/ide/shell.js') }}"></script>
 <script src="{{ url_for('static', filename='js/ide/ide.js') }}"></script>
+<script src="{{ url_for('static', filename='js/ide/git.js') }}"></script>
 {% endblock %}

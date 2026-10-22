@@ -36,6 +36,7 @@ PRG32-Construction-Kit is a classroom web application for making PRG32 games wit
    - `storage.md` - where games are kept: autosave, conflicts, quotas, retention, and guest games in the browser.
    - `guest_mode.md` - using the kit without an account: what works, what needs a sign-in, moving games in.
    - `cloud_storage.md` - keeping projects in Google Drive or OneDrive (optional).
+   - `github.md` - committing a project to a GitHub repository, pulling it back (optional).
 10. `tutorials/` - step-by-step lessons.
    - `tutorials/games/` - five complete classic-inspired games with slide decks
      (`presentations/*.html`).

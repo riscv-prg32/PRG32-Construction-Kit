@@ -277,7 +277,7 @@
   },
   {
    "id": "cloud",
-   "data": "connected Google Drive or OneDrive account and which projects are synced",
+   "data": "connected Google Drive, OneDrive or GitHub account, the chosen GitHub repository and branch, and which projects are synced",
    "fields": {
     "cloud_accounts": [
      "id",
@@ -288,7 +288,8 @@
      "scopes",
      "tokens",
      "needs_reconnect",
-     "connected_at"
+     "connected_at",
+     "options"
     ],
     "cloud_links": [
      "id",
@@ -307,15 +308,15 @@
     "students",
     "teachers"
    ],
-   "purpose": "copies of the person's own games in their own cloud folder (ADR-0019)",
+   "purpose": "copies of the person's own games in their own cloud folder or GitHub repository (ADR-0019, ADR-0025)",
    "legal_basis": "Art. 6(1)(a) consent of the person (or a parent, below the national age: decisions.md); PROPOSED - not decided: the controller confirms with its DPO (decisions.md)",
    "special_categories": "none",
    "access": "the person; tokens are encrypted and never shown to anyone",
-   "recipients": "Google or Microsoft, chosen by the person",
+   "recipients": "Google, Microsoft or GitHub, chosen by the person",
    "location": "the server chosen by the operator (configure in the EU/EEA, see processors_and_transfers.md); the copies are in the person's own cloud account",
-   "retention": "until disconnected; tokens are revoked at Google on disconnect",
+   "retention": "until disconnected; tokens are revoked at Google and GitHub on disconnect",
    "deletion": "disconnect; erasure (revokes where possible)",
-   "transfers": "Google LLC / Microsoft Corp.: EU-US Data Privacy Framework and SCCs; transfer assessment in processors_and_transfers.md",
+   "transfers": "Google LLC / Microsoft Corp. / GitHub, Inc. (Microsoft): EU-US Data Privacy Framework and SCCs; transfer assessment in processors_and_transfers.md",
    "review_owner": "the operator's privacy lead (name it in decisions.md)",
    "next_review": "2027-10-21 or on any change to the kit's data model"
   },
@@ -607,8 +608,8 @@
   },
   {
    "id": "guest_requests",
-   "data": "a guest's blocks, sound or sprite, sent to generate code or preview sound (ADR-0023)",
-   "where": "server memory while one request is answered",
+   "data": "a guest's blocks, code, sound or sprite, sent to generate code, preview sound or build the game to run it (ADR-0023, ADR-0024)",
+   "where": "server memory, and for a run build a private build folder removed as soon as the cartridge is read",
    "retention": "none: not written, not logged",
    "deletion": "automatic at the end of the request",
    "personal": false

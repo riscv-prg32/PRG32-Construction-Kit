@@ -162,6 +162,9 @@ REGISTRY: tuple[Setting, ...] = (
             "Needs PRG32_CLOUD_GOOGLE_CLIENT_ID and _SECRET on the server."),
     Setting("CLOUD_ONEDRIVE_ENABLED", "PRG32_CLOUD_ONEDRIVE_ENABLED", "store", "bool", "OneDrive copies",
             "Needs PRG32_CLOUD_ONEDRIVE_CLIENT_ID and _SECRET on the server."),
+    Setting("CLOUD_GITHUB_ENABLED", "PRG32_CLOUD_GITHUB_ENABLED", "store", "bool", "GitHub repositories",
+            "Projects committed to a student's GitHub repository. Needs PRG32_CLOUD_GITHUB_CLIENT_ID, _SECRET and "
+            "_APP_SLUG on the server (docs/github.md)."),
     # --- build limits -------------------------------------------------------------------
     Setting("PRG32_MAX_PARALLEL_BUILDS", "PRG32_MAX_PARALLEL_BUILDS", "build", "int", "Builds at the same time",
             minimum=1, maximum=256),
@@ -193,7 +196,7 @@ ENVIRONMENT_ONLY = (
     ("PRG32_KIT_PROXY_COUNT", "trusted reverse proxies"),
     ("PRG32_KIT_THROTTLE_*", "sign-in attempt limits"),
     ("PRG32_SAML_*", "SAML sign-in (its routes are made at start-up)"),
-    ("PRG32_CLOUD_*_CLIENT_ID / _SECRET", "cloud storage app credentials"),
+    ("PRG32_CLOUD_*_CLIENT_ID / _SECRET", "cloud storage and GitHub app credentials"),
 )
 
 _SECRET_PURPOSE = b"site-settings"

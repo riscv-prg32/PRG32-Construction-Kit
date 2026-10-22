@@ -55,6 +55,12 @@ class Config:
     CLOUD_ONEDRIVE_CLIENT_ID = os.environ.get("PRG32_CLOUD_ONEDRIVE_CLIENT_ID") or None
     CLOUD_ONEDRIVE_CLIENT_SECRET = os.environ.get("PRG32_CLOUD_ONEDRIVE_CLIENT_SECRET") or None
     CLOUD_ONEDRIVE_TENANT = os.environ.get("PRG32_CLOUD_ONEDRIVE_TENANT") or "common"
+    # GitHub as a project remote (ADR-0025, docs/github.md): a GitHub App's client id and secret,
+    # and its slug (github.com/apps/<slug>) so students can install it on their repository.
+    CLOUD_GITHUB_CLIENT_ID = os.environ.get("PRG32_CLOUD_GITHUB_CLIENT_ID") or None
+    CLOUD_GITHUB_CLIENT_SECRET = os.environ.get("PRG32_CLOUD_GITHUB_CLIENT_SECRET") or None
+    CLOUD_GITHUB_APP_SLUG = os.environ.get("PRG32_CLOUD_GITHUB_APP_SLUG") or ""
+    CLOUD_GITHUB_ENABLED = _flag("PRG32_CLOUD_GITHUB_ENABLED", True)
     # An admin can switch a configured provider off on the Settings page.
     CLOUD_GOOGLE_ENABLED = _flag("PRG32_CLOUD_GOOGLE_ENABLED", True)
     CLOUD_ONEDRIVE_ENABLED = _flag("PRG32_CLOUD_ONEDRIVE_ENABLED", True)

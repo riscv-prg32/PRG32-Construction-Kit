@@ -29,3 +29,5 @@ Short records of decisions for the full-IDE work. Each has a status:
 | [0021](0021-firmware-audio-engine.md) | The PRG32 firmware's audio engine in the browser; the buzzer is obsolete | Accepted |
 | [0022](0022-personal-data-and-rights.md) | Personal data: one inventory, rights the kit can carry out, the school decides | Accepted |
 | [0023](0023-open-guest-workspace.md) | The kit opens without an account; guests keep their games in the browser | Accepted (amends 0017, 0012) |
+| [0024](0024-one-ide.md) | One IDE: run builds for every project type, fixed project types, tools as tabs | Accepted (amends 0013, 0023) |
+| [0025](0025-github-project-remote.md) | GitHub as a project's remote: a GitHub App, a folder of files per project | Accepted |

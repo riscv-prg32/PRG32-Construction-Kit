@@ -13,6 +13,7 @@ switches on. Each row is filled in by the controller for its own deployment (D-6
 | School identity provider (OIDC/SAML) | admin settings or `PRG32_OIDC_*` | redirect only. The kit *receives* issuer, subject, email and role. | the school's existing processor | the school's | the school's existing DPA | to be confirmed |
 | Google Drive | `PRG32_CLOUD_GOOGLE_*` and the person's consent | the person's projects, written to a folder the app created (`drive.file` scope) | separate controller for the person's account; processor for school-managed Workspace accounts | **USA** possible: EU-US Data Privacy Framework (Google LLC certified) plus SCCs in Google's terms | Google Workspace for Education DPA if school accounts; personal accounts: none | D-6 |
 | Microsoft OneDrive | `PRG32_CLOUD_ONEDRIVE_*` and the person's consent | as above (`Files.ReadWrite.AppFolder`) | as above | **USA** possible: EU-US DPF (Microsoft certified), EU Data Boundary for business accounts | Microsoft Products and Services DPA if school accounts | D-6 |
+| GitHub | `PRG32_CLOUD_GITHUB_*` and the person's consent | the person's projects, committed as files to a repository the person installed the kit's GitHub App on (Contents read/write, Metadata read; ADR-0025) | separate controller for the person's account; processor for GitHub Enterprise or GitHub Education accounts the school manages | **USA**: EU-US DPF (GitHub, Inc. / Microsoft certified) plus SCCs in GitHub's terms | GitHub Data Protection Agreement if school accounts; personal accounts: none | D-6 |
 | PRG32 Cartridge Store | a publish profile; `PRG32_SSO_PEER_URL` for shared accounts | published games, author name; with shared accounts: username, email, role, password hash | same controller, or joint/separate controller if another organisation runs it | where the Store runs | Art. 26 arrangement or controller agreement if another organisation (D-7) | D-7 |
 
 The kit sends nothing anywhere else: no telemetry, no analytics, no CDN (every browser
@@ -35,7 +36,7 @@ For each processor, record in [decisions.md](decisions.md) that its agreement co
 
 | Flow | Mechanism | Supplementary measures | Assessment |
 |---|---|---|---|
-| Cloud copies to Google/Microsoft (USA possible) | DPF adequacy decision (2023) for certified recipients; SCCs as fallback | Optional and consent-based. Only the person's own projects, in an app folder. Tokens encrypted at rest and revocable. | The controller decides whether to allow it for minors (D-6). The kit can switch it off entirely (no `PRG32_CLOUD_*` settings). |
+| Cloud copies to Google/Microsoft/GitHub (USA possible) | DPF adequacy decision (2023) for certified recipients; SCCs as fallback | Optional and consent-based. Only the person's own projects, in an app folder. Tokens encrypted at rest and revocable. | The controller decides whether to allow it for minors (D-6). The kit can switch it off entirely (no `PRG32_CLOUD_*` settings). |
 | Hosting outside the EEA | none by default | — | **Avoid.** If unavoidable: SCCs plus a transfer impact assessment, recorded here. |
 | Cartridge Store outside the EEA | — | — | Run it in the EEA, or assess as above. |
 

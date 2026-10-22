@@ -3,8 +3,32 @@
 (function () {
   const PERMISSIONS = {
     google: 'only the files the kit creates in your Google Drive (it cannot see your other files)',
-    onedrive: "only the kit's own folder in your OneDrive (Apps), plus your account's name and id"
+    onedrive: "only the kit's own folder in your OneDrive (Apps), plus your account's name and id",
+    github: 'only the GitHub repositories I install the kit\'s GitHub App on (to read and write their files), plus my GitHub name'
   };
+
+  // GitHub (ADR-0025): choose the repository (one the kit's GitHub App is installed on) and the branch.
+  function githubChooser(item) {
+    return `<div class="mt-2 small github-repo" data-provider="github">
+      <div class="d-flex flex-wrap gap-2 align-items-end">
+        <div><label class="form-label mb-1" for="githubRepository">Repository</label>
+          <select class="form-select form-select-sm" id="githubRepository"><option value="">Loading…</option></select></div>
+        <div><label class="form-label mb-1" for="githubBranch">Branch</label>
+          <input class="form-control form-control-sm" id="githubBranch" value="${Kit.escape(item.branch || '')}" placeholder="main"></div>
+        <button class="btn btn-primary btn-sm github-choose" type="button">Use this repository</button>
+      </div>
+      <p class="mb-0 mt-1 text-muted">Not in the list? <a href="${Kit.escape(item.install_url || 'https://github.com')}" target="_blank" rel="noopener">Install
+        the kit's GitHub App</a> on the repository first, then reload this page.</p></div>`;
+  }
+
+  function loadRepositories(item) {
+    Kit.api('/api/cloud/github/repositories').then(data => {
+      $('#githubRepository').html(data.repositories.map(repo => `<option value="${Kit.escape(repo.full_name)}"
+        ${repo.full_name === data.repository ? 'selected' : ''}>${Kit.escape(repo.full_name)}${repo.private ? ' (private)' : ''}</option>`).join('')
+        || '<option value="">No repository yet: install the App first</option>');
+      if (!$('#githubBranch').val()) $('#githubBranch').val(data.branch || '');
+    }).catch(err => $('#githubRepository').html(`<option value="">${Kit.escape(err.message)}</option>`));
+  }
 
   // --- Account page -----------------------------------------------------------------
   function providerBlock(item) {
@@ -15,6 +39,7 @@
           <span><strong>${Kit.escape(item.title)}</strong> <span class="small text-muted">${Kit.escape(item.account_name)}</span></span>
           <button class="btn btn-outline-danger btn-sm cloud-disconnect" data-provider="${name}" type="button">Disconnect</button>
         </div>
+        ${item.name === 'github' ? githubChooser(item) : ''}
         <ul class="list-group list-group-flush small mt-2 cloud-files" data-provider="${name}"></ul></div>`;
     }
     const warning = item.needs_reconnect
@@ -45,12 +70,24 @@
       if (!data.providers.length) return;
       $('#cloud').removeClass('d-none');
       $('#cloudProviders').html(data.providers.map(providerBlock).join(''));
-      data.providers.filter(item => item.connected && !item.needs_reconnect).forEach(item => loadFiles(item.name));
+      data.providers.filter(item => item.connected && !item.needs_reconnect).forEach(item => {
+        if (item.name === 'github') {
+          loadRepositories(item);
+          if (!item.repository) return;     // no repository chosen yet: nothing to list
+        }
+        loadFiles(item.name);
+      });
     }).catch(err => Kit.toast(err.message, 'danger'));
   }
 
   if ($('#cloud').length) {
     $('#cloudProviders')
+      .on('click', '.github-choose', () => {
+        Kit.api('/api/cloud/github/repository', { method: 'PUT',
+          body: { repository: $('#githubRepository').val(), branch: $('#githubBranch').val() } })
+          .then(chosen => { Kit.toast(`Projects go to ${chosen.repository} (${chosen.branch})`, 'success'); loadFiles('github'); })
+          .catch(err => Kit.toast(err.message, 'danger'));
+      })
       .on('change', '.cloud-consent', function () {
         $(`.cloud-connect[data-provider="${$(this).data('provider')}"]`).prop('disabled', !this.checked);
       })

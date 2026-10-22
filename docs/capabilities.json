@@ -553,14 +553,18 @@
         "prg32_construction_kit/cloud_storage.py::GoogleDrive",
         "prg32_construction_kit/cloud_storage.py::api_push",
         "prg32_construction_kit/cloud_storage.py::api_pull",
-        "static/js/cloud.js"
+        "static/js/cloud.js",
+        "prg32_construction_kit/cloud_storage.py::GitHub"
       ],
       "tests": [
         "tests/test_cloud_storage.py::test_push_over_a_cloud_change_is_a_conflict_with_choices",
         "tests/test_cloud_storage.py::test_a_revoked_connection_asks_to_reconnect_and_changes_nothing",
-        "tests/test_cloud_browser.py::test_connect_save_and_resolve_a_conflict"
+        "tests/test_cloud_browser.py::test_connect_save_and_resolve_a_conflict",
+        "tests/test_github.py::test_commit_and_push_writes_readable_files_with_the_message",
+        "tests/test_github.py::test_both_sides_changed_is_a_conflict_with_choices",
+        "tests/test_github_browser.py::test_commit_and_push_from_the_ide"
       ],
-      "note": "One provider interface (ADR-0019), proven against an in-process fake and a real browser; the opt-in live suite (tests/test_cloud_live.py) has not run against a real test account."
+      "note": "One provider interface (ADR-0019), proven against an in-process fake and a real browser; the opt-in live suite (tests/test_cloud_live.py) has not run against a real test account. GitHub as a third provider (ADR-0025): a GitHub App, one folder of files per project, commits with the student's message; tested against an in-process GitHub only."
     },
     {
       "id": "CLD-02",

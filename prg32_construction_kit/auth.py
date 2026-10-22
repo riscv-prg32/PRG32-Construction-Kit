@@ -1275,11 +1275,12 @@ _NEW_COLUMNS = {
     "users": {"kit_role": "TEXT NOT NULL DEFAULT 'student'", "disabled_at": "TEXT",
               "session_epoch": "INTEGER NOT NULL DEFAULT 0", "restricted_at": "TEXT"},
     "api_tokens": {"scopes": "TEXT", "expires_at": "TEXT"},
+    "cloud_accounts": {"options": "TEXT NOT NULL DEFAULT '{}'"},   # GitHub's repository and branch (ADR-0025)
 }
 
 
 def migrate() -> None:
-    """Add the ADR-0016 columns to databases made before them (idempotent)."""
+    """Add the ADR-0016 (and later) columns to databases made before them (idempotent)."""
     from sqlalchemy import inspect, text
 
     inspector = inspect(db.engine)

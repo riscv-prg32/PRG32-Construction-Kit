@@ -1,5 +1,7 @@
 # Keeping projects in Google Drive or OneDrive
 
+GitHub works the same way, with commits and a history: see [github.md](github.md).
+
 Optional: a kit without cloud settings works exactly as before, and guests never
 see it (their games stay in the browser). See ADR-0019 for the design.
 
