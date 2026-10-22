@@ -19,12 +19,17 @@
             aria-controls="ideTree" aria-expanded="false" aria-keyshortcuts="Alt+0">
       <i class="bi bi-list" aria-hidden="true"></i> Files</button>
     <h1 class="h6 mb-0 text-truncate" id="ideTitle">Loading…</h1>
-    <label class="visually-hidden" for="ideMode">Project source</label>
-    <select class="form-select form-select-sm w-auto" id="ideMode">
-      <option value="blocks">Blocks</option>
-      <option value="c">Advanced C</option>
-      <option value="asm">Assembly (RISC-V)</option>
-    </select>
+    {# The project's type is chosen when it is made and never changes (ADR-0024); Blocks can be
+       converted to C or assembly once, from the Project menu. #}
+    <span class="badge rounded-pill text-bg-secondary" id="ideType" title="How this project is written">Blocks</span>
+    <div class="dropdown">
+      <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" id="ideProjectMenu"
+              data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-folder2" aria-hidden="true"></i> Project</button>
+      <ul class="dropdown-menu" aria-labelledby="ideProjectMenu" id="ideProjectItems">
+        <li class="ide-blocks-only"><button class="dropdown-item" type="button" data-convert="c"><i class="bi bi-braces"></i> Convert to C…</button></li>
+        <li class="ide-blocks-only"><button class="dropdown-item" type="button" data-convert="asm"><i class="bi bi-cpu"></i> Convert to Assembly…</button></li>
+      </ul>
+    </div>
     <button class="btn btn-outline-secondary btn-sm" id="ideSave" type="button" aria-keyshortcuts="Control+S">
       <i class="bi bi-save" aria-hidden="true"></i> Save</button>
     <button class="btn btn-success btn-sm" id="ideRun" type="button" aria-keyshortcuts="Shift+F10"
@@ -131,6 +136,27 @@
     <span id="statusCursor"></span>
     <span id="statusBuild" class="ms-auto"></span>
   </footer>
+</div>
+
+<div class="modal" id="ideConvertDialog" tabindex="-1" aria-labelledby="ideConvertTitle" aria-modal="true" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title h5" id="ideConvertTitle">Convert to <span class="ide-convert-to">C</span>?</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p>Your blocks become <strong class="ide-convert-to">C</strong> code: the same game, written out and explained
+          line by line. From then on you change the code, not the blocks.</p>
+        <p class="mb-0"><strong>This cannot be undone.</strong> The project stays a <span class="ide-convert-to">C</span>
+          project; the Blocks version is kept in History, where you can download it.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Keep Blocks</button>
+        <button type="button" class="btn btn-danger" id="ideConvertConfirm">Convert</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <div class="modal" id="ideCommandPalette" tabindex="-1" aria-labelledby="paletteTitle" aria-modal="true" role="dialog">

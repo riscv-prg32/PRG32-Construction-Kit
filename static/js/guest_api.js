@@ -74,9 +74,21 @@ window.PRG32GuestApi = (function () {
 
   function getProject(id) { return store.get(id).then(row => row ? project(row) : notFound()); }
 
+  // Blocks, C or assembly: chosen when the game is made, never changed by a save (ADR-0024).
+  function projectType(game) {
+    const mode = game && typeof game === 'object' ? game.source_mode : null;
+    return mode === 'c' || mode === 'asm' ? mode : 'blocks';
+  }
+
+  function typeLocked(row) {
+    return fail('This game\'s type cannot change. A Blocks game can be converted to C or assembly once (Convert).',
+      409, 'type_locked', { code: 'type_locked', project_type: projectType(row.game_json) });
+  }
+
   function putProject(id, body) {
     return store.get(id).then(row => {
       if (!row) return notFound();
+      if (body.game_json !== undefined && projectType(body.game_json) !== projectType(row.game_json)) return typeLocked(row);
       const expected = body.expected_version;
       if (expected !== undefined && expected !== null && expected !== row.version) {
         return fail('This game was saved in another window after you opened it.', 409, 'version_conflict',
@@ -95,6 +107,18 @@ window.PRG32GuestApi = (function () {
       return store.save(copy).then(created => store.listSprites(id)
         .then(sprites => Promise.all(sprites.map(sprite => store.saveSprite(Object.assign({}, sprite, { id: undefined, project_id: created.id })))))
         .then(() => project(created)));
+    });
+  }
+
+  // One way: the server writes the Blocks game as code (and keeps nothing); it is stored here.
+  function convertTo(id, body) {
+    return store.get(id).then(row => {
+      if (!row) return notFound();
+      if (projectType(row.game_json) !== 'blocks') return typeLocked(row);
+      const language = body && body.language;
+      return server('/api/guest/convert_to', { project: pick(row, ['title', 'blocks_json']), language,
+        audio_studio: row.audio ? row.audio.document : null })
+        .then(answer => store.save({ id, game_json: answer.game_json })).then(project);
     });
   }
 
@@ -207,6 +231,7 @@ window.PRG32GuestApi = (function () {
     ['DELETE', new RegExp('^/api/projects/' + ID + '$'), m => deleteProject(m[1])],
     ['POST', new RegExp('^/api/projects/' + ID + '/duplicate$'), (m, q, body) => duplicate(m[1], body)],
     ['POST', new RegExp('^/api/projects/' + ID + '/convert$'), (m, q, body) => convert(m[1], body)],
+    ['POST', new RegExp('^/api/projects/' + ID + '/convert_to$'), (m, q, body) => convertTo(m[1], body)],
     ['POST', new RegExp('^/api/projects/' + ID + '/check$'), () => Promise.resolve({ available: false, guest: true })],
     ['POST', new RegExp('^/api/projects/' + ID + '/package$'), () => needsAccount('Making a cartridge to download')],
     ['POST', new RegExp('^/api/projects/' + ID + '/run$'), m => runGame(m[1])],

@@ -126,9 +126,10 @@ def test_build_notices_changed_advanced_c(client, monkeypatch):
 
 def test_generated_ir_never_overwrites_a_newer_save(app, client):
     project = client.post("/api/projects", json={"title": "Race", "blocks_json": default_blocks()}).get_json()
-    # Another window switches the project to Advanced C after we read it.
-    newer = {"source_mode": "c", "source_c": "void race_init(void) {}"}
-    client.put(f"/api/projects/{project['id']}", json={"game_json": newer})
+    # Another window saves newer blocks (and their IR) after we read the project.
+    newer_blocks = {"blocks": {"languageVersion": 0, "blocks": [{"type": "prg32_on_start", "id": "newer"}]}}
+    newer = {"abi": "newer"}
+    client.put(f"/api/projects/{project['id']}", json={"blocks_json": newer_blocks, "game_json": newer})
     with app.app_context():
         stored = update_if_unchanged("projects", project["id"],
                                      {"blocks_json": project["blocks_json"], "game_json": project["game_json"]},

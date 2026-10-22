@@ -418,6 +418,8 @@ def api_item(resource: str, item_id: str):
             return jsonify({"error": "This item was saved elsewhere after you opened it. Nothing was overwritten.",
                             "code": "version_conflict", "current": public("assets", existing)}), 409
         return _version_conflict(existing)
+    if resource == "projects" and "game_json" in payload and project_type(payload["game_json"]) != project_type(existing.get("game_json")):
+        return _type_locked(existing)
     changed = {key: value for key, value in payload.items() if key in RESOURCE_COLUMNS[resource]}
     quota(adding_bytes=_size(changed) - _size({key: existing.get(key) for key in changed}))
     if resource == "projects" and _source_changes(existing, payload) and (not autosave or _history_is_old(item_id)):
@@ -434,6 +436,61 @@ def api_item(resource: str, item_id: str):
     if item is None:
         return json_error("Not found", 404)
     return jsonify(public(resource, item))
+
+
+# --- project types (ADR-0024) ---------------------------------------------------------------
+# A project is written in Blocks, C or assembly, chosen when it is made. The type never changes,
+# except once from Blocks to C or assembly (convert_to): a save or a restore that would change it
+# is refused.
+PROJECT_TYPES = {"blocks": "Blocks", "c": "C", "asm": "Assembly (RISC-V)"}
+
+
+def project_type(game_json: Any) -> str:
+    mode = game_json.get("source_mode") if isinstance(game_json, dict) else None
+    return mode if mode in ("c", "asm") else "blocks"
+
+
+def _type_locked(project: dict[str, Any]):
+    kind = project_type(project.get("game_json"))
+    hint = (" A Blocks project can be converted to C or assembly once (Convert), and never back."
+            if kind == "blocks" else "")
+    return jsonify({"error": f"This project is written in {PROJECT_TYPES[kind]}; its type cannot change.{hint}",
+                    "code": "type_locked", "project_type": kind}), 409
+
+
+@bp.post("/api/projects/<project_id>/convert_to")
+def api_convert_project_type(project_id: str):
+    """Convert a Blocks project to C or assembly, for good: {"language": "c"|"asm", "expected_version"?}.
+
+    The code is the generated code, explained, now the student's own; the Blocks version is kept
+    in History (it can be downloaded, not restored over the converted project)."""
+    from .sample_data import blocks_as_code
+
+    payload = request_json()
+    language = payload.get("language")
+    if language not in ("c", "asm"):
+        return json_error("language must be c or asm")
+    project = readable("projects", project_id)
+    if project is None:
+        return json_error("Project not found", 404)
+    if not can_write(project):
+        return json_error("This is a shared classroom project: make your own copy to convert it", 403)
+    if project_type(project.get("game_json")) != "blocks":
+        return _type_locked(project)
+    expected = payload.get("expected_version")
+    if expected is not None and expected != project.get("version", 0):
+        return _version_conflict(project)
+    try:
+        game_json = blocks_as_code({**project, "audio_studio": audio_studio_api.document_of(project_id)[0]}, language)
+    except Exception as exc:  # noqa: BLE001 - blocks that do not generate cannot be converted
+        return json_error(f"These blocks cannot be converted yet: {exc}")
+    save_revision(project, "convert")
+    try:
+        item = update_resource("projects", project_id, {"game_json": game_json}, expected_version=project.get("version", 0))
+    except VersionConflict:
+        return _version_conflict(get_resource("projects", project_id))
+    security.record("project_convert", target_type="project", target_id=project_id, metadata={"language": language})
+    return jsonify(public("projects", item))
 
 
 def _version_conflict(current: dict[str, Any] | None):
@@ -696,6 +753,9 @@ def api_restore_revision(project_id: str, revision_id: str):
         contents = project_format.contents_from_files(revision["files"])
     except project_format.ProjectFormatError as exc:
         return json_error(f"This saved version cannot be restored: {exc}", 422)
+    if project_type(contents["project"].get("game_json")) != project_type(project.get("game_json")):
+        # A Blocks version of a converted project: it can be downloaded, never restored over it.
+        return _type_locked(project)
     plan = restore_plan(revision, contents, project_id)
     saved = save_revision(project, "restore")
     fields = contents["project"]

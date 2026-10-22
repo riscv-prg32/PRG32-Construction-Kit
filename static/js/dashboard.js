@@ -10,12 +10,20 @@
     }
   });
 
+  // Blocks, C or assembly: fixed when the project is made (ADR-0024).
+  const TYPE_NAMES = { blocks: 'Blocks', c: 'C', asm: 'Assembly' };
+  function projectType(project) {
+    const mode = project.game_json && project.game_json.source_mode;
+    return mode === 'c' || mode === 'asm' ? mode : 'blocks';
+  }
+
   function card(project) {
     return `<div class="col-md-6 col-xl-4">
       <div class="card project-card h-100">
         <div class="project-icon"></div>
         <div class="card-body">
-          <h3 class="h5">${Kit.escape(project.title)}</h3>
+          <h3 class="h5">${Kit.escape(project.title)}
+            <span class="badge rounded-pill text-bg-secondary align-middle fs-6 fw-normal">${TYPE_NAMES[projectType(project)]}</span></h3>
           <p class="text-muted small mb-2">${Kit.escape(project.description || 'No summary yet.')}</p>
           <div class="mb-3">${Kit.tags(project.tags)}</div>
           <div class="d-flex gap-2">

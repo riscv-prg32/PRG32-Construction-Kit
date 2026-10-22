@@ -10,6 +10,7 @@ nothing of the request is kept or logged.
     POST /api/guest/audio             {document?} -> the checked AudioStudio document and its sound ids
     POST /api/guest/audio/preview     {document, muted?} -> the AUD0 block to listen to
     POST /api/guest/sprites/convert   {sprite} -> the sprite as C
+    POST /api/guest/convert_to        {project, language, audio_studio?} -> the game as C or assembly (one way)
     POST /api/guest/run               {project, audio_studio?} -> a cartridge for the simulator (run_build.py)
 
 The generated code comes from the same validators and generators as for an account
@@ -127,6 +128,25 @@ def audio_preview():
         return _refused(str(error))
     block = audio_studio.pack_document(document, {}, set(muted))
     return Response(block, mimetype="application/octet-stream", headers={"Cache-Control": "no-store"})
+
+
+@bp.post("/api/guest/convert_to")
+def convert_to():
+    """A guest's Blocks game as C or assembly (one way, ADR-0024); the browser stores the answer."""
+    from .sample_data import blocks_as_code
+
+    payload = _payload()
+    given = payload.get("project")
+    if not isinstance(given, dict) or payload.get("language") not in ("c", "asm"):
+        return _refused("send {\"project\": {title, blocks_json}, \"language\": \"c\" | \"asm\"}")
+    project = {"title": str(given.get("title") or "Untitled game")[:200], "blocks_json": given.get("blocks_json") or {}}
+    try:
+        project["audio_studio"] = _document(payload["audio_studio"]) if payload.get("audio_studio") else None
+        return jsonify({"game_json": blocks_as_code(project, payload["language"])})
+    except (ValueError, AudioStudioError) as error:
+        return _refused(str(error))
+    except Exception as error:  # noqa: BLE001 - blocks that do not generate cannot be converted
+        return _refused(f"These blocks cannot be converted yet: {error}")
 
 
 @bp.post("/api/guest/run")

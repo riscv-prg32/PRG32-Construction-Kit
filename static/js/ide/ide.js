@@ -18,7 +18,7 @@
   'use strict';
   const projectId = $('#projectId').val();
   const api = '/api/projects/' + encodeURIComponent(projectId);
-  const MODE_NAMES = { blocks: 'Blocks', c: 'Advanced C', asm: 'Assembly (RISC-V)' };
+  const MODE_NAMES = { blocks: 'Blocks', c: 'C', asm: 'Assembly (RISC-V)' };
   let project = null;
   let mode = 'blocks';
   let dirty = false;
@@ -106,8 +106,10 @@
       id, title, closable: options.closable,
       render(panel) {
         const toolbar = options.readOnly
-          ? $(`<div class="ide-editor-toolbar"><span class="small text-muted"></span>
-              <button class="btn btn-outline-secondary btn-sm" type="button">Copy</button></div>`).appendTo(panel)
+          ? $(`<div class="ide-editor-toolbar"><span class="small text-muted"></span><span class="d-flex gap-1">
+              <button class="btn btn-outline-secondary btn-sm ide-copy" type="button">Copy</button>
+              ${options.download ? '<button class="btn btn-outline-secondary btn-sm ide-download" type="button"><i class="bi bi-download" aria-hidden="true"></i> Download</button>' : ''}
+              </span></div>`).appendTo(panel)
           : null;
         if (toolbar) toolbar.find('span').text(options.note || 'Read-only: made from the blocks.');
         const host = $('<div class="ide-monaco" data-focus-target></div>').appendTo(panel);
@@ -118,8 +120,16 @@
         editors[id] = editor;
         host.data('focus', () => editor.focus());
         trackCursor(editor);
-        if (toolbar) toolbar.find('button').on('click', () => navigator.clipboard.writeText(editor.getValue())
+        if (toolbar) toolbar.find('.ide-copy').on('click', () => navigator.clipboard.writeText(editor.getValue())
           .then(() => Kit.toast('Copied', 'success')).catch(() => Kit.toast('Select all and copy with Ctrl+C', 'warning')));
+        // Export the generated code as a file (the project stays Blocks; Convert makes it code for good).
+        if (toolbar && options.download) toolbar.find('.ide-download').on('click', () => {
+          const link = document.createElement('a');
+          link.href = URL.createObjectURL(new Blob([editor.getValue()], { type: 'text/plain' }));
+          link.download = options.download;
+          link.click();
+          setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+        });
         if (options.onChange) editor.onDidChangeModelContent(options.onChange);
       },
       onShow() { if (editors[id]) setTimeout(() => editors[id].layout(), 0); },
@@ -171,7 +181,8 @@
       IdeShell.activateTab('gen-' + kind);
     } else {
       monacoTab('gen-' + kind, titles[kind], languages[kind], generated[kind] || '// Press Generate to make this file.',
-                { readOnly: true, closable: true, ariaLabel: titles[kind] + ', read-only' });
+                { readOnly: true, closable: true, ariaLabel: titles[kind] + ', read-only',
+                  download: { c: 'game.c', asm: 'game.S', ir: 'game.ir.json' }[kind] });
     }
     if (focus) editors['gen-' + kind].focus();
     if (generated[kind] === null) generate();
@@ -486,7 +497,8 @@
   // --- mode ----------------------------------------------------------------------------------------
   function applyMode(newMode, sprites) {
     mode = newMode;
-    $('#ideMode').val(mode);
+    $('#ideType').text(MODE_NAMES[mode]).attr('data-type', mode);
+    $('#ideProjectItems .ide-blocks-only').prop('hidden', mode !== 'blocks');
     $('#statusMode').text(MODE_NAMES[mode]);
     for (const id of Array.from(IdeShell.tabs.keys())) {
       if (id !== 'blocks' && id !== 'src') IdeShell.closeTab(id);
@@ -521,9 +533,8 @@
     command('toggle-files', 'Show or hide the project files', 'Alt+1', () => IdeShell.showPane('tree'));
     command('toggle-panel', 'Show or hide the tool window', 'Alt+4', () => IdeShell.showPane('panel'));
     command('toggle-simulator', 'Show or hide the simulator', 'Alt+9', () => IdeShell.showPane('sim'));
-    command('mode-blocks', 'Switch to Blocks', '', () => switchMode('blocks'));
-    command('mode-c', 'Switch to Advanced C', '', () => switchMode('c'));
-    command('mode-asm', 'Switch to Assembly (RISC-V)', '', () => switchMode('asm'));
+    command('convert-c', 'Convert this Blocks project to C (one way)', '', () => mode === 'blocks' && askConvert('c'));
+    command('convert-asm', 'Convert this Blocks project to Assembly (one way)', '', () => mode === 'blocks' && askConvert('asm'));
     command('classic', 'Open the classic editor', '', () => { window.location.href = '/projects/' + encodeURIComponent(projectId); });
     IdeShell.addShortcut({ key: 's', ctrl: true, run: () => save() });
     IdeShell.addShortcut({ key: 'g', ctrl: true, shift: true, run: () => generate() });
@@ -532,14 +543,31 @@
   }
 
   let spriteList = [];
-  function switchMode(newMode) {
-    if (newMode === mode) return;
-    applyMode(newMode, spriteList);
-    setDirty(true);
-    Kit.toast(`Switched to ${MODE_NAMES[newMode]}. Save to keep it.`, 'info');
+
+  // --- convert Blocks to C or assembly: one way (ADR-0024) ------------------------------------------
+  let convertTo = null;
+  function askConvert(language) {
+    convertTo = language;
+    $('#ideConvertDialog .ide-convert-to').text(MODE_NAMES[language]);
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('ideConvertDialog')).show();
   }
 
-  $('#ideMode').on('change', function () { switchMode(this.value); });
+  function convert(language) {
+    log(`Convert: making this project ${MODE_NAMES[language]}…`);
+    return save({ noCheck: true, quiet: true })
+      .then(() => Kit.api(api + '/convert_to', { method: 'POST', body: { language, expected_version: project.version } }))
+      .then(() => {
+        dirty = false;   // saved and converted: no "leave page?" question
+        window.location.reload();
+      })
+      .catch(err => { log('Convert: ' + err.message, 'error'); Kit.toast(err.message, 'danger'); });
+  }
+
+  $('#ideProjectItems').on('click', '[data-convert]', function () { askConvert($(this).data('convert')); });
+  $('#ideConvertConfirm').on('click', () => {
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('ideConvertDialog')).hide();
+    if (convertTo) convert(convertTo);
+  });
   $('#ideSave').on('click', () => save());
   $('#ideGenerate').on('click', () => generate());
   $('#ideCompile').on('click', () => compile());

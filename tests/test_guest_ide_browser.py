@@ -166,5 +166,5 @@ def test_new_project_asks_blocks_c_or_assembly(browser, live_kit):  # noqa: F811
         page.wait_for_url(f"{live_kit}/ide/**")
         wait_until(page, "document.getElementById('ide').dataset.ready === 'true'")
         assert page.evaluate("PRG32Ide.mode") == mode
-        assert page.input_value("#ideMode") == mode
+        assert page.get_attribute("#ideType", "data-type") == mode
     context.close()

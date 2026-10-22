@@ -86,12 +86,12 @@ def test_identical_consecutive_snapshots_are_skipped(app, client):
 
 
 def test_advanced_c_source_changes_are_kept(client):
-    project = new_project(client)
+    project = client.post("/api/projects", json={"title": "History Game",
+                                                 "game_json": {"source_mode": "c", "source_c": C_SOURCE}}).get_json()
     path = f"/api/projects/{project['id']}"
-    client.put(path, json={"game_json": {"source_mode": "c", "source_c": C_SOURCE}})
     client.put(path, json={"game_json": {"source_mode": "c", "source_c": C_SOURCE + "/* more */\n"}})
     history = revisions(client, project["id"])
-    assert [rev["authoring_mode"] for rev in history] == ["c", "blocks"]
+    assert [rev["authoring_mode"] for rev in history] == ["c"]
     archive = client.get(f"{path}/revisions/{history[0]['id']}/archive")
     files = zipfile.ZipFile(io.BytesIO(archive.data))
     assert files.read("src/game.c").decode() == C_SOURCE
@@ -100,13 +100,13 @@ def test_advanced_c_source_changes_are_kept(client):
 def test_handwritten_assembly_changes_are_kept_and_restored(client):
     asm_v1 = "    .section .text\n    .globl history_game_init\nhistory_game_init:\n    ret\n"
     asm_v2 = asm_v1 + "    /* a second version */\n"
-    project = new_project(client)
+    project = client.post("/api/projects", json={"title": "History Game",
+                                                 "game_json": {"source_mode": "asm", "source_asm": asm_v1}}).get_json()
     path = f"/api/projects/{project['id']}"
-    client.put(path, json={"game_json": {"source_mode": "asm", "source_asm": asm_v1}})
     client.put(path, json={"game_json": {"source_mode": "asm", "source_asm": asm_v1}})  # unchanged: nothing kept
     client.put(path, json={"game_json": {"source_mode": "asm", "source_asm": asm_v2}})
     history = revisions(client, project["id"])
-    assert [rev["authoring_mode"] for rev in history] == ["assembly", "blocks"]
+    assert [rev["authoring_mode"] for rev in history] == ["assembly"]
     archive = zipfile.ZipFile(io.BytesIO(client.get(f"{path}/revisions/{history[0]['id']}/archive").data))
     assert archive.read("src/game.S").decode() == asm_v1
     restored = client.post(f"{path}/revisions/{history[0]['id']}/restore").get_json()["project"]

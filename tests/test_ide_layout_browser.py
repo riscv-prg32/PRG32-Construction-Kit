@@ -141,3 +141,36 @@ def test_the_ide_is_clean_at_three_widths(browser, live_kit):  # noqa: F811
             found = serious(page)
             assert found == [], (width, panel, json.dumps(found, indent=1))
         context.close()
+
+
+def convert_in_the_ide(page, live_kit, project_id):  # noqa: F811
+    open_ide(page, live_kit, project_id)
+    assert page.get_attribute("#ideType", "data-type") == "blocks"
+    page.click("#ideProjectMenu")
+    page.click("#ideProjectItems [data-convert=c]")
+    wait_until(page, "!!document.querySelector('#ideConvertDialog.show')")
+    assert "cannot be undone" in page.inner_text("#ideConvertDialog")
+    page.click("#ideConvertConfirm")
+    page.wait_for_load_state("load")
+    wait_until(page, "document.getElementById('ide').dataset.ready === 'true' && "
+                     "document.getElementById('ideType').dataset.type === 'c'", timeout=30)
+    assert "this is your own C now" in page.evaluate("PRG32Ide.editors.src.getValue()")
+    page.click("#ideProjectMenu")
+    assert page.is_hidden("#ideProjectItems [data-convert=c]")     # never again, never back
+    back = page.evaluate("""id => Kit.api('/api/projects/' + id, {method: 'PUT', body: {game_json: {abi: 'ir'}}})
+        .then(() => 'saved', err => err.code)""", project_id)
+    assert back == "type_locked"
+
+
+def test_blocks_convert_to_c_once_for_an_account_and_a_guest(browser, live_kit):  # noqa: F811
+    context = browser.new_context(viewport={"width": 1440, "height": 900})
+    page = context.new_page()
+    sign_in(page, live_kit)
+    convert_in_the_ide(page, live_kit, new_project(page, "blocks"))
+    context.close()
+    context = browser.new_context(viewport={"width": 1440, "height": 900})
+    page = context.new_page()
+    page.goto(live_kit + "/")
+    wait_until(page, "window.Kit && Kit.guest === true")
+    convert_in_the_ide(page, live_kit, new_project(page, "blocks"))
+    context.close()
