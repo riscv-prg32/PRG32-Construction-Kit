@@ -227,6 +227,12 @@ def test_a_student_copies_a_shared_project_to_change_it(browser, live_kit):  # n
     page.goto(f"{live_kit}/ide/{shared}")
     wait_until(page, "document.getElementById('ide').dataset.ready === 'true'", timeout=30)
     assert page.is_visible("#ideShared") and page.is_disabled("#ideSave")
+    assert page.inner_text("#statusSaved") == "Read-only (shared)"
+    # A shared game runs and generates without being saved (Run reads it; Generate keeps nothing).
+    page.click("#ideRun")
+    wait_until(page, "document.getElementById('statusBuild').textContent.startsWith('Running')", timeout=60)
+    page.click("#ideGenerate")
+    wait_until(page, "document.getElementById('statusBuild').textContent === 'Generated'", timeout=30)
     page.click("#ideSharedCopy")
     page.wait_for_url(lambda url: "/ide/" in url and shared not in url)
     wait_until(page, "document.getElementById('ide').dataset.ready === 'true'", timeout=30)
