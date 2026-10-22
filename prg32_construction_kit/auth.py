@@ -727,7 +727,7 @@ def required_scope(method: str, path: str) -> str:
 # browser; only these APIs answer, and they store nothing (guest_api.py). Everything else, such as
 # building a cartridge, publishing, classes and every saved resource, still asks for a sign-in.
 GUEST_PAGES = re.compile(r"^/(|sprites|player|audio-studio|(ide|projects|audio-studio)/[A-Za-z0-9_-]{1,64})$")
-GUEST_APIS = re.compile(r"^/api/(guest/.+|examples)$")
+GUEST_APIS = re.compile(r"^/api/(guest/.+|examples|starters/[a-z]+)$")
 
 
 def guest_workspace_open() -> bool:
@@ -741,8 +741,8 @@ def guest_may(method: str, path: str) -> bool:
     if GUEST_PAGES.match(path):
         return method in ("GET", "HEAD")
     if GUEST_APIS.match(path):
-        return method in ("GET", "HEAD") if path == "/api/examples" or path.startswith("/api/guest/examples/") \
-            else method == "POST"
+        read_only = path == "/api/examples" or path.startswith(("/api/guest/examples/", "/api/starters/"))
+        return method in ("GET", "HEAD") if read_only else method == "POST"
     return False
 
 

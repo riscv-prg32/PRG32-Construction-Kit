@@ -147,3 +147,24 @@ def test_a_skin_and_the_site_name_apply_at_once(browser, live_kit):  # noqa: F81
     page.evaluate("""fetch('/api/admin/settings', {method: 'PUT', headers: {'Content-Type': 'application/json',
         'X-PRG32-Kit': '1'}, body: JSON.stringify({settings: {SITE_NAME: null, SKIN: null, COLOR_SCHEME: null}})})""")
     context.close()
+
+
+def test_new_project_asks_blocks_c_or_assembly(browser, live_kit):  # noqa: F811
+    """The New Project dialog offers the three kinds; C and assembly open in the IDE, ready to edit."""
+    context = browser.new_context()
+    page = guest_home(context, live_kit)
+    page.click("#storageNoticeOk")
+    for kind, mode, title in (("c", "c", "Rocket C"), ("asm", "asm", "Rocket Asm")):
+        page.goto(live_kit + "/")
+        wait_until(page, "window.Kit && Kit.guest")
+        page.click("button[data-bs-target='#newProjectModal']")
+        wait_until(page, "!!document.querySelector('#newProjectModal.show')")
+        page.check(f"#newProjectKinds input[value={kind}]")
+        assert page.input_value("#newProjectSummary").endswith("C." if kind == "c" else "assembly.")
+        page.fill("#newProjectName", title)
+        page.click("#newProjectForm button[type=submit]")
+        page.wait_for_url(f"{live_kit}/ide/**")
+        wait_until(page, "document.getElementById('ide').dataset.ready === 'true'")
+        assert page.evaluate("PRG32Ide.mode") == mode
+        assert page.input_value("#ideMode") == mode
+    context.close()

@@ -119,14 +119,16 @@
         "prg32_construction_kit/project_format.py::build_manifest",
         "prg32_construction_kit/project_format.py::upgrade",
         "prg32_construction_kit/routes.py::save_revision",
-        "prg32_construction_kit/routes.py::restore_plan"
+        "prg32_construction_kit/routes.py::restore_plan",
+        "prg32_construction_kit/sample_data.py::starter_project"
       ],
       "tests": [
         "tests/test_project_format.py::test_archive_round_trip_keeps_blocks_sprites_and_assets",
         "tests/test_project_format.py::test_legacy_json_export_is_migrated",
-        "tests/test_restore_relationships.py::test_restore_updates_in_place_adds_and_removes"
+        "tests/test_restore_relationships.py::test_restore_updates_in_place_adds_and_removes",
+        "tests/test_project_starters.py::test_c_and_assembly_starters_pass_the_handwritten_checks"
       ],
-      "note": "Autosave and conflict-safe saves done (ADR-0017); no project search and no automatic merge of concurrent edits (the student chooses)."
+      "note": "Autosave and conflict-safe saves done (ADR-0017); no project search and no automatic merge of concurrent edits (the student chooses). New Project offers Blocks, C or assembly; C and assembly start from the starter game turned into code (/api/starters)."
     },
     {
       "id": "BLD-01",

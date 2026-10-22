@@ -214,6 +214,7 @@ window.PRG32GuestApi = (function () {
     ['GET', /^\/api\/builds$/, () => Promise.resolve({ builds: [] })],
     ['GET', /^\/api\/cloud$/, () => Promise.resolve({ providers: [] })],
     ['GET', /^\/api\/examples$/, () => server('/api/examples')],
+    ['GET', /^\/api\/starters\/(blocks|c|asm)$/, (m, q) => server('/api/starters/' + m[1] + '?title=' + encodeURIComponent(q.get('title') || ''))],
     ['POST', /^\/api\/examples\/([A-Za-z0-9_-]{1,64})\/import$/, m => importExample(m[1])],
   ];
 

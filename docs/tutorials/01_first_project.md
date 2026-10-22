@@ -6,8 +6,10 @@ Goal: create a tiny PRG32 game that draws a player square.
 
 1. Open the home page.
 2. Click **New Project**.
-3. Title it `First Square`.
-4. Click **Create**.
+3. Keep **Blocks** selected. (The dialog also offers **C** and **Assembly (RISC-V)**: they start
+   from a small working game, written as code and explained line by line, and open in the IDE.)
+4. Title it `First Square`.
+5. Click **Create**.
 
 ## 2. Build the start state
 

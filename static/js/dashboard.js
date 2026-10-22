@@ -78,12 +78,37 @@
     }).catch(err => $('#exampleList').html(`<div class="alert alert-danger">${Kit.escape(err.message)}</div>`));
   }
 
+  // New Project: Blocks, C or assembly. The summary and tags follow the choice until the
+  // student changes them; C and assembly start from the kit's starter game (/api/starters).
+  const KIND_DEFAULTS = {
+    blocks: { description: 'A block-built PRG32 cartridge.', tags: 'blocks,classroom' },
+    c: { description: 'A PRG32 cartridge written in C.', tags: 'c,classroom' },
+    asm: { description: 'A PRG32 cartridge written in RISC-V assembly.', tags: 'assembly,classroom' },
+  };
+  let kindShown = 'blocks';
+  $('#newProjectKinds').on('change', 'input[name=kind]', function () {
+    const before = KIND_DEFAULTS[kindShown];
+    const after = KIND_DEFAULTS[this.value];
+    const summary = $('#newProjectSummary');
+    const tags = $('#newProjectTags');
+    if (summary.val() === before.description) summary.val(after.description);
+    if (tags.val() === before.tags) tags.val(after.tags);
+    kindShown = this.value;
+  });
+
   $('#newProjectForm').on('submit', function (event) {
     event.preventDefault();
     const form = new FormData(this);
+    const kind = form.get('kind') || 'blocks';
+    const title = form.get('title');
     const tags = String(form.get('tags') || '').split(',').map(t => t.trim()).filter(Boolean);
-    Kit.api('/api/projects', { method: 'POST', body: { title: form.get('title'), author: form.get('author'), description: form.get('description'), tags, blocks_json: starterBlocks(), game_json: {} } })
-      .then(project => { Kit.toast('Project created', 'success'); window.location.href = '/projects/' + encodeURIComponent(project.id); })
+    const starter = kind === 'blocks' ? Promise.resolve({ blocks_json: starterBlocks(), game_json: {} })
+      : Kit.api('/api/starters/' + encodeURIComponent(kind) + '?title=' + encodeURIComponent(title));
+    starter.then(start => Kit.api('/api/projects', { method: 'POST', body: { title, author: form.get('author'),
+      description: form.get('description'), tags, blocks_json: start.blocks_json, game_json: start.game_json } }))
+      // C and assembly are written in the IDE (Monaco); Blocks open in the editor as before.
+      .then(project => { Kit.toast('Project created', 'success');
+        window.location.href = (kind === 'blocks' ? '/projects/' : '/ide/') + encodeURIComponent(project.id); })
       .catch(err => Kit.toast(err.message, 'danger'));
   });
 

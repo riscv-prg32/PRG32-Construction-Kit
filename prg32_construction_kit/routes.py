@@ -757,6 +757,18 @@ def api_list_examples():
     )
 
 
+@bp.get("/api/starters/<kind>")
+def api_starter(kind: str):
+    """A new project's starting point: Blocks, C or assembly (?title= gives the entry names). Stores nothing."""
+    from .sample_data import starter_project
+
+    title = str(request.args.get("title") or "My PRG32 Game")[:200]
+    try:
+        return jsonify(starter_project(kind, title))
+    except ValueError as error:
+        return json_error(str(error), 404)
+
+
 @bp.post("/api/examples/<slug>/import")
 def api_import_example(slug: str):
     for item in example_catalog():

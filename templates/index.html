@@ -96,18 +96,38 @@
   </div>
 </div>
 
-<div class="modal fade" id="newProjectModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="newProjectModal" tabindex="-1" aria-hidden="true" aria-labelledby="newProjectTitle">
   <div class="modal-dialog">
     <form class="modal-content" id="newProjectForm">
       <div class="modal-header">
-        <h5 class="modal-title">Create a PRG32 Blocks project</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        <h5 class="modal-title" id="newProjectTitle">Create a PRG32 project</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        <div class="mb-3"><label class="form-label">Title</label><input class="form-control" name="title" value="My PRG32 Game" required></div>
-        <div class="mb-3"><label class="form-label">Author</label><input class="form-control" name="author" value="Student"></div>
-        <div class="mb-3"><label class="form-label">Summary</label><textarea class="form-control" name="description" rows="3">A block-built PRG32 cartridge.</textarea></div>
-        <div class="mb-3"><label class="form-label">Tags</label><input class="form-control" name="tags" value="blocks,classroom"></div>
+        <fieldset class="mb-3">
+          <legend class="form-label fs-6">How do you want to write it?</legend>
+          <div class="vstack gap-2" id="newProjectKinds">
+            <label class="form-check border rounded p-2 ps-5 mb-0">
+              <input class="form-check-input" type="radio" name="kind" value="blocks" checked>
+              <span class="fw-semibold"><i class="bi bi-puzzle" aria-hidden="true"></i> Blocks</span>
+              <span class="d-block small text-muted">Snap blocks together; the kit shows the C and assembly they make.</span>
+            </label>
+            <label class="form-check border rounded p-2 ps-5 mb-0">
+              <input class="form-check-input" type="radio" name="kind" value="c">
+              <span class="fw-semibold"><i class="bi bi-braces" aria-hidden="true"></i> C</span>
+              <span class="d-block small text-muted">Write the game in C with the PRG32 functions. It starts from a small working game, explained line by line.</span>
+            </label>
+            <label class="form-check border rounded p-2 ps-5 mb-0">
+              <input class="form-check-input" type="radio" name="kind" value="asm">
+              <span class="fw-semibold"><i class="bi bi-cpu" aria-hidden="true"></i> Assembly (RISC-V)</span>
+              <span class="d-block small text-muted">Write the instructions the processor runs. It starts from the same small game, explained line by line.</span>
+            </label>
+          </div>
+        </fieldset>
+        <div class="mb-3"><label class="form-label" for="newProjectName">Title</label><input class="form-control" id="newProjectName" name="title" value="My PRG32 Game" required></div>
+        <div class="mb-3"><label class="form-label" for="newProjectAuthor">Author</label><input class="form-control" id="newProjectAuthor" name="author" value="Student"></div>
+        <div class="mb-3"><label class="form-label" for="newProjectSummary">Summary</label><textarea class="form-control" id="newProjectSummary" name="description" rows="3">A block-built PRG32 cartridge.</textarea></div>
+        <div class="mb-3"><label class="form-label" for="newProjectTags">Tags</label><input class="form-control" id="newProjectTags" name="tags" value="blocks,classroom"></div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>

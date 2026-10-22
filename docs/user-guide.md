@@ -9,7 +9,9 @@ Start here, then follow the links.
 4. **Reading the C and assembly the blocks make:** `generated_code.md`.
 5. **Saving, handing in and sharing projects:** `project_archive.md`;
    going back to an earlier version or a deleted project: `project_history.md`.
-6. **Writing a game directly in RISC-V assembly:** `handwritten_assembly.md`.
+6. **Writing a game directly in C or RISC-V assembly:** choose **C** or **Assembly** in the
+   **New Project** dialog; it starts from a small working game. Assembly rules:
+   `handwritten_assembly.md`.
 7. **Playing your real cartridge in the browser:** `wasm_runtime.md`;
    stepping through it instruction by instruction: `tutorials/07_debugger.md`.
    Working without the server: `offline.md`.
