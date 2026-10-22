@@ -11,31 +11,36 @@
 
 ## High
 
-### H-00 — Mandatory GDPR accountability and rights evidence is absent
+### H-00 — Deployment GDPR decisions and qualified review remain open
 
-No `docs/privacy/` program exists, and repository search/source inspection found
-no complete ROPA, role/legal-basis matrix, notices, rights workflows,
-processor/transfer records, DPIA/DPO determinations, breach exercise or legal
-approval. Existing project export, retention and admin deletion functions do
-not cover the complete personal-data lifecycle. Reproduce with
-`find docs/privacy -type f` (no directory) and compare the limited project
-export/account deletion paths at `prg32_construction_kit/project_format.py:183`
-and `prg32_construction_kit/retention.py:120` with the required data stores.
-Expected: current technical, operational and counsel/DPO evidence. Actual:
-partial privacy-supporting controls only. Create the privacy evidence program
-and implement/test end-to-end rights before reassessment.
+Technical implementation is now strong, but every deployment decision D-0 through
+D-10 remains open at `docs/privacy/decisions.md:12-22`. The DPIA is explicitly
+not done (`docs/privacy/children_dpia_dpo.md:40-43`), no DPO/counsel has reviewed
+the material (`:59-61`), processor rows remain templates, and the only breach
+exercise was an unstaffed technical rehearsal (`docs/privacy/exercises/README.md:3-8`).
+Expected: named controller, applicable legal bases and Member-State rules,
+completed DPIA/DPO decisions, contracts/transfers, staffed exercise and qualified
+review for the actual deployment. Actual: maintainers' technically tested
+template, correctly marked NO-GO. Complete and approve these records before use.
 
-### H-00B — README, architecture and visuals materially lag the product
+### H-00B — Closed: documentation and visual freshness are now evidenced
 
-`README.md:8-23` advertises the older Blocks and JavaScript-simulator workflow
-but omits the Full IDE, real WASM guest, debugger and AudioStudio.
-`docs/architecture.md:17-44` likewise shows a linear Blocks-to-simulator pipeline
-without account, cloud, Store, privacy, build-isolation, debugger or audio trust
-boundaries. The only README hero (`README.md:5`) has no recorded commit, capture
-recipe or review date, and no visual freshness manifest/checker was found.
-Expected: current, reproducible, accessible documentation tied to the audited
-revision. Actual: extensive but materially stale entry-point and architecture
-evidence. Refresh the documentation and add automated freshness gates.
+README, architecture, diagrams, screenshots and documentation gates now pass.
+`tools/check_docs.py`, `tools/build_diagrams.py --check`, `tools/render_ropa.py
+--check`, `docs/figures/manifest.json` and human review commits provide the
+required reproducibility and freshness evidence.
+
+### H-00C — Kit/CartridgeStore shared username contract regressed
+
+Run `python3 -m pytest -q
+tests/test_sso_with_cartridge_store.py::test_kit_user_can_sign_in_to_the_store`.
+The Store accepts `ada@school.test` and the correct password, but `/api/me`
+returns a generated `player-*` username instead of `ada`
+(`tests/test_sso_with_cartridge_store.py:75`). Expected: the documented shared
+account identity. Actual: authenticated account with a divergent username.
+Decide whether pseudonymous Store usernames are now canonical; if so, migrate
+the contract/docs/test explicitly. Otherwise preserve the Kit username through
+the synchronization path.
 
 ### H-01 — Required audio changes are not canonical upstream
 
@@ -67,6 +72,6 @@ Automated accessibility and keyboard scenarios pass, but AudioStudio tasks 10–
 
 ## Release conclusion
 
-The expanded assessment scores **127/156**. The release is **NO-GO** because
-`GDPR-01` and `DOC-02` fail mandatory gates, independently of the remaining
-audio/hardware blockers.
+The expanded assessment scores **131/156**. The release remains **NO-GO** because
+the actual-deployment GDPR decisions and qualified review are open. Documentation
+freshness is closed; shared-account identity and audio/hardware blockers remain.

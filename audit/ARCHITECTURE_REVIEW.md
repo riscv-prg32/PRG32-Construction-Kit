@@ -8,22 +8,17 @@ Audio has a clear convergence path. Browser, native and patched Qt use the firmw
 
 Current revisions: Kit `951f782f3c54a306d2bad70396127fc74a596158`; PRG32 `679dfb58783bd007125de9ca0b75eaa077908739`; PRG32-QT `f6d80addf49d0512c2e4390251a81d797a35b157`; CartridgeStore `820f74bfe9364c8727db92cb0f15f3b9dd85feab`.
 
-## Documentation and privacy architecture gap
+## Documentation and privacy architecture reassessment
 
-The implementation has outgrown its primary architecture document.
-`docs/architecture.md:17-44` omits the IDE language modes, WASM guest/debugger,
-AudioStudio/AUD0 path, guest/account/school identity, cloud providers, Store
-tickets, token boundaries, retention/deletion and backup flows. Its pipeline
-still routes through the JavaScript simulator and does not show the validated
-source-only paths or trust boundaries.
+The gap is closed for repository documentation. `docs/architecture.md` and the
+generated architecture, pipeline, game-loop and personal-data diagrams now show
+the single IDE, validated Blocks/C/assembly paths, isolated builds, WASM/debugger,
+AudioStudio/AUD0, browser/SQLite/files/backups, identity/cloud/GitHub/Store and
+secret/retention boundaries. The visual manifest and generators passed their
+freshness checks.
 
-No maintained personal-data flow/role diagram or field-level inventory was
-found. Consequently the audit cannot verify controller/processor allocations,
-the complete storage/recipient/transfer surface, or deletion/export propagation
-from the architecture documentation. The refreshed diagrams must distinguish
-browser IndexedDB, Flask/session boundary, SQLite, build/artifact folders,
-backups, identity/cloud providers and CartridgeStore, and must label secrets,
-retention and unsupported/unverified paths.
+The field-level ROPA and privacy diagrams are technical templates rather than an
+approved deployment architecture until the controller fills the provider,
+hosting, transfer, legal-basis, DPIA and DPO decisions.
 
-Current Kit revision for this refinement audit:
-`7c83e716796ae8b2a5771173d885d5f20a390209`.
+Current Kit revision: `bb2b0625abd6b9740948c12f4c7b55170bcdd8b0`.

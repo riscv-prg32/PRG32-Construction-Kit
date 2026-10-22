@@ -1,6 +1,6 @@
 # Remediation status
 
-Status at `7c83e716796ae8b2a5771173d885d5f20a390209`.
+Status at `bb2b0625abd6b9740948c12f4c7b55170bcdd8b0`.
 
 | Item | Status |
 |---|---|
@@ -13,8 +13,9 @@ Status at `7c83e716796ae8b2a5771173d885d5f20a390209`.
 | PRG32-QT delivery | Implemented/tested through canonical web API; desktop Import UI untested |
 | Physical console/iOS | Missing |
 | Human screen reader | Missing |
-| GDPR lifecycle evidence | Missing: no ROPA, role/legal-basis matrix, complete rights evidence, processor/transfer register, DPIA/DPO/counsel decisions or breach exercise |
-| README/architecture/visual freshness | Failed: primary entry point and architecture are stale; no visual manifest or complete freshness CI gate |
+| GDPR lifecycle evidence | Technical implementation/test evidence strong; deployment controller/legal basis/DPIA/DPO/contracts/transfers/staffed exercise still open |
+| README/architecture/visual freshness | Closed: current docs, generated diagrams, complete visual manifest, reviewer records and CI freshness gates pass |
+| Shared Kit/Store identity | Regression: login succeeds but Store username is generated rather than shared |
 
-Recommendation: **NO-GO**. The new GDPR and documentation hard gates supersede
-the previous bounded workflow recommendation.
+Recommendation: **NO-GO**. Deployment GDPR approval remains a hard gate; the
+shared-identity regression and earlier audio/hardware gaps also remain.

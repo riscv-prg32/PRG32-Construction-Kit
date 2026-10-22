@@ -540,7 +540,7 @@
       "id": "SSO-04",
       "title": "Shared accounts with CartridgeStore",
       "status": "implemented",
-      "audit_score": 4,
+      "audit_score": 3,
       "source": [
         "prg32_construction_kit/sso_protocol.py::make_ticket",
         "prg32_construction_kit/sso_protocol.py::verify_request"
@@ -720,7 +720,7 @@
       "id": "GDPR-01",
       "title": "Personal data: accountability, rights and incident response",
       "status": "partial",
-      "audit_score": 0,
+      "audit_score": 3,
       "source": [
         "prg32_construction_kit/privacy.py::erase_account",
         "prg32_construction_kit/privacy.py::export_personal_data",
@@ -782,7 +782,7 @@
       "id": "DOC-02",
       "title": "Truthful entry point, architecture and visual freshness",
       "status": "partial",
-      "audit_score": 1,
+      "audit_score": 4,
       "source": [
         "README.md",
         "docs/architecture.md",
@@ -804,7 +804,7 @@
       "id": "QLT-01",
       "title": "Quality gates: tests, lint, E2E, a11y, performance",
       "status": "partial",
-      "audit_score": 4,
+      "audit_score": 3,
       "source": [],
       "tests": [
         "tests/test_capabilities.py::test_rendered_table_is_up_to_date",

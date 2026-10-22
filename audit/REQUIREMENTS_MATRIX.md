@@ -28,7 +28,7 @@ Scores: 0 missing, 1 prototype, 2 partial, 3 implemented/tested with an evidence
 | SSO-01 | 4 | Reference-verified | PKCE and issuer+subject pass signed fake-provider tests and nine live Keycloak scenarios. |
 | SSO-02 | 4 | Reference-verified | Multi-IdP, role claims, collision/linking, recovery, deactivation and documented local logout pass live/provider tests. |
 | SSO-03 | 4 | Reference-verified | Academic/class RBAC and scoped token denial paths are covered. |
-| SSO-04 | 4 | Reference-verified | Fresh disposable HTTP Kit/CartridgeStore tests verify shared users/roles, one-time sign-on tickets and publisher-scoped upload tickets. |
+| SSO-04 | 3 | Implemented/tested with regression | Sign-on and tickets work, but the fresh adjacent-repository test fails because CartridgeStore returns a generated `player-*` username instead of the Kit's shared username. |
 | CLD-01 | 3 | Implemented/tested | Drive provider, least privilege, encrypted tokens and conflicts pass fake/browser tests; no real Google account run. |
 | CLD-02 | 3 | Implemented/tested | OneDrive provider, app-folder scope, encrypted tokens and conflicts pass fake/browser tests; no real Microsoft account run. |
 | STR-01 | 4 | Reference-verified | Versioned contract and deterministic fixtures pass against CartridgeStore code and a throwaway live Store. |
@@ -38,12 +38,12 @@ Scores: 0 missing, 1 prototype, 2 partial, 3 implemented/tested with an evidence
 | DEP-03 | 0 | Missing | iOS handoff not verified. |
 | SEC-01 | 3 | Implemented/tested | SSRF/sandbox boundaries tested; per-build UID/AppArmor/disk limit gaps remain. |
 | SEC-02 | 4 | Reference-verified | Credential/session controls, retention, auditing, throttling, CSP, hash-locked dependencies and SBOM are covered. |
-| GDPR-01 | 0 | Missing | No maintained privacy area, field-level ROPA, legal-basis/role matrix, complete rights workflows, processor/transfer records, breach exercise, DPIA/DPO decisions or counsel/DPO approval exists. Existing security, retention and per-project export/delete controls are not complete lifecycle GDPR evidence. |
+| GDPR-01 | 3 | Implemented/tested; operational gate open | Generated field-level ROPA, notices, complete export/erasure/restriction, backup re-erasure, processor/transfer templates and technical breach rehearsal pass meaningful tests. Actual controller/legal bases, Member-State rules, DPIA, DPO/counsel review, contracts/transfers and staffed exercise remain explicitly open release blockers. |
 | OPS-01 | 4 | Reference-verified | CI/deployment/migrations and a tested backup/restore drill are documented and exercised. |
 | DOC-01 | 4 | Reference-verified | Capability IDs, generated status, traceability and commit-named milestones pass consistency tests with no ambiguous “this change” rows. |
-| DOC-02 | 1 | Prototype/stale | The repository has extensive docs and visuals, but README and `docs/architecture.md` materially describe the older product, architecture visuals lack a provenance/freshness manifest, and no complete automated link/image/alt/claim-freshness gate was found. |
-| QLT-01 | 4 | Reference-verified | Required browser CI, lint/coverage gates, performance budgets, accessibility evidence and regression coverage are present. |
+| DOC-02 | 4 | Reference-verified | Current README/architecture, generated diagrams, synthetic screenshots, visual manifest, human review records and CI checks for links/images/alt text/orphans/names/IDs/freshness all pass. |
+| QLT-01 | 3 | Implemented/tested with regression | Broad coverage and quality gates remain strong, but the fresh feasible suite has one reproducible adjacent-repository SSO contract failure; browser rerun was unavailable locally. |
 
-Domain totals: IDE 14/16; Project 3/4; Build 7/8; WASM 8/8; Audio 13/16; Debug 22/24; Accounts 8/8; SSO 16/16; Cloud 6/8; Store 7/8; Delivery 3/12; Security 7/8; GDPR 0/4; Operations 4/4; Documentation 5/8; Quality 4/4.
+Domain totals: IDE 14/16; Project 3/4; Build 7/8; WASM 8/8; Audio 13/16; Debug 22/24; Accounts 8/8; SSO 15/16; Cloud 6/8; Store 7/8; Delivery 3/12; Security 7/8; GDPR 3/4; Operations 4/4; Documentation 8/8; Quality 3/4.
 
-**Total: 127/156 (81.4%).**
+**Total: 131/156 (84.0%).**

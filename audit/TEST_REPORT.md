@@ -1,11 +1,15 @@
 # Test report
 
-Audited HEAD: `7c83e716796ae8b2a5771173d885d5f20a390209` on 2026-10-21. The implementation evidence below was retained from the immediately preceding audit; this refinement audit added source inspection and a fresh focused run.
+Audited HEAD: `bb2b0625abd6b9740948c12f4c7b55170bcdd8b0` on 2026-10-22.
 
 ## Fresh execution
 
 | Scope | Result |
 |---|---|
+| Privacy, docs, guest, run-build, settings, GitHub, project-type, security, authorization and consistency selection | **441 passed, 1 skipped** in 49.51 s |
+| Broad feasible suite, rerun with disposable loopback/compiler-cache access | **1,330 passed, 56 skipped, 1 failed** in 267.76 s |
+| Mandatory browser selection with `PRG32_REQUIRE_BROWSER=1` | **5 passed, 40 setup errors**: no Chrome or Playwright Chromium installed |
+| Isolated failing interoperability scenario | **1 failed**, reproduced twice |
 | Documentation, capability, authentication, authorization, storage, cloud, backup and API selection | **331 passed** in 34.42 s |
 | Audio, upstream-patch, compiler-check, delivery, live-SSO, documentation and capability selection | **294 passed, 9 skipped, 5 sandbox setup errors** |
 | Delivery tests with loopback permission | **8 passed** |
@@ -30,8 +34,9 @@ The nine focused skips were explicit: live QEMU opt-in, local toolchain-dependen
 
 ## Limitations
 
-- No live data-subject request, deletion propagation into real cloud/Store/backups, breach tabletop, DPIA/DPO decision or legal review was available.
-- External links were not treated as verified merely because a URL appears in Markdown; no repository-wide freshness manifest/checker exists.
+- The one product failure is `test_kit_user_can_sign_in_to_the_store`: expected shared username `ada`, actual `player-<random>` from the adjacent CartridgeStore.
+- Browser tests could not execute locally because this host has no Chrome or Playwright Chromium. They were forced with `PRG32_REQUIRE_BROWSER=1`, so absence produced errors rather than false passes.
+- No live real-provider data-subject request, staffed breach tabletop, completed DPIA/DPO decision or legal review was available.
 - SDK and PRG32-QT audio fixes are patches in this repository, not merged canonical commits.
 - Frame-triggered QEMU effects can differ by one 20 ms audio buffer; whole-recording hashes are not identical.
 - No physical stereo PRG32 recording or physical-console delivery exists.
