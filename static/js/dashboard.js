@@ -23,7 +23,7 @@
             <a class="btn btn-outline-primary btn-sm" href="/ide/${encodeURIComponent(project.id)}"><i class="bi bi-window-sidebar"></i> IDE</a>
             <a class="btn btn-outline-primary btn-sm" href="/audio-studio/${encodeURIComponent(project.id)}"><i class="bi bi-music-note-beamed"></i> Sound</a>
             <button class="btn btn-outline-secondary btn-sm cloud-project cloud-only" data-id="${Kit.escape(project.id)}" data-title="${Kit.escape(project.title)}" aria-label="Cloud copy of ${Kit.escape(project.title)}"><i class="bi bi-cloud"></i></button>
-            <button class="btn btn-outline-danger btn-sm delete-project" data-id="${Kit.escape(project.id)}"><i class="bi bi-trash"></i></button>
+            <button class="btn btn-outline-danger btn-sm delete-project" data-id="${Kit.escape(project.id)}" aria-label="Delete ${Kit.escape(project.title)}"><i class="bi bi-trash" aria-hidden="true"></i></button>
           </div>
         </div>
         <div class="card-footer small text-muted">Updated ${Kit.escape(project.updated_at)}</div>

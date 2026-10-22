@@ -31,7 +31,7 @@
       <img src="{{ url_for('static', filename='img/prg32-icon.svg') }}" alt="" width="32" height="32">
       <span>{{ site.name }}</span>
     </a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#topNav">
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#topNav" aria-controls="topNav" aria-expanded="false" aria-label="Menu">
       <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="topNav">
@@ -62,15 +62,24 @@
         {% endif %}
       </ul>
       {% if current_user.authenticated %}
-      <div class="d-flex align-items-center gap-2">
+      <div class="d-flex align-items-center gap-2 ms-auto">
         {% if sso_enabled %}
-        <a class="btn btn-outline-light btn-sm" href="/auth/sso/peer" title="Open the Cartridge Store already signed in"><i class="bi bi-shop"></i> Cartridge Store</a>
+        <a class="btn btn-outline-light btn-sm text-nowrap" href="/auth/sso/peer" title="Open the Cartridge Store already signed in"><i class="bi bi-shop"></i> Cartridge Store</a>
         {% endif %}
-        <a class="nav-link text-light small text-nowrap" href="/account"><i class="bi bi-person-circle"></i> {{ current_user.username }}</a>
-        <form method="post" action="/auth/logout" class="m-0"><button class="btn btn-outline-light btn-sm text-nowrap" type="submit">Sign out</button></form>
+        {# The account menu: My account and Sign out, so the menu bar stays one line. #}
+        <div class="dropdown">
+          <button class="btn btn-outline-light btn-sm dropdown-toggle text-nowrap" type="button" id="accountMenu" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bi bi-person-circle" aria-hidden="true"></i> {{ current_user.username }}</button>
+          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="accountMenu">
+            <li><a class="dropdown-item" href="/account"><i class="bi bi-person-gear"></i> My account</a></li>
+            <li><a class="dropdown-item" href="/privacy"><i class="bi bi-shield-lock"></i> Privacy &amp; your data</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><form method="post" action="/auth/logout" class="m-0"><button class="dropdown-item" type="submit"><i class="bi bi-box-arrow-right"></i> Sign out</button></form></li>
+          </ul>
+        </div>
       </div>
       {% else %}
-      <div class="d-flex align-items-center gap-2">
+      <div class="d-flex align-items-center gap-2 ms-auto">
         {% if guest_workspace %}
         <span class="badge text-bg-warning" title="Your games are kept only in this browser"><i class="bi bi-browser-chrome" aria-hidden="true"></i> Guest: games stay in this browser</span>
         {% endif %}
