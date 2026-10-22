@@ -150,8 +150,8 @@ def convert_in_the_ide(page, live_kit, project_id):  # noqa: F811
     page.click("#ideProjectItems [data-convert=c]")
     wait_until(page, "!!document.querySelector('#ideConvertDialog.show')")
     assert "cannot be undone" in page.inner_text("#ideConvertDialog")
-    page.click("#ideConvertConfirm")
-    page.wait_for_load_state("load")
+    with page.expect_navigation():
+        page.click("#ideConvertConfirm")
     wait_until(page, "document.getElementById('ide').dataset.ready === 'true' && "
                      "document.getElementById('ideType').dataset.type === 'c'", timeout=30)
     assert "this is your own C now" in page.evaluate("PRG32Ide.editors.src.getValue()")
@@ -173,4 +173,62 @@ def test_blocks_convert_to_c_once_for_an_account_and_a_guest(browser, live_kit):
     page.goto(live_kit + "/")
     wait_until(page, "window.Kit && Kit.guest === true")
     convert_in_the_ide(page, live_kit, new_project(page, "blocks"))
+    context.close()
+
+
+def test_the_project_menu_replaces_the_classic_editor(browser, live_kit):  # noqa: F811
+    context = browser.new_context(viewport={"width": 1440, "height": 900})
+    page = context.new_page()
+    sign_in(page, live_kit)
+    project = new_project(page, "c")
+    page.goto(f"{live_kit}/projects/{project}")              # the classic editor's address opens the IDE
+    wait_until(page, "document.getElementById('ide').dataset.ready === 'true'", timeout=30)
+    assert f"/ide/{project}" in page.url and page.query_selector("text=Classic editor") is None
+    # Properties: title, summary, required features (for C).
+    page.click("#ideProjectMenu")
+    page.click("#ideProperties")
+    wait_until(page, "!!document.querySelector('#idePropertiesDialog.show')")
+    assert page.is_visible("#propFeatures")
+    page.fill("#propDescription", "Dodge the rocks.")
+    page.click("#idePropertiesForm button[type=submit]")
+    wait_until(page, "!document.querySelector('#idePropertiesDialog.show')")
+    saved = page.evaluate(f"Kit.api('/api/projects/{project}')")
+    assert saved["description"] == "Dodge the rocks."
+    # History: change the program and save; the version before the change can be restored.
+    original = page.evaluate("PRG32Ide.editors.src.getValue()")
+    page.evaluate("PRG32Ide.editors.src.setValue(PRG32Ide.editors.src.getValue() + '\\n/* changed */\\n')")
+    page.evaluate("PRG32Ide.save().then(() => true)")
+    page.click("#ideProjectMenu")
+    page.click("#ideHistory")
+    wait_until(page, "document.querySelectorAll('#ideHistoryList .ide-restore').length > 0")
+    page.once("dialog", lambda dialog: dialog.accept())
+    with page.expect_navigation():
+        page.click("#ideHistoryList .ide-restore >> nth=0")
+    wait_until(page, "document.getElementById('ide').dataset.ready === 'true'", timeout=30)
+    assert page.evaluate("PRG32Ide.editors.src.getValue()") == original
+    context.close()
+
+
+def test_a_student_copies_a_shared_project_to_change_it(browser, live_kit):  # noqa: F811
+    context = browser.new_context(viewport={"width": 1440, "height": 900})
+    page = context.new_page()
+    sign_in(page, live_kit)
+    page.evaluate("""fetch('/api/users', {method: 'POST', headers: {'Content-Type': 'application/json', 'X-PRG32-Kit': '1'},
+        body: JSON.stringify({username: 'layoutkid', email: 'layoutkid@school.test', password: 'layout-kid-pass-1'})})""")
+    shared = page.evaluate("""Kit.api('/api/projects').then(d => d.projects.find(p => p.owner_id === null).id)""")
+    context.close()
+    context = browser.new_context(viewport={"width": 1440, "height": 900})
+    page = context.new_page()
+    page.goto(f"{live_kit}/auth/login")
+    page.fill("input[name=username]", "layoutkid")
+    page.fill("input[name=password]", "layout-kid-pass-1")
+    page.click("button[type=submit]")
+    page.wait_for_url(f"{live_kit}/")
+    page.goto(f"{live_kit}/ide/{shared}")
+    wait_until(page, "document.getElementById('ide').dataset.ready === 'true'", timeout=30)
+    assert page.is_visible("#ideShared") and page.is_disabled("#ideSave")
+    page.click("#ideSharedCopy")
+    page.wait_for_url(lambda url: "/ide/" in url and shared not in url)
+    wait_until(page, "document.getElementById('ide').dataset.ready === 'true'", timeout=30)
+    assert page.is_hidden("#ideShared") and page.is_enabled("#ideSave")
     context.close()

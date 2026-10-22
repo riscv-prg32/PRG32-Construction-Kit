@@ -333,7 +333,7 @@
     if (saving) return saving.then(() => save(options), () => save(options));  // one save at a time
     clearTimeout(autosaveTimer);
     const started = changes;
-    const body = Object.assign(payload(), { expected_version: options.baseVersion ?? (project.version || 0) },
+    const body = Object.assign(payload(), options.extra || {}, { expected_version: options.baseVersion ?? (project.version || 0) },
       options.autosave ? { autosave: true } : {});
     saving = Kit.api(api, { method: 'PUT', body }).then(saved => {
       project = saved;
@@ -403,7 +403,7 @@
     IdeShell.showPanel('build');
     log('Compile: building the cartridges to download…');
     return save({ noCheck: true }).then(() => Kit.api(api + '/package', { method: 'POST',
-      body: Object.assign({ source_language: mode === 'blocks' ? 'c' : mode }, expectedVersion()) }))
+      body: Object.assign({ source_language: mode === 'blocks' ? buildFrom() : mode }, expectedVersion()) }))
       .then(result => {
         $('#ideOutput').text(result.build.log || 'No log.');
         const cartridges = result.cartridge_artifacts || [];
@@ -498,7 +498,8 @@
   function applyMode(newMode, sprites) {
     mode = newMode;
     $('#ideType').text(MODE_NAMES[mode]).attr('data-type', mode);
-    $('#ideProjectItems .ide-blocks-only').prop('hidden', mode !== 'blocks');
+    $('.ide-blocks-only').prop('hidden', mode !== 'blocks');
+    $('.ide-code-only').prop('hidden', mode === 'blocks');
     $('#statusMode').text(MODE_NAMES[mode]);
     for (const id of Array.from(IdeShell.tabs.keys())) {
       if (id !== 'blocks' && id !== 'src') IdeShell.closeTab(id);
@@ -533,9 +534,13 @@
     command('toggle-files', 'Show or hide the project files', 'Alt+1', () => IdeShell.showPane('tree'));
     command('toggle-panel', 'Show or hide the tool window', 'Alt+4', () => IdeShell.showPane('panel'));
     command('toggle-simulator', 'Show or hide the simulator', 'Alt+9', () => IdeShell.showPane('sim'));
+    command('properties', 'Project properties', '', () => showProperties());
+    command('history', 'History: earlier versions', '', () => showHistory());
+    command('export-archive', 'Export project (.zip)', '', () => exportSaved('/archive'));
+    command('export-json', 'Export project as JSON', '', () => exportSaved('/export'));
+    command('copy', 'Make a copy of this project', '', () => makeCopy(project.title + ' (copy)'));
     command('convert-c', 'Convert this Blocks project to C (one way)', '', () => mode === 'blocks' && askConvert('c'));
     command('convert-asm', 'Convert this Blocks project to Assembly (one way)', '', () => mode === 'blocks' && askConvert('asm'));
-    command('classic', 'Open the classic editor', '', () => { window.location.href = '/projects/' + encodeURIComponent(projectId); });
     IdeShell.addShortcut({ key: 's', ctrl: true, run: () => save() });
     IdeShell.addShortcut({ key: 'g', ctrl: true, shift: true, run: () => generate() });
     IdeShell.addShortcut({ key: 'b', ctrl: true, shift: true, run: () => compile() });
@@ -543,6 +548,108 @@
   }
 
   let spriteList = [];
+
+  // --- the Project menu: properties, history, export, copy ----------------------------------------
+  // Which generated file a Blocks project is compiled from (remembered per project in this browser).
+  const BUILD_FROM_KEY = 'prg32-source-language-' + projectId;
+  function buildFrom() { return $('#ideBuildFrom').val() || 'c'; }
+  try { const saved = localStorage.getItem(BUILD_FROM_KEY); if (saved) $('#ideBuildFrom').val(saved); } catch (_) { /* private window */ }
+  $('#ideBuildFrom').on('change', function () {
+    try { localStorage.setItem(BUILD_FROM_KEY, this.value); } catch (_) { /* private window */ }
+  });
+
+  function modal(id) { return bootstrap.Modal.getOrCreateInstance(document.getElementById(id)); }
+
+  // Shared classroom projects (the starter games): read and run, and make your own copy to change.
+  function showShared() {
+    const shared = project.can_edit === false;
+    $('#ideShared').prop('hidden', !shared);
+    $('#ideSave, #ideConvertConfirm').prop('disabled', shared);
+    if (shared) {
+      autosavePaused = true;
+      Object.values(editors).forEach(editor => editor.updateOptions({ readOnly: true }));
+    }
+  }
+
+  function makeCopy(title) {
+    return Kit.api(api + '/duplicate', { method: 'POST', body: { title } })
+      .then(created => { dirty = false; window.location.href = '/ide/' + encodeURIComponent(created.id); })
+      .catch(err => Kit.toast(err.message, 'danger'));
+  }
+  $('#ideSharedCopy').on('click', () => makeCopy(project.title + ' (my copy)'));
+  $('#ideCopy').on('click', () => (dirty ? save({ quiet: true }) : Promise.resolve()).then(() => makeCopy(project.title + ' (copy)')));
+
+  // Exports read the saved project: save first so the file has the newest changes.
+  function exportSaved(path) {
+    return (dirty && project.can_edit !== false ? save({ noCheck: true, quiet: true }) : Promise.resolve())
+      .then(() => Kit.download(api + path));
+  }
+  $('#ideExportArchive').on('click', () => exportSaved('/archive'));
+  $('#ideExportJson').on('click', () => exportSaved('/export'));
+
+  const REASONS = { save: 'before a save', autosave: 'autosave', restore: 'before a restore', convert: 'before converting' };
+  function showHistory() {
+    const list = $('#ideHistoryList').html('<li class="list-group-item small text-muted">Loading…</li>');
+    modal('ideHistoryDialog').show();
+    Kit.api(api + '/revisions').then(data => {
+      if (!data.revisions.length) {
+        list.html('<li class="list-group-item small text-muted">No earlier versions yet. They appear after you save a change.</li>');
+        return;
+      }
+      list.html(data.revisions.map(rev => `<li class="list-group-item d-flex flex-wrap gap-2 align-items-center justify-content-between">
+        <span class="small"><strong>#${rev.number}</strong> ${Kit.escape(rev.created_at.replace('T', ' ').replace('+00:00', ' UTC'))}
+          <span class="text-muted">(${Kit.escape(REASONS[rev.reason] || rev.reason)}, ${Kit.escape(rev.authoring_mode || '')})</span></span>
+        <span class="text-nowrap">
+          <button class="btn btn-outline-primary btn-sm ide-restore" type="button" data-id="${Kit.escape(rev.id)}" data-number="${rev.number}"
+            ${project.can_edit === false ? 'disabled' : ''}>Restore</button>
+          <button class="btn btn-outline-secondary btn-sm ide-revision-download" type="button" data-id="${Kit.escape(rev.id)}"
+            aria-label="Download version ${rev.number}"><i class="bi bi-download" aria-hidden="true"></i></button>
+        </span></li>`).join(''));
+    }).catch(err => list.html(`<li class="list-group-item small text-danger">${Kit.escape(err.message)}</li>`));
+  }
+  $('#ideHistory').on('click', showHistory);
+  $('#ideHistoryList').on('click', '.ide-revision-download', function () {
+    Kit.download(api + '/revisions/' + encodeURIComponent($(this).data('id')) + '/archive');
+  }).on('click', '.ide-restore', function () {
+    const unsaved = dirty ? ' Your unsaved changes in this window will be lost.' : '';
+    if (!window.confirm(`Go back to version #${$(this).data('number')}? The current saved version is kept in History.` + unsaved)) return;
+    Kit.api(api + '/revisions/' + encodeURIComponent($(this).data('id')) + '/restore', { method: 'POST', body: {} })
+      .then(() => { dirty = false; window.location.reload(); })
+      .catch(err => Kit.toast(err.message, err.code === 'type_locked' ? 'warning' : 'danger'));
+  });
+
+  function showProperties() {
+    const saved = project.game_json || {};
+    $('#propTitle').val(project.title);
+    $('#propAuthor').val(project.author || '');
+    $('#propDescription').val(project.description || '');
+    $('#propTags').val((project.tags || []).join(', '));
+    $('#propFeatures').val((saved.required_features || []).join(', '));
+    $('#propPrefix').text(PRG32Language.entryPrefix ? PRG32Language.entryPrefix(project.title) : '');
+    $('#idePropertiesForm button[type=submit]').prop('disabled', project.can_edit === false);
+    modal('idePropertiesDialog').show();
+  }
+  $('#ideProperties').on('click', showProperties);
+  $('#propTitle').on('input', function () {
+    if (PRG32Language.entryPrefix) $('#propPrefix').text(PRG32Language.entryPrefix(this.value));
+  });
+  $('#idePropertiesForm').on('submit', function (event) {
+    event.preventDefault();
+    const list = text => String(text || '').split(',').map(item => item.trim()).filter(Boolean);
+    project.title = $('#propTitle').val().trim() || project.title;
+    project.author = $('#propAuthor').val();
+    project.description = $('#propDescription').val();
+    project.tags = list($('#propTags').val());
+    if (mode !== 'blocks') project.game_json = Object.assign({}, project.game_json, { required_features: list($('#propFeatures').val()) });
+    const fields = { title: project.title, author: project.author, description: project.description, tags: project.tags };
+    // The properties go with the next save, together with the source (one version, one save).
+    setDirty(true);
+    save({ extra: fields }).then(() => {
+      modal('idePropertiesDialog').hide();
+      $('#ideTitle').text(project.title);
+      document.title = project.title + ' - IDE';
+    }).catch(() => {});
+  });
 
   // --- convert Blocks to C or assembly: one way (ADR-0024) ------------------------------------------
   let convertTo = null;
@@ -607,6 +714,7 @@
       const saved = project.game_json || {};
       applyMode(saved.source_mode === 'c' ? 'c' : saved.source_mode === 'asm' ? 'asm' : 'blocks', spriteList);
       setDirty(false);
+      showShared();
       $('#ide').attr('data-ready', 'true');
     })
     .catch(err => Kit.toast('The IDE could not start: ' + err.message, 'danger'));

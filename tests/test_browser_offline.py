@@ -159,10 +159,10 @@ def test_pages_load_only_from_the_kit_without_csp_violations(browser, live_kit):
     page = record.watch(context.new_page())
     sign_in(page, live_kit)
     project = first_project(page, live_kit)
-    for path in ("/", f"/projects/{project}", "/player", "/publish", "/sprites", "/artifacts"):
+    for path in ("/", f"/ide/{project}", "/player", "/publish", "/sprites", "/artifacts"):
         page.goto(live_kit + path)
         page.wait_for_load_state("networkidle")
-    page.goto(f"{live_kit}/projects/{project}")
+    page.goto(f"{live_kit}/ide/{project}")
     wait_until(page, "window.PRG32Blocks && PRG32Blocks.getWorkspace()")
     assert blockly_is_editable(page)
     # Bootstrap's icon font and Blockly's media come from the kit too.
@@ -178,7 +178,7 @@ def test_cold_offline_start_shows_an_editable_scratchpad(browser, live_kit):
     page = record.watch(context.new_page())
     sign_in(page, live_kit)
     project = first_project(page, live_kit)
-    page.goto(f"{live_kit}/projects/{project}")
+    page.goto(f"{live_kit}/ide/{project}")
     page.evaluate("navigator.serviceWorker.ready")
     wait_until(page, "caches.keys().then(keys => keys.length > 0)")
     wait_until(page, f"caches.open('{CACHE_NAME}').then(c => c.match('/static/offline.html')).then(Boolean)")
@@ -186,7 +186,7 @@ def test_cold_offline_start_shows_an_editable_scratchpad(browser, live_kit):
 
     context.set_offline(True)
     offline = record.watch(context.new_page())
-    offline.goto(f"{live_kit}/projects/{project}")  # a signed-in page: not cached, so the offline page
+    offline.goto(f"{live_kit}/ide/{project}")  # a signed-in page: not cached, so the offline page
     wait_until(offline, "window.PRG32Blocks && PRG32Blocks.getWorkspace()")
     assert "Offline" in offline.title()
     assert blockly_is_editable(offline)
@@ -226,14 +226,15 @@ def test_an_open_page_keeps_working_when_the_network_goes(browser, live_kit):
     page = context.new_page()
     sign_in(page, live_kit)
     project = first_project(page, live_kit)
-    page.goto(f"{live_kit}/projects/{project}")
-    wait_until(page, "window.PRG32Blocks && PRG32Blocks.getWorkspace()")
+    page.goto(f"{live_kit}/ide/{project}")
+    wait_until(page, "document.getElementById('ide').dataset.ready === 'true' && window.PRG32Blocks && PRG32Blocks.getWorkspace()")
     context.set_offline(True)
     assert blockly_is_editable(page)
-    page.click("#runGame")
-    wait_until(page, "document.getElementById('debugState').textContent.startsWith('Frame')")
-    page.click("#saveProject")  # the server is unreachable: a clear message, no crash
+    page.click("#ideRun")      # the server is unreachable: the Console says so, the page keeps working
+    wait_until(page, "!!document.querySelector('#ideConsole li.text-danger')")
+    page.click("#ideSave")     # a clear message, no crash
     page.wait_for_selector(".toast", timeout=10000)
+    assert blockly_is_editable(page)
     context.close()
 
 

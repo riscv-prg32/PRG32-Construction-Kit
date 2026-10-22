@@ -66,7 +66,7 @@ def test_service_worker_caches_every_vendored_file_the_pages_need():
     assert all(path.startswith("/static/") for path in shell)
     assert all((ROOT / path.lstrip("/")).is_file() for path in shell)
     needed = set()
-    for page in ("templates/base.html", "templates/editor.html", "static/offline.html", "static/offline-player.html"):
+    for page in ("templates/base.html", "templates/player.html", "static/offline.html", "static/offline-player.html"):
         text = (ROOT / page).read_text()
         needed |= {"/static/" + path for path in re.findall(r"""filename=['"](vendor/[^'"]+)['"]""", text)}
         needed |= set(re.findall(r"""["'](/static/vendor/[^"'?#]+)""", text))

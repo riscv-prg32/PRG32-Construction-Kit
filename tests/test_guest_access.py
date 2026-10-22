@@ -7,8 +7,7 @@ from sqlalchemy import func, select
 
 from prg32_construction_kit.sample_data import default_blocks
 
-GUEST_PAGES = ("/", "/sprites", "/player", "/audio-studio", "/ide/guest-abc", "/projects/guest-abc",
-               "/audio-studio/guest-abc")
+GUEST_PAGES = ("/", "/sprites", "/player", "/audio-studio", "/ide/guest-abc", "/audio-studio/guest-abc")
 CLOSED = [("GET", "/api/projects"), ("POST", "/api/projects"), ("GET", "/api/sprites"), ("GET", "/api/artifacts"),
           ("POST", "/api/projects/x/package"), ("POST", "/api/projects/x/check"), ("POST", "/api/publish"),
           ("GET", "/api/classes"), ("GET", "/api/cloud"), ("GET", "/artifacts"), ("GET", "/publish"),
@@ -37,6 +36,12 @@ def test_the_kit_opens_without_an_account(anon):
 def test_everything_else_still_needs_a_sign_in(anon, method, path):
     answer = anon.open(path, method=method, json={} if method == "POST" else None)
     assert answer.status_code in (302, 401), (method, path, answer.status_code)
+
+
+def test_the_classic_editor_address_opens_the_ide(client, anon):
+    for browser in (client, anon):
+        answer = browser.get("/projects/guest-abc")
+        assert answer.status_code == 302 and answer.headers["Location"].endswith("/ide/guest-abc")
 
 
 def test_signed_in_pages_do_not_use_the_guest_workspace(client):

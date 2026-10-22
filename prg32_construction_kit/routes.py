@@ -8,7 +8,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from flask import Blueprint, Response, current_app, jsonify, render_template, request, send_file, send_from_directory
+from flask import (Blueprint, Response, current_app, jsonify, redirect, render_template, request, send_file,
+                   send_from_directory, url_for)
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
@@ -246,7 +247,8 @@ def index():
 
 @bp.get("/projects/<project_id>")
 def project_editor(project_id: str):
-    return render_template("editor.html", project_id=project_id)
+    """The classic editor is gone (ADR-0024): old links open the project in the IDE."""
+    return redirect(url_for("kit.project_ide", project_id=project_id), 302)
 
 
 @bp.get("/ide/<project_id>")

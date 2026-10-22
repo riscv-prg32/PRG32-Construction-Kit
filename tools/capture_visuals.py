@@ -39,8 +39,8 @@ GAMES = {"pong": "Pong", "breakout": "Breakout", "space_invaders": "Space Invade
 RECIPES = {"ide-hero": ("docs/figures/PRG32-Construction-Kit_01.png", "ide:Pong",
                         "The IDE with the Pong project: project tree, Blocks editor, generated C, Problems and Run panels")}
 for key, title in GAMES.items():
-    RECIPES[f"{key}-editor"] = (f"docs/figures/games/{key}-editor.jpg", f"editor:{title}",
-                                f"The {title} project in the Blocks editor, with its preview")
+    RECIPES[f"{key}-editor"] = (f"docs/figures/games/{key}-editor.jpg", f"run:{title}",
+                                f"The {title} project in the IDE: its blocks, and the game running in the simulator")
 
 
 def git(*args: str) -> str:
@@ -62,6 +62,17 @@ def start_kit(folder: Path):
     client.post("/api/users", json={"username": TEACHER[0], "email": "teacher1@example.test", "password": TEACHER[1],
                                     "kit_role": "teacher"}, headers={"X-PRG32-Kit": "1"})
     return server, f"http://127.0.0.1:{server.server_port}"
+
+
+def wait_ready(page, seconds: float = 30) -> None:
+    """Wait for the IDE (polling: the kit's CSP forbids the eval behind Playwright's wait_for_function)."""
+    import time
+
+    deadline = time.monotonic() + seconds
+    while not page.evaluate("!!document.getElementById('ide') && document.getElementById('ide').dataset.ready === 'true'"):
+        if time.monotonic() > deadline:
+            raise SystemExit("the IDE did not start")
+        page.wait_for_timeout(250)
 
 
 def project_id(page, title: str) -> str:
@@ -102,13 +113,12 @@ def capture(names: list[str]) -> list[str]:
             file, where, purpose = RECIPES[name]
             kind, title = where.split(":", 1)
             pid = project_id(page, title)
-            if kind == "ide":
-                page.goto(f"{origin}/ide/{pid}")
-                page.wait_for_function("document.getElementById('ide').dataset.ready === 'true'", timeout=30000)
-            else:
-                page.goto(f"{origin}/projects/{pid}")
-                page.wait_for_function("!!document.querySelector('.blocklySvg')", timeout=30000)
-            page.wait_for_timeout(1500)                     # let Blockly, Monaco and the preview settle
+            page.goto(f"{origin}/ide/{pid}")
+            wait_ready(page)
+            if kind == "run":   # the game running in the simulator on the right (needs the toolchain)
+                page.evaluate("PRG32Ide.run().then(() => true)")
+                page.wait_for_timeout(2500)
+            page.wait_for_timeout(1500)                     # let Blockly, Monaco and the simulator settle
             target = ROOT / file
             page.screenshot(path=str(target), type="jpeg" if file.endswith(".jpg") else "png",
                             **({"quality": 85} if file.endswith(".jpg") else {}))
@@ -119,9 +129,7 @@ def capture(names: list[str]) -> list[str]:
                           "locale": "en-US", "seed": "sample_data.seed_if_empty (sample projects, no real author); "
                                                     "synthetic accounts admin, teacher1@example.test",
                           "product_commit": commit, "captured": today, "reviewed": None, "reviewer": None,
-                          "watch": entry.get("watch") or (["templates/ide.html", "static/js/ide/", "static/css/"]
-                                                          if kind == "ide" else
-                                                          ["templates/editor.html", "static/js/editor.js", "static/css/"])})
+                          "watch": ["templates/ide.html", "static/js/ide/", "static/css/"]})
             manifest["visuals"][file] = entry
             written.append(file)
             print(f"captured {file}")

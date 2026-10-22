@@ -9,7 +9,7 @@
     <div class="text-muted">Instruments, sound effects and soundtracks for <strong id="projectTitle">{{ project.title }}</strong>, played by the PRG32 sound engine.</div>
   </div>
   <div class="btn-toolbar gap-2">
-    <a class="btn btn-outline-secondary" href="/projects/{{ project.id }}"><i class="bi bi-arrow-left"></i> Back to the project</a>
+    <a class="btn btn-outline-secondary" href="/ide/{{ project.id }}"><i class="bi bi-arrow-left"></i> Back to the project</a>
     <button class="btn btn-danger" id="stopSound" title="Silence every voice (Escape)"><i class="bi bi-stop-fill"></i> Stop sound</button>
     <button class="btn btn-success" id="saveAudio"{% if not can_edit %} disabled{% endif %}><i class="bi bi-save"></i> Save</button>
     <button class="btn btn-outline-primary" id="exportAudio"><i class="bi bi-download"></i> Export</button>

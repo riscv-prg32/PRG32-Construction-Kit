@@ -233,20 +233,20 @@ def test_audio_studio_sound_goes_into_the_archive_and_the_cartridge(browser, liv
         api(page, url, {"document": document, "expected_version": 0}, "PUT")
         preview = bytes(api(page, url + "/preview", {}))
 
-        # The editor's Compile button builds the cartridge with exactly the previewed audio block.
-        page.goto(f"{live_kit}/projects/{project['id']}")
-        wait_until(page, "!!document.querySelector('#packageProject')", timeout=30)
-        page.click("#packageProject")
-        wait_until(page, "/Cartridge ready/.test(document.getElementById('cartridgeDownloads').textContent)", timeout=30)
+        # The IDE's Compile button builds the cartridge with exactly the previewed audio block.
+        page.goto(f"{live_kit}/ide/{project['id']}")
+        wait_until(page, "document.getElementById('ide').dataset.ready === 'true'", timeout=30)
+        page.click("#ideCompile")
+        wait_until(page, "document.getElementById('statusBuild').textContent === 'Cartridge ready'", timeout=30)
         assert blocks and all(block == preview for block in blocks)
 
-        # The project archive (editor's Export) carries the sample and imports again on the dashboard.
+        # The project archive (IDE: Project, Export) carries the sample and imports again on the dashboard.
         with page.expect_download() as download_info:
-            page.evaluate("$('#exportArchive').trigger('click')")
+            page.evaluate("$('#ideExportArchive').trigger('click')")
         archive = Path(download_info.value.path()).read_bytes()
         assert "audio/samples/01-drum.u8" in zipfile.ZipFile(io.BytesIO(archive)).namelist()
         page.goto(f"{live_kit}/")
-        with page.expect_navigation(url=lambda target: "/projects/" in target, timeout=30000):
+        with page.expect_navigation(url=lambda target: "/ide/" in target, timeout=30000):
             page.set_input_files("#importProjectFile", files=[{"name": "packed.prg32project.zip",
                                                                  "mimeType": "application/zip", "buffer": archive}])
         imported = page.url.rsplit("/", 1)[-1]

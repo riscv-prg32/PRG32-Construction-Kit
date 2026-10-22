@@ -49,7 +49,7 @@
   }).on('click', '.show-projects', function () {
     const id = $(this).data('class');
     Kit.api(`/api/classes/${id}/projects`).then(data => {
-      $(`#projects-${id}`).html(data.projects.map(project => `<li><a href="/projects/${encodeURIComponent(project.id)}">${Kit.escape(project.title)}</a>
+      $(`#projects-${id}`).html(data.projects.map(project => `<li><a href="/ide/${encodeURIComponent(project.id)}">${Kit.escape(project.title)}</a>
         <span class="text-muted">(read-only)</span></li>`).join('') || '<li class="text-muted">No projects yet.</li>');
     }).catch(err => Kit.toast(err.message, 'danger'));
   });

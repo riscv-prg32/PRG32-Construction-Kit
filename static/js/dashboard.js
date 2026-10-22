@@ -27,8 +27,7 @@
           <p class="text-muted small mb-2">${Kit.escape(project.description || 'No summary yet.')}</p>
           <div class="mb-3">${Kit.tags(project.tags)}</div>
           <div class="d-flex gap-2">
-            <a class="btn btn-primary btn-sm" href="/projects/${encodeURIComponent(project.id)}"><i class="bi bi-pencil-square"></i> Open</a>
-            <a class="btn btn-outline-primary btn-sm" href="/ide/${encodeURIComponent(project.id)}"><i class="bi bi-window-sidebar"></i> IDE</a>
+            <a class="btn btn-primary btn-sm" href="/ide/${encodeURIComponent(project.id)}"><i class="bi bi-pencil-square"></i> Open</a>
             <a class="btn btn-outline-primary btn-sm" href="/audio-studio/${encodeURIComponent(project.id)}"><i class="bi bi-music-note-beamed"></i> Sound</a>
             <button class="btn btn-outline-secondary btn-sm cloud-project cloud-only" data-id="${Kit.escape(project.id)}" data-title="${Kit.escape(project.title)}" aria-label="Cloud copy of ${Kit.escape(project.title)}"><i class="bi bi-cloud"></i></button>
             <button class="btn btn-outline-danger btn-sm delete-project" data-id="${Kit.escape(project.id)}" aria-label="Delete ${Kit.escape(project.title)}"><i class="bi bi-trash" aria-hidden="true"></i></button>
@@ -116,7 +115,7 @@
       description: form.get('description'), tags, blocks_json: start.blocks_json, game_json: start.game_json } }))
       // C and assembly are written in the IDE (Monaco); Blocks open in the editor as before.
       .then(project => { Kit.toast('Project created', 'success');
-        window.location.href = (kind === 'blocks' ? '/projects/' : '/ide/') + encodeURIComponent(project.id); })
+        window.location.href = '/ide/' + encodeURIComponent(project.id); })
       .catch(err => Kit.toast(err.message, 'danger'));
   });
 
@@ -130,7 +129,7 @@
     const button = $(this);
     button.prop('disabled', true);
     Kit.api('/api/examples/' + encodeURIComponent(button.data('slug')) + '/import', { method: 'POST', body: {} })
-      .then(project => { window.location.href = '/projects/' + project.id; })
+      .then(project => { window.location.href = '/ide/' + encodeURIComponent(project.id); })
       .catch(err => { button.prop('disabled', false); Kit.toast(err.message, 'danger'); });
   });
 
@@ -144,7 +143,7 @@
         const ignored = project.ignored_files || [];
         Kit.toast(ignored.length ? 'Project imported. Skipped files it does not use: ' + ignored.join(', ') : 'Project imported', 'success');
         // Leave time to read the list of skipped files before the editor opens.
-        setTimeout(() => { window.location.href = '/projects/' + project.id; }, ignored.length ? 3000 : 0);
+        setTimeout(() => { window.location.href = '/ide/' + encodeURIComponent(project.id); }, ignored.length ? 3000 : 0);
       })
       .catch(err => Kit.toast(err.message, 'danger'));
   });

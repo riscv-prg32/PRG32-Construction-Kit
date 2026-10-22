@@ -68,7 +68,7 @@
       .on('click', '.cloud-open', function () {
         Kit.api(`/api/cloud/${encodeURIComponent($(this).data('provider'))}/files/${encodeURIComponent($(this).data('file'))}/open`,
           { method: 'POST', body: {} })
-          .then(data => { window.location.href = '/projects/' + encodeURIComponent(data.project.id); })
+          .then(data => { window.location.href = '/ide/' + encodeURIComponent(data.project.id); })
           .catch(err => Kit.toast(err.message, 'danger'));
       })
       .on('click', '.cloud-trash', function () {
@@ -119,7 +119,7 @@
       { method: 'POST', body: body || {} })
       .then(data => {
         status(MESSAGES[data.result] || 'Done.', 'success');
-        if (data.result === 'copied') window.location.href = '/projects/' + encodeURIComponent(data.project.id);
+        if (data.result === 'copied') window.location.href = '/ide/' + encodeURIComponent(data.project.id);
       })
       .catch(refused(action));
   }
