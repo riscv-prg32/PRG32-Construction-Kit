@@ -10,7 +10,7 @@ status of each capability (implemented, partial, missing), with its source and t
 
 | Zone | Component | Where in the code | Notes |
 |---|---|---|---|
-| **Browser** (untrusted) | Pages: IDE, Blocks editor, Player, Sprite Lab, AudioStudio, Account | `templates/`, `static/js/` | Bootstrap + jQuery; every library from `static/vendor/`; strict CSP (ADR-0012) |
+| **Browser** (untrusted) | Pages: the one IDE (Blocks, C or assembly; Sprite Lab and AudioStudio as tabs of the open project; the simulator on the right), Player, Account | `templates/`, `static/js/` | Bootstrap + jQuery; every library from `static/vendor/`; strict CSP (ADR-0012); one IDE (ADR-0024) |
 | | Editors and offline checks | `static/js/ide/`, `static/js/ide/prg32_language_index.js` | Blockly, Monaco; suggest only what the validators accept (ADR-0014) |
 | | WebAssembly runtime and debugger | `wasm/`, `static/wasm/`, `static/js/prg32_runtime.js`, `static/js/prg32_debugger.js` | PRG32-QT's core and the PRG32 firmware's audio engine (ADR-0021); source and block maps (ADR-0015) |
 | | JavaScript IR simulator | `static/js/simulator.js` | the offline page's Blocks preview, and the IDE's fallback when the server cannot compile; Run and the Player use the WebAssembly core |
@@ -20,13 +20,13 @@ status of each capability (implemented, partial, missing), with its source and t
 | | Privacy | `prg32_construction_kit/privacy.py` | export, request register, restriction, erasure, notices (ADR-0022) |
 | | Validators | `generator.py`, `expressions.py`, `source_project.py` | nothing a validator refuses is ever compiled; never C an AI suggests |
 | | Generators | `generator.py`, `asm_generator.py`, `audio_block.py`, `source_maps.py` | deterministic C and RV32IM assembly with explanations; AUD0 audio block |
-| | Build sandbox | `packager.py`, `build_sandbox.py`, `build_guard.py`, `build_budget.py` | bubblewrap + seccomp, no network, one `<build_id>/` folder per build, disk budgets |
+| | Build sandbox | `packager.py`, `build_sandbox.py`, `build_guard.py`, `build_budget.py`, `run_build.py` | bubblewrap + seccomp, no network, one `<build_id>/` folder per build, disk budgets; Run builds (also for guests) keep nothing (ADR-0024) |
 | | SQLite | `db.py` and every model | accounts, projects and history, audit log, privacy records |
 | | Files | `BUILD_ROOT`, `ARTIFACT_ROOT` | build folders, uploads, AudioStudio samples |
 | | Backups | `tools/backup_restore.py` | database, folders, secret key; pruned after 35 days |
 | **External** (separate parties) | School identity provider | `identity.py`, `auth_adapters.py` | OIDC with PKCE, or SAML; accounts keyed by issuer + subject (ADR-0016) |
-| | Google Drive, OneDrive | `cloud_storage.py` | the person's own app folder, by consent; tokens encrypted (ADR-0019) |
-| | Cartridge Store | `publisher.py`, `publishing.py`, `sso.py`, `store_contract.py` | reviewed publishing; optional shared accounts (ADR-0018) |
+| | Google Drive, OneDrive, GitHub | `cloud_storage.py` | the person's own app folder or repository, by consent; tokens sealed (ADR-0019, ADR-0025) |
+| | Cartridge Store | `publisher.py`, `publishing.py`, `sso.py`, `store_contract.py` | reviewed publishing (ADR-0018); optional shared accounts: one username, private to its owner, matched by email; other people see only the Store's public handle ([accounts_and_sso.md](accounts_and_sso.md)) |
 | | SMTP | `auth.py` | sign-up and password emails |
 | | PRG32-QT, PRG32 console, PRG32-iOS | `tools/delivery_check.py` | PRG32-QT verified through its web API; console not verified; iOS unsupported (ADR-0020) |
 
@@ -34,7 +34,7 @@ status of each capability (implemented, partial, missing), with its source and t
 
 - PRG32-iOS: unsupported (ADR-0020);
 - delivery to a physical PRG32 console: no recorded run;
-- real Google, Microsoft or school tenants: no run (the live suites are ready,
+- real Google, Microsoft, GitHub or school tenants: no run (the live suites are ready,
   [live_testing.md](live_testing.md));
 - the PRG32-QT desktop Import menu driven by a person.
 
@@ -73,8 +73,10 @@ Threat model and controls: [security.md](security.md) and
    - a reviewed bundle to the Cartridge Store
      ([cartridge_store_publish.md](cartridge_store_publish.md)).
 
-Without the toolchain, **Compile** stores a source bundle: generated C, project,
-IR and manifest.
+**Run** builds the same cartridge for the IDE's simulator, also for guests, and keeps
+nothing; **Compile** (signed in) keeps it for download and publishing. Without the
+toolchain, **Compile** stores a source bundle (generated C, project, IR and manifest) and
+the IDE previews Blocks with the JavaScript simulator.
 
 ## The game loop and the frame clock
 
@@ -96,10 +98,10 @@ so a sound always starts in the same buffer: in the browser, in PRG32-QT and in 
 | Data | Where | Kept for | Who receives it |
 |---|---|---|---|
 | Guest games | the browser (IndexedDB) | until the person clears it | nobody |
-| Account, classes, projects, history | SQLite | while the account exists; trash 30 days | the Cartridge Store with shared accounts |
+| Account, classes, projects, history | SQLite | while the account exists; trash 30 days | the Cartridge Store with shared accounts (username, email, role, groups, password hash) |
 | Builds and files | `builds/`, `artifacts/` | newest 10 builds per project | nobody |
 | Audit log | SQLite | 365 days; pseudonymised on erasure | nobody |
-| Cloud tokens (encrypted) | SQLite | until disconnected | Google or Microsoft, by the person's choice |
+| Cloud tokens (encrypted) | SQLite | until disconnected | Google, Microsoft or GitHub, by the person's choice |
 | Backups | chosen by the operator | 35 days | the hosting provider |
 
 **Secrets:**

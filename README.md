@@ -38,7 +38,8 @@ as a PWA, with every library served by the kit itself. MIT License.
     [classes_and_roles.md](docs/classes_and_roles.md));
   - optional copies in the student's own Google Drive or OneDrive
     ([cloud_storage.md](docs/cloud_storage.md));
-  - reviewed publishing to a PRG32 Cartridge Store
+  - reviewed publishing to a PRG32 Cartridge Store, optionally with shared accounts: one
+    username in both, while other people see only a Store nickname
     ([cartridge_store_publish.md](docs/cartridge_store_publish.md)).
 - **Privacy.** The school or organisation that runs the kit is responsible for the personal
   data in it. [docs/privacy/](docs/privacy/README.md) has the records, notices, rights
@@ -57,7 +58,7 @@ as a PWA, with every library served by the kit itself. MIT License.
 | School sign-in | verified against a throwaway Keycloak; no real school tenant | [identity_live_testing.md](docs/identity_live_testing.md) |
 | Google Drive, OneDrive | **not run against real accounts** | [cloud_storage.md](docs/cloud_storage.md) |
 | GitHub | **not run against real GitHub**: an in-process fake only | [github.md](docs/github.md) |
-| Cartridge Store | verified against a throwaway Store | [live_testing.md](docs/live_testing.md) |
+| Cartridge Store | verified against a throwaway Store (`820f74b`; `4a3138b` needs [a proposed patch](docs/upstream/README.md)) | [live_testing.md](docs/live_testing.md) |
 
 Every capability's status, source and tests: [capabilities.md](docs/capabilities.md).
 

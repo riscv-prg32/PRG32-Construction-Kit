@@ -12,7 +12,7 @@ python3 tools/run_live_suites.py --out live-evidence
 
 | Suite | What it proves | It runs when |
 |---|---|---|
-| `store` | publishing and shared accounts with a real Cartridge Store, started on 127.0.0.1 with test data | the CartridgeStore checkout is next to the kit |
+| `store` | publishing and shared accounts (one username, signed in on the Store's own forms with their CSRF token and privacy notice) with a real Cartridge Store, started on 127.0.0.1 with test data | the CartridgeStore checkout is next to the kit, or `PRG32_CARTRIDGE_STORE_SOURCE` names one |
 | `oidc-keycloak` | school sign-in with a real identity provider (Keycloak, started in Docker and thrown away) | Docker is running |
 | `oidc-external` | school sign-in with an institution's **test** tenant | `PRG32_LIVE_OIDC_ISSUER` and the other settings in `identity_live_testing.md` are set |
 | `cloud` | saving to Google Drive or OneDrive with a **test** account | `PRG32_LIVE_CLOUD=google` or `onedrive` and the settings in `cloud_storage.md` are set |

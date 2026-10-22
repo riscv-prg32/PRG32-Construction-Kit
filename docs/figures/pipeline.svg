@@ -1,8 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 560" role="img" aria-labelledby="title desc" font-family="Helvetica, Arial, sans-serif">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 590" role="img" aria-labelledby="title desc" font-family="Helvetica, Arial, sans-serif">
   <title id="title">From Blocks, C or assembly to a PRG32 cartridge</title>
-  <desc id="desc">Three ways to write a game: Blocks, Advanced C and handwritten assembly. Blocks are saved as JSON and turned into a validated game IR; C and assembly are checked by the validators before anything is compiled. The deterministic generators write C and, on request, RV32IM assembly that does exactly what the C does, with explanations; AudioStudio&#x27;s sounds become an AUD0 block. The PRG32 toolchain in the build sandbox makes a .prg32 cartridge (a debug build adds source maps and is byte-identical). The cartridge runs in the browser&#x27;s WebAssembly runtime with the debugger, on PRG32-QT, in QEMU, on a PRG32 console (not verified) or goes to the Cartridge Store as a reviewed bundle.</desc>
+  <desc id="desc">Three ways to write a game: Blocks, Advanced C and handwritten assembly. Blocks are saved as JSON and turned into a validated game IR; C and assembly are checked by the validators before anything is compiled. The deterministic generators write C and, on request, RV32IM assembly that does exactly what the C does, with explanations; AudioStudio&#x27;s sounds become an AUD0 block. The PRG32 toolchain in the build sandbox makes a .prg32 cartridge (a debug build adds source maps and is byte-identical). The cartridge runs in the browser&#x27;s WebAssembly runtime with the debugger, on PRG32-QT, in QEMU, on a PRG32 console (not verified) or goes to the Cartridge Store as a reviewed bundle. Run makes the same cartridge for the IDE&#x27;s simulator, also for guests, and keeps nothing; Compile keeps it for download and publishing (signed in).</desc>
   <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#334155"/></marker></defs>
-  <rect width="1240" height="560" fill="#ffffff"/>
+  <rect width="1240" height="590" fill="#ffffff"/>
   <text x="620" y="34" font-size="22" text-anchor="middle" fill="#0f172a" font-weight="bold">One validated, deterministic pipeline</text>
   <text x="620" y="58" font-size="13" text-anchor="middle" fill="#475569">The same saved project always gives the same IR, the same C and assembly, and the same cartridge.</text>
   <rect x="20" y="90" width="200" height="70" rx="10" fill="#e0f2fe" stroke="#0369a1" stroke-width="1.5"/>
@@ -45,7 +45,7 @@
   <text x="810" y="324" font-size="12.5" fill="#475569">debug build: same bytes</text>
   <rect x="1005" y="80" width="225" height="70" rx="10" fill="#e0f2fe" stroke="#0369a1" stroke-width="1.5"/>
   <text x="1015" y="101" font-size="14" font-weight="bold" fill="#0f172a">Browser runtime</text>
-  <text x="1015" y="120" font-size="12.5" fill="#475569">WASM core + debugger</text>
+  <text x="1015" y="120" font-size="12.5" fill="#475569">IDE simulator + debugger</text>
   <rect x="1152" y="87" width="70" height="17" rx="8" fill="#15803d"/>
   <text x="1187" y="99" font-size="11" text-anchor="middle" fill="#ffffff">verified</text>
   <rect x="1005" y="170" width="225" height="70" rx="10" fill="#f5f3ff" stroke="#6d28d9" stroke-width="1.5"/>
@@ -84,4 +84,5 @@
   <path d="M960,305 L982,305 L982,385 L1005,385" fill="none" stroke="#334155" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#arrow)"/>
   <path d="M960,305 L982,305 L982,475 L1005,475" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#arrow)"/>
   <text x="20" y="540" font-size="13" text-anchor="start" fill="#0f172a">Never compiled: C an AI suggests, or anything a validator refuses. Students can open the generated C and assembly.</text>
+  <text x="20" y="568" font-size="13" text-anchor="start" fill="#0f172a">Run: the same cartridge for the IDE&#x27;s simulator, also for guests; nothing is kept. Compile (signed in): kept for download and publishing.</text>
 </svg>

@@ -48,6 +48,10 @@ When the kit is linked with the Cartridge Store (`accounts_and_sso.md`), a
 profile whose address is `PRG32_SSO_PEER_URL` needs no token: the kit sends a
 one-time ticket and the bundle is published as the signed-in student.
 
+In the Store, the game is listed under the student's **public handle**, a made-up
+nickname such as `player-3f9a01c2`. Their username and email are not shown to other
+people (`accounts_and_sso.md`, "One username, shared").
+
 ## Who can publish
 
 Publishing needs the **publisher** role (or admin). Everybody can compile and

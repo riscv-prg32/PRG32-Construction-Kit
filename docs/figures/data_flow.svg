@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 620" role="img" aria-labelledby="title desc" font-family="Helvetica, Arial, sans-serif">
   <title id="title">Personal data: who, where, how long, and who receives it</title>
-  <desc id="desc">Personal data, where it is kept and for how long. Guests: games stay in the browser (IndexedDB) until the person clears them. Students, teachers and administrators: account, classes and work in SQLite while the account exists; builds keep the newest 10 per project; deleted projects 30 days; the audit log 365 days; backups 35 days. Recipients by choice: the school identity provider (sign-in), Google Drive or OneDrive (consent, the person&#x27;s own folder, possibly outside the EU), the Cartridge Store (publishing, shared accounts), an SMTP provider. Rights: download, correct, erase, restrict, object; erasure reaches tables, folders, files and cloud tokens, pseudonymises the audit log and is re-applied after a restore.</desc>
+  <desc id="desc">Personal data, where it is kept and for how long. Guests: games stay in the browser (IndexedDB) until the person clears them. Students, teachers and administrators: account, classes and work in SQLite while the account exists; builds keep the newest 10 per project; deleted projects 30 days; the audit log 365 days; backups 35 days. Recipients by choice: the school identity provider (sign-in), Google Drive, OneDrive or GitHub (consent, the person&#x27;s own folder or repository, possibly outside the EU), the Cartridge Store (publishing under a public handle; with shared accounts the private username, matched by email), an SMTP provider. Rights: download, correct, erase, restrict, object; erasure reaches tables, folders, files and cloud tokens, pseudonymises the audit log and is re-applied after a restore.</desc>
   <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#334155"/></marker></defs>
   <rect width="1240" height="620" fill="#ffffff"/>
   <text x="620" y="34" font-size="22" text-anchor="middle" fill="#0f172a" font-weight="bold">Personal data, retention and recipients</text>
@@ -72,15 +72,15 @@
   <text x="888" y="121" font-size="14" font-weight="bold" fill="#0f172a">School identity provider</text>
   <text x="888" y="140" font-size="12.5" fill="#475569">issuer, subject, email, role</text>
   <rect x="878" y="190" width="324" height="84" rx="10" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4 4"/>
-  <text x="888" y="211" font-size="14" font-weight="bold" fill="#0f172a">Google Drive / OneDrive</text>
-  <text x="888" y="230" font-size="12.5" fill="#475569">consent; the person&#x27;s own folder;</text>
+  <text x="888" y="211" font-size="14" font-weight="bold" fill="#0f172a">Drive, OneDrive, GitHub</text>
+  <text x="888" y="230" font-size="12.5" fill="#475569">consent; own folder or repository;</text>
   <text x="888" y="247" font-size="12.5" fill="#475569">possibly USA (DPF, SCCs)</text>
   <rect x="1110" y="197" width="84" height="17" rx="8" fill="#64748b"/>
   <text x="1152" y="209" font-size="11" text-anchor="middle" fill="#ffffff">unverified</text>
   <rect x="878" y="294" width="324" height="84" rx="10" fill="#f5f3ff" stroke="#6d28d9" stroke-width="1.5"/>
   <text x="888" y="315" font-size="14" font-weight="bold" fill="#0f172a">Cartridge Store</text>
-  <text x="888" y="334" font-size="12.5" fill="#475569">published games, author nickname;</text>
-  <text x="888" y="351" font-size="12.5" fill="#475569">shared accounts (optional)</text>
+  <text x="888" y="334" font-size="12.5" fill="#475569">published games under a public handle;</text>
+  <text x="888" y="351" font-size="12.5" fill="#475569">shared username by email (optional)</text>
   <rect x="878" y="398" width="324" height="64" rx="10" fill="#f5f3ff" stroke="#6d28d9" stroke-width="1.5"/>
   <text x="888" y="419" font-size="14" font-weight="bold" fill="#0f172a">SMTP provider</text>
   <text x="888" y="438" font-size="12.5" fill="#475569">email address, sign-up link</text>

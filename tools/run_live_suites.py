@@ -40,7 +40,8 @@ SECRET_WORDS = ("SECRET", "TOKEN", "PASSWORD")
 
 
 def store_ready() -> str | None:
-    store = Path(os.environ.get("PRG32_STORE_SOURCE") or ROOT.parent / "CartridgeStore")
+    store = Path(os.environ.get("PRG32_CARTRIDGE_STORE_SOURCE") or os.environ.get("PRG32_STORE_SOURCE")
+                 or ROOT.parent / "CartridgeStore")      # the same variable the Store tests read
     return None if (store / "cartridge_store" / "app.py").is_file() else f"no CartridgeStore checkout at {store}"
 
 

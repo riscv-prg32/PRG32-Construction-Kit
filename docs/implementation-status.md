@@ -84,6 +84,9 @@ evidence-checked view is `capabilities.md` (from `capabilities.json`). A gate is
 | 2026-10-21 | Full suite on `requirements.lock` in a clean venv (cryptography 50.0.2, pytest 9.1.1) | 931 passed, 67 skipped (no browser/toolchain in that venv) |
 | 2026-10-21 | `pip-audit --require-hashes -r requirements.lock` | no known vulnerabilities (after updating cryptography and pytest) |
 | 2026-10-21 | `pip install --require-hashes -r requirements.lock` in `python:3.12-slim` (aarch64) | installs and imports |
+| 2026-10-22 | Shared identity: Store contract + disposable Store + SSO + publish authorization (`PRG32_REQUIRE_STORE=1 PRG32_LIVE_STORE=local`), CartridgeStore `820f74b` | 89 passed |
+| 2026-10-22 | same, CartridgeStore `4a3138b` + `docs/upstream/cartridge-store-shared-identity.patch` | 89 passed (unpatched: 6 failed, 83 passed) |
+| 2026-10-22 | `python3 -m pytest -q` against `../CartridgeStore` at `4a3138b` (unpatched) | 3 failed (the shared-username tests), 1,330 passed, 56 skipped |
 
 Skipped and why:
 
