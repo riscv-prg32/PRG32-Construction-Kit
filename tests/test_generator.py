@@ -55,6 +55,13 @@ def test_every_upstream_example_has_convertible_blocks():
         assert "prg32_gfx_rect" in c_source
 
 
+def test_every_upstream_example_player_can_be_seen_on_its_arena():
+    from prg32_construction_kit.sample_data import ARENA_COLOR, UPSTREAM_EXAMPLES
+
+    hidden = [slug for slug, _title, _description, color, _x, _y in UPSTREAM_EXAMPLES if color in (ARENA_COLOR, "BLACK")]
+    assert hidden == []
+
+
 def test_sprite_to_c_rgb565():
     sprite = {"name": "player", "width": 2, "height": 1, "pixels": [["#ffffff", "transparent"]]}
     c_source = sprite_to_c(sprite)

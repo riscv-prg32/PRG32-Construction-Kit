@@ -52,7 +52,7 @@ def example_catalog() -> list[dict]:
 # small Block-language lessons: students can open every project, run it in the
 # simulator, and inspect its generated C without needing hidden C source.
 UPSTREAM_EXAMPLES = (
-    ("pong", "Pong", "Move the lower paddle in a two-paddle court.", "BLUE", "paddle_x", "paddle_y"),
+    ("pong", "Pong", "Move the lower paddle in a two-paddle court.", "WHITE", "paddle_x", "paddle_y"),
     ("breakout", "Breakout", "Move a paddle below a colourful brick wall.", "ORANGE", "paddle_x", "paddle_y"),
     ("space_invaders", "Space Invaders", "Pilot a ship beneath a row of invaders.", "GREEN", "ship_x", "ship_y"),
     ("pacman", "Pacman", "Guide a yellow maze runner around a simple arena.", "YELLOW", "hero_x", "hero_y"),
@@ -60,12 +60,12 @@ UPSTREAM_EXAMPLES = (
     ("tetris", "Tetris", "Slide a falling block into the playfield.", "MAGENTA", "piece_x", "piece_y"),
     ("platformer", "Platformer", "Explore a side-view platform scene.", "GREEN", "hero_x", "hero_y"),
     ("raycaster", "Raycaster", "Explore a first-person-style corridor sketch.", "CYAN", "viewer_x", "viewer_y"),
-    ("wing_commander", "Wing Commander", "Fly a cockpit ship through a star field.", "BLUE", "ship_x", "ship_y"),
+    ("wing_commander", "Wing Commander", "Fly a cockpit ship through a star field.", "YELLOW", "ship_x", "ship_y"),
     ("frogger", "Frogger", "Help a frog cross a busy road.", "GREEN", "frog_x", "frog_y"),
-    ("scrolling_parallax", "Scrolling Parallax", "Move through two differently moving background bands.", "BLUE", "camera_x", "camera_y"),
+    ("scrolling_parallax", "Scrolling Parallax", "Move through two differently moving background bands.", "LIME", "camera_x", "camera_y"),
     ("animated_sprites", "Animated Sprites", "Move a character while its colour-frame marker changes.", "ORANGE", "sprite_x", "sprite_y"),
     ("dual_playfield", "Dual Playfield", "Compare a background playfield with a moving foreground ship.", "MAGENTA", "ship_x", "ship_y"),
-    ("splash_screen", "Splash Screen", "Make a game title screen with a start button.", "BLUE", "cursor_x", "cursor_y"),
+    ("splash_screen", "Splash Screen", "Make a game title screen with a start button.", "WHITE", "cursor_x", "cursor_y"),
     ("keyboard_input", "Keyboard Input", "Use the directional controls to move a text cursor.", "WHITE", "cursor_x", "cursor_y"),
     ("wifi_setup", "Wi-Fi Setup", "Prototype a friendly setup choice screen.", "CYAN", "choice_x", "choice_y"),
     ("audio_synth", "Audio Synth", "Play a note with the A button.", "MAGENTA", "note_x", "note_y"),
@@ -75,6 +75,9 @@ UPSTREAM_EXAMPLES = (
     ("audio_stereo_music", "Audio Stereo Music", "Sketch music lanes in a Blocks-friendly form.", "CYAN", "track_x", "track_y"),
     ("audio_stereo_pan_test", "Audio Stereo Pan Test", "Explore left and right music lanes with a control marker.", "PINK", "pan_x", "pan_y"),
 )
+
+
+ARENA_COLOR = "BLUE"
 
 
 def upstream_example_blocks(slug: str, title: str, color: str, x_name: str, y_name: str) -> dict:
@@ -87,8 +90,9 @@ def upstream_example_blocks(slug: str, title: str, color: str, x_name: str, y_na
             value["inputs"] = inputs
         return value
 
+    # The player is drawn on top of the arena, so it needs a colour of its own to be seen.
     draw = block("prg32_clear_screen", "clear", {"COLOR": "BLACK"}, block(
-        "prg32_draw_rect", "arena", {"X": "8", "Y": "24", "W": "304", "H": "168", "COLOR": "BLUE"}, block(
+        "prg32_draw_rect", "arena", {"X": "8", "Y": "24", "W": "304", "H": "168", "COLOR": ARENA_COLOR}, block(
             "prg32_draw_rect", "player", {"X": x_name, "Y": y_name, "W": "16", "H": "16", "COLOR": color}, block(
                 "prg32_draw_text", "title", {"TEXT": title.upper(), "X": "12", "Y": "6", "FG": "WHITE", "BG": "BLACK"}
             )
