@@ -1000,6 +1000,32 @@ def _cartridge_fingerprint(result: dict[str, Any], architecture: str) -> dict[st
     return {}
 
 
+@bp.post("/api/projects/<project_id>/run")
+def api_run_project(project_id: str):
+    """Build the saved project for the IDE's simulator and keep nothing (run_build.py, ADR-0024).
+
+    Anyone who can read the project may run it (a shared classroom game too); nothing is
+    stored, so no quota applies. The answer carries the cartridge (base64) and its debug maps."""
+    from . import run_build
+
+    project = readable("projects", project_id)
+    if project is None:
+        return json_error("Project not found", 404)
+    project = {**project, "audio_studio": audio_studio_api.document_of(project_id)[0]}
+    try:
+        audio = audio_studio_api.project_audio(project)
+        return jsonify(run_build.run(project, audio))
+    except audio_studio_api.AudioRefused as refused:
+        return jsonify({"error": str(refused), **refused.details}), refused.status
+    except audio_studio.AudioStudioError as invalid:
+        return json_error(f"The project's AudioStudio sound cannot be packed: {invalid}")
+    except run_build.RunRefused as refused:
+        response = jsonify({"error": str(refused), "code": refused.code})
+        if refused.details.get("retry_after"):
+            response.headers["Retry-After"] = str(refused.details["retry_after"])
+        return response, refused.status
+
+
 @bp.post("/api/projects/<project_id>/check")
 def api_check_project(project_id: str):
     """Compile the saved project with the real PRG32 toolchain and report the compiler's messages.

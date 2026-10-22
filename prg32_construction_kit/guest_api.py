@@ -10,6 +10,7 @@ nothing of the request is kept or logged.
     POST /api/guest/audio             {document?} -> the checked AudioStudio document and its sound ids
     POST /api/guest/audio/preview     {document, muted?} -> the AUD0 block to listen to
     POST /api/guest/sprites/convert   {sprite} -> the sprite as C
+    POST /api/guest/run               {project, audio_studio?} -> a cartridge for the simulator (run_build.py)
 
 The generated code comes from the same validators and generators as for an account
 (routes.generate_sources), so it is identical for the same blocks. Building a cartridge,
@@ -126,6 +127,33 @@ def audio_preview():
         return _refused(str(error))
     block = audio_studio.pack_document(document, {}, set(muted))
     return Response(block, mimetype="application/octet-stream", headers={"Cache-Control": "no-store"})
+
+
+@bp.post("/api/guest/run")
+def run():
+    """Build a guest's game for the IDE's simulator (run_build.py): the cartridge comes back, nothing is kept."""
+    from . import run_build
+
+    try:
+        security.check_and_hit("guest_run", security.client_address())
+    except security.Throttled as error:
+        return _refused("You have run many games in the last hour: wait a little, or sign in.", 429,
+                        retry_after=error.retry_after)
+    payload = _payload()
+    given = payload.get("project")
+    if not isinstance(given, dict):
+        return _refused("send {\"project\": {title, blocks_json, game_json}}")
+    project = {"id": None, "title": str(given.get("title") or "Untitled game")[:200],
+               "blocks_json": given.get("blocks_json") or {}, "game_json": given.get("game_json") or {}}
+    try:
+        document = _document(payload["audio_studio"]) if payload.get("audio_studio") else None
+        project["audio_studio"] = document
+        audio = (audio_studio.pack_document(document, {}), document) if document else None
+        return jsonify(run_build.run(project, audio))
+    except run_build.RunRefused as refused:
+        return _refused(str(refused), refused.status, code=refused.code)
+    except (ValueError, AudioStudioError) as error:
+        return _refused(str(error))
 
 
 @bp.post("/api/guest/sprites/convert")

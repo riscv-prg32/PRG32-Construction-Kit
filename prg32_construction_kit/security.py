@@ -149,6 +149,8 @@ LIMITS = {
     "token_create": Limit("token_create", 20, 60 * 60),  # new API tokens per user
     # Code generation and sound previews for visitors without an account, from one address (ADR-0023).
     "guest_api": Limit("guest_api", 600, 60 * 60),
+    # Run builds for visitors without an account (each one compiles a cartridge): per address.
+    "guest_run": Limit("guest_run", 30, 60 * 60),
 }
 
 
