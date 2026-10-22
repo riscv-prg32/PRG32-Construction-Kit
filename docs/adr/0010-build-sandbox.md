@@ -33,7 +33,7 @@ Every compiler run goes through `build_sandbox.py`:
    ENOSYS; the x32 ABI and other architectures are killed.
 3. **`build_guard.py`** (stdlib only, the only kit code inside the sandbox):
    RLIMIT_CPU, RLIMIT_AS, RLIMIT_NPROC (this user's processes now + an
-   allowance, counted outside), RLIMIT_FSIZE, RLIMIT_NOFILE, no core files,
+   allowance; see the 2026-10-22 amendment), RLIMIT_FSIZE, RLIMIT_NOFILE, no core files,
    umask 077; runs the compiler in its own process group, kills the group at
    the timeout (exit 124), caps stdout/stderr.
 4. **Docker:** the container needs `docker/seccomp-kit.json` = Docker's own
@@ -78,3 +78,16 @@ Every compiler run goes through `build_sandbox.py`:
   on classroom servers. Not adopted. Separation stays by mount namespaces (a build
   sees only its own folder, read-only system, no network, no `/proc`), with the
   per-user process limit and the disk budgets above.
+
+## Amendment (2026-10-22, every build failing on a Docker server)
+
+- **Process limit:** the kit counted "this user's processes now" in `/proc` outside
+  the sandbox. The kernel counts every process of the user id on the whole host, and
+  a container's `/proc` shows only its own, so on a server where uid 1000 also runs
+  other containers the limit fell below what already existed and every compile
+  failed with "Resource temporarily unavailable". `build_guard.py` now measures the
+  kernel's own count (`processes_the_kernel_counts`: a binary search over soft
+  RLIMIT_NPROC values with short forks, about 20, a few milliseconds) and sets the
+  hard limit to that count + `PRG32_BUILD_MAX_PROCESSES`. `--processes` is the
+  allowance; `tests/test_build_sandbox.py` checks both that a build starts beside
+  many other processes and that the allowance still stops a fork bomb.

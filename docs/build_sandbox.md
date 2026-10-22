@@ -88,6 +88,10 @@ need only the seccomp profile.
   user ids were evaluated and not adopted: they need privileges the container
   deliberately drops (ADR-0010, amendment).
 - The process limit counts all of the kit user's processes, so a fork bomb is
-  bounded by "what exists now + 128", not by an exact per-build count.
+  bounded by "what exists now + 128", not by an exact per-build count. "What
+  exists now" is what the kernel counts, which in Docker includes every process
+  of the same user id on the host (other containers too): the guard asks the
+  kernel for it (it tries to start a process under smaller and smaller limits)
+  instead of counting `/proc`, which a container or the sandbox cannot see whole.
 
 Design record: `adr/0010-build-sandbox.md`.

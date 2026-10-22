@@ -199,19 +199,10 @@ def build_env(work_dir: Path) -> dict[str, str]:
     return env
 
 
-def process_limit(settings: SandboxSettings) -> int:
-    """RLIMIT_NPROC for a build: the processes this user has now plus the build's allowance (Linux)."""
-    if not sys.platform.startswith("linux") or not os.path.isdir("/proc"):
-        return 0
-    from .build_guard import processes_of_this_user
-
-    return processes_of_this_user() + settings.processes
-
-
 def guard_arguments(settings: SandboxSettings, timeout: float, guard_path: str, work_dir: Path | None = None) -> list[str]:
     watch = ["--disk-budget", str(settings.build_disk_bytes), "--watch", str(work_dir)] if work_dir else []
     return [sys.executable, guard_path, "--timeout", f"{timeout:g}", "--cpu", str(settings.cpu_seconds),
-            "--memory", str(settings.memory_bytes), "--processes", str(process_limit(settings)),
+            "--memory", str(settings.memory_bytes), "--processes", str(settings.processes),
             "--file-size", str(settings.file_size_bytes), "--open-files", str(settings.open_files),
             "--output", str(settings.output_bytes), *watch, "--"]
 

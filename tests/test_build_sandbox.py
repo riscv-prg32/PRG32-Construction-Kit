@@ -106,6 +106,27 @@ def test_huge_files_are_stopped(tmp_path):
     assert (tmp_path / "big.bin").stat().st_size <= 1024 * 1024
 
 
+@pytest.mark.skipif(not sys.platform.startswith("linux"), reason="RLIMIT_NPROC is set on Linux only")
+def test_the_process_limit_starts_from_what_the_kernel_counts(tmp_path):
+    # In Docker the kernel counts every process of the kit's user id on the host (other
+    # containers too), which /proc inside the container cannot see: a limit taken from /proc
+    # made every build fail with "Resource temporarily unavailable". The guard asks the kernel.
+    sleepers = [subprocess.Popen(["sleep", "60"]) for _ in range(40)]
+    try:
+        assert build_guard.processes_the_kernel_counts() >= 40
+        started = guard(tmp_path, sys.executable, "-c", "print('started')", processes=8)
+        assert started.returncode == 0 and "started" in started.stdout, started.stderr
+        # The allowance still bounds what the build itself may start.
+        script = ("import subprocess\nkids = []\ntry:\n    for _ in range(40): kids.append(subprocess.Popen(['sleep', '5']))\n"
+                  "except OSError: print('refused after', len(kids))\nfor kid in kids: kid.kill()")
+        bomb = guard(tmp_path, sys.executable, "-c", script, processes=8)
+        assert "refused after" in bomb.stdout, bomb.stdout + bomb.stderr
+    finally:
+        for sleeper in sleepers:
+            sleeper.kill()
+            sleeper.wait()
+
+
 @pytest.mark.skipif(not sys.platform.startswith("linux"), reason="RLIMIT_AS is enforced on Linux only")
 def test_memory_hogs_are_stopped(tmp_path):
     result = guard(tmp_path, sys.executable, "-c", "x = bytearray(2 * 1024 ** 3)", memory=512 * 1024 * 1024)

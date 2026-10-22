@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Run one compiler command with limits, then make sure nothing it started is left running.
 
-    python3 build_guard.py --timeout 120 --cpu 120 --memory 1073741824 --processes 256 \
+    python3 build_guard.py --timeout 120 --cpu 120 --memory 1073741824 --processes 128 \
         --file-size 67108864 --open-files 256 --output 262144 -- COMMAND ...
 
 This small program is the parent of every cartridge build (see build_sandbox.py
@@ -12,7 +12,11 @@ mounted read-only into the sandbox on its own.
 What it does:
 - sets resource limits that every compiler process inherits: CPU seconds,
   memory, number of processes, size of any file written, open files, no core
-  files;
+  files. --processes is how many processes the build may *add*: the kernel
+  counts all of this user's processes on the whole machine (other containers
+  with the same user id too), so the guard asks the kernel how many there are
+  now (processes_the_kernel_counts) and sets the limit to that plus the
+  allowance;
 - starts the command in a new process group and waits for it;
 - at the timeout, kills the whole group (exit status 124);
 - passes on at most --output bytes of stdout and stderr, so a compiler that
@@ -49,21 +53,43 @@ def limit(name: str, value: int) -> None:
         pass
 
 
-def processes_of_this_user() -> int:
-    """How many processes (threads included) this user has now, as Linux counts them for RLIMIT_NPROC."""
-    uid = os.getuid()
-    count = 0
-    for entry in os.listdir("/proc"):
-        if not entry.isdigit():
-            continue
-        try:
-            with open(f"/proc/{entry}/status", encoding="ascii", errors="replace") as status:
-                fields = dict(line.split(":", 1) for line in status if ":" in line)
-        except OSError:
-            continue
-        if fields.get("Uid", "").split()[:1] == [str(uid)]:
-            count += int(fields.get("Threads", "1").strip() or 1)
-    return count
+def fork_allowed(soft_limit: int) -> bool:
+    """Can this process start one more process when RLIMIT_NPROC's soft limit is ``soft_limit``?"""
+    _, hard = resource.getrlimit(resource.RLIMIT_NPROC)
+    before = resource.getrlimit(resource.RLIMIT_NPROC)
+    resource.setrlimit(resource.RLIMIT_NPROC, (soft_limit, hard))
+    try:
+        pid = os.fork()
+    except BlockingIOError:     # EAGAIN: the user already has soft_limit processes
+        return False
+    finally:
+        resource.setrlimit(resource.RLIMIT_NPROC, before)
+    if pid == 0:
+        os._exit(0)
+    os.waitpid(pid, 0)
+    return True
+
+
+def processes_the_kernel_counts() -> int | None:
+    """How many processes (threads included) the kernel charges to this user for RLIMIT_NPROC.
+
+    /proc cannot tell: in a container it shows only the container's processes, and inside
+    the sandbox there is no /proc at all. So we try to start a process under smaller and
+    smaller soft limits (a binary search, about 20 short forks) until the kernel refuses.
+    None when even the current limit refuses (nothing sensible to measure).
+    """
+    _, hard = resource.getrlimit(resource.RLIMIT_NPROC)
+    high = hard if hard != resource.RLIM_INFINITY else 1 << 22   # the largest pid_max Linux allows
+    if not fork_allowed(high):
+        return None
+    low = 1
+    while low < high:           # the smallest limit that still lets us fork is "count + 1"
+        middle = (low + high) // 2
+        if fork_allowed(middle):
+            high = middle
+        else:
+            low = middle + 1
+    return low - 1
 
 
 def folder_bytes(path: str) -> int:
@@ -104,11 +130,13 @@ def apply_limits(args: argparse.Namespace) -> None:
     limit("RLIMIT_CORE", 0)
     limit("RLIMIT_CPU", args.cpu)
     limit("RLIMIT_AS", args.memory)
-    # RLIMIT_NPROC counts all of this user's processes, so the kit passes "what exists now + the
-    # build's allowance" (counted outside the sandbox, which has no /proc). macOS: not set
-    # (the limits-only fallback there is not a sandbox anyway).
-    if sys.platform.startswith("linux"):
-        limit("RLIMIT_NPROC", args.processes)
+    # RLIMIT_NPROC counts all of this user's processes, so the limit is "what the kernel counts
+    # now + the build's allowance". macOS: not set (the limits-only fallback there is not a
+    # sandbox anyway).
+    if sys.platform.startswith("linux") and args.processes > 0:
+        existing = processes_the_kernel_counts()
+        if existing is not None:
+            limit("RLIMIT_NPROC", existing + args.processes)
     limit("RLIMIT_FSIZE", args.file_size)
     limit("RLIMIT_NOFILE", args.open_files)
 
@@ -137,7 +165,7 @@ def main(argv: list[str]) -> int:
     parser.add_argument("--timeout", type=float, required=True)
     parser.add_argument("--cpu", type=int, default=0)
     parser.add_argument("--memory", type=int, default=0)
-    parser.add_argument("--processes", type=int, default=0, help="RLIMIT_NPROC for the build (Linux)")
+    parser.add_argument("--processes", type=int, default=0, help="processes the build may add (Linux RLIMIT_NPROC)")
     parser.add_argument("--file-size", type=int, default=0)
     parser.add_argument("--open-files", type=int, default=0)
     parser.add_argument("--output", type=int, default=256 * 1024)
