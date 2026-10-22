@@ -35,7 +35,7 @@ import pytest
 import requests
 
 from conftest import ADMIN_PASSWORD, make_app
-from test_store_live import STORE_SOURCE
+from test_store_live import STORE_SOURCE, acknowledge_notice, form_token, store_sign_in
 
 pytestmark = pytest.mark.skipif(os.environ.get("PRG32_LIVE_STORE") != "local",
                                 reason="live Store tests are opt-in: set PRG32_LIVE_STORE=local")
@@ -92,9 +92,12 @@ def browser(base: str, login: tuple[str, str] | None = None) -> requests.Session
     session = requests.Session()
     session.headers["X-PRG32-Kit"] = "1"
     if login:
-        signed_in = session.post(base + "/auth/login", data={"username": login[0], "password": login[1]},
-                                 allow_redirects=False, timeout=10)
-        assert signed_in.status_code in (200, 302), signed_in.text[:300]
+        if base == STORE:
+            store_sign_in(session, STORE, *login)
+        else:
+            signed_in = session.post(base + "/auth/login", data={"username": login[0], "password": login[1]},
+                                     allow_redirects=False, timeout=10)
+            assert signed_in.status_code in (200, 302), signed_in.text[:300]
     return session
 
 
@@ -121,7 +124,8 @@ def test_a_kit_user_reaches_the_store_and_a_store_role_change_reaches_the_kit(pa
     store_admin = browser(STORE, STORE_ADMIN)
     with sqlite3.connect(f"file:{pair['store_db']}?mode=ro", uri=True) as database:   # read only
         ada_id = database.execute("SELECT id FROM users WHERE email = 'ada@school.test'").fetchone()[0]
-    assert store_admin.post(f"{STORE}/admin/users/{ada_id}/role", data={"role": "publisher"},
+    token = form_token(store_admin.get(STORE + "/admin/users", timeout=10).text)
+    assert store_admin.post(f"{STORE}/admin/users/{ada_id}/role", data={"role": "publisher", **token},
                             allow_redirects=False, timeout=10).status_code in (200, 302)
     kit_admin = browser(pair["kit_url"], ("admin", ADMIN_PASSWORD))
     kit_users = {user["email"]: user for user in kit_admin.get(pair["kit_url"] + "/api/users", timeout=10).json()["users"]}
@@ -135,7 +139,9 @@ def test_single_sign_on_both_ways_and_each_ticket_once(pair):
     accepted = store_bob.post(STORE + "/auth/sso/accept", data={"ticket": ticket, "next": "/"}, allow_redirects=False,
                               timeout=10)
     assert accepted.status_code == 302
-    assert store_bob.get(STORE + "/api/me", timeout=10).json()["user"]["email"] == "bob@school.test"
+    me = store_bob.get(STORE + "/api/me", timeout=10).json()
+    assert me["user"]["email"] == "bob@school.test" and me["user"]["username"] == "bob"
+    acknowledge_notice(store_bob, STORE, accepted)
     again = requests.Session()
     again.post(STORE + "/auth/sso/accept", data={"ticket": ticket}, allow_redirects=False, timeout=10)
     assert again.get(STORE + "/api/me", timeout=10).json()["user"]["authenticated"] is False
@@ -214,11 +220,11 @@ def test_a_student_without_the_publisher_role_sends_nothing(pair, monkeypatch):
 
 
 def test_store_bundle_upload_checks_sign_in_only(pair):
-    """Recorded Store behaviour (docs/upstream/README.md §6): the Store accepts a bundle from any
+    """Recorded Store behaviour (docs/upstream/README.md §6.2): the Store accepts a bundle from any
     signed-in user and does not record who sent it; the kit's publisher check is what stops a
     student. This test fails, on purpose, if the Store starts checking roles: update the record."""
     plain = requests.Session()
-    assert plain.post(STORE + "/api/publish/bundle", timeout=10).status_code in (302, 401)   # not signed in
+    assert plain.post(STORE + "/api/publish/bundle", timeout=10).status_code == 401   # not signed in
     source = (STORE_SOURCE / "cartridge_store" / "app.py").read_text()
     handler = source.split('@app.post("/api/publish/bundle")', 1)[1].split("def ", 2)
     assert "@login_required" in handler[0] and "role_at_least" not in handler[1].split("\n    @app.")[0]

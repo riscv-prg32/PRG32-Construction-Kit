@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+### Shared identity with the Cartridge Store (after the audit of bb2b062)
+
+- One model, chosen by the project owner: the **username is shared** between the kit and the
+  Store and stays private to its owner; the Store's **public handle** is a separate,
+  pseudonymous display name. Accounts are matched by email, never by username, and a
+  username already taken in the Store is never joined (`accounts_and_sso.md`).
+- The Store from `4a3138b` needs `docs/upstream/cartridge-store-shared-identity.patch`
+  (§6.1): `/api/me` returns the account username with `public_handle` beside it, the privacy
+  notice gate answers API calls in JSON, SSO users see the Store's notice once per version,
+  and unsigned API posts get `401`. The patch is proved in a clone, not merged.
+- The kit's Store tests sign in on the Store's forms as a browser does (CSRF token, notice),
+  and pass against the pinned Store `820f74b` and `4a3138b` with the patch. Handoff:
+  `docs/handoff/refinement-after-bb2b062.md`.
+
 ### Privacy and documentation (after the GDPR and documentation audit of 7c83e71)
 
 - Personal data (ADR-0022, `privacy/`). The school or operator running the kit is the

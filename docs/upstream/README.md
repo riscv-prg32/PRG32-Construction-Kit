@@ -171,6 +171,78 @@ chunk) on that path would make QEMU sound like the console.
 
 ## 6. Cartridge Store
 
+### 6.1 Shared identity with the kit (patch)
+
+**Problem.** From `4a3138b` (GDPR remediation) the Store's `/api/me` returned its new public
+handle (`player-…`) as `username`. The kit documents one shared username, so a kit user
+signed in to the Store saw another name. The same commit also redirected `/api/me` and
+every other `/api/` call to the privacy-notice page until it was acknowledged, and answered
+an unsigned `POST /api/…` with a CSRF `400` instead of `401`. Authentication itself was
+never weakened.
+
+**Chosen model (2026-10-22, raffmont): shared username, private handle.**
+
+- The **account username** is the sign-in name both services share. It is private: the
+  Store returns it only to its owner (`/api/me`), and the kit as today.
+- The Store's **public handle** is the only name other people see (catalog, scores,
+  reviews, multiplayer). It is pseudonymous and is never made from the username or email
+  for an account that arrives over SSO.
+- **Same email = same person.** Accounts are matched by email over SSO, never by username
+  or handle. If the Store already has another account with the kit's username, the kit's
+  account gets its own Store account named by its email; the two are never joined.
+- The SSO protocol (`sso_protocol.py`, ABI unchanged) and its tickets, issuer/subject
+  identities, roles and scopes are unchanged.
+
+**Patch.** [`cartridge-store-shared-identity.patch`](cartridge-store-shared-identity.patch),
+against CartridgeStore `4a3138b` (`git am`):
+
+- `Principal.as_dict()` (`/api/me`) gives `username` = the account username and
+  `public_handle` beside it (`name` stays the handle); `public_dict()` is what other people
+  see, and multiplayer errors use it (they no longer carry the email);
+- SSO sign-in shows the Store's privacy notice once per notice version, as a local sign-in
+  does (before, every SSO sign-in asked again);
+- while the notice is pending, `/api/me` answers with `"privacy_notice_pending": true` and
+  other `/api/` routes answer `403 privacy_notice_required` in JSON, not an HTML redirect;
+- an `/api/` `POST` with no signed-in session and no Bearer token gets `401`; a signed-in
+  browser still needs its CSRF token;
+- the Store's `tests/test_privacy.py` reads the handle from `public_handle`; the new
+  `tests/test_shared_identity.py` covers the contract, a username collision, a rename onto a
+  taken username, a handle equal to another username, migration of pre-handle accounts, the
+  notice gate and the CSRF order. Its `docs/api.md` and `docs/gdpr.md` describe the model.
+
+**Kit side** (this repository): `tests/test_sso_with_cartridge_store.py` adds the contract
+and the collision test; `tests/test_store_live.py` and `tests/test_sso_live.py` sign in on
+the Store's forms as a browser does (the CSRF token from `<meta name="csrf-token">`, then
+the notice acknowledged once). They pass against both Store revisions.
+
+**Proof (2026-10-22, macOS, Python 3.12.10):**
+
+| Store revision | Store's own tests | Kit cross-repository suite* |
+|---|---|---|
+| `820f74b` (the kit's CI pin, `contracts/prg32-store-contract-1.json`) | n/a | 89 passed |
+| `4a3138b` (Store `main`), unpatched | 81 passed† | 6 failed, 83 passed |
+| `4a3138b` + this patch | 91 passed | 89 passed |
+
+\* `PRG32_CARTRIDGE_STORE_SOURCE=<clone> PRG32_LIVE_STORE=local PRG32_REQUIRE_STORE=1 python3 -m pytest -q
+tests/test_store_contract.py tests/test_store_live.py tests/test_sso_with_cartridge_store.py
+tests/test_sso.py tests/test_sso_live.py tests/test_publish_authorization.py`, each Store a
+fresh clone of the canonical repository. † Without the new `test_shared_identity.py`.
+
+The unpatched failures are the username (3 tests), the notice redirect of `/api/me`, the
+CSRF `400` on the SSO live test's role change, and the unsigned upload getting `400`.
+
+```bash
+cd CartridgeStore && git am ../PRG32-Construction-Kit/docs/upstream/cartridge-store-shared-identity.patch
+python3 -m pytest -q tests
+```
+
+**When it lands upstream:** move `store_reference.checked_against` in
+`contracts/prg32-store-contract-1.json` to the merged commit (CI's Store job checks out that
+commit), regenerate `tests/fixtures/contract/` with `tools/build_contract_fixtures.py`, and
+run the suite above.
+
+### 6.2 Other records
+
 - API tokens have no expiry. The kit refuses tokens older than `PRG32_STORE_TOKEN_MAX_DAYS`.
 - The Store accepts the same cartridge id and version twice. The kit sends one bundle per id
   and version.

@@ -75,6 +75,46 @@ def test_kit_user_can_sign_in_to_the_store(kit_and_store):
     assert browser.get("/api/me").get_json()["user"]["username"] == "ada"
 
 
+def test_the_username_is_shared_and_the_store_handle_stays_public_only(kit_and_store):
+    """Identity contract (docs/accounts_and_sso.md): the username is shared; the Store's public
+    handle is a separate, pseudonymous display name that never replaces it on either side."""
+    kit, store = kit_and_store
+    kit.test_client().post("/api/users", json={"username": "ada", "email": "ada@school.test", "password": PASSWORD})
+    me = store.test_client()
+    me.post("/auth/login", data={"username": "ada", "password": PASSWORD})
+    user = me.get("/api/me").get_json()["user"]
+    assert user["username"] == "ada"
+    if "public_handle" in user:            # Stores from 4a3138b on (with docs/upstream §6's patch)
+        assert user["public_handle"] not in ("ada", "ada@school.test")
+    ada = kit.test_client(login=("ada", PASSWORD))
+    assert ada.get("/auth/me").get_json()["user"]["username"] == "ada"
+
+
+def test_a_store_only_account_with_the_same_username_is_never_joined(kit_and_store):
+    """Collision: the Store already has another "ada". Accounts are matched by email, so the kit's
+    ada gets her own Store account (named by her email there) and the other one is untouched."""
+    kit, store = kit_and_store
+    store.test_client().get("/")
+    with store.app_context():
+        from cartridge_store.database import get_db
+        from werkzeug.security import generate_password_hash
+
+        get_db().execute("INSERT INTO users(username, email, password_hash, role) VALUES ('ada', 'ada@elsewhere.test', ?, 'user')",
+                         (generate_password_hash("another-password-1"),))
+        get_db().commit()
+    kit.test_client().post("/api/users", json={"username": "ada", "email": "ada@school.test", "password": PASSWORD})
+    kit_ada = store.test_client()
+    assert kit_ada.post("/auth/login", data={"username": "ada@school.test", "password": PASSWORD}).status_code == 302
+    mine = kit_ada.get("/api/me").get_json()["user"]
+    assert mine["email"] == "ada@school.test" and mine["username"] == "ada@school.test"
+    other = store.test_client()
+    assert other.post("/auth/login", data={"username": "ada", "password": PASSWORD}).status_code == 401
+    assert other.post("/auth/login", data={"username": "ada", "password": "another-password-1"}).status_code == 302
+    assert other.get("/api/me").get_json()["user"]["email"] == "ada@elsewhere.test"
+    ada = kit.test_client(login=("ada", PASSWORD))
+    assert ada.get("/auth/me").get_json()["user"]["email"] == "ada@school.test"
+
+
 def test_store_registration_reaches_the_kit(kit_and_store):
     kit, store = kit_and_store
     browser = store.test_client()

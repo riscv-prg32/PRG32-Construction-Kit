@@ -22,6 +22,7 @@ from __future__ import annotations
 import io
 import json
 import os
+import re
 import secrets
 import socket
 import subprocess
@@ -81,6 +82,34 @@ class LiveStore:
             time.sleep(0.1)
 
 
+def form_token(page: str) -> dict[str, str]:
+    """The Store's CSRF token, from the page's <meta name="csrf-token"> (its forms add it the same way).
+    Stores before 4a3138b have none, and need none."""
+    found = re.search(r'<meta name="csrf-token" content="([^"]+)"', page)
+    return {"csrf_token": found.group(1)} if found else {}
+
+
+def acknowledge_notice(session: requests.Session, base: str, answer: requests.Response) -> None:
+    """An account seeing the Store's privacy notice for the first time acknowledges it, as a person would."""
+    if "/auth/privacy-acknowledge" not in answer.headers.get("Location", ""):
+        return
+    page = session.get(base + "/auth/privacy-acknowledge", timeout=10).text
+    version = re.search(r'name="privacy_notice_version" value="([^"]+)"', page)
+    assert version, page[:400]
+    done = session.post(base + "/auth/privacy-acknowledge", data={"privacy_notice_version": version.group(1),
+                        "next": "/", **form_token(page)}, allow_redirects=False, timeout=10)
+    assert done.status_code == 302, done.text[:300]
+
+
+def store_sign_in(session: requests.Session, base: str, username: str, password: str) -> None:
+    """Sign in on the Store's own form, as a browser does: CSRF token, then the notice if it is new."""
+    token = form_token(session.get(base + "/auth/login", timeout=10).text)
+    signed_in = session.post(base + "/auth/login", data={"username": username, "password": password, **token},
+                             allow_redirects=False, timeout=10)
+    assert signed_in.status_code in (200, 302), signed_in.text[:300]
+    acknowledge_notice(session, base, signed_in)
+
+
 @pytest.fixture(scope="module")
 def store(tmp_path_factory):
     if not (STORE_SOURCE / "cartridge_store" / "app.py").is_file():
@@ -88,9 +117,11 @@ def store(tmp_path_factory):
     live = LiveStore(tmp_path_factory.mktemp("live-store"))
     live.start()
     editor = requests.Session()
-    signed_in = editor.post(STORE + "/auth/login", data={"username": STORE_ADMIN[0], "password": STORE_ADMIN[1]},
-                            allow_redirects=False, timeout=10)
-    assert signed_in.status_code in (200, 302), signed_in.text[:200]
+    try:
+        store_sign_in(editor, STORE, *STORE_ADMIN)
+    except BaseException:
+        live.stop()                      # never leave a throwaway Store on the port
+        raise
     live.editor = editor
     yield live
     live.stop()
@@ -217,7 +248,9 @@ def test_a_contract_violation_is_never_uploaded_and_the_store_refuses_it_too(kit
 
 def test_a_revoked_store_token_is_refused_with_nothing_published(kit, store):
     before = len(submissions(store))
-    revoked = store.editor.delete(f"{STORE}/auth/tokens/{kit['token']['id']}", timeout=10)
+    token = form_token(store.editor.get(STORE + "/", timeout=10).text)       # the token manager sends it as a header
+    revoked = store.editor.delete(f"{STORE}/auth/tokens/{kit['token']['id']}",
+                                  headers={"X-CSRF-Token": token.get("csrf_token", "")}, timeout=10)
     assert revoked.status_code in (200, 204), revoked.text[:200]
     status, answer = publish(kit, bundle_artifact(kit, with_version("0.1.30"), "v30.zip"))
     result = answer.get("result", answer)
@@ -234,8 +267,7 @@ def test_the_store_going_away_is_retryable_and_the_retry_publishes_once(kit, sto
         status, answer = publish(kit, artifact)
     finally:
         store.start()
-        store.editor.post(STORE + "/auth/login", data={"username": STORE_ADMIN[0], "password": STORE_ADMIN[1]},
-                          allow_redirects=False, timeout=10)
+        store_sign_in(store.editor, STORE, *STORE_ADMIN)
     assert answer.get("result", answer).get("ok") is not True
     assert len(submissions(store)) == before                       # nothing half-published
     status, answer = publish(kit, artifact)                        # the same bundle, once the Store is back

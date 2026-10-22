@@ -186,7 +186,15 @@ Then add a publish profile in the kit whose store address is exactly
  Publish ──bundle + one-time API ticket (Bearer)──▶ /api/publish/bundle
 ```
 
-- **Same email = same person.** Accounts are matched by email.
+- **Same email = same person.** Accounts are matched by email, never by username.
+- **One username, shared.** Your username is the same in the kit and the Store, and only
+  you (and admins) see it. Other people see your Store **public handle**, a made-up name
+  such as `player-3f9a01c2`, which a Store admin can change. If the Store already has
+  someone else with your username, your Store account uses your email as its username
+  instead, and the two accounts stay apart. (This needs the Store change in
+  `docs/upstream/README.md` §6.1 on Stores from `4a3138b`.)
+- **The Store's own privacy notice.** The first time you arrive at the Store, and after it
+  changes its notice, it shows you that notice once.
 - **Newest change wins.** Every account has an `updated_at` time; an older
   change never overwrites a newer one.
 - **Passwords are copied as hashes**, never as plain text, so the same
@@ -219,7 +227,8 @@ The protocol is in `prg32_construction_kit/sso_protocol.py`, the same file as
 
 ### How it is checked
 
-- `tests/test_sso_with_cartridge_store.py` runs both services in one process.
+- `tests/test_sso_with_cartridge_store.py` runs both services in one process, including
+  the shared username, the separate public handle and a username already taken in the Store.
 - `tests/test_sso_live.py` (with `PRG32_LIVE_STORE=local`, in CI's Store job) runs the kit
   as an HTTP server and a throwaway Cartridge Store as a separate process, both on
   127.0.0.1 with a test-only secret. Over real HTTP it checks:
