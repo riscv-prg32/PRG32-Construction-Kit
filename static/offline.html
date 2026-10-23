@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#14213d">
-  <title>Offline - PRG32-Construction-Kit</title>
+  <title data-i18n="offline.title">Offline - PRG32-Construction-Kit</title>
   <link rel="manifest" href="/static/manifest.webmanifest">
   <link rel="icon" href="/static/img/prg32-icon.svg" type="image/svg+xml">
   <link href="/static/vendor/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
@@ -13,39 +13,48 @@
 </head>
 <body>
 <!-- The page the service worker shows when the server cannot be reached.
-     It is a static file with no account data (signed-in pages are never cached). -->
+     It is a static file with no account data (signed-in pages are never cached).
+     Texts carry data-i18n keys: i18n.js shows them in the language chosen in the kit (ADR-0027). -->
 <nav class="navbar navbar-dark kit-navbar shadow-sm">
   <div class="container-fluid">
     <span class="navbar-brand d-flex align-items-center gap-2">
       <img src="/static/img/prg32-icon.svg" alt="" width="32" height="32">
       <span>PRG32-Construction-Kit</span>
     </span>
-    <span class="badge text-bg-warning" id="offlineBadge"><i class="bi bi-wifi-off"></i> Offline</span>
+    <span class="d-flex align-items-center gap-2">
+      <label class="visually-hidden" for="localeChoice" data-i18n="base.language">Language</label>
+      <select class="form-select form-select-sm w-auto" id="localeChoice" data-locale-choice>
+        <option value="en" lang="en">English</option><option value="it" lang="it">Italiano</option>
+        <option value="es" lang="es">Español</option><option value="fr" lang="fr">Français</option>
+        <option value="de" lang="de">Deutsch</option>
+      </select>
+      <span class="badge text-bg-warning" id="offlineBadge"><i class="bi bi-wifi-off"></i> <span data-i18n="offline.offline">Offline</span></span>
+    </span>
   </div>
 </nav>
 <main class="container-fluid px-3 px-lg-4 py-4">
   <!-- Offline (the server cannot be reached) or guest (?guest=1: no account): offline.js shows one. -->
   <div class="alert alert-warning" role="status" id="offlineNotice">
-    <strong>The kit's server cannot be reached.</strong> Your projects are on the server, so they open again
-    when the connection is back. Meanwhile you can make games with blocks here (kept only in this browser) or play
-    a <code>.prg32</code> cartridge file in the <a href="/static/offline-player.html">offline player</a>.
-    <button class="btn btn-sm btn-outline-dark ms-2" id="retryOnline" type="button">Try again</button>
+    <strong data-i18n="offline.server_unreachable">The kit's server cannot be reached.</strong>
+    <span data-i18n="offline.projects_on_server">Your projects are on the server, so they open again when the connection is back. Meanwhile you can make games with blocks here (kept only in this browser) or play a .prg32 cartridge file in the offline player.</span>
+    <a href="/static/offline-player.html" data-i18n="offline.open_offline_player">Open the offline player</a>
+    <button class="btn btn-sm btn-outline-dark ms-2" id="retryOnline" type="button" data-i18n="offline.try_again">Try again</button>
   </div>
   <div class="alert alert-info" role="status" id="guestNotice" hidden>
-    <strong>Trying the kit without an account.</strong> Your games are kept only in this browser, on this
-    computer: nobody else sees them, and they can be lost if the browser's data is cleared. Save them as files,
-    or <a href="/auth/login">sign in</a> and move them into your account. You can also play <code>.prg32</code>
-    files in the <a href="/static/offline-player.html">offline player</a>.
+    <strong data-i18n="offline.trying_without_account">Trying the kit without an account.</strong>
+    <span data-i18n="offline.games_kept_here">Your games are kept only in this browser, on this computer: nobody else sees them, and they can be lost if the browser's data is cleared. Save them as files, or sign in and move them into your account. You can also play .prg32 files in the offline player.</span>
+    <a href="/auth/login" data-i18n="common.sign_in">Sign in</a> ·
+    <a href="/static/offline-player.html" data-i18n="offline.open_offline_player">Open the offline player</a>
   </div>
   <div class="card shadow-sm mb-3">
     <div class="card-body d-flex flex-wrap gap-2 align-items-center">
-      <label class="small text-muted" for="guestProjects">Game</label>
+      <label class="small text-muted" for="guestProjects" data-i18n="offline.game">Game</label>
       <select class="form-select form-select-sm w-auto" id="guestProjects"></select>
-      <label class="visually-hidden" for="guestTitle">Name of this game</label>
-      <input class="form-control form-control-sm w-auto" id="guestTitle" maxlength="200" placeholder="Name of this game">
-      <button class="btn btn-outline-primary btn-sm" id="guestNew" type="button"><i class="bi bi-plus"></i> New game</button>
-      <button class="btn btn-outline-danger btn-sm" id="guestDelete" type="button"><i class="bi bi-trash"></i> Delete</button>
-      <button class="btn btn-outline-secondary btn-sm" id="guestClear" type="button">Delete all games in this browser</button>
+      <label class="visually-hidden" for="guestTitle" data-i18n="offline.name_of_this_game">Name of this game</label>
+      <input class="form-control form-control-sm w-auto" id="guestTitle" maxlength="200" placeholder="Name of this game" data-i18n-attr="placeholder:offline.name_of_this_game">
+      <button class="btn btn-outline-primary btn-sm" id="guestNew" type="button"><i class="bi bi-plus"></i> <span data-i18n="js.offline.new_game">New game</span></button>
+      <button class="btn btn-outline-danger btn-sm" id="guestDelete" type="button"><i class="bi bi-trash"></i> <span data-i18n="common.delete">Delete</span></button>
+      <button class="btn btn-outline-secondary btn-sm" id="guestClear" type="button" data-i18n="offline.delete_all_games">Delete all games in this browser</button>
       <span class="small text-muted ms-auto" id="guestSpace" aria-live="polite"></span>
     </div>
   </div>
@@ -53,25 +62,25 @@
     <div class="col-xxl-7">
       <div class="card shadow-sm">
         <div class="card-header d-flex flex-wrap gap-2 align-items-center">
-          <strong><i class="bi bi-puzzle"></i> Blocks</strong>
-          <span class="small text-muted">saved in this browser only</span>
+          <strong><i class="bi bi-puzzle"></i> <span data-i18n="common.blocks">Blocks</span></strong>
+          <span class="small text-muted" data-i18n="offline.saved_in_this_browser_only">saved in this browser only</span>
           <div class="ms-auto d-flex gap-2">
-            <button class="btn btn-success btn-sm" id="offlinePlay" type="button"><i class="bi bi-play-fill"></i> Play</button>
-            <button class="btn btn-warning btn-sm" id="offlineStep" type="button"><i class="bi bi-skip-forward"></i> Step</button>
-            <button class="btn btn-outline-primary btn-sm" id="offlineExport" type="button"><i class="bi bi-download"></i> Save as file</button>
-            <label class="btn btn-outline-secondary btn-sm mb-0"><i class="bi bi-upload"></i> Open file
+            <button class="btn btn-success btn-sm" id="offlinePlay" type="button"><i class="bi bi-play-fill"></i> <span data-i18n="common.play">Play</span></button>
+            <button class="btn btn-warning btn-sm" id="offlineStep" type="button"><i class="bi bi-skip-forward"></i> <span data-i18n="debugger.step">Step</span></button>
+            <button class="btn btn-outline-primary btn-sm" id="offlineExport" type="button"><i class="bi bi-download"></i> <span data-i18n="offline.save_as_file">Save as file</span></button>
+            <label class="btn btn-outline-secondary btn-sm mb-0"><i class="bi bi-upload"></i> <span data-i18n="offline.open_file">Open file</span>
               <input class="d-none" type="file" id="offlineImport" accept="application/json,.json"></label>
           </div>
         </div>
-        <div class="card-body p-2"><div id="blocklyDiv" aria-label="Blocks workspace"></div></div>
+        <div class="card-body p-2"><div id="blocklyDiv" aria-label="Blocks workspace" data-i18n-attr="aria-label:js.ide.blocks_workspace"></div></div>
       </div>
     </div>
     <div class="col-xxl-5">
       <div class="card shadow-sm">
-        <div class="card-header"><strong><i class="bi bi-controller"></i> Blocks preview</strong></div>
+        <div class="card-header"><strong><i class="bi bi-controller"></i> <span data-i18n="offline.blocks_preview">Blocks preview</span></strong></div>
         <div class="card-body text-center">
-          <canvas id="gameCanvas" width="320" height="200" class="game-canvas" tabindex="0" aria-label="Blocks preview screen. Click or focus it to use the game keys."></canvas>
-          <div class="debug-strip mt-2" id="debugState">Ready.</div>
+          <canvas id="gameCanvas" width="320" height="200" class="game-canvas" tabindex="0" aria-label="Blocks preview screen. Click or focus it to use the game keys." data-i18n-attr="aria-label:ide.blocks_preview_screen_focus_it_to"></canvas>
+          <div class="debug-strip mt-2" id="debugState" data-i18n="offline.ready">Ready.</div>
         </div>
       </div>
     </div>
@@ -79,13 +88,15 @@
 </main>
 <!-- The storage note of base.html, as static text (this page has no server template): keep the
      version and text equal to the "storage" notice in privacy_notices.json (a test checks it). -->
-<div class="kit-storage-notice alert alert-light border shadow mb-0" id="storageNotice" role="region" aria-label="Cookies and storage" data-version="1.0" hidden>
-  <p class="mb-2"><i class="bi bi-cookie" aria-hidden="true"></i> This kit uses one cookie, only to keep you signed in, and keeps your own games, settings and breakpoints in this browser. There is no advertising or tracking, and nothing is shared with other sites.</p>
+<div class="kit-storage-notice alert alert-light border shadow mb-0" id="storageNotice" role="region" aria-label="Cookies and storage" data-i18n-attr="aria-label:base.cookies_and_storage" data-version="1.1" hidden>
+  <p class="mb-2"><i class="bi bi-cookie" aria-hidden="true"></i> <span data-i18n="notice.storage">This kit uses two cookies, one to keep you signed in and one to remember the language you chose, and keeps your own games, settings and breakpoints in this browser. There is no advertising or tracking, and nothing is shared with other sites.</span></p>
   <div class="d-flex gap-2 align-items-center">
     <button type="button" class="btn btn-primary btn-sm" id="storageNoticeOk">OK</button>
-    <a href="/privacy#storage">What is stored</a>
+    <a href="/privacy#storage" data-i18n="base.what_is_stored">What is stored</a>
   </div>
 </div>
+<script src="/static/i18n/en.js"></script>
+<script src="/static/js/i18n.js"></script>
 <script src="/static/vendor/jquery/3.7.1/jquery.min.js"></script>
 <script src="/static/vendor/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
 <script src="/static/vendor/blockly/11.2.1/blockly.min.js"></script>

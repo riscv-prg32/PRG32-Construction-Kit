@@ -46,8 +46,9 @@ my-game.prg32project.zip
 
 | Field | Meaning |
 | --- | --- |
-| `schema`, `schema_version` | Which version of this file format it is. |
-| `authoring_mode` | `blocks`, `c` or `assembly`: what you write the game in. |
+| `schema`, `schema_version` | Which version of this file format it is (2 since PRG32 Python; a version-1 archive still imports). |
+| `authoring_mode` | `blocks`, `c`, `assembly` or `python`: what you write the game in (`src/blocks.json`, `src/game.c`, `src/game.S` or `src/game.py`). |
+| `python_language_version` | For a Python project: the PRG32 Python version it is written in (1). |
 | `source` | The file holding your program. |
 | `entry_points` | The names of the cartridge's `init`, `update` and `draw` functions, made from the title. |
 | `required_features` | PRG32 features an Advanced C or assembly game needs (for example `sprites`). |

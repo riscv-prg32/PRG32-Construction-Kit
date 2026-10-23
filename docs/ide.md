@@ -1,16 +1,17 @@
 # The IDE
 
 The IDE is where you make a game. Open a project on the Projects page (**Open**), or make
-one with **New Project**: choose **Blocks**, **C** or **Assembly (RISC-V)**. It is laid out
+one with **New Project**: choose **Blocks**, **C**, **Assembly (RISC-V)** or **Python (PRG32
+Python)**. It is laid out
 like a JetBrains IDE (ADR-0024):
 
 | Part | What it does |
 | --- | --- |
 | Toolbar | The project's name and type, **Project** menu, **Save**, **Run**, **Generate**, **Compile**, **Commands**, and buttons to show or hide the side panes. |
-| Files (left) | Your source: the Blocks program, `game.c` or `game.S`. For Blocks also the **generated** `game.c`, `game.S` and `game.ir.json` (read-only, with **Copy** and **Download**). **Sprites** and **Sound** open Sprite Lab and AudioStudio. |
-| Editor (centre) | One tab per open file or tool. Blocks open in Blockly; C and assembly in a code editor with colours, suggestions and help (see below); Sprite Lab and AudioStudio as tabs of this project. |
+| Files (left) | Your source: the Blocks program, `game.c`, `game.S` or `game.py`. For Blocks and Python also the **generated** `game.c`, `game.S` and `game.ir.json` (read-only, with **Copy** and **Download**). **Sprites** and **Sound** open Sprite Lab and AudioStudio. |
+| Editor (centre) | One tab per open file or tool. Blocks open in Blockly; C, assembly and PRG32 Python in a code editor with colours, suggestions and help (see below); Sprite Lab and AudioStudio as tabs of this project. |
 | Tool window (below the editor) | **Problems** (Enter on one jumps to its line), **Build** (the build log and the cartridge downloads), **Console** (what the kit did, read-only), **Debug** (stop at a block, a line or an instruction: lesson 7), **Git** (the project on GitHub: `github.md`). |
-| Simulator (right) | **Run** builds your game and plays it here, in the PRG32 core compiled to WebAssembly: Blocks, C and assembly alike, also without an account. Play/Pause, Frame, Restart, speed, sound and on-screen buttons. |
+| Simulator (right) | **Run** builds your game and plays it here, in the PRG32 core compiled to WebAssembly: Blocks, C, assembly and Python alike, also without an account. Play/Pause, Frame, Restart, speed, sound and on-screen buttons. |
 | Status bar | Project type, saved or not, cursor line/column, build result. |
 
 Drag the lines between the panes to resize them, or move them with the arrow keys; the IDE
@@ -18,7 +19,7 @@ remembers the layout in this browser.
 
 ## The project type
 
-A project is **Blocks**, **C** or **Assembly**, chosen when you make it, and it stays that way.
+A project is **Blocks**, **C**, **Assembly** or **Python**, chosen when you make it, and it stays that way.
 A Blocks project can become C or assembly **once**: **Project, Convert to C…** (or **to
 Assembly…**). The blocks become code, explained line by line, and from then on you change the
 code. It cannot be undone; the Blocks version stays in **History**, where you can download it.

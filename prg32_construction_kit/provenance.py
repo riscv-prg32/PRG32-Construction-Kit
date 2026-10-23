@@ -128,10 +128,15 @@ def command_identity(build_command: str) -> dict[str, Any]:
 def build_provenance(*, build_id: str, started_at: str, finished_at: str, status: str, build_command: str,
                      game_ir: dict[str, Any], sources: dict[str, str], built_from: str,
                      requested: list[str], cart_ram_kib: int, cartridges: list[dict[str, Any]],
-                     attempts: list[dict[str, Any]], sandbox: str = "not run") -> dict[str, Any]:
-    """Everything needed to explain (and repeat) one build."""
+                     attempts: list[dict[str, Any]], sandbox: str = "not run",
+                     python_source: str | None = None) -> dict[str, Any]:
+    """Everything needed to explain (and repeat) one build.
+
+    ``python_source`` is the saved game.py of a PRG32 Python project (ADR-0026): its fingerprint,
+    the language and grammar versions and the fingerprint of the IR made from it are recorded.
+    """
     mode = game_ir.get("source_mode") or "blocks"
-    return {
+    record = {
         "schema": SCHEMA,
         "build_id": build_id,
         "started_at": started_at,
@@ -142,7 +147,7 @@ def build_provenance(*, build_id: str, started_at: str, finished_at: str, status
         "abi": dict(SDK_ABI),
         "toolchain": toolchain_identity(),
         "build_command": command_identity(build_command),
-        # Where the source came from: blocks (generated), "c" (Advanced C) or "asm" (handwritten).
+        # Where the source came from: blocks (generated), "c" (Advanced C), "asm" (handwritten) or "python".
         "authoring": {"blocks": "blocks", "c": "c", "asm": "assembly"}.get(mode, mode),
         "source_language": built_from,
         "entry_prefix": game_ir.get("entry_prefix"),
@@ -157,6 +162,20 @@ def build_provenance(*, build_id: str, started_at: str, finished_at: str, status
         # How the compiler was isolated: "bwrap", "rlimit" (limits only) or "unavailable".
         "sandbox": sandbox,
     }
+    if mode == "python" and python_source is not None:
+        from .python_project import GRAMMAR, LANGUAGE, LANGUAGE_VERSION
+
+        record["python"] = {"language": LANGUAGE, "language_version": LANGUAGE_VERSION, "grammar": GRAMMAR,
+                            "file": "game.py", "source_sha256": sha256_text(python_source),
+                            "ir_abi": game_ir.get("abi"), "ir_sha256": ir_fingerprint(game_ir)}
+    return record
+
+
+def ir_fingerprint(game_ir: dict[str, Any]) -> str:
+    """The SHA-256 of the game IR written with sorted keys: the same source gives the same IR."""
+    import json
+
+    return sha256_text(json.dumps(game_ir, sort_keys=True, separators=(",", ":"), ensure_ascii=True))
 
 
 # Fields that may differ between two builds of the same inputs.

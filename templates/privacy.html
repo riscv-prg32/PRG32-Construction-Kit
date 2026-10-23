@@ -1,44 +1,41 @@
 {% extends "base.html" %}
 {% from "_privacy_notice.html" import notice %}
-{% block title %}Your data - {{ site.name }}{% endblock %}
+{% block title %}{{ t("privacy.your_data", name=(site.name)) }}{% endblock %}
 {% block content %}
 <div class="row justify-content-center">
   <div class="col-lg-8">
-    <h1 class="h3"><i class="bi bi-shield-lock" aria-hidden="true"></i> Your data</h1>
-    <p class="lead">This page says, in short, what the PRG32 Construction Kit keeps about you and why.
-      Each part links to the full notice.</p>
+    <h1 class="h3"><i class="bi bi-shield-lock" aria-hidden="true"></i> {{ t("common.your_data") }}</h1>
+    <p class="lead">{{ t("privacy.this_page_says_in_short_what") }}</p>
     <div class="alert alert-secondary">
-      <strong>Who is responsible:</strong> {{ controller or "the school or organisation that runs this kit" }}.
-      {% if contact %}Questions or requests: <a href="mailto:{{ contact }}">{{ contact }}</a>.{% else %}
-      Ask your teacher who to contact.{% endif %}
-      They decide how the kit is used; the kit's makers do not see your data.
+      <strong>{{ t("privacy.who_is_responsible") }}</strong> {{ controller or "the school or organisation that runs this kit" }}.
+      {% if contact %}{{ t("privacy.questions_or_requests") }} <a href="mailto:{{ contact }}">{{ contact }}</a>.{% else %}
+      {{ t("privacy.ask_your_teacher_who_to_contact") }}{% endif %}
+      {{ t("privacy.they_decide_how_the_kit_is") }}
     </div>
-    <h2 class="h5 mt-4">What you can do</h2>
+    <h2 class="h5 mt-4">{{ t("privacy.what_you_can_do") }}</h2>
     <ul>
-      <li><strong>See and download</strong> everything the kit keeps about you: <a href="/account#privacy">Account page</a>, <em>Download my data</em>.</li>
-      <li><strong>Correct it</strong>, <strong>ask for it to be deleted</strong>, ask for its use to be <strong>paused</strong>
-        (restricted), or <strong>object</strong>: also on the Account page. The school answers within one month.</li>
-      <li><strong>Stop cloud copies</strong> at any time: disconnect Google Drive or OneDrive on the Account page.</li>
-      <li>If you are not happy with the answer, you can complain to your country's data protection authority.</li>
+      <li><strong>{{ t("privacy.see_and_download") }}</strong> {{ t("privacy.everything_the_kit_keeps_about_you") }} <a href="/account#privacy">{{ t("privacy.account_page") }}</a>, <em>{{ t("common.download_my_data") }}</em>.</li>
+      <li><strong>{{ t("privacy.correct_it") }}</strong>, <strong>{{ t("privacy.ask_for_it_to_be_deleted") }}</strong>{{ t("privacy.ask_for_its_use_to_be") }} <strong>{{ t("privacy.paused") }}</strong>
+        {{ t("privacy.restricted_or") }} <strong>{{ t("privacy.object") }}</strong>{{ t("privacy.also_on_the_account_page_the") }}</li>
+      <li><strong>{{ t("privacy.stop_cloud_copies") }}</strong> {{ t("privacy.at_any_time_disconnect_google_drive") }}</li>
+      <li>{{ t("privacy.if_you_are_not_happy_with") }}</li>
     </ul>
-    <h2 class="h5 mt-4">Where your data goes</h2>
+    <h2 class="h5 mt-4">{{ t("privacy.where_your_data_goes") }}</h2>
     {% for item in notices %}
     <section class="card mb-3" id="{{ item.id }}" aria-labelledby="notice-{{ item.id }}">
       <div class="card-body">
         <h3 class="h6" id="notice-{{ item.id }}">{{ item.where | capitalize }}</h3>
         {{ notice(item.id) }}
-        <p class="small mt-2 mb-0"><a href="/docs/privacy/notices/{{ item.id }}.md">Full notice</a>
-          · version {{ item.version }}, from {{ item.effective }}</p>
+        <p class="small mt-2 mb-0"><a href="/docs/privacy/notices/{{ item.id }}.md">{{ t("privacy.full_notice") }}</a>
+          {{ t("privacy.version_from", version=(item.version), effective=(item.effective)) }}</p>
       </div>
     </section>
     {% endfor %}
-    <h2 class="h5 mt-4" id="storage">Cookies and browser storage</h2>
-    <p>{{ privacy_notice('storage').summary }} Everything below is needed for the kit to work, so the law
-      does not ask for your consent; you can still delete it at any time by clearing this site's data in
-      your browser. <a href="/docs/privacy/notices/storage.md">Full notice</a>.</p>
+    <h2 class="h5 mt-4" id="storage">{{ t("privacy.cookies_and_browser_storage") }}</h2>
+    <p>{{ t("privacy.everything_below_is_needed_for_the", summary=(privacy_notice('storage').summary)) }} <a href="/docs/privacy/notices/storage.md">{{ t("privacy.full_notice") }}</a>.</p>
     <div class="table-responsive">
       <table class="table table-sm align-middle">
-        <thead><tr><th scope="col">Name</th><th scope="col">Kind</th><th scope="col">What it is for</th><th scope="col">How long</th></tr></thead>
+        <thead><tr><th scope="col">{{ t("common.name") }}</th><th scope="col">{{ t("common.kind") }}</th><th scope="col">{{ t("privacy.what_it_is_for") }}</th><th scope="col">{{ t("privacy.how_long") }}</th></tr></thead>
         <tbody>
         {% for item in storage %}
           <tr><td><code>{{ item.name }}</code></td><td>{{ item.kind }}</td><td>{{ item.why }}</td><td>{{ item.how_long }}</td></tr>
@@ -46,8 +43,8 @@
         </tbody>
       </table>
     </div>
-    <p class="small text-muted">For the people running the kit: <a href="/docs/privacy/README.md">docs/privacy</a>
-      (records of processing, roles and legal bases, retention, processors, incidents).</p>
+    <p class="small text-muted">{{ t("privacy.for_the_people_running_the_kit") }} <a href="/docs/privacy/README.md">{{ t("privacy.docs_privacy") }}</a>
+      {{ t("privacy.records_of_processing_roles_and_legal") }}</p>
   </div>
 </div>
 {% endblock %}

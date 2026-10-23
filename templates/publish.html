@@ -1,21 +1,21 @@
 {% extends "base.html" %}
 {% from "_privacy_notice.html" import notice %}
-{% block title %}Publish - {{ site.name }}{% endblock %}
+{% block title %}{{ t("publish.publish", name=(site.name)) }}{% endblock %}
 {% block content %}
 {% if not can_publish %}
-<div class="alert alert-info" id="publisherNotice"><i class="bi bi-info-circle"></i> Publishing needs the publisher role. You can still compile and download cartridges; ask your teacher to publish for you or to give you the publisher role.</div>
+<div class="alert alert-info" id="publisherNotice"><i class="bi bi-info-circle"></i> {{ t("publish.publishing_needs_the_publisher_role_you") }}</div>
 {% endif %}
 <div class="row g-4" id="publishPage" data-can-publish="{{ 'true' if can_publish else 'false' }}">
   <div class="col-lg-5">
     <div class="card shadow-sm mb-4">
-      <div class="card-header"><strong>Cartridge Store profiles</strong></div>
+      <div class="card-header"><strong>{{ t("publish.cartridge_store_profiles") }}</strong></div>
       <div class="card-body">
         <form id="profileForm" class="row g-2 mb-3">
-          <div class="col-12"><input class="form-control" name="name" placeholder="Profile name" value="Local Cartridge Store" required></div>
-          <div class="col-12"><input class="form-control" name="store_url" placeholder="https://store.your-school.example" required aria-describedby="storeUrlHelp">
-            <div class="form-text" id="storeUrlHelp">Only Cartridge Stores your teacher approved can be used.</div></div>
-          <div class="col-12"><input class="form-control" type="password" autocomplete="off" name="bearer_token" placeholder="Bearer token, optional"></div>
-          <div class="col-12"><button class="btn btn-primary" type="submit">Save profile</button></div>
+          <div class="col-12"><input class="form-control" name="name" placeholder="{{ t('publish.profile_name') }}" value="Local Cartridge Store" required></div>
+          <div class="col-12"><input class="form-control" name="store_url" placeholder="{{ t('publish.https_store_your_school_example') }}" required aria-describedby="storeUrlHelp">
+            <div class="form-text" id="storeUrlHelp">{{ t("publish.only_cartridge_stores_your_teacher_appro") }}</div></div>
+          <div class="col-12"><input class="form-control" type="password" autocomplete="off" name="bearer_token" placeholder="{{ t('publish.bearer_token_optional') }}"></div>
+          <div class="col-12"><button class="btn btn-primary" type="submit">{{ t("publish.save_profile") }}</button></div>
         </form>
         <div class="list-group" id="profileList"></div>
       </div>
@@ -24,11 +24,11 @@
   <div class="col-lg-7">
     <div class="card shadow-sm">
       <div class="card-header d-flex justify-content-between align-items-center">
-        <strong>Store bundles</strong>
-        <button class="btn btn-outline-primary btn-sm" id="refreshPublish"><i class="bi bi-arrow-clockwise"></i> Refresh</button>
+        <strong>{{ t("publish.store_bundles") }}</strong>
+        <button class="btn btn-outline-primary btn-sm" id="refreshPublish"><i class="bi bi-arrow-clockwise"></i> {{ t("common.refresh") }}</button>
       </div>
       <div class="card-body">
-        <p class="text-muted">Publishing has two steps: <strong>Review</strong> shows exactly what will be sent (Store, cartridge, versions, file fingerprints); then you <strong>confirm</strong>. Only bundles with compiled cartridges can be published.</p>
+        <p class="text-muted">{{ t("publish.publishing_has_two_steps") }} <strong>{{ t("publish.review") }}</strong> {{ t("publish.shows_exactly_what_will_be_sent") }} <strong>{{ t("publish.confirm") }}</strong>{{ t("publish.only_bundles_with_compiled_cartridges_ca") }}</p>
         {{ notice("publishing") }}
         <div id="bundleList" class="vstack gap-3"></div>
       </div>
@@ -37,7 +37,7 @@
 </div>
 
 <div class="card shadow-sm mt-4">
-  <div class="card-header"><strong>Publish response</strong></div>
+  <div class="card-header"><strong>{{ t("publish.publish_response") }}</strong></div>
   <pre class="code-panel"><code id="publishLog">No publish attempt yet.</code></pre>
 </div>
 
@@ -45,17 +45,17 @@
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
-        <h2 class="modal-title h5" id="reviewTitle">Review before publishing</h2>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <h2 class="modal-title h5" id="reviewTitle">{{ t("publish.review_before_publishing") }}</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ t('common.close') }}"></button>
       </div>
       <div class="modal-body" id="reviewBody"></div>
       <div class="modal-footer">
         <div class="form-check me-auto">
           <input class="form-check-input" type="checkbox" id="reviewConfirm">
-          <label class="form-check-label" for="reviewConfirm">I checked this summary and want to send this cartridge to the Store.</label>
+          <label class="form-check-label" for="reviewConfirm">{{ t("publish.i_checked_this_summary_and_want") }}</label>
         </div>
-        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-        <button type="button" class="btn btn-primary" id="confirmPublish" disabled>Publish</button>
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{{ t("common.cancel") }}</button>
+        <button type="button" class="btn btn-primary" id="confirmPublish" disabled>{{ t("common.publish") }}</button>
       </div>
     </div>
   </div>

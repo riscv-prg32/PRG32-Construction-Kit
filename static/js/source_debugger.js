@@ -74,8 +74,8 @@
       setBlockBreakpoint(block, true, condition, { quiet: true, enabled });
     }
     watches.splice(0, watches.length, ...(saved.watches || []).slice(0, 20));
-    if (moved.length) Kit.toast(`The code moved; breakpoints followed it (line ${moved.join(', ')}).`, 'info');
-    if (changedCode.length) Kit.toast('Some breakpoints are on code that changed: they are listed, switched off.', 'warning');
+    if (moved.length) Kit.toast(tr('js.source_debugger.code_moved_breakpoints_followed', 'The code moved; breakpoints followed it (line {lines}).', { lines: moved.join(', ') }), 'info');
+    if (changedCode.length) Kit.toast(tr('js.source_debugger.some_breakpoints_are_on_code_that', 'Some breakpoints are on code that changed: they are listed, switched off.'), 'warning');
     remember();
   }
 
@@ -100,8 +100,8 @@
       lineBreakpoints.delete(line);
     } else {
       const found = debug.breakpointForLine(line);
-      if (!found) { if (!options.quiet) Kit.toast(`Line ${line} has no code to stop at.`, 'warning'); return; }
-      if (found.line !== line && !options.quiet) Kit.toast(`Line ${line} has no code of its own: the breakpoint is on line ${found.line}.`, 'info');
+      if (!found) { if (!options.quiet) Kit.toast(tr('js.source_debugger.line_has_no_code', 'Line {line} has no code to stop at.', { line }), 'warning'); return; }
+      if (found.line !== line && !options.quiet) Kit.toast(tr('js.source_debugger.line_moved_breakpoint', 'Line {line} has no code of its own: the breakpoint is on line {found}.', { line, found: found.line }), 'info');
       lineBreakpoints.set(found.line, { addresses: found.addresses, condition: condition || '',
         enabled: options.enabled !== false, text: (linesOfSource()[found.line - 1] || '').trim() });
     }
@@ -114,7 +114,7 @@
       blockBreakpoints.delete(block);
     } else {
       const found = debug.breakpointForBlock(block);
-      if (!found) { if (!options.quiet) Kit.toast('This block makes no code of its own (a comment, or inside an empty part).', 'warning'); return; }
+      if (!found) { if (!options.quiet) Kit.toast(tr('js.source_debugger.this_block_makes_no_code_of', 'This block makes no code of its own (a comment, or inside an empty part).'), 'warning'); return; }
       blockBreakpoints.set(block, { addresses: found.addresses, condition: condition || '', enabled: options.enabled !== false });
     }
     syncAddresses();
@@ -146,7 +146,7 @@
     const frame = debug.callStack(state, memory)[0];
     const verdict = debug.condition(text, frame, memory);
     if (!verdict.ok) {
-      Kit.toast(`Breakpoint condition "${text}": ${verdict.error}. Stopping here.`, 'warning');
+      Kit.toast(tr('js.source_debugger.condition_error_stopping', 'Breakpoint condition "{condition}": {error}. Stopping here.', { condition: text, error: verdict.error }), 'warning');
       return true;
     }
     return verdict.value;
@@ -172,7 +172,7 @@
       if (block) setTimeout(() => Blockly.common.setSelected(block), 0);
     }, true);
     // The same choice from the keyboard: every block that made code, in program order.
-    $('#dbgBlockChoose').html('<option value="">Choose a block…</option>' + entries()
+    $('#dbgBlockChoose').html(`<option value="">${tr('js.source_debugger.choose_a_block', 'Choose a block…')}</option>` + entries()
       .filter(entry => workspace.getBlockById(entry.block))
       .map(entry => `<option value="${escape(entry.block)}">${escape(entry.ir)}: ${escape(describeBlock(entry.block))}</option>`).join(''));
     markBlocks();
@@ -187,6 +187,11 @@
   }
 
   function describeBlock(id) {
+    if (String(id).startsWith('py:')) {
+      const line = Number(String(id).split(':')[1]);
+      const text = tr('js.source_debugger.python_line_text', 'game.py line {line}: {code}', { line, code: (pythonLines[line - 1] || '').trim().slice(0, 50) });
+      return blockBreakpoints.has(id) ? `● ${text}` : text;
+    }
     const block = workspace && workspace.getBlockById(id);
     if (!block) return id;
     const text = block.toString(40).replace(/\s+/g, ' ');
@@ -202,9 +207,48 @@
     }
   }
 
+  // --- game.py (PRG32 Python projects, ADR-0026) -------------------------------------
+  // The source map's entries name Python statements ("py:line:col:endline:endcol"), so the block
+  // machinery (breakpoints, "next block", the running block) works on game.py lines unchanged.
+  let pythonLines = [];
+  function pythonMode() { return !!(info && info.python_source && debug && debug.hasBlocks); }
+  function pythonIds(line) { return entries().filter(entry => entry.python && entry.python[0] === line).map(entry => entry.block); }
+  function renderPython() {
+    pythonLines = info.python_source.text.split('\n');
+    $('#dbgPython').html(pythonLines.map((text, index) => {
+      const line = index + 1;
+      // Only a line whose code has an address of its own can stop the game.
+      const mapped = pythonIds(line).some(id => debug.breakpointForBlock(id));
+      return `<div class="dbg-src-line" data-line="${line}"><button type="button" class="dbg-src-gutter dbg-py-gutter"
+        data-line="${line}" ${mapped ? '' : 'disabled'} aria-label="${escape(tr('js.source_debugger.python_gutter_label', 'game.py line {line}: breakpoint on or off', { line }))}">${line}</button><code>${escape(text) || ' '}</code></div>`;
+    }).join(''));
+  }
+  function renderPythonMarks(entry) {
+    if (!pythonMode()) return;
+    $('#dbgPython .dbg-src-line').removeClass('dbg-current dbg-bp dbg-bp-off');
+    for (const [id, item] of blockBreakpoints) {
+      if (String(id).startsWith('py:')) {
+        $(`#dbgPython .dbg-src-line[data-line="${String(id).split(':')[1]}"]`).addClass(item.enabled ? 'dbg-bp' : 'dbg-bp-off');
+      }
+    }
+    if (entry && entry.python) {
+      const row = $(`#dbgPython .dbg-src-line[data-line="${entry.python[0]}"]`).addClass('dbg-current');
+      if (row[0]) row[0].scrollIntoView({ block: 'nearest' });
+    }
+  }
+  function setPythonBreakpoint(line, on) {
+    const ids = pythonIds(line).filter(id => debug.breakpointForBlock(id));
+    if (!ids.length) {
+      Kit.toast(tr('js.source_debugger.python_line_no_code', 'This line of game.py has no code of its own to stop at: the compiler joined it to the next one.'), 'warning');
+      return;
+    }
+    for (const id of ids) setBlockBreakpoint(id, on, '', { quiet: true });
+  }
+
   // The running block: Blockly's own highlight plus a class (an outline anyone can see, and tests can find).
   let activeBlock = null;
   function showBlock(entry) {
+    if (pythonMode()) { activeBlock = entry ? entry.block : null; renderPythonMarks(entry); return; }
     if (!workspace) return;
     const id = entry ? entry.block : null;
     workspace.highlightBlock(id);
@@ -256,32 +300,33 @@
     const entry = debug.blockAt(state.pc);
     // Where
     const where = [];
-    if (top && top.line) where.push(`Line <strong>${top.line}</strong> of ${escape(top.file)}`);
-    if (entry && workspace) where.push(`block <strong>${escape(describeBlock(entry.block))}</strong>`);
-    if (top) where.push(`in <code>${escape(top.function)}</code>`);
-    $('#dbgWhere').html(where.length ? where.join(' · ') : 'Outside the program (in the PRG32 firmware or between frames).');
+    if (top && top.line) where.push(tr('js.source_debugger.where_line_of_file', 'Line {line} of {file}', { line: `<strong>${top.line}</strong>`, file: escape(top.file) }));
+    if (entry && workspace) where.push(tr('js.source_debugger.where_block', 'block {block}', { block: `<strong>${escape(describeBlock(entry.block))}</strong>` }));
+    if (entry && entry.python && pythonMode()) where.push(`<strong>${escape(tr('js.source_debugger.where_python_line', 'game.py line {line}', { line: entry.python[0] }))}</strong>`);
+    if (top) where.push(tr('js.source_debugger.where_in_function', 'in {function}', { function: `<code>${escape(top.function)}</code>` }));
+    $('#dbgWhere').html(where.length ? where.join(' · ') : tr('js.source_debugger.outside_the_program_in_the_prg32', 'Outside the program (in the PRG32 firmware or between frames).'));
     showBlock(entry);
     renderSourceMarks(frame && frame.file === debug.userFile ? frame.line : null);
     // Variables: beginners see the game's own variables; advanced users see the frame too.
     const globals = debug.globals(memory).filter(item => advanced() || !item.name.startsWith('prg32_kit_'));
     const locals = advanced() || !debug.hasBlocks ? debug.variables(frame, memory) : [];
     const inlinedNote = frame && frame.inlined && (advanced() || !debug.hasBlocks)
-      ? `<tr><td colspan="2" class="text-muted small">${escape(frame.function)} was inlined into ${escape(frame.inlinedInto)}: it has no frame of its own, so its variables are not shown. Choose ${escape(frame.inlinedInto)} in the call stack.</td></tr>` : '';
-    $('#dbgVariables').html(inlinedNote + (locals.length ? `<tr><th colspan="2" class="text-muted small">In ${escape(frame.function)}</th></tr>${valueRows(locals)}` : '')
-      + (globals.length ? `<tr><th colspan="2" class="text-muted small">${debug.hasBlocks ? 'Your variables' : 'Globals'}</th></tr>${valueRows(globals)}` : '')
-      || '<tr><td class="text-muted small">No variables here.</td></tr>');
+      ? `<tr><td colspan="2" class="text-muted small">${escape(tr('js.source_debugger.inlined_note', '{function} was inlined into {into}: it has no frame of its own, so its variables are not shown. Choose {into} in the call stack.', { function: frame.function, into: frame.inlinedInto }))}</td></tr>` : '';
+    $('#dbgVariables').html(inlinedNote + (locals.length ? `<tr><th colspan="2" class="text-muted small">${escape(tr('js.source_debugger.in_function', 'In {function}', { function: frame.function }))}</th></tr>${valueRows(locals)}` : '')
+      + (globals.length ? `<tr><th colspan="2" class="text-muted small">${debug.hasBlocks ? tr('js.source_debugger.your_variables', 'Your variables') : tr('js.source_debugger.globals', 'Globals')}</th></tr>${valueRows(globals)}` : '')
+      || '<tr><td class="text-muted small">' + Kit.escape(tr('js.source_debugger.no_variables_here', 'No variables here.')) + '</td></tr>');
     // Call stack
     $('#dbgCallStack').html(stack.map((item, index) => `<li><button type="button" class="btn btn-link btn-sm p-0 dbg-frame ${index === selectedFrame ? 'fw-bold' : ''}"
         data-index="${index}" aria-current="${index === selectedFrame}">${escape(item.function)}</button>${item.inlined
-          ? ` <span class="badge text-bg-light" title="The compiler copied this function into ${escape(item.inlinedInto)}">inlined into ${escape(item.inlinedInto)}</span>` : ''}
-        <span class="small text-muted">${item.line ? `${escape(item.file)}:${item.line}` : hex(item.pc)}${item.guessed ? ' (from ra)' : ''}</span></li>`).join('')
-      || '<li class="text-muted small">Not inside the program.</li>');
+          ? ` <span class="badge text-bg-light" title="${escape(tr('js.source_debugger.compiler_copied_function', 'The compiler copied this function into {into}', { into: item.inlinedInto }))}">${escape(tr('js.source_debugger.inlined_into', 'inlined into {into}', { into: item.inlinedInto }))}</span>` : ''}
+        <span class="small text-muted">${item.line ? `${escape(item.file)}:${item.line}` : hex(item.pc)}${item.guessed ? ' ' + escape(tr('js.source_debugger.from_ra', '(from ra)')) : ''}</span></li>`).join('')
+      || `<li class="text-muted small">${tr('js.source_debugger.not_inside_the_program', 'Not inside the program.')}</li>`);
     // Watches
     $('#dbgWatches').html(watches.map((text, index) => {
       const value = debug.watch(text, frame, memory);
       return `<li class="d-flex gap-2 align-items-center"><code>${escape(text)}</code> = <span class="${value.error ? 'text-muted' : ''}">${escape(value.text)}</span>
         <button type="button" class="btn-close kit-tiny-close dbg-unwatch" data-index="${index}" aria-label="Stop watching ${escape(text)}"></button></li>`;
-    }).join('') || '<li class="text-muted small">Type a name and press Watch.</li>');
+    }).join('') || `<li class="text-muted small">${tr('js.source_debugger.type_a_name_press_watch', 'Type a name and press Watch.')}</li>`);
     // CSR and stack (advanced)
     $('#dbgCsr').html(PRG32SourceDebug.csrRows(state).map(row => `<tr><th scope="row">${row.name} <span class="text-muted small">${row.number}</span></th>
       <td>${row.value.toLocaleString()}</td><td class="small text-muted">${escape(row.meaning)}</td></tr>`).join(''));
@@ -289,21 +334,21 @@
       <td>${row.isSp ? 'sp →' : (row.offset > 0 ? `sp+${row.offset}` : `sp${row.offset}`)}</td><td>${hex(row.address).slice(2)}</td>
       <td>${hex(row.value)}</td><td class="text-muted">${row.value | 0}</td></tr>`).join(''));
     // Breakpoint list with conditions
-    const items = [...[...lineBreakpoints].map(([line, item]) => ({ kind: 'line', key: line, label: `Line ${line}`, ...item })),
-      ...[...blockBreakpoints].map(([block, item]) => ({ kind: 'block', key: block, label: `Block ${describeBlock(block)}`, ...item }))];
+    const items = [...[...lineBreakpoints].map(([line, item]) => ({ kind: 'line', key: line, label: tr('js.source_debugger.line_label', 'Line {line}', { line }), ...item })),
+      ...[...blockBreakpoints].map(([block, item]) => ({ kind: 'block', key: block, label: tr('js.source_debugger.block_label', 'Block {block}', { block: describeBlock(block) }), ...item }))];
     $('#dbgSourceBreakpoints').html(items.map(item => `<li class="d-flex flex-wrap gap-1 align-items-center">
         <input class="form-check-input dbg-src-enabled" type="checkbox" id="on-${item.kind}-${escape(item.key)}"
           data-kind="${item.kind}" data-key="${escape(item.key)}" ${item.enabled ? 'checked' : ''}>
         <label class="${item.enabled ? '' : 'text-muted text-decoration-line-through'}" for="on-${item.kind}-${escape(item.key)}">${escape(item.label)}</label>
-        <label class="visually-hidden" for="cond-${item.kind}-${escape(item.key)}">Condition for ${escape(item.label)}</label>
+        <label class="visually-hidden" for="cond-${item.kind}-${escape(item.key)}">${escape(tr('js.source_debugger.condition_for', 'Condition for {label}', { label: item.label }))}</label>
         <input class="form-control form-control-sm w-auto font-monospace dbg-condition" id="cond-${item.kind}-${escape(item.key)}"
-          data-kind="${item.kind}" data-key="${escape(item.key)}" value="${escape(item.condition)}" placeholder="stop only if… (score > 10)">
-        <button type="button" class="btn btn-link btn-sm p-0 dbg-src-remove" data-kind="${item.kind}" data-key="${escape(item.key)}">remove</button></li>`).join('')
+          data-kind="${item.kind}" data-key="${escape(item.key)}" value="${escape(item.condition)}" placeholder="${escape(tr('js.source_debugger.stop_only_if', 'stop only if… (score > 10)'))}">
+        <button type="button" class="btn btn-link btn-sm p-0 dbg-src-remove" data-kind="${item.kind}" data-key="${escape(item.key)}">${tr('js.source_debugger.remove', 'remove')}</button></li>`).join('')
       + changedCode.map((item, index) => `<li class="d-flex flex-wrap gap-1 align-items-center text-muted">
-        <span title="not placed">○</span> ${item.kind === 'line' ? `Line ${item.line}` : `Block ${escape(describeBlock(item.block))}`}: the code changed
-        ${item.text ? `(was <code>${escape(item.text)}</code>)` : ''}
-        <button type="button" class="btn btn-link btn-sm p-0 dbg-changed-remove" data-index="${index}">remove</button></li>`).join('')
-      || '<li class="text-muted small">No source or block breakpoints.</li>');
+        <span title="${escape(tr('js.source_debugger.not_placed', 'not placed'))}">○</span> ${escape(item.kind === 'line' ? tr('js.source_debugger.line_label', 'Line {line}', { line: item.line }) : tr('js.source_debugger.block_label', 'Block {block}', { block: describeBlock(item.block) }))}: ${tr('js.source_debugger.the_code_changed', 'the code changed')}
+        ${item.text ? `(${escape(tr('js.source_debugger.was', 'was'))} <code>${escape(item.text)}</code>)` : ''}
+        <button type="button" class="btn btn-link btn-sm p-0 dbg-changed-remove" data-index="${index}">${tr('js.source_debugger.remove', 'remove')}</button></li>`).join('')
+      || `<li class="text-muted small">${tr('js.source_debugger.no_source_or_block_breakpoints', 'No source or block breakpoints.')}</li>`);
   }
 
   function render(state) {
@@ -326,17 +371,24 @@
       guestBase: player.debugState().guest_base }) : null;
     if (!debug || !debug.ok) {
       $('#srcDebug').attr('hidden', true);
-      $('#srcDebugNote').removeAttr('hidden').text('Source and block debugging: '
-        + (debug ? debug.reason : 'open a cartridge compiled in the kit (Compile, then Run & debug)') + '. The machine-code debugger above works for every cartridge.');
+      $('#srcDebugNote').removeAttr('hidden').text(tr('js.source_debugger.source_and_block_debugging', 'Source and block debugging: ')
+        + (debug ? debug.reason : tr('js.source_debugger.open_a_cartridge_compiled_in_the', 'open a cartridge compiled in the kit (Compile, then Run & debug)')) + '. The machine-code debugger above works for every cartridge.');
       player.breakpointFilter = null;
       return;
     }
     $('#srcDebugNote').attr('hidden', true);
     $('#srcDebug').removeAttr('hidden');
     $('#dbgSourceTitle').text(info.source ? info.source.file : 'source');
-    $('#dbgStepLine .dbg-beginner').text(debug.hasBlocks && info.blocks_json ? 'Next block' : 'Next line');
+    $('#dbgStepLine .dbg-beginner').text(debug.hasBlocks && info.blocks_json ? tr('js.source_debugger.next_block', 'Next block')
+      : pythonMode() ? tr('js.source_debugger.next_python_line', 'Next Python line') : tr('js.source_debugger.next_line', 'Next line'));
     renderSourceText();
-    if (debug.hasBlocks && info.blocks_json) {
+    $('#tabPython').attr('hidden', true);
+    if (pythonMode()) {
+      $('#tabBlocks').attr('hidden', true);
+      $('#tabPython').removeAttr('hidden');
+      renderPython();
+      bootstrap.Tab.getOrCreateInstance(document.getElementById('tabPython')).show();
+    } else if (debug.hasBlocks && info.blocks_json) {
       $('#tabBlocks').removeAttr('hidden');
       openBlocks();
     } else {
@@ -352,6 +404,13 @@
   $('#dbgSource').on('click', '.dbg-src-gutter', function () {
     const line = Number($(this).data('line'));
     setLineBreakpoint(line, !lineBreakpoints.has(line));
+  });
+  $('#dbgPython').on('click', '.dbg-py-gutter', function () {
+    const line = Number($(this).data('line'));
+    setPythonBreakpoint(line, !pythonIds(line).some(id => blockBreakpoints.has(id)));
+    remember();
+    renderPythonMarks(debug.blockAt(player.debugState().pc));
+    render(player.debugState());
   });
   $('#dbgBlockChoose').on('change', function () {
     const block = workspace && this.value && workspace.getBlockById(this.value);
@@ -406,12 +465,15 @@
     const start = player.debugState().pc;
     const startLine = debug.lineAt(start);
     const startBlock = debug.blockAt(start);
+    const byBlock = debug.hasBlocks && (workspace || pythonMode());
     const key = pc => {
-      if (debug.hasBlocks && workspace) { const entry = debug.blockAt(pc); return entry ? entry.block : null; }
+      if (byBlock && pythonMode()) { const entry = debug.blockAt(pc); return entry && entry.python ? entry.python[0] : null; }
+      if (byBlock) { const entry = debug.blockAt(pc); return entry ? entry.block : null; }
       const line = debug.lineAt(pc);
       return line && line.file === debug.userFile ? line.line : null;
     };
-    const from = debug.hasBlocks && workspace ? (startBlock && startBlock.block) : (startLine && startLine.line);
+    const from = byBlock && pythonMode() ? (startBlock && startBlock.python ? startBlock.python[0] : null)
+      : byBlock ? (startBlock && startBlock.block) : (startLine && startLine.line);
     const answer = player.debug({ command: 'step_line', moved: pc => { const now = key(pc); return now !== null && now !== from; } });
     if (!answer.ok) Kit.toast(answer.error, 'warning');
   });

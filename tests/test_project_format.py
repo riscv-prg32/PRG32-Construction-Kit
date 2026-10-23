@@ -60,7 +60,7 @@ def test_sdk_abi_matches_the_prg32_sdk_when_installed():
 def test_manifest_describes_a_blocks_project(client):
     project = blocks_project(client)
     data = client.get(f"/api/projects/{project['id']}/manifest").get_json()
-    assert data["schema"] == "prg32-project" and data["schema_version"] == 1
+    assert data["schema"] == "prg32-project" and data["schema_version"] == pf.SCHEMA_VERSION == 2
     assert data["authoring_mode"] == "blocks" and data["source"] == "src/blocks.json"
     assert data["entry_points"] == {"prefix": "archive_game", "init": "archive_game_init",
                                     "update": "archive_game_update", "draw": "archive_game_draw"}
@@ -137,7 +137,8 @@ def test_upgrade_rejects_newer_and_foreign_documents():
         pf.upgrade({"schema": "something-else", "schema_version": 1})
     with pytest.raises(pf.ProjectFormatError, match="whole number"):
         pf.upgrade({"schema": pf.SCHEMA, "schema_version": "1"})
-    assert pf.upgrade({"schema": pf.SCHEMA, "schema_version": 1})["schema_version"] == 1
+    # Version 2 adds Python projects; a version-1 document reads unchanged as version 2 (ADR-0026).
+    assert pf.upgrade({"schema": pf.SCHEMA, "schema_version": 1})["schema_version"] == 2
 
 
 @pytest.mark.parametrize("files, message", [
@@ -148,7 +149,10 @@ def test_upgrade_rejects_newer_and_foreign_documents():
     ({pf.MANIFEST_NAME: manifest()}, "missing src/blocks.json"),
     ({pf.MANIFEST_NAME: "not json"}, "not valid JSON"),
     ({pf.MANIFEST_NAME: manifest(authoring_mode="assembly", source="src/game.S")}, "missing src/game.S"),
-    ({pf.MANIFEST_NAME: manifest(authoring_mode="python")}, "authoring_mode must be"),
+    ({pf.MANIFEST_NAME: manifest(authoring_mode="cobol")}, "authoring_mode must be"),
+    ({pf.MANIFEST_NAME: manifest(authoring_mode="python", source="src/game.py")}, "cannot be written in Python"),
+    ({pf.MANIFEST_NAME: manifest(schema_version=2, authoring_mode="python", source="src/game.py",
+                                 python_language_version=9), "src/game.py": "import prg32"}, "PRG32 Python version 9"),
     ({pf.MANIFEST_NAME: manifest(source="src/game.c")}, "keeps its source in src/blocks.json"),
     ({pf.MANIFEST_NAME: manifest(required_features=["teleport"]), "src/blocks.json": "{}"}, "feature"),
     ({pf.MANIFEST_NAME: manifest(assets=[{"kind": "sprite", "path": "../x.json"}]), "src/blocks.json": "{}"},

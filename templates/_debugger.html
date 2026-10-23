@@ -5,108 +5,113 @@
 #}
 <div class="card shadow-sm mt-3" id="debuggerCard">
   <div class="card-header d-flex flex-wrap gap-2 align-items-center">
-    <strong><i class="bi bi-bug"></i> Debugger</strong>
+    <strong><i class="bi bi-bug"></i> {{ t("debugger.debugger") }}</strong>
     <div class="form-check form-switch mb-0 ms-2">
       <input class="form-check-input" type="checkbox" role="switch" id="dbgEnable" disabled>
-      <label class="form-check-label small" for="dbgEnable" title="Run one RISC-V instruction at a time, checking breakpoints before each one">Debug mode</label>
+      <label class="form-check-label small" for="dbgEnable" title="{{ t('debugger.run_one_risc_v_instruction_at') }}">{{ t("debugger.debug_mode") }}</label>
     </div>
-    <div class="btn-group btn-group-sm ms-auto" role="group" aria-label="Debugger view">
+    <div class="btn-group btn-group-sm ms-auto" role="group" aria-label="{{ t('debugger.debugger_view') }}">
       <input type="radio" class="btn-check" name="dbgView" id="dbgBeginner" value="beginner" checked>
-      <label class="btn btn-outline-dark" for="dbgBeginner">Beginner</label>
+      <label class="btn btn-outline-dark" for="dbgBeginner">{{ t("debugger.beginner") }}</label>
       <input type="radio" class="btn-check" name="dbgView" id="dbgAdvanced" value="advanced">
-      <label class="btn btn-outline-dark" for="dbgAdvanced">Advanced</label>
+      <label class="btn btn-outline-dark" for="dbgAdvanced">{{ t("debugger.advanced") }}</label>
     </div>
   </div>
   <div class="card-body">
-    <div class="btn-toolbar gap-2 mb-2" role="toolbar" aria-label="Debugger controls">
-      <button class="btn btn-sm btn-success dbg-control" id="dbgContinue" disabled><i class="bi bi-play-fill"></i> Continue</button>
-      <button class="btn btn-sm btn-primary dbg-control" id="dbgStepLine" disabled title="Run until the next line (or block) of your program; calls run whole"><i class="bi bi-arrow-down"></i> <span class="dbg-beginner">Next line</span><span class="dbg-advanced">Step line</span></button>
-      <button class="btn btn-sm btn-primary dbg-control" id="dbgStep" disabled title="Run exactly the highlighted instruction"><i class="bi bi-arrow-down-short"></i> <span class="dbg-beginner">Step</span><span class="dbg-advanced">Step instruction</span></button>
-      <button class="btn btn-sm btn-outline-primary dbg-control dbg-advanced" id="dbgStepOver" disabled title="Run a whole function call (jal/jalr) and stop after it"><i class="bi bi-arrow-return-right"></i> Step over</button>
-      <button class="btn btn-sm btn-outline-primary dbg-control dbg-advanced" id="dbgStepOut" disabled title="Run until the current function returns"><i class="bi bi-box-arrow-up"></i> Step out</button>
-      <button class="btn btn-sm btn-warning dbg-control" id="dbgStepFrame" disabled title="Run to the end of this frame (update + draw), stopping at breakpoints"><i class="bi bi-skip-forward"></i> Step frame</button>
-      <span class="small align-self-center text-muted">Speed: use the selector above the screen.</span>
+    <div class="btn-toolbar gap-2 mb-2" role="toolbar" aria-label="{{ t('debugger.debugger_controls') }}">
+      <button class="btn btn-sm btn-success dbg-control" id="dbgContinue" disabled><i class="bi bi-play-fill"></i> {{ t("common.continue") }}</button>
+      <button class="btn btn-sm btn-primary dbg-control" id="dbgStepLine" disabled title="{{ t('debugger.run_until_the_next_line_or') }}"><i class="bi bi-arrow-down"></i> <span class="dbg-beginner">{{ t("debugger.next_line") }}</span><span class="dbg-advanced">{{ t("debugger.step_line") }}</span></button>
+      <button class="btn btn-sm btn-primary dbg-control" id="dbgStep" disabled title="{{ t('debugger.run_exactly_the_highlighted_instruction') }}"><i class="bi bi-arrow-down-short"></i> <span class="dbg-beginner">{{ t("debugger.step") }}</span><span class="dbg-advanced">{{ t("debugger.step_instruction") }}</span></button>
+      <button class="btn btn-sm btn-outline-primary dbg-control dbg-advanced" id="dbgStepOver" disabled title="{{ t('debugger.run_a_whole_function_call_jal') }}"><i class="bi bi-arrow-return-right"></i> {{ t("debugger.step_over") }}</button>
+      <button class="btn btn-sm btn-outline-primary dbg-control dbg-advanced" id="dbgStepOut" disabled title="{{ t('debugger.run_until_the_current_function_returns') }}"><i class="bi bi-box-arrow-up"></i> {{ t("debugger.step_out") }}</button>
+      <button class="btn btn-sm btn-warning dbg-control" id="dbgStepFrame" disabled title="{{ t('debugger.run_to_the_end_of_this') }}"><i class="bi bi-skip-forward"></i> {{ t("debugger.step_frame") }}</button>
+      <span class="small align-self-center text-muted">{{ t("debugger.speed_use_the_selector_above_the") }}</span>
     </div>
-    <div class="small mb-2 d-flex flex-wrap gap-3" id="dbgStatus" aria-live="polite">Load a cartridge, then switch on <strong>Debug mode</strong>.</div>
-    <p class="small text-muted mb-2">New to this? Read <a href="/docs/tutorials/07_debugger.md" target="_blank">Lesson 7: the debugger</a>.</p>
-    <p class="small text-muted dbg-beginner mb-2">The blue row is the next instruction the processor will run. Click the grey space left of an address to put a <span class="text-danger">●</span> breakpoint there: the game stops just before it runs that line.</p>
+    <div class="small mb-2 d-flex flex-wrap gap-3" id="dbgStatus" aria-live="polite">{{ t("debugger.load_a_cartridge_then_switch_on") }} <strong>{{ t("debugger.debug_mode") }}</strong>.</div>
+    <p class="small text-muted mb-2">{{ t("debugger.new_to_this_read") }} <a href="/docs/tutorials/07_debugger.md" target="_blank">{{ t("debugger.lesson_7_the_debugger") }}</a>.</p>
+    <p class="small text-muted dbg-beginner mb-2">{{ t("debugger.the_blue_row_is_the_next") }} <span class="text-danger">●</span> {{ t("debugger.breakpoint_there_the_game_stops_just") }}</p>
     <div class="row g-3">
       <div class="col-lg-6">
         <div class="d-flex flex-wrap gap-1 mb-1 align-items-center">
-          <div class="btn-group btn-group-sm" role="group" aria-label="Show code">
-            <button class="btn btn-outline-secondary dbg-goto" data-view="init">Init</button>
-            <button class="btn btn-outline-secondary dbg-goto" data-view="update">Update</button>
-            <button class="btn btn-outline-secondary dbg-goto" data-view="draw">Draw</button>
-            <button class="btn btn-outline-secondary dbg-goto active" data-view="pc">PC</button>
+          <div class="btn-group btn-group-sm" role="group" aria-label="{{ t('debugger.show_code') }}">
+            <button class="btn btn-outline-secondary dbg-goto" data-view="init">{{ t("debugger.init") }}</button>
+            <button class="btn btn-outline-secondary dbg-goto" data-view="update">{{ t("debugger.update") }}</button>
+            <button class="btn btn-outline-secondary dbg-goto" data-view="draw">{{ t("debugger.draw") }}</button>
+            <button class="btn btn-outline-secondary dbg-goto active" data-view="pc">{{ t("debugger.pc") }}</button>
           </div>
           <form class="d-flex gap-1 dbg-advanced" id="dbgGotoForm">
-            <input class="form-control form-control-sm font-monospace kit-w-address" id="dbgGotoAddress" placeholder="0x40800000" aria-label="Show code at address">
-            <button class="btn btn-sm btn-outline-secondary">Show</button>
+            <input class="form-control form-control-sm font-monospace kit-w-address" id="dbgGotoAddress" placeholder="0x40800000" aria-label="{{ t('debugger.show_code_at_address') }}">
+            <button class="btn btn-sm btn-outline-secondary">{{ t("debugger.show") }}</button>
           </form>
         </div>
-        <div class="table-responsive border rounded dbg-code" id="dbgCode" tabindex="0" role="region" aria-label="Machine code"><div class="p-2 small text-muted">No cartridge loaded</div></div>
+        <div class="table-responsive border rounded dbg-code" id="dbgCode" tabindex="0" role="region" aria-label="{{ t('debugger.machine_code') }}"><div class="p-2 small text-muted">{{ t("common.no_cartridge_loaded") }}</div></div>
         <div class="small mt-1 d-flex flex-wrap gap-1 align-items-center" id="dbgBreakpoints"></div>
       </div>
       <div class="col-lg-6 col-xl-3">
-        <div class="small fw-semibold mb-1">Registers <span class="text-muted fw-normal dbg-beginner">(the processor's 32 small boxes for numbers)</span></div>
+        <div class="small fw-semibold mb-1">{{ t("debugger.registers") }} <span class="text-muted fw-normal dbg-beginner">{{ t("debugger.the_processor_s_32_small_boxes") }}</span></div>
         <div class="table-responsive border rounded"><table class="table table-sm mb-0 font-monospace small dbg-registers" id="dbgRegisters"></table></div>
       </div>
       <div class="col-xl-3 dbg-advanced">
-        <div class="small fw-semibold mb-1">Memory</div>
+        <div class="small fw-semibold mb-1">{{ t("debugger.memory") }}</div>
         <form class="d-flex gap-1 mb-1" id="dbgMemoryForm">
-          <input class="form-control form-control-sm font-monospace" id="dbgMemoryAddress" placeholder="0x40800000 or 1082130432" aria-label="Memory address (decimal or 0x)">
-          <select class="form-select form-select-sm w-auto" id="dbgMemoryLength" aria-label="Bytes to show">
+          <input class="form-control form-control-sm font-monospace" id="dbgMemoryAddress" placeholder="{{ t('debugger.0x40800000_or_1082130432') }}" aria-label="{{ t('debugger.memory_address_decimal_or_0x') }}">
+          <select class="form-select form-select-sm w-auto" id="dbgMemoryLength" aria-label="{{ t('debugger.bytes_to_show') }}">
             <option value="128" selected>128</option><option value="256">256</option><option value="512">512</option><option value="1024">1024</option>
           </select>
-          <button class="btn btn-sm btn-outline-secondary">Inspect</button>
+          <button class="btn btn-sm btn-outline-secondary">{{ t("debugger.inspect") }}</button>
         </form>
-        <pre class="border rounded p-2 small mb-0 dbg-memory" id="dbgMemory" tabindex="0" aria-label="Memory bytes">Address outside guest memory</pre>
+        <pre class="border rounded p-2 small mb-0 dbg-memory" id="dbgMemory" tabindex="0" aria-label="{{ t('debugger.memory_bytes') }}">{{ t('js.prg32_debugger.address_outside_guest_memory') }}</pre>
       </div>
     </div>
 
-    <p class="small text-muted mt-3 mb-0" id="srcDebugNote">Source and block debugging: open a cartridge compiled in the kit (Compile, then Run &amp; debug).</p>
-    <section class="mt-3" id="srcDebug" aria-label="Your program" hidden>
+    <p class="small text-muted mt-3 mb-0" id="srcDebugNote">{{ t("debugger.source_and_block_debugging_open_a") }}</p>
+    <section class="mt-3" id="srcDebug" aria-label="{{ t('debugger.your_program') }}" hidden>
       <div class="small mb-2" id="dbgWhere" aria-live="polite"></div>
       <div class="row g-3">
         <div class="col-lg-7">
           <ul class="nav nav-tabs nav-sm" role="tablist">
-            <li class="nav-item" role="presentation"><button class="nav-link active" id="tabBlocks" data-bs-toggle="tab" data-bs-target="#paneBlocks" type="button" role="tab" aria-controls="paneBlocks" aria-selected="true">Blocks</button></li>
+            <li class="nav-item" role="presentation"><button class="nav-link active" id="tabBlocks" data-bs-toggle="tab" data-bs-target="#paneBlocks" type="button" role="tab" aria-controls="paneBlocks" aria-selected="true">{{ t("common.blocks") }}</button></li>
+            <li class="nav-item" role="presentation"><button class="nav-link" id="tabPython" data-bs-toggle="tab" data-bs-target="#panePython" type="button" role="tab" aria-controls="panePython" aria-selected="false" hidden>game.py</button></li>
             <li class="nav-item" role="presentation"><button class="nav-link" id="tabSource" data-bs-toggle="tab" data-bs-target="#paneSource" type="button" role="tab" aria-controls="paneSource" aria-selected="false"><span id="dbgSourceTitle">game.c</span></button></li>
           </ul>
           <div class="tab-content border border-top-0 rounded-bottom">
             <div class="tab-pane show active" id="paneBlocks" role="tabpanel" aria-labelledby="tabBlocks" tabindex="0">
-              <div id="dbgBlocks" class="dbg-blocks" role="region" aria-label="Your blocks; the running block is highlighted"></div>
+              <div id="dbgBlocks" class="dbg-blocks" role="region" aria-label="{{ t('debugger.your_blocks_the_running_block_is') }}"></div>
               <div class="d-flex flex-wrap gap-2 align-items-center p-2 small">
-                <label class="visually-hidden" for="dbgBlockChoose">Choose a block</label>
+                <label class="visually-hidden" for="dbgBlockChoose">{{ t("debugger.choose_a_block") }}</label>
                 <select class="form-select form-select-sm w-auto mw-100" id="dbgBlockChoose"></select>
-                <span>Selected: <span id="dbgBlockSelected" class="fw-semibold">click a block</span></span>
-                <button class="btn btn-outline-danger btn-sm" id="dbgBlockBreak" type="button" disabled>● Breakpoint on block</button>
+                <span>{{ t("debugger.selected") }} <span id="dbgBlockSelected" class="fw-semibold">{{ t("debugger.click_a_block") }}</span></span>
+                <button class="btn btn-outline-danger btn-sm" id="dbgBlockBreak" type="button" disabled>{{ t("debugger.breakpoint_on_block") }}</button>
               </div>
+            </div>
+            <div class="tab-pane" id="panePython" role="tabpanel" aria-labelledby="tabPython" tabindex="0">
+              <div class="dbg-source font-monospace small" id="dbgPython" role="region" aria-label="{{ t('debugger.game_py_the_running_line_is') }}"></div>
+              <p class="small text-muted p-2 mb-0">{{ t("debugger.press_a_line_number_of_game") }} <span class="text-danger">●</span> {{ t("debugger.breakpoint_on_that_python_line") }}</p>
             </div>
             <div class="tab-pane" id="paneSource" role="tabpanel" aria-labelledby="tabSource" tabindex="0">
               <div class="dbg-source font-monospace small" id="dbgSource"></div>
-              <p class="small text-muted p-2 mb-0">Press a line number to put a <span class="text-danger">●</span> breakpoint on that line.</p>
+              <p class="small text-muted p-2 mb-0">{{ t("debugger.press_a_line_number_to_put") }} <span class="text-danger">●</span> {{ t("debugger.breakpoint_on_that_line") }}</p>
             </div>
           </div>
-          <div class="small fw-semibold mt-2 mb-1">Source and block breakpoints</div>
+          <div class="small fw-semibold mt-2 mb-1">{{ t("debugger.source_and_block_breakpoints") }}</div>
           <ul class="list-unstyled small mb-0 d-flex flex-column gap-1" id="dbgSourceBreakpoints"></ul>
         </div>
         <div class="col-lg-5">
-          <div class="small fw-semibold mb-1">Variables</div>
+          <div class="small fw-semibold mb-1">{{ t("debugger.variables") }}</div>
           <div class="table-responsive border rounded mb-2"><table class="table table-sm mb-0 small font-monospace" id="dbgVariables"></table></div>
-          <div class="small fw-semibold mb-1">Watches</div>
+          <div class="small fw-semibold mb-1">{{ t("debugger.watches") }}</div>
           <form class="d-flex gap-1 mb-1" id="dbgWatchForm">
-            <label class="visually-hidden" for="dbgWatchInput">Watch a variable</label>
-            <input class="form-control form-control-sm font-monospace" id="dbgWatchInput" placeholder="score, player.x, heights[2], a0" autocomplete="off">
-            <button class="btn btn-sm btn-outline-secondary">Watch</button>
+            <label class="visually-hidden" for="dbgWatchInput">{{ t("debugger.watch_a_variable") }}</label>
+            <input class="form-control form-control-sm font-monospace" id="dbgWatchInput" placeholder="{{ t('debugger.score_player_x_heights_2_a0') }}" autocomplete="off">
+            <button class="btn btn-sm btn-outline-secondary">{{ t("debugger.watch") }}</button>
           </form>
           <ul class="list-unstyled small font-monospace mb-2" id="dbgWatches"></ul>
-          <div class="small fw-semibold mb-1">Call stack <span class="text-muted fw-normal dbg-beginner">(who called whom)</span></div>
+          <div class="small fw-semibold mb-1">{{ t("debugger.call_stack") }} <span class="text-muted fw-normal dbg-beginner">{{ t("debugger.who_called_whom") }}</span></div>
           <ol class="small mb-2 ps-3" id="dbgCallStack"></ol>
           <div class="dbg-advanced">
-            <div class="small fw-semibold mb-1">Counter CSRs</div>
+            <div class="small fw-semibold mb-1">{{ t("debugger.counter_csrs") }}</div>
             <div class="table-responsive border rounded mb-2"><table class="table table-sm mb-0 small font-monospace" id="dbgCsr"></table></div>
-            <div class="small fw-semibold mb-1">Stack</div>
+            <div class="small fw-semibold mb-1">{{ t("debugger.stack") }}</div>
             <div class="table-responsive border rounded"><table class="table table-sm mb-0 small font-monospace" id="dbgStackWords"></table></div>
           </div>
         </div>

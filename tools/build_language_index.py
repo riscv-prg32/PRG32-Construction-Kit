@@ -18,7 +18,10 @@ inputs are fixed, so the same SDK always gives the same index:
   the obsolete buzzer functions and type (source_project.OBSOLETE_*) are left out
   of suggestions and listed as "obsolete", so the editor marks them as errors;
 - the tables below: RV32IMC + Zicsr instructions, registers and the calling
-  convention, written for students.
+  convention, written for students;
+- the PRG32 Python compiler (python_project.api_reference, ADR-0026): the prg32
+  module's functions and constants, the types and the limits, so Python
+  completion offers exactly what the compiler accepts.
 
 The index also carries a generated, read-only "prg32.h (portable API)" text,
 which the editor opens for "go to declaration".
@@ -38,7 +41,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-from prg32_construction_kit import project_format, source_project  # noqa: E402
+from prg32_construction_kit import project_format, python_project, source_project  # noqa: E402
 
 OUTPUT = ROOT / "static" / "js" / "ide" / "prg32_language_index.js"
 SCHEMA = "prg32-language-index/1"
@@ -451,6 +454,7 @@ def build(sdk: Path) -> dict:
             "calling_convention": CALLING_CONVENTION,
         },
         "header": {"name": "prg32.h (portable API)", "text": header},
+        "python": python_project.api_reference(),
     }
 
 

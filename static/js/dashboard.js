@@ -10,11 +10,11 @@
     }
   });
 
-  // Blocks, C or assembly: fixed when the project is made (ADR-0024).
-  const TYPE_NAMES = { blocks: 'Blocks', c: 'C', asm: 'Assembly' };
+  // Blocks, C, assembly or Python: fixed when the project is made (ADR-0024, ADR-0026).
+  const TYPE_NAMES = { blocks: tr('common.blocks', 'Blocks'), c: 'C', asm: tr('js.dashboard.assembly', 'Assembly'), python: tr('js.dashboard.python', 'Python') };
   function projectType(project) {
     const mode = project.game_json && project.game_json.source_mode;
-    return mode === 'c' || mode === 'asm' ? mode : 'blocks';
+    return mode === 'c' || mode === 'asm' || mode === 'python' ? mode : 'blocks';
   }
 
   function card(project) {
@@ -24,16 +24,16 @@
         <div class="card-body">
           <h3 class="h5">${Kit.escape(project.title)}
             <span class="badge rounded-pill text-bg-secondary align-middle fs-6 fw-normal">${TYPE_NAMES[projectType(project)]}</span></h3>
-          <p class="text-muted small mb-2">${Kit.escape(project.description || 'No summary yet.')}</p>
+          <p class="text-muted small mb-2">${Kit.escape(project.description || tr('js.dashboard.no_summary_yet', 'No summary yet.'))}</p>
           <div class="mb-3">${Kit.tags(project.tags)}</div>
           <div class="d-flex gap-2">
-            <a class="btn btn-primary btn-sm" href="/ide/${encodeURIComponent(project.id)}"><i class="bi bi-pencil-square"></i> Open</a>
-            <a class="btn btn-outline-primary btn-sm" href="/audio-studio/${encodeURIComponent(project.id)}"><i class="bi bi-music-note-beamed"></i> Sound</a>
-            <button class="btn btn-outline-secondary btn-sm cloud-project cloud-only" data-id="${Kit.escape(project.id)}" data-title="${Kit.escape(project.title)}" aria-label="Cloud copy of ${Kit.escape(project.title)}"><i class="bi bi-cloud"></i></button>
-            <button class="btn btn-outline-danger btn-sm delete-project" data-id="${Kit.escape(project.id)}" aria-label="Delete ${Kit.escape(project.title)}"><i class="bi bi-trash" aria-hidden="true"></i></button>
+            <a class="btn btn-primary btn-sm" href="/ide/${encodeURIComponent(project.id)}"><i class="bi bi-pencil-square"></i> ${tr('js.dashboard.open', 'Open')}</a>
+            <a class="btn btn-outline-primary btn-sm" href="/audio-studio/${encodeURIComponent(project.id)}"><i class="bi bi-music-note-beamed"></i> ${tr('js.ide.sound', 'Sound')}</a>
+            <button class="btn btn-outline-secondary btn-sm cloud-project cloud-only" data-id="${Kit.escape(project.id)}" data-title="${Kit.escape(project.title)}" aria-label="${Kit.escape(tr('js.dashboard.cloud_copy_of', 'Cloud copy of {title}', { title: project.title }))}"><i class="bi bi-cloud"></i></button>
+            <button class="btn btn-outline-danger btn-sm delete-project" data-id="${Kit.escape(project.id)}" aria-label="${Kit.escape(tr('js.dashboard.delete_title', 'Delete {title}', { title: project.title }))}"><i class="bi bi-trash" aria-hidden="true"></i></button>
           </div>
         </div>
-        <div class="card-footer small text-muted">Updated ${Kit.escape(Kit.when(project.updated_at))}</div>
+        <div class="card-footer small text-muted">${Kit.escape(tr('js.dashboard.updated_when', 'Updated {when}', { when: Kit.when(project.updated_at) }))}</div>
       </div>
     </div>`;
   }
@@ -46,7 +46,7 @@
       $('#spriteCount').text(sprites.sprites.length);
       $('#artifactCount').text(artifacts.artifacts.length);
       $('#buildCount').text(builds.builds.length);
-      $('#projectGrid').html(projects.projects.map(card).join('') || '<div class="col"><div class="alert alert-info">Create your first project.</div></div>');
+      $('#projectGrid').html(projects.projects.map(card).join('') || `<div class="col"><div class="alert alert-info">${tr('js.dashboard.create_your_first_project', 'Create your first project.')}</div></div>`);
     }).catch(err => Kit.toast(err.message, 'danger'));
     loadDeleted();
   }
@@ -54,24 +54,24 @@
   // "Recently deleted": a deleted project can be restored; only an admin can delete it for good.
   const isAdmin = $('#deletedSection').data('admin') === true;
   function deletedRow(project) {
-    const purge = isAdmin ? `<button class="btn btn-outline-danger btn-sm purge-project" data-id="${Kit.escape(project.id)}">Delete for good</button>` : '';
+    const purge = isAdmin ? `<button class="btn btn-outline-danger btn-sm purge-project" data-id="${Kit.escape(project.id)}">${tr('js.dashboard.delete_for_good', 'Delete for good')}</button>` : '';
     return `<div class="list-group-item d-flex gap-2 align-items-center justify-content-between">
-      <div><strong>${Kit.escape(project.title)}</strong><div class="small text-muted">Deleted ${Kit.escape(project.deleted_at)}</div></div>
-      <div class="text-nowrap"><button class="btn btn-outline-primary btn-sm restore-project" data-id="${Kit.escape(project.id)}"><i class="bi bi-arrow-counterclockwise"></i> Restore</button> ${purge}</div>
+      <div><strong>${Kit.escape(project.title)}</strong><div class="small text-muted">${Kit.escape(tr('js.dashboard.deleted_when', 'Deleted {when}', { when: Kit.when(project.deleted_at) }))}</div></div>
+      <div class="text-nowrap"><button class="btn btn-outline-primary btn-sm restore-project" data-id="${Kit.escape(project.id)}"><i class="bi bi-arrow-counterclockwise"></i> ${tr('js.ide.restore', 'Restore')}</button> ${purge}</div>
     </div>`;
   }
   function loadDeleted() {
     Kit.api('/api/projects?deleted=1').then(data => {
-      $('#deletedList').html(data.projects.map(deletedRow).join('') || '<div class="list-group-item small text-muted">Nothing here.</div>');
+      $('#deletedList').html(data.projects.map(deletedRow).join('') || `<div class="list-group-item small text-muted">${tr('js.dashboard.nothing_here', 'Nothing here.')}</div>`);
     }).catch(err => Kit.toast(err.message, 'danger'));
   }
   $('#deletedList').on('click', '.restore-project', function () {
     Kit.api('/api/projects/' + encodeURIComponent($(this).data('id')) + '/restore', { method: 'POST', body: {} })
-      .then(() => { Kit.toast('Project restored', 'success'); load(); })
+      .then(() => { Kit.toast(tr('js.dashboard.project_restored', 'Project restored'), 'success'); load(); })
       .catch(err => Kit.toast(err.message, 'danger'));
   });
   $('#deletedList').on('click', '.purge-project', function () {
-    if (!confirm('Delete this project for good? Its history goes too. This cannot be undone.')) return;
+    if (!confirm(tr('js.dashboard.delete_this_project_for_good_its', 'Delete this project for good? Its history goes too. This cannot be undone.'))) return;
     Kit.api('/api/projects/' + encodeURIComponent($(this).data('id')) + '?purge=1', { method: 'DELETE' })
       .then(load).catch(err => Kit.toast(err.message, 'danger'));
   });
@@ -79,9 +79,10 @@
   function loadExamples() {
     Kit.api('/api/examples').then(data => {
       const badge = example => example.kind === 'game'
-        ? '<span class="badge text-bg-success ms-2">complete game</span>'
-        : '<span class="badge text-bg-secondary ms-2">sketch</span>';
-      $('#exampleList').html(data.examples.map(example => `<div class="list-group-item d-flex gap-3 align-items-center justify-content-between"><div><strong>${Kit.escape(example.title)}</strong>${badge(example)}<div class="small text-muted">${Kit.escape(example.description)}</div></div><button class="btn btn-primary btn-sm import-example" data-slug="${Kit.escape(example.slug)}">Add</button></div>`).join(''));
+        ? `<span class="badge text-bg-success ms-2">${tr('js.dashboard.complete_game', 'complete game')}</span>`
+        : example.kind === 'python' ? '<span class="badge text-bg-info ms-2">Python</span>'
+          : `<span class="badge text-bg-secondary ms-2">${tr('js.dashboard.sketch', 'sketch')}</span>`;
+      $('#exampleList').html(data.examples.map(example => `<div class="list-group-item d-flex gap-3 align-items-center justify-content-between"><div><strong>${Kit.escape(example.title)}</strong>${badge(example)}<div class="small text-muted">${Kit.escape(example.description)}</div></div><button class="btn btn-primary btn-sm import-example" data-slug="${Kit.escape(example.slug)}">${tr('js.dashboard.add', 'Add')}</button></div>`).join(''));
     }).catch(err => $('#exampleList').html(`<div class="alert alert-danger">${Kit.escape(err.message)}</div>`));
   }
 
@@ -91,6 +92,7 @@
     blocks: { description: 'A block-built PRG32 cartridge.', tags: 'blocks,classroom' },
     c: { description: 'A PRG32 cartridge written in C.', tags: 'c,classroom' },
     asm: { description: 'A PRG32 cartridge written in RISC-V assembly.', tags: 'assembly,classroom' },
+    python: { description: 'A PRG32 cartridge written in PRG32 Python.', tags: 'python,classroom' },
   };
   let kindShown = 'blocks';
   $('#newProjectKinds').on('change', 'input[name=kind]', function () {
@@ -114,14 +116,14 @@
     starter.then(start => Kit.api('/api/projects', { method: 'POST', body: { title, author: form.get('author'),
       description: form.get('description'), tags, blocks_json: start.blocks_json, game_json: start.game_json } }))
       // C and assembly are written in the IDE (Monaco); Blocks open in the editor as before.
-      .then(project => { Kit.toast('Project created', 'success');
+      .then(project => { Kit.toast(tr('js.dashboard.project_created', 'Project created'), 'success');
         window.location.href = '/ide/' + encodeURIComponent(project.id); })
       .catch(err => Kit.toast(err.message, 'danger'));
   });
 
   $('#projectGrid').on('click', '.delete-project', function () {
     const id = $(this).data('id');
-    if (!confirm('Move this project to Recently deleted? You can restore it from there.')) return;
+    if (!confirm(tr('js.dashboard.move_this_project_to_recently_deleted', 'Move this project to Recently deleted? You can restore it from there.'))) return;
     Kit.api('/api/projects/' + encodeURIComponent(id), { method: 'DELETE' }).then(load).catch(err => Kit.toast(err.message, 'danger'));
   });
 
@@ -141,7 +143,7 @@
     Kit.api('/api/projects/import', { method: 'POST', body: form })
       .then(project => {
         const ignored = project.ignored_files || [];
-        Kit.toast(ignored.length ? 'Project imported. Skipped files it does not use: ' + ignored.join(', ') : 'Project imported', 'success');
+        Kit.toast(ignored.length ? tr('js.dashboard.project_imported_skipped_files_it_does', 'Project imported. Skipped files it does not use: {join}', { join: ignored.join(', ') }) : tr('js.dashboard.project_imported', 'Project imported'), 'success');
         // Leave time to read the list of skipped files before the editor opens.
         setTimeout(() => { window.location.href = '/ide/' + encodeURIComponent(project.id); }, ignored.length ? 3000 : 0);
       })
@@ -183,8 +185,8 @@
     PRG32GuestStore.moveToAccount(moveOne)
       .then(result => PRG32GuestStore.moveSpritesToAccount(moveSprite).then(() => result, error => Object.assign(result, { error })))
       .then(result => {
-        if (result.error) Kit.toast(`Moved ${result.moved.length}; ${result.left} stay in this browser: ${result.error.message}`, 'warning');
-        else Kit.toast(`Moved ${result.moved.length} into your account`, 'success');
+        if (result.error) Kit.toast(tr('js.dashboard.moved_some_left', 'Moved {moved}; {left} stay in this browser: {error}', { moved: result.moved.length, left: result.left, error: result.error.message }), 'warning');
+        else Kit.toast(tr('js.dashboard.moved_into_account', 'Moved {count} into your account', { count: result.moved.length }), 'success');
         return Promise.all([load(), checkGuestProjects()]);
       })
       .finally(() => $(this).prop('disabled', false));

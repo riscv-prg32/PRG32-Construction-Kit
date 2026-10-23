@@ -18,7 +18,7 @@ from functools import lru_cache
 from typing import Any
 
 from .packager import SUPPORTED_ARCHITECTURES, slugify
-from .sample_data import default_blocks
+from .sample_data import default_blocks, starter_project
 
 CARTRIDGE_MAGIC = b"PRG2"
 # PRG32 cartridge header: magic, 4 small numbers, 7 words, then a 32-byte name.
@@ -226,8 +226,11 @@ def source_modes_check(app, architectures: list[str] | None = None, keep: Any = 
     asm_game = {"source_mode": "asm", "source_asm": MODE_ASM_SOURCE, "required_features": []}
     c_project = client.post("/api/projects", json={"title": "Mode Check C", "game_json": c_game}).get_json()
     asm_project = client.post("/api/projects", json={"title": "Mode Check Asm", "game_json": asm_game}).get_json()
+    python_game = starter_project("python", "Mode Check Python")["game_json"]
+    python_project = client.post("/api/projects", json={"title": "Mode Check Python", "game_json": python_game}).get_json()
     modes = [("blocks (generated C)", blocks, "c"), ("blocks (generated assembly)", blocks, "asm"),
-             ("advanced C", c_project, "c"), ("handwritten assembly", asm_project, "asm")]
+             ("advanced C", c_project, "c"), ("handwritten assembly", asm_project, "asm"),
+             ("python (generated C)", python_project, "c"), ("python (generated assembly)", python_project, "asm")]
     results, problems = [], []
     for mode, project, language in modes:
         for arch in architectures:

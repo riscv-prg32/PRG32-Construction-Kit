@@ -4,6 +4,6 @@
 {% set item = privacy_notice(id) %}
 <p class="small text-muted border-start border-2 ps-2 mt-2 mb-0" data-privacy-notice="{{ id }}" data-version="{{ item.version }}">
   <i class="bi bi-shield-lock" aria-hidden="true"></i> {{ item.summary }}
-  <a href="/privacy#{{ id }}">More about your data</a>
+  <a href="/privacy#{{ id }}">{{ t("privacy_notice.more_about_your_data") }}</a>
 </p>
 {%- endmacro %}

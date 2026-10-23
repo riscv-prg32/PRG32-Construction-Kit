@@ -6,16 +6,16 @@
 <div class="row justify-content-center" id="toolPicker" data-tool="{{ tool }}">
   <div class="col-lg-8">
     <h1 class="h3 mb-1"><i class="bi {{ 'bi-brush' if tool == 'sprites' else 'bi-music-note-beamed' }}" aria-hidden="true"></i> {{ tool_name }}</h1>
-    <p class="text-muted">{% if tool == "sprites" %}Sprites belong to a game: every project has its own pictures.
-      {% else %}Sound belongs to a game: every project has its own instruments, sound effects and soundtracks.{% endif %}
-      Choose the game; {{ tool_name }} opens in its IDE.</p>
+    <p class="text-muted">{% if tool == "sprites" %}{{ t("audio_studio_pick.sprites_belong_to_a_game_every") }}
+      {% else %}{{ t("audio_studio_pick.sound_belongs_to_a_game_every") }}{% endif %}
+      {{ t("audio_studio_pick.choose_the_game_opens_in_its", tool_name=(tool_name)) }}</p>
     <div id="audioContinue" class="alert alert-primary d-flex flex-wrap align-items-center gap-2" hidden>
-      <span>Continue with <strong id="audioContinueTitle"></strong>?</span>
-      <a class="btn btn-primary btn-sm ms-auto" id="audioContinueOpen" href="#">Open {{ tool_name }}</a>
+      <span>{{ t("audio_studio_pick.continue_with") }} <strong id="audioContinueTitle"></strong>?</span>
+      <a class="btn btn-primary btn-sm ms-auto" id="audioContinueOpen" href="#">{{ t("audio_studio_pick.open", tool_name=(tool_name)) }}</a>
     </div>
-    <div id="audioPickStatus" class="text-muted small mb-2" role="status" aria-live="polite">Loading your projects…</div>
-    <nav class="list-group" id="audioProjects" aria-label="Your projects"></nav>
-    <p class="small text-muted mt-3">No game yet? <a href="/">Make one on the Projects page</a> first.</p>
+    <div id="audioPickStatus" class="text-muted small mb-2" role="status" aria-live="polite">{{ t("audio_studio_pick.loading_your_projects") }}</div>
+    <nav class="list-group" id="audioProjects" aria-label="{{ t('audio_studio_pick.your_projects') }}"></nav>
+    <p class="small text-muted mt-3">{{ t("audio_studio_pick.no_game_yet") }} <a href="/">{{ t("audio_studio_pick.make_one_on_the_projects_page") }}</a> {{ t("audio_studio_pick.first") }}</p>
   </div>
 </div>
 {% endblock %}

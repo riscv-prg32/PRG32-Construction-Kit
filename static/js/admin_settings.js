@@ -25,7 +25,7 @@
       return label + `<textarea class="form-control" rows="3" id="${id}" data-key="${item.key}"${disabled}>${Kit.escape(value)}</textarea>`;
     }
     if (item.kind === 'secret') {
-      const state = item.set ? 'A value is set; leave empty to keep it.' : 'Not set.';
+      const state = item.set ? tr('js.admin_settings.a_value_is_set_leave_empty', 'A value is set; leave empty to keep it.') : tr('js.admin_settings.not_set', 'Not set.');
       return label + `<input class="form-control" type="password" autocomplete="new-password" id="${id}" data-key="${item.key}"
         placeholder="${Kit.escape(state)}"${disabled}>`;
     }
@@ -43,8 +43,8 @@
     const notes = [];
     if (item.locked) notes.push(`<span class="badge text-bg-secondary">set on the server: ${Kit.escape(item.env)}</span>`);
     else if (item.changed) {
-      notes.push('<span class="badge text-bg-info">changed here</span>');
-      notes.push(`<button type="button" class="btn btn-link btn-sm p-0 reset-setting" data-key="${item.key}">Back to the default</button>`);
+      notes.push('<span class="badge text-bg-info">' + Kit.escape(tr('js.admin_settings.changed_here', 'changed here')) + '</span>');
+      notes.push(`<button type="button" class="btn btn-link btn-sm p-0 reset-setting" data-key="${item.key}">${Kit.escape(tr('js.admin_settings.back_to_the_default', 'Back to the default'))}</button>`);
     }
     if (item.kind !== 'secret' && !item.locked && item.default !== undefined && item.default !== null && item.default !== '') {
       const shown = Array.isArray(item.default) ? item.default.join(', ')
@@ -81,11 +81,11 @@
   function same(a, b) { return JSON.stringify(a ?? null) === JSON.stringify(b ?? null); }
 
   function save(changes) {
-    if (!Object.keys(changes).length) { Kit.toast('Nothing changed', 'secondary'); return Promise.resolve(); }
+    if (!Object.keys(changes).length) { Kit.toast(tr('js.admin_settings.nothing_changed', 'Nothing changed'), 'secondary'); return Promise.resolve(); }
     return Kit.api('/api/admin/settings', { method: 'PUT', body: { settings: changes } }).then(data => {
       settings = data.settings;
       draw();
-      Kit.toast('Saved: ' + data.changed.length + ' setting(s). Reload other pages to see them.', 'success');
+      Kit.toast(tr('js.admin_settings.saved', 'Saved: {count}', { count: data.changed.length }) + tr('js.admin_settings.setting_s_reload_other_pages_to', ' setting(s). Reload other pages to see them.'), 'success');
     }).catch(err => Kit.toast(err.message, 'danger'));
   }
 
@@ -109,7 +109,7 @@
 
   $(document).on('click', '#smtpTest', function () {
     Kit.api('/api/admin/settings/smtp_test', { method: 'POST', body: {} })
-      .then(data => Kit.toast('Test mail sent to ' + data.sent_to, 'success'))
+      .then(data => Kit.toast(tr('js.admin_settings.test_mail_sent_to', 'Test mail sent to {sent_to}', { sent_to: data.sent_to }), 'success'))
       .catch(err => Kit.toast(err.message, 'danger'));
   });
 

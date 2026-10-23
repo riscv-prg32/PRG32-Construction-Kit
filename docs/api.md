@@ -304,6 +304,12 @@ A handwritten assembly project (`game_json: {"source_mode": "asm", "source_asm":
 may be left out or be `"asm"`; anything else answers `400`. Its source is
 checked first (`handwritten_assembly.md`); a refused source answers `400`
 with the reason, before anything is assembled.
+A PRG32 Python project (`game_json: {"source_mode": "python", "source_python": "...",
+"python_language_version": 1}`, ADR-0026) behaves like Blocks: `"c"`, `"asm"` and `"both"`
+are all allowed, generated from the game IR its `game.py` becomes. A refused `game.py`
+answers `400` with `"error": "Line N: ..."` (`python_language.md`); the IR is shown, never
+stored over the source. Saving a Python project with an unknown `python_language_version`
+answers `400`. Builds accept `expected_source_python` like `expected_source_c`.
 See `generated_code.md` for how to read the two files.
 
 Response fields:

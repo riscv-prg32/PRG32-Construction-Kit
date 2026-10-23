@@ -45,6 +45,10 @@ PRG32-Construction-Kit is a classroom web application for making PRG32 games wit
 12. `project_archive.md` - saving, sharing and importing a whole project as one zip file.
    - `project_history.md` - History (earlier versions) and Recently deleted.
 13. `handwritten_assembly.md` - writing a cartridge directly in RISC-V assembly.
+   - `python_language.md` - PRG32 Python: the small, typed Python the kit compiles into C and assembly.
+   - `tutorials/09_python.md` - your first game in PRG32 Python.
+   - `i18n.md` - the five interface languages, and the quick start in each
+     (`tutorials/quickstart.en.md`, `.it`, `.es`, `.fr`, `.de`).
 14. `build_provenance.md` - what made each cartridge (versions, settings, SHA-256 fingerprints).
 15. `wasm_runtime.md` - the Player: real cartridges running in the browser (PRG32-QT core as WebAssembly).
    - `tutorials/07_debugger.md` - the Player's RISC-V debugger (steps, breakpoints, registers, memory).

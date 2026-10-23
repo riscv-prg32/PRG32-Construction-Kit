@@ -151,7 +151,7 @@
         "tests/test_wasm_runtime.py::test_kit_cartridges_run_the_same_in_the_browser_core",
         "tests/test_concurrency.py::test_real_cartridges_for_many_students_and_windows",
         "tests/test_handwritten_assembly.py::test_handwritten_assembly_builds_a_real_cartridge",
-        "tests/test_concurrency.py::test_real_cartridges_from_blocks_c_and_assembly",
+        "tests/test_concurrency.py::test_real_cartridges_from_blocks_c_assembly_and_python",
         "tests/test_concurrency.py::test_source_modes_check_builds_each_way_of_writing_a_game"
       ],
       "note": "Real-build tests need the PRG32 toolchain and skip without it. tools/reproduce_toolchain_checks.py runs them with Docker only: on 2026-10-21 (kit b547d82) check_build built Blocks (as C and as assembly), Advanced C and handwritten assembly for both targets, the fixtures rebuilt byte for byte, and 112 toolchain tests passed (docs/evidence/toolchain); the same cartridges, built on macOS, have identical SHA-256."
@@ -813,6 +813,63 @@
         "tests/test_performance_browser.py::test_ide_is_ready_on_a_slow_laptop"
       ],
       "note": "Large pytest suite; real-browser keyboard workflows, axe-core scan and performance budgets at 4x CPU slowdown; ruff (pyflakes) and a coverage floor (88%) in CI; no type gate (decided: annotations would not help learners); no real screen-reader session yet (docs/accessibility_session.md)."
+    },
+    {
+      "id": "I18N-01",
+      "title": "Interface in English, Italian, Spanish, French and German",
+      "status": "partial",
+      "audit_score": null,
+      "source": [
+        "prg32_construction_kit/i18n.py::choose",
+        "prg32_construction_kit/i18n.py::translate",
+        "static/js/i18n.js",
+        "static/i18n/en.json",
+        "tools/build_i18n.py::render",
+        "prg32_construction_kit/privacy.py::localized_notice"
+      ],
+      "tests": [
+        "tests/test_i18n.py::test_every_language_has_exactly_the_english_keys",
+        "tests/test_i18n.py::test_placeholders_are_the_same_in_every_language",
+        "tests/test_i18n.py::test_nothing_is_left_in_english_by_accident",
+        "tests/test_i18n.py::test_templates_have_no_untranslated_text",
+        "tests/test_i18n.py::test_scripts_build_no_untranslated_html_text",
+        "tests/test_i18n.py::test_pages_are_drawn_in_the_chosen_language",
+        "tests/test_i18n.py::test_the_browser_runtime_translates_with_fallback_and_plurals",
+        "tests/test_i18n.py::test_generated_code_and_cartridges_are_the_same_in_every_language"
+      ],
+      "note": "ADR-0027. Every page, script message, block, tooltip, screen-reader label, the offline pages and the privacy notice summaries in five languages (1180+ keys each, same placeholders, plural pairs); language menu, cookie + Accept-Language + English fallback, catalogs cached offline; builds byte-identical in every language. Still English: server-written messages (API errors, the PRG32 Python compiler's refusals, compiler logs), Blockly's and Monaco's own menus, long-form docs (the classroom quick start is in five languages). No screen-reader session or per-locale screenshots yet."
+    },
+    {
+      "id": "PY-01",
+      "title": "PRG32 Python projects compiled ahead of time to real cartridges",
+      "status": "implemented",
+      "audit_score": null,
+      "source": [
+        "prg32_construction_kit/python_project.py::python_to_ir_traced",
+        "prg32_construction_kit/python_project.py::parse",
+        "prg32_construction_kit/python_project.py::api_reference",
+        "prg32_construction_kit/routes.py::generate_sources",
+        "prg32_construction_kit/source_maps.py::project_source_map",
+        "prg32_construction_kit/project_format.py::_v1_to_v2",
+        "prg32_construction_kit/provenance.py::build_provenance",
+        "static/js/ide/language.js",
+        "prg32_construction_kit/build_check.py::source_modes_check"
+      ],
+      "tests": [
+        "tests/test_python_project.py::test_the_starter_becomes_the_same_ir_contract_as_the_blocks",
+        "tests/test_python_project.py::test_builds_are_deterministic_in_fresh_processes",
+        "tests/test_python_project.py::test_anything_outside_prg32_python_is_refused_with_its_place",
+        "tests/test_python_project.py::test_size_and_nesting_limits",
+        "tests/test_python_project.py::test_the_program_is_never_imported_or_run",
+        "tests/test_python_project.py::test_source_maps_lead_from_generated_lines_back_to_python",
+        "tests/test_python_project.py::test_python_and_blocks_make_the_same_firmware_calls",
+        "tests/test_python_project.py::test_python_c_and_assembly_make_the_same_firmware_calls",
+        "tests/test_python_project.py::test_archives_round_trip_a_python_project",
+        "tests/test_python_project.py::test_package_puts_game_py_in_the_bundle_and_records_provenance",
+        "tests/test_python_project.py::test_real_cartridge_from_python",
+        "tests/test_concurrency.py::test_real_cartridges_from_blocks_c_assembly_and_python"
+      ],
+      "note": "ADR-0026, docs/python_language.md. game.py is parsed (never imported or run) within limits, checked against an allow-list with static types, and translated into the Blocks' game IR, then by the same generators into commented C and RV32IM assembly and by the sandboxed toolchain into a PRG32 cartridge. Fixed project type (schema v2, src/game.py), editor completion/hover/live checks from the language index, debugger on game.py lines (source maps py:line), provenance with language, grammar and IR hashes. Real-toolchain and C-vs-assembly parity tests run where the toolchain and GCC exist (CI); locally they skip. No conversion to or from Python in version 1."
     }
   ]
 }

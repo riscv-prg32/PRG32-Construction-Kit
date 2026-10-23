@@ -536,7 +536,7 @@
   },
   {
    "id": "browser_storage",
-   "data": "IndexedDB prg32-kit-guest: guest games; localStorage prg32-*: code view per project, debugger breakpoints and view, last AudioStudio project, storage notice read (list on /privacy#storage)",
+   "data": "cookie prg32_locale: the interface language chosen; IndexedDB prg32-kit-guest: guest games; localStorage prg32-*: code view per project, debugger breakpoints and view, last AudioStudio project, interface language for offline pages, storage notice read (list on /privacy#storage)",
    "where": "the person's browser only",
    "retention": "until the person clears it",
    "deletion": "the person (Clear site data); a guest's games are never kept on the server",

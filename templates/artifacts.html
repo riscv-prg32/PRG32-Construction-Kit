@@ -1,22 +1,22 @@
 {% extends "base.html" %}
-{% block title %}Artifacts - {{ site.name }}{% endblock %}
+{% block title %}{{ t("artifacts.artifacts", name=(site.name)) }}{% endblock %}
 {% block content %}
 <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
   <div>
-    <h1 class="h3 mb-1">Artifacts</h1>
-    <div class="text-muted">Generated C, sprite arrays, source bundles, store bundles, uploaded assets, and build logs.</div>
+    <h1 class="h3 mb-1">{{ t("common.artifacts") }}</h1>
+    <div class="text-muted">{{ t("artifacts.generated_c_sprite_arrays_source_bundles") }}</div>
   </div>
   <form class="d-flex gap-2" id="uploadArtifactForm">
     <input class="form-control" type="file" name="file" required>
     <input class="form-control kit-w-kind" name="kind" value="upload">
-    <button class="btn btn-primary" type="submit"><i class="bi bi-upload"></i> Upload</button>
+    <button class="btn btn-primary" type="submit"><i class="bi bi-upload"></i> {{ t("artifacts.upload") }}</button>
   </form>
 </div>
 
 <div class="card shadow-sm">
   <div class="table-responsive">
     <table class="table table-hover align-middle mb-0">
-      <thead><tr><th>Name</th><th>Kind</th><th>Content type</th><th>Updated</th><th class="text-end">Actions</th></tr></thead>
+      <thead><tr><th>{{ t("common.name") }}</th><th>{{ t("common.kind") }}</th><th>{{ t("artifacts.content_type") }}</th><th>{{ t("artifacts.updated") }}</th><th class="text-end">{{ t("artifacts.actions") }}</th></tr></thead>
       <tbody id="artifactRows"></tbody>
     </table>
   </div>

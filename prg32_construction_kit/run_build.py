@@ -91,7 +91,8 @@ def run(project: dict[str, Any], audio: tuple[bytes, dict[str, Any]] | None = No
 def _answer(project: dict[str, Any], game_ir: dict[str, Any], language: str, sources: dict[str, str],
             result: dict[str, Any]) -> dict[str, Any]:
     from .routes import _sha256_text
-    from .source_maps import build_source_map
+    from .routes import debug_python_source, project_type
+    from .source_maps import project_source_map
 
     built = next((item for item in result["architectures"] if item["id"] == RUN_ARCHITECTURE), None)
     answer: dict[str, Any] = {"ok": built is not None, "log": result.get("log", ""), "language": language,
@@ -105,17 +106,19 @@ def _answer(project: dict[str, Any], game_ir: dict[str, Any], language: str, sou
     debug_map = (result.get("debug_maps") or {}).get(RUN_ARCHITECTURE) or debug_info.unavailable(
         "this server builds without debug information")
     source = {"file": "game.c" if language == "c" else "game.S", "language": language, "text": sources[language]}
-    source_map, blocks_json = None, None
-    if (project.get("game_json") or {}).get("source_mode") not in ("c", "asm") and result.get("debug_maps"):
+    source_map, blocks_json, python_source = None, None, None
+    if project_type(project.get("game_json")) in ("blocks", "python") and result.get("debug_maps"):
         try:
-            _, text, source_map = build_source_map(project.get("blocks_json") or {}, project, language)
+            _, text, source_map = project_source_map(project, language)
         except Exception:  # noqa: BLE001 - no block map: the debugger shows source and addresses only
             text, source_map = None, None
         if source_map and text == source["text"] and source_map.get("source_sha256") == _sha256_text(text):
-            blocks_json = project.get("blocks_json")
+            python_source = debug_python_source(project, source_map)
+            blocks_json = None if python_source is not None else project.get("blocks_json")
         else:
             source_map = None
     answer["debug"] = {"cartridge": {"project_id": project.get("id"), "name": built["file"],
                                      "metadata": {"architecture": RUN_ARCHITECTURE, "built_from": language}},
-                       "debug_map": debug_map, "source_map": source_map, "source": source, "blocks_json": blocks_json}
+                       "debug_map": debug_map, "source_map": source_map, "source": source, "blocks_json": blocks_json,
+                       "python_source": python_source}
     return answer

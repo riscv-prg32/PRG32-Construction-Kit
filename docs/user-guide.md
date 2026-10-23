@@ -11,7 +11,9 @@ Start here, then follow the links.
    going back to an earlier version or a deleted project: `project_history.md`.
 6. **Writing a game directly in C or RISC-V assembly:** choose **C** or **Assembly** in the
    **New Project** dialog; it starts from a small working game. Assembly rules:
-   `handwritten_assembly.md`.
+   `handwritten_assembly.md`. In Python: choose **Python (PRG32 Python)**; the language is in
+   `python_language.md`, the first lesson in `tutorials/09_python.md`.
+   The kit speaks English, Italiano, Español, Français and Deutsch (menu at the top): `i18n.md`.
 7. **Playing your real cartridge in the browser:** `wasm_runtime.md`;
    stepping through it instruction by instruction: `tutorials/07_debugger.md`.
    Working without the server: `offline.md`.

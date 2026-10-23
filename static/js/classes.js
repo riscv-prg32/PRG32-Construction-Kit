@@ -16,8 +16,8 @@
       <div class="card-body">
         ${item.members ? `<ul class="list-unstyled small mb-2">${members}</ul>` : ''}
         ${manage ? `<form class="d-flex gap-1 mb-2 add-member" data-class="${item.id}">
-          <label class="visually-hidden" for="add-${item.id}">Add a student by username or email</label>
-          <input class="form-control form-control-sm" id="add-${item.id}" name="username" placeholder="Add a student (username or email)">
+          <label class="visually-hidden" for="add-${item.id}">${Kit.escape(tr('js.classes.add_a_student_label', 'Add a student by username or email'))}</label>
+          <input class="form-control form-control-sm" id="add-${item.id}" name="username" placeholder="${Kit.escape(tr('js.classes.add_a_student_placeholder', 'Add a student (username or email)'))}">
           ${window.kitIsAdmin ? `<select class="form-select form-select-sm w-auto" name="role" aria-label="As">
             <option>student</option><option>teacher</option><option>facilitator</option></select>` : ''}
           <button class="btn btn-outline-primary btn-sm">Add</button></form>` : ''}
@@ -28,7 +28,7 @@
 
   function load() {
     return Kit.api('/api/classes').then(data => {
-      $('#classCards').html(data.classes.map(card).join('') || '<div class="col text-muted">You are not in a class yet.</div>');
+      $('#classCards').html(data.classes.map(card).join('') || '<div class="col text-muted">' + Kit.escape(tr('js.classes.you_are_not_in_a_class', 'You are not in a class yet.')) + '</div>');
     }).catch(err => Kit.toast(err.message, 'danger'));
   }
 
@@ -50,7 +50,7 @@
     const id = $(this).data('class');
     Kit.api(`/api/classes/${id}/projects`).then(data => {
       $(`#projects-${id}`).html(data.projects.map(project => `<li><a href="/ide/${encodeURIComponent(project.id)}">${Kit.escape(project.title)}</a>
-        <span class="text-muted">(read-only)</span></li>`).join('') || '<li class="text-muted">No projects yet.</li>');
+        <span class="text-muted">${Kit.escape(tr('js.classes.read_only', '(read-only)'))}</span></li>`).join('') || '<li class="text-muted">' + Kit.escape(tr('js.classes.no_projects_yet', 'No projects yet.')) + '</li>');
     }).catch(err => Kit.toast(err.message, 'danger'));
   });
 

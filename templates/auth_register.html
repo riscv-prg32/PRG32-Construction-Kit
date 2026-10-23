@@ -1,26 +1,26 @@
 {% extends "base.html" %}
 {% from "_privacy_notice.html" import notice %}
-{% block title %}Create an account - {{ site.name }}{% endblock %}
+{% block title %}{{ t("auth_register.create_an_account", name=(site.name)) }}{% endblock %}
 {% block content %}
 <div class="row justify-content-center">
   <div class="col-md-6 col-lg-4">
     <div class="card shadow-sm">
       <div class="card-body">
-        <h1 class="h4 mb-3"><i class="bi bi-person-plus"></i> Create an account</h1>
+        <h1 class="h4 mb-3"><i class="bi bi-person-plus"></i> {{ t("common.create_an_account") }}</h1>
         {% for error in errors or [] %}<div class="alert alert-danger">{{ error }}</div>{% endfor %}
         {% if allowed %}
-        <p class="text-muted small">We email you a link. Open it to choose your password.</p>
+        <p class="text-muted small">{{ t("auth_register.we_email_you_a_link_open") }}</p>
         <form method="post" action="/auth/register" class="vstack gap-3">
-          <div><label class="form-label" for="email">Email</label>
+          <div><label class="form-label" for="email">{{ t("common.email") }}</label>
             <input class="form-control" id="email" name="email" type="email" autocomplete="email" required autofocus></div>
-          <button class="btn btn-primary" type="submit">Send the link</button>
+          <button class="btn btn-primary" type="submit">{{ t("auth_register.send_the_link") }}</button>
         </form>
         {{ notice("account") }}
         {% else %}
-        <div class="alert alert-info mb-0">Registration is closed. Ask your teacher to create an account for you.</div>
+        <div class="alert alert-info mb-0">{{ t("auth_register.registration_is_closed_ask_your_teacher") }}</div>
         {% endif %}
         <hr>
-        <a href="/auth/login">I already have an account</a>
+        <a href="/auth/login">{{ t("auth_register.i_already_have_an_account") }}</a>
       </div>
     </div>
   </div>

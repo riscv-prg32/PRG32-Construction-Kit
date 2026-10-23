@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+### PRG32 Python projects and five interface languages (I18N-01, PY-01)
+
+- **PRG32 Python** (ADR-0026, `python_language.md`, tutorial 9): a fourth project type. `game.py`
+  is parsed without being run, checked against an allow-list with static types and limits, and
+  translated into the Blocks' game IR; the same generators write the commented C and RV32IM
+  assembly and the sandboxed toolchain builds the cartridge. Editor colours, completion, hover,
+  signature help and live checks; the debugger follows `game.py` lines; archives use schema
+  version 2 (`src/game.py`); provenance records the language, the parser grammar and the
+  SHA-256 of `game.py` and of the IR. An example game: *Brick Catch (Python)*.
+- **Five interface languages** (ADR-0027, `i18n.md`): English, Italiano, Español, Français and
+  Deutsch for every page, script message, block, tooltip, screen-reader label and the offline
+  pages, chosen with a menu (cookie `prg32_locale`) or from the browser; privacy notice summaries
+  in all five; the storage notice is now version 1.1 (it names the language cookie). Builds are
+  byte-identical in every language. Still English: messages written by the server, Blockly's and
+  Monaco's own menus, and the long-form documentation (the quick start is in all five).
+
 ### Shared identity with the Cartridge Store (after the audit of bb2b062)
 
 - One model, chosen by the project owner: the **username is shared** between the kit and the

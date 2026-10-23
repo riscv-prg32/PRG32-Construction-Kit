@@ -5,8 +5,8 @@
   const player = new PRG32CartridgePlayer(document.getElementById('playerScreen'), {
     onStatus(state) {
       button.disabled = !state.loaded;
-      button.textContent = state.running ? 'Pause' : 'Play';
-      status.textContent = state.error ? state.error : state.loaded ? `Frame ${state.frames}` : 'No cartridge loaded.';
+      button.textContent = state.running ? tr('js.offline_player.pause', 'Pause') : tr('common.play', 'Play');
+      status.textContent = state.error ? state.error : state.loaded ? `Frame ${state.frames}` : tr('js.offline_player.no_cartridge_loaded', 'No cartridge loaded.');
     }
   });
   document.getElementById('cartridgeFile').addEventListener('change', event => {

@@ -23,11 +23,11 @@ window.PRG32GuestApi = (function () {
     return Promise.reject(error);
   }
 
-  function notFound() { return fail('Not found in this browser', 404, 'not_found'); }
+  function notFound() { return fail(tr('js.guest_api.not_found_in_this_browser', 'Not found in this browser'), 404, 'not_found'); }
 
   function needsAccount(what) {
     if (window.Kit && Kit.signInNeeded) Kit.signInNeeded(what);
-    return fail(what + ' needs an account: sign in first. Your games here stay in this browser.', 401, 'sign_in_required');
+    return fail(what + tr('js.guest_api.needs_an_account_sign_in_first', ' needs an account: sign in first. Your games here stay in this browser.'), 401, 'sign_in_required');
   }
 
   // A real request to the guest API on the server (stateless).
@@ -74,14 +74,14 @@ window.PRG32GuestApi = (function () {
 
   function getProject(id) { return store.get(id).then(row => row ? project(row) : notFound()); }
 
-  // Blocks, C or assembly: chosen when the game is made, never changed by a save (ADR-0024).
+  // Blocks, C, assembly or Python: chosen when the game is made, never changed by a save (ADR-0024, ADR-0026).
   function projectType(game) {
     const mode = game && typeof game === 'object' ? game.source_mode : null;
-    return mode === 'c' || mode === 'asm' ? mode : 'blocks';
+    return mode === 'c' || mode === 'asm' || mode === 'python' ? mode : 'blocks';
   }
 
   function typeLocked(row) {
-    return fail('This game\'s type cannot change. A Blocks game can be converted to C or assembly once (Convert).',
+    return fail(tr('js.guest_api.this_game_s_type_cannot_change', 'This game\'s type cannot change. A Blocks game can be converted to C or assembly once (Convert).'),
       409, 'type_locked', { code: 'type_locked', project_type: projectType(row.game_json) });
   }
 
@@ -91,8 +91,8 @@ window.PRG32GuestApi = (function () {
       if (body.game_json !== undefined && projectType(body.game_json) !== projectType(row.game_json)) return typeLocked(row);
       const expected = body.expected_version;
       if (expected !== undefined && expected !== null && expected !== row.version) {
-        return fail('This game was saved in another window after you opened it.', 409, 'version_conflict',
-          { error: 'saved elsewhere', code: 'version_conflict', current: project(row) });
+        return fail(tr('js.guest_api.this_game_was_saved_in_another', 'This game was saved in another window after you opened it.'), 409, 'version_conflict',
+          { error: tr('js.guest_api.saved_elsewhere', 'saved elsewhere'), code: 'version_conflict', current: project(row) });
       }
       return store.save(Object.assign({ id }, pick(body, PROJECT_FIELDS))).then(project);
     });
@@ -130,7 +130,7 @@ window.PRG32GuestApi = (function () {
         audio_studio: row.audio ? row.audio.document : null,
         source_language: (body && body.source_language) || 'c',
       }).then(result => {
-        const kept = { id: 'in this browser', name: 'not saved on the server' };
+        const kept = { id: 'in this browser', name: tr('js.guest_api.not_saved_on_the_server', 'not saved on the server') };
         return Object.assign({ project: project(row), artifact: kept, artifacts: [kept], asm_artifact: kept }, result);
       });
     });
@@ -151,8 +151,8 @@ window.PRG32GuestApi = (function () {
   // (.zip, with sprites and sounds) needs an account.
   function importProject(form) {
     const file = form && form.get ? form.get('file') : null;
-    if (!file) return fail('Choose a file', 400);
-    if (!/\.json$/i.test(file.name || '')) return needsAccount('Opening a project archive (.zip)');
+    if (!file) return fail(tr('js.guest_api.choose_a_file', 'Choose a file'), 400);
+    if (!/\.json$/i.test(file.name || '')) return needsAccount(tr('js.guest_api.opening_a_project_archive_zip', 'Opening a project archive (.zip)'));
     return file.text().then(text => store.save(store.importText(text))).then(project);
   }
 
@@ -177,7 +177,7 @@ window.PRG32GuestApi = (function () {
       if (!row) return notFound();
       const current = row.audio ? row.audio.version : 0;
       if (body.expected_version !== undefined && body.expected_version !== null && body.expected_version !== current) {
-        return fail('This game\'s sound was saved in another window after you opened it.', 409, 'audio_version_conflict',
+        return fail(tr('js.guest_api.this_game_s_sound_was_saved', 'This game\'s sound was saved in another window after you opened it.'), 409, 'audio_version_conflict',
           { code: 'audio_version_conflict', current: row.audio });
       }
       return server('/api/guest/audio', { document: body.document }).then(answer => {
@@ -233,14 +233,14 @@ window.PRG32GuestApi = (function () {
     ['POST', new RegExp('^/api/projects/' + ID + '/convert$'), (m, q, body) => convert(m[1], body)],
     ['POST', new RegExp('^/api/projects/' + ID + '/convert_to$'), (m, q, body) => convertTo(m[1], body)],
     ['POST', new RegExp('^/api/projects/' + ID + '/check$'), () => Promise.resolve({ available: false, guest: true })],
-    ['POST', new RegExp('^/api/projects/' + ID + '/package$'), () => needsAccount('Making a cartridge to download')],
+    ['POST', new RegExp('^/api/projects/' + ID + '/package$'), () => needsAccount(tr('js.guest_api.making_a_cartridge_to_download', 'Making a cartridge to download'))],
     ['POST', new RegExp('^/api/projects/' + ID + '/run$'), m => runGame(m[1])],
     ['GET', new RegExp('^/api/projects/' + ID + '/revisions$'), () => Promise.resolve({ revisions: [] })],
     ['GET', new RegExp('^/api/projects/' + ID + '/audio$'), m => getAudio(m[1])],
     ['PUT', new RegExp('^/api/projects/' + ID + '/audio$'), (m, q, body) => putAudio(m[1], body || {})],
     ['POST', new RegExp('^/api/projects/' + ID + '/audio/preview$'), (m, q, body) => previewAudio(m[1], body)],
     ['POST', new RegExp('^/api/projects/' + ID + '/audio/import$'), (m, q, body) => importAudio(m[1], body)],
-    ['POST', new RegExp('^/api/projects/' + ID + '/audio/samples$'), () => needsAccount('Recording samples')],
+    ['POST', new RegExp('^/api/projects/' + ID + '/audio/samples$'), () => needsAccount(tr('js.guest_api.recording_samples', 'Recording samples'))],
     ['GET', /^\/api\/sprites$/, (m, q) => listSprites(q)],
     ['POST', /^\/api\/sprites$/, (m, q, body) => saveSprite(null, body || {})],
     ['GET', new RegExp('^/api/sprites/' + ID + '$'), m => getSprite(m[1])],
@@ -251,7 +251,7 @@ window.PRG32GuestApi = (function () {
     ['GET', /^\/api\/builds$/, () => Promise.resolve({ builds: [] })],
     ['GET', /^\/api\/cloud$/, () => Promise.resolve({ providers: [] })],
     ['GET', /^\/api\/examples$/, () => server('/api/examples')],
-    ['GET', /^\/api\/starters\/(blocks|c|asm)$/, (m, q) => server('/api/starters/' + m[1] + '?title=' + encodeURIComponent(q.get('title') || ''))],
+    ['GET', /^\/api\/starters\/(blocks|c|asm|python)$/, (m, q) => server('/api/starters/' + m[1] + '?title=' + encodeURIComponent(q.get('title') || ''))],
     ['POST', /^\/api\/examples\/([A-Za-z0-9_-]{1,64})\/import$/, m => importExample(m[1])],
   ];
 
@@ -264,9 +264,9 @@ window.PRG32GuestApi = (function () {
       const match = routeMethod === method && url.pathname.match(pattern);
       if (match) return Promise.resolve().then(() => handle(match, url.searchParams, opts.body));
     }
-    if (/^\/api\/publish/.test(url.pathname)) return needsAccount('Publishing');
-    if (/^\/api\/classes/.test(url.pathname)) return needsAccount('Classes');
-    return needsAccount('This');
+    if (/^\/api\/publish/.test(url.pathname)) return needsAccount(tr('js.guest_api.publishing', 'Publishing'));
+    if (/^\/api\/classes/.test(url.pathname)) return needsAccount(tr('common.classes', 'Classes'));
+    return needsAccount(tr('js.guest_api.this', 'This'));
   }
 
   // Downloads a page would take from the server (Kit.download): made here from this browser.
@@ -275,7 +275,7 @@ window.PRG32GuestApi = (function () {
     const projectExport = url.pathname.match(new RegExp('^/api/projects/' + ID + '/export$'));
     const audioExport = url.pathname.match(new RegExp('^/api/projects/' + ID + '/audio/export$'));
     const id = (projectExport || audioExport || [])[1];
-    if (!id) return needsAccount('This download').catch(() => undefined);
+    if (!id) return needsAccount(tr('js.guest_api.this_download', 'This download')).catch(() => undefined);
     return store.get(id).then(row => {
       if (!row) return;
       const body = projectExport

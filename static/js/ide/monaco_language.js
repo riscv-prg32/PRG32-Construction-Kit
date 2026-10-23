@@ -1,7 +1,8 @@
 // Connects the PRG32 language services (language.js) to Monaco (ADR-0014).
 //
-// - Completion, hover, signature help and "go to declaration" (F12) for Advanced C ('c')
-//   and RISC-V assembly ('prg32-asm'), from the committed language index only.
+// - Completion, hover, signature help and "go to declaration" (F12) for Advanced C ('c'),
+//   RISC-V assembly ('prg32-asm') and PRG32 Python ('prg32-python'), from the committed
+//   language index only.
 // - "Go to declaration" on a PRG32 function opens "prg32.h (portable API)": a read-only,
 //   generated list of what a cartridge can call (the real SDK headers stay on the server).
 // - attach(model, ...) checks a student's source while they type and shows the problems as
@@ -27,7 +28,8 @@ window.PRG32MonacoLanguage = (function () {
   function register(monaco, options) {
     PRG32Language.useIndex(window.PRG32LanguageIndex);
     sdkModel = monaco.editor.createModel(window.PRG32LanguageIndex.header.text, 'c', monaco.Uri.parse(SDK_URI));
-    for (const [id, language, triggers] of [['c', 'c', ['"', '<', '#', '_']], ['prg32-asm', 'asm', ['.', '#', '_']]]) {
+    for (const [id, language, triggers] of [['c', 'c', ['"', '<', '#', '_']], ['prg32-asm', 'asm', ['.', '#', '_']],
+      ['prg32-python', 'python', ['.', '_']]]) {
       monaco.languages.registerCompletionItemProvider(id, {
         triggerCharacters: triggers,
         provideCompletionItems(model, pos) {
@@ -59,17 +61,19 @@ window.PRG32MonacoLanguage = (function () {
         },
       });
     }
-    monaco.languages.registerSignatureHelpProvider('c', {
-      signatureHelpTriggerCharacters: ['(', ','],
-      signatureHelpRetriggerCharacters: [','],
-      provideSignatureHelp(model, pos) {
-        const found = PRG32Language.signatureHelp('c', model.getValue(), position(pos));
-        if (!found) return null;
-        return { value: { signatures: [{ label: found.label, documentation: markdown(found.documentation),
-          parameters: found.parameters.map(label => ({ label })) }], activeSignature: 0,
-          activeParameter: found.activeParameter }, dispose() {} };
-      },
-    });
+    for (const [id, language] of [['c', 'c'], ['prg32-python', 'python']]) {
+      monaco.languages.registerSignatureHelpProvider(id, {
+        signatureHelpTriggerCharacters: ['(', ','],
+        signatureHelpRetriggerCharacters: [','],
+        provideSignatureHelp(model, pos) {
+          const found = PRG32Language.signatureHelp(language, model.getValue(), position(pos));
+          if (!found) return null;
+          return { value: { signatures: [{ label: found.label, documentation: markdown(found.documentation),
+            parameters: found.parameters.map(label => ({ label })) }], activeSignature: 0,
+            activeParameter: found.activeParameter }, dispose() {} };
+        },
+      });
+    }
     // "Go to declaration" into prg32.h: the IDE opens it as a read-only tab.
     monaco.editor.registerEditorOpener({
       openCodeEditor(source, resource, selectionOrPosition) {

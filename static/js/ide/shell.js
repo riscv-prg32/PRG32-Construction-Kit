@@ -129,7 +129,7 @@ window.IdeShell = (function () {
       const tab = $(`<button role="tab" id="tab-${spec.id}" aria-controls="tabpanel-${spec.id}" aria-selected="false" tabindex="-1">
         <span>${Kit.escape(spec.title)}</span></button>`);
       if (spec.closable !== false) {
-        tab.append(`<span class="ide-tab-close" data-close="${Kit.escape(spec.id)}" aria-hidden="true" title="Close (Delete)">&times;</span>`);
+        tab.append(`<span class="ide-tab-close" data-close="${Kit.escape(spec.id)}" aria-hidden="true" title="${Kit.escape(tr('js.shell.close_delete', 'Close (Delete)'))}">&times;</span>`);
       }
       const panel = $(`<div role="tabpanel" id="tabpanel-${spec.id}" aria-labelledby="tab-${spec.id}" class="ide-tab-panel" hidden></div>`);
       $('#ideTabs').append(tab);
@@ -206,7 +206,7 @@ window.IdeShell = (function () {
     $('#paletteList').html(matches.map((command, index) => `<li role="option" class="list-group-item d-flex justify-content-between"
         id="cmd-${command.id}" data-command="${command.id}" aria-selected="${index === 0}">
         <span>${Kit.escape(command.title)}</span>${command.keys ? `<kbd>${Kit.escape(command.keys)}</kbd>` : ''}</li>`).join('')
-      || '<li class="list-group-item text-muted">No matching command.</li>');
+      || '<li class="list-group-item text-muted">' + Kit.escape(tr('js.shell.no_matching_command', 'No matching command.')) + '</li>');
     $('#paletteInput').attr('aria-activedescendant', matches.length ? `cmd-${matches[0].id}` : '');
   }
   function movePalette(step) {

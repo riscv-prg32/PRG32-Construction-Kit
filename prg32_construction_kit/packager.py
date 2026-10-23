@@ -218,6 +218,11 @@ def prepare_package(
     source_path = sources[build_language]
     (work_dir / "project.blocks.json").write_text(json.dumps(project_json, indent=2), encoding="utf-8")
     (work_dir / "game.ir.json").write_text(json.dumps(game_ir, indent=2), encoding="utf-8")
+    # A PRG32 Python project (ADR-0026): its game.py goes into the bundle beside the C and assembly made from it.
+    python_source = (project.get("game_json") or {}).get("source_python") \
+        if game_ir.get("source_mode") == "python" else None
+    if isinstance(python_source, str):
+        (work_dir / "game.py").write_text(python_source, encoding="utf-8")
     icon_path = work_dir / "icon.png"
     write_png_icon(icon_path)
     audio_args: list[str] = []
@@ -272,6 +277,8 @@ def prepare_package(
             zf.write(path, f"source/{path.name}")
         zf.write(work_dir / "project.blocks.json", "source/project.blocks.json")
         zf.write(work_dir / "game.ir.json", "source/game.ir.json")
+        if isinstance(python_source, str):
+            zf.write(work_dir / "game.py", "source/game.py")
         if audio:
             zf.write(work_dir / "audio.json", "source/audio.json")
         for arch in architectures:

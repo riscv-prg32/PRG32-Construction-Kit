@@ -27,7 +27,7 @@ CURRENT_STATE = DOCS / "architecture" / "current-state.md"
 STATUS = {row["id"]: row["status"] for row in json.loads((DOCS / "capabilities.json").read_text())["capabilities"]}
 CLAIMED = {"implemented", "reference-verified"}
 SECTIONS = {"Implemented": CLAIMED, "Partly implemented": {"partial", "prototype"}, "Not implemented": {"missing"}}
-TAG = re.compile(r"\[([A-Z]{2,5}-\d{2})\]")
+TAG = re.compile(r"\[([A-Z][A-Z0-9]{1,4}-\d{2})\]")
 SAYS_MISSING = re.compile(r"\b(not implemented|missing|absent|not started|not yet|open)\b", re.IGNORECASE)
 SAYS_DONE = re.compile(r"(?<!not )\b(done|implemented|complete)\b", re.IGNORECASE)
 

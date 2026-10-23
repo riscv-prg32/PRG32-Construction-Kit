@@ -1,40 +1,39 @@
 {% extends "base.html" %}
-{% block title %}School sign-in - {{ site.name }}{% endblock %}
+{% block title %}{{ t("admin_identity.school_sign_in", name=(site.name)) }}{% endblock %}
 {% block content %}
-<h1 class="h3 mb-1"><i class="bi bi-mortarboard"></i> School sign-in providers</h1>
-<p class="text-muted">OpenID Connect providers students and teachers can sign in with (Authorization Code + PKCE).
-  Accounts are matched by issuer and subject, never by email. <a href="/docs/accounts_and_sso.md">Guide</a></p>
+<h1 class="h3 mb-1"><i class="bi bi-mortarboard"></i> {{ t("common.school_sign_in_providers") }}</h1>
+<p class="text-muted">{{ t("admin_identity.openid_connect_providers_students_and_te") }} <a href="/docs/accounts_and_sso.md">{{ t("admin_identity.guide") }}</a></p>
 <div class="row g-4">
   <div class="col-lg-5">
     <div class="card shadow-sm">
-      <div class="card-header"><strong id="providerFormTitle">New provider</strong></div>
+      <div class="card-header"><strong id="providerFormTitle">{{ t("admin_identity.new_provider") }}</strong></div>
       <div class="card-body">
         <form id="providerForm" class="vstack gap-2">
-          <label class="small mb-0" for="pSlug">Short name (in the address)</label>
-          <input class="form-control" id="pSlug" name="slug" placeholder="school" pattern="[a-z][a-z0-9-]{1,31}" required>
-          <label class="small mb-0" for="pName">Button text</label>
-          <input class="form-control" id="pName" name="name" placeholder="Sign in with our school" required>
-          <label class="small mb-0" for="pIssuer">Issuer</label>
-          <input class="form-control" id="pIssuer" name="issuer" placeholder="https://login.school.example/realms/students" required>
-          <label class="small mb-0" for="pClient">Client id</label>
+          <label class="small mb-0" for="pSlug">{{ t("admin_identity.short_name_in_the_address") }}</label>
+          <input class="form-control" id="pSlug" name="slug" placeholder="{{ t('admin_identity.school') }}" pattern="[a-z][a-z0-9-]{1,31}" required>
+          <label class="small mb-0" for="pName">{{ t("admin_identity.button_text") }}</label>
+          <input class="form-control" id="pName" name="name" placeholder="{{ t('admin_identity.sign_in_with_our_school') }}" required>
+          <label class="small mb-0" for="pIssuer">{{ t("admin_identity.issuer") }}</label>
+          <input class="form-control" id="pIssuer" name="issuer" placeholder="{{ t('admin_identity.https_login_school_example_realms_studen') }}" required>
+          <label class="small mb-0" for="pClient">{{ t("admin_identity.client_id") }}</label>
           <input class="form-control" id="pClient" name="client_id" required>
-          <label class="small mb-0" for="pSecret">Client secret: where it is, not the secret</label>
-          <input class="form-control" id="pSecret" name="client_secret_ref" placeholder="env:SCHOOL_OIDC_SECRET or file:/run/secrets/oidc (empty: public client)">
-          <label class="small mb-0" for="pRoleClaim">Claim with the person's role (optional)</label>
-          <input class="form-control" id="pRoleClaim" name="role_claim" placeholder="roles">
-          <label class="small mb-0" for="pRoleMap">Claim values → class roles, JSON (student, teacher, facilitator only)</label>
+          <label class="small mb-0" for="pSecret">{{ t("admin_identity.client_secret_where_it_is_not") }}</label>
+          <input class="form-control" id="pSecret" name="client_secret_ref" placeholder="{{ t('admin_identity.env_school_oidc_secret_or_file') }}">
+          <label class="small mb-0" for="pRoleClaim">{{ t("admin_identity.claim_with_the_person_s_role") }}</label>
+          <input class="form-control" id="pRoleClaim" name="role_claim" placeholder="{{ t('admin_identity.roles') }}">
+          <label class="small mb-0" for="pRoleMap">{{ t("admin_identity.claim_values_class_roles_json_student") }}</label>
           <input class="form-control font-monospace" id="pRoleMap" name="role_map" placeholder='{"faculty": "teacher", "student": "student"}'>
-          <label class="small mb-0" for="pDomains">Email domains that may make new accounts (optional, space separated)</label>
-          <input class="form-control" id="pDomains" name="allowed_domains" placeholder="school.example">
-          <div class="small text-muted">Redirect address to register with the provider: <code>{{ redirect_example }}</code> (SLUG = the short name)</div>
-          <button class="btn btn-primary" type="submit">Save provider</button>
+          <label class="small mb-0" for="pDomains">{{ t("admin_identity.email_domains_that_may_make_new") }}</label>
+          <input class="form-control" id="pDomains" name="allowed_domains" placeholder="{{ t('admin_identity.school_example') }}">
+          <div class="small text-muted">{{ t("admin_identity.redirect_address_to_register_with_the") }} <code>{{ redirect_example }}</code> {{ t("admin_identity.slug_the_short_name") }}</div>
+          <button class="btn btn-primary" type="submit">{{ t("admin_identity.save_provider") }}</button>
         </form>
       </div>
     </div>
   </div>
   <div class="col-lg-7">
     <div class="card shadow-sm">
-      <div class="card-header"><strong>Providers</strong></div>
+      <div class="card-header"><strong>{{ t("admin_identity.providers") }}</strong></div>
       <ul class="list-group list-group-flush" id="providerList"></ul>
     </div>
   </div>

@@ -9,6 +9,8 @@
 // - Blocks projects: the Blockly workspace is the source (Blockly JSON stays canonical); the
 //   generated C, assembly and IR open as read-only Monaco tabs that can be copied.
 // - Advanced C / assembly projects: the source is a Monaco editor (C, or the prg32-asm grammar).
+// - PRG32 Python projects (ADR-0026): game.py is a Monaco editor (prg32-python); like the Blocks,
+//   the generated C, assembly and IR open as read-only tabs, and the debugger follows game.py.
 // - Problems appear in the Problems panel and as markers in the editor; Enter on a problem jumps
 //   to its line. They come from the live checks while typing (language.js, ADR-0014) and from the
 //   server's checks and the compiler after Generate / Compile.
@@ -18,7 +20,9 @@
   'use strict';
   const projectId = $('#projectId').val();
   const api = '/api/projects/' + encodeURIComponent(projectId);
-  const MODE_NAMES = { blocks: 'Blocks', c: 'C', asm: 'Assembly (RISC-V)' };
+  const MODE_NAMES = { blocks: tr('common.blocks', 'Blocks'), c: 'C', asm: tr('js.ide.assembly_risc_v', 'Assembly (RISC-V)'), python: tr('js.ide.python_prg32_python', 'Python (PRG32 Python)') };
+  // Blocks and Python are translated by the kit: they have generated C, assembly and IR to show.
+  const generatesCode = () => mode === 'blocks' || mode === 'python';
   let project = null;
   let mode = 'blocks';
   let dirty = false;
@@ -49,7 +53,7 @@
       changes += 1;
       scheduleAutosave();
     }
-    $('#statusSaved').text(readOnly() ? 'Read-only (shared)' : value ? 'Unsaved changes' : 'Saved');
+    $('#statusSaved').text(readOnly() ? tr('js.ide.read_only_shared', 'Read-only (shared)') : value ? tr('js.ide.unsaved_changes', 'Unsaved changes') : tr('js.ide.saved', 'Saved'));
   }
 
   // A shared classroom project (the starter games): read and run it, never save it.
@@ -78,32 +82,32 @@
     panel.scrollTop = panel.scrollHeight;
   }
   function trackCursor(editor) {
-    editor.onDidChangeCursorPosition(event => $('#statusCursor').text(`Ln ${event.position.lineNumber}, Col ${event.position.column}`));
+    editor.onDidChangeCursorPosition(event => $('#statusCursor').text(tr('js.ide.line_column', 'Ln {line}, Col {column}', { line: event.position.lineNumber, column: event.position.column })));
   }
 
   // --- tree -----------------------------------------------------------------------------------
-  function sourceFile() { return mode === 'c' ? 'game.c' : 'game.S'; }
+  function sourceFile() { return { c: 'game.c', asm: 'game.S', python: 'game.py' }[mode]; }
 
   function renderTree(sprites) {
     const source = mode === 'blocks'
-      ? [{ id: 'blocks', label: 'Blocks program', icon: 'bi-puzzle' }]
+      ? [{ id: 'blocks', label: tr('js.ide.blocks_program', 'Blocks program'), icon: 'bi-puzzle' }]
       : [{ id: 'src', label: sourceFile(), icon: 'bi-file-earmark-code' }];
-    const items = [{ id: 'folder-source', label: 'Source', children: source }];
-    if (mode === 'blocks') {
-      items.push({ id: 'folder-generated', label: 'Generated (read-only)', children: [
+    const items = [{ id: 'folder-source', label: tr('js.ide.source', 'Source'), children: source }];
+    if (generatesCode()) {
+      items.push({ id: 'folder-generated', label: tr('js.ide.generated_read_only', 'Generated (read-only)'), children: [
         { id: 'gen-c', label: 'game.c', icon: 'bi-file-earmark-lock', readonly: true },
         { id: 'gen-asm', label: 'game.S', icon: 'bi-file-earmark-lock', readonly: true },
         { id: 'gen-ir', label: 'game.ir.json', icon: 'bi-file-earmark-lock', readonly: true }] });
     }
     // Sprites and sound open Sprite Lab and AudioStudio as tabs, for this project (ADR-0024).
-    items.push({ id: 'folder-sprites', label: 'Sprites', children: sprites
+    items.push({ id: 'folder-sprites', label: tr('common.sprites', 'Sprites'), children: sprites
       .map(sprite => ({ id: 'sprite-' + sprite.id, label: sprite.name, icon: 'bi-image' }))
-      .concat([{ id: 'sprite-new', label: 'New sprite…', icon: 'bi-plus-circle' }]) });
-    items.push({ id: 'folder-sound', label: 'Sound', children: [
-      { id: 'sound-voices', label: 'Voices', icon: 'bi-soundwave' },
-      { id: 'sound-effects', label: 'Sound effects', icon: 'bi-music-note' },
-      { id: 'sound-tracks', label: 'Soundtracks', icon: 'bi-music-note-list' },
-      { id: 'sound-samples', label: 'Samples', icon: 'bi-mic' }] });
+      .concat([{ id: 'sprite-new', label: tr('js.ide.new_sprite', 'New sprite…'), icon: 'bi-plus-circle' }]) });
+    items.push({ id: 'folder-sound', label: tr('js.ide.sound', 'Sound'), children: [
+      { id: 'sound-voices', label: tr('js.ide.voices', 'Voices'), icon: 'bi-soundwave' },
+      { id: 'sound-effects', label: tr('js.ide.sound_effects', 'Sound effects'), icon: 'bi-music-note' },
+      { id: 'sound-tracks', label: tr('js.ide.soundtracks', 'Soundtracks'), icon: 'bi-music-note-list' },
+      { id: 'sound-samples', label: tr('js.ide.samples', 'Samples'), icon: 'bi-mic' }] });
     IdeShell.renderTree(items, openFile);
   }
 
@@ -123,11 +127,12 @@
       render(panel) {
         const toolbar = options.readOnly
           ? $(`<div class="ide-editor-toolbar"><span class="small text-muted"></span><span class="d-flex gap-1">
-              <button class="btn btn-outline-secondary btn-sm ide-copy" type="button">Copy</button>
-              ${options.download ? '<button class="btn btn-outline-secondary btn-sm ide-download" type="button"><i class="bi bi-download" aria-hidden="true"></i> Download</button>' : ''}
+              <button class="btn btn-outline-secondary btn-sm ide-copy" type="button">${tr('js.ide.copy', 'Copy')}</button>
+              ${options.download ? '<button class="btn btn-outline-secondary btn-sm ide-download" type="button"><i class="bi bi-download" aria-hidden="true"></i> ' + Kit.escape(tr('js.ide.download', 'Download')) + '</button>' : ''}
               </span></div>`).appendTo(panel)
           : null;
-        if (toolbar) toolbar.find('span').text(options.note || 'Read-only: made from the blocks.');
+        if (toolbar) toolbar.find('span').text(options.note || (mode === 'python' ? tr('js.ide.read_only_made_from_game_py', 'Read-only: made from game.py.')
+          : tr('js.ide.read_only_made_from_the_blocks', 'Read-only: made from the blocks.')));
         const host = $('<div class="ide-monaco" data-focus-target></div>').appendTo(panel);
         const editor = monaco.editor.create(host[0], Object.assign(options.model ? { model: options.model } : { value, language }, {
           readOnly: !!options.readOnly, automaticLayout: true, minimap: { enabled: false },
@@ -137,7 +142,7 @@
         host.data('focus', () => editor.focus());
         trackCursor(editor);
         if (toolbar) toolbar.find('.ide-copy').on('click', () => navigator.clipboard.writeText(editor.getValue())
-          .then(() => Kit.toast('Copied', 'success')).catch(() => Kit.toast('Select all and copy with Ctrl+C', 'warning')));
+          .then(() => Kit.toast(tr('js.ide.copied', 'Copied'), 'success')).catch(() => Kit.toast(tr('js.ide.select_all_and_copy_with_ctrl', 'Select all and copy with Ctrl+C'), 'warning')));
         // Export the generated code as a file (the project stays Blocks; Convert makes it code for good).
         if (toolbar && options.download) toolbar.find('.ide-download').on('click', () => {
           const link = document.createElement('a');
@@ -161,7 +166,7 @@
     if (!editors['sdk-h']) {
       monacoTab('sdk-h', 'prg32.h (portable API)', 'c', '', {
         readOnly: true, closable: true, model: PRG32MonacoLanguage.sdkModel,
-        note: 'Read-only: everything a PRG32 cartridge can call (PRG32 ABI ' +
+        note: tr('js.ide.read_only_everything_a_prg32_cartridge', 'Read-only: everything a PRG32 cartridge can call (PRG32 ABI ') +
           `${PRG32LanguageIndex.abi.major}.${PRG32LanguageIndex.abi.minor}).`,
         ariaLabel: 'prg32.h, the portable PRG32 API, read-only' });
     } else {
@@ -173,31 +178,33 @@
     editor.focus();
   }
 
+  const SOURCE_FIELDS = { c: 'source_c', asm: 'source_asm', python: 'source_python' };
   function openSource(focus) {
-    const language = mode === 'c' ? 'c' : 'prg32-asm';
+    const language = { c: 'c', asm: 'prg32-asm', python: 'prg32-python' }[mode];
     const saved = project.game_json || {};
-    const text = mode === 'c' ? (saved.source_mode === 'c' ? saved.source_c : '') : (saved.source_mode === 'asm' ? saved.source_asm : '');
+    const text = saved.source_mode === mode ? saved[SOURCE_FIELDS[mode]] : '';
     monacoTab('src', sourceFile(), language, text || '', {
-      closable: false, ariaLabel: mode === 'c' ? 'C source code' : 'RISC-V assembly source code',
+      closable: false, ariaLabel: { c: tr('js.ide.c_source_code', 'C source code'), asm: tr('js.ide.risc_v_assembly_source_code', 'RISC-V assembly source code'),
+        python: tr('js.ide.prg32_python_source_code_game_py', 'PRG32 Python source code (game.py)') }[mode],
       onChange: () => setDirty(true),
       onClose: () => { if (liveChecks) { liveChecks.dispose(); liveChecks = null; } liveProblems = []; renderProblems(); },
     });
     if (!liveChecks) {
-      liveChecks = PRG32MonacoLanguage.attach(monaco, editors.src.getModel(), mode === 'c' ? 'c' : 'asm',
+      liveChecks = PRG32MonacoLanguage.attach(monaco, editors.src.getModel(), mode,
         () => project.title, problems => { liveProblems = problems; renderProblems(); });
     }
     if (focus) editors.src.focus();
   }
 
   function openGenerated(kind, focus) {
-    const titles = { c: 'game.c (generated)', asm: 'game.S (generated)', ir: 'game.ir.json' };
+    const titles = { c: tr('js.ide.game_c_generated', 'game.c (generated)'), asm: tr('js.ide.game_s_generated', 'game.S (generated)'), ir: 'game.ir.json' };
     const languages = { c: 'c', asm: 'prg32-asm', ir: 'json' };
     const tab = IdeShell.tabs.get('gen-' + kind);
     if (tab && editors['gen-' + kind]) {
       IdeShell.activateTab('gen-' + kind);
     } else {
       monacoTab('gen-' + kind, titles[kind], languages[kind], generated[kind] || '// Press Generate to make this file.',
-                { readOnly: true, closable: true, ariaLabel: titles[kind] + ', read-only',
+                { readOnly: true, closable: true, ariaLabel: titles[kind] + tr('js.ide.read_only', ', read-only'),
                   download: { c: 'game.c', asm: 'game.S', ir: 'game.ir.json' }[kind] });
     }
     if (focus) editors['gen-' + kind].focus();
@@ -213,10 +220,10 @@
 
   function openBlocks(focus) {
     IdeShell.openTab({
-      id: 'blocks', title: 'Blocks program', closable: false,
+      id: 'blocks', title: tr('js.ide.blocks_program', 'Blocks program'), closable: false,
       render(panel) {
         // Focusable, so F6 and "Open source" can put the keyboard focus on the workspace.
-        $('<div id="blocklyDiv" class="ide-blockly" data-focus-target tabindex="0" role="region" aria-label="Blocks workspace"></div>').appendTo(panel);
+        $('<div id="blocklyDiv" class="ide-blockly" data-focus-target tabindex="0" role="region" aria-label="' + Kit.escape(tr('js.ide.blocks_workspace', 'Blocks workspace')) + '"></div>').appendTo(panel);
       },
       onShow() {
         if (!blocklyReady) {
@@ -274,7 +281,8 @@
   // Server and compiler messages -> problems at exact places, without server paths (language.js).
   function parseProblems(text) {
     const source = editors.src ? editors.src.getValue() : '';
-    const problems = PRG32Language.normalizeCompilerOutput(text, { language: mode === 'asm' ? 'asm' : 'c', source });
+    const problems = PRG32Language.normalizeCompilerOutput(text, { language: mode === 'asm' ? 'asm' : mode === 'python'
+      ? 'python' : 'c', source });
     if (!problems.length && text && !/^\s*$/.test(text)) {
       problems.push({ line: 0, column: 0, endLine: 0, endColumn: 0, severity: 'error', code: 'server',
         message: PRG32Language.withoutPaths(String(text)), explanation: '' });
@@ -282,9 +290,12 @@
     return problems;
   }
 
-  // The same problem found by the live check and by the server is listed once.
+  // The same problem found by the live check and by the server is listed once. In another
+  // interface language the live check speaks that language and the server English: a live
+  // problem then stands for the server's problem on the same line.
   function sameProblem(a, b) {
     const text = problem => problem.message.replace(/^Line \d+: /, '');
+    if (a.line === b.line && b.code === 'server' && window.PRG32I18n && PRG32I18n.locale !== 'en') return true;
     return a.line === b.line && (text(a) === text(b) || text(b).startsWith(text(a).split(':')[0]));
   }
 
@@ -293,10 +304,10 @@
     $('#problemCount').text(problems.length);
     $('#ideProblems').html(problems.length ? problems.map((problem, index) => `<li><button type="button" class="ide-problem"
         data-index="${index}"><i class="bi ${problem.severity === 'warning' ? 'bi-exclamation-triangle text-warning' : 'bi-x-circle text-danger'}" aria-hidden="true"></i>
-        <span class="visually-hidden">${problem.severity}</span>
-        ${problem.line ? `Line ${problem.line}: ` : ''}${Kit.escape(problem.message.replace(/^Line \d+: /, ''))}
+        <span class="visually-hidden">${problem.severity === 'warning' ? tr('js.ide.warning', 'warning') : tr('js.ide.error', 'error')}</span>
+        ${problem.line ? tr('js.ide.line_n', 'Line {line}: ', { line: problem.line }) : ''}${Kit.escape(problem.message.replace(/^Line \d+: /, ''))}
         ${problem.explanation ? `<span class="d-block small text-muted">${Kit.escape(problem.explanation)}</span>` : ''}</button></li>`).join('')
-      : '<li class="text-muted">No problems.</li>');
+      : `<li class="text-muted">${tr('ide.no_problems', 'No problems.')}</li>`);
     $('#ideProblems').data('problems', problems);
   }
 
@@ -324,17 +335,32 @@
   function compilerCheck(options = {}) {
     if (mode === 'blocks' || !project) return Promise.resolve();
     const version = project.version;
-    checking = Kit.api(api + '/check', { method: 'POST', body: { source_language: mode } }).then(result => {
+    // Python: the server's PRG32 Python compiler checks game.py first (a refusal names the line);
+    // then, with a toolchain, the C made from it is compiled like Advanced C.
+    checking = Kit.api(api + '/check', { method: 'POST', body: { source_language: mode === 'python' ? 'c' : mode } }).then(result => {
+      if (!result.available && mode === 'python') {
+        if (project.version === version) showProblems([], options.quiet);
+        setBuildStatus(tr('js.ide.prg32_python_no_problems', 'PRG32 Python: no problems'));
+        return;
+      }
       if (!result.available) {
-        if (!options.quiet) setBuildStatus(result.guest ? 'Compiler check: sign in to use the compiler'
-          : 'Compiler check: no toolchain on this server');
+        if (!options.quiet) setBuildStatus(result.guest ? tr('js.ide.compiler_check_sign_in_to_use', 'Compiler check: sign in to use the compiler')
+          : tr('js.ide.compiler_check_no_toolchain_on_this', 'Compiler check: no toolchain on this server'));
         return;
       }
       if (project.version !== version || result.project_version !== version) return;   // saved again since
       const problems = result.ok ? [] : parseProblems(result.log);
       showProblems(problems, options.quiet);
-      setBuildStatus(result.ok ? 'Compiler: no problems' : `Compiler: ${problems.length} problem${problems.length === 1 ? '' : 's'}`);
-    }).catch(err => { if (!options.quiet) setBuildStatus('Compiler check: ' + err.message); });
+      setBuildStatus(result.ok ? tr('js.ide.compiler_no_problems', 'Compiler: no problems') : tr('js.ide.compiler_problems', 'Compiler: {count} problems', { count: problems.length }));
+    }).catch(err => {
+      if (mode === 'python' && project.version === version && /^Line \d+: /.test(err.message)) {
+        const problems = parseProblems(err.message);
+        showProblems(problems, options.quiet);
+        setBuildStatus(tr('js.ide.python_problems', 'PRG32 Python: {count} problems', { count: problems.length }));
+        return;
+      }
+      if (!options.quiet) setBuildStatus(tr('js.ide.compiler_check', 'Compiler check: {message}', { message: err.message }));
+    });
     return checking;
   }
 
@@ -356,6 +382,10 @@
       return { blocks_json: blocks, game_json: PRG32Simulator.compileBlocks(blocks) };
     }
     const text = editors.src ? editors.src.getValue() : '';
+    if (mode === 'python') {
+      return { blocks_json: project.blocks_json || {}, game_json: { source_mode: 'python', source_python: text,
+        python_language_version: PRG32LanguageIndex.python.version } };
+    }
     return { blocks_json: project.blocks_json || {}, game_json: mode === 'c'
       ? { source_mode: 'c', source_c: text, required_features: features }
       : { source_mode: 'asm', source_asm: text, required_features: features } };
@@ -372,19 +402,19 @@
       project = saved;
       if (changes === started) setDirty(false); else scheduleAutosave();
       const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      $('#statusSaved').text(dirty ? 'Unsaved changes' : (options.autosave ? 'Autosaved ' + time : 'Saved'));
-      if (!options.autosave && !options.quiet) Kit.toast('Saved', 'success');
+      $('#statusSaved').text(dirty ? tr('js.ide.unsaved_changes', 'Unsaved changes') : (options.autosave ? tr('js.ide.autosaved', 'Autosaved {time}', { time: time }) : tr('js.ide.saved', 'Saved')));
+      if (!options.autosave && !options.quiet) Kit.toast(tr('js.ide.saved', 'Saved'), 'success');
       if (!options.noCheck) compilerCheck({ quiet: options.autosave });
       return saved;
     }).catch(err => {
       if (err.code === 'version_conflict') {
         autosavePaused = true;
-        $('#statusSaved').text('Not saved: saved elsewhere');
+        $('#statusSaved').text(tr('js.ide.not_saved_saved_elsewhere', 'Not saved: saved elsewhere'));
         Kit.versionConflict(err, { copy: keepMineAsCopy, reload: loadSavedVersion,
           overwrite: version => { autosavePaused = false; return save({ baseVersion: version }); } });
       } else {
-        $('#statusSaved').text('Not saved: ' + err.message);
-        if (!options.autosave || err.code === 'quota_exceeded') Kit.toast('Not saved: ' + err.message, 'danger');
+        $('#statusSaved').text(tr('js.ide.not_saved', 'Not saved: {message}', { message: err.message }));
+        if (!options.autosave || err.code === 'quota_exceeded') Kit.toast(tr('js.ide.not_saved', 'Not saved: {message}', { message: err.message }), 'danger');
       }
       throw err;
     }).finally(() => { saving = null; });
@@ -392,7 +422,7 @@
   }
 
   function keepMineAsCopy() {
-    return Kit.api('/api/projects', { method: 'POST', body: Object.assign(payload(), { title: project.title + ' (my version)' }) })
+    return Kit.api('/api/projects', { method: 'POST', body: Object.assign(payload(), { title: project.title + tr('js.ide.my_version', ' (my version)') }) })
       .then(copy => { dirty = false; window.location.href = '/ide/' + encodeURIComponent(copy.id); });
   }
 
@@ -409,12 +439,13 @@
     const saved = project.game_json || {};
     if (mode === 'c') return { expected_source_c: saved.source_c };
     if (mode === 'asm') return { expected_source_asm: saved.source_asm };
+    if (mode === 'python') return { expected_source_python: saved.source_python };
     return { expected_blocks_json: project.blocks_json };
   }
 
   function generate() {
-    setBuildStatus('Generating…');
-    const language = mode === 'blocks' ? 'both' : mode;
+    setBuildStatus(tr('js.ide.generating', 'Generating…'));
+    const language = generatesCode() ? 'both' : mode;
     // A shared project (read-only here) is generated by the stateless converter: nothing is stored.
     const generating = readOnly()
       ? Kit.api('/api/guest/convert', { method: 'POST', body: { source_language: language, project: {
@@ -422,42 +453,43 @@
       : save({ noCheck: true }).then(() => Kit.api(api + '/convert', { method: 'POST', body: { source_language: language } }));
     return generating
       .then(result => {
-        if (mode === 'blocks') {
+        if (generatesCode()) {
           generated.c = result.c_source || '';
           generated.asm = result.asm_source || '';
           generated.ir = JSON.stringify(result.game_ir, null, 2);
           updateGenerated();
         }
         showProblems([]);
-        setBuildStatus('Generated');
-        $('#ideOutput').text(mode === 'blocks' ? 'Generated C, assembly and IR from the blocks.' : 'The source passed the kit\'s checks.');
+        setBuildStatus(tr('js.ide.generated', 'Generated'));
+        $('#ideOutput').text(mode === 'blocks' ? tr('js.ide.generated_c_assembly_and_ir_from', 'Generated C, assembly and IR from the blocks.')
+          : mode === 'python' ? tr('js.ide.generated_c_assembly_and_ir_from_2', 'Generated C, assembly and IR from game.py.') : tr('js.ide.the_source_passed_the_kit_s', 'The source passed the kit\'s checks.'));
       })
-      .catch(err => { showProblems(parseProblems(err.message)); setBuildStatus('Problems found'); });
+      .catch(err => { showProblems(parseProblems(err.message)); setBuildStatus(tr('js.ide.problems_found', 'Problems found')); });
   }
 
   function compile() {
-    setBuildStatus('Compiling…');
-    $('#ideOutput').text('Compiling…');
+    setBuildStatus(tr('js.ide.compiling', 'Compiling…'));
+    $('#ideOutput').text(tr('js.ide.compiling', 'Compiling…'));
     $('#ideCartridges').empty();
     IdeShell.showPanel('build');
-    log('Compile: building the cartridges to download…');
+    log(tr('js.ide.compile_building_the_cartridges_to_downl', 'Compile: building the cartridges to download…'));
     return save({ noCheck: true }).then(() => Kit.api(api + '/package', { method: 'POST',
-      body: Object.assign({ source_language: mode === 'blocks' ? buildFrom() : mode }, expectedVersion()) }))
+      body: Object.assign({ source_language: generatesCode() ? buildFrom() : mode }, expectedVersion()) }))
       .then(result => {
-        $('#ideOutput').text(result.build.log || 'No log.');
+        $('#ideOutput').text(result.build.log || tr('js.ide.no_log', 'No log.'));
         const cartridges = result.cartridge_artifacts || [];
-        setBuildStatus(cartridges.length ? 'Cartridge ready' : result.build.status === 'failed' ? 'Build failed' : 'Source bundle only');
+        setBuildStatus(cartridges.length ? tr('js.ide.cartridge_ready', 'Cartridge ready') : result.build.status === 'failed' ? tr('js.ide.build_failed', 'Build failed') : tr('js.ide.source_bundle_only', 'Source bundle only'));
         showProblems(result.build.status === 'failed' ? parseProblems(result.build.log) : []);
         $('#ideCartridges').html(cartridges.map(artifact => `
           <a class="btn btn-outline-primary btn-sm" href="/api/artifacts/${encodeURIComponent(artifact.id)}/download">
-            <i class="bi bi-download" aria-hidden="true"></i> Download ${Kit.escape(artifact.metadata.architecture)} .prg32</a>`).join('')
-          || '<span class="text-muted">No cartridge was made: see the log below.</span>');
-        log(cartridges.length ? `Compile: ${cartridges.length} cartridge(s) ready to download.` : 'Compile: no cartridge was made.',
+            <i class="bi bi-download" aria-hidden="true"></i> ${Kit.escape(tr('js.ide.download_arch_cartridge', 'Download {architecture} .prg32', { architecture: artifact.metadata.architecture }))}</a>`).join('')
+          || `<span class="text-muted">${tr('js.ide.no_cartridge_see_log', 'No cartridge was made: see the log below.')}</span>`);
+        log(cartridges.length ? tr('js.ide.compile_cartridges_ready', 'Compile: {count} cartridges ready to download.', { count: cartridges.length }) : tr('js.ide.compile_no_cartridge_was_made', 'Compile: no cartridge was made.'),
             cartridges.length ? 'ok' : 'error');
       })
       .catch(err => {
-        $('#ideOutput').text(err.message); showProblems(parseProblems(err.message)); setBuildStatus('Build failed');
-        log('Compile: ' + err.message, 'error');
+        $('#ideOutput').text(err.message); showProblems(parseProblems(err.message)); setBuildStatus(tr('js.ide.build_failed', 'Build failed'));
+        log(tr('js.ide.compile', 'Compile: {message}', { message: err.message }), 'error');
       });
   }
 
@@ -488,25 +520,25 @@
 
   function run() {
     if (IdeShell.showPane && $('#ide').attr('data-sim') === 'closed') IdeShell.showPane('sim', true);
-    setBuildStatus('Building to run…');
+    setBuildStatus(tr('js.ide.building_to_run', 'Building to run…'));
     $('#ideRun').prop('disabled', true);
-    log('Run: building ' + project.title + ' for the simulator…');
+    log(tr('js.ide.run_building', 'Run: building {title}', { title: project.title }) + tr('js.ide.for_the_simulator', ' for the simulator…'));
     return saveIfNeeded({ noCheck: true, quiet: true }).then(() => Kit.api(api + '/run', { method: 'POST', body: {} }))
       .then(answer => {
-        $('#ideOutput').text(answer.log || 'No log.');
+        $('#ideOutput').text(answer.log || tr('js.ide.no_log', 'No log.'));
         $('#ideCartridges').empty();
         if (!answer.ok) {
           showProblems(parseProblems(answer.log));
-          setBuildStatus('Build failed');
+          setBuildStatus(tr('js.ide.build_failed', 'Build failed'));
           IdeShell.showPanel('build');
-          log('Run: the game did not build. See Build and Problems.', 'error');
+          log(tr('js.ide.run_the_game_did_not_build', 'Run: the game did not build. See Build and Problems.'), 'error');
           return null;
         }
         showProblems([], true);
         lastRun = { bytes: base64Bytes(answer.cartridge), debug: answer.debug };
         return startCartridge(lastRun.bytes, lastRun.debug).then(() => {
-          setBuildStatus('Running');
-          log('Run: running in the simulator. Click the screen to use the game keys.', 'ok');
+          setBuildStatus(tr('js.ide.running', 'Running'));
+          log(tr('js.ide.run_running_in_the_simulator_click', 'Run: running in the simulator. Click the screen to use the game keys.'), 'ok');
         });
       })
       .catch(err => {
@@ -515,12 +547,12 @@
           usePreview(true);
           simulator.loadBlocks(PRG32Blocks.save());
           if (!simulator.running) simulator.toggle();
-          setBuildStatus('Running (Blocks preview)');
-          log('Run: this server cannot compile, so the Blocks preview runs instead of the PRG32 core.', 'error');
+          setBuildStatus(tr('js.ide.running_blocks_preview', 'Running (Blocks preview)'));
+          log(tr('js.ide.run_this_server_cannot_compile_so', 'Run: this server cannot compile, so the Blocks preview runs instead of the PRG32 core.'), 'error');
           return;
         }
-        setBuildStatus('Not running');
-        log('Run: ' + err.message, 'error');
+        setBuildStatus(tr('js.ide.not_running', 'Not running'));
+        log(tr('js.ide.run', 'Run: {message}', { message: err.message }), 'error');
         if (err.code !== 'sign_in_required') Kit.toast(err.message, 'danger');
       })
       .finally(() => $('#ideRun').prop('disabled', false));
@@ -529,7 +561,7 @@
   function restart() {
     if (previewMode) { simulator.reset(); return Promise.resolve(); }
     if (!lastRun) return run();
-    log('Restart: the game starts again.');
+    log(tr('js.ide.restart_the_game_starts_again', 'Restart: the game starts again.'));
     return startCartridge(lastRun.bytes, lastRun.debug);
   }
 
@@ -538,7 +570,8 @@
     mode = newMode;
     $('#ideType').text(MODE_NAMES[mode]).attr('data-type', mode);
     $('.ide-blocks-only').prop('hidden', mode !== 'blocks');
-    $('.ide-code-only').prop('hidden', mode === 'blocks');
+    $('.ide-generated-only').prop('hidden', !generatesCode());
+    $('.ide-code-only').prop('hidden', mode === 'blocks' || mode === 'python');
     $('#statusMode').text(MODE_NAMES[mode]);
     for (const id of Array.from(IdeShell.tabs.keys())) {
       if (id !== 'blocks' && id !== 'src') IdeShell.closeTab(id);
@@ -553,35 +586,35 @@
   // --- commands and shortcuts --------------------------------------------------------------------
   function register() {
     const command = (id, title, keys, run) => IdeShell.addCommand({ id, title, keys, run });
-    command('save', 'Save project', 'Ctrl+S', () => save());
-    command('generate', 'Generate C and assembly (check the source)', 'Ctrl+Shift+G', () => generate());
-    command('run', 'Run in the simulator', 'Shift+F10', () => run());
-    command('restart', 'Restart the game', '', () => restart());
-    command('compile', 'Compile cartridges to download', 'Ctrl+Shift+B', () => compile());
-    command('compiler-check', 'Check with the compiler', '', () => save({ noCheck: true }).then(() => compilerCheck()));
-    command('open-source', 'Open source', '', () => (mode === 'blocks' ? openBlocks(true) : openSource(true)));
-    command('open-gen-c', 'Open generated C', '', () => mode === 'blocks' && openGenerated('c', true));
-    command('open-gen-asm', 'Open generated assembly', '', () => mode === 'blocks' && openGenerated('asm', true));
-    command('open-gen-ir', 'Open game IR', '', () => mode === 'blocks' && openGenerated('ir', true));
-    command('focus-tree', 'Focus project files', 'F6', () => { IdeShell.toggleTree(true); IdeShell.focusTree(); });
-    command('focus-editor', 'Focus editor', 'F6', () => IdeShell.focusRegion('editor'));
-    command('show-problems', 'Show problems', '', () => { IdeShell.showPanel('problems'); IdeShell.focusRegion('panel'); });
-    command('show-build', 'Show the build log', '', () => { IdeShell.showPanel('build'); IdeShell.focusRegion('panel'); });
-    command('show-console', 'Show the console', '', () => { IdeShell.showPanel('console'); IdeShell.focusRegion('panel'); });
-    command('show-debug', 'Show the debugger', '', () => { IdeShell.showPanel('debug'); IdeShell.focusRegion('panel'); });
-    command('focus-simulator', 'Focus the simulator', '', () => { IdeShell.showPane('sim', true); IdeShell.focusRegion('simulator'); });
-    command('toggle-files', 'Show or hide the project files', 'Alt+1', () => IdeShell.showPane('tree'));
-    command('toggle-panel', 'Show or hide the tool window', 'Alt+4', () => IdeShell.showPane('panel'));
-    command('toggle-simulator', 'Show or hide the simulator', 'Alt+9', () => IdeShell.showPane('sim'));
-    command('properties', 'Project properties', '', () => showProperties());
-    command('sprite-lab', 'Open Sprite Lab', '', () => openTool('sprites'));
-    command('audio-studio', 'Open AudioStudio', '', () => openTool('sound'));
-    command('history', 'History: earlier versions', '', () => showHistory());
-    command('export-archive', 'Export project (.zip)', '', () => exportSaved('/archive'));
-    command('export-json', 'Export project as JSON', '', () => exportSaved('/export'));
-    command('copy', 'Make a copy of this project', '', () => makeCopy(project.title + ' (copy)'));
-    command('convert-c', 'Convert this Blocks project to C (one way)', '', () => mode === 'blocks' && askConvert('c'));
-    command('convert-asm', 'Convert this Blocks project to Assembly (one way)', '', () => mode === 'blocks' && askConvert('asm'));
+    command('save', tr('js.ide.save_project', 'Save project'), 'Ctrl+S', () => save());
+    command('generate', tr('js.ide.generate_c_and_assembly_check_the', 'Generate C and assembly (check the source)'), 'Ctrl+Shift+G', () => generate());
+    command('run', tr('js.ide.run_in_the_simulator', 'Run in the simulator'), 'Shift+F10', () => run());
+    command('restart', tr('js.ide.restart_the_game', 'Restart the game'), '', () => restart());
+    command('compile', tr('js.ide.compile_cartridges_to_download', 'Compile cartridges to download'), 'Ctrl+Shift+B', () => compile());
+    command('compiler-check', tr('js.ide.check_with_the_compiler', 'Check with the compiler'), '', () => save({ noCheck: true }).then(() => compilerCheck()));
+    command('open-source', tr('js.ide.open_source', 'Open source'), '', () => (mode === 'blocks' ? openBlocks(true) : openSource(true)));
+    command('open-gen-c', tr('js.ide.open_generated_c', 'Open generated C'), '', () => generatesCode() && openGenerated('c', true));
+    command('open-gen-asm', tr('js.ide.open_generated_assembly', 'Open generated assembly'), '', () => generatesCode() && openGenerated('asm', true));
+    command('open-gen-ir', tr('js.ide.open_game_ir', 'Open game IR'), '', () => generatesCode() && openGenerated('ir', true));
+    command('focus-tree', tr('js.ide.focus_project_files', 'Focus project files'), 'F6', () => { IdeShell.toggleTree(true); IdeShell.focusTree(); });
+    command('focus-editor', tr('js.ide.focus_editor', 'Focus editor'), 'F6', () => IdeShell.focusRegion('editor'));
+    command('show-problems', tr('js.ide.show_problems', 'Show problems'), '', () => { IdeShell.showPanel('problems'); IdeShell.focusRegion('panel'); });
+    command('show-build', tr('js.ide.show_the_build_log', 'Show the build log'), '', () => { IdeShell.showPanel('build'); IdeShell.focusRegion('panel'); });
+    command('show-console', tr('js.ide.show_the_console', 'Show the console'), '', () => { IdeShell.showPanel('console'); IdeShell.focusRegion('panel'); });
+    command('show-debug', tr('js.ide.show_the_debugger', 'Show the debugger'), '', () => { IdeShell.showPanel('debug'); IdeShell.focusRegion('panel'); });
+    command('focus-simulator', tr('js.ide.focus_the_simulator', 'Focus the simulator'), '', () => { IdeShell.showPane('sim', true); IdeShell.focusRegion('simulator'); });
+    command('toggle-files', tr('js.ide.show_or_hide_the_project_files', 'Show or hide the project files'), 'Alt+1', () => IdeShell.showPane('tree'));
+    command('toggle-panel', tr('js.ide.show_or_hide_the_tool_window', 'Show or hide the tool window'), 'Alt+4', () => IdeShell.showPane('panel'));
+    command('toggle-simulator', tr('js.ide.show_or_hide_the_simulator', 'Show or hide the simulator'), 'Alt+9', () => IdeShell.showPane('sim'));
+    command('properties', tr('js.ide.project_properties', 'Project properties'), '', () => showProperties());
+    command('sprite-lab', tr('js.ide.open_sprite_lab', 'Open Sprite Lab'), '', () => openTool('sprites'));
+    command('audio-studio', tr('js.ide.open_audiostudio', 'Open AudioStudio'), '', () => openTool('sound'));
+    command('history', tr('js.ide.history_earlier_versions', 'History: earlier versions'), '', () => showHistory());
+    command('export-archive', tr('js.ide.export_project_zip', 'Export project (.zip)'), '', () => exportSaved('/archive'));
+    command('export-json', tr('js.ide.export_project_as_json', 'Export project as JSON'), '', () => exportSaved('/export'));
+    command('copy', tr('js.ide.make_a_copy_of_this_project', 'Make a copy of this project'), '', () => makeCopy(project.title + ' (copy)'));
+    command('convert-c', tr('js.ide.convert_this_blocks_project_to_c', 'Convert this Blocks project to C (one way)'), '', () => mode === 'blocks' && askConvert('c'));
+    command('convert-asm', tr('js.ide.convert_this_blocks_project_to_assembly', 'Convert this Blocks project to Assembly (one way)'), '', () => mode === 'blocks' && askConvert('asm'));
     IdeShell.addShortcut({ key: 's', ctrl: true, run: () => save() });
     IdeShell.addShortcut({ key: 'g', ctrl: true, shift: true, run: () => generate() });
     IdeShell.addShortcut({ key: 'b', ctrl: true, shift: true, run: () => compile() });
@@ -617,7 +650,7 @@
       .then(created => { dirty = false; window.location.href = '/ide/' + encodeURIComponent(created.id); })
       .catch(err => Kit.toast(err.message, 'danger'));
   }
-  $('#ideSharedCopy').on('click', () => makeCopy(project.title + ' (my copy)'));
+  $('#ideSharedCopy').on('click', () => makeCopy(project.title + tr('js.ide.my_copy', ' (my copy)')));
   $('#ideCopy').on('click', () => (dirty ? save({ quiet: true }) : Promise.resolve()).then(() => makeCopy(project.title + ' (copy)')));
 
   // Exports read the saved project: save first so the file has the newest changes.
@@ -628,23 +661,23 @@
   $('#ideExportArchive').on('click', () => exportSaved('/archive'));
   $('#ideExportJson').on('click', () => exportSaved('/export'));
 
-  const REASONS = { save: 'before a save', autosave: 'autosave', restore: 'before a restore', convert: 'before converting' };
+  const REASONS = { save: tr('js.ide.before_a_save', 'before a save'), autosave: 'autosave', restore: tr('js.ide.before_a_restore', 'before a restore'), convert: tr('js.ide.before_converting', 'before converting') };
   function showHistory() {
-    const list = $('#ideHistoryList').html('<li class="list-group-item small text-muted">Loading…</li>');
+    const list = $('#ideHistoryList').html(`<li class="list-group-item small text-muted">${tr('common.loading', 'Loading…')}</li>`);
     modal('ideHistoryDialog').show();
     Kit.api(api + '/revisions').then(data => {
       if (!data.revisions.length) {
-        list.html('<li class="list-group-item small text-muted">No earlier versions yet. They appear after you save a change.</li>');
+        list.html(`<li class="list-group-item small text-muted">${tr('js.ide.no_earlier_versions_yet', 'No earlier versions yet. They appear after you save a change.')}</li>`);
         return;
       }
       list.html(data.revisions.map(rev => `<li class="list-group-item d-flex flex-wrap gap-2 align-items-center justify-content-between">
-        <span class="small"><strong>#${rev.number}</strong> ${Kit.escape(rev.created_at.replace('T', ' ').replace('+00:00', ' UTC'))}
+        <span class="small"><strong>#${rev.number}</strong> ${Kit.escape(Kit.when(rev.created_at))}
           <span class="text-muted">(${Kit.escape(REASONS[rev.reason] || rev.reason)}, ${Kit.escape(rev.authoring_mode || '')})</span></span>
         <span class="text-nowrap">
           <button class="btn btn-outline-primary btn-sm ide-restore" type="button" data-id="${Kit.escape(rev.id)}" data-number="${rev.number}"
-            ${project.can_edit === false ? 'disabled' : ''}>Restore</button>
+            ${project.can_edit === false ? 'disabled' : ''}>${tr('js.ide.restore', 'Restore')}</button>
           <button class="btn btn-outline-secondary btn-sm ide-revision-download" type="button" data-id="${Kit.escape(rev.id)}"
-            aria-label="Download version ${rev.number}"><i class="bi bi-download" aria-hidden="true"></i></button>
+            aria-label="${Kit.escape(tr('js.ide.download_version_n', 'Download version {number}', { number: rev.number }))}"><i class="bi bi-download" aria-hidden="true"></i></button>
         </span></li>`).join(''));
     }).catch(err => list.html(`<li class="list-group-item small text-danger">${Kit.escape(err.message)}</li>`));
   }
@@ -652,8 +685,8 @@
   $('#ideHistoryList').on('click', '.ide-revision-download', function () {
     Kit.download(api + '/revisions/' + encodeURIComponent($(this).data('id')) + '/archive');
   }).on('click', '.ide-restore', function () {
-    const unsaved = dirty ? ' Your unsaved changes in this window will be lost.' : '';
-    if (!window.confirm(`Go back to version #${$(this).data('number')}? The current saved version is kept in History.` + unsaved)) return;
+    const unsaved = dirty ? tr('js.ide.your_unsaved_changes_in_this_window', ' Your unsaved changes in this window will be lost.') : '';
+    if (!window.confirm(tr('js.ide.go_back_to_version', 'Go back to version #{number}? The current saved version is kept in History.', { number: $(this).data('number') }) + unsaved)) return;
     Kit.api(api + '/revisions/' + encodeURIComponent($(this).data('id')) + '/restore', { method: 'POST', body: {} })
       .then(() => { dirty = false; window.location.reload(); })
       .catch(err => Kit.toast(err.message, err.code === 'type_locked' ? 'warning' : 'danger'));
@@ -701,14 +734,14 @@
   }
 
   function convert(language) {
-    log(`Convert: making this project ${MODE_NAMES[language]}…`);
+    log(tr('js.ide.convert_making_this_project', 'Convert: making this project {language}…', { language: MODE_NAMES[language] }));
     return save({ noCheck: true, quiet: true })
       .then(() => Kit.api(api + '/convert_to', { method: 'POST', body: { language, expected_version: project.version } }))
       .then(() => {
         dirty = false;   // saved and converted: no "leave page?" question
         window.location.reload();
       })
-      .catch(err => { log('Convert: ' + err.message, 'error'); Kit.toast(err.message, 'danger'); });
+      .catch(err => { log(tr('js.ide.convert', 'Convert: {message}', { message: err.message }), 'error'); Kit.toast(err.message, 'danger'); });
   }
 
   $('#ideProjectItems').on('click', '[data-convert]', function () { askConvert($(this).data('convert')); });
@@ -751,9 +784,9 @@
       PRG32MonacoLanguage.register(monaco, { openSdk: openSdkHeader });
       spriteList = sprites.sprites || [];
       $('#ideTitle').text(project.title);
-      document.title = project.title + ' - IDE - PRG32-Construction-Kit';
+      document.title = project.title + tr('js.ide.ide_prg32_construction_kit', ' - IDE - PRG32-Construction-Kit');
       const saved = project.game_json || {};
-      applyMode(saved.source_mode === 'c' ? 'c' : saved.source_mode === 'asm' ? 'asm' : 'blocks', spriteList);
+      applyMode(['c', 'asm', 'python'].includes(saved.source_mode) ? saved.source_mode : 'blocks', spriteList);
       setDirty(false);
       showShared();
       $('#projectTitle').text(project.title);
@@ -761,7 +794,7 @@
       openToolFromHash();
       $('#ide').attr('data-ready', 'true');
     })
-    .catch(err => Kit.toast('The IDE could not start: ' + err.message, 'danger'));
+    .catch(err => Kit.toast(tr('js.ide.the_ide_could_not_start', 'The IDE could not start: {message}', { message: err.message }), 'danger'));
 
   window.PRG32Ide = { save, generate, compile, run, restart, log, editors, openSdkHeader, get mode() { return mode; },
     get version() { return project && project.version; }, get autosavePaused() { return autosavePaused; },

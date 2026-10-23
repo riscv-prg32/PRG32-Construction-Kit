@@ -1,78 +1,75 @@
 {% extends "base.html" %}
 {% from "_privacy_notice.html" import notice %}
-{% block title %}My account - {{ site.name }}{% endblock %}
+{% block title %}{{ t("account.my_account", name=(site.name)) }}{% endblock %}
 {% block content %}
 <div class="row g-4">
   <div class="col-lg-5">
     <div class="card shadow-sm mb-4">
-      <div class="card-header"><strong><i class="bi bi-person-circle"></i> My account</strong></div>
+      <div class="card-header"><strong><i class="bi bi-person-circle"></i> {{ t("common.my_account") }}</strong></div>
       <div class="card-body">
         <dl class="row mb-0">
-          <dt class="col-4">Username</dt><dd class="col-8">{{ current_user.username }}</dd>
-          <dt class="col-4">Email</dt><dd class="col-8">{{ current_user.email }}</dd>
-          <dt class="col-4">Role</dt><dd class="col-8">{{ current_user.role }}</dd>
-          <dt class="col-4">In class</dt><dd class="col-8">{{ current_user.kit_role }}</dd>
-          <dt class="col-4">Groups</dt><dd class="col-8">{{ current_user.groups|join(', ') or '-' }}</dd>
+          <dt class="col-4">{{ t("common.username") }}</dt><dd class="col-8">{{ current_user.username }}</dd>
+          <dt class="col-4">{{ t("common.email") }}</dt><dd class="col-8">{{ current_user.email }}</dd>
+          <dt class="col-4">{{ t("common.role") }}</dt><dd class="col-8">{{ current_user.role }}</dd>
+          <dt class="col-4">{{ t("common.in_class") }}</dt><dd class="col-8">{{ current_user.kit_role }}</dd>
+          <dt class="col-4">{{ t("common.groups") }}</dt><dd class="col-8">{{ current_user.groups|join(', ') or '-' }}</dd>
         </dl>
         {% if sso.enabled %}
-        <div class="alert alert-info small mt-3 mb-0"><i class="bi bi-link-45deg"></i> This account is shared with the Cartridge Store at {{ sso.peer_url }}.
-          Changing your password here changes it there too. <a href="/auth/sso/peer">Open the Cartridge Store</a></div>
+        <div class="alert alert-info small mt-3 mb-0"><i class="bi bi-link-45deg"></i> {{ t("account.this_account_is_shared_with_the", peer_url=(sso.peer_url)) }} <a href="/auth/sso/peer">{{ t("account.open_the_cartridge_store") }}</a></div>
         {% endif %}
       </div>
     </div>
     <div class="card shadow-sm mb-4">
-      <div class="card-header"><strong><i class="bi bi-mortarboard"></i> School accounts</strong></div>
+      <div class="card-header"><strong><i class="bi bi-mortarboard"></i> {{ t("account.school_accounts") }}</strong></div>
       <div class="card-body">
-        <p class="small text-muted">Sign in with your school account instead of a password. Link one here while signed in;
-          the kit never joins accounts just because their emails match.</p>
+        <p class="small text-muted">{{ t("account.sign_in_with_your_school_account") }}</p>
         <ul class="list-group mb-2" id="identityList"></ul>
         <div class="d-flex flex-wrap gap-2" id="identityProviders"></div>
       </div>
     </div>
     <div class="card shadow-sm mb-4">
-      <div class="card-header"><strong><i class="bi bi-door-closed"></i> Sessions</strong></div>
+      <div class="card-header"><strong><i class="bi bi-door-closed"></i> {{ t("account.sessions") }}</strong></div>
       <div class="card-body">
-        <p class="small text-muted mb-2">Signed in on a classroom computer and forgot to sign out? This signs you out
-          everywhere, here too.</p>
-        <button class="btn btn-outline-danger btn-sm" id="signOutEverywhere" type="button">Sign out everywhere</button>
-        <h2 class="h6 mt-3">Recent sign-ins</h2>
-        <p class="small text-muted mb-2">A sign-in you do not recognise? Change your password and tell your teacher.</p>
+        <p class="small text-muted mb-2">{{ t("account.signed_in_on_a_classroom_computer") }}</p>
+        <button class="btn btn-outline-danger btn-sm" id="signOutEverywhere" type="button">{{ t("account.sign_out_everywhere") }}</button>
+        <h2 class="h6 mt-3">{{ t("account.recent_sign_ins") }}</h2>
+        <p class="small text-muted mb-2">{{ t("account.a_sign_in_you_do_not") }}</p>
         <ul class="list-group small" id="recentSignIns" aria-live="polite"></ul>
       </div>
     </div>
     <div class="card shadow-sm">
-      <div class="card-header"><strong><i class="bi bi-key"></i> Change password</strong></div>
+      <div class="card-header"><strong><i class="bi bi-key"></i> {{ t("account.change_password") }}</strong></div>
       <div class="card-body">
         <form id="passwordForm" class="vstack gap-2">
-          <input class="form-control" type="password" name="current_password" placeholder="Current password" autocomplete="current-password">
-          <input class="form-control" type="password" name="new_password" placeholder="New password (at least 10 characters)" minlength="10" autocomplete="new-password" required>
-          <button class="btn btn-primary" type="submit">Change password</button>
+          <input class="form-control" type="password" name="current_password" placeholder="{{ t('account.current_password') }}" autocomplete="current-password">
+          <input class="form-control" type="password" name="new_password" placeholder="{{ t('account.new_password_at_least_10_characters') }}" minlength="10" autocomplete="new-password" required>
+          <button class="btn btn-primary" type="submit">{{ t("account.change_password") }}</button>
         </form>
       </div>
     </div>
   </div>
   <div class="col-lg-7">
     <div class="card shadow-sm">
-      <div class="card-header"><strong><i class="bi bi-terminal"></i> API tokens</strong></div>
+      <div class="card-header"><strong><i class="bi bi-terminal"></i> {{ t("account.api_tokens") }}</strong></div>
       <div class="card-body">
-        <p class="text-muted small">Scripts and tools can use the kit as you by sending <code>Authorization: Bearer &lt;token&gt;</code>. A token is shown only once; revoke it if it leaks.</p>
+        <p class="text-muted small">{{ t("account.scripts_and_tools_can_use_the") }} <code>Authorization: Bearer &lt;token&gt;</code>{{ t("account.a_token_is_shown_only_once") }}</p>
         <form id="tokenForm" class="vstack gap-2 mb-3">
           <div class="d-flex gap-2">
-            <label class="visually-hidden" for="tokenLabel">What is this token for?</label>
-            <input class="form-control" id="tokenLabel" name="label" placeholder="What is this token for?" maxlength="80">
-            <button class="btn btn-primary text-nowrap" type="submit">New token</button>
+            <label class="visually-hidden" for="tokenLabel">{{ t("account.what_is_this_token_for") }}</label>
+            <input class="form-control" id="tokenLabel" name="label" placeholder="{{ t('account.what_is_this_token_for') }}" maxlength="80">
+            <button class="btn btn-primary text-nowrap" type="submit">{{ t("account.new_token") }}</button>
           </div>
           <fieldset class="d-flex flex-wrap gap-3 small">
-            <legend class="visually-hidden">What the token may do</legend>
-            <span class="text-muted">May:</span>
-            <label><input type="checkbox" name="scope" value="read" checked> read</label>
-            <label><input type="checkbox" name="scope" value="write" checked> change</label>
-            <label><input type="checkbox" name="scope" value="build" checked> compile</label>
-            <label><input type="checkbox" name="scope" value="publish"> publish</label>
-            <label><input type="checkbox" name="scope" value="admin"> administer</label>
-            <label class="ms-auto">Expires <select name="expires" class="form-select form-select-sm d-inline w-auto">
-              <option value="">never</option><option value="7">in 7 days</option><option value="30" selected>in 30 days</option>
-              <option value="365">in a year</option></select></label>
+            <legend class="visually-hidden">{{ t("account.what_the_token_may_do") }}</legend>
+            <span class="text-muted">{{ t("account.may") }}</span>
+            <label><input type="checkbox" name="scope" value="read" checked> {{ t("account.read") }}</label>
+            <label><input type="checkbox" name="scope" value="write" checked> {{ t("account.change") }}</label>
+            <label><input type="checkbox" name="scope" value="build" checked> {{ t("account.compile") }}</label>
+            <label><input type="checkbox" name="scope" value="publish"> {{ t("account.publish") }}</label>
+            <label><input type="checkbox" name="scope" value="admin"> {{ t("account.administer") }}</label>
+            <label class="ms-auto">{{ t("account.expires") }} <select name="expires" class="form-select form-select-sm d-inline w-auto">
+              <option value="">{{ t("account.never") }}</option><option value="7">{{ t("account.in_7_days") }}</option><option value="30" selected>{{ t("account.in_30_days") }}</option>
+              <option value="365">{{ t("account.in_a_year") }}</option></select></label>
           </fieldset>
         </form>
         <div id="newToken" class="alert alert-success d-none"></div>
@@ -80,36 +77,34 @@
       </div>
     </div>
     <div class="card shadow-sm mt-4 d-none" id="cloud">
-      <div class="card-header"><strong><i class="bi bi-cloud"></i> Cloud storage</strong></div>
+      <div class="card-header"><strong><i class="bi bi-cloud"></i> {{ t("common.cloud_storage") }}</strong></div>
       <div class="card-body">
-        <p class="small text-muted">Keep copies of your projects in your own Google Drive or OneDrive, or commit them
-          to a GitHub repository, to work on them from another computer. Optional: the kit works the same without it.</p>
+        <p class="small text-muted">{{ t("account.keep_copies_of_your_projects_in") }}</p>
         {{ notice("cloud") }}
         <div class="vstack gap-3 mt-3" id="cloudProviders"></div>
       </div>
     </div>
     <div class="card shadow-sm mt-4" id="privacy">
-      <div class="card-header"><strong><i class="bi bi-shield-lock" aria-hidden="true"></i> Your data</strong></div>
+      <div class="card-header"><strong><i class="bi bi-shield-lock" aria-hidden="true"></i> {{ t("common.your_data") }}</strong></div>
       <div class="card-body">
-        <p class="small">Everything the kit keeps about you, as one file you can keep or take elsewhere (your games,
-          sprites and sounds, your account, classes, cloud connections, and the log of what was done with your account).
-          <a href="/privacy">What the kit keeps and why</a>.</p>
+        <p class="small">{{ t("account.everything_the_kit_keeps_about_you") }}
+          <a href="/privacy">{{ t("account.what_the_kit_keeps_and_why") }}</a>.</p>
         <a class="btn btn-outline-primary" href="/api/me/privacy/export" id="downloadMyData" download>
-          <i class="bi bi-download" aria-hidden="true"></i> Download my data</a>
+          <i class="bi bi-download" aria-hidden="true"></i> {{ t("common.download_my_data") }}</a>
         <form class="vstack gap-2 mt-4" id="privacyRequestForm">
-          <div><label class="form-label" for="privacyKind">Ask the school to</label>
+          <div><label class="form-label" for="privacyKind">{{ t("account.ask_the_school_to") }}</label>
             <select class="form-select" id="privacyKind" name="kind" required>
-              <option value="rectification">correct something about me</option>
-              <option value="erasure">delete my account and everything in it</option>
-              <option value="restriction">pause the use of my data (I can still read and download it)</option>
-              <option value="objection">stop a use of my data I object to</option>
-              <option value="withdrawal">withdraw a permission I gave</option>
+              <option value="rectification">{{ t("account.correct_something_about_me") }}</option>
+              <option value="erasure">{{ t("account.delete_my_account_and_everything_in") }}</option>
+              <option value="restriction">{{ t("account.pause_the_use_of_my_data") }}</option>
+              <option value="objection">{{ t("account.stop_a_use_of_my_data") }}</option>
+              <option value="withdrawal">{{ t("account.withdraw_a_permission_i_gave") }}</option>
             </select></div>
-          <div><label class="form-label" for="privacyDetails">What, and why (optional)</label>
+          <div><label class="form-label" for="privacyDetails">{{ t("account.what_and_why_optional") }}</label>
             <textarea class="form-control" id="privacyDetails" name="details" rows="2" maxlength="2000"></textarea></div>
-          <div><button class="btn btn-outline-secondary" type="submit">Send the request</button></div>
+          <div><button class="btn btn-outline-secondary" type="submit">{{ t("account.send_the_request") }}</button></div>
         </form>
-        <p class="small text-muted mt-2 mb-0">The school answers within one month. Deleting cannot be undone.</p>
+        <p class="small text-muted mt-2 mb-0">{{ t("account.the_school_answers_within_one_month") }}</p>
         <div class="list-group mt-3" id="privacyRequests" aria-live="polite"></div>
       </div>
     </div>

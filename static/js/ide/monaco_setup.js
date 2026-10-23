@@ -7,6 +7,9 @@
 //   source_project.validate_asm_source allows (all from the language index), /* */ and #
 //   comments, labels, numbers, strings.
 //   Directives outside the allow-list are shown as errors (the server refuses them anyway).
+// - "prg32-python" is a Monarch grammar for PRG32 Python (ADR-0026): Python's keywords, the
+//   types int/bool/list, the prg32 module's names (from the language index), numbers, strings
+//   and # comments. Python words that PRG32 Python does not accept are shown as errors.
 window.PRG32Monaco = (function () {
   'use strict';
   const BASE = '/static/vendor/monaco-editor/0.52.2/min/vs';
@@ -53,6 +56,44 @@ window.PRG32Monaco = (function () {
     });
   }
 
+  const PYTHON = window.PRG32LanguageIndex.python;
+  function registerPython(monaco) {
+    monaco.languages.register({ id: 'prg32-python', extensions: ['.py'], aliases: ['PRG32 Python'] });
+    monaco.languages.setMonarchTokensProvider('prg32-python', {
+      keywords: ['def', 'if', 'elif', 'else', 'for', 'in', 'return', 'global', 'pass', 'and', 'or', 'not', 'import',
+        'True', 'False', 'None'],
+      refused: ['while', 'class', 'lambda', 'try', 'except', 'finally', 'with', 'yield', 'async', 'await', 'del',
+        'raise', 'assert', 'nonlocal', 'from', 'break', 'continue', 'is', 'as', 'match', 'case'],
+      types: PYTHON.types.concat(['list']),
+      builtins: PYTHON.builtins.concat(['range']),
+      members: PYTHON.functions.map(fn => fn.name).concat(PYTHON.constants),
+      tokenizer: {
+        root: [
+          [/#.*$/, 'comment'],
+          [/"""/, 'string', '@tripleDouble'],
+          [/'''/, 'string', '@tripleSingle'],
+          [/"([^"\\]|\\.)*"/, 'string'],
+          [/'([^'\\]|\\.)*'/, 'string'],
+          [/\bprg32\b/, 'namespace'],
+          [/(\.)([A-Za-z_]\w*)/, ['delimiter', { cases: { '@members': 'predefined', '@default': 'invalid' } }]],
+          [/[A-Za-z_]\w*/, { cases: { '@keywords': 'keyword', '@refused': 'invalid', '@types': 'type',
+            '@builtins': 'predefined', '@default': 'identifier' } }],
+          [/0[xX][0-9a-fA-F_]+|0[bB][01_]+|\d[\d_]*/, 'number'],
+          [/->|\/\/=?|<<=?|>>=?|[-+*%&|^~<>=!]=?|[()[\],:.]/, 'delimiter'],
+        ],
+        tripleDouble: [[/"""/, 'string', '@pop'], [/./, 'string']],
+        tripleSingle: [[/'''/, 'string', '@pop'], [/./, 'string']],
+      },
+    });
+    monaco.languages.setLanguageConfiguration('prg32-python', {
+      comments: { lineComment: '#' },
+      brackets: [['(', ')'], ['[', ']']],
+      autoClosingPairs: [{ open: '(', close: ')' }, { open: '[', close: ']' }, { open: '"', close: '"' },
+        { open: "'", close: "'" }],
+      onEnterRules: [{ beforeText: /:\s*(#.*)?$/, action: { indentAction: 1 } }],
+    });
+  }
+
   function load() {
     if (ready) return ready;
     window.MonacoEnvironment = {
@@ -63,6 +104,7 @@ window.PRG32Monaco = (function () {
       window.require.config({ paths: { vs: BASE } });
       window.require(['vs/editor/editor.main'], () => {
         registerAssembly(window.monaco);
+        registerPython(window.monaco);
         resolve(window.monaco);
       }, reject);
     });

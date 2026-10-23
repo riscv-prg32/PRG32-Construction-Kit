@@ -97,6 +97,10 @@ capability IDs.
   compiler messages without server paths (ADR-0014). [IDE-03] [IDE-04]
 - Versioned projects (Blocks, Advanced C, handwritten assembly), archives,
   migrations, history with identity-preserving restore, soft delete. [PRJ-01]
+- PRG32 Python projects (ADR-0026): `game.py` parsed without running it, checked against an
+  allow-list with static types and limits, translated into the Blocks' game IR and by the same
+  generators into commented C and RV32IM assembly, then into a cartridge; schema v2 archives,
+  editor services, debugger on Python lines, provenance with language and IR hashes. [PY-01]
 - Real `.prg32` builds from Blocks, C and assembly; every compile isolated by
   bubblewrap + seccomp + limits, with provenance and SHA-256. [BLD-01] [BLD-02]
 - Browser runtime: the PRG32-QT core as WebAssembly, equal to the native core
@@ -136,6 +140,10 @@ capability IDs.
 
 ### Partly implemented
 
+- Five interface languages (ADR-0027): pages, scripts, blocks, the offline pages and the
+  privacy notice summaries in English, Italian, Spanish, French and German, chosen per reader
+  and cached offline; builds byte-identical in every language. Server-written messages,
+  Blockly's and Monaco's own menus and the long-form docs are still English. [I18N-01]
 - Store bundles against a shared versioned contract (ADR-0018), checked with the
   Store's own code and a throwaway live Store; Store gaps (repeated id/version,
   tokens without expiry) recorded. PRG32-QT delivery recorded through its web API

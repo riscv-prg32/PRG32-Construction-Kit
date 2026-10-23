@@ -21,9 +21,9 @@
 
   function space() {
     return store.estimate().then(estimate => {
-      if (!estimate || !estimate.quota) return show('Kept in this browser.');
+      if (!estimate || !estimate.quota) return show(tr('js.offline.kept_in_this_browser', 'Kept in this browser.'));
       const mb = bytes => (bytes / 1048576).toFixed(1);
-      show(`This browser: ${mb(estimate.usage)} MB used of ${mb(estimate.quota)} MB it allows.`);
+      show(tr('js.offline.browser_space', 'This browser: {used} MB used of {quota} MB it allows.', { used: mb(estimate.usage), quota: mb(estimate.quota) }));
     });
   }
 
@@ -45,7 +45,7 @@
 
   function refresh() {
     return store.list().then(rows => {
-      if (!rows.length) return store.save({ title: 'My first game', blocks_json: {} }).then(row => { fill([row]); open(row); });
+      if (!rows.length) return store.save({ title: tr('js.offline.my_first_game', 'My first game'), blocks_json: {} }).then(row => { fill([row]); open(row); });
       fill(rows);
       if (!current || !rows.some(row => row.id === current.id)) open(rows[0]);
       return null;
@@ -74,14 +74,14 @@
   PRG32Blocks.getWorkspace().addChangeListener(event => { if (!event.isUiEvent) remember(); });
   $('#guestTitle').on('input', remember);
   $('#guestProjects').on('change', function () { store.get(this.value).then(row => row && open(row)); });
-  $('#guestNew').on('click', () => store.save({ title: 'New game', blocks_json: {} })
+  $('#guestNew').on('click', () => store.save({ title: tr('js.offline.new_game', 'New game'), blocks_json: {} })
     .then(row => { current = row; return refresh().then(() => open(row)); }).catch(error => show(error.message, 'danger')));
   $('#guestDelete').on('click', () => {
-    if (!current || !window.confirm(`Delete "${current.title}" from this browser? Save it as a file first if you want to keep it.`)) return;
+    if (!current || !window.confirm(tr('js.offline.delete_game', 'Delete "{title}" from this browser? Save it as a file first if you want to keep it.', { title: current.title }))) return;
     store.remove(current.id).then(() => { current = null; return refresh(); });
   });
   $('#guestClear').on('click', () => {
-    if (!window.confirm('Delete ALL games kept in this browser? This cannot be undone. Save the ones you want as files first.')) return;
+    if (!window.confirm(tr('js.offline.delete_all_games_kept_in_this', 'Delete ALL games kept in this browser? This cannot be undone. Save the ones you want as files first.'))) return;
     store.clear().then(() => { current = null; return refresh(); });
   });
 
@@ -92,7 +92,7 @@
   $('#offlineStep').on('click', () => simulator.step());
   $('#offlineExport').on('click', () => {
     const link = document.createElement('a');
-    link.href = URL.createObjectURL(store.exportFile({ title: $('#guestTitle').val() || 'My game', blocks_json: PRG32Blocks.save() }));
+    link.href = URL.createObjectURL(store.exportFile({ title: $('#guestTitle').val() || tr('js.offline.my_game', 'My game'), blocks_json: PRG32Blocks.save() }));
     link.download = (($('#guestTitle').val() || 'my-game').replace(/[^A-Za-z0-9_-]+/g, '-') || 'my-game') + '.json';
     link.click();  // the dashboard's Import project reads this file
     setTimeout(() => URL.revokeObjectURL(link.href), 1000);
@@ -102,7 +102,7 @@
     if (!file) return;
     file.text().then(text => store.save(store.importText(text)))
       .then(row => { current = row; return refresh().then(() => open(row)); })
-      .catch(error => window.alert(error.message || 'This file is not a blocks project.'));
+      .catch(error => window.alert(error.message || tr('js.offline.this_file_is_not_a_blocks', 'This file is not a blocks project.')));
   });
   $('#retryOnline').on('click', () => window.location.reload());
 

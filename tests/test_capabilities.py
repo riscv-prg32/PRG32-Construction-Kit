@@ -68,10 +68,14 @@ def test_every_listed_reference_exists(row):
 
 
 def test_audit_scores_are_the_auditors():
+    """audit_score is the auditor's; null only for a requirement the matrix does not score yet."""
     matrix = (ROOT / "audit" / "REQUIREMENTS_MATRIX.md").read_text()
     for row in DATA["capabilities"]:
         found = re.search(rf"^\| {re.escape(row['id'])} \| (\d) \|", matrix, re.MULTILINE)
-        assert found and int(found.group(1)) == row["audit_score"], row["id"]
+        if row["audit_score"] is None:
+            assert found is None, f"{row['id']}: the auditor scored it; copy the score"
+        else:
+            assert found and int(found.group(1)) == row["audit_score"], row["id"]
 
 
 def test_reference_verified_needs_a_reference_comparison_test():

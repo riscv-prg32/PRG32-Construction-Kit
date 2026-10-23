@@ -8,7 +8,7 @@
         <button class="list-group-item list-group-item-action profile-choice ${profile.id === selectedProfileId ? 'active' : ''}" data-id="${Kit.escape(profile.id)}">
           <div class="fw-semibold">${Kit.escape(profile.name)}</div>
           <div class="small ${profile.id === selectedProfileId ? '' : 'text-muted'}">${Kit.escape(profile.store_url)}${profile.has_token ? ' · token saved' + (profile.token_expires_on ? ' (works until ' + Kit.escape(profile.token_expires_on) + ')' : '') : ''}${profile.uses_sso ? ' · publishes as you (single sign-on)' : ''}</div>
-        </button>`).join('') || '<div class="list-group-item text-muted">No profiles yet.</div>');
+        </button>`).join('') || '<div class="list-group-item text-muted">' + Kit.escape(tr('js.publish.no_profiles_yet', 'No profiles yet.')) + '</div>');
     });
   }
 
@@ -27,12 +27,12 @@
               <div>${publishable ? '<span class="badge text-bg-success">contains .prg32</span>' : '<span class="badge text-bg-warning">source-only</span>'}</div>
             </div>
             <div class="d-flex gap-2">
-              <a class="btn btn-outline-primary btn-sm" href="/api/artifacts/${encodeURIComponent(artifact.id)}/download">Download</a>
+              <a class="btn btn-outline-primary btn-sm" href="/api/artifacts/${encodeURIComponent(artifact.id)}/download">${Kit.escape(tr('js.privacy.download', 'Download'))}</a>
               ${publishable && canPublishPage() ? `<button class="btn btn-primary btn-sm publish-bundle" data-id="${Kit.escape(artifact.id)}" ${selectedProfileId ? '' : 'disabled'}>Review &amp; publish</button>` : ''}
             </div>
           </div>
         </div>`;
-      }).join('') || '<div class="alert alert-info">No bundles yet. Open a project and click Compile Cartridge.</div>');
+      }).join('') || '<div class="alert alert-info">' + Kit.escape(tr('js.publish.no_bundles_yet_open_a_project', 'No bundles yet. Open a project and click Compile Cartridge.')) + '</div>');
     });
   }
 
@@ -44,7 +44,7 @@
     event.preventDefault();
     const form = new FormData(this);
     Kit.api('/api/publish_profiles', { method: 'POST', body: { name: form.get('name'), store_url: form.get('store_url'), bearer_token: form.get('bearer_token') || '' } })
-      .then(profile => { selectedProfileId = profile.id; Kit.toast('Profile saved', 'success'); refresh(); })
+      .then(profile => { selectedProfileId = profile.id; Kit.toast(tr('js.publish.profile_saved', 'Profile saved'), 'success'); refresh(); })
       .catch(err => Kit.toast(err.message, 'danger'));
   });
 
@@ -57,19 +57,19 @@
     const rows = summary.architectures.map(a => `<tr><td>${Kit.escape(a.id)}</td><td><code>${Kit.escape(a.file)}</code></td>
       <td class="text-end">${Number(a.bytes).toLocaleString()} bytes</td><td><code class="small">${Kit.escape(a.sha256)}</code></td></tr>`).join('');
     return `<dl class="row mb-3">
-        <dt class="col-sm-3">Store</dt><dd class="col-sm-9"><code>${Kit.escape(summary.store.origin)}</code> (${Kit.escape(summary.store.authentication.replace(/_/g, ' '))})</dd>
-        <dt class="col-sm-3">Cartridge</dt><dd class="col-sm-9">${Kit.escape(summary.cartridge.title)} <code>${Kit.escape(summary.cartridge.id)}</code></dd>
-        <dt class="col-sm-3">Version</dt><dd class="col-sm-9">${Kit.escape(summary.cartridge.version)}</dd>
-        <dt class="col-sm-3">Bundle</dt><dd class="col-sm-9">${Kit.escape(summary.bundle.name)}, ${Number(summary.bundle.bytes).toLocaleString()} bytes<br><code class="small">${Kit.escape(summary.bundle.sha256)}</code></dd>
-        <dt class="col-sm-3">After upload</dt><dd class="col-sm-9">${Kit.escape(summary.after_upload)}</dd>
+        <dt class="col-sm-3">${Kit.escape(tr('js.publish.store', 'Store'))}</dt><dd class="col-sm-9"><code>${Kit.escape(summary.store.origin)}</code> (${Kit.escape(summary.store.authentication.replace(/_/g, ' '))})</dd>
+        <dt class="col-sm-3">${Kit.escape(tr('js.publish.cartridge', 'Cartridge'))}</dt><dd class="col-sm-9">${Kit.escape(summary.cartridge.title)} <code>${Kit.escape(summary.cartridge.id)}</code></dd>
+        <dt class="col-sm-3">${Kit.escape(tr('js.publish.version', 'Version'))}</dt><dd class="col-sm-9">${Kit.escape(summary.cartridge.version)}</dd>
+        <dt class="col-sm-3">${Kit.escape(tr('js.publish.bundle', 'Bundle'))}</dt><dd class="col-sm-9">${Kit.escape(summary.bundle.name)}, ${Number(summary.bundle.bytes).toLocaleString()} bytes<br><code class="small">${Kit.escape(summary.bundle.sha256)}</code></dd>
+        <dt class="col-sm-3">${Kit.escape(tr('js.publish.after_upload', 'After upload'))}</dt><dd class="col-sm-9">${Kit.escape(summary.after_upload)}</dd>
       </dl>
       <div class="table-responsive"><table class="table table-sm align-middle">
-        <thead><tr><th>Target</th><th>File</th><th class="text-end">Size</th><th>SHA-256</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+        <thead><tr><th>${Kit.escape(tr('js.publish.target', 'Target'))}</th><th>${Kit.escape(tr('js.publish.file', 'File'))}</th><th class="text-end">${Kit.escape(tr('js.publish.size', 'Size'))}</th><th>SHA-256</th></tr></thead><tbody>${rows}</tbody></table></div>`;
   }
 
   $('#bundleList').on('click', '.publish-bundle', function () {
     const bundleId = $(this).data('id');
-    if (!selectedProfileId) { Kit.toast('Choose a publish profile first', 'warning'); return; }
+    if (!selectedProfileId) { Kit.toast(tr('js.publish.choose_a_publish_profile_first', 'Choose a publish profile first'), 'warning'); return; }
     const request = { profile_id: selectedProfileId, bundle_artifact_id: bundleId };
     Kit.api('/api/publish/review', { method: 'POST', body: request })
       .then(review => {
@@ -88,16 +88,16 @@
   $('#confirmPublish').on('click', function () {
     if (!pendingReview || !$('#reviewConfirm').prop('checked')) return;
     $(this).prop('disabled', true);
-    $('#publishLog').text('Sending the reviewed bundle to the Store...');
+    $('#publishLog').text(tr('js.publish.sending_the_reviewed_bundle_to_the', 'Sending the reviewed bundle to the Store...'));
     Kit.api('/api/publish', { method: 'POST', body: Object.assign({ confirm: true }, pendingReview) })
       .then(result => {
         bootstrap.Modal.getOrCreateInstance(document.getElementById('reviewModal')).hide();
         $('#publishLog').text(JSON.stringify({ state: result.state, duplicate: result.duplicate, result: result.result }, null, 2));
         const ok = result.state === 'submitted';
-        Kit.toast(ok ? (result.duplicate ? 'Already sent earlier: nothing sent again' : 'Sent: waiting for review at the Store')
-          : 'The Store did not accept it: ' + (result.result && result.result.message || 'see the response'), ok ? 'success' : 'warning');
+        Kit.toast(ok ? (result.duplicate ? tr('js.publish.already_sent_earlier_nothing_sent_again', 'Already sent earlier: nothing sent again') : tr('js.publish.sent_waiting_for_review_at_the', 'Sent: waiting for review at the Store'))
+          : tr('js.publish.the_store_did_not_accept_it', 'The Store did not accept it: ') + (result.result && result.result.message || tr('js.publish.see_the_response', 'see the response')), ok ? 'success' : 'warning');
       })
-      .catch(err => { $('#publishLog').text(err.message); Kit.toast(err.message + ' You can try again.', 'danger'); $(this).prop('disabled', false); });
+      .catch(err => { $('#publishLog').text(err.message); Kit.toast(err.message + tr('js.publish.you_can_try_again', ' You can try again.'), 'danger'); $(this).prop('disabled', false); });
   });
 
   refresh();

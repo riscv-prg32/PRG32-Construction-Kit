@@ -1,32 +1,29 @@
 {% extends "base.html" %}
 {% from "_privacy_notice.html" import notice %}
-{% block title %}Projects - {{ site.name }}{% endblock %}
+{% block title %}{{ t("index.projects", name=(site.name)) }}{% endblock %}
 {% block content %}
 {% if guest_workspace %}
 <div class="alert alert-info" role="status" id="guestWelcome">
-  <strong><i class="bi bi-browser-chrome" aria-hidden="true"></i> You are using the kit without an account.</strong>
-  Make games with blocks, C or assembly, draw sprites and compose sounds: everything is kept in this browser.
-  To build a real cartridge, publish it or join a class, <a href="/auth/login">sign in</a>; your games come with you.
-  {{ notice("guest") }}
+  <strong><i class="bi bi-browser-chrome" aria-hidden="true"></i> {{ t("index.you_are_using_the_kit_without") }}</strong>
+  {{ t("index.make_games_with_blocks_c_or") }} <a href="/auth/login">{{ t("index.sign_in") }}</a>{{ t("index.your_games_come_with_you", guest=(notice("guest"))) }}
 </div>
 {% endif %}
 <div class="alert alert-info d-flex flex-wrap gap-2 align-items-center" id="guestProjectsBanner" role="status" hidden>
-  <span><i class="bi bi-browser-chrome"></i> <strong id="guestProjectsCount"></strong> made in this browser without an account
-    (kept only here).</span>
-  <button class="btn btn-primary btn-sm" id="moveGuestProjects" type="button">Move them into my account</button>
-  <a class="btn btn-outline-secondary btn-sm" href="/static/offline.html?guest=1">Open them</a>
+  <span><i class="bi bi-browser-chrome"></i> <strong id="guestProjectsCount"></strong> {{ t("index.made_in_this_browser_without_an") }}</span>
+  <button class="btn btn-primary btn-sm" id="moveGuestProjects" type="button">{{ t("index.move_them_into_my_account") }}</button>
+  <a class="btn btn-outline-secondary btn-sm" href="/static/offline.html?guest=1">{{ t("index.open_them") }}</a>
 </div>
 <section class="kit-hero rounded-4 p-4 p-lg-5 mb-4">
   <div class="row align-items-center g-4">
     <div class="col-lg-8">
-      <div class="badge text-bg-warning mb-3">Scratch-inspired PRG32 game studio</div>
-      <h1 class="display-5 fw-bold mb-3">Build cartridges with blocks, sprites, simulation, C, and publishing.</h1>
-      <p class="lead mb-4">{% if site.welcome %}{{ site.welcome }}{% else %}Students assemble game logic visually, play it in the browser, inspect generated C, package it as PRG32 cartridge material, and submit bundles to Cartridge Store.{% endif %}</p>
+      <div class="badge text-bg-warning mb-3">{{ t("index.scratch_inspired_prg32_game_studio") }}</div>
+      <h1 class="display-5 fw-bold mb-3">{{ t("index.build_cartridges_with_blocks_sprites_sim") }}</h1>
+      <p class="lead mb-4">{% if site.welcome %}{{ site.welcome }}{% else %}{{ t("index.students_assemble_game_logic_visually_pl") }}{% endif %}</p>
       <div class="d-flex flex-wrap gap-2">
-        <button class="btn btn-primary btn-lg" data-bs-toggle="modal" data-bs-target="#newProjectModal"><i class="bi bi-plus-circle"></i> New Project</button>
-        <button class="btn btn-outline-light btn-lg" data-bs-toggle="modal" data-bs-target="#examplesModal"><i class="bi bi-collection-play"></i> Examples</button>
-        <label class="btn btn-outline-light btn-lg mb-0"><i class="bi bi-file-earmark-arrow-up"></i> Import project <input class="d-none" type="file" id="importProjectFile" accept="application/json,.json,application/zip,.zip"></label>
-        <a class="btn btn-outline-light btn-lg" href="/documentation"><i class="bi bi-journal-text"></i> Learn</a>
+        <button class="btn btn-primary btn-lg" data-bs-toggle="modal" data-bs-target="#newProjectModal"><i class="bi bi-plus-circle"></i> {{ t("index.new_project") }}</button>
+        <button class="btn btn-outline-light btn-lg" data-bs-toggle="modal" data-bs-target="#examplesModal"><i class="bi bi-collection-play"></i> {{ t("index.examples") }}</button>
+        <label class="btn btn-outline-light btn-lg mb-0"><i class="bi bi-file-earmark-arrow-up"></i> {{ t("index.import_project") }} <input class="d-none" type="file" id="importProjectFile" accept="application/json,.json,application/zip,.zip"></label>
+        <a class="btn btn-outline-light btn-lg" href="/documentation"><i class="bi bi-journal-text"></i> {{ t("index.learn") }}</a>
       </div>
     </div>
     <div class="col-lg-4">
@@ -43,52 +40,52 @@
 </section>
 
 <div class="row g-3 mb-4">
-  <div class="col-md-3"><div class="metric-card"><div class="metric" id="projectCount">0</div><div>Projects</div></div></div>
-  <div class="col-md-3"><div class="metric-card"><div class="metric" id="spriteCount">0</div><div>Sprites</div></div></div>
-  <div class="col-md-3"><div class="metric-card"><div class="metric" id="artifactCount">0</div><div>Artifacts</div></div></div>
-  <div class="col-md-3"><div class="metric-card"><div class="metric" id="buildCount">0</div><div>Builds</div></div></div>
+  <div class="col-md-3"><div class="metric-card"><div class="metric" id="projectCount">0</div><div>{{ t("common.projects") }}</div></div></div>
+  <div class="col-md-3"><div class="metric-card"><div class="metric" id="spriteCount">0</div><div>{{ t("common.sprites") }}</div></div></div>
+  <div class="col-md-3"><div class="metric-card"><div class="metric" id="artifactCount">0</div><div>{{ t("common.artifacts") }}</div></div></div>
+  <div class="col-md-3"><div class="metric-card"><div class="metric" id="buildCount">0</div><div>{{ t("index.builds") }}</div></div></div>
 </div>
 
 <div class="modal fade" id="examplesModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-scrollable">
     <div class="modal-content">
-      <div class="modal-header"><h5 class="modal-title">PRG32 examples in Blocks</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-      <div class="modal-body"><p class="text-muted small">Complete games are full, playable classics built only from blocks (with a step-by-step tutorial in the documentation). Sketches are short Blocks starting points for the other upstream PRG32 examples.</p><div class="list-group" id="exampleList"></div></div>
+      <div class="modal-header"><h5 class="modal-title">{{ t("index.prg32_examples_in_blocks") }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body"><p class="text-muted small">{{ t("index.complete_games_are_full_playable_classic") }}</p><div class="list-group" id="exampleList"></div></div>
     </div>
   </div>
 </div>
 
 <div class="d-flex align-items-center justify-content-between mb-3">
-  <h2 class="h4 mb-0">Game Projects</h2>
-  <button class="btn btn-outline-primary" id="refreshProjects"><i class="bi bi-arrow-clockwise"></i> Refresh</button>
+  <h2 class="h4 mb-0">{{ t("index.game_projects") }}</h2>
+  <button class="btn btn-outline-primary" id="refreshProjects"><i class="bi bi-arrow-clockwise"></i> {{ t("common.refresh") }}</button>
 </div>
 <div class="row g-4" id="projectGrid"></div>
 
 <section class="mt-5" id="deletedSection" data-admin="{{ 'true' if current_user.is_admin else 'false' }}">
-  <h2 class="h5 text-muted"><i class="bi bi-trash"></i> Recently deleted</h2>
-  <p class="small text-muted">Deleted projects wait here. Restore one to get it back{% if current_user.is_admin %}, or delete it for good{% endif %}.</p>
+  <h2 class="h5 text-muted"><i class="bi bi-trash"></i> {{ t("index.recently_deleted") }}</h2>
+  <p class="small text-muted">{{ t("index.deleted_projects_wait_here_restore_one") }}{% if current_user.is_admin %}{{ t("index.or_delete_it_for_good") }}{% endif %}.</p>
   <div class="list-group" id="deletedList"></div>
 </section>
 
 <div class="modal fade" id="cloudModal" tabindex="-1" aria-hidden="true" aria-labelledby="cloudModalTitle">
   <div class="modal-dialog">
     <div class="modal-content">
-      <div class="modal-header"><h5 class="modal-title" id="cloudModalTitle">Cloud copy</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+      <div class="modal-header"><h5 class="modal-title" id="cloudModalTitle">{{ t("index.cloud_copy") }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ t('common.close') }}"></button></div>
       <div class="modal-body">
         <p class="mb-2"><strong id="cloudProjectTitle"></strong></p>
-        <label class="form-label small" for="cloudProvider">Cloud storage</label>
+        <label class="form-label small" for="cloudProvider">{{ t("common.cloud_storage") }}</label>
         <select class="form-select form-select-sm mb-3" id="cloudProvider"></select>
         <div class="d-flex flex-wrap gap-2 mb-3">
-          <button class="btn btn-primary btn-sm" id="cloudPush" type="button"><i class="bi bi-cloud-upload"></i> Save to cloud</button>
-          <button class="btn btn-outline-primary btn-sm" id="cloudPull" type="button"><i class="bi bi-cloud-download"></i> Get cloud version</button>
+          <button class="btn btn-primary btn-sm" id="cloudPush" type="button"><i class="bi bi-cloud-upload"></i> {{ t("index.save_to_cloud") }}</button>
+          <button class="btn btn-outline-primary btn-sm" id="cloudPull" type="button"><i class="bi bi-cloud-download"></i> {{ t("index.get_cloud_version") }}</button>
         </div>
         <div class="small" id="cloudStatus" role="status" aria-live="polite"></div>
         <div class="alert alert-warning small mt-3 d-none" id="cloudConflict" role="alert">
           <p class="mb-2" id="cloudConflictText"></p>
           <div class="vstack gap-2">
-            <button class="btn btn-outline-dark btn-sm text-start" data-choice="copy" type="button"><strong>Keep both</strong> - nothing is replaced: you get a copy</button>
-            <button class="btn btn-outline-dark btn-sm text-start" data-choice="take_remote" type="button"><strong>Take the cloud version</strong> - your version here goes into the project's History</button>
-            <button class="btn btn-outline-danger btn-sm text-start" data-choice="overwrite" type="button"><strong>Overwrite the cloud copy</strong> with your version here</button>
+            <button class="btn btn-outline-dark btn-sm text-start" data-choice="copy" type="button"><strong>{{ t("index.keep_both") }}</strong> {{ t("index.nothing_is_replaced_you_get_a") }}</button>
+            <button class="btn btn-outline-dark btn-sm text-start" data-choice="take_remote" type="button"><strong>{{ t("index.take_the_cloud_version") }}</strong> {{ t("index.your_version_here_goes_into_the") }}</button>
+            <button class="btn btn-outline-danger btn-sm text-start" data-choice="overwrite" type="button"><strong>{{ t("index.overwrite_the_cloud_copy") }}</strong> {{ t("index.with_your_version_here") }}</button>
           </div>
         </div>
       </div>
@@ -100,38 +97,43 @@
   <div class="modal-dialog">
     <form class="modal-content" id="newProjectForm">
       <div class="modal-header">
-        <h5 class="modal-title" id="newProjectTitle">Create a PRG32 project</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <h5 class="modal-title" id="newProjectTitle">{{ t("index.create_a_prg32_project") }}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ t('common.close') }}"></button>
       </div>
       <div class="modal-body">
         <fieldset class="mb-3">
-          <legend class="form-label fs-6">How do you want to write it?</legend>
+          <legend class="form-label fs-6">{{ t("index.how_do_you_want_to_write") }}</legend>
           <div class="vstack gap-2" id="newProjectKinds">
             <label class="form-check border rounded p-2 ps-5 mb-0">
               <input class="form-check-input" type="radio" name="kind" value="blocks" checked>
-              <span class="fw-semibold"><i class="bi bi-puzzle" aria-hidden="true"></i> Blocks</span>
-              <span class="d-block small text-muted">Snap blocks together; the kit shows the C and assembly they make.</span>
+              <span class="fw-semibold"><i class="bi bi-puzzle" aria-hidden="true"></i> {{ t("common.blocks") }}</span>
+              <span class="d-block small text-muted">{{ t("index.snap_blocks_together_the_kit_shows") }}</span>
             </label>
             <label class="form-check border rounded p-2 ps-5 mb-0">
               <input class="form-check-input" type="radio" name="kind" value="c">
               <span class="fw-semibold"><i class="bi bi-braces" aria-hidden="true"></i> C</span>
-              <span class="d-block small text-muted">Write the game in C with the PRG32 functions. It starts from a small working game, explained line by line.</span>
+              <span class="d-block small text-muted">{{ t("index.write_the_game_in_c_with") }}</span>
             </label>
             <label class="form-check border rounded p-2 ps-5 mb-0">
               <input class="form-check-input" type="radio" name="kind" value="asm">
-              <span class="fw-semibold"><i class="bi bi-cpu" aria-hidden="true"></i> Assembly (RISC-V)</span>
-              <span class="d-block small text-muted">Write the instructions the processor runs. It starts from the same small game, explained line by line.</span>
+              <span class="fw-semibold"><i class="bi bi-cpu" aria-hidden="true"></i> {{ t("index.assembly_risc_v") }}</span>
+              <span class="d-block small text-muted">{{ t("index.write_the_instructions_the_processor_run") }}</span>
+            </label>
+            <label class="form-check border rounded p-2 ps-5 mb-0">
+              <input class="form-check-input" type="radio" name="kind" value="python">
+              <span class="fw-semibold"><i class="bi bi-filetype-py" aria-hidden="true"></i> {{ t("index.python_prg32_python") }}</span>
+              <span class="d-block small text-muted">{{ t("index.write_the_game_in_a_small") }}</span>
             </label>
           </div>
         </fieldset>
-        <div class="mb-3"><label class="form-label" for="newProjectName">Title</label><input class="form-control" id="newProjectName" name="title" value="My PRG32 Game" required></div>
-        <div class="mb-3"><label class="form-label" for="newProjectAuthor">Author</label><input class="form-control" id="newProjectAuthor" name="author" value="Student"></div>
-        <div class="mb-3"><label class="form-label" for="newProjectSummary">Summary</label><textarea class="form-control" id="newProjectSummary" name="description" rows="3">A block-built PRG32 cartridge.</textarea></div>
-        <div class="mb-3"><label class="form-label" for="newProjectTags">Tags</label><input class="form-control" id="newProjectTags" name="tags" value="blocks,classroom"></div>
+        <div class="mb-3"><label class="form-label" for="newProjectName">{{ t("common.title") }}</label><input class="form-control" id="newProjectName" name="title" value="My PRG32 Game" required></div>
+        <div class="mb-3"><label class="form-label" for="newProjectAuthor">{{ t("common.author") }}</label><input class="form-control" id="newProjectAuthor" name="author" value="Student"></div>
+        <div class="mb-3"><label class="form-label" for="newProjectSummary">{{ t("common.summary") }}</label><textarea class="form-control" id="newProjectSummary" name="description" rows="3">A block-built PRG32 cartridge.</textarea></div>
+        <div class="mb-3"><label class="form-label" for="newProjectTags">{{ t("common.tags") }}</label><input class="form-control" id="newProjectTags" name="tags" value="blocks,classroom"></div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-        <button class="btn btn-primary" type="submit">Create</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ t("common.cancel") }}</button>
+        <button class="btn btn-primary" type="submit">{{ t("index.create") }}</button>
       </div>
     </form>
   </div>

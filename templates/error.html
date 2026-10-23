@@ -1,8 +1,8 @@
 {% extends "base.html" %}
-{% block title %}Problem - {{ site.name }}{% endblock %}
+{% block title %}{{ t("error.problem", name=(site.name)) }}{% endblock %}
 {% block content %}
 <div class="row justify-content-center">
-  <div class="col-md-6"><div class="alert alert-warning"><h1 class="h5"><i class="bi bi-exclamation-triangle"></i> Something is not right</h1><p class="mb-0">{{ error }}</p></div>
-  <a href="/">Back to projects</a></div>
+  <div class="col-md-6"><div class="alert alert-warning"><h1 class="h5"><i class="bi bi-exclamation-triangle"></i> {{ t("error.something_is_not_right") }}</h1><p class="mb-0">{{ error }}</p></div>
+  <a href="/">{{ t("error.back_to_projects") }}</a></div>
 </div>
 {% endblock %}

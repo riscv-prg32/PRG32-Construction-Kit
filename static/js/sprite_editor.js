@@ -86,7 +86,7 @@
   function loadSprites() {
     return Kit.api(spritesUrl).then(data => {
       const html = data.sprites.map(sprite => `<button class="list-group-item list-group-item-action sprite-choice ${sprite.id === selectedId ? 'active' : ''}" data-id="${Kit.escape(sprite.id)}">${Kit.escape(sprite.name)} <span class="small">${Kit.escape(sprite.width)}x${Kit.escape(sprite.height)}</span></button>`).join('');
-      $('#spriteList').html(html || '<div class="list-group-item text-muted">No sprites yet.</div>');
+      $('#spriteList').html(html || `<div class="list-group-item text-muted">${tr('js.sprite_editor.no_sprites_yet', 'No sprites yet.')}</div>`);
       if (!selectedId && data.sprites[0]) setSprite(data.sprites[0]);
     });
   }
@@ -96,7 +96,7 @@
     const method = selectedId ? 'PUT' : 'POST';
     const url = selectedId ? '/api/sprites/' + selectedId : '/api/sprites';
     return Kit.api(url, { method, body: payload }).then(sprite => {
-      Kit.toast('Sprite saved', 'success');
+      Kit.toast(tr('js.sprite_editor.sprite_saved', 'Sprite saved'), 'success');
       setSprite(sprite);
       loadSprites();
       $(document).trigger('prg32:sprites-changed', [sprite]);
@@ -106,7 +106,7 @@
 
   function remove() {
     if (!selectedId) { setSprite({ name: 'sprite', width: 16, height: 16, pixels: emptyPixels(16, 16) }); return Promise.resolve(); }
-    if (!window.confirm(`Delete the sprite "${$('#spriteName').val()}"?`)) return Promise.resolve();
+    if (!window.confirm(tr('js.sprite_editor.delete_the_sprite', 'Delete the sprite "{name}"?', { name: $('#spriteName').val() }))) return Promise.resolve();
     return Kit.api('/api/sprites/' + encodeURIComponent(selectedId), { method: 'DELETE' }).then(() => {
       selectedId = null;
       setSprite({ name: 'sprite', width: 16, height: 16, pixels: emptyPixels(16, 16) });
@@ -177,7 +177,7 @@
   });
   $('#convertSprite').on('click', () => {
     save().then(() => Kit.api('/api/sprites/' + selectedId + '/convert', { method: 'POST', body: {} }))
-      .then(result => { $('#spriteC').text(result.c_source); Kit.toast('Sprite C artifact created', 'success'); })
+      .then(result => { $('#spriteC').text(result.c_source); Kit.toast(tr('js.sprite_editor.sprite_c_artifact_created', 'Sprite C artifact created'), 'success'); })
       .catch(err => Kit.toast(err.message, 'danger'));
   });
 

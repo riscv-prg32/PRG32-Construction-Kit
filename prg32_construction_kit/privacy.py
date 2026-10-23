@@ -499,6 +499,9 @@ BROWSER_STORAGE = (
     {"name": "prg32_kit_session", "kind": "cookie", "why": "keeps you signed in; holds your account number and "
      "sign-in time, signed so it cannot be changed", "how_long": "until you sign out, or a few hours after "
      "signing in", "needed": True},
+    {"name": "prg32_locale", "kind": "cookie", "why": "the language you chose for the kit's pages (English, "
+     "Italiano, Español, Français or Deutsch)", "how_long": "one year, or until you choose another language",
+     "needed": True},
     {"name": "prg32-kit-guest", "kind": "IndexedDB", "why": "the games, sprites and sounds you make without an "
      "account", "how_long": "until you delete them or clear this site's data", "needed": True},
     {"name": "prg32-source-language-<project>", "kind": "localStorage", "why": "which code view (C or assembly) "
@@ -511,6 +514,8 @@ BROWSER_STORAGE = (
      "ones you hid", "how_long": "until you clear this site's data", "needed": True},
     {"name": "prg32-kit-last-project", "kind": "localStorage", "why": "the project AudioStudio offers to "
      "continue with", "how_long": "until you clear this site's data", "needed": True},
+    {"name": "prg32-kit-locale", "kind": "localStorage", "why": "the language you chose, for the pages that open "
+     "without a connection", "how_long": "until you clear this site's data", "needed": True},
     {"name": "prg32-kit-storage-notice", "kind": "localStorage", "why": "that you have read this storage notice",
      "how_long": "until you clear this site's data", "needed": True},
     {"name": "prg32-kit-v*", "kind": "Cache Storage", "why": "the kit's own pages and libraries, so it opens "
@@ -528,8 +533,21 @@ def privacy_page():
                            contact=site_settings.get("PRG32_PRIVACY_CONTACT"))
 
 
+def localized_notice(notice_id: str) -> dict[str, Any]:
+    """A notice with its summary in the reader's interface language (ADR-0027).
+
+    The version is the same in every language: a translation is the same notice, so what the
+    kit records as shown (record_notice) does not depend on the language.
+    """
+    from .i18n import current
+
+    item = dict(notices()[notice_id])
+    item["summary"] = (item.get("translations") or {}).get(current(), item["summary"])
+    return item
+
+
 def init_app(app) -> None:
-    app.jinja_env.globals["privacy_notice"] = lambda notice_id: notices()[notice_id]
+    app.jinja_env.globals["privacy_notice"] = localized_notice
 
 
 @bp.get("/api/privacy/notices")

@@ -30,13 +30,14 @@ def render(data: dict) -> str:
         "Generated from `capabilities.json` by `tools/render_capabilities.py`; do not edit by hand.",
         "**Status** is the project's own assessment and must cite existing source symbols and tests",
         "(`tests/test_capabilities.py`). **Audit** is the independent auditor's score (0-4) copied from",
-        "`audit/REQUIREMENTS_MATRIX.md`; only the auditor changes it.",
+        "`audit/REQUIREMENTS_MATRIX.md`; only the auditor changes it (— : not scored yet).",
         "",
         "| ID | Capability | Status | Audit | Source | Tests | Note |",
         "| --- | --- | --- | ---: | --- | --- | --- |",
     ]
     for row in data["capabilities"]:
-        lines.append(f"| {row['id']} | {row['title']} | {row['status']} | {row['audit_score']} | "
+        score = "—" if row["audit_score"] is None else row["audit_score"]
+        lines.append(f"| {row['id']} | {row['title']} | {row['status']} | {score} | "
                      f"{_refs(row['source'])} | {_refs(row['tests'])} | {row['note'] or ''} |")
     counts = {status: sum(1 for row in data["capabilities"] if row["status"] == status) for status in data["statuses"]}
     lines += ["", "Totals: " + ", ".join(f"{status} {count}" for status, count in counts.items() if count) + ".", ""]

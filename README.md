@@ -1,7 +1,7 @@
 # PRG32-Construction-Kit
 
-A classroom web app for making PRG32 games. Students write a game with Blocks, C or RISC-V
-assembly, compile a real `.prg32` cartridge, and run and debug it in the browser. Teachers
+A classroom web app for making PRG32 games. Students write a game with Blocks, C, RISC-V
+assembly or PRG32 Python, compile a real `.prg32` cartridge, and run and debug it in the browser. Teachers
 follow their classes' work. Flask, SQLite, Bootstrap, jQuery, Blockly and Monaco, installable
 as a PWA, with every library served by the kit itself. MIT License.
 
@@ -9,13 +9,17 @@ as a PWA, with every library served by the kit itself. MIT License.
 
 ## What it does
 
-- **Three ways to write a game, one IDE** laid out like JetBrains: files, editor, tool window,
+- **Four ways to write a game, one IDE** laid out like JetBrains: files, editor, tool window,
   simulator ([ide.md](docs/ide.md)). The type is chosen in **New Project**; Blocks can be
   converted to C or assembly once:
   - Blocks, with the generated C and RV32IM assembly explained line by line
     ([generated_code.md](docs/generated_code.md));
   - C against the portable PRG32 ABI;
-  - handwritten assembly ([handwritten_assembly.md](docs/handwritten_assembly.md)).
+  - handwritten assembly ([handwritten_assembly.md](docs/handwritten_assembly.md));
+  - PRG32 Python, a small typed Python compiled (never run) into the same C and assembly
+    ([python_language.md](docs/python_language.md)).
+- **Five interface languages**: English, Italiano, Español, Français, Deutsch, chosen per
+  reader; projects build the same in every language ([i18n.md](docs/i18n.md)).
 - **Real compiler, real cartridges.** Validators check the source first. Then the PRG32
   toolchain compiles it in a sandbox, one folder per build, and its messages appear at their
   lines ([build_sandbox.md](docs/build_sandbox.md),

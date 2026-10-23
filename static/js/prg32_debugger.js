@@ -15,15 +15,15 @@
     'a6', 'a7', 's2', 's3', 's4', 's5', 's6', 's7', 's8', 's9', 's10', 's11', 't3', 't4', 't5', 't6'];
   // The registers a beginner meets first, with what they are used for.
   const BEGINNER = [
-    [10, 'a0: first argument, and the value a function gives back'],
-    [11, 'a1: second argument'],
-    [12, 'a2: third argument'],
-    [13, 'a3: fourth argument'],
-    [1, 'ra: return address, where a function goes back to'],
-    [2, 'sp: stack pointer, top of the memory a function borrows'],
+    [10, tr('js.prg32_debugger.a0_first_argument_and_the_value', 'a0: first argument, and the value a function gives back')],
+    [11, tr('js.prg32_debugger.a1_second_argument', 'a1: second argument')],
+    [12, tr('js.prg32_debugger.a2_third_argument', 'a2: third argument')],
+    [13, tr('js.prg32_debugger.a3_fourth_argument', 'a3: fourth argument')],
+    [1, tr('js.prg32_debugger.ra_return_address_where_a_function', 'ra: return address, where a function goes back to')],
+    [2, tr('js.prg32_debugger.sp_stack_pointer_top_of_the', 'sp: stack pointer, top of the memory a function borrows')],
     [5, 't0: temporary'],
     [6, 't1: temporary'],
-    [8, 's0: saved register (often the frame pointer)']
+    [8, tr('js.prg32_debugger.s0_saved_register_often_the_frame', 's0: saved register (often the frame pointer)')]
   ];
   const ROWS = 24;          // disassembly rows shown
   const FOLLOW_ROWS = 18;   // if the PC goes past this row, the listing moves
@@ -83,7 +83,7 @@
   function renderCode(state) {
     const rows = listing(state);
     if (!rows.length) {
-      $('#dbgCode').html('<div class="p-2 small text-muted">Address outside guest memory</div>');
+      $('#dbgCode').html(`<div class="p-2 small text-muted">${tr('js.prg32_debugger.address_outside_guest_memory', 'Address outside guest memory')}</div>`);
       return;
     }
     const breakpoints = new Set(state.breakpoints);
@@ -96,7 +96,7 @@
       const operands = space < 0 ? '' : row.text.slice(space);
       const word = row.width === 2 ? (row.word & 0xffff).toString(16).padStart(4, '0') : (row.word >>> 0).toString(16).padStart(8, '0');
       return `<tr class="${current ? 'dbg-current' : ''} ${breakpoint ? 'dbg-bp' : ''}" data-address="${row.address}">
-        <td class="dbg-gutter" title="${breakpoint ? 'Remove breakpoint' : 'Add breakpoint'}" role="button" aria-label="Breakpoint at ${hex(row.address)}">${current ? '▶' : (breakpoint ? '●' : '')}</td>
+        <td class="dbg-gutter" title="${escape(breakpoint ? tr('js.prg32_debugger.remove_breakpoint_title', 'Remove breakpoint') : tr('js.prg32_debugger.add_breakpoint_title', 'Add breakpoint'))}" role="button" aria-label="${escape(tr('js.prg32_debugger.breakpoint_at', 'Breakpoint at {address}', { address: hex(row.address) }))}">${current ? '▶' : (breakpoint ? '●' : '')}</td>
         <td>${hex(row.address).slice(2)}</td>${advanced ? `<td class="dbg-word">${word}</td>` : ''}
         <td><span class="dbg-op">${escape(operation)}</span>${escape(operands)}</td></tr>`;
     }).join('');
@@ -133,7 +133,7 @@
     const length = Number($('#dbgMemoryLength').val());
     const bytes = player.readMemory(memoryAddress, length);
     if (!bytes) {
-      $('#dbgMemory').text('Address outside guest memory');
+      $('#dbgMemory').text(tr('js.prg32_debugger.address_outside_guest_memory', 'Address outside guest memory'));
       return;
     }
     const lines = [];
@@ -147,28 +147,28 @@
 
   function renderBreakpoints(state) {
     const badges = state.breakpoints.map(address => `<span class="badge text-bg-danger">● ${hex(address)}
-      <button class="btn-close btn-close-white ms-1 dbg-remove kit-tiny-close" data-address="${address}" aria-label="Remove breakpoint ${hex(address)}"></button></span>`);
+      <button class="btn-close btn-close-white ms-1 dbg-remove kit-tiny-close" data-address="${address}" aria-label="${escape(tr('js.prg32_debugger.remove_breakpoint', 'Remove breakpoint {address}', { address: hex(address) }))}"></button></span>`);
     $('#dbgBreakpoints').html(state.breakpoints.length
-      ? `<span class="text-muted">Breakpoints:</span> ${badges.join(' ')} <button class="btn btn-link btn-sm p-0 ms-1" id="dbgClear">clear all</button>`
-      : '<span class="text-muted">No breakpoints.</span>');
+      ? `<span class="text-muted">${tr('js.prg32_debugger.breakpoints', 'Breakpoints:')}</span> ${badges.join(' ')} <button class="btn btn-link btn-sm p-0 ms-1" id="dbgClear">${tr('js.prg32_debugger.clear_all', 'clear all')}</button>`
+      : `<span class="text-muted">${tr('js.prg32_debugger.no_breakpoints', 'No breakpoints.')}</span>`);
   }
 
   const REASONS = {
-    breakpoint: 'Stopped at a breakpoint', pause: 'Paused', step: 'Stepped one instruction',
-    step_over: 'Stepped over a call', step_out: 'Stepped out of a function', step_frame: 'Ran to the end of the frame',
-    budget: 'Stopped after 20 million instructions without returning', error: 'The cartridge stopped with an error'
+    breakpoint: tr('js.prg32_debugger.stopped_at_a_breakpoint', 'Stopped at a breakpoint'), pause: tr('js.prg32_debugger.paused', 'Paused'), step: tr('js.prg32_debugger.stepped_one_instruction', 'Stepped one instruction'),
+    step_over: tr('js.prg32_debugger.stepped_over_a_call', 'Stepped over a call'), step_out: tr('js.prg32_debugger.stepped_out_of_a_function', 'Stepped out of a function'), step_frame: tr('js.prg32_debugger.ran_to_the_end_of_the', 'Ran to the end of the frame'),
+    budget: tr('js.prg32_debugger.stopped_after_20_million_instructions_wi', 'Stopped after 20 million instructions without returning'), error: tr('js.prg32_debugger.the_cartridge_stopped_with_an_error', 'The cartridge stopped with an error')
   };
 
   function renderStatus(state) {
-    const where = { idle: 'between frames', update: 'in update()', draw: 'in draw()' }[state.phase] || state.phase;
+    const where = { idle: tr('js.prg32_debugger.between_frames', 'between frames'), update: tr('js.prg32_debugger.in_update', 'in update()'), draw: tr('js.prg32_debugger.in_draw', 'in draw()') }[state.phase] || state.phase;
     const seconds = ms => (ms / 1000).toFixed(2) + ' s';
     const parts = [
-      `<span><strong>${state.running ? 'Running' : (REASONS[state.reason] || 'Paused')}</strong>${state.reason === 'breakpoint' ? ' at ' + hex(state.last_breakpoint) : ''}</span>`,
+      `<span><strong>${state.running ? tr('js.ide.running', 'Running') : (REASONS[state.reason] || tr('js.prg32_debugger.paused', 'Paused'))}</strong>${state.reason === 'breakpoint' ? ' ' + tr('js.prg32_debugger.at_address', 'at {address}', { address: hex(state.last_breakpoint) }) : ''}</span>`,
       `<span>${where}</span>`,
-      `<span title="Time the cartridge sees (PRG32 virtual clock)">Game time ${seconds(state.guest_ns / 1e6)}</span>`,
-      `<span title="Real time spent running">Real time ${seconds(state.wall_ms)}</span>`,
-      `<span>Frame ${state.frames}</span>`,
-      `<span class="dbg-advanced">${Number(state.retired).toLocaleString()} instructions · ${Number(state.cycles).toLocaleString()} cycles · ${state.breakpoint_hits} breakpoint hits</span>`
+      `<span title="${escape(tr('js.prg32_debugger.game_time_title', 'Time the cartridge sees (PRG32 virtual clock)'))}">${escape(tr('js.prg32_debugger.game_time', 'Game time {time}', { time: seconds(state.guest_ns / 1e6) }))}</span>`,
+      `<span title="${escape(tr('js.prg32_debugger.real_time_title', 'Real time spent running'))}">${escape(tr('js.prg32_debugger.real_time', 'Real time {time}', { time: seconds(state.wall_ms) }))}</span>`,
+      `<span>${escape(tr('js.prg32_debugger.frame_n', 'Frame {frame}', { frame: state.frames }))}</span>`,
+      `<span class="dbg-advanced">${escape(tr('js.prg32_debugger.counters', '{instructions} instructions · {cycles} cycles · {hits} breakpoint hits', { instructions: Number(state.retired).toLocaleString(PRG32I18n.locale), cycles: Number(state.cycles).toLocaleString(PRG32I18n.locale), hits: state.breakpoint_hits }))}</span>`
     ];
     if (state.error) parts.push(`<span class="text-danger">${escape(state.error)}</span>`);
     $('#dbgStatus').html(parts.join(''));
@@ -179,11 +179,11 @@
     $('#dbgEnable').prop('disabled', !state.loaded).prop('checked', Boolean(state.enabled));
     $('.dbg-control').prop('disabled', !on);
     $('#dbgContinue').toggleClass('btn-danger', Boolean(state.running)).toggleClass('btn-success', !state.running)
-      .html(state.running ? '<i class="bi bi-pause-fill"></i> Pause' : '<i class="bi bi-play-fill"></i> Continue');
+      .html(state.running ? '<i class="bi bi-pause-fill"></i> ' + escape(tr('js.offline_player.pause', 'Pause')) : '<i class="bi bi-play-fill"></i> ' + escape(tr('common.continue', 'Continue')));
     $('#dbgStep, #dbgStepOver, #dbgStepOut').prop('disabled', !on);
     if (!state.loaded) return;
     if (!state.enabled) {
-      $('#dbgStatus').html('Switch on <strong>Debug mode</strong> to pause the game on any instruction.');
+      $('#dbgStatus').html(tr('js.prg32_debugger.switch_on_debug_mode', 'Switch on {mode} to pause the game on any instruction.', { mode: `<strong>${escape(tr('debugger.debug_mode', 'Debug mode'))}</strong>` }));
       return;
     }
     renderStatus(state);
@@ -241,7 +241,7 @@
   $('#dbgGotoForm').on('submit', event => {
     event.preventDefault();
     const address = PRG32CartridgePlayer.parseAddress($('#dbgGotoAddress').val());
-    if (address === null) return Kit.toast('Type an address like 0x40800000 or 1082130432.', 'warning');
+    if (address === null) return Kit.toast(tr('js.prg32_debugger.type_an_address_like_0x40800000_or', 'Type an address like 0x40800000 or 1082130432.'), 'warning');
     view = 'address';
     anchor = address;
     $('.dbg-goto').removeClass('active');
@@ -259,7 +259,7 @@
     event.preventDefault();
     const address = PRG32CartridgePlayer.parseAddress($('#dbgMemoryAddress').val());
     if (address === null) {
-      $('#dbgMemory').text('Invalid address');
+      $('#dbgMemory').text(tr('js.prg32_debugger.invalid_address', 'Invalid address'));
       return;
     }
     memoryAddress = address;

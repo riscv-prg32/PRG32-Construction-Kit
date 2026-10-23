@@ -8,59 +8,59 @@
   <input type="hidden" id="canEdit" value="{{ 'yes' if can_edit else 'no' }}">
   <div class="kit-tool-bar" role="toolbar" aria-label="AudioStudio">
     <h2 class="h6 mb-0" id="audioStudioTitle"><i class="bi bi-music-note-beamed" aria-hidden="true"></i> AudioStudio
-      <span class="visually-hidden">for</span> <span class="text-muted fw-normal" id="projectTitle"></span></h2>
-    <button class="btn btn-outline-primary btn-sm edit-only kit-section-only" data-section="effects" type="button" id="addEffect"><i class="bi bi-plus-circle" aria-hidden="true"></i> New</button>
-    <button class="btn btn-outline-primary btn-sm edit-only kit-section-only" data-section="tracks" type="button" id="addTrack" hidden><i class="bi bi-plus-circle" aria-hidden="true"></i> New</button>
-    <button class="btn btn-success btn-sm" type="button" id="saveAudio"{% if not can_edit %} disabled{% endif %}><i class="bi bi-save" aria-hidden="true"></i> Save</button>
-    <label class="btn btn-outline-primary btn-sm mb-0{% if not can_edit %} disabled{% endif %}"><i class="bi bi-upload" aria-hidden="true"></i> Import
+      <span class="visually-hidden">{{ t("audio_studio.for") }}</span> <span class="text-muted fw-normal" id="projectTitle"></span></h2>
+    <button class="btn btn-outline-primary btn-sm edit-only kit-section-only" data-section="effects" type="button" id="addEffect"><i class="bi bi-plus-circle" aria-hidden="true"></i> {{ t("common.new") }}</button>
+    <button class="btn btn-outline-primary btn-sm edit-only kit-section-only" data-section="tracks" type="button" id="addTrack" hidden><i class="bi bi-plus-circle" aria-hidden="true"></i> {{ t("common.new") }}</button>
+    <button class="btn btn-success btn-sm" type="button" id="saveAudio"{% if not can_edit %} disabled{% endif %}><i class="bi bi-save" aria-hidden="true"></i> {{ t("common.save") }}</button>
+    <label class="btn btn-outline-primary btn-sm mb-0{% if not can_edit %} disabled{% endif %}"><i class="bi bi-upload" aria-hidden="true"></i> {{ t("common.import") }}
       <input class="d-none" type="file" id="importAudio" accept=".json,application/json"{% if not can_edit %} disabled{% endif %}></label>
-    <button class="btn btn-outline-primary btn-sm" type="button" id="exportAudio"><i class="bi bi-download" aria-hidden="true"></i> Export</button>
-    <button class="btn btn-outline-danger btn-sm edit-only kit-section-only" data-section="effects" type="button" id="deleteEffect"><i class="bi bi-trash" aria-hidden="true"></i> Delete</button>
-    <button class="btn btn-outline-danger btn-sm edit-only kit-section-only" data-section="tracks" type="button" id="deleteTrack" hidden><i class="bi bi-trash" aria-hidden="true"></i> Delete</button>
-    <button class="btn btn-danger btn-sm ms-auto" type="button" id="stopSound" title="Silence every voice (Escape)"><i class="bi bi-stop-fill" aria-hidden="true"></i> Stop sound</button>
+    <button class="btn btn-outline-primary btn-sm" type="button" id="exportAudio"><i class="bi bi-download" aria-hidden="true"></i> {{ t("audio_studio.export") }}</button>
+    <button class="btn btn-outline-danger btn-sm edit-only kit-section-only" data-section="effects" type="button" id="deleteEffect"><i class="bi bi-trash" aria-hidden="true"></i> {{ t("common.delete") }}</button>
+    <button class="btn btn-outline-danger btn-sm edit-only kit-section-only" data-section="tracks" type="button" id="deleteTrack" hidden><i class="bi bi-trash" aria-hidden="true"></i> {{ t("common.delete") }}</button>
+    <button class="btn btn-danger btn-sm ms-auto" type="button" id="stopSound" title="{{ t('audio_studio.silence_every_voice_escape') }}"><i class="bi bi-stop-fill" aria-hidden="true"></i> {{ t("audio_studio.stop_sound") }}</button>
   </div>
-  <div id="audioStatus" class="small text-muted px-2" role="status" aria-live="polite">Loading…</div>
+  <div id="audioStatus" class="small text-muted px-2" role="status" aria-live="polite">{{ t("common.loading") }}</div>
   <div id="missingSamples" class="alert alert-warning py-2 mx-2 mb-0 d-none" role="alert"></div>
-  {% if not can_edit %}<div class="alert alert-info py-2 mx-2 mb-0">You can listen to this project's sound, but only its owner can change it.</div>{% endif %}
+  {% if not can_edit %}<div class="alert alert-info py-2 mx-2 mb-0">{{ t("audio_studio.you_can_listen_to_this_project") }}</div>{% endif %}
   <div class="kit-tool-body">
-    <nav class="kit-tool-list" aria-label="Sound">
-      <div class="nav nav-pills flex-column kit-sections" role="tablist" aria-label="Sound sections">
-        <button class="nav-link active" type="button" role="tab" data-section="voices" aria-selected="true">Voices</button>
-        <button class="nav-link" type="button" role="tab" data-section="effects" aria-selected="false" tabindex="-1">Sound effects</button>
-        <button class="nav-link" type="button" role="tab" data-section="tracks" aria-selected="false" tabindex="-1">Soundtracks</button>
-        <button class="nav-link" type="button" role="tab" data-section="samples" aria-selected="false" tabindex="-1">Samples</button>
+    <nav class="kit-tool-list" aria-label="{{ t('audio_studio.sound') }}">
+      <div class="nav nav-pills flex-column kit-sections" role="tablist" aria-label="{{ t('audio_studio.sound_sections') }}">
+        <button class="nav-link active" type="button" role="tab" data-section="voices" aria-selected="true">{{ t("audio_studio.voices") }}</button>
+        <button class="nav-link" type="button" role="tab" data-section="effects" aria-selected="false" tabindex="-1">{{ t("audio_studio.sound_effects") }}</button>
+        <button class="nav-link" type="button" role="tab" data-section="tracks" aria-selected="false" tabindex="-1">{{ t("audio_studio.soundtracks") }}</button>
+        <button class="nav-link" type="button" role="tab" data-section="samples" aria-selected="false" tabindex="-1">{{ t("audio_studio.samples") }}</button>
       </div>
-      <div class="kit-section-pane" data-section="voices"><div class="list-group list-group-flush" id="voiceList" aria-label="Voices"></div></div>
-      <div class="kit-section-pane" data-section="effects" hidden><div class="list-group list-group-flush" id="effectList" aria-label="Sound effects"></div></div>
-      <div class="kit-section-pane" data-section="tracks" hidden><div class="list-group list-group-flush" id="trackList" aria-label="Soundtracks"></div></div>
-      <div class="kit-section-pane small text-muted px-2" data-section="samples" hidden>Recorded sounds, used by instruments whose sound is <em>sample</em>.</div>
+      <div class="kit-section-pane" data-section="voices"><div class="list-group list-group-flush" id="voiceList" aria-label="{{ t('audio_studio.voices') }}"></div></div>
+      <div class="kit-section-pane" data-section="effects" hidden><div class="list-group list-group-flush" id="effectList" aria-label="{{ t('audio_studio.sound_effects') }}"></div></div>
+      <div class="kit-section-pane" data-section="tracks" hidden><div class="list-group list-group-flush" id="trackList" aria-label="{{ t('audio_studio.soundtracks') }}"></div></div>
+      <div class="kit-section-pane small text-muted px-2" data-section="samples" hidden>{{ t("audio_studio.recorded_sounds_used_by_instruments_whos") }} <em>{{ t("audio_studio.sample") }}</em>.</div>
     </nav>
     <div class="kit-tool-main kit-tool-main-form">
       <div class="kit-section-pane" data-section="voices">
-        <p class="small text-muted">A PRG32 game has 8 voices. In a soundtrack, voice 0 plays instrument 0, voice 1 instrument 1, and so on.</p>
+        <p class="small text-muted">{{ t("audio_studio.a_prg32_game_has_8_voices") }}</p>
         <div id="voiceEditor"></div>
       </div>
       <div class="kit-section-pane" data-section="effects" hidden>
-        <p class="small text-muted">A sound effect is one note with its own instrument. The Blocks "play sound effect" block plays it by name.</p>
-        <div id="effectEditor"><p class="text-muted">No sound effects yet.</p></div>
+        <p class="small text-muted">{{ t("audio_studio.a_sound_effect_is_one_note") }}</p>
+        <div id="effectEditor"><p class="text-muted">{{ t("audio_studio.no_sound_effects_yet") }}</p></div>
       </div>
       <div class="kit-section-pane" data-section="tracks" hidden>
-        <p class="small text-muted">A soundtrack is a grid: one row per voice, one column per step. Type a note (C4, F#5 or a number 0–127), <kbd>off</kbd> to end a note, or leave it empty. Arrow keys move around the grid.</p>
-        <div id="trackEditor"><p class="text-muted">No soundtracks yet.</p></div>
+        <p class="small text-muted">{{ t("audio_studio.a_soundtrack_is_a_grid_one") }} <kbd>off</kbd> {{ t("audio_studio.to_end_a_note_or_leave") }}</p>
+        <div id="trackEditor"><p class="text-muted">{{ t("audio_studio.no_soundtracks_yet") }}</p></div>
       </div>
       <div class="kit-section-pane" data-section="samples" hidden>
-        <p class="small text-muted">A sample is a short recorded sound (a WAV file, at most a few seconds). PRG32 keeps it as 8-bit sound at 22050 Hz.</p>
+        <p class="small text-muted">{{ t("audio_studio.a_sample_is_a_short_recorded") }}</p>
         <form class="row g-2 align-items-end mb-3 edit-only" id="sampleForm">
-          <div class="col-sm-4"><label class="form-label" for="sampleName">Name</label><input class="form-control" id="sampleName" maxlength="32" placeholder="Drum"></div>
-          <div class="col-sm-5"><label class="form-label" for="sampleFile">WAV file</label><input class="form-control" type="file" id="sampleFile" accept=".wav,audio/wav,audio/x-wav"></div>
-          <div class="col-sm-3"><button class="btn btn-primary w-100" type="submit"><i class="bi bi-upload"></i> Add sample</button></div>
+          <div class="col-sm-4"><label class="form-label" for="sampleName">{{ t("common.name") }}</label><input class="form-control" id="sampleName" maxlength="32" placeholder="{{ t('audio_studio.drum') }}"></div>
+          <div class="col-sm-5"><label class="form-label" for="sampleFile">{{ t("audio_studio.wav_file") }}</label><input class="form-control" type="file" id="sampleFile" accept=".wav,audio/wav,audio/x-wav"></div>
+          <div class="col-sm-3"><button class="btn btn-primary w-100" type="submit"><i class="bi bi-upload"></i> {{ t("audio_studio.add_sample") }}</button></div>
         </form>
         <div id="sampleEditor"></div>
       </div>
     </div>
-    <aside class="kit-tool-side" tabindex="0" aria-label="What the code says">
-      <div class="kit-tool-heading">What the code says</div>
-      <p class="small mb-2">The generated C and assembly use these numbers. They come from the order of the lists.</p>
+    <aside class="kit-tool-side" tabindex="0" aria-label="{{ t('audio_studio.what_the_code_says') }}">
+      <div class="kit-tool-heading">{{ t("audio_studio.what_the_code_says") }}</div>
+      <p class="small mb-2">{{ t("audio_studio.the_generated_c_and_assembly_use") }}</p>
       <pre class="code-panel small mb-0" tabindex="0"><code id="audioIds">Loading…</code></pre>
     </aside>
   </div>

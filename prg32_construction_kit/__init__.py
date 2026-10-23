@@ -14,6 +14,7 @@ from .db import init_app as init_db_app
 from .routes import bp
 from .sample_data import seed_if_empty
 from . import settings as site_settings
+from . import i18n
 
 
 def _kit_version() -> str:
@@ -63,6 +64,7 @@ def create_app(test_config: dict | None = None) -> Flask:
     app.register_blueprint(privacy.bp)
     app.register_blueprint(guest_api.bp)
     privacy.init_app(app)
+    i18n.init_app(app)
     app.before_request(new_csp_nonce)
     app.after_request(browser_security_headers)
 

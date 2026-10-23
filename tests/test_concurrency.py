@@ -223,10 +223,12 @@ def test_source_modes_check_builds_each_way_of_writing_a_game(app, monkeypatch):
     report = build_check.source_modes_check(app, architectures=["qemu"])
     assert report["problems"] == []
     assert [item["mode"] for item in report["results"]] == [
-        "blocks (generated C)", "blocks (generated assembly)", "advanced C", "handwritten assembly"]
+        "blocks (generated C)", "blocks (generated assembly)", "advanced C", "handwritten assembly",
+        "python (generated C)", "python (generated assembly)"]
     names = [name for name, _text in sources]
-    assert names == ["game.c", "game.S", "game.c", "game.S"]
+    assert names == ["game.c", "game.S", "game.c", "game.S", "game.c", "game.S"]
     assert "mode_check_c_draw" in sources[2][1] and "mode_check_asm_update" in sources[3][1]
+    assert "mode_check_python_draw" in sources[4][1] and "from the saved PRG32 Python" in sources[5][1]
 
 
 def test_source_modes_check_reports_a_failed_build(app, monkeypatch):
@@ -237,10 +239,10 @@ def test_source_modes_check_reports_a_failed_build(app, monkeypatch):
 
     monkeypatch.setattr("prg32_construction_kit.packager.subprocess.run", broken)
     report = build_check.source_modes_check(app, architectures=["qemu"])
-    assert len(report["problems"]) == 4 and report["results"] == []
+    assert len(report["problems"]) == 6 and report["results"] == []
 
 
-def test_real_cartridges_from_blocks_c_and_assembly(app):
+def test_real_cartridges_from_blocks_c_assembly_and_python(app):
     """Uses the real PRG32 toolchain when it is installed (skipped otherwise); with Node.js each
     cartridge also runs in the browser core."""
     import pytest
@@ -251,5 +253,5 @@ def test_real_cartridges_from_blocks_c_and_assembly(app):
         pytest.skip("PRG32 build toolchain is not installed")
     report = source_modes_check(app)
     assert report["problems"] == []
-    assert len(report["results"]) == 8
+    assert len(report["results"]) == 12
     assert all(item["runs_in_browser_core"] is not False for item in report["results"])

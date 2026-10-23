@@ -42,8 +42,9 @@ from .build_slots import BuildServerBusy, build_slot
 from .classes import supervises
 from .asm_generator import ir_to_asm
 from .debug_info import unavailable as debug_unavailable
-from .generator import blocks_to_c, sprite_to_c
-from .source_maps import build_source_map
+from .generator import blocks_to_c, ir_to_c, sprite_to_c
+from .source_maps import project_source_map
+from . import python_project
 from .packager import SUPPORTED_ARCHITECTURES, check_source, prepare_package
 from .publisher import StorePublishFailed, publish_bundle
 from .store_policy import StoreRefused, check_url, policy_from_config
@@ -163,7 +164,26 @@ def checked_payload(resource: str, payload: dict[str, Any]) -> dict[str, Any]:
                 continue  # the database refuses links to missing items with a clear 409
             if not can_read(linked) or (target == "projects" and not can_write(linked)):
                 raise PermissionError(f"You cannot link to {target} {payload[column]}")
+    if resource == "projects" and isinstance(payload.get("game_json"), dict):
+        payload["game_json"] = _checked_python(payload["game_json"])
     return payload
+
+
+def _checked_python(game_json: dict[str, Any]) -> dict[str, Any]:
+    """A Python project names the PRG32 Python version it is written in (ADR-0026).
+
+    The source itself may be unfinished while a student works: the compiler checks it when it
+    is generated, run or compiled. A version this kit does not know is refused, never guessed.
+    """
+    if game_json.get("source_mode") != "python":
+        return game_json
+    if not isinstance(game_json.get("source_python", ""), str):
+        raise ValueError("source_python must be text")
+    version = game_json.get("python_language_version", python_project.LANGUAGE_VERSION)
+    if version != python_project.LANGUAGE_VERSION or isinstance(version, bool):
+        raise ValueError(f"This project is written in PRG32 Python version {version}; this kit knows version "
+                         f"{python_project.LANGUAGE_VERSION}")
+    return {**game_json, "python_language_version": python_project.LANGUAGE_VERSION}
 
 
 @bp.errorhandler(PermissionError)
@@ -447,15 +467,15 @@ def api_item(resource: str, item_id: str):
 
 
 # --- project types (ADR-0024) ---------------------------------------------------------------
-# A project is written in Blocks, C or assembly, chosen when it is made. The type never changes,
-# except once from Blocks to C or assembly (convert_to): a save or a restore that would change it
-# is refused.
-PROJECT_TYPES = {"blocks": "Blocks", "c": "C", "asm": "Assembly (RISC-V)"}
+# A project is written in Blocks, C, assembly or PRG32 Python (ADR-0026), chosen when it is made.
+# The type never changes, except once from Blocks to C or assembly (convert_to): a save or a
+# restore that would change it is refused.
+PROJECT_TYPES = {"blocks": "Blocks", "c": "C", "asm": "Assembly (RISC-V)", "python": "Python (PRG32 Python)"}
 
 
 def project_type(game_json: Any) -> str:
     mode = game_json.get("source_mode") if isinstance(game_json, dict) else None
-    return mode if mode in ("c", "asm") else "blocks"
+    return mode if mode in ("c", "asm", "python") else "blocks"
 
 
 def _type_locked(project: dict[str, Any]):
@@ -655,10 +675,10 @@ def api_retention():
 # revision. A revision holds the same files as a project archive.
 
 def _source_changes(project: dict[str, Any], payload: dict[str, Any]) -> bool:
-    """True when a PUT would change the Blocks program, the Advanced C or the handwritten assembly."""
-    def typed_source(game_json: Any) -> tuple[Any, Any, Any]:
+    """True when a PUT would change the Blocks program, the Advanced C, the assembly or the Python."""
+    def typed_source(game_json: Any) -> tuple[Any, Any, Any, Any]:
         saved = game_json if isinstance(game_json, dict) else {}
-        return saved.get("source_mode"), saved.get("source_c"), saved.get("source_asm")
+        return saved.get("source_mode"), saved.get("source_c"), saved.get("source_asm"), saved.get("source_python")
     if "blocks_json" in payload and payload["blocks_json"] != project.get("blocks_json"):
         return True
     return "game_json" in payload and typed_source(payload["game_json"]) != typed_source(project.get("game_json"))
@@ -871,7 +891,7 @@ def _generate_project(project_id: str) -> tuple[dict[str, Any] | None, dict[str,
     if message is not None:
         return project, None, None, json_error(message)
     assert game_ir is not None
-    if game_ir.get("source_mode") not in ("c", "asm"):
+    if project_type(game_ir) == "blocks":
         # Store the IR only if no other browser saved the project since we read it;
         # otherwise we would overwrite that newer save (for example Advanced C source).
         update_if_unchanged("projects", project_id,
@@ -908,6 +928,13 @@ def generate_sources(project: dict[str, Any]) -> tuple[dict[str, Any] | None, st
         return {"abi": "prg32-construction-kit-asm-1.0", "entry_prefix": prefix,
                 "source_mode": "asm", "source_asm": source,
                 "required_features": required_features, "warnings": []}, "", None
+    if isinstance(saved, dict) and saved.get("source_mode") == "python":
+        # PRG32 Python (ADR-0026): parsed and checked, never run, then the same IR as the Blocks.
+        try:
+            game_ir = python_project.python_to_ir(saved.get("source_python", ""), project)
+        except python_project.PythonError as exc:
+            return None, None, str(exc)
+        return game_ir, ir_to_c(game_ir), None
     try:
         game_ir, c_source = blocks_to_c(project.get("blocks_json") or {}, project)
     except Exception as exc:
@@ -925,6 +952,11 @@ def _changed_elsewhere(project: dict[str, Any], payload: dict[str, Any]) -> bool
     """
     if "expected_blocks_json" in payload and payload["expected_blocks_json"] != project.get("blocks_json"):
         return True
+    if "expected_source_python" in payload:
+        saved = project.get("game_json") or {}
+        saved_python = saved.get("source_python") if isinstance(saved, dict) and saved.get("source_mode") == "python" \
+            else None
+        return payload["expected_source_python"] != saved_python
     if "expected_source_asm" in payload:
         saved = project.get("game_json") or {}
         saved_asm = saved.get("source_asm") if isinstance(saved, dict) and saved.get("source_mode") == "asm" else None
@@ -1162,7 +1194,8 @@ def _run_package_build(project_id: str, project: dict[str, Any], game_ir: dict[s
                                 cart_ram_kib=site_settings.get("PRG32_CART_RAM_KIB"),
                                 cartridges=(result or {}).get("cartridges", []),
                                 attempts=(result or {}).get("attempts", []),
-                                sandbox=(result or {}).get("sandbox", "not run"))
+                                sandbox=(result or {}).get("sandbox", "not run"),
+                                python_source=(project.get("game_json") or {}).get("source_python"))
 
     started_at = utcnow()
     try:
@@ -1271,9 +1304,9 @@ def _save_debug_artifacts(project_id: str, project: dict[str, Any], build_id: st
     debug_dir = Path(result["work_dir"]) / "debug"
     source_map_id = None
     saved = project.get("game_json") or {}
-    if result.get("debug_maps") and saved.get("source_mode") not in ("c", "asm"):
+    if result.get("debug_maps") and project_type(saved) in ("blocks", "python"):
         try:
-            _, text, source_map = build_source_map(project.get("blocks_json") or {}, project, built_from)
+            _, text, source_map = project_source_map(project, built_from)
         except Exception:  # noqa: BLE001 - no block map means the Player shows source and addresses only
             current_app.logger.exception("No source map for %s", project_id)
             text, source_map = None, None
@@ -1328,6 +1361,7 @@ def api_artifact_debug(artifact_id: str):
     build = readable("builds", metadata.get("build_id"))
     source = None
     blocks_json = None
+    python_source = None
     if build is not None:
         built_from = metadata.get("built_from") or (build.get("metadata") or {}).get("built_from") or "c"
         source_id = build.get("c_artifact_id") if built_from == "c" else (build.get("metadata") or {}).get("asm_artifact_id")
@@ -1340,11 +1374,24 @@ def api_artifact_debug(artifact_id: str):
             work_dir = ((bundle or {}).get("metadata") or {}).get("work_dir")
             snapshot = stored_file(str(Path(work_dir) / "project.blocks.json")) if work_dir else None
             if snapshot is not None:
-                blocks_json = json.loads(snapshot.read_text(encoding="utf-8")).get("blocks_json")
+                built = json.loads(snapshot.read_text(encoding="utf-8"))
+                python_source = debug_python_source(built, source_map)
+                blocks_json = None if python_source is not None else built.get("blocks_json")
     if source is None or (source_map and source_map.get("source_sha256") != _sha256_text(source["text"])):
-        source_map, blocks_json = None, None  # a map is only good for exactly the source it was made from
+        source_map, blocks_json, python_source = None, None, None  # a map is only good for exactly its source
     return jsonify({"cartridge": public("artifacts", artifact), "debug_map": debug_map, "source_map": source_map,
-                    "source": source, "blocks_json": blocks_json})
+                    "source": source, "blocks_json": blocks_json, "python_source": python_source})
+
+
+def debug_python_source(project: dict[str, Any], source_map: dict[str, Any] | None) -> dict[str, str] | None:
+    """game.py for the debugger, only when the source map was made from exactly this text."""
+    saved = project.get("game_json") if isinstance(project.get("game_json"), dict) else {}
+    if not source_map or saved.get("source_mode") != "python":
+        return None
+    text = str(saved.get("source_python") or "")
+    if source_map.get("python_sha256") != _sha256_text(text):
+        return None
+    return {"file": python_project.SOURCE_FILE, "text": text}
 
 
 def _sha256_text(text: str) -> str:

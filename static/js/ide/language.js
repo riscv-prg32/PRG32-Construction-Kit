@@ -22,6 +22,11 @@
   else root.PRG32Language = api;
 })(typeof window !== 'undefined' ? window : globalThis, function () {
   'use strict';
+  // Messages in the reader's language when the page loaded the kit's i18n.js (ADR-0027);
+  // English, from the text below, where it did not (Node.js tests and tools).
+  const tr = typeof globalThis.tr === 'function' ? globalThis.tr
+    : (key, english, values) => String(english).replace(/\{([a-z_][a-z0-9_]*)\}/g,
+      (all, name) => (values && name in values ? String(values[name]) : all));
 
   const MAX_BYTES = 256 * 1024;
   // Mirrors of source_project.py, kept in the same order as the server checks them.
@@ -41,48 +46,50 @@
 
   // Student-readable explanations for every problem code. They never contain server details.
   const EXPLAIN = {
-    'empty': 'Write the game before checking it.',
-    'too-big': 'A cartridge source can be at most 256 KiB, without NUL bytes.',
-    'trigraph': 'Trigraphs (??= and ??/) are an old C feature the kit does not accept.',
-    'comment': 'A /* comment needs a matching */ to end it.',
-    'c-include': 'A PRG32 cartridge can include only prg32.h, prg32_audio.h, stdint.h, stddef.h and stdbool.h. ' +
-      'Other headers would need a C library or files on the server.',
-    'c-directive': 'Allowed preprocessor lines: #include (approved headers), #define, #undef, #if, #ifdef, ' +
-      '#ifndef, #elif, #else and #endif.',
-    'c-token-paste': 'The ## operator can build hidden words, so the kit does not accept it.',
-    'c-forbidden': 'Inline assembly and _Pragma could read files on the server while compiling. ' +
-      'Write assembly in an Assembly project instead.',
-    'c-entry': 'The console calls three functions named after your project title: init once, then update ' +
-      'and draw for every frame. Each must be written exactly as  void NAME(void) { ... }.',
-    'c-resident-only': 'This function exists only inside the PRG32 firmware. A portable cartridge can call ' +
-      'only the functions in the PRG32 ABI, so the build would stop with "undefined reference".',
-    'c-unknown-api': 'This name starts with prg32_ but is not part of the PRG32 API. Check the spelling.',
-    'obsolete-buzzer': 'The buzzer is obsolete: PRG32 games use the eight-voice audio engine (instruments with ' +
-      'ADSR envelopes, stereo pan, sound effects and soundtracks made in AudioStudio). The server refuses this name.',
-    'asm-file-access': 'include, incbin and _Pragma could read files on the server, so they are not allowed.',
-    'asm-preprocessor': 'In assembly only  #define NAME value  and #if / #ifdef / #ifndef / #elif / #else / ' +
-      '#endif / #undef are allowed as preprocessor lines.',
-    'asm-directive': 'Only the directives the kit lists are allowed; others could read files or change how ' +
-      'the cartridge is built.',
-    'asm-section': 'Put code in .text and data in .rodata, .data or .bss (or sub-sections such as .text.game).',
-    'asm-entry': 'The console calls three labels named after your project title: init, update and draw. ' +
-      'Each needs a label (NAME:) and .globl NAME so the console can find it.',
-    'asm-instruction': 'This is not an RV32IMC instruction or pseudo-instruction the assembler knows.',
-    'asm-register': 'RISC-V has 32 registers: x0-x31, or by their ABI names zero, ra, sp, gp, tp, t0-t6, ' +
-      's0-s11 (fp = s0) and a0-a7.',
-    'compiler': 'The compiler found this problem.',
+    'python-too-big': tr('js.language.a_game_py_can_be_at', 'A game.py can be at most 64 KiB and 4000 lines.'),
+    'python-loop': tr('js.language.a_while_loop_could_run_forever', 'A while loop could run forever and freeze the console. Count with  for i in range(n):  (at most 1024 rounds).'),
+    'python-unsupported': tr('js.language.prg32_python_is_a_small_part', 'PRG32 Python is a small part of Python that can become a cartridge: typed variables, if/elif/else, for ... in range(...), your own functions and the prg32 module.'),
+    'python-import': tr('js.language.a_prg32_python_game_imports_only', 'A PRG32 Python game imports only the prg32 module:  import prg32. Other modules need a computer with Python; a cartridge has none.'),
+    'python-unsafe': tr('js.language.functions_that_run_text_as_code', 'Functions that run text as code or open files are not part of PRG32 Python: the game is translated into C, never run as Python.'),
+    'python-print': tr('js.language.the_prg32_has_no_console_window', 'The PRG32 has no console window. Write on the screen with prg32.text(x, y, "TEXT") or prg32.number(value, x, y).'),
+    'python-division': tr('js.language.prg32_numbers_are_whole_numbers_use', 'PRG32 numbers are whole numbers. Use // to divide (7 // 2 is 3); the remainder is %.'),
+    'python-power': tr('js.language.write_the_multiplication_out_x_x', 'Write the multiplication out (x * x), or use a fixed number.'),
+    'python-float': tr('js.language.prg32_numbers_are_whole_numbers_for', 'PRG32 numbers are whole numbers. For fractions, scale them: 256 can mean 1.0.'),
+    'python-unknown-prg32': tr('js.language.this_name_is_not_part_of', 'This name is not part of the prg32 module. Check the spelling; Ctrl+Space lists what prg32 offers.'),
+    'python-import-missing': tr('js.language.write_import_prg32_at_the_top', 'Write  import prg32  at the top of game.py before using prg32.'),
+    'python-lifecycle': tr('js.language.python_three_functions', 'A PRG32 Python game has three functions: def init() -> None: runs once, def update() -> None: and def draw() -> None: run every frame.'),
+    'empty': tr('js.language.write_the_game_before_checking_it', 'Write the game before checking it.'),
+    'too-big': tr('js.language.a_cartridge_source_can_be_at', 'A cartridge source can be at most 256 KiB, without NUL bytes.'),
+    'trigraph': tr('js.language.trigraphs_and_are_an_old_c', 'Trigraphs (??= and ??/) are an old C feature the kit does not accept.'),
+    'comment': tr('js.language.a_comment_needs_a_matching_to', 'A /* comment needs a matching */ to end it.'),
+    'c-include': tr('js.language.a_prg32_cartridge_can_include_only', 'A PRG32 cartridge can include only prg32.h, prg32_audio.h, stdint.h, stddef.h and stdbool.h. Other headers would need a C library or files on the server.'),
+    'c-directive': tr('js.language.allowed_preprocessor_lines_include_appro', 'Allowed preprocessor lines: #include (approved headers), #define, #undef, #if, #ifdef, #ifndef, #elif, #else and #endif.'),
+    'c-token-paste': tr('js.language.the_operator_can_build_hidden_words', 'The ## operator can build hidden words, so the kit does not accept it.'),
+    'c-forbidden': tr('js.language.inline_assembly_and_pragma_could_read', 'Inline assembly and _Pragma could read files on the server while compiling. Write assembly in an Assembly project instead.'),
+    'c-entry': tr('js.language.the_console_calls_three_functions_named', 'The console calls three functions named after your project title: init once, then update and draw for every frame. Each must be written exactly as  void NAME(void) { ... }.'),
+    'c-resident-only': tr('js.language.this_function_exists_only_inside_the', 'This function exists only inside the PRG32 firmware. A portable cartridge can call only the functions in the PRG32 ABI, so the build would stop with "undefined reference".'),
+    'c-unknown-api': tr('js.language.this_name_starts_with_prg32_but', 'This name starts with prg32_ but is not part of the PRG32 API. Check the spelling.'),
+    'obsolete-buzzer': tr('js.language.the_buzzer_is_obsolete_prg32_games', 'The buzzer is obsolete: PRG32 games use the eight-voice audio engine (instruments with ADSR envelopes, stereo pan, sound effects and soundtracks made in AudioStudio). The server refuses this name.'),
+    'asm-file-access': tr('js.language.include_incbin_and_pragma_could_read', 'include, incbin and _Pragma could read files on the server, so they are not allowed.'),
+    'asm-preprocessor': tr('js.language.in_assembly_only_define_name_value', 'In assembly only  #define NAME value  and #if / #ifdef / #ifndef / #elif / #else / #endif / #undef are allowed as preprocessor lines.'),
+    'asm-directive': tr('js.language.only_the_directives_the_kit_lists', 'Only the directives the kit lists are allowed; others could read files or change how the cartridge is built.'),
+    'asm-section': tr('js.language.put_code_in_text_and_data', 'Put code in .text and data in .rodata, .data or .bss (or sub-sections such as .text.game).'),
+    'asm-entry': tr('js.language.the_console_calls_three_labels_named', 'The console calls three labels named after your project title: init, update and draw. Each needs a label (NAME:) and .globl NAME so the console can find it.'),
+    'asm-instruction': tr('js.language.this_is_not_an_rv32imc_instruction', 'This is not an RV32IMC instruction or pseudo-instruction the assembler knows.'),
+    'asm-register': tr('js.language.risc_v_has_32_registers_x0', 'RISC-V has 32 registers: x0-x31, or by their ABI names zero, ra, sp, gp, tp, t0-t6, s0-s11 (fp = s0) and a0-a7.'),
+    'compiler': tr('js.language.the_compiler_found_this_problem', 'The compiler found this problem.'),
   };
   // Common compiler messages, said in simpler words.
   const COMPILER_HINTS = [
-    [/implicit declaration of function '?(prg32_\w+)'?/, name => `${name} is not declared: check the spelling. ` +
-      'Only the functions in prg32.h (portable API) can be used.'],
-    [/implicit declaration of function/, () => 'This function is used before it is declared. Declare or define it above, or check the spelling.'],
-    [/expected ';'/, () => 'A statement must end with ; (look at the end of the line before, too).'],
-    [/undeclared/, () => 'This name is not declared: check the spelling, or declare the variable first.'],
-    [/undefined reference to/, () => 'The program calls something that does not exist in a PRG32 cartridge.'],
-    [/conflicting types/, () => 'This name is declared twice with different types.'],
-    [/expected '\}'|expected declaration or statement at end of input/, () => 'A { has no matching }.'],
-    [/unrecognized opcode|unknown opcode|illegal operands/, () => 'The assembler does not understand this instruction or its operands.'],
+    [/implicit declaration of function '?(prg32_\w+)'?/, name => tr('js.language.name_not_declared_check', '{name} is not declared: check the spelling. ', { name }) +
+      tr('js.language.only_the_functions_in_prg32_h', 'Only the functions in prg32.h (portable API) can be used.')],
+    [/implicit declaration of function/, () => tr('js.language.this_function_is_used_before_it', 'This function is used before it is declared. Declare or define it above, or check the spelling.')],
+    [/expected ';'/, () => tr('js.language.a_statement_must_end_with_look', 'A statement must end with ; (look at the end of the line before, too).')],
+    [/undeclared/, () => tr('js.language.this_name_is_not_declared_check', 'This name is not declared: check the spelling, or declare the variable first.')],
+    [/undefined reference to/, () => tr('js.language.the_program_calls_something_that_does', 'The program calls something that does not exist in a PRG32 cartridge.')],
+    [/conflicting types/, () => tr('js.language.this_name_is_declared_twice_with', 'This name is declared twice with different types.')],
+    [/expected '\}'|expected declaration or statement at end of input/, () => tr('js.language.a_has_no_matching', 'A { has no matching }.')],
+    [/unrecognized opcode|unknown opcode|illegal operands/, () => tr('js.language.the_assembler_does_not_understand_this', 'The assembler does not understand this instruction or its operands.')],
   ];
 
   let INDEX = null;
@@ -238,16 +245,16 @@
 
   function basicChecks(source, kind) {
     if (typeof source !== 'string' || !source.trim()) {
-      return [{ severity: 'error', code: 'empty', message: `${kind} source is empty`, explanation: EXPLAIN.empty,
+      return [{ severity: 'error', code: 'empty', message: tr('js.language.kind_source_is_empty', '{kind} source is empty', { kind }), explanation: EXPLAIN.empty,
         line: 1, column: 1, endLine: 1, endColumn: 2 }];
     }
     const problems = [];
     if (new TextEncoder().encode(source).length > MAX_BYTES || source.includes('\0')) {
-      problems.push(wholeLine(source, 1, 'error', 'too-big', `${kind} source exceeds 256 KiB or contains NUL bytes`));
+      problems.push(wholeLine(source, 1, 'error', 'too-big', tr('js.language.kind_source_too_big', '{kind} source exceeds 256 KiB or contains NUL bytes', { kind })));
     }
     for (const match of source.matchAll(/\?\?[=/]/g)) {
       problems.push(problemAt(source, match.index, match.index + 3, 'error', 'trigraph',
-        'Trigraphs (??= and ??/) are not supported'));
+        tr('js.language.trigraphs_and_are_not_supported', 'Trigraphs (??= and ??/) are not supported')));
     }
     return problems;
   }
@@ -260,7 +267,7 @@
     const code = withoutComments(source);
     if (code.text === null) {
       problems.push(problemAt(source, code.unterminated, code.unterminated + 2, 'error', 'comment',
-        'C source has a comment that never ends'));
+        tr('js.language.c_source_has_a_comment_that', 'C source has a comment that never ends')));
       return problems;
     }
     for (const line of codeLines(code)) {
@@ -272,21 +279,21 @@
       if (include) {
         const at = line.text.indexOf(include[1], line.text.indexOf('include') + 7);
         problems.push(problem(source, code, line.start + at, line.start + at + include[1].length, 'error', 'c-include',
-          `The header ${include[1]} is not available in a PRG32 cartridge`));
+          tr('js.language.header_not_available', 'The header {header} is not available in a PRG32 cartridge', { header: include[1] })));
       } else {
         const lead = line.text.length - line.text.trimStart().length;
         problems.push(problem(source, code, line.start + lead, line.start + line.text.trimEnd().length, 'error',
-          'c-directive', 'Only approved PRG32/standard headers and basic conditional or define directives are supported'));
+          'c-directive', tr('js.language.only_approved_prg32_standard_headers_and', 'Only approved PRG32/standard headers and basic conditional or define directives are supported')));
       }
     }
     const bare = withoutStrings(code);
     for (const match of bare.text.matchAll(/##|%:%:/g)) {
       problems.push(problem(source, bare, match.index, match.index + match[0].length, 'error', 'c-token-paste',
-        'The ## token-pasting operator is not supported'));
+        tr('js.language.the_token_pasting_operator_is_not', 'The ## token-pasting operator is not supported')));
     }
     for (const match of bare.text.matchAll(C_FORBIDDEN_WORDS)) {
       problems.push(problem(source, bare, match.index, match.index + match[0].length, 'error', 'c-forbidden',
-        `'${match[0]}' is not supported in PRG32 cartridge C`));
+        tr('js.language.word_not_supported_in_c', '\'{word}\' is not supported in PRG32 cartridge C', { word: match[0] })));
     }
     const prefix = entryPrefix(title);
     const escaped = prefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -296,8 +303,8 @@
       const name = `${prefix}_${phase}`;
       if (found.has(name)) continue;
       const near = new RegExp(`\\b${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`).exec(bare.text);
-      const message = `C source must define void ${prefix}_init/update/draw(void): ` +
-        (near ? `write ${name} as  void ${name}(void) { ... }` : `void ${name}(void) is missing`);
+      const message = tr('js.language.c_must_define_lifecycle', 'C source must define void {prefix}_init/update/draw(void): ', { prefix }) +
+        (near ? tr('js.language.write_name_as', 'write {name} as  void {name}(void) { ... }', { name }) : tr('js.language.name_is_missing', 'void {name}(void) is missing', { name }));
       problems.push(near ? problem(source, bare, near.index, near.index + name.length, 'error', 'c-entry', message)
         : wholeLine(source, 1, 'error', 'c-entry', message));
     }
@@ -309,12 +316,11 @@
       if (idx().obsolete.has(name)) continue;
       if (idx().resident.has(name)) {
         problems.push(problem(source, bare, match.index, match.index + name.length, 'error', 'c-resident-only',
-          `${name} belongs to the resident PRG32 firmware, not to the portable cartridge ABI ` +
-          `${INDEX.abi.major}.${INDEX.abi.minor}: the cartridge would not link`));
+          tr('js.language.resident_not_portable', '{name} belongs to the resident PRG32 firmware, not to the portable cartridge ABI {abi}: the cartridge would not link', { name, abi: `${INDEX.abi.major}.${INDEX.abi.minor}` })));
       } else if (!idx().functions.has(name) && !idx().types.has(name) && !defined.has(name)
                  && /^\s*\(/.test(bare.text.slice(match.index + name.length))) {
         problems.push(problem(source, bare, match.index, match.index + name.length, 'warning', 'c-unknown-api',
-          `${name} is not a PRG32 function`));
+          tr('js.language.not_a_prg32_function', '{name} is not a PRG32 function', { name })));
       }
     }
     return sortProblems(problems);
@@ -360,12 +366,12 @@
   }
 
   function asmDiagnostics(source, title) {
-    const problems = basicChecks(source, 'Assembly');
+    const problems = basicChecks(source, tr('js.language.assembly', 'Assembly'));
     if (problems.some(p => p.code === 'empty')) return problems;
     const noComments = withoutComments(source);
     if (noComments.text === null) {
       problems.push(problemAt(source, noComments.unterminated, noComments.unterminated + 2, 'error', 'comment',
-        'C source has a comment that never ends'));
+        tr('js.language.c_source_has_a_comment_that', 'C source has a comment that never ends')));
       return problems;
     }
     const bare = withoutStrings(noComments);
@@ -377,7 +383,7 @@
       if (found) {
         problems.push(problem(source, bare, line.start + found.index, line.start + found.index + found[0].length,
           'error', 'asm-file-access',
-          `'${found[0]}' is not allowed in PRG32 cartridge assembly: it could read files on the server`));
+          tr('js.language.asm_word_reads_files', '\'{word}\' is not allowed in PRG32 cartridge assembly: it could read files on the server', { word: found[0] })));
       }
     }
     const symbols = asmSymbols(bare);
@@ -389,8 +395,7 @@
         if (ASM_CONDITIONAL.test(directive) || ASM_DEFINE.test(directive) || !CPP_DIRECTIVES.has(word)) continue;
         const lead = line.text.length - line.text.trimStart().length;
         problems.push(problem(source, bare, line.start + lead, line.start + line.text.trimEnd().length, 'error',
-          'asm-preprocessor', `Line ${number}: only '#define NAME value' and #if/#ifdef/#else/#endif are allowed ` +
-          'as preprocessor lines'));
+          'asm-preprocessor', tr('js.language.asm_preprocessor_only', 'Line {line}: only \'#define NAME value\' and #if/#ifdef/#else/#endif are allowed as preprocessor lines', { line: number })));
         continue;
       }
       for (const statement of asmStatements(line.text)) {
@@ -408,8 +413,7 @@
           const name = text.split(' ')[0].split('\t')[0].toLowerCase();
           if (!idx().directives.has(name)) {
             problems.push(problem(source, bare, start, start + name.length, 'error', 'asm-directive',
-              `Line ${number}: the directive ${name} is not allowed. Allowed: ` +
-              [...idx().directives.keys()].sort().join(', ')));
+              tr('js.language.asm_directive_not_allowed', 'Line {line}: the directive {name} is not allowed. Allowed: {allowed}', { line: number, name, allowed: [...idx().directives.keys()].sort().join(', ') })));
           } else if (name === '.section') {
             const rest = text.slice(text.indexOf(' ') + 1);
             const section = text.indexOf(' ') < 0 ? '' : rest.split(',')[0].trim();
@@ -417,7 +421,7 @@
               const offset = section ? text.indexOf(section, name.length) : 0;
               const length = section ? section.length : name.length;
               problems.push(problem(source, bare, start + offset, start + offset + length, 'error', 'asm-section',
-                `Line ${number}: use .text, .rodata, .data or .bss sections, not '${section}'`));
+                tr('js.language.asm_section_not_allowed', 'Line {line}: use .text, .rodata, .data or .bss sections, not \'{section}\'', { line: number, section })));
             }
           }
           continue;
@@ -431,13 +435,13 @@
       const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       const labelAt = new RegExp(`^\\s*${escaped}\\s*:`, 'm').exec(bare.text);
       if (!labelAt) {
-        problems.push(wholeLine(source, 1, 'error', 'asm-entry', `Assembly source must define the label ${name}:`));
+        problems.push(wholeLine(source, 1, 'error', 'asm-entry', tr('js.language.asm_must_define_label', 'Assembly source must define the label {name}:', { name })));
         continue;
       }
       if (!new RegExp(`^\\s*\\.glob(?:a)?l\\s+${escaped}\\s*(?:[#;]|$)`, 'mi').test(bare.text)) {
         const offset = labelAt.index + labelAt[0].indexOf(name);
         problems.push(problem(source, bare, offset, offset + name.length, 'error', 'asm-entry',
-          `Assembly source must make ${name} visible with .globl ${name}`));
+          tr('js.language.asm_must_make_visible', 'Assembly source must make {name} visible with .globl {name}', { name })));
       }
     }
     obsoleteChecks(source, bare, problems);
@@ -449,8 +453,7 @@
     for (const match of bare.text.matchAll(/\b(?:prg32_buzzer_\w*|prg32_note_t|PRG32_PIN_BUZZER)\b/g)) {
       const entry = idx().obsolete.get(match[0]);
       problems.push(problem(source, bare, match.index, match.index + match[0].length, 'error', 'obsolete-buzzer',
-        `${match[0]} belongs to the old PRG32 buzzer, which is no longer supported. Use ` +
-        `${entry ? entry.instead : 'the PRG32 audio engine (prg32_audio_*)'}.`));
+        tr('js.language.obsolete_buzzer_use', '{name} belongs to the old PRG32 buzzer, which is no longer supported. Use {instead}.', { name: match[0], instead: entry ? entry.instead : tr('js.language.the_prg32_audio_engine_prg32_audio', 'the PRG32 audio engine (prg32_audio_*)') })));
     }
   }
 
@@ -464,7 +467,7 @@
     const name = mnemonic[0];
     if (!idx().instructions.has(name.toLowerCase()) && !symbols.names.has(name)) {
       out.push(problem(source, bare, start, start + name.length, 'error', 'asm-instruction',
-        `${name} is not an RV32IMC instruction`));
+        tr('js.language.not_an_rv32imc_instruction', '{name} is not an RV32IMC instruction', { name })));
       return out;
     }
     const operands = text.slice(name.length);
@@ -485,7 +488,146 @@
 
   function diagnostics(language, source, options) {
     const title = (options || {}).title;
+    if (language === 'python') return pythonDiagnostics(source);
     return language === 'asm' ? asmDiagnostics(source, title) : cDiagnostics(source, title);
+  }
+
+  // --- PRG32 Python (ADR-0026) ---
+  // Quick checks while typing. The server's compiler (python_project.py) decides what is valid:
+  // these checks only point at the most common problems earlier, never accept more.
+
+  // game.py with the inside of strings and comments blanked out, so offsets stay the same.
+  function pythonBare(source) {
+    let out = '';
+    let i = 0;
+    let quote = '';
+    while (i < source.length) {
+      const ch = source[i];
+      if (quote) {
+        if (ch === '\\' && i + 1 < source.length) { out += '  '; i += 2; continue; }
+        if (source.startsWith(quote, i)) { out += quote; i += quote.length; quote = ''; continue; }
+        out += ch === '\n' ? '\n' : ' ';
+        i += 1;
+      } else if (ch === '#') {
+        while (i < source.length && source[i] !== '\n') { out += ' '; i += 1; }
+      } else if (ch === '"' || ch === "'") {
+        quote = source.startsWith(ch.repeat(3), i) ? ch.repeat(3) : ch;
+        out += quote;
+        i += quote.length;
+      } else {
+        out += ch;
+        i += 1;
+      }
+    }
+    return out;
+  }
+
+  function pythonNames() {
+    const py = INDEX.python;
+    return { functions: new Map(py.functions.map(fn => [fn.name, fn])), constants: new Set(py.constants), py };
+  }
+
+  function pythonDiagnostics(source) {
+    if (typeof source !== 'string' || !source.trim()) {
+      return [{ severity: 'error', code: 'empty', message: tr('js.language.game_py_is_empty', 'game.py is empty'), explanation: EXPLAIN.empty,
+        line: 1, column: 1, endLine: 1, endColumn: 2 }];
+    }
+    const problems = [];
+    const limits = INDEX.python.limits;
+    if (new TextEncoder().encode(source).length > limits.source_bytes || source.split('\n').length > limits.lines
+        || source.includes('\0')) {
+      problems.push(wholeLine(source, 1, 'error', 'python-too-big', tr('js.language.game_py_is_too_big', 'game.py is too big')));
+    }
+    const bare = pythonBare(source);
+    const names = pythonNames();
+    const add = (re, code, message) => {
+      for (const match of bare.matchAll(re)) {
+        const start = match.index + (match[1] ? match[0].indexOf(match[1]) : 0);
+        const word = match[1] || match[0];
+        problems.push(problemAt(source, start, start + word.length, 'error', code,
+          typeof message === 'function' ? message(word) : message));
+      }
+    };
+    add(/^[ \t]*(while)\b/gm, 'python-loop', tr('js.language.python_while', '\'while\' is not part of PRG32 Python: use for ... in range(...)'));
+    add(/^[ \t]*(class|try|except|finally|with|async|nonlocal|del|raise|assert|match)\b/gm, 'python-unsupported',
+      word => tr('js.language.python_word_unsupported', '\'{word}\' is not part of PRG32 Python', { word }));
+    add(/\b(lambda|yield|await)\b/g, 'python-unsupported', word => tr('js.language.python_word_unsupported', "'{word}' is not part of PRG32 Python", { word }));
+    add(/^[ \t]*(import[ \t]+(?!prg32[ \t]*$)[^\n]*)/gm, 'python-import', tr('js.language.prg32_python_imports_only_one_module', 'PRG32 Python imports only one module: import prg32'));
+    add(/^[ \t]*(from[ \t]+\w[^\n]*)/gm, 'python-import', tr('js.language.python_from_import', 'Write \'import prg32\', then prg32.name(...)'));
+    add(/\b(eval|exec|open|compile|__import__|getattr|setattr|delattr|globals|locals|vars|input|breakpoint)[ \t]*\(/g,
+      'python-unsafe', word => tr('js.language.python_call_unsupported', '{word}(...) is not part of PRG32 Python', { word }));
+    add(/\b(print)[ \t]*\(/g, 'python-print', tr('js.language.the_prg32_has_no_console_use', 'The PRG32 has no console: use prg32.text or prg32.number'));
+    add(/(?<![/])\/(?![/])/g, 'python-division', tr('js.language.python_slash', '\'/\' makes a fraction: use // for whole numbers'));
+    add(/\*\*/g, 'python-power', tr('js.language.python_power', '\'**\' is not part of PRG32 Python yet'));
+    add(/(?<![\w.])(\d+\.\d*|\.\d+)(?![\w.])/g, 'python-float', tr('js.language.prg32_numbers_are_whole_numbers', 'PRG32 numbers are whole numbers'));
+    add(/\bprg32\.([A-Za-z_]\w*)/g, 'python-unknown-prg32', word => (names.functions.has(word) || names.constants.has(word))
+      ? null : tr('js.language.prg32_has_no', 'prg32 has no {word}', { word }));
+    if (/\bprg32\./.test(bare) && !/^import[ \t]+prg32[ \t]*$/m.test(bare)) {
+      const at = bare.search(/\bprg32\./);
+      problems.push(problemAt(source, at, at + 5, 'error', 'python-import-missing', tr('js.language.write_import_prg32_at_the_top_2', 'Write import prg32 at the top first')));
+    }
+    for (const phase of INDEX.python.lifecycle) {
+      if (!new RegExp(`^def[ \\t]+${phase}[ \\t]*\\(`, 'm').test(bare)) {
+        problems.push(wholeLine(source, 1, 'error', 'python-lifecycle', tr('js.language.python_define_lifecycle', 'Define the function  def {phase}() -> None:', { phase })));
+      }
+    }
+    return sortProblems(problems.filter(problem => problem.message));
+  }
+
+  function pythonDoc(fn) {
+    const kinds = { statement: tr('js.language.does_something', 'does something'), condition: tr('js.language.a_test_for_an_if', 'a test for an if'), value: tr('js.language.gives_a_whole_number', 'gives a whole number') };
+    return ['```python', fn.signature, '```', fn.help, '', `prg32 module, PRG32 Python ${INDEX.python.version}: ` +
+      kinds[fn.kind] + '.'].join('\n');
+  }
+
+  function pythonCompletions(source, position) {
+    const before = lineText(source, position.line).slice(0, position.column - 1);
+    const names = pythonNames();
+    const member = before.match(/\bprg32\.([A-Za-z_]\w*)?$/);
+    if (member) {
+      const typed = member[1] || '';
+      const items = names.py.functions.filter(fn => startsWith(fn.name, typed)).map(fn => ({
+        label: fn.name, kind: 'function', detail: fn.signature, documentation: pythonDoc(fn),
+        insertText: fn.params.length ? `${fn.name}(${fn.params.map((p, i) => '${' + (i + 1) + ':' + p + '}').join(', ')})`
+          : `${fn.name}()`, snippet: true }));
+      for (const name of names.py.constants.filter(c => startsWith(c, typed))) {
+        items.push({ label: name, kind: 'constant', detail: `prg32.${name}`, insertText: name });
+      }
+      return result(position, typed, items);
+    }
+    const typed = (before.match(/[A-Za-z_]\w*$/) || [''])[0];
+    const words = new Map();
+    const bare = pythonBare(source);
+    for (const match of bare.matchAll(/^[ \t]*def[ \t]+([A-Za-z_]\w*)/gm)) words.set(match[1], 'function');
+    for (const match of bare.matchAll(/^[ \t]*([A-Za-z_]\w*)[ \t]*:[ \t]*(?:int|bool|list)/gm)) words.set(match[1], 'variable');
+    const items = [...words].filter(([name]) => startsWith(name, typed) && name !== typed)
+      .map(([name, kind]) => ({ label: name, kind, insertText: name }));
+    for (const word of ['prg32', ...names.py.builtins, ...names.py.types, 'list[int]', 'def', 'if', 'elif', 'else',
+      'for', 'in', 'range', 'return', 'global', 'pass', 'and', 'or', 'not', 'True', 'False', 'None', 'import']) {
+      if (startsWith(word, typed) && word !== typed) items.push({ label: word, kind: word === 'prg32' ? 'module' : 'keyword', insertText: word });
+    }
+    return result(position, typed, items);
+  }
+
+  function pythonCallAt(source, position) {
+    const lines = source.split('\n');
+    const upto = pythonBare(lines.slice(0, position.line - 1).concat([(lines[position.line - 1] || '')
+      .slice(0, position.column - 1)]).join('\n'));
+    let depth = 0;
+    let commas = 0;
+    for (let i = upto.length - 1; i >= 0; i--) {
+      const ch = upto[i];
+      if (ch === ')' || ch === ']') depth += 1;
+      else if ((ch === '(' || ch === '[') && depth > 0) depth -= 1;
+      else if (ch === ',' && depth === 0) commas += 1;
+      else if (ch === '\n' && depth === 0) return null;
+      else if (ch === '(' && depth === 0) {
+        const name = (upto.slice(0, i).match(/\bprg32\.([A-Za-z_]\w*)\s*$/) || [])[1];
+        const fn = name && pythonNames().functions.get(name);
+        return fn ? { fn, commas } : null;
+      }
+    }
+    return null;
   }
 
   // --- words and contexts ---
@@ -534,6 +676,7 @@
   // --- completion ---
 
   function completions(language, source, position) {
+    if (language === 'python') return pythonCompletions(source, position);
     return language === 'asm' ? asmCompletions(source, position) : cCompletions(source, position);
   }
 
@@ -544,7 +687,7 @@
       const close = include[1] === '<' ? '>' : '"';
       return result(position, include[2], INDEX.c.headers.filter(h => startsWith(h, include[2])).map(h => ({
         label: h, kind: 'file', detail: 'header', insertText: h + close,
-        documentation: h.startsWith('prg32') ? 'PRG32 SDK header' : 'freestanding C header' })));
+        documentation: h.startsWith('prg32') ? tr('js.language.prg32_sdk_header', 'PRG32 SDK header') : tr('js.language.freestanding_c_header', 'freestanding C header') })));
     }
     const hash = before.match(/^\s*#\s*(\w*)$/);
     if (hash) {
@@ -568,7 +711,7 @@
     }
     for (const type of INDEX.c.types) {
       if (startsWith(type.name, typed)) {
-        items.push({ label: type.name, kind: 'struct', detail: 'PRG32 type', documentation: '', insertText: type.name });
+        items.push({ label: type.name, kind: 'struct', detail: tr('js.language.prg32_type', 'PRG32 type'), documentation: '', insertText: type.name });
       }
     }
     return result(position, typed, items);
@@ -622,7 +765,7 @@
     }
     for (const label of symbols.labels.keys()) {
       if (startsWith(label, typed) && !/^\d+$/.test(label)) {
-        items.push({ label, kind: 'reference', detail: 'label in this file', insertText: label });
+        items.push({ label, kind: 'reference', detail: tr('js.language.label_in_this_file', 'label in this file'), insertText: label });
       }
     }
     if (!['call', 'tail', 'j'].includes(mnemonic)) {
@@ -644,16 +787,16 @@
   }
 
   function registerDoc(reg) {
-    const saved = reg.saved_by === 'callee' ? 'kept across calls (save it before you change it)'
-      : reg.saved_by === 'caller' ? 'may change in any call' : 'special';
+    const saved = reg.saved_by === 'callee' ? tr('js.language.kept_across_calls_save_it_before', 'kept across calls (save it before you change it)')
+      : reg.saved_by === 'caller' ? tr('js.language.may_change_in_any_call', 'may change in any call') : 'special';
     return `**${reg.abi}** (${reg.name}): ${reg.role}. ${saved}.`;
   }
 
   function asmCallDoc(fn) {
     const args = fn.params.map((p, i) => `a${i} = ${p.name} (${p.type})`).join(', ');
     const lines = ['```c', fn.signature + ';', '```', fn.summary, ''];
-    lines.push(args ? `Before \`call ${fn.name}\`: ${args}.` : `No arguments: just \`call ${fn.name}\`.`);
-    if (fn.returns !== 'void') lines.push(`The result (${fn.returns}) is in a0 afterwards.`);
+    lines.push(args ? tr('js.language.asm_call_before', 'Before `call {name}`: {args}.', { name: fn.name, args }) : tr('js.language.asm_call_no_args', 'No arguments: just `call {name}`.', { name: fn.name }));
+    if (fn.returns !== 'void') lines.push(tr('js.language.asm_call_result', 'The result ({type}) is in a0 afterwards.', { type: fn.returns }));
     lines.push('', INDEX.asm.calling_convention);
     return lines.join('\n');
   }
@@ -661,6 +804,15 @@
   // --- hover ---
 
   function hover(language, source, position) {
+    if (language === 'python') {
+      const word = wordAt(source, position, /\bprg32\.[A-Za-z_]\w*/g);
+      if (!word) return null;
+      const name = word.word.slice(6);
+      const names = pythonNames();
+      if (names.functions.has(name)) return { range: word, contents: pythonDoc(names.functions.get(name)) };
+      if (names.constants.has(name)) return { range: word, contents: '```python\nprg32.' + name + '\n```\nA prg32 constant.' };
+      return null;
+    }
     if (language === 'asm') {
       const word = wordAt(source, position, /[A-Za-z_.$][\w.$]*/g);
       if (!word) return null;
@@ -704,17 +856,23 @@
   }
 
   function obsoleteDoc(entry) {
-    return '**Obsolete: the old buzzer.** Use ' + entry.instead + '.\n\n' + EXPLAIN['obsolete-buzzer'];
+    return tr('js.language.obsolete_the_old_buzzer_use', '**Obsolete: the old buzzer.** Use {instead}.', { instead: entry.instead }) + '\n\n' + EXPLAIN['obsolete-buzzer'];
   }
 
   function residentDoc(fn) {
-    return '```c\n' + fn.signature + ';\n```\n' + 'Resident firmware only: ' + EXPLAIN['c-resident-only'];
+    return '```c\n' + fn.signature + ';\n```\n' + tr('js.language.resident_firmware_only', 'Resident firmware only: {only}', { only: EXPLAIN['c-resident-only'] });
   }
 
   // --- signature help (C) ---
 
   function signatureHelp(language, source, position) {
     if (language === 'asm') return null;
+    if (language === 'python') {
+      const call = pythonCallAt(source, position);
+      if (!call) return null;
+      return { label: call.fn.signature, documentation: call.fn.help, parameters: call.fn.params,
+        activeParameter: Math.min(call.commas, Math.max(0, call.fn.params.length - 1)) };
+    }
     const lines = source.split('\n');
     const upto = lines.slice(0, position.line - 1).concat([(lines[position.line - 1] || '')
       .slice(0, position.column - 1)]).join('\n');
@@ -741,6 +899,14 @@
   // --- go to declaration ---
 
   function definition(language, source, position) {
+    if (language === 'python') {
+      const word = wordAt(source, position, /[A-Za-z_]\w*/g);
+      if (!word) return null;
+      const found = new RegExp(`^([ \\t]*def[ \\t]+)${word.word}[ \\t]*\\(`, 'm').exec(pythonBare(source));
+      if (!found) return null;
+      const at = positionAt(source, found.index + found[1].length);
+      return { target: 'self', line: at.line, column: at.column };
+    }
     const word = wordAt(source, position, language === 'asm' ? /[A-Za-z_.$][\w.$]*/g : /[A-Za-z_]\w*/g);
     if (!word) return null;
     const t = idx();
@@ -822,8 +988,8 @@
         const at = new RegExp(`\\b${name}\\b`).exec(source);
         const pos = at ? positionAt(source, at.index) : { line: 0, column: 0 };
         add({ severity: 'error', code: resident ? 'c-resident-only' : 'compiler',
-          message: resident ? `${name} belongs to the resident PRG32 firmware: a portable cartridge cannot call it`
-            : `undefined reference to ${name}`,
+          message: resident ? tr('js.language.resident_cannot_call', '{name} belongs to the resident PRG32 firmware: a portable cartridge cannot call it', { name })
+            : tr('js.language.undefined_reference', 'undefined reference to {name}', { name }),
           explanation: resident ? EXPLAIN['c-resident-only'] : COMPILER_HINTS[4][1](),
           line: pos.line, column: pos.column, endLine: pos.line, endColumn: at ? pos.column + name.length : 0 });
         continue;

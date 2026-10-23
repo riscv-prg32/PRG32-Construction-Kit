@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}IDE - {{ site.name }}{% endblock %}
+{% block title %}{{ t("ide.ide", name=(site.name)) }}{% endblock %}
 {% block body_class %}ide-page{% endblock %}
 {% block content %}
 {#
@@ -12,89 +12,89 @@
   Shift+F10 runs. Everything is reachable without a mouse.
 #}
 <input type="hidden" id="projectId" value="{{ project_id }}">
-<a class="visually-hidden-focusable" href="#ideEditorArea">Skip to the editor</a>
+<a class="visually-hidden-focusable" href="#ideEditorArea">{{ t("ide.skip_to_the_editor") }}</a>
 <div class="ide" id="ide" data-tree="open" data-sim="open" data-panel="open">
-  <header class="ide-toolbar" role="toolbar" aria-label="Project actions" data-region="toolbar" tabindex="-1">
+  <header class="ide-toolbar" role="toolbar" aria-label="{{ t('ide.project_actions') }}" data-region="toolbar" tabindex="-1">
     <button class="btn btn-outline-secondary btn-sm d-lg-none" id="ideTreeToggle" type="button"
             aria-controls="ideTree" aria-expanded="false" aria-keyshortcuts="Alt+0">
-      <i class="bi bi-list" aria-hidden="true"></i> Files</button>
-    <h1 class="h6 mb-0 text-truncate" id="ideTitle">Loading…</h1>
+      <i class="bi bi-list" aria-hidden="true"></i> {{ t("ide.files") }}</button>
+    <h1 class="h6 mb-0 text-truncate" id="ideTitle">{{ t("common.loading") }}</h1>
     {# The project's type is chosen when it is made and never changes (ADR-0024); Blocks can be
        converted to C or assembly once, from the Project menu. #}
-    <span class="badge rounded-pill text-bg-secondary" id="ideType" title="How this project is written">Blocks</span>
+    <span class="badge rounded-pill text-bg-secondary" id="ideType" title="{{ t('ide.how_this_project_is_written') }}">{{ t("common.blocks") }}</span>
     <div class="dropdown">
       <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" id="ideProjectMenu"
-              data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-folder2" aria-hidden="true"></i> Project</button>
+              data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-folder2" aria-hidden="true"></i> {{ t("ide.project") }}</button>
       <ul class="dropdown-menu" aria-labelledby="ideProjectMenu" id="ideProjectItems">
-        <li><button class="dropdown-item" type="button" id="ideProperties"><i class="bi bi-sliders"></i> Properties…</button></li>
-        <li><button class="dropdown-item" type="button" id="ideHistory"><i class="bi bi-clock-history"></i> History…</button></li>
+        <li><button class="dropdown-item" type="button" id="ideProperties"><i class="bi bi-sliders"></i> {{ t("ide.properties") }}</button></li>
+        <li><button class="dropdown-item" type="button" id="ideHistory"><i class="bi bi-clock-history"></i> {{ t("ide.history") }}</button></li>
         <li><hr class="dropdown-divider"></li>
-        <li><button class="dropdown-item" type="button" id="ideExportArchive"><i class="bi bi-file-zip"></i> Export project (.zip)</button></li>
-        <li><button class="dropdown-item" type="button" id="ideExportJson"><i class="bi bi-filetype-json"></i> Export as JSON</button></li>
-        <li><button class="dropdown-item" type="button" id="ideCopy"><i class="bi bi-files"></i> Make a copy</button></li>
+        <li><button class="dropdown-item" type="button" id="ideExportArchive"><i class="bi bi-file-zip"></i> {{ t("ide.export_project_zip") }}</button></li>
+        <li><button class="dropdown-item" type="button" id="ideExportJson"><i class="bi bi-filetype-json"></i> {{ t("ide.export_as_json") }}</button></li>
+        <li><button class="dropdown-item" type="button" id="ideCopy"><i class="bi bi-files"></i> {{ t("ide.make_a_copy") }}</button></li>
         <li class="ide-blocks-only"><hr class="dropdown-divider"></li>
-        <li class="ide-blocks-only"><button class="dropdown-item" type="button" data-convert="c"><i class="bi bi-braces"></i> Convert to C…</button></li>
-        <li class="ide-blocks-only"><button class="dropdown-item" type="button" data-convert="asm"><i class="bi bi-cpu"></i> Convert to Assembly…</button></li>
+        <li class="ide-blocks-only"><button class="dropdown-item" type="button" data-convert="c"><i class="bi bi-braces"></i> {{ t("ide.convert_to_c") }}</button></li>
+        <li class="ide-blocks-only"><button class="dropdown-item" type="button" data-convert="asm"><i class="bi bi-cpu"></i> {{ t("ide.convert_to_assembly") }}</button></li>
       </ul>
     </div>
     <button class="btn btn-outline-secondary btn-sm" id="ideSave" type="button" aria-keyshortcuts="Control+S">
-      <i class="bi bi-save" aria-hidden="true"></i> Save</button>
+      <i class="bi bi-save" aria-hidden="true"></i> {{ t("common.save") }}</button>
     <button class="btn btn-success btn-sm" id="ideRun" type="button" aria-keyshortcuts="Shift+F10"
-            title="Build the game and run it in the simulator (Shift+F10)">
-      <i class="bi bi-play-fill" aria-hidden="true"></i> Run</button>
+            title="{{ t('ide.build_the_game_and_run_it') }}">
+      <i class="bi bi-play-fill" aria-hidden="true"></i> {{ t("ide.run") }}</button>
     <button class="btn btn-primary btn-sm" id="ideGenerate" type="button" aria-keyshortcuts="Control+Shift+G">
-      <i class="bi bi-code-slash" aria-hidden="true"></i> Generate</button>
+      <i class="bi bi-code-slash" aria-hidden="true"></i> {{ t("ide.generate") }}</button>
     <button class="btn btn-dark btn-sm" id="ideCompile" type="button" aria-keyshortcuts="Control+Shift+B"
-            title="Make the cartridges to download or publish (needs an account)">
-      <i class="bi bi-cpu" aria-hidden="true"></i> Compile</button>
+            title="{{ t('ide.make_the_cartridges_to_download_or') }}">
+      <i class="bi bi-cpu" aria-hidden="true"></i> {{ t("ide.compile") }}</button>
     <button class="btn btn-outline-primary btn-sm" id="idePalette" type="button" aria-keyshortcuts="Control+Shift+P F1"
             aria-haspopup="dialog">
-      <i class="bi bi-command" aria-hidden="true"></i> Commands</button>
-    <div class="btn-group btn-group-sm ms-auto d-none d-lg-inline-flex" role="group" aria-label="Show or hide panes">
+      <i class="bi bi-command" aria-hidden="true"></i> {{ t("ide.commands") }}</button>
+    <div class="btn-group btn-group-sm ms-auto d-none d-lg-inline-flex" role="group" aria-label="{{ t('ide.show_or_hide_panes') }}">
       <button class="btn btn-outline-secondary ide-pane-toggle" type="button" data-pane="tree" aria-pressed="true"
-              title="Project files (Alt+1)"><i class="bi bi-layout-sidebar" aria-hidden="true"></i><span class="visually-hidden">Project files</span></button>
+              title="{{ t('ide.project_files_alt_1') }}"><i class="bi bi-layout-sidebar" aria-hidden="true"></i><span class="visually-hidden">{{ t("ide.project_files") }}</span></button>
       <button class="btn btn-outline-secondary ide-pane-toggle" type="button" data-pane="panel" aria-pressed="true"
-              title="Tool window (Alt+4)"><i class="bi bi-layout-split" aria-hidden="true"></i><span class="visually-hidden">Tool window</span></button>
+              title="{{ t('ide.tool_window_alt_4') }}"><i class="bi bi-layout-split" aria-hidden="true"></i><span class="visually-hidden">{{ t("ide.tool_window") }}</span></button>
       <button class="btn btn-outline-secondary ide-pane-toggle" type="button" data-pane="sim" aria-pressed="true"
-              title="Simulator (Alt+9)"><i class="bi bi-layout-sidebar-reverse" aria-hidden="true"></i><span class="visually-hidden">Simulator</span></button>
+              title="{{ t('ide.simulator_alt_9') }}"><i class="bi bi-layout-sidebar-reverse" aria-hidden="true"></i><span class="visually-hidden">{{ t("ide.simulator") }}</span></button>
     </div>
   </header>
 
-  <nav class="ide-tree" id="ideTree" aria-label="Project files" data-region="tree">
-    <ul role="tree" id="ideTreeList" aria-label="Project files"></ul>
+  <nav class="ide-tree" id="ideTree" aria-label="{{ t('ide.project_files') }}" data-region="tree">
+    <ul role="tree" id="ideTreeList" aria-label="{{ t('ide.project_files') }}"></ul>
   </nav>
-  <div class="ide-splitter ide-splitter-tree" role="separator" aria-orientation="vertical" aria-label="Resize the project files"
+  <div class="ide-splitter ide-splitter-tree" role="separator" aria-orientation="vertical" aria-label="{{ t('ide.resize_the_project_files') }}"
        aria-controls="ideTree" tabindex="0" data-split="tree"></div>
 
   <main class="ide-editor" id="ideEditorArea" data-region="editor" tabindex="-1">
     <div class="alert alert-info rounded-0 border-0 border-bottom py-2 mb-0 small d-flex flex-wrap align-items-center gap-2" id="ideShared" hidden>
-      <span><i class="bi bi-people" aria-hidden="true"></i> This is a shared classroom project: you can read it and run it, but not change it.</span>
-      <button class="btn btn-primary btn-sm" type="button" id="ideSharedCopy">Make my copy</button>
+      <span><i class="bi bi-people" aria-hidden="true"></i> {{ t("ide.this_is_a_shared_classroom_project") }}</span>
+      <button class="btn btn-primary btn-sm" type="button" id="ideSharedCopy">{{ t("ide.make_my_copy") }}</button>
     </div>
-    <div role="tablist" class="ide-tabs" id="ideTabs" aria-label="Open files"></div>
+    <div role="tablist" class="ide-tabs" id="ideTabs" aria-label="{{ t('ide.open_files') }}"></div>
     <div class="ide-tab-panels" id="ideTabPanels"></div>
   </main>
-  <div class="ide-splitter ide-splitter-panel" role="separator" aria-orientation="horizontal" aria-label="Resize the tool window"
+  <div class="ide-splitter ide-splitter-panel" role="separator" aria-orientation="horizontal" aria-label="{{ t('ide.resize_the_tool_window') }}"
        aria-controls="idePanel" tabindex="0" data-split="panel"></div>
 
-  <section class="ide-panel" id="idePanel" aria-label="Tool window" data-region="panel">
-    <div role="tablist" class="ide-tabs ide-panel-tabs" id="idePanelTabs" aria-label="Tool window">
-      <button role="tab" id="panelTab-problems" aria-controls="panel-problems" aria-selected="true" tabindex="0"><i class="bi bi-exclamation-octagon" aria-hidden="true"></i> Problems <span class="badge text-bg-secondary" id="problemCount">0</span></button>
-      <button role="tab" id="panelTab-build" aria-controls="panel-build" aria-selected="false" tabindex="-1"><i class="bi bi-hammer" aria-hidden="true"></i> Build</button>
-      <button role="tab" id="panelTab-console" aria-controls="panel-console" aria-selected="false" tabindex="-1"><i class="bi bi-terminal" aria-hidden="true"></i> Console</button>
-      <button role="tab" id="panelTab-debug" aria-controls="panel-debug" aria-selected="false" tabindex="-1"><i class="bi bi-bug" aria-hidden="true"></i> Debug</button>
-      <button role="tab" id="panelTab-git" aria-controls="panel-git" aria-selected="false" tabindex="-1"><i class="bi bi-git" aria-hidden="true"></i> Git</button>
+  <section class="ide-panel" id="idePanel" aria-label="{{ t('ide.tool_window') }}" data-region="panel">
+    <div role="tablist" class="ide-tabs ide-panel-tabs" id="idePanelTabs" aria-label="{{ t('ide.tool_window') }}">
+      <button role="tab" id="panelTab-problems" aria-controls="panel-problems" aria-selected="true" tabindex="0"><i class="bi bi-exclamation-octagon" aria-hidden="true"></i> {{ t("ide.problems") }} <span class="badge text-bg-secondary" id="problemCount">0</span></button>
+      <button role="tab" id="panelTab-build" aria-controls="panel-build" aria-selected="false" tabindex="-1"><i class="bi bi-hammer" aria-hidden="true"></i> {{ t("ide.build") }}</button>
+      <button role="tab" id="panelTab-console" aria-controls="panel-console" aria-selected="false" tabindex="-1"><i class="bi bi-terminal" aria-hidden="true"></i> {{ t("ide.console") }}</button>
+      <button role="tab" id="panelTab-debug" aria-controls="panel-debug" aria-selected="false" tabindex="-1"><i class="bi bi-bug" aria-hidden="true"></i> {{ t("ide.debug") }}</button>
+      <button role="tab" id="panelTab-git" aria-controls="panel-git" aria-selected="false" tabindex="-1"><i class="bi bi-git" aria-hidden="true"></i> {{ t("ide.git") }}</button>
     </div>
     <div role="tabpanel" id="panel-problems" aria-labelledby="panelTab-problems" tabindex="0">
-      <ul class="ide-problems" id="ideProblems" aria-label="Problems"><li class="text-muted">No problems.</li></ul>
+      <ul class="ide-problems" id="ideProblems" aria-label="{{ t('ide.problems') }}"><li class="text-muted">{{ t("ide.no_problems") }}</li></ul>
     </div>
     <div role="tabpanel" id="panel-build" aria-labelledby="panelTab-build" tabindex="0" hidden>
       <div class="d-flex flex-wrap gap-2 align-items-center mb-2">
-        <span class="ide-blocks-only small d-flex gap-2 align-items-center">
-          <label for="ideBuildFrom">Compile Blocks from</label>
+        <span class="ide-generated-only small d-flex gap-2 align-items-center">
+          <label for="ideBuildFrom">{{ t("ide.compile_from") }}</label>
           <select class="form-select form-select-sm w-auto" id="ideBuildFrom">
-            <option value="c">the generated C</option><option value="asm">the generated assembly</option>
-            <option value="both">C (and put the assembly in the bundle too)</option>
+            <option value="c">{{ t("ide.the_generated_c") }}</option><option value="asm">{{ t("ide.the_generated_assembly") }}</option>
+            <option value="both">{{ t("ide.c_and_put_the_assembly_in") }}</option>
           </select>
         </span>
         <div id="ideCartridges" class="d-flex flex-wrap gap-2"></div>
@@ -103,55 +103,55 @@
     </div>
     <div role="tabpanel" id="panel-console" aria-labelledby="panelTab-console" tabindex="0" hidden>
       {# Read-only: what the kit did and what the game reported. There is no shell on the server. #}
-      <ol class="ide-console" id="ideConsole" aria-label="Console" aria-live="polite"></ol>
+      <ol class="ide-console" id="ideConsole" aria-label="{{ t('ide.console') }}" aria-live="polite"></ol>
     </div>
     <div role="tabpanel" id="panel-git" aria-labelledby="panelTab-git" tabindex="0" hidden>
       {# GitHub as the project's remote (ADR-0025); filled by ide/git.js. #}
-      <div id="ideGit" aria-live="polite"><p class="small text-muted mb-0">Loading…</p></div>
+      <div id="ideGit" aria-live="polite"><p class="small text-muted mb-0">{{ t("common.loading") }}</p></div>
     </div>
     <div role="tabpanel" id="panel-debug" aria-labelledby="panelTab-debug" tabindex="0" hidden>
       {% include "_debugger.html" %}
     </div>
   </section>
-  <div class="ide-splitter ide-splitter-sim" role="separator" aria-orientation="vertical" aria-label="Resize the simulator"
+  <div class="ide-splitter ide-splitter-sim" role="separator" aria-orientation="vertical" aria-label="{{ t('ide.resize_the_simulator') }}"
        aria-controls="ideSim" tabindex="0" data-split="sim"></div>
 
-  <aside class="ide-sim" id="ideSim" aria-label="Simulator" data-region="simulator" tabindex="-1">
-    <div class="ide-sim-toolbar" role="toolbar" aria-label="Simulator controls">
-      <button class="btn btn-success btn-sm" id="playPause" type="button" disabled><i class="bi bi-play-fill"></i> Play</button>
-      <button class="btn btn-warning btn-sm" id="stepFrame" type="button" disabled title="Run exactly one frame (update + draw)"><i class="bi bi-skip-forward"></i> Frame</button>
-      <button class="btn btn-outline-secondary btn-sm" id="ideReset" type="button" disabled title="Start the game again from the beginning"><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i><span class="visually-hidden">Restart</span></button>
-      <label class="visually-hidden" for="speed">Speed</label>
-      <select class="form-select form-select-sm w-auto" id="speed" title="Frames per real second; the cartridge always sees 33 ms per frame">
+  <aside class="ide-sim" id="ideSim" aria-label="{{ t('ide.simulator') }}" data-region="simulator" tabindex="-1">
+    <div class="ide-sim-toolbar" role="toolbar" aria-label="{{ t('ide.simulator_controls') }}">
+      <button class="btn btn-success btn-sm" id="playPause" type="button" disabled><i class="bi bi-play-fill"></i> {{ t("common.play") }}</button>
+      <button class="btn btn-warning btn-sm" id="stepFrame" type="button" disabled title="{{ t('common.run_exactly_one_frame_update_draw') }}"><i class="bi bi-skip-forward"></i> {{ t("common.frame") }}</button>
+      <button class="btn btn-outline-secondary btn-sm" id="ideReset" type="button" disabled title="{{ t('ide.start_the_game_again_from_the') }}"><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i><span class="visually-hidden">{{ t("ide.restart") }}</span></button>
+      <label class="visually-hidden" for="speed">{{ t("common.speed") }}</label>
+      <select class="form-select form-select-sm w-auto" id="speed" title="{{ t('common.frames_per_real_second_the_cartridge') }}">
         <option value="0.1">0.1×</option><option value="0.25">0.25×</option><option value="0.5">0.5×</option>
         <option value="1" selected>1×</option><option value="2">2×</option><option value="4">4×</option>
       </select>
-      <button class="btn btn-outline-secondary btn-sm" id="mute" type="button" title="Sound on/off"><i class="bi bi-volume-up"></i></button>
+      <button class="btn btn-outline-secondary btn-sm" id="mute" type="button" title="{{ t('common.sound_on_off') }}"><i class="bi bi-volume-up"></i></button>
     </div>
     <div class="ide-sim-screen">
-      <canvas id="playerScreen" class="prg32-screen" tabindex="0" aria-label="PRG32 screen, 320 by 200 pixels. Focus it to use the game keys."></canvas>
+      <canvas id="playerScreen" class="prg32-screen" tabindex="0" aria-label="{{ t('common.prg32_screen_320_by_200_pixels') }}"></canvas>
       {# Only when this server cannot compile: Blocks still run in the JavaScript preview. #}
       <canvas id="gameCanvas" class="prg32-screen" width="320" height="200" tabindex="0" hidden
-              aria-label="Blocks preview screen. Focus it to use the game keys."></canvas>
+              aria-label="{{ t('ide.blocks_preview_screen_focus_it_to') }}"></canvas>
     </div>
-    <div class="small text-truncate px-2" id="cartridgeName">Press <strong>Run</strong> to play your game here.</div>
+    <div class="small text-truncate px-2" id="cartridgeName">{{ t("ide.press") }} <strong>{{ t("ide.run") }}</strong> {{ t("ide.to_play_your_game_here") }}</div>
     <div class="small px-2 ide-sim-status" id="playerStatus" aria-live="polite"></div>
     <div class="debug-strip small px-2" id="debugState" hidden></div>
-    <div class="ide-gamepad" id="touchButtons" aria-label="On-screen buttons">
+    <div class="ide-gamepad" id="touchButtons" aria-label="{{ t('common.on_screen_buttons') }}">
       <div class="ide-dpad">
-        <button class="btn btn-outline-secondary btn-sm touch-button" type="button" data-button="UP" data-game-button="UP" aria-label="Up"><i class="bi bi-caret-up-fill" aria-hidden="true"></i></button>
-        <button class="btn btn-outline-secondary btn-sm touch-button" type="button" data-button="LEFT" data-game-button="LEFT" aria-label="Left"><i class="bi bi-caret-left-fill" aria-hidden="true"></i></button>
-        <button class="btn btn-outline-secondary btn-sm touch-button" type="button" data-button="RIGHT" data-game-button="RIGHT" aria-label="Right"><i class="bi bi-caret-right-fill" aria-hidden="true"></i></button>
-        <button class="btn btn-outline-secondary btn-sm touch-button" type="button" data-button="DOWN" data-game-button="DOWN" aria-label="Down"><i class="bi bi-caret-down-fill" aria-hidden="true"></i></button>
+        <button class="btn btn-outline-secondary btn-sm touch-button" type="button" data-button="UP" data-game-button="UP" aria-label="{{ t('ide.up') }}"><i class="bi bi-caret-up-fill" aria-hidden="true"></i></button>
+        <button class="btn btn-outline-secondary btn-sm touch-button" type="button" data-button="LEFT" data-game-button="LEFT" aria-label="{{ t('ide.left') }}"><i class="bi bi-caret-left-fill" aria-hidden="true"></i></button>
+        <button class="btn btn-outline-secondary btn-sm touch-button" type="button" data-button="RIGHT" data-game-button="RIGHT" aria-label="{{ t('ide.right') }}"><i class="bi bi-caret-right-fill" aria-hidden="true"></i></button>
+        <button class="btn btn-outline-secondary btn-sm touch-button" type="button" data-button="DOWN" data-game-button="DOWN" aria-label="{{ t('ide.down') }}"><i class="bi bi-caret-down-fill" aria-hidden="true"></i></button>
       </div>
-      <button class="btn btn-secondary btn-sm touch-button" type="button" data-button="SELECT" data-game-button="START">Start</button>
+      <button class="btn btn-secondary btn-sm touch-button" type="button" data-button="SELECT" data-game-button="START">{{ t("ide.start") }}</button>
       <div class="d-flex gap-2">
         <button class="btn btn-danger btn-sm rounded-circle touch-button ide-ab" type="button" data-button="B" data-game-button="B">B</button>
         <button class="btn btn-danger btn-sm rounded-circle touch-button ide-ab" type="button" data-button="A" data-game-button="A">A</button>
       </div>
     </div>
-    <p class="small text-muted px-2 mb-2">Keys (click the screen first): arrows or <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> move,
-      <kbd>Z</kbd> is A, <kbd>X</kbd> is B, <kbd>Enter</kbd> is Start.</p>
+    <p class="small text-muted px-2 mb-2">{{ t("ide.keys_click_the_screen_first_arrows") }} <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> {{ t("ide.move") }}
+      <kbd>Z</kbd> {{ t("ide.is_a") }} <kbd>X</kbd> {{ t("ide.is_b") }} <kbd>Enter</kbd> {{ t("ide.is_start") }}</p>
   </aside>
 
   {# Sprite Lab and AudioStudio wait here, hidden, until the IDE opens them in a tab (ide.js moves them). #}
@@ -161,8 +161,8 @@
   </div>
 
   <footer class="ide-status" role="status" aria-live="polite" data-region="status">
-    <span id="statusMode">Blocks</span>
-    <span id="statusSaved">Saved</span>
+    <span id="statusMode">{{ t("common.blocks") }}</span>
+    <span id="statusSaved">{{ t("ide.saved") }}</span>
     <span id="statusCursor"></span>
     <span id="statusBuild" class="ms-auto"></span>
   </footer>
@@ -172,18 +172,17 @@
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <h2 class="modal-title h5" id="ideConvertTitle">Convert to <span class="ide-convert-to">C</span>?</h2>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <h2 class="modal-title h5" id="ideConvertTitle">{{ t("ide.convert_to") }} <span class="ide-convert-to">C</span>?</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ t('common.close') }}"></button>
       </div>
       <div class="modal-body">
-        <p>Your blocks become <strong class="ide-convert-to">C</strong> code: the same game, written out and explained
-          line by line. From then on you change the code, not the blocks.</p>
-        <p class="mb-0"><strong>This cannot be undone.</strong> The project stays a <span class="ide-convert-to">C</span>
-          project; the Blocks version is kept in History, where you can download it.</p>
+        <p>{{ t("ide.your_blocks_become") }} <strong class="ide-convert-to">C</strong> {{ t("ide.code_the_same_game_written_out") }}</p>
+        <p class="mb-0"><strong>{{ t("ide.this_cannot_be_undone") }}</strong> {{ t("ide.the_project_stays_a") }} <span class="ide-convert-to">C</span>
+          {{ t("ide.project_the_blocks_version_is_kept") }}</p>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Keep Blocks</button>
-        <button type="button" class="btn btn-danger" id="ideConvertConfirm">Convert</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ t("ide.keep_blocks") }}</button>
+        <button type="button" class="btn btn-danger" id="ideConvertConfirm">{{ t("ide.convert") }}</button>
       </div>
     </div>
   </div>
@@ -193,12 +192,11 @@
   <div class="modal-dialog modal-lg modal-dialog-scrollable">
     <div class="modal-content">
       <div class="modal-header">
-        <h2 class="modal-title h5" id="ideHistoryTitle"><i class="bi bi-clock-history" aria-hidden="true"></i> History</h2>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <h2 class="modal-title h5" id="ideHistoryTitle"><i class="bi bi-clock-history" aria-hidden="true"></i> {{ t("ide.history_2") }}</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ t('common.close') }}"></button>
       </div>
       <div class="modal-body">
-        <p class="small text-muted">Every time a save changes the program, the version before it is kept. Restore goes back
-          to one (the current version is kept first); Download gets it as a project archive.</p>
+        <p class="small text-muted">{{ t("ide.every_time_a_save_changes_the") }}</p>
         <ul class="list-group" id="ideHistoryList"></ul>
       </div>
     </div>
@@ -209,22 +207,22 @@
   <div class="modal-dialog">
     <form class="modal-content" id="idePropertiesForm">
       <div class="modal-header">
-        <h2 class="modal-title h5" id="idePropertiesTitle"><i class="bi bi-sliders" aria-hidden="true"></i> Project properties</h2>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <h2 class="modal-title h5" id="idePropertiesTitle"><i class="bi bi-sliders" aria-hidden="true"></i> {{ t("ide.project_properties") }}</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ t('common.close') }}"></button>
       </div>
       <div class="modal-body vstack gap-2">
-        <div><label class="form-label" for="propTitle">Title</label><input class="form-control" id="propTitle" name="title" required maxlength="200">
-          <div class="form-text ide-code-only">In C and assembly the title also names the three functions: <code id="propPrefix"></code>_init, _update and _draw.</div></div>
-        <div><label class="form-label" for="propAuthor">Author</label><input class="form-control" id="propAuthor" name="author"></div>
-        <div><label class="form-label" for="propDescription">Summary</label><textarea class="form-control" id="propDescription" name="description" rows="3"></textarea></div>
-        <div><label class="form-label" for="propTags">Tags</label><input class="form-control" id="propTags" name="tags" placeholder="comma separated"></div>
-        <div class="ide-code-only"><label class="form-label" for="propFeatures">Required PRG32 features</label>
-          <input class="form-control font-monospace" id="propFeatures" name="features" placeholder="comma separated, e.g. audio">
-          <div class="form-text">Features the cartridge needs from the console; the build checks the names.</div></div>
+        <div><label class="form-label" for="propTitle">{{ t("common.title") }}</label><input class="form-control" id="propTitle" name="title" required maxlength="200">
+          <div class="form-text ide-code-only">{{ t("ide.in_c_and_assembly_the_title") }} <code id="propPrefix"></code>{{ t("ide.init_update_and_draw") }}</div></div>
+        <div><label class="form-label" for="propAuthor">{{ t("common.author") }}</label><input class="form-control" id="propAuthor" name="author"></div>
+        <div><label class="form-label" for="propDescription">{{ t("common.summary") }}</label><textarea class="form-control" id="propDescription" name="description" rows="3"></textarea></div>
+        <div><label class="form-label" for="propTags">{{ t("common.tags") }}</label><input class="form-control" id="propTags" name="tags" placeholder="{{ t('ide.comma_separated') }}"></div>
+        <div class="ide-code-only"><label class="form-label" for="propFeatures">{{ t("ide.required_prg32_features") }}</label>
+          <input class="form-control font-monospace" id="propFeatures" name="features" placeholder="{{ t('ide.comma_separated_e_g_audio') }}">
+          <div class="form-text">{{ t("ide.features_the_cartridge_needs_from_the") }}</div></div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-        <button type="submit" class="btn btn-primary">Save properties</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ t("common.cancel") }}</button>
+        <button type="submit" class="btn btn-primary">{{ t("ide.save_properties") }}</button>
       </div>
     </form>
   </div>
@@ -234,13 +232,13 @@
   <div class="modal-dialog modal-dialog-scrollable">
     <div class="modal-content">
       <div class="modal-header py-2">
-        <h2 class="modal-title h6" id="paletteTitle">Commands</h2>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <h2 class="modal-title h6" id="paletteTitle">{{ t("ide.commands") }}</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ t('common.close') }}"></button>
       </div>
       <div class="modal-body">
         <input class="form-control" id="paletteInput" type="text" role="combobox" autocomplete="off"
-               aria-expanded="true" aria-controls="paletteList" aria-autocomplete="list" aria-label="Type a command">
-        <ul class="list-group mt-2" id="paletteList" role="listbox" aria-label="Commands"></ul>
+               aria-expanded="true" aria-controls="paletteList" aria-autocomplete="list" aria-label="{{ t('ide.type_a_command') }}">
+        <ul class="list-group mt-2" id="paletteList" role="listbox" aria-label="{{ t('ide.commands') }}"></ul>
       </div>
     </div>
   </div>

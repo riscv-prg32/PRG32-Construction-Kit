@@ -13,21 +13,21 @@ $(function () {
   Kit.api('/api/projects').then(data => {
     const projects = data.projects || [];
     const list = $('#audioProjects').empty();
-    $('#audioPickStatus').text(projects.length ? 'Choose a project:' : 'You have no projects yet.');
+    $('#audioPickStatus').text(projects.length ? tr('js.audio_studio_pick.choose_a_project', 'Choose a project:') : tr('js.audio_studio_pick.you_have_no_projects_yet', 'You have no projects yet.'));
     projects.forEach(project => {
       const item = $('<a class="list-group-item list-group-item-action d-flex align-items-center gap-2"></a>')
         .attr('href', studioUrl(project.id));
       item.append($('<i class="bi bi-music-note-list" aria-hidden="true"></i>'));
-      item.append($('<span class="flex-grow-1"></span>').text(project.title || 'Untitled'));
+      item.append($('<span class="flex-grow-1"></span>').text(project.title || tr('js.audio_studio_pick.untitled', 'Untitled')));
       item.append($('<small class="text-muted"></small>').text(Kit.when(project.updated_at)));
       list.append(item);
       if (project.id === last) {
-        $('#audioContinueTitle').text(project.title || 'Untitled');
+        $('#audioContinueTitle').text(project.title || tr('js.audio_studio_pick.untitled', 'Untitled'));
         $('#audioContinueOpen').attr('href', studioUrl(project.id));
         $('#audioContinue').prop('hidden', false);
       }
     });
   }).catch(error => {
-    $('#audioPickStatus').text('Could not load your projects: ' + error.message);
+    $('#audioPickStatus').text(tr('js.audio_studio_pick.could_not_load_your_projects', 'Could not load your projects: {message}', { message: error.message }));
   });
 });

@@ -8,6 +8,7 @@ prg32.project.json          what the project is (the manifest, see below)
 src/blocks.json             the Blockly program   (authoring_mode "blocks")
 src/game.c                  the Advanced C source (authoring_mode "c")
 src/game.S                  handwritten RISC-V assembly (authoring_mode "assembly")
+src/game.py                 PRG32 Python          (authoring_mode "python", schema_version 2)
 assets/sprites/01-ship.json one file per sprite
 assets/data/01-level.json   one file per asset
 audio/samples/01-drum.u8    one file per AudioStudio sample (8-bit sound, 22050 Hz)
@@ -19,7 +20,9 @@ again from it, the same way every time, so they are not in the archive.
 The manifest has a ``schema_version``. Older documents are upgraded step by
 step by the functions in ``MIGRATIONS``; the old single-file JSON export
 (``prg32-construction-kit-project-1.0``) counts as version 0. See
-docs/adr/0001-project-manifest.md.
+docs/adr/0001-project-manifest.md. Version 2 adds the "python" authoring mode and the
+``python_language_version`` field (docs/adr/0026-prg32-python-projects.md); a version-1
+document means the same in version 2.
 """
 
 from __future__ import annotations
@@ -38,16 +41,18 @@ from .packager import SUPPORTED_ARCHITECTURES
 from .source_project import validate_features
 
 SCHEMA = "prg32-project"
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 MANIFEST_NAME = "prg32.project.json"
 ARCHIVE_SUFFIX = ".prg32project.zip"
 ARCHIVE_CONTENT_TYPE = "application/zip"
 LEGACY_EXPORT_ABI = "prg32-construction-kit-project-1.0"
 
 # Which source file each authoring mode keeps. In the database the mode is
-# game_json.source_mode: "c", "asm" (handwritten assembly) or absent (Blocks).
-AUTHORING_MODES = ("blocks", "c", "assembly")
-SOURCE_FILES = {"blocks": "src/blocks.json", "c": "src/game.c", "assembly": "src/game.S"}
+# game_json.source_mode: "c", "asm" (handwritten assembly), "python" (PRG32 Python) or absent (Blocks).
+AUTHORING_MODES = ("blocks", "c", "assembly", "python")
+SOURCE_FILES = {"blocks": "src/blocks.json", "c": "src/game.c", "assembly": "src/game.S", "python": "src/game.py"}
+# The PRG32 Python version this kit reads and writes (python_project.LANGUAGE_VERSION).
+PYTHON_LANGUAGE_VERSION = 1
 
 # The portable PRG32 cartridge ABI the kit builds for. These copy
 # prg32/abi/abi_generated.py in the PRG32 SDK (tests check they still match).
@@ -86,6 +91,8 @@ def authoring_mode(project: dict[str, Any]) -> str:
         return "c"
     if isinstance(saved, dict) and saved.get("source_mode") == "asm":
         return "assembly"
+    if isinstance(saved, dict) and saved.get("source_mode") == "python":
+        return "python"
     return "blocks"
 
 
@@ -131,11 +138,13 @@ def build_manifest(project: dict[str, Any], sprites: list[dict[str, Any]], asset
         "required_features": list(features) if isinstance(features, list) else [],
         "sdk": dict(SDK_ABI),
         "targets": list(SUPPORTED_ARCHITECTURES),
-        # Advanced C builds its C, assembly its assembly; Blocks may also build from generated assembly.
+        # Advanced C builds its C, assembly its assembly; Blocks and Python may also build from generated assembly.
         "build_profiles": {"default": {"source_language": "asm" if mode == "assembly" else "c"}},
         "assets": asset_list,
         "tests": [],
     }
+    if mode == "python":
+        manifest["python_language_version"] = PYTHON_LANGUAGE_VERSION
     if samples:
         manifest["audio_samples"] = [{"name": sample["name"], "artifact_id": sample["artifact_id"],
                                       "path": f"audio/samples/{index:02d}-{_slug(sample['name'], 'sample')}.u8"}
@@ -156,6 +165,8 @@ def project_files(project: dict[str, Any], sprites: list[dict[str, Any]],
         files[manifest["source"]] = str(project["game_json"].get("source_c") or "").encode("utf-8")
     elif manifest["authoring_mode"] == "assembly":
         files[manifest["source"]] = str(project["game_json"].get("source_asm") or "").encode("utf-8")
+    elif manifest["authoring_mode"] == "python":
+        files[manifest["source"]] = str(project["game_json"].get("source_python") or "").encode("utf-8")
     else:
         files[manifest["source"]] = _dumps(project.get("blocks_json") or {})
     rows = [*sprites, *assets]
@@ -201,8 +212,15 @@ def _v0_to_v1(document: dict[str, Any]) -> dict[str, Any]:
     return {**manifest, "_files": files}
 
 
+def _v1_to_v2(document: dict[str, Any]) -> dict[str, Any]:
+    """Version 2 only adds the "python" mode: a version-1 project (Blocks, C or assembly) is unchanged."""
+    if document.get("authoring_mode") == "python":
+        raise ProjectFormatError("A schema_version 1 project cannot be written in Python")
+    return {**document, "schema_version": 2}
+
+
 # MIGRATIONS[n] turns a version-n document into a version n+1 document.
-MIGRATIONS: dict[int, Callable[[dict[str, Any]], dict[str, Any]]] = {0: _v0_to_v1}
+MIGRATIONS: dict[int, Callable[[dict[str, Any]], dict[str, Any]]] = {0: _v0_to_v1, 1: _v1_to_v2}
 
 
 def document_version(document: dict[str, Any]) -> int:
@@ -303,6 +321,10 @@ def _check_manifest(manifest: dict[str, Any]) -> None:
         raise ProjectFormatError("authoring_mode must be one of: " + ", ".join(AUTHORING_MODES))
     if manifest.get("source") != SOURCE_FILES[mode]:
         raise ProjectFormatError(f"A {mode} project keeps its source in {SOURCE_FILES[mode]}")
+    if mode == "python" and manifest.get("python_language_version") != PYTHON_LANGUAGE_VERSION:
+        raise ProjectFormatError(f"This project is written in PRG32 Python version "
+                                 f"{manifest.get('python_language_version')!r}; this kit reads version "
+                                 f"{PYTHON_LANGUAGE_VERSION}")
     tags = manifest.get("tags", [])
     if not isinstance(tags, list) or len(tags) > 50 or any(not isinstance(tag, str) or len(tag) > 60 for tag in tags):
         raise ProjectFormatError("tags must be a list of at most 50 short words")
@@ -332,17 +354,22 @@ def contents_from_files(files: dict[str, bytes]) -> dict[str, Any]:
         "tags": list(manifest.get("tags", [])),
     }
     source_path = manifest["source"]
-    if mode in ("c", "assembly"):
+    if mode in ("c", "assembly", "python"):
         if source_path not in files:
             raise ProjectFormatError(f"The archive is missing {source_path}")
         try:
             text = files[source_path].decode("utf-8")
         except UnicodeDecodeError:
             raise ProjectFormatError(f"{source_path} is not UTF-8 text") from None
-        source_mode, field = ("c", "source_c") if mode == "c" else ("asm", "source_asm")
         project["blocks_json"] = {}
-        project["game_json"] = {"source_mode": source_mode, field: text,
-                                "required_features": list(manifest.get("required_features", []))}
+        if mode == "python":
+            # The text is only stored: it is checked (never run) when it is generated or built.
+            project["game_json"] = {"source_mode": "python", "source_python": text,
+                                    "python_language_version": PYTHON_LANGUAGE_VERSION}
+        else:
+            source_mode, field = ("c", "source_c") if mode == "c" else ("asm", "source_asm")
+            project["game_json"] = {"source_mode": source_mode, field: text,
+                                    "required_features": list(manifest.get("required_features", []))}
     else:
         blocks = _json_file(files, source_path)
         if not isinstance(blocks, dict):

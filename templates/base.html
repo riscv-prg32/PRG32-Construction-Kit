@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-color-scheme="{{ site.color_scheme }}" data-bs-theme="{{ 'light' if site.color_scheme == 'auto' else site.color_scheme }}">
+<html lang="{{ locale }}" data-i18n-server data-color-scheme="{{ site.color_scheme }}" data-bs-theme="{{ 'light' if site.color_scheme == 'auto' else site.color_scheme }}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -31,59 +31,67 @@
       <img src="{{ url_for('static', filename='img/prg32-icon.svg') }}" alt="" width="32" height="32">
       <span>{{ site.name }}</span>
     </a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#topNav" aria-controls="topNav" aria-expanded="false" aria-label="Menu">
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#topNav" aria-controls="topNav" aria-expanded="false" aria-label="{{ t('base.menu') }}">
       <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="topNav">
       <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-        <li class="nav-item"><a class="nav-link" href="/"><i class="bi bi-grid-3x3-gap"></i> Projects</a></li>
+        <li class="nav-item"><a class="nav-link" href="/"><i class="bi bi-grid-3x3-gap"></i> {{ t("common.projects") }}</a></li>
         <li class="nav-item"><a class="nav-link" href="/sprites"><i class="bi bi-brush"></i> Sprite Lab</a></li>
         <li class="nav-item"><a class="nav-link" href="/audio-studio"><i class="bi bi-music-note-beamed"></i> AudioStudio</a></li>
         {% if current_user.authenticated %}
-        <li class="nav-item"><a class="nav-link" href="/artifacts"><i class="bi bi-box-seam"></i> Artifacts</a></li>
+        <li class="nav-item"><a class="nav-link" href="/artifacts"><i class="bi bi-box-seam"></i> {{ t("common.artifacts") }}</a></li>
         {% endif %}
-        <li class="nav-item"><a class="nav-link" href="/player"><i class="bi bi-cpu"></i> Player</a></li>
+        <li class="nav-item"><a class="nav-link" href="/player"><i class="bi bi-cpu"></i> {{ t("base.player") }}</a></li>
         {% if current_user.authenticated %}
-        <li class="nav-item"><a class="nav-link" href="/publish"><i class="bi bi-cloud-upload"></i> Publish</a></li>
+        <li class="nav-item"><a class="nav-link" href="/publish"><i class="bi bi-cloud-upload"></i> {{ t("common.publish") }}</a></li>
         {% endif %}
         {% if current_user.authenticated %}
-        <li class="nav-item"><a class="nav-link" href="/classes"><i class="bi bi-mortarboard"></i> Classes</a></li>
+        <li class="nav-item"><a class="nav-link" href="/classes"><i class="bi bi-mortarboard"></i> {{ t("common.classes") }}</a></li>
         {% endif %}
-        <li class="nav-item"><a class="nav-link" href="/documentation"><i class="bi bi-book"></i> Docs</a></li>
+        <li class="nav-item"><a class="nav-link" href="/documentation"><i class="bi bi-book"></i> {{ t("base.docs") }}</a></li>
         {% if current_user.is_admin %}
         <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" id="adminMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-shield-check"></i> Admin</a>
+          <a class="nav-link dropdown-toggle" href="#" id="adminMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-shield-check"></i> {{ t("base.admin") }}</a>
           <ul class="dropdown-menu" aria-labelledby="adminMenu">
-            <li><a class="dropdown-item" href="/admin/settings"><i class="bi bi-gear"></i> Settings</a></li>
-            <li><a class="dropdown-item" href="/admin/users"><i class="bi bi-people"></i> Users</a></li>
-            <li><a class="dropdown-item" href="/admin/identity"><i class="bi bi-mortarboard"></i> School sign-in</a></li>
+            <li><a class="dropdown-item" href="/admin/settings"><i class="bi bi-gear"></i> {{ t("common.settings") }}</a></li>
+            <li><a class="dropdown-item" href="/admin/users"><i class="bi bi-people"></i> {{ t("common.users") }}</a></li>
+            <li><a class="dropdown-item" href="/admin/identity"><i class="bi bi-mortarboard"></i> {{ t("base.school_sign_in") }}</a></li>
           </ul>
         </li>
         {% endif %}
       </ul>
+      {# The interface language: a choice of this reader, kept in the prg32_locale cookie (i18n.js). #}
+      <div class="d-flex align-items-center gap-2 ms-xl-auto me-xl-2 mb-2 mb-xl-0">
+        <label class="visually-hidden" for="localeChoice">{{ t("base.language") }}</label>
+        <i class="bi bi-translate text-light" aria-hidden="true"></i>
+        <select class="form-select form-select-sm w-auto" id="localeChoice" data-locale-choice title="{{ t('base.language') }}">
+          {% for code, name in locales %}<option value="{{ code }}" lang="{{ code }}"{% if code == locale %} selected{% endif %}>{{ name }}</option>{% endfor %}
+        </select>
+      </div>
       {% if current_user.authenticated %}
-      <div class="d-flex align-items-center gap-2 ms-auto">
+      <div class="d-flex align-items-center gap-2">
         {% if sso_enabled %}
-        <a class="btn btn-outline-light btn-sm text-nowrap" href="/auth/sso/peer" title="Open the Cartridge Store already signed in"><i class="bi bi-shop"></i> Cartridge Store</a>
+        <a class="btn btn-outline-light btn-sm text-nowrap" href="/auth/sso/peer" title="{{ t('base.open_the_cartridge_store_already_signed') }}"><i class="bi bi-shop"></i> Cartridge Store</a>
         {% endif %}
         {# The account menu: My account and Sign out, so the menu bar stays one line. #}
         <div class="dropdown">
           <button class="btn btn-outline-light btn-sm dropdown-toggle text-nowrap" type="button" id="accountMenu" data-bs-toggle="dropdown" aria-expanded="false">
             <i class="bi bi-person-circle" aria-hidden="true"></i> {{ current_user.username }}</button>
           <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="accountMenu">
-            <li><a class="dropdown-item" href="/account"><i class="bi bi-person-gear"></i> My account</a></li>
-            <li><a class="dropdown-item" href="/privacy"><i class="bi bi-shield-lock"></i> Privacy &amp; your data</a></li>
+            <li><a class="dropdown-item" href="/account"><i class="bi bi-person-gear"></i> {{ t("common.my_account") }}</a></li>
+            <li><a class="dropdown-item" href="/privacy"><i class="bi bi-shield-lock"></i> {{ t("base.privacy_your_data") }}</a></li>
             <li><hr class="dropdown-divider"></li>
-            <li><form method="post" action="/auth/logout" class="m-0"><button class="dropdown-item" type="submit"><i class="bi bi-box-arrow-right"></i> Sign out</button></form></li>
+            <li><form method="post" action="/auth/logout" class="m-0"><button class="dropdown-item" type="submit"><i class="bi bi-box-arrow-right"></i> {{ t("base.sign_out") }}</button></form></li>
           </ul>
         </div>
       </div>
       {% else %}
-      <div class="d-flex align-items-center gap-2 ms-auto">
+      <div class="d-flex align-items-center gap-2">
         {% if guest_workspace %}
-        <span class="badge text-bg-warning" title="Your games are kept only in this browser"><i class="bi bi-browser-chrome" aria-hidden="true"></i> Guest: games stay in this browser</span>
+        <span class="badge text-bg-warning" title="{{ t('base.your_games_are_kept_only_in') }}"><i class="bi bi-browser-chrome" aria-hidden="true"></i> {{ t("base.guest_games_stay_in_this_browser") }}</span>
         {% endif %}
-        <a class="btn btn-outline-light btn-sm" href="/auth/login">Sign in</a>
+        <a class="btn btn-outline-light btn-sm" href="/auth/login">{{ t("common.sign_in") }}</a>
       </div>
       {% endif %}
     </div>
@@ -93,7 +101,7 @@
 <main class="container-fluid px-3 px-lg-4 py-4">
   {% if site.maintenance and current_user.is_admin %}
   <div class="alert alert-warning py-2" role="status"><i class="bi bi-tools" aria-hidden="true"></i>
-    Maintenance mode is on: only admins can use the kit. <a href="/admin/settings#maintenance">Turn it off</a></div>
+    {{ t("base.maintenance_mode_is_on_only_admins") }} <a href="/admin/settings#maintenance">{{ t("base.turn_it_off") }}</a></div>
   {% endif %}
   {% block content %}{% endblock %}
 </main>
@@ -101,23 +109,30 @@
 <footer class="kit-footer border-top small">
   <div class="container-fluid px-3 px-lg-4 py-3 d-flex flex-wrap gap-3 align-items-center">
     <span class="text-body-secondary">{{ site.name }}{% if kit_version %} {{ kit_version }}{% endif %}</span>
-    <a href="/privacy"><i class="bi bi-shield-lock" aria-hidden="true"></i> Privacy &amp; your data</a>
-    <a href="/privacy#storage"><i class="bi bi-cookie" aria-hidden="true"></i> Cookies &amp; storage</a>
-    <a href="/documentation"><i class="bi bi-book" aria-hidden="true"></i> Docs</a>
+    <a href="/privacy"><i class="bi bi-shield-lock" aria-hidden="true"></i> {{ t("base.privacy_your_data") }}</a>
+    <a href="/privacy#storage"><i class="bi bi-cookie" aria-hidden="true"></i> {{ t("base.cookies_storage") }}</a>
+    <a href="/documentation"><i class="bi bi-book" aria-hidden="true"></i> {{ t("base.docs") }}</a>
   </div>
 </footer>
 
 {# A short note on what this browser keeps (no tracking, so nothing to consent to); storage_notice.js shows it once per version. #}
-<div class="kit-storage-notice alert alert-light border shadow mb-0" id="storageNotice" role="region" aria-label="Cookies and storage" data-version="{{ privacy_notice('storage').version }}" hidden>
+<div class="kit-storage-notice alert alert-light border shadow mb-0" id="storageNotice" role="region" aria-label="{{ t('base.cookies_and_storage') }}" data-version="{{ privacy_notice('storage').version }}" hidden>
   <p class="mb-2"><i class="bi bi-cookie" aria-hidden="true"></i> {{ privacy_notice('storage').summary }}</p>
   <div class="d-flex gap-2 align-items-center">
     <button type="button" class="btn btn-primary btn-sm" id="storageNoticeOk">OK</button>
-    <a href="/privacy#storage">What is stored</a>
+    <a href="/privacy#storage">{{ t("base.what_is_stored") }}</a>
   </div>
 </div>
 
 <div class="toast-container position-fixed bottom-0 end-0 p-3" id="toastArea"></div>
 
+{# The interface language (ADR-0027): English always (the fallback), then the reader's own. #}
+<script src="{{ url_for('static', filename='i18n/en.js') }}"></script>
+{% if locale == 'it' %}<script src="{{ url_for('static', filename='i18n/it.js') }}"></script>
+{% elif locale == 'es' %}<script src="{{ url_for('static', filename='i18n/es.js') }}"></script>
+{% elif locale == 'fr' %}<script src="{{ url_for('static', filename='i18n/fr.js') }}"></script>
+{% elif locale == 'de' %}<script src="{{ url_for('static', filename='i18n/de.js') }}"></script>{% endif %}
+<script src="{{ url_for('static', filename='js/i18n.js') }}"></script>
 <script src="{{ url_for('static', filename='vendor/jquery/3.7.1/jquery.min.js') }}"></script>
 <script src="{{ url_for('static', filename='vendor/bootstrap/5.3.3/js/bootstrap.bundle.min.js') }}"></script>
 <script src="{{ url_for('static', filename='js/app.js') }}"></script>

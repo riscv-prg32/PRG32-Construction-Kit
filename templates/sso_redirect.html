@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Opening Cartridge Store - {{ site.name }}{% endblock %}
+{% block title %}{{ t("sso_redirect.opening_cartridge_store", name=(site.name)) }}{% endblock %}
 {% block content %}
 <div class="row justify-content-center">
   <div class="col-md-6 text-center">
@@ -7,8 +7,8 @@
     <form method="post" action="{{ action }}" id="ssoForm">
       <input type="hidden" name="ticket" value="{{ ticket }}">
       <input type="hidden" name="next" value="{{ next }}">
-      <p>Opening the Cartridge Store and signing you in&hellip;</p>
-      <button class="btn btn-primary" type="submit">Continue</button>
+      <p>{{ t("sso_redirect.opening_the_cartridge_store_and_signing") }}</p>
+      <button class="btn btn-primary" type="submit">{{ t("common.continue") }}</button>
     </form>
   </div>
 </div>

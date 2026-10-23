@@ -19,6 +19,11 @@
   else root.PRG32SourceDebug = api;
 })(typeof window !== 'undefined' ? window : globalThis, function () {
   'use strict';
+  // Messages in the reader's language when the page loaded the kit's i18n.js (ADR-0027);
+  // English, from the text below, where it did not (Node.js tests and tools).
+  const tr = typeof globalThis.tr === 'function' ? globalThis.tr
+    : (key, english, values) => String(english).replace(/\{([a-z_][a-z0-9_]*)\}/g,
+      (all, name) => (values && name in values ? String(values[name]) : all));
 
   const REGISTER_NAMES = ['zero', 'ra', 'sp', 'gp', 'tp', 't0', 't1', 't2', 's0', 's1', 'a0', 'a1', 'a2', 'a3', 'a4',
     'a5', 'a6', 'a7', 's2', 's3', 's4', 's5', 's6', 's7', 's8', 's9', 's10', 's11', 't3', 't4', 't5', 't6'];
@@ -51,7 +56,7 @@
     const map = options.debugMap || {};
     const sourceMap = options.sourceMap || null;
     if (map.status !== 'ok') {
-      return { ok: false, reason: map.reason || 'no debug information', hasBlocks: false };
+      return { ok: false, reason: map.reason || tr('js.source_debug.no_debug_information', 'no debug information'), hasBlocks: false };
     }
     const delta = (options.guestBase === undefined ? map.link_base : options.guestBase) - map.link_base;
     const at = address => (address + delta) >>> 0;     // link address -> guest address
@@ -233,7 +238,7 @@
     }
 
     function evaluate(ops, frame, memory) {
-      if (!ops) return { unavailable: 'not available here (optimised out at this point)' };
+      if (!ops) return { unavailable: tr('js.source_debug.not_available_here_optimised_out_at', 'not available here (optimised out at this point)') };
       const stack = [];
       const reg = number => (frame.registers ? frame.registers[number] >>> 0 : null);
       for (const op of ops) {
@@ -241,16 +246,16 @@
         let match;
         if (name === 'addr') stack.push(at(a));
         else if ((match = name.match(/^reg(\d+)$/))) {
-          if (ops.length !== 1) return { unavailable: 'kept in pieces' };
-          return reg(Number(match[1])) === null ? { unavailable: 'register not known in this frame' }
+          if (ops.length !== 1) return { unavailable: tr('js.source_debug.kept_in_pieces', 'kept in pieces') };
+          return reg(Number(match[1])) === null ? { unavailable: tr('js.source_debug.register_not_known_in_this_frame', 'register not known in this frame') }
             : { register: Number(match[1]), value: reg(Number(match[1])) };
         } else if ((match = name.match(/^breg(\d+)$/))) {
-          if (reg(Number(match[1])) === null) return { unavailable: 'register not known in this frame' };
+          if (reg(Number(match[1])) === null) return { unavailable: tr('js.source_debug.register_not_known_in_this_frame', 'register not known in this frame') };
           stack.push((reg(Number(match[1])) + a) >>> 0);
         } else if (name === 'fbreg') {
           const base = (frame.info && frame.info.frame_base) || [];
           if (base.length !== 1 || base[0][0] !== 'call_frame_cfa' || frame.cfa === null) {
-            return { unavailable: 'frame base not supported' };
+            return { unavailable: tr('js.source_debug.frame_base_not_supported', 'frame base not supported') };
           }
           stack.push((frame.cfa + a) >>> 0);
         } else if (name === 'call_frame_cfa') {
@@ -262,17 +267,17 @@
         else if (['plus', 'minus', 'mul', 'and', 'or', 'xor', 'shl', 'shr'].includes(name)) {
           const right = stack.pop();
           const left = stack.pop();
-          if (left === undefined || right === undefined) return { unavailable: 'unsupported location' };
+          if (left === undefined || right === undefined) return { unavailable: tr('js.source_debug.unsupported_location', 'unsupported location') };
           stack.push({ plus: left + right, minus: left - right, mul: Math.imul(left, right), and: left & right,
             or: left | right, xor: left ^ right, shl: left << right, shr: left >>> right }[name] >>> 0);
         } else if (name === 'neg') stack.push((-stack.pop()) >>> 0);
         else if (name === 'not') stack.push((~stack.pop()) >>> 0);
         else if (name === 'stack_value') return { value: stack.pop() >>> 0 };
         else if (name === 'entry_value' || name === 'GNU_entry_value') {
-          return { unavailable: 'optimised out (only its value at the start of the function is known)' };
+          return { unavailable: tr('js.source_debug.optimised_out_only_its_value_at', 'optimised out (only its value at the start of the function is known)') };
         } else return { unavailable: `location "${name}" not supported` };
       }
-      return stack.length ? { address: stack.pop() >>> 0 } : { unavailable: 'unsupported location' };
+      return stack.length ? { address: stack.pop() >>> 0 } : { unavailable: tr('js.source_debug.unsupported_location', 'unsupported location') };
     }
 
     // --- values -----------------------------------------------------------------------
@@ -343,7 +348,7 @@
       }
       const size = type.size || 4;
       const raw = readUnsigned(memory, address, Math.min(size, 4));
-      if (raw === null) return { text: 'not readable', unavailable: true, address };
+      if (raw === null) return { text: tr('js.source_debug.not_readable', 'not readable'), unavailable: true, address };
       return { text: scalarText(type, raw), address };
     }
 
@@ -370,7 +375,7 @@
           if (symbol.address > codeEnd && symbol.kind !== 'function' && !symbol.name.startsWith('prg32_')) {
             const raw = readUnsigned(memory, at(symbol.address), 4);
             out.push({ name: symbol.name, type: 'word', address: at(symbol.address),
-              text: raw === null ? 'not readable' : `${raw | 0} (${hex(raw)})`, unavailable: raw === null });
+              text: raw === null ? tr('js.source_debug.not_readable', 'not readable') : `${raw | 0} (${hex(raw)})`, unavailable: raw === null });
           }
         }
       }
@@ -393,23 +398,23 @@
     function watch(text, frame, memory) {
       const expression = String(text || '').trim();
       const parts = expression.match(/^([A-Za-z_]\w*)((?:\.[A-Za-z_]\w*|\[\s*-?\w+\s*\])*)$/);
-      if (!parts) return { text: 'write a name, name.part or name[number]', error: true };
+      if (!parts) return { text: tr('js.source_debug.write_a_name_name_part_or', 'write a name, name.part or name[number]'), error: true };
       const reg = registerNumber(parts[1]);
       if (!parts[2] && reg >= 0 && !findVariable(parts[1], frame)) {
         const value = frame && frame.registers ? frame.registers[reg] >>> 0 : null;
-        return value === null ? { text: 'not known in this frame', error: true } : { text: `${value | 0} (${hex(value)})`, value };
+        return value === null ? { text: tr('js.source_debug.not_known_in_this_frame', 'not known in this frame'), error: true } : { text: `${value | 0} (${hex(value)})`, value };
       }
       const found = findVariable(parts[1], frame);
       if (!found) return { text: `no variable called ${parts[1]} here`, error: true };
       if (found.word) {
         const raw = readUnsigned(memory, found.where.address, 4);
-        return raw === null ? { text: 'not readable', error: true } : { text: `${raw | 0} (${hex(raw)})`, value: raw | 0 };
+        return raw === null ? { text: tr('js.source_debug.not_readable', 'not readable'), error: true } : { text: `${raw | 0} (${hex(raw)})`, value: raw | 0 };
       }
       let typeId = found.type;
       let where = found.where;
       if (where.register !== undefined && frame && frame.registers) where = { value: frame.registers[where.register], register: where.register };
       for (const step of parts[2].match(/\.[A-Za-z_]\w*|\[\s*-?\w+\s*\]/g) || []) {
-        if (where.address === undefined) return { text: 'only variables in memory have parts', error: true };
+        if (where.address === undefined) return { text: tr('js.source_debug.only_variables_in_memory_have_parts', 'only variables in memory have parts'), error: true };
         const type = resolve(typeId);
         if (step.startsWith('.')) {
           const member = type.kind === 'struct' && type.members.find(item => item.name === step.slice(1));
@@ -456,9 +461,9 @@
     if (!csr) return [];
     const join = (low, high) => high * 4294967296 + low;
     return [
-      { name: 'cycle', number: '0xC00', value: join(csr.cycle, csr.cycleh), meaning: 'clock cycles (ESP32-C6 timing)' },
-      { name: 'time', number: '0xC01', value: join(csr.time, csr.timeh), meaning: 'nanoseconds of game time' },
-      { name: 'instret', number: '0xC02', value: join(csr.instret, csr.instreth), meaning: 'instructions finished' },
+      { name: 'cycle', number: '0xC00', value: join(csr.cycle, csr.cycleh), meaning: tr('js.source_debug.clock_cycles_esp32_c6_timing', 'clock cycles (ESP32-C6 timing)') },
+      { name: 'time', number: '0xC01', value: join(csr.time, csr.timeh), meaning: tr('js.source_debug.nanoseconds_of_game_time', 'nanoseconds of game time') },
+      { name: 'instret', number: '0xC02', value: join(csr.instret, csr.instreth), meaning: tr('js.source_debug.instructions_finished', 'instructions finished') },
     ];
   }
 

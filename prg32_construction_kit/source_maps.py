@@ -12,6 +12,11 @@ made each IR statement; the generators, given that note, wrap each statement's l
 marker lines; strip_markers removes the markers and records where they were. The text
 left over is exactly the normal output, which build_source_map checks every time.
 Nested blocks (inside "if" or "repeat") have their own, smaller line ranges.
+
+A PRG32 Python project (ADR-0026) maps the same way: its entries carry "python": [line, column,
+end line, end column] in game.py, and "block" is "py:<line>:<column>:<end line>:<end column>" so the
+debugger's block breakpoints work on Python statements too. The map then also has
+"python_file" and "python_sha256" (the exact game.py it was made from).
 """
 
 from __future__ import annotations
@@ -21,6 +26,7 @@ from typing import Any
 
 from .asm_generator import ir_to_asm
 from .generator import MAP_BEGIN, MAP_END, blocks_to_ir_traced, ir_to_c
+from .python_project import SOURCE_FILE, python_to_ir_traced
 
 SCHEMA = "prg32-source-map/1"
 PHASES = ("init", "update", "draw")
@@ -69,6 +75,31 @@ def strip_markers(text: str) -> tuple[str, list[tuple[str, int, int]]]:
 def build_source_map(blocks_json: Any, project: dict[str, Any], language: str) -> tuple[dict[str, Any], str, dict[str, Any]]:
     """(game IR, generated source, source map) for a Blocks project, in "c" or "asm"."""
     game_ir, origins = blocks_to_ir_traced(blocks_json, project)
+    return _source_map(game_ir, origins, language)
+
+
+def python_block_id(origin: tuple[int, int, int, int]) -> str:
+    """The "block" of a Python statement: its place in game.py."""
+    return "py:" + ":".join(str(number) for number in origin)
+
+
+def project_source_map(project: dict[str, Any], language: str) -> tuple[dict[str, Any], str, dict[str, Any]]:
+    """build_source_map for a saved project of either kind that has a map: Blocks or PRG32 Python."""
+    saved = project.get("game_json") if isinstance(project.get("game_json"), dict) else {}
+    if saved.get("source_mode") != "python":
+        return build_source_map(project.get("blocks_json") or {}, project, language)
+    text = str(saved.get("source_python") or "")
+    game_ir, places = python_to_ir_traced(text, project)
+    origins = {statement: python_block_id(place) for statement, place in places.items()}
+    game_ir, source, source_map = _source_map(game_ir, origins, language)
+    for entry in source_map["entries"]:
+        entry["python"] = [int(part) for part in entry["block"][3:].split(":")]
+    source_map["python_file"] = SOURCE_FILE
+    source_map["python_sha256"] = hashlib.sha256(text.encode("utf-8")).hexdigest()
+    return game_ir, source, source_map
+
+
+def _source_map(game_ir: dict[str, Any], origins: dict[int, str], language: str) -> tuple[dict[str, Any], str, dict[str, Any]]:
     # The markers carry a number, never the block id itself: ids come from the student's
     # Blocks JSON and may hold anything (new lines, marker text). The number leads back
     # to the statement and its block.

@@ -63,12 +63,12 @@
   }
   function listen(play) {
     engine.resume();   // inside the click: browsers allow sound only after one
-    return preview().then(play).catch(err => status('Cannot play: ' + err.message));
+    return preview().then(play).catch(err => status(tr('js.audio_studio.cannot_play', 'Cannot play: {message}', { message: err.message })));
   }
   function stopSound() {
     engine.stop();
     $('.track-step.playing').removeClass('playing');
-    status('Sound stopped.');
+    status(tr('js.audio_studio.sound_stopped', 'Sound stopped.'));
   }
 
   // ---- saving ----------------------------------------------------------------------------
@@ -76,7 +76,7 @@
     if (!canEdit) return;
     previewKey = null;
     showIds();
-    status('Changes not saved yet…');
+    status(tr('js.audio_studio.changes_not_saved_yet', 'Changes not saved yet…'));
     clearTimeout(saveTimer);
     saveTimer = setTimeout(save, 1200);
   }
@@ -86,26 +86,26 @@
     saveTimer = null;
     if (!canEdit) return Promise.resolve();
     if (saving) { changedWhileSaving = true; return saving; }
-    status('Saving…');
+    status(tr('js.audio_studio.saving', 'Saving…'));
     const expected = overVersion === undefined ? version : overVersion;
     saving = Kit.api(api, { method: 'PUT', body: { document: doc, expected_version: expected } })
       .then(answer => {
         version = answer.version;
         showMissing(answer.missing_samples);
-        status('Saved (version ' + version + ').');
+        status(tr('js.audio_studio.saved_version', 'Saved (version {version}).', { version: version }));
         // The IDE refreshes the sound names on its blocks and the game's sound.
         $(document).trigger('prg32:audio-saved', [answer]);
       })
       .catch(err => {
         if (err.code === 'audio_version_conflict') {
-          status('Not saved: this sound was changed in another window.');
+          status(tr('js.audio_studio.not_saved_this_sound_was_changed', 'Not saved: this sound was changed in another window.'));
           Kit.versionConflict(err, {
             copy: () => { download(); return Promise.resolve(); },
             reload: () => load(),
             overwrite: currentVersion => { saving = null; return save(currentVersion); },
           });
         } else {
-          status('Not saved: ' + err.message);
+          status(tr('js.audio_studio.not_saved', 'Not saved: {message}', { message: err.message }));
           Kit.toast(err.message, 'danger');
         }
       })
@@ -123,8 +123,8 @@
       previewKey = null;
       showMissing(answer.missing_samples);
       renderAll();
-      status(version ? 'Loaded version ' + version + '.' : 'A new AudioStudio sound: change anything to save it.');
-    }).catch(err => status('Could not load the sound: ' + err.message));
+      status(version ? tr('js.audio_studio.loaded_version', 'Loaded version {version}.', { version: version }) : tr('js.audio_studio.a_new_audiostudio_sound_change_anything', 'A new AudioStudio sound: change anything to save it.'));
+    }).catch(err => status(tr('js.audio_studio.could_not_load_the_sound', 'Could not load the sound: {message}', { message: err.message })));
   }
 
   function download() { Kit.download(api + '/export'); }
@@ -132,8 +132,7 @@
   function showMissing(names) {
     const box = $('#missingSamples');
     if (!names || !names.length) { box.addClass('d-none').text(''); return; }
-    box.removeClass('d-none').text('These samples have no saved sound, so the project cannot play or build: '
-      + names.join(', ') + '. Add the WAV file again on the Samples tab.');
+    box.removeClass('d-none').text(tr('js.audio_studio.these_samples_have_no_saved_sound', 'These samples have no saved sound, so the project cannot play or build: {join}. Add the WAV file again on the Samples tab.', { join: names.join(', ') }));
   }
 
   // ---- forms ---------------------------------------------------------------------------
@@ -172,8 +171,8 @@
     return input;
   }
   function nameOk(name, others) {
-    if (!/^[A-Za-z0-9][A-Za-z0-9 _.\-]{0,31}$/.test(name)) { Kit.toast('A name has 1 to 32 letters, digits, spaces, ".", "_" or "-".', 'warning'); return false; }
-    if (others.includes(name)) { Kit.toast('Another one is already called ' + name + '.', 'warning'); return false; }
+    if (!/^[A-Za-z0-9][A-Za-z0-9 _.\-]{0,31}$/.test(name)) { Kit.toast(tr('js.audio_studio.a_name_has_1_to_32', 'A name has 1 to 32 letters, digits, spaces, ".", "_" or "-".'), 'warning'); return false; }
+    if (others.includes(name)) { Kit.toast(tr('js.audio_studio.another_one_is_already_called', 'Another one is already called {name}.', { name: name }), 'warning'); return false; }
     return true;
   }
 
@@ -186,7 +185,7 @@
     const x = ms => (ms / total * 300).toFixed(1);
     const top = 10, bottom = 90, level = bottom - (bottom - top) * item.sustain / 255;
     const points = [[0, bottom], [a, top], [a + d, level], [a + d + hold, level], [a + d + hold + r, bottom]];
-    const svg = `<svg viewBox="0 0 300 100" class="adsr-envelope w-100" role="img" aria-label="Envelope: attack ${a} ms, decay ${d} ms, sustain ${item.sustain} of 255, release ${r} ms">
+    const svg = `<svg viewBox="0 0 300 100" class="adsr-envelope w-100" role="img" aria-label="${Kit.escape(tr('js.audio_studio.envelope_label', 'Envelope: attack {attack} ms, decay {decay} ms, sustain {sustain} of 255, release {release} ms', { attack: a, decay: d, sustain: item.sustain, release: r }))}">
       <polyline fill="none" stroke="currentColor" stroke-width="2" points="${points.map(p => x(p[0]) + ',' + p[1].toFixed(1)).join(' ')}"></polyline>
       <text x="4" y="98" font-size="9">A ${a} ms · D ${d} ms · S ${item.sustain} · R ${r} ms</text></svg>`;
     return $(svg);
@@ -203,11 +202,11 @@
     const sample = $('<select class="form-select form-select-sm"></select>');
     doc.samples.forEach(entry => sample.append($('<option></option>').val(entry.name).text(entry.name)));
     sample.val(item.sample || '');
-    const sampleField = field('Sample', sample, doc.samples.length ? '' : 'Add a sample on the Samples tab first.');
+    const sampleField = field(tr('js.audio_studio.sample', 'Sample'), sample, doc.samples.length ? '' : tr('js.audio_studio.add_a_sample_on_the_samples', 'Add a sample on the Samples tab first.'));
     const synthFields = $('<div></div>').append(
-      field('Pulse width (pulse only)', rangeInput(item.pulse_width, 0, 15, v => { item.pulse_width = v; changed(); })),
-      field('Filter cutoff', rangeInput(item.cutoff, 0, 15, v => { item.cutoff = v; changed(); }), '15 is bright, 0 is dull'),
-      field('Resonance', rangeInput(item.resonance, 0, 3, v => { item.resonance = v; changed(); })));
+      field(tr('js.audio_studio.pulse_width_pulse_only', 'Pulse width (pulse only)'), rangeInput(item.pulse_width, 0, 15, v => { item.pulse_width = v; changed(); })),
+      field(tr('js.audio_studio.filter_cutoff', 'Filter cutoff'), rangeInput(item.cutoff, 0, 15, v => { item.cutoff = v; changed(); }), tr('js.audio_studio.15_is_bright_0_is_dull', '15 is bright, 0 is dull')),
+      field(tr('js.audio_studio.resonance', 'Resonance'), rangeInput(item.resonance, 0, 3, v => { item.resonance = v; changed(); })));
     function showSound() {
       sampleField.toggleClass('d-none', item.sound !== 'sample');
       synthFields.toggleClass('d-none', item.sound === 'sample');
@@ -215,7 +214,7 @@
     sound.on('change', () => {
       item.sound = sound.val();
       if (item.sound === 'sample') {
-        if (!doc.samples.length) { Kit.toast('Add a sample on the Samples tab first.', 'warning'); item.sound = 'triangle'; sound.val('triangle'); }
+        if (!doc.samples.length) { Kit.toast(tr('js.audio_studio.add_a_sample_on_the_samples', 'Add a sample on the Samples tab first.'), 'warning'); item.sound = 'triangle'; sound.val('triangle'); }
         else item.sample = item.sample || doc.samples[0].name;
         sample.val(item.sample || '');
       } else delete item.sample;
@@ -223,16 +222,16 @@
       changed();
     });
     sample.on('change', () => { item.sample = sample.val(); changed(); });
-    left.append(field('Sound', sound), sampleField, synthFields,
-      field('Volume', rangeInput(item.volume, 0, 255, v => { item.volume = v; changed(); })),
-      field('Pan (−64 left … 63 right)', rangeInput(item.pan, -64, 63, v => { item.pan = v; changed(); })));
+    left.append(field(tr('js.audio_studio.sound', 'Sound'), sound), sampleField, synthFields,
+      field(tr('js.audio_studio.volume', 'Volume'), rangeInput(item.volume, 0, 255, v => { item.volume = v; changed(); })),
+      field(tr('js.audio_studio.pan_64_left_63_right', 'Pan (−64 left … 63 right)'), rangeInput(item.pan, -64, 63, v => { item.pan = v; changed(); })));
     const picture = $('<div class="mb-2"></div>').append(envelope(item));
     const redraw = () => picture.empty().append(envelope(item));
-    right.append($('<div class="small fw-semibold">Envelope (ADSR)</div>'), picture);
+    right.append($('<div class="small fw-semibold"></div>').text(tr('js.audio_studio.envelope_adsr', 'Envelope (ADSR)')), picture);
     ['attack', 'decay', 'sustain', 'release'].forEach(key => {
       right.append(field(key[0].toUpperCase() + key.slice(1), rangeInput(item[key], 0, 255, v => { item[key] = v; redraw(); changed(); })));
     });
-    right.append($('<button type="button" class="btn btn-primary btn-sm"><i class="bi bi-play-fill"></i> Try it</button>').on('click', onTry));
+    right.append($('<button type="button" class="btn btn-primary btn-sm"><i class="bi bi-play-fill"></i> ' + Kit.escape(tr('js.audio_studio.try_it', 'Try it')) + '</button>').on('click', onTry));
     showSound();
     return box.append(left, right);
   }
@@ -253,8 +252,8 @@
     });
     const voice = doc.voices[selected.voice];
     const editor = $('#voiceEditor').empty();
-    editor.append($('<h2 class="h5"></h2>').text('Voice ' + selected.voice + ' — instrument ' + selected.voice));
-    editor.append(field('Name', textInput(voice.name, name => {
+    editor.append($('<h2 class="h5"></h2>').text(tr('js.audio_studio.voice', 'Voice {voice} — instrument {voice}', { voice: selected.voice })));
+    editor.append(field(tr('common.name', 'Name'), textInput(voice.name, name => {
       if (nameOk(name, doc.voices.filter(v => v !== voice).map(v => v.name))) { voice.name = name; renderVoices(); changed(); }
     })));
     editor.append(instrumentForm(voice, () => listen(e => e.note(selected.voice, selected.voice, 60, 255, 500))));
@@ -274,24 +273,24 @@
     $('#addEffect').prop('disabled', !canEdit || doc.effects.length >= MAX_EFFECTS);
     const editor = $('#effectEditor').empty();
     const effect = doc.effects[selected.effect];
-    if (!effect) { editor.append('<p class="text-muted">No sound effects yet.</p>'); return; }
+    if (!effect) { editor.append('<p class="text-muted">' + Kit.escape(tr('js.audio_studio.no_sound_effects_yet', 'No sound effects yet.')) + '</p>'); return; }
     const index = selected.effect;
     editor.append($('<h2 class="h5"></h2>').text(effect.name + ' — instrument ' + (8 + index)));
     const row = $('<div class="row g-2"></div>');
-    row.append($('<div class="col-sm-4"></div>').append(field('Name', textInput(effect.name, name => {
+    row.append($('<div class="col-sm-4"></div>').append(field(tr('common.name', 'Name'), textInput(effect.name, name => {
       if (nameOk(name, doc.effects.filter(e => e !== effect).map(e => e.name))) {
         effect.name = name; effect.instrument.name = name; renderEffects(); changed();
       }
-    }), 'Blocks use this name')));
-    row.append($('<div class="col-sm-2"></div>').append(field('Note', numberInput(effect.note, 0, 127, v => { effect.note = v; changed(); }), noteName(effect.note))));
-    row.append($('<div class="col-sm-2"></div>').append(field('Length (ms)', numberInput(effect.duration_ms, 1, 10000, v => { effect.duration_ms = v; changed(); }))));
-    row.append($('<div class="col-sm-2"></div>').append(field('Volume', numberInput(effect.volume, 0, 255, v => { effect.volume = v; changed(); }))));
-    row.append($('<div class="col-sm-2"></div>').append(field('Voice', numberInput(effect.voice, 0, 7, v => { effect.voice = v; changed(); }), 'stops what that voice plays')));
+    }), tr('js.audio_studio.blocks_use_this_name', 'Blocks use this name'))));
+    row.append($('<div class="col-sm-2"></div>').append(field(tr('js.audio_studio.note', 'Note'), numberInput(effect.note, 0, 127, v => { effect.note = v; changed(); }), noteName(effect.note))));
+    row.append($('<div class="col-sm-2"></div>').append(field(tr('js.audio_studio.length_ms', 'Length (ms)'), numberInput(effect.duration_ms, 1, 10000, v => { effect.duration_ms = v; changed(); }))));
+    row.append($('<div class="col-sm-2"></div>').append(field(tr('js.audio_studio.volume', 'Volume'), numberInput(effect.volume, 0, 255, v => { effect.volume = v; changed(); }))));
+    row.append($('<div class="col-sm-2"></div>').append(field(tr('js.audio_studio.voice_2', 'Voice'), numberInput(effect.voice, 0, 7, v => { effect.voice = v; changed(); }), tr('js.audio_studio.stops_what_that_voice_plays', 'stops what that voice plays'))));
     editor.append(row, instrumentForm(effect.instrument,
       () => listen(e => e.note(effect.voice, 8 + index, effect.note, effect.volume, effect.duration_ms))));
   }
   $('#addEffect').on('click', () => {
-    const name = freeName('Effect', doc.effects.map(e => e.name));
+    const name = freeName(tr('js.audio_studio.effect', 'Effect'), doc.effects.map(e => e.name));
     doc.effects.push({ name, instrument: { name, sound: 'pulse', pulse_width: 4, cutoff: 15, resonance: 0, volume: 220, pan: 0,
       attack: 0, decay: 60, sustain: 0, release: 40 }, note: 72, duration_ms: 200, volume: 255, voice: 7 });
     selected.effect = doc.effects.length - 1;
@@ -300,7 +299,7 @@
   });
   $('#deleteEffect').on('click', () => {
     const effect = doc.effects[selected.effect];
-    if (!effect || !window.confirm('Delete the sound effect ' + effect.name + '? Blocks that play it will warn you.')) return;
+    if (!effect || !window.confirm(tr('js.audio_studio.delete_the_sound_effect', 'Delete the sound effect {name}? Blocks that play it will warn you.', { name: effect.name }))) return;
     doc.effects.splice(selected.effect, 1);
     selected.effect = Math.max(0, selected.effect - 1);
     renderEffects();
@@ -319,15 +318,15 @@
     $('#addTrack').prop('disabled', !canEdit || doc.soundtracks.length >= MAX_TRACKS);
     const editor = $('#trackEditor').empty();
     const track = doc.soundtracks[selected.track];
-    if (!track) { editor.append('<p class="text-muted">No soundtracks yet.</p>'); return; }
+    if (!track) { editor.append('<p class="text-muted">' + Kit.escape(tr('js.audio_studio.no_soundtracks_yet', 'No soundtracks yet.')) + '</p>'); return; }
     const index = selected.track;
     editor.append($('<h2 class="h5"></h2>').text(track.name + ' — track ' + index));
     const row = $('<div class="row g-2 align-items-end"></div>');
-    row.append($('<div class="col-sm-4"></div>').append(field('Name', textInput(track.name, name => {
+    row.append($('<div class="col-sm-4"></div>').append(field(tr('common.name', 'Name'), textInput(track.name, name => {
       if (nameOk(name, doc.soundtracks.filter(t => t !== track).map(t => t.name))) { track.name = name; renderTracks(); changed(); }
-    }), 'Blocks use this name')));
-    row.append($('<div class="col-sm-2"></div>').append(field('Tempo (bpm)', numberInput(track.tempo, 30, 255, v => { track.tempo = v; changed(); }))));
-    row.append($('<div class="col-sm-2"></div>').append(field('Steps', numberInput(track.steps, 1, 128, v => {
+    }), tr('js.audio_studio.blocks_use_this_name', 'Blocks use this name'))));
+    row.append($('<div class="col-sm-2"></div>').append(field(tr('js.audio_studio.tempo_bpm', 'Tempo (bpm)'), numberInput(track.tempo, 30, 255, v => { track.tempo = v; changed(); }))));
+    row.append($('<div class="col-sm-2"></div>').append(field(tr('js.audio_studio.steps', 'Steps'), numberInput(track.steps, 1, 128, v => {
       track.rows = track.rows.map(cells => cells.slice(0, v).concat(Array.from({ length: Math.max(0, v - cells.length) }, () => null)));
       track.steps = v;
       renderTracks();
@@ -336,51 +335,52 @@
     const loop = $('<input class="form-check-input" type="checkbox">').prop('checked', track.loop).prop('disabled', !canEdit)
       .attr('id', 'trackLoop').on('change', () => { track.loop = loop.prop('checked'); changed(); });
     row.append($('<div class="col-sm-2 mb-2"></div>').append($('<div class="form-check"></div>').append(loop,
-      $('<label class="form-check-label" for="trackLoop">Loop</label>'))));
-    row.append($('<div class="col-sm-2 mb-2"></div>').append($('<button type="button" class="btn btn-primary btn-sm w-100"><i class="bi bi-play-fill"></i> Play</button>')
-      .on('click', () => listen(e => { e.playTrack(index); status('Playing ' + track.name + '. Stop sound (or Escape) silences it.'); }))));
+      $('<label class="form-check-label" for="trackLoop"></label>').text(tr('js.audio_studio.loop_label', 'Loop')))));
+    row.append($('<div class="col-sm-2 mb-2"></div>').append($('<button type="button" class="btn btn-primary btn-sm w-100"><i class="bi bi-play-fill"></i> </button>').append(document.createTextNode(tr('js.audio_studio.play', 'Play')))
+      .on('click', () => listen(e => { e.playTrack(index); status(tr('js.audio_studio.playing', 'Playing {name}. Stop sound (or Escape) silences it.', { name: track.name })); }))));
     editor.append(row, trackGrid(track));
   }
 
   function trackGrid(track) {
     const wrap = $('<div class="table-responsive track-grid"></div>');
     const table = $('<table class="table table-sm table-bordered align-middle mb-0"></table>')
-      .attr('aria-label', 'Steps of ' + track.name + ': one row per voice');
-    const head = $('<tr><th scope="col">Voice</th><th scope="col">Solo</th><th scope="col">Mute</th></tr>');
+      .attr('aria-label', tr('js.audio_studio.steps_of', 'Steps of {name}: one row per voice', { name: track.name }));
+    const head = $('<tr></tr>').append([tr('js.audio_studio.voice_2', 'Voice'), tr('js.audio_studio.solo', 'Solo'), tr('js.audio_studio.mute', 'Mute')]
+      .map(label => $('<th scope="col"></th>').text(label)));
     for (let step = 0; step < track.steps; step += 1) head.append($('<th scope="col" class="text-center small"></th>').text(step + 1));
     table.append($('<thead></thead>').append(head));
     const body = $('<tbody></tbody>');
     track.rows.forEach((cells, voice) => {
-      const tr = $('<tr></tr>').append($('<th scope="row" class="small text-nowrap"></th>').text(voice + ' ' + doc.voices[voice].name));
-      const solo = $('<input class="form-check-input" type="checkbox">').attr('aria-label', 'Solo voice ' + voice)
+      const row = $('<tr></tr>').append($('<th scope="row" class="small text-nowrap"></th>').text(voice + ' ' + doc.voices[voice].name));
+      const solo = $('<input class="form-check-input" type="checkbox">').attr('aria-label', tr('js.audio_studio.solo_voice', 'Solo voice {voice}', { voice: voice }))
         .prop('checked', muted.size === 7 && !muted.has(voice)).on('change', () => {
           muted.clear();
           if (solo.prop('checked')) for (let other = 0; other < 8; other += 1) if (other !== voice) muted.add(other);
           previewKey = null;
           renderTracks();
         });
-      const mute = $('<input class="form-check-input" type="checkbox">').attr('aria-label', 'Mute voice ' + voice)
+      const mute = $('<input class="form-check-input" type="checkbox">').attr('aria-label', tr('js.audio_studio.mute_voice', 'Mute voice {voice}', { voice: voice }))
         .prop('checked', muted.has(voice)).on('change', () => {
           if (mute.prop('checked')) muted.add(voice); else muted.delete(voice);
           previewKey = null;
           renderTracks();
         });
-      tr.append($('<td class="text-center"></td>').append(solo), $('<td class="text-center"></td>').append(mute));
+      row.append($('<td class="text-center"></td>').append(solo), $('<td class="text-center"></td>').append(mute));
       cells.forEach((cell, step) => {
         const input = $('<input class="form-control form-control-sm track-step text-center" maxlength="4" autocomplete="off">')
-          .val(cellText(cell)).attr({ 'aria-label': 'Voice ' + voice + ', step ' + (step + 1), 'data-voice': voice, 'data-step': step })
+          .val(cellText(cell)).attr({ 'aria-label': tr('js.audio_studio.voice_step', 'Voice {voice}, step {step}', { voice, step: step + 1 }), 'data-voice': voice, 'data-step': step })
           .prop('readonly', !canEdit);
         input.on('change', () => {
           const parsed = parseNote(input.val());
           input.toggleClass('is-invalid', !parsed.ok);
-          if (!parsed.ok) { status('Step ' + (step + 1) + ' of voice ' + voice + ': write a note like C4 or 60, "off", or nothing.'); return; }
+          if (!parsed.ok) { status(tr('js.audio_studio.step', 'Step ') + (step + 1) + tr('js.audio_studio.of_voice', ' of voice {voice}: write a note like C4 or 60, "off", or nothing.', { voice: voice })); return; }
           cells[step] = parsed.value;
           input.val(cellText(parsed.value));
           changed();
         });
-        tr.append($('<td class="p-0"></td>').append(input));
+        row.append($('<td class="p-0"></td>').append(input));
       });
-      body.append(tr);
+      body.append(row);
     });
     table.append(body);
     return wrap.append(table);
@@ -401,14 +401,14 @@
     target.trigger('focus').trigger('select');
   });
   $('#addTrack').on('click', () => {
-    doc.soundtracks.push({ name: freeName('Song', doc.soundtracks.map(t => t.name)), tempo: 120, steps: 16, loop: false, rows: emptyRows(16) });
+    doc.soundtracks.push({ name: freeName(tr('js.audio_studio.song', 'Song'), doc.soundtracks.map(t => t.name)), tempo: 120, steps: 16, loop: false, rows: emptyRows(16) });
     selected.track = doc.soundtracks.length - 1;
     renderTracks();
     changed();
   });
   $('#deleteTrack').on('click', () => {
     const track = doc.soundtracks[selected.track];
-    if (!track || !window.confirm('Delete the soundtrack ' + track.name + '? Blocks that play it will warn you.')) return;
+    if (!track || !window.confirm(tr('js.audio_studio.delete_the_soundtrack', 'Delete the soundtrack {name}? Blocks that play it will warn you.', { name: track.name }))) return;
     doc.soundtracks.splice(selected.track, 1);
     selected.track = Math.max(0, selected.track - 1);
     renderTracks();
@@ -418,26 +418,29 @@
   // ---- samples ---------------------------------------------------------------------------
   function renderSamples() {
     const box = $('#sampleEditor').empty();
-    if (!doc.samples.length) { box.append('<p class="text-muted">No samples yet.</p>'); return; }
-    const table = $('<table class="table table-sm align-middle"><thead><tr><th scope="col">Name</th><th scope="col">Base note</th><th scope="col">Loop</th><th scope="col">Loop start</th><th scope="col">Loop end</th><th scope="col"><span class="visually-hidden">Actions</span></th></tr></thead></table>');
+    if (!doc.samples.length) { box.append($('<p class="text-muted"></p>').text(tr('js.audio_studio.no_samples_yet', 'No samples yet.'))); return; }
+    const table = $('<table class="table table-sm align-middle"><thead><tr></tr></thead></table>');
+    table.find('tr').append([tr('common.name', 'Name'), tr('js.audio_studio.base_note', 'Base note'), tr('js.audio_studio.loop_label', 'Loop'), tr('js.audio_studio.loop_start', 'Loop start'), tr('js.audio_studio.loop_end', 'Loop end')]
+      .map(label => $('<th scope="col"></th>').text(label)), $('<th scope="col"><span class="visually-hidden"></span></th>')
+      .find('span').text(tr('artifacts.actions', 'Actions')).end());
     const body = $('<tbody></tbody>');
     doc.samples.forEach((sample, index) => {
       const used = doc.voices.concat(doc.effects.map(e => e.instrument)).some(item => item.sound === 'sample' && item.sample === sample.name);
       const loop = $('<input class="form-check-input" type="checkbox">').prop('checked', sample.loop).prop('disabled', !canEdit)
-        .attr('aria-label', 'Loop ' + sample.name).on('change', () => { sample.loop = loop.prop('checked'); changed(); });
-      const remove = $('<button type="button" class="btn btn-outline-danger btn-sm"><i class="bi bi-trash"></i><span class="visually-hidden">Delete</span></button>')
-        .attr('aria-label', 'Delete ' + sample.name).prop('disabled', !canEdit || used)
-        .attr('title', used ? 'An instrument plays this sample' : 'Delete').on('click', () => {
+        .attr('aria-label', tr('js.audio_studio.loop', 'Loop {name}', { name: sample.name })).on('change', () => { sample.loop = loop.prop('checked'); changed(); });
+      const remove = $('<button type="button" class="btn btn-outline-danger btn-sm"><i class="bi bi-trash"></i><span class="visually-hidden"></span></button>')
+        .attr('aria-label', tr('js.audio_studio.delete', 'Delete {name}', { name: sample.name })).prop('disabled', !canEdit || used)
+        .attr('title', used ? tr('js.audio_studio.an_instrument_plays_this_sample', 'An instrument plays this sample') : tr('common.delete', 'Delete')).on('click', () => {
           doc.samples.splice(index, 1);
           renderAll();
           changed();
         });
       body.append($('<tr></tr>').append(
         $('<th scope="row"></th>').text(sample.name),
-        $('<td></td>').append(numberInput(sample.base_note, 0, 127, v => { sample.base_note = v; changed(); }).attr('aria-label', 'Base note of ' + sample.name).prop('disabled', !canEdit)),
+        $('<td></td>').append(numberInput(sample.base_note, 0, 127, v => { sample.base_note = v; changed(); }).attr('aria-label', tr('js.audio_studio.base_note_of', 'Base note of {name}', { name: sample.name })).prop('disabled', !canEdit)),
         $('<td></td>').append(loop),
-        $('<td></td>').append(numberInput(sample.loop_start, 0, 65535, v => { sample.loop_start = v; changed(); }).attr('aria-label', 'Loop start of ' + sample.name).prop('disabled', !canEdit)),
-        $('<td></td>').append(numberInput(sample.loop_end, 0, 65535, v => { sample.loop_end = v; changed(); }).attr('aria-label', 'Loop end of ' + sample.name).prop('disabled', !canEdit)),
+        $('<td></td>').append(numberInput(sample.loop_start, 0, 65535, v => { sample.loop_start = v; changed(); }).attr('aria-label', tr('js.audio_studio.loop_start_of', 'Loop start of {name}', { name: sample.name })).prop('disabled', !canEdit)),
+        $('<td></td>').append(numberInput(sample.loop_end, 0, 65535, v => { sample.loop_end = v; changed(); }).attr('aria-label', tr('js.audio_studio.loop_end_of', 'Loop end of {name}', { name: sample.name })).prop('disabled', !canEdit)),
         $('<td></td>').append(remove)));
     });
     box.append(table.append(body));
@@ -445,20 +448,20 @@
   $('#sampleForm').on('submit', event => {
     event.preventDefault();
     const file = $('#sampleFile')[0].files[0];
-    if (!file) { Kit.toast('Choose a WAV file.', 'warning'); return; }
+    if (!file) { Kit.toast(tr('js.audio_studio.choose_a_wav_file', 'Choose a WAV file.'), 'warning'); return; }
     const name = ($('#sampleName').val() || file.name.replace(/\.[^.]*$/, '')).trim().slice(0, 32);
     if (!nameOk(name, doc.samples.map(s => s.name))) return;
     const form = new FormData();
     form.append('file', file);
     form.append('name', name);
-    status('Adding ' + name + '…');
+    status(tr('js.audio_studio.adding', 'Adding {name}…', { name: name }));
     Kit.api(api + '/samples', { method: 'POST', body: form }).then(sample => {
       doc.samples.push({ name: sample.name, artifact_id: sample.artifact_id, base_note: 60, loop: false, loop_start: 0, loop_end: 0 });
       $('#sampleForm')[0].reset();
       renderAll();
       changed();
-      status('Added ' + sample.name + ' (' + sample.seconds.toFixed(2) + ' s).');
-    }).catch(err => { status('Sample not added: ' + err.message); Kit.toast(err.message, 'danger'); });
+      status(tr('js.audio_studio.added', 'Added {name} (', { name: sample.name }) + sample.seconds.toFixed(2) + ' s).');
+    }).catch(err => { status(tr('js.audio_studio.sample_not_added', 'Sample not added: {message}', { message: err.message })); Kit.toast(err.message, 'danger'); });
   });
 
   // ---- the numbers the code uses ---------------------------------------------------------
@@ -492,7 +495,7 @@
   $(document).on('keydown', event => { if (event.key === 'Escape') stopSound(); });
   $('#saveAudio').on('click', () => save());
   $('#exportAudio').on('click', () => {
-    if (saveTimer) Kit.toast('Exporting the last saved version: saving your newest changes first.', 'info');
+    if (saveTimer) Kit.toast(tr('js.audio_studio.exporting_the_last_saved_version_saving', 'Exporting the last saved version: saving your newest changes first.'), 'info');
     Promise.resolve(saveTimer ? save() : null).then(download);
   });
   $('#importAudio').on('change', function () {
@@ -506,11 +509,11 @@
         previewKey = null;
         showMissing(answer.missing_samples);
         renderAll();
-        status('Imported and saved (version ' + version + ').');
+        status(tr('js.audio_studio.imported_and_saved_version', 'Imported and saved (version {version}).', { version: version }));
       })
       .catch(err => {
-        if (err.code === 'audio_version_conflict') status('Not imported: this sound was changed in another window. Load it again first.');
-        else status('Not imported: ' + (err instanceof SyntaxError ? 'that file is not an AudioStudio export' : err.message));
+        if (err.code === 'audio_version_conflict') status(tr('js.audio_studio.not_imported_this_sound_was_changed', 'Not imported: this sound was changed in another window. Load it again first.'));
+        else status(tr('js.audio_studio.not_imported', 'Not imported: ') + (err instanceof SyntaxError ? tr('js.audio_studio.that_file_is_not_an_audiostudio', 'that file is not an AudioStudio export') : err.message));
       });
   });
   window.addEventListener('beforeunload', event => {
