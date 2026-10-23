@@ -59,6 +59,8 @@ Score each row 0–4: **0 missing; 1 prototype/stub; 2 partial; 3 implemented wi
 | IDE-02 | Blockly remains editable; canonical block project, stable generation and block-to-source mapping |
 | IDE-03 | C editing: Monaco syntax, completion, diagnostics, navigation and SDK awareness |
 | IDE-04 | RISC-V Assembly editing: syntax, instruction/register/ABI completion, diagnostics |
+| I18N-01 | Complete, accessible internationalization for English, Italian, Spanish, French and German across the IDE, guest/auth flows, validation/build/debug messages, help and classroom documentation; locale selection and fallback work offline and never change saved project semantics or deterministic artifacts |
+| PY-01 | Python project mode with an explicit, versioned project schema; safe validation and deterministic translation/build to a real ABI-compatible **PRG32 cartridge**; inspectable generated C and RISC-V assembly; editor intelligence, run/debug, import/export and packaging parity; no arbitrary unvalidated Python executes on the server |
 | PRJ-01 | Versioned project schema, CRUD, assets, templates, imports/exports, autosave, migrations, history |
 | BLD-01 | All 3 modes compile/link to **real** ABI-compatible `.prg32` artifacts |
 | BLD-02 | Deterministic/reproducible builds, SDK/ABI validation, toolchain provenance and build diagnostics |
@@ -94,6 +96,60 @@ Score each row 0–4: **0 missing; 1 prototype/stub; 2 partial; 3 implemented wi
 | DOC-01 | Architecture ADRs, developer/admin/user docs, examples, API contracts, traceability |
 | DOC-02 | The root README and all related documentation, screenshots, images and architecture schemas are current, mutually consistent, accessible, linked correctly and verified against the running product and deployed architecture |
 | QLT-01 | Test reliability, regression coverage, code quality, error handling, accessibility/performance |
+
+## Required Python compilation architecture
+
+Treat Python as an authoring language, not as a cartridge runtime. Do not embed
+CPython or MicroPython and do not execute student Python during validation or
+builds. The required ahead-of-time pipeline is:
+
+```text
+saved Python source
+  -> parse only with a pinned grammar and resource limits
+  -> allow-listed, statically checked PRG32 Python AST
+  -> deterministic language-neutral game IR
+  -> inspectable commented C and, on request, RISC-V assembly
+  -> existing sandboxed PRG32 toolchain
+  -> PRG32 cartridge
+```
+
+Define and version a small **PRG32 Python** language. Its first version should
+support explicit `init`, `update` and `draw` lifecycle functions; fixed-width
+integer and Boolean values; statically typed variables and functions; arithmetic,
+comparisons and Boolean expressions; assignments; conditionals; bounded loops;
+fixed-size collections where sizes and element types are known at compile time;
+and a single `prg32` module exposing only validator-approved portable ABI calls
+for graphics, input, sprites, assets and eight-voice stereo audio.
+
+Document exact cartridge semantics rather than inheriting incompatible dynamic
+Python behavior. In particular, specify signed and unsigned 32-bit ranges,
+overflow, negative division and remainder, evaluation order, short-circuiting,
+truth values, string limits and loop/resource bounds. Reject unsupported or
+ambiguous behavior with a diagnostic tied to the original source range.
+
+The parser must never import or execute the program. Apply limits to source
+bytes, AST node count, nesting, symbols, functions, control-flow complexity,
+generated IR and build output. Use an explicit AST allow-list and reject arbitrary
+imports, `eval`, `exec`, reflection, dynamic attribute access, filesystem,
+network, processes, threads, native extensions, dynamic allocation, unbounded
+collections, coroutines, generators and other syntax outside the documented
+subset. Server validation remains authoritative; browser language services may
+provide earlier feedback but never weaken it.
+
+Every IR node must retain stable Python source provenance. Extend debugger maps
+as `Python source range -> IR node -> generated C/assembly lines -> cartridge
+address`, without marker text changing generated files or cartridge bytes.
+Generated C and assembly must include per-line teaching comments, use stable
+symbol ordering and contain no timestamps, host paths, random identifiers or
+locale-dependent text.
+
+Use a versioned fixed project representation such as `source_mode: "python"`,
+`source_python` and `python_language_version`. The Python source is authoritative;
+generated C, assembly and maps are artifacts. Adding this mode requires an ADR
+and schema migration because the current project contract permits only Blocks,
+C and assembly. A project's type remains fixed and may change only through the
+explicit conversion workflow. Record grammar, language, IR, ABI and toolchain
+versions plus input/output hashes in build provenance.
 
 ## Mandatory hands-on test scenarios
 
@@ -157,6 +213,34 @@ that architecture schemas include current auth, privacy, cloud, Store, build,
 WASM, AudioStudio and retention flows. Run automated link/image/reference checks
 and retain a visual review checklist.
 
+K. **Multi-language:** exercise English, Italian, Spanish, French and German as
+guest, student, teacher and administrator. Change locale before and during an
+editing session; reload and work offline; cover the IDE, Blockly, Sprite Lab,
+AudioStudio, debugger, sign-in, settings, validation/build errors, publishing,
+privacy notices and classroom help. Verify keyboard and screen-reader behavior,
+pluralization, interpolation, long-text layouts, fallback for missing keys and
+that no untranslated user-facing strings remain. Build the same saved project
+in every locale and prove byte-identical generated source and cartridge output.
+
+L. **Python projects:** create, save, reload, import/export, run, debug and package
+a Python project containing arithmetic, control flow, functions, graphics,
+input and eight-voice stereo audio. Verify editor completion/diagnostics and map
+runtime, validator and build errors back to Python source. Inspect the generated
+C and RISC-V assembly with explanatory source mappings, and prove repeat builds
+are deterministic and ABI-compatible. Reject unsupported syntax, imports,
+dynamic code execution, filesystem/network/process access, native extensions,
+unbounded resource use and attempts to escape the validator or build sandbox.
+Confirm a project's type is fixed and can change only through the documented,
+explicit conversion workflow.
+
+For determinism, build identical Python fixtures repeatedly, in clean processes
+and under all five UI locales. Compare normalized AST/IR, generated C, generated
+assembly, debug-map and PRG32 cartridge hashes. For semantic parity, compare
+Python and equivalent Blocks fixtures through the same IR and compare C and
+assembly execution traces using the existing RV32 harness. Verify that errors
+report stable codes and accurate Python ranges without leaking source or secrets
+into logs.
+
 ## Cross-repository consistency checks
 
 - Compare exact cartridge headers, metadata, ABI table/hash/version, instruction-set support and import conventions against PRG32 sources; test stale/mismatched ABI rejection.
@@ -186,6 +270,23 @@ and retain a visual review checklist.
 - Verify every README/docs visual and architecture schema against the same
   audited revision. Treat a polished but stale screenshot or diagram as failed
   evidence, not cosmetic debt.
+- Compare locale catalogs for English, Italian, Spanish, French and German;
+  require identical key sets, safe interpolation, documented fallback behavior,
+  accessibility review and tests that catch untranslated or stale UI strings.
+- Trace Python end to end: versioned source project -> restricted parser and
+  validator -> deterministic game IR -> inspectable generated C and optional
+  RISC-V assembly -> real toolchain -> PRG32 cartridge -> browser/Qt execution.
+  Prove that locale choice cannot affect this pipeline or its artifact hashes.
+- Verify that Python, Blocks, generated C and generated assembly share one
+  documented IR contract rather than separate behavioral implementations. Check
+  fixed-width arithmetic edge cases, negative division/remainder, evaluation
+  order, short-circuiting, loop bounds, asset references and every portable ABI
+  call against the C/assembly generators and PRG32/PRG32-QT references.
+- Review the Python compiler threat model separately. Parsing must not cause
+  imports or execution; diagnostic rendering must escape student text; compiler
+  limits must resist deeply nested ASTs and size/complexity denial of service;
+  and no code path may pass student-produced Python or C directly to a host
+  interpreter/compiler outside the existing isolated build pipeline.
 
 ## Deliverables (write files in `audit/`)
 
@@ -205,12 +306,15 @@ status and explicit unresolved legal questions. The evidence index must include
 privacy notices, policies, processor/subprocessor records, rights-request test
 artifacts and the documentation/visual freshness manifest.
 
-The deliverables must give `AUD-01` through `AUD-04` their own scores and evidence,
+The deliverables must give `AUD-01` through `AUD-04`, `I18N-01` and `PY-01` their own scores and evidence,
 not fold them into `WASM-02`. Recalculate the denominator after adding these four
-audio rows and the mandatory `GDPR-01` and `DOC-02` rows. Include stereo PCM
+audio rows and the mandatory `GDPR-01`, `DOC-02`, `I18N-01` and `PY-01` rows. Include stereo PCM
 hashes or comparison reports, per-voice ADSR traces, an
 eight-active-voice fixture, AudioStudio browser evidence, generated source and
-packaged asset evidence, and the repository-wide buzzer-removal search result.
+packaged asset evidence, the repository-wide buzzer-removal search result,
+five-locale catalog/visual/accessibility evidence, locale-independent artifact
+hashes and Python grammar/semantics, parser and validator limits, typed IR,
+source-map, provenance, malicious-input and real-toolchain evidence.
 
 ## Release gate
 
@@ -223,7 +327,12 @@ behavior, missing AudioStudio core workflow, any supported/reachable buzzer
 path, a material GDPR compliance failure, an unmitigated high-risk privacy
 processing operation, missing required DPIA/DPO/counsel determination, or
 documentation/visuals that materially misrepresent security, privacy,
-installation, APIs, architecture or supported behavior. **CONDITIONAL** is
+installation, APIs, architecture or supported behavior. Also recommend
+**NO-GO** for a claimed multi-language release with incomplete English, Italian,
+Spanish, French or German coverage or locale-dependent build output, and for a
+claimed Python project mode that executes unvalidated code, bypasses the game IR,
+hides generated teaching source, produces non-deterministic artifacts or lacks
+real PRG32 cartridge evidence. **CONDITIONAL** is
 appropriate only for clearly bounded, documented gaps with mitigations and no
 critical blockers. A high average score never overrides a critical finding or
 legal release gate.
@@ -233,12 +342,15 @@ legal release gate.
 Report: (1) inspected SHAs; (2) what was actually executed; (3) release
 recommendation; (4) top 10 findings with path:line and reproduction; (5) scored
 requirements coverage, including separate `AUD-01`–`AUD-04`, `GDPR-01` and
-`DOC-02` scores; (6) exact missing evidence; (7) next implementation PRs;
+`DOC-02`, `I18N-01` and `PY-01` scores; (6) exact missing evidence; (7) next implementation PRs;
 (8) an explicit audio verdict covering eight voices, ADSR, stereo parity,
 AudioStudio and buzzer removal; (9) an explicit GDPR verdict that distinguishes
 technical evidence from legal counsel/DPO determinations; and (10) a
 documentation/visual freshness verdict covering the main README, screenshots,
-images and architecture schemas. Clearly distinguish source inspection from
+images and architecture schemas; (11) a multi-language verdict for English,
+Italian, Spanish, French and German; and (12) a Python-project verdict covering
+validation, deterministic generation, inspectable C/assembly, debugging,
+packaging and sandbox boundaries. Clearly distinguish source inspection from
 executed validation. Do not claim PRG32 hardware, stereo hardware output,
 real-provider behavior, iOS validation or legal certification unless actually
 performed and appropriately approved.
