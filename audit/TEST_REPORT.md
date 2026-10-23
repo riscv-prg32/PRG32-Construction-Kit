@@ -1,11 +1,14 @@
 # Test report
 
-Audited HEAD: `bb2b0625abd6b9740948c12f4c7b55170bcdd8b0` on 2026-10-22.
+Audited HEAD: `fe2e2c4978ff67c0e3f48987b80187cff40c1094` on 2026-10-23.
 
 ## Fresh execution
 
 | Scope | Result |
 |---|---|
+| Current broad feasible suite with loopback/cache access | **1,332 passed, 57 skipped, 3 failed** in 271.00 s |
+| Three failures | Shared username/private-handle assertions against adjacent unpatched CartridgeStore `4a3138b` |
+| Retained patched-Store evidence | Store **91 passed**; Kit cross-repository suite **89 passed** against clean `4a3138b` + proposed patch |
 | Privacy, docs, guest, run-build, settings, GitHub, project-type, security, authorization and consistency selection | **441 passed, 1 skipped** in 49.51 s |
 | Broad feasible suite, rerun with disposable loopback/compiler-cache access | **1,330 passed, 56 skipped, 1 failed** in 267.76 s |
 | Mandatory browser selection with `PRG32_REQUIRE_BROWSER=1` | **5 passed, 40 setup errors**: no Chrome or Playwright Chromium installed |
@@ -34,9 +37,10 @@ The nine focused skips were explicit: live QEMU opt-in, local toolchain-dependen
 
 ## Limitations
 
-- The one product failure is `test_kit_user_can_sign_in_to_the_store`: expected shared username `ada`, actual `player-<random>` from the adjacent CartridgeStore.
+- The current failures are `test_kit_user_can_sign_in_to_the_store`, `test_the_username_is_shared_and_the_store_handle_stays_public_only`, and `test_a_store_only_account_with_the_same_username_is_never_joined`. They pass only when the proposed Store patch is applied; canonical Store has not merged it.
 - Browser tests could not execute locally because this host has no Chrome or Playwright Chromium. They were forced with `PRG32_REQUIRE_BROWSER=1`, so absence produced errors rather than false passes.
 - No live real-provider data-subject request, staffed breach tabletop, completed DPIA/DPO decision or legal review was available.
+- The new RLIMIT_NPROC kernel-count test is Linux-only and skipped on this macOS host; retained evidence, not this fresh run, supports the Docker-server claim.
 - SDK and PRG32-QT audio fixes are patches in this repository, not merged canonical commits.
 - Frame-triggered QEMU effects can differ by one 20 ms audio buffer; whole-recording hashes are not identical.
 - No physical stereo PRG32 recording or physical-console delivery exists.

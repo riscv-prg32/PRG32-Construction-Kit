@@ -1,8 +1,8 @@
 # Executive summary
 
-Audit date: 2026-10-22 (Europe/Rome)
+Audit date: 2026-10-23 (Europe/Rome)
 
-Audited revision: `ide/refine-after-e2d0cef` at `bb2b0625abd6b9740948c12f4c7b55170bcdd8b0`. The tracked tree was clean; three unrelated untracked local helper/configuration items are recorded in `audit/EVIDENCE_INDEX.md`.
+Audited revision: `ide/refine-after-e2d0cef` at `fe2e2c4978ff67c0e3f48987b80187cff40c1094`. The tracked tree was clean; pre-existing untracked local helper/refinement files are recorded in `audit/EVIDENCE_INDEX.md`.
 
 Recommendation: **NO-GO**
 
@@ -28,14 +28,28 @@ The revision adds credible reference evidence beyond the previous audio work. A 
 
 Audio refinement is strong but still split between the Kit and proposed upstream patches. The SDK buzzer-retirement patch preserves slots 5/7/8 as silent compatibility entries while removing public names; the Qt patch makes the firmware engine the default and records frames accepted by a real macOS output device; the QEMU clock/reset patch brings most whole recordings into sample alignment. All apply and test against clean copies, but none is a canonical upstream revision. Physical stereo-console and human screen-reader sessions remain unperformed.
 
-Fresh execution at `bb2b062`:
+Fresh execution at `fe2e2c4`:
+
+- broad feasible suite with disposable loopback/compiler-cache access: **1,332 passed, 57 skipped, 3 failed** in 271.00 s;
+- all three failures are the new shared-identity assertions against the adjacent canonical CartridgeStore `4a3138b`, which does not contain the proposed Store patch;
+- the new Linux-only kernel-count/process-limit regression test skipped on macOS, so the Docker-server fix remains implemented/tested by retained Linux evidence rather than freshly demonstrated here;
+- browser suites remain unavailable on this host because Chrome/Playwright Chromium is absent.
+
+The refinement chooses a coherent shared identity model (private shared username,
+separate pseudonymous public handle) and supplies a substantial, tested patch for
+CartridgeStore. Retained evidence reports 91 Store tests and 89 Kit cross-repository
+tests passing against a clean patched clone. Because the patch is not merged into
+canonical CartridgeStore and the default adjacent-repository suite still fails,
+`SSO-04` remains 3/4 rather than closing.
+
+Earlier fresh execution at `bb2b062`:
 
 - privacy/documentation/security/new-feature selection: **441 passed, 1 skipped**;
 - broad feasible suite with loopback and compiler-cache access: **1,330 passed, 56 skipped, 1 failed**;
 - mandatory browser selection: **5 non-browser checks passed; 40 browser setups refused because Chrome/Playwright Chromium is absent**;
 - documentation/capability consistency and generated-diagram/ROPA checks passed.
 
-The single reproducible failure is
+The earlier single reproducible failure was
 `tests/test_sso_with_cartridge_store.py::test_kit_user_can_sign_in_to_the_store`:
 the Store authenticates the Kit user but returns a generated `player-*` username
 instead of the shared username `ada`. `SSO-04` is reduced to 3/4 pending a
@@ -50,8 +64,8 @@ Earlier retained execution at `951f782`:
 - broad feasible suite: **1,009 passed, 85 skipped, 1 deselected**, with only the five sandbox-denied delivery setups;
 - syntax and locally feasible reproducibility checks passed; toolchain fixture rebuilds were verified from retained Docker evidence but could not run locally.
 
-The expanded matrix score is **131/156 (84.0%)**. The recommendation remains
+The expanded matrix score remains **131/156 (84.0%)**. The recommendation remains
 **NO-GO** because deployment-specific GDPR decisions/sign-off are open. Other
-blockers are the shared-account identity regression, canonical upstream audio
+blockers are the unmerged shared-account Store patch, canonical upstream audio
 patch adoption, physical PRG32 stereo/delivery evidence, complete QEMU/frame-event
 alignment, human screen-reader evidence and unsupported iOS handoff.

@@ -30,17 +30,24 @@ README, architecture, diagrams, screenshots and documentation gates now pass.
 --check`, `docs/figures/manifest.json` and human review commits provide the
 required reproducibility and freshness evidence.
 
-### H-00C — Kit/CartridgeStore shared username contract regressed
+### H-00C — Shared identity design is implemented as an unmerged Store patch
 
-Run `python3 -m pytest -q
-tests/test_sso_with_cartridge_store.py::test_kit_user_can_sign_in_to_the_store`.
-The Store accepts `ada@school.test` and the correct password, but `/api/me`
-returns a generated `player-*` username instead of `ada`
-(`tests/test_sso_with_cartridge_store.py:75`). Expected: the documented shared
-account identity. Actual: authenticated account with a divergent username.
-Decide whether pseudonymous Store usernames are now canonical; if so, migrate
-the contract/docs/test explicitly. Otherwise preserve the Kit username through
-the synchronization path.
+The project owner chose a private shared username plus a separate pseudonymous
+Store handle. The repository supplies
+`docs/upstream/cartridge-store-shared-identity.patch` with migration, collision,
+privacy-notice and CSRF tests. Retained clean-clone evidence passes. However,
+canonical CartridgeStore `4a3138b` remains unpatched. Fresh execution therefore
+fails three assertions at `tests/test_sso_with_cartridge_store.py:75,86,109`.
+Merge/review the Store patch, pin the merged revision, regenerate Store fixtures
+and rerun the live/cross-repository suites before calling this gate closed.
+
+### M-05 — Docker process-limit repair lacks fresh Linux execution
+
+`build_guard.py` now asks the kernel for the UID-wide process count before setting
+RLIMIT_NPROC, addressing container `/proc` undercounting. The regression at
+`tests/test_build_sandbox.py:109` is Linux-only and skipped on this macOS audit
+host. Preserve the fix, but require the Docker CI/toolchain job to demonstrate
+both normal build startup beside other UID processes and fork-bomb refusal.
 
 ### H-01 — Required audio changes are not canonical upstream
 

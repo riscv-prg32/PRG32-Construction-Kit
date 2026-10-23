@@ -21,4 +21,14 @@ The field-level ROPA and privacy diagrams are technical templates rather than an
 approved deployment architecture until the controller fills the provider,
 hosting, transfer, legal-basis, DPIA and DPO decisions.
 
-Current Kit revision: `bb2b0625abd6b9740948c12f4c7b55170bcdd8b0`.
+The chosen Store identity architecture now separates the private account username
+from a pseudonymous public handle and matches accounts by email. This is coherent
+and better documents the privacy boundary, but it is not ecosystem-canonical
+until `docs/upstream/cartridge-store-shared-identity.patch` is merged upstream.
+
+The build guard no longer estimates UID-wide processes from container-visible
+`/proc`; it probes the kernel before setting RLIMIT_NPROC. That is a plausible
+repair for shared-UID Docker hosts, with a Linux-only regression test pending
+fresh CI confirmation.
+
+Current Kit revision: `fe2e2c4978ff67c0e3f48987b80187cff40c1094`.

@@ -1,6 +1,6 @@
 # Remediation status
 
-Status at `bb2b0625abd6b9740948c12f4c7b55170bcdd8b0`.
+Status at `fe2e2c4978ff67c0e3f48987b80187cff40c1094`.
 
 | Item | Status |
 |---|---|
@@ -15,7 +15,8 @@ Status at `bb2b0625abd6b9740948c12f4c7b55170bcdd8b0`.
 | Human screen reader | Missing |
 | GDPR lifecycle evidence | Technical implementation/test evidence strong; deployment controller/legal basis/DPIA/DPO/contracts/transfers/staffed exercise still open |
 | README/architecture/visual freshness | Closed: current docs, generated diagrams, complete visual manifest, reviewer records and CI freshness gates pass |
-| Shared Kit/Store identity | Regression: login succeeds but Store username is generated rather than shared |
+| Shared Kit/Store identity | Model and tested patch supplied; canonical CartridgeStore has not merged it, so three default integration tests fail |
+| Docker build process limit | Kernel-count fix implemented; fresh Linux/Docker demonstration unavailable in this audit |
 
 Recommendation: **NO-GO**. Deployment GDPR approval remains a hard gate; the
-shared-identity regression and earlier audio/hardware gaps also remain.
+unmerged shared-identity patch and earlier audio/hardware gaps also remain.

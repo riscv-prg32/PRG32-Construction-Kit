@@ -4,7 +4,7 @@
 
 | Repository | HEAD |
 |---|---|
-| PRG32-Construction-Kit | `bb2b0625abd6b9740948c12f4c7b55170bcdd8b0` |
+| PRG32-Construction-Kit | `fe2e2c4978ff67c0e3f48987b80187cff40c1094` |
 | PRG32 | `679dfb58783bd007125de9ca0b75eaa077908739` |
 | PRG32-QT | `f6d80addf49d0512c2e4390251a81d797a35b157` |
 | CartridgeStore | `820f74bfe9364c8727db92cb0f15f3b9dd85feab` |
@@ -22,6 +22,8 @@
 
 ## Fresh execution
 
+- 2026-10-23 broad feasible suite: **1,332 passed, 57 skipped, 3 failed**; failures are the unmerged Store identity contract.
+- Linux-only `test_the_process_limit_starts_from_what_the_kernel_counts`: skipped on macOS.
 - 2026-10-22 privacy/docs/new-feature selection: **441 passed, 1 skipped**.
 - 2026-10-22 broad feasible suite with loopback/cache access: **1,330 passed, 56 skipped, 1 failed**.
 - Failing test: `tests/test_sso_with_cartridge_store.py:75`; isolated reproduction failed twice with different generated `player-*` usernames.
@@ -45,5 +47,5 @@
 
 The tracked worktree was clean. Pre-existing untracked `.claude/`,
 `CLAUDE_PRG32_FULL_IDE_REFINEMENT.md` and
-`CLAUDE_PRG32_QUALITY_IMPROVEMENT_ROUND.md` were preserved and were not treated
-as implementation evidence.
+`CLAUDE_PRG32_QUALITY_IMPROVEMENT_ROUND.md`, plus the previous downloadable
+audit note, were preserved and were not treated as implementation evidence.

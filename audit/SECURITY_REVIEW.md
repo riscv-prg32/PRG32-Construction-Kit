@@ -27,8 +27,17 @@ operational and legal evidence to pass the expressly required gate.
 
 ## Shared-account interoperability
 
-Fresh execution found one regression in the adjacent CartridgeStore contract.
-Credentials and authentication succeed, but the Store exposes a generated
-`player-*` username instead of the Kit username. No privilege escalation was
-observed, but identity display/mapping semantics now disagree with the committed
-test and must be reconciled before claiming reference-verified shared accounts.
+The project now specifies a private shared username plus a separate pseudonymous
+public handle. The supplied Store patch has meaningful privacy, collision,
+migration, notice and CSRF tests, and retained clean-clone runs pass. No privilege
+escalation was observed. The canonical Store is still unpatched, so the default
+integration suite fails and this remains supply-chain/integration work rather
+than a closed gate.
+
+## Build process limit
+
+The build guard's previous container-visible `/proc` count could set RLIMIT_NPROC
+below the UID-wide kernel count and prevent every build from starting on shared
+Docker hosts. The repair probes the kernel, then adds only the configured build
+allowance. This preserves fork-bomb limiting in design, but the decisive test is
+Linux-only and was not executable on this macOS audit host.
