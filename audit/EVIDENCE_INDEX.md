@@ -4,7 +4,7 @@
 
 | Repository | HEAD |
 |---|---|
-| PRG32-Construction-Kit | `fe2e2c4978ff67c0e3f48987b80187cff40c1094` |
+| PRG32-Construction-Kit | `f5b3a0ff3f261f424172e57b30602026bd1ffaca` |
 | PRG32 | `679dfb58783bd007125de9ca0b75eaa077908739` |
 | PRG32-QT | `f6d80addf49d0512c2e4390251a81d797a35b157` |
 | CartridgeStore | `820f74bfe9364c8727db92cb0f15f3b9dd85feab` |
@@ -22,6 +22,8 @@
 
 ## Fresh execution
 
+- GitHub Actions run `39924578831` for exact SHA `f5b3a0f`: success; production-image toolchain job `120320234402` passed the same-UID process-load step and all downstream build/sandbox checks.
+- Local affected selection: **234 passed, 8 skipped**; documentation/generator checks passed.
 - 2026-10-23 broad feasible suite: **1,332 passed, 57 skipped, 3 failed**; failures are the unmerged Store identity contract.
 - Linux-only `test_the_process_limit_starts_from_what_the_kernel_counts`: skipped on macOS.
 - 2026-10-22 privacy/docs/new-feature selection: **441 passed, 1 skipped**.

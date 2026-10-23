@@ -10,7 +10,7 @@ Scores: 0 missing, 1 prototype, 2 partial, 3 implemented/tested with an evidence
 | IDE-04 | 4 | Reference-verified | RV32IMC/Zicsr, ABI/labels/navigation and safe validation are backed by the real PRG32 assembler/compiler after every save. |
 | PRJ-01 | 3 | Implemented/tested | Deterministic project model, revisions and archive/import are covered. |
 | BLD-01 | 4 | Reference-verified | Retained Docker evidence rebuilds Blocks-C, Blocks-assembly, Advanced C and handwritten assembly for both targets; hashes match macOS builds. |
-| BLD-02 | 3 | Implemented/tested | Isolation/provenance/diagnostics/debug identity; the kernel-count process-limit fix has a Linux regression test but could not be freshly run on macOS. |
+| BLD-02 | 4 | Reference-verified | Isolation/provenance/diagnostics/debug identity plus successful production-image CI under 300 hidden same-UID processes; sandbox, budgets, AppArmor and real/concurrent cartridge builds passed at the audited SHA. |
 | WASM-01 | 4 | Reference-verified | Committed browser core and golden execution tests. |
 | WASM-02 | 4 | Reference-verified | Browser graphics/input/timing/offline evidence remains strong; its firmware-engine PCM is now compared with retained real-firmware QEMU output. |
 | AUD-01 | 4 | Reference-verified | Eight simultaneous SID-like voices and independent ADSR/waveform/volume/pan pass native/WASM tests and retained real-firmware QEMU sample comparison. |
@@ -44,6 +44,6 @@ Scores: 0 missing, 1 prototype, 2 partial, 3 implemented/tested with an evidence
 | DOC-02 | 4 | Reference-verified | Current README/architecture, generated diagrams, synthetic screenshots, visual manifest, human review records and CI checks for links/images/alt text/orphans/names/IDs/freshness all pass. |
 | QLT-01 | 3 | Implemented/tested with external integration failures | Broad coverage and quality gates remain strong, but the fresh feasible suite has three expected failures against unpatched canonical CartridgeStore; browser and Linux sandbox reruns were unavailable locally. |
 
-Domain totals: IDE 14/16; Project 3/4; Build 7/8; WASM 8/8; Audio 13/16; Debug 22/24; Accounts 8/8; SSO 15/16; Cloud 6/8; Store 7/8; Delivery 3/12; Security 7/8; GDPR 3/4; Operations 4/4; Documentation 8/8; Quality 3/4.
+Domain totals: IDE 14/16; Project 3/4; Build 8/8; WASM 8/8; Audio 13/16; Debug 22/24; Accounts 8/8; SSO 15/16; Cloud 6/8; Store 7/8; Delivery 3/12; Security 7/8; GDPR 3/4; Operations 4/4; Documentation 8/8; Quality 3/4.
 
-**Total: 131/156 (84.0%).**
+**Total: 132/156 (84.6%).**

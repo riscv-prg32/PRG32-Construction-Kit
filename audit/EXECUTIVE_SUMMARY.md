@@ -2,7 +2,7 @@
 
 Audit date: 2026-10-23 (Europe/Rome)
 
-Audited revision: `ide/refine-after-e2d0cef` at `fe2e2c4978ff67c0e3f48987b80187cff40c1094`. The tracked tree was clean; pre-existing untracked local helper/refinement files are recorded in `audit/EVIDENCE_INDEX.md`.
+Audited revision: `ide/refine-after-e2d0cef` at `f5b3a0ff3f261f424172e57b30602026bd1ffaca`. The tracked tree was clean; pre-existing untracked local helper/refinement files are recorded in `audit/EVIDENCE_INDEX.md`.
 
 Recommendation: **NO-GO**
 
@@ -28,7 +28,18 @@ The revision adds credible reference evidence beyond the previous audio work. A 
 
 Audio refinement is strong but still split between the Kit and proposed upstream patches. The SDK buzzer-retirement patch preserves slots 5/7/8 as silent compatibility entries while removing public names; the Qt patch makes the firmware engine the default and records frames accepted by a real macOS output device; the QEMU clock/reset patch brings most whole recordings into sample alignment. All apply and test against clean copies, but none is a canonical upstream revision. Physical stereo-console and human screen-reader sessions remain unperformed.
 
-Fresh execution at `fe2e2c4`:
+Fresh verification at `f5b3a0f`:
+
+- GitHub Actions run `39924578831` completed successfully for the exact audited SHA;
+- its production-image job passed the same-UID 300-process load, kernel/`/proc` evidence check, bubblewrap and disk-budget suites, real cartridge builds, AppArmor confinement, concurrent builds, fixture rebuilds and container health checks;
+- focused local sandbox/documentation/capability selection: **234 passed, 8 platform skips**;
+- documentation, visual manifest, generated diagrams and generated ROPA checks passed.
+
+This is sufficient to raise `BLD-02` from 3/4 to **4/4**. `SEC-01` remains 3/4:
+the specific RLIMIT_NPROC regression is closed, but builds still share a host UID
+outside their namespaces.
+
+Earlier fresh execution at `fe2e2c4`:
 
 - broad feasible suite with disposable loopback/compiler-cache access: **1,332 passed, 57 skipped, 3 failed** in 271.00 s;
 - all three failures are the new shared-identity assertions against the adjacent canonical CartridgeStore `4a3138b`, which does not contain the proposed Store patch;
@@ -64,7 +75,7 @@ Earlier retained execution at `951f782`:
 - broad feasible suite: **1,009 passed, 85 skipped, 1 deselected**, with only the five sandbox-denied delivery setups;
 - syntax and locally feasible reproducibility checks passed; toolchain fixture rebuilds were verified from retained Docker evidence but could not run locally.
 
-The expanded matrix score remains **131/156 (84.0%)**. The recommendation remains
+The expanded matrix score is **132/156 (84.6%)**. The recommendation remains
 **NO-GO** because deployment-specific GDPR decisions/sign-off are open. Other
 blockers are the unmerged shared-account Store patch, canonical upstream audio
 patch adoption, physical PRG32 stereo/delivery evidence, complete QEMU/frame-event

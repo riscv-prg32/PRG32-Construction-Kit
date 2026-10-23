@@ -41,13 +41,13 @@ fails three assertions at `tests/test_sso_with_cartridge_store.py:75,86,109`.
 Merge/review the Store patch, pin the merged revision, regenerate Store fixtures
 and rerun the live/cross-repository suites before calling this gate closed.
 
-### M-05 — Docker process-limit repair lacks fresh Linux execution
+### M-05 — Closed: Docker process-limit repair demonstrated on Linux
 
-`build_guard.py` now asks the kernel for the UID-wide process count before setting
-RLIMIT_NPROC, addressing container `/proc` undercounting. The regression at
-`tests/test_build_sandbox.py:109` is Linux-only and skipped on this macOS audit
-host. Preserve the fix, but require the Docker CI/toolchain job to demonstrate
-both normal build startup beside other UID processes and fork-bomb refusal.
+GitHub Actions run `39924578831`, job `120320234402`, passed for `f5b3a0f`.
+The production image ran beside 300 processes in another container using the
+same host UID; the evidence tool confirmed the hidden process count, sandbox and
+budget tests passed, fork excess was bounded with no survivor, and real/concurrent
+PRG32 cartridge builds completed. Preserve this as a mandatory CI gate.
 
 ### H-01 — Required audio changes are not canonical upstream
 
@@ -79,6 +79,6 @@ Automated accessibility and keyboard scenarios pass, but AudioStudio tasks 10–
 
 ## Release conclusion
 
-The expanded assessment scores **131/156**. The release remains **NO-GO** because
+The expanded assessment scores **132/156**. The release remains **NO-GO** because
 the actual-deployment GDPR decisions and qualified review are open. Documentation
 freshness is closed; shared-account identity and audio/hardware blockers remain.

@@ -1,11 +1,14 @@
 # Test report
 
-Audited HEAD: `fe2e2c4978ff67c0e3f48987b80187cff40c1094` on 2026-10-23.
+Audited HEAD: `f5b3a0ff3f261f424172e57b30602026bd1ffaca` on 2026-10-23.
 
 ## Fresh execution
 
 | Scope | Result |
 |---|---|
+| Exact-SHA GitHub Actions run | **Success**, run `39924578831` |
+| Toolchain production-image job | **Success**: same-UID 300-process scenario, bwrap/budgets/AppArmor, real and concurrent cartridges, fixtures and health |
+| Local affected-selection rerun | **234 passed, 8 skipped** in 8.43 s; skips are Linux/bubblewrap-only paths covered by successful CI |
 | Current broad feasible suite with loopback/cache access | **1,332 passed, 57 skipped, 3 failed** in 271.00 s |
 | Three failures | Shared username/private-handle assertions against adjacent unpatched CartridgeStore `4a3138b` |
 | Retained patched-Store evidence | Store **91 passed**; Kit cross-repository suite **89 passed** against clean `4a3138b` + proposed patch |
@@ -40,7 +43,7 @@ The nine focused skips were explicit: live QEMU opt-in, local toolchain-dependen
 - The current failures are `test_kit_user_can_sign_in_to_the_store`, `test_the_username_is_shared_and_the_store_handle_stays_public_only`, and `test_a_store_only_account_with_the_same_username_is_never_joined`. They pass only when the proposed Store patch is applied; canonical Store has not merged it.
 - Browser tests could not execute locally because this host has no Chrome or Playwright Chromium. They were forced with `PRG32_REQUIRE_BROWSER=1`, so absence produced errors rather than false passes.
 - No live real-provider data-subject request, staffed breach tabletop, completed DPIA/DPO decision or legal review was available.
-- The new RLIMIT_NPROC kernel-count test is Linux-only and skipped on this macOS host; retained evidence, not this fresh run, supports the Docker-server claim.
+- The RLIMIT_NPROC test is Linux-only and skipped locally, but the exact audited SHA's production-image CI job executed and passed it under the intended cross-container same-UID load.
 - SDK and PRG32-QT audio fixes are patches in this repository, not merged canonical commits.
 - Frame-triggered QEMU effects can differ by one 20 ms audio buffer; whole-recording hashes are not identical.
 - No physical stereo PRG32 recording or physical-console delivery exists.

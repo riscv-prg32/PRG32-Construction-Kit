@@ -39,5 +39,7 @@ than a closed gate.
 The build guard's previous container-visible `/proc` count could set RLIMIT_NPROC
 below the UID-wide kernel count and prevent every build from starting on shared
 Docker hosts. The repair probes the kernel, then adds only the configured build
-allowance. This preserves fork-bomb limiting in design, but the decisive test is
-Linux-only and was not executable on this macOS audit host.
+allowance. Exact-SHA Linux CI demonstrated ordinary and concurrent real builds
+beside 300 hidden same-UID processes, while the fork, disk, time and confinement
+tests remained enforced. The broader residual risk remains that builds share a
+host UID outside their mount namespaces.

@@ -160,7 +160,7 @@
       "id": "BLD-02",
       "title": "Isolated, reproducible builds with provenance",
       "status": "implemented",
-      "audit_score": 3,
+      "audit_score": 4,
       "source": [
         "prg32_construction_kit/provenance.py::build_provenance",
         "prg32_construction_kit/build_sandbox.py::prepare",

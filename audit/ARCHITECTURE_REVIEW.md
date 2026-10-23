@@ -27,8 +27,8 @@ and better documents the privacy boundary, but it is not ecosystem-canonical
 until `docs/upstream/cartridge-store-shared-identity.patch` is merged upstream.
 
 The build guard no longer estimates UID-wide processes from container-visible
-`/proc`; it probes the kernel before setting RLIMIT_NPROC. That is a plausible
-repair for shared-UID Docker hosts, with a Linux-only regression test pending
-fresh CI confirmation.
+`/proc`; it probes the kernel before setting RLIMIT_NPROC. Exact-SHA CI verified
+the repair in the production image beside 300 same-UID processes in another
+container, while preserving bwrap, AppArmor, resource budgets and real builds.
 
-Current Kit revision: `fe2e2c4978ff67c0e3f48987b80187cff40c1094`.
+Current Kit revision: `f5b3a0ff3f261f424172e57b30602026bd1ffaca`.
