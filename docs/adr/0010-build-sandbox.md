@@ -91,3 +91,12 @@ Every compiler run goes through `build_sandbox.py`:
   hard limit to that count + `PRG32_BUILD_MAX_PROCESSES`. `--processes` is the
   allowance; `tests/test_build_sandbox.py` checks both that a build starts beside
   many other processes and that the allowance still stops a fork bomb.
+- **Linux proof (2026-10-23, audit of `fe2e2c4`):** the CI container job starts a
+  second container running 300 processes as the kit's user id, outside the kit
+  container. With that load, `tools/process_limit_evidence.py` must find at least 250
+  of the user's processes hidden from the kit's `/proc` (so the old limit would have
+  refused every build), then `tests/test_build_sandbox.py`, `tests/test_build_budget.py`
+  (bwrap required) and `tools/check_build.py` must pass. The fork-bomb test also
+  checks that the bomb is refused within the allowance and that none of its processes
+  outlives the build. The logs and JSON are kept as `same-uid-*` in the container
+  evidence artifact.

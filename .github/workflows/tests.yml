@@ -451,6 +451,37 @@ jobs:
           fi
           exit $status
 
+      # On a real server other containers often run as the kit's user id (1000), and the kernel
+      # counts their processes against the build's RLIMIT_NPROC although the kit's /proc cannot
+      # see them (every build failed there before build_guard asked the kernel; ADR-0010,
+      # 2026-10-22 amendment). The runner's own user is not 1000, so CI makes that load itself.
+      - name: Load the kit's user id with processes outside the kit container
+        run: |
+          kit_uid=$(docker run --rm --entrypoint id ${{ env.CI_IMAGE }} -u)
+          docker run -d --name same-uid-load --user "$kit_uid:$kit_uid" --entrypoint sh ${{ env.CI_IMAGE }} \
+            -c 'for i in $(seq 300); do sleep 3600 & done; wait'
+          sleep 3
+
+      - name: Sandbox tests and real cartridges beside the same user id's processes
+        run: >-
+          docker run --rm ${{ env.SANDBOX_OPTS }} -e PRG32_BUILD_SANDBOX=bwrap -e PRG32_REQUIRE_BWRAP=1
+          -v "$PWD/ci-evidence:/evidence" --entrypoint sh ${{ env.CI_IMAGE }} -c
+          "set -e;
+          python tools/process_limit_evidence.py --expect-hidden 250 --out /evidence/same-uid-processes.json;
+          pip install -q --user pytest;
+          status=0;
+          python -m pytest -q -rs -p no:cacheprovider --junitxml=/evidence/same-uid-sandbox-tests.xml
+          tests/test_build_sandbox.py tests/test_build_budget.py > /evidence/same-uid-sandbox-tests.log 2>&1 || status=1;
+          cat /evidence/same-uid-sandbox-tests.log;
+          python tools/check_build.py --students 2 --windows 2 --evidence /evidence/same-uid-check_build.json
+          > /evidence/same-uid-check_build.log 2>&1 || status=1;
+          cat /evidence/same-uid-check_build.log;
+          exit $status"
+
+      - name: Remove the same user id's processes
+        if: always()
+        run: docker rm --force same-uid-load || true
+
       - name: Compile real cartridges concurrently
         run: >-
           docker run --rm ${{ env.SANDBOX_OPTS }} -v "$PWD/ci-evidence:/evidence" --entrypoint sh ${{ env.CI_IMAGE }} -c

@@ -248,6 +248,7 @@ copes with the whole class clicking at once. Details: `concurrent_builds.md`.
 | `FAIL RISC-V compiler on PATH` | Add the compiler's `bin` folder to `PATH` for the server process (systemd: the `Environment=PATH=` line). |
 | `docker compose build` fails with "No RISC-V compiler download" | The computer is not amd64 or arm64. Use another computer or `PRG32_TOOLCHAIN=0`. |
 | `FAIL build sandbox: ... bubblewrap does not work` | The container was started without `docker/seccomp-kit.json` (see `build_sandbox.md`). On Ubuntu 24.04 and other AppArmor hosts, load `docker/apparmor/prg32-kit` and start the container with `--security-opt apparmor=prg32-kit` (*AppArmor hosts* there). |
+| Every Run or Compile fails with `build_guard: cannot start ...: Resource temporarily unavailable` | The kit is older than 2026-10-22 and other containers or programs on the server run as the same user id (usually 1000): update the kit. `docker compose exec kit python tools/process_limit_evidence.py` shows how many of that user's processes the kernel counts and the limit a build gets. |
 | `507 build_disk_full` when compiling | All builds together reached `PRG32_BUILD_ROOT_MAX_MB`. Old builds go with retention (`PRG32_KIT_KEEP_BUILDS`, *Retention* in `storage.md`); raise the budget if the disk allows. |
 | The container restarts again and again | The start-up check failed. Read `docker compose logs`, or set `PRG32_REQUIRE_TOOLCHAIN=0` to start without builds while you fix it. |
 | "All N cartridge build slots are busy" | The server is working; see `concurrent_builds.md`. |

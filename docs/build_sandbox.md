@@ -93,5 +93,9 @@ need only the seccomp profile.
   of the same user id on the host (other containers too): the guard asks the
   kernel for it (it tries to start a process under smaller and smaller limits)
   instead of counting `/proc`, which a container or the sandbox cannot see whole.
+  CI proves it in the production image: another container runs 300 processes as
+  the kit's user id, `tools/process_limit_evidence.py` records the kernel's count
+  against what `/proc` shows, and the sandbox tests and `tools/check_build.py`
+  must pass beside that load (evidence: `same-uid-*` in the container artifact).
 
 Design record: `adr/0010-build-sandbox.md`.

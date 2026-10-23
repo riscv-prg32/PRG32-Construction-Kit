@@ -52,6 +52,19 @@ def run_build(tmp_path: Path, script: str, *, mode: str, timeout: float = 20, **
     return ok, log, work
 
 
+def processes_running(script: Path) -> list[int]:
+    """Process ids (seen from outside any sandbox) whose command line names ``script``."""
+    found = []
+    for entry in os.listdir("/proc"):
+        try:
+            with open(f"/proc/{entry}/cmdline", "rb") as cmdline:
+                if entry.isdigit() and str(script).encode() in cmdline.read():
+                    found.append(int(entry))
+        except OSError:
+            continue
+    return found
+
+
 # --- the guard: limits, timeout, kill, output ------------------------------------------
 
 def guard(tmp_path, *command, timeout=10, **extra):
@@ -353,6 +366,11 @@ def test_fork_bombs_and_cpu_loops_are_contained(tmp_path):
     """, mode="bwrap", timeout=5, processes=32)
     assert not ok and "FORK LIMIT" in log and "stopped after 5" in log
     assert time.monotonic() - started < 40
+    # Refused within the allowance (PRG32_BUILD_MAX_PROCESSES): the guard's own threads count too.
+    children = int(log.split("FORK LIMIT after", 1)[1].split()[0])
+    assert 0 < children <= 32
+    # And none of the build's processes outlives it.
+    assert processes_running(tmp_path / "tools" / "evil_compiler.py") == []
 
 
 @needs_bwrap
