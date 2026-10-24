@@ -3,5 +3,5 @@ Flask-SQLAlchemy>=3.1,<4.0
 requests>=2.31,<3.0
 pytest>=8.0,<10.0
 Markdown>=3.5,<4.0
-pyelftools>=0.32,<0.33
+pyelftools>=0.33,<0.34
 cryptography>=42,<51
