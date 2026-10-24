@@ -137,9 +137,9 @@ def main(argv: list[str] | None = None) -> int:
         status, answer = deploy_with(expect={**expect, "slot_content": {**expect["slot_content"], "name": "not what is there"}})
         check("refused: the slot holds something else than what was seen",
               answer.get("status") == "refused" and answer["result"].get("code") == "slot_changed", answer)
-        other = built["esp32c6" if architecture == "qemu" else "qemu"]
-        status, answer = deploy_with(artifact_id=other["id"])
-        if kind != "prg32qt":            # PRG32-QT runs both architectures
+        if kind != "prg32qt":            # PRG32-QT runs both architectures: that one would be deployed
+            other = built["esp32c6" if architecture == "qemu" else "qemu"]
+            status, answer = deploy_with(artifact_id=other["id"])
             check("refused: a cartridge for another architecture", answer.get("code") == "wrong_architecture", answer)
         with app.app_context():
             from prg32_construction_kit.db import get_resource
