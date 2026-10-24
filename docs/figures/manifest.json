@@ -189,7 +189,11 @@
     "templates/ide.html",
     "static/js/ide/",
     "static/css/"
-   ]
+   ],
+   "acknowledged": {
+    "commit": "c5cc10b",
+    "note": "ide.js only changed how server problems are shown (exact ranges); nothing on these screens changed"
+   }
   },
   "docs/figures/architecture.svg": {
    "browser": "n/a",
@@ -260,7 +264,11 @@
     "templates/ide.html",
     "static/js/ide/",
     "static/css/"
-   ]
+   ],
+   "acknowledged": {
+    "commit": "c5cc10b",
+    "note": "ide.js only changed how server problems are shown (exact ranges); nothing on these screens changed"
+   }
   },
   "docs/figures/games/asteroids-prg32qt.png": {
    "browser": "n/a",
@@ -391,7 +399,11 @@
     "templates/ide.html",
     "static/js/ide/",
     "static/css/"
-   ]
+   ],
+   "acknowledged": {
+    "commit": "c5cc10b",
+    "note": "ide.js only changed how server problems are shown (exact ranges); nothing on these screens changed"
+   }
   },
   "docs/figures/games/breakout-prg32qt.png": {
    "browser": "n/a",
@@ -614,7 +626,11 @@
     "templates/ide.html",
     "static/js/ide/",
     "static/css/"
-   ]
+   ],
+   "acknowledged": {
+    "commit": "c5cc10b",
+    "note": "ide.js only changed how server problems are shown (exact ranges); nothing on these screens changed"
+   }
   },
   "docs/figures/games/pong-prg32qt.png": {
    "browser": "n/a",
@@ -745,7 +761,11 @@
     "templates/ide.html",
     "static/js/ide/",
     "static/css/"
-   ]
+   ],
+   "acknowledged": {
+    "commit": "c5cc10b",
+    "note": "ide.js only changed how server problems are shown (exact ranges); nothing on these screens changed"
+   }
   },
   "docs/figures/games/snake-prg32qt.png": {
    "browser": "n/a",
@@ -876,7 +896,11 @@
     "templates/ide.html",
     "static/js/ide/",
     "static/css/"
-   ]
+   ],
+   "acknowledged": {
+    "commit": "c5cc10b",
+    "note": "ide.js only changed how server problems are shown (exact ranges); nothing on these screens changed"
+   }
   },
   "docs/figures/games/space_invaders-prg32qt.png": {
    "browser": "n/a",
