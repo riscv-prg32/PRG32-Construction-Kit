@@ -27,11 +27,10 @@ Students modify:
 
 ## 20-30 minutes: generated C discussion
 
-Students click **Generate** and find the C statement produced by one block.
-Older students can choose **C + Assembly** in the **Generated code** list,
-click **Generate**, and find the same block in the
-**Generated Assembly** tab: its comment shows the C line, and every
-instruction says what it does (see `../generated_code.md`).
+Students click **Generate** and open `game.c` under **Generated (read-only)** to find the C
+statement produced by one block. Older students open `game.S` next to it and find the same block
+in the assembly: its comment shows the C line, and every instruction says what it does (see
+`../generated_code.md`). `game.py` shows the same blocks in PRG32 Python.
 
 ## 30-40 minutes: sprites and artifacts
 

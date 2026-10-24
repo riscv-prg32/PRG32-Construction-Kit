@@ -4,11 +4,12 @@ Goal: create a sprite and convert it to a C array.
 
 ## 1. Open Sprite Lab
 
-Click **Sprite Lab** in the navigation bar.
+Open your project in the IDE and click **Sprite Lab** in the top menu (or **Sprites** in the
+project files). On the Projects page, the **Sprite Lab** button of a project card does the same.
 
 ## 2. Create a new sprite
 
-1. Click **New Sprite**.
+1. Click **New**.
 2. Name it `player`.
 3. Use 16 by 16 pixels.
 4. Pick a paint color.
@@ -16,7 +17,8 @@ Click **Sprite Lab** in the navigation bar.
 
 ## 3. Save
 
-Click **Save**. The sprite is stored as JSON in the backend database.
+Click **Save**. The sprite is kept with your project (as JSON on the server, or in this browser
+without an account).
 
 ## 4. Convert to C
 

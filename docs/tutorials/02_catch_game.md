@@ -22,7 +22,7 @@ keep player_x between 0 and 304
 
 ## 3. Test movement
 
-1. Click **Play**.
+1. Click **Run** (Shift+F10), then click the game screen.
 2. Use the left and right arrow keys.
 3. Check that the square cannot leave the screen.
 

@@ -6,8 +6,9 @@ Goal: create a tiny PRG32 game that draws a player square.
 
 1. Open the home page.
 2. Click **New Project**.
-3. Keep **Blocks** selected. (The dialog also offers **C** and **Assembly (RISC-V)**: they start
-   from a small working game, written as code and explained line by line, and open in the IDE.)
+3. Keep **Blocks** selected. (The dialog also offers **C**, **Assembly (RISC-V)** and **Python
+   (PRG32 Python)**: they start from a small working game, written as code and explained line by
+   line.)
 4. Title it `First Square`.
 5. Click **Create**.
 
@@ -25,20 +26,21 @@ In the Blocks area:
 2. Add `clear screen BLACK`.
 3. Add `draw rectangle x player_x y player_y w 16 h 16 color YELLOW`.
 
-## 4. Play online
+## 4. Run it
 
-Click **Play**. You should see a yellow square in the simulated PRG32 screen.
+Click **Run** (Shift+F10). The kit builds your game and starts it in the simulator on the right:
+you should see a yellow square on the PRG32 screen.
 
 ## 5. Save and export
 
-1. Click **Save**.
-2. Click **Export JSON**.
+1. Click **Save** (Ctrl+S).
+2. Open the **Project** menu and choose **Export as JSON**.
 
 The downloaded file is a Blocks PRG32 game stored as JSON.
 
 ## 6. Get a cartridge for your PRG32
 
-Click **Compile**, then the **Download esp32c6 .prg32** link in the **Build** tab. The app compiles your blocks and your browser saves
-a file such as `first-square-esp32c6.prg32`. That file is your PRG32 cartridge:
-upload it to a cartridge slot on the board. To try it in the QEMU emulator,
-open the arrow next to the button and choose **QEMU emulator**.
+Click **Compile** (it needs an account), then the **Download esp32c6 .prg32** link in the
+**Build** tab. The kit compiles your blocks and your browser saves a file such as
+`first-square-esp32c6.prg32`. That file is your PRG32 cartridge: copy it to a cartridge slot on
+the board. The **Download qemu .prg32** link next to it is the same game for the QEMU emulator.
