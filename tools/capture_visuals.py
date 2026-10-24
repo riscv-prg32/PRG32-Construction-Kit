@@ -5,7 +5,8 @@
 
 The kit starts in a temporary folder with only its own sample projects, which have no real
 author, and two synthetic accounts. Chrome (or Playwright's Chromium) opens each page at a
-fixed size, light theme and English locale, and the picture is written into docs/figures/.
+fixed size, light theme and English locale (the ide-<language> pictures in that language), and the
+picture is written into docs/figures/.
 Each capture updates its entry in docs/figures/manifest.json:
 
 - the recipe;
@@ -41,6 +42,11 @@ RECIPES = {"ide-hero": ("docs/figures/PRG32-Construction-Kit_01.png", "ide:Pong"
 for key, title in GAMES.items():
     RECIPES[f"{key}-editor"] = (f"docs/figures/games/{key}-editor.jpg", f"run:{title}",
                                 f"The {title} project in the IDE: its blocks, and the game running in the simulator")
+# The same IDE screen in each interface language (ADR-0027, docs/i18n.md): name -> (..., locale).
+LOCALE_TAGS = {"en": "en-US", "it": "it-IT", "es": "es-ES", "fr": "fr-FR", "de": "de-DE", "zh-Hans": "zh-CN"}
+for code in LOCALE_TAGS:
+    RECIPES[f"ide-{code}"] = (f"docs/figures/locales/ide.{code}.png", "ide:Pong",
+                              f"The IDE with the Pong project, the interface in {code}", code)
 
 
 def git(*args: str) -> str:
@@ -110,7 +116,10 @@ def capture(names: list[str]) -> list[str]:
         page.click("button[type=submit]")
         page.wait_for_load_state("networkidle")
         for name in names:
-            file, where, purpose = RECIPES[name]
+            file, where, purpose, *language = RECIPES[name]
+            code = language[0] if language else "en"
+            # The interface language: the reader's choice, as the language menu stores it.
+            context.add_cookies([{"name": "prg32_locale", "value": code, "url": origin}])
             kind, title = where.split(":", 1)
             pid = project_id(page, title)
             page.goto(f"{origin}/ide/{pid}")
@@ -120,13 +129,14 @@ def capture(names: list[str]) -> list[str]:
                 page.wait_for_timeout(2500)
             page.wait_for_timeout(1500)                     # let Blockly, Monaco and the simulator settle
             target = ROOT / file
+            target.parent.mkdir(parents=True, exist_ok=True)
             page.screenshot(path=str(target), type="jpeg" if file.endswith(".jpg") else "png",
                             **({"quality": 85} if file.endswith(".jpg") else {}))
             entry = manifest["visuals"].get(file, {})
             entry.update({"purpose": purpose, "kind": "screenshot", "recipe": f"python3 tools/capture_visuals.py {name}",
                           "viewport": f"{VIEWPORT['width']}x{VIEWPORT['height']}",
                           "browser": f"{browser.browser_type.name} {browser.version} (headless)", "theme": "light",
-                          "locale": "en-US", "seed": "sample_data.seed_if_empty (sample projects, no real author); "
+                          "locale": LOCALE_TAGS[code], "seed": "sample_data.seed_if_empty (sample projects, no real author); "
                                                     "synthetic accounts admin, teacher1@example.test",
                           "product_commit": commit, "captured": today, "reviewed": None, "reviewer": None,
                           "watch": ["templates/ide.html", "static/js/ide/", "static/css/"]})

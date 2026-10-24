@@ -29,7 +29,7 @@ BLOCKLY_DELETE = {"en": "Delete Block", "it": "Cancella blocco", "es": "Eliminar
 
 
 def context(browser, live_kit, locale):  # noqa: F811
-    ctx = browser.new_context(viewport={"width": 1280, "height": 800})
+    ctx = browser.new_context(viewport={"width": 1440, "height": 800})   # the menu bar unfolded
     ctx.add_cookies([{"name": i18n.COOKIE, "value": locale, "url": live_kit}])
     return ctx
 
@@ -115,7 +115,7 @@ def test_chinese_has_a_font_breaks_lines_and_keeps_typed_text(browser, live_kit)
     assert lines >= 2
     page.set_viewport_size({"width": 375, "height": 800})
     assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth + 1")
-    page.set_viewport_size({"width": 1280, "height": 800})
+    page.set_viewport_size({"width": 1440, "height": 800})
 
     # Chinese typed with the keyboard (an input method commits text like this) is kept exactly.
     title = "我的第一个游戏：太空射击"
@@ -183,3 +183,20 @@ def test_a_server_message_reaches_the_reader_in_their_language(browser, live_kit
     text = page.inner_text("#ideProblems")
     assert "第 7 行" in text and "y 没有定义" in text and "is not defined" not in text
     ctx.close()
+
+
+@pytest.mark.parametrize("width", (375, 1024, 1280, 1366, 1400, 1440, 1600, 1920))
+def test_the_menu_bar_is_one_row_in_every_language(browser, live_kit, width):  # noqa: F811
+    """Long labels (French, German) never push the menu onto a second row; below 1400 px it folds
+    behind the menu button. Signed in as admin: the longest menu."""
+    for locale in i18n.LOCALES:
+        ctx = browser.new_context(viewport={"width": width, "height": 800})
+        ctx.add_cookies([{"name": i18n.COOKIE, "value": locale, "url": live_kit}])
+        page = ctx.new_page()
+        sign_in(page, live_kit)
+        project = api(page, "/api/projects", "POST", {"title": "Row"})
+        page.goto(f"{live_kit}/ide/{project['id']}")
+        height = page.evaluate("document.querySelector('.kit-navbar').getBoundingClientRect().height")
+        assert height < 80, f"{locale} at {width} px: the menu bar is {height:.0f} px tall (two rows)"
+        assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth + 1"), (locale, width)
+        ctx.close()

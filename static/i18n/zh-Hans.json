@@ -1459,5 +1459,21 @@
  "js.blockly_blocks.outline": "空心",
  "js.blockly_blocks.filled": "实心",
  "js.blockly_blocks.opaque": "不透明",
- "js.blockly_blocks.tile_0_see_through": "图块 0 透明"
+ "js.blockly_blocks.tile_0_see_through": "图块 0 透明",
+ "js.blockly_blocks.category_game": "游戏",
+ "js.blockly_blocks.category_variables": "变量",
+ "js.blockly_blocks.category_lists": "列表",
+ "js.blockly_blocks.category_logic": "逻辑",
+ "js.blockly_blocks.category_input": "输入",
+ "js.blockly_blocks.category_drawing": "绘图",
+ "js.blockly_blocks.category_sprites_tiles": "精灵和图块",
+ "js.blockly_blocks.category_palette": "调色板",
+ "js.blockly_blocks.category_sound": "声音",
+ "js.blockly_blocks.category_scores_status": "分数和状态",
+ "js.blockly_blocks.category_multiplayer": "多人游戏",
+ "js.blockly_blocks.label_fields_accept_3_x_1_abs": "输入框可以写：3、x + 1、abs(x)、min(a, b)、sin(angle)、random(1, 6)、frame()",
+ "js.blockly_blocks.label_read_an_item_with_name_position": "用 名称[位置] 读取一项；第一个位置是 0",
+ "js.blockly_blocks.label_other_players_peers_peer_x_i": "其他玩家：peers()、peer_x(i)、peer_y(i)、peer_look(i)",
+ "js.blockly_blocks.comment_1": "注释 %1",
+ "js.blockly_blocks.if_1_2_3": "如果 %1 %2 %3"
 }

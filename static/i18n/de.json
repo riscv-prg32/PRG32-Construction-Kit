@@ -1459,5 +1459,21 @@
  "js.blockly_blocks.outline": "Umriss",
  "js.blockly_blocks.filled": "gefüllt",
  "js.blockly_blocks.opaque": "deckend",
- "js.blockly_blocks.tile_0_see_through": "Kachel 0 durchsichtig"
+ "js.blockly_blocks.tile_0_see_through": "Kachel 0 durchsichtig",
+ "js.blockly_blocks.category_game": "Spiel",
+ "js.blockly_blocks.category_variables": "Variablen",
+ "js.blockly_blocks.category_lists": "Listen",
+ "js.blockly_blocks.category_logic": "Logik",
+ "js.blockly_blocks.category_input": "Eingabe",
+ "js.blockly_blocks.category_drawing": "Zeichnen",
+ "js.blockly_blocks.category_sprites_tiles": "Sprites und Kacheln",
+ "js.blockly_blocks.category_palette": "Palette",
+ "js.blockly_blocks.category_sound": "Klang",
+ "js.blockly_blocks.category_scores_status": "Punkte und Status",
+ "js.blockly_blocks.category_multiplayer": "Mehrspieler",
+ "js.blockly_blocks.label_fields_accept_3_x_1_abs": "Felder nehmen: 3, x + 1, abs(x), min(a, b), sin(angle), random(1, 6), frame()",
+ "js.blockly_blocks.label_read_an_item_with_name_position": "Lies ein Element mit name[position]; die erste Position ist 0",
+ "js.blockly_blocks.label_other_players_peers_peer_x_i": "Andere Spieler: peers(), peer_x(i), peer_y(i), peer_look(i)",
+ "js.blockly_blocks.comment_1": "Kommentar %1",
+ "js.blockly_blocks.if_1_2_3": "wenn %1 %2 %3"
 }

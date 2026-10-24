@@ -35,7 +35,7 @@
   {% block head %}{% endblock %}
 </head>
 <body class="{% block body_class %}{% endblock %}" data-admin="{{ '1' if current_user and current_user.is_admin else '0' }}">
-<nav class="navbar navbar-expand-xl navbar-dark kit-navbar sticky-top shadow-sm">
+<nav class="navbar navbar-expand-xxl navbar-dark kit-navbar sticky-top shadow-sm">
   <div class="container-fluid">
     {# The official PRG32 logo and the kit's name. The top menu works on the open project
        (nav_project: the IDE and /player?project=<id>); then the logo closes the project and goes
@@ -91,7 +91,7 @@
       </ul>
       {# The interface language: a choice of this reader, kept in the prg32_locale cookie (i18n.js).
          Day or Night colours: this reader's choice too, kept in this browser (theme.js, app.js). #}
-      <div class="d-flex align-items-center gap-2 ms-xl-auto me-xl-2 mb-2 mb-xl-0">
+      <div class="d-flex align-items-center gap-2 ms-xxl-auto me-xxl-2 mb-2 mb-xxl-0">
         <button type="button" class="btn btn-outline-light btn-sm" id="schemeSwitch" aria-pressed="false"
                 title="{{ t('base.night_dark_colours') }}">
           <i class="bi bi-moon-stars" aria-hidden="true"></i><span class="visually-hidden">{{ t("base.night_colours") }}</span>

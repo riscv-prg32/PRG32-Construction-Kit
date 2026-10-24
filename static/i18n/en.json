@@ -1459,5 +1459,21 @@
  "js.blockly_blocks.outline": "outline",
  "js.blockly_blocks.filled": "filled",
  "js.blockly_blocks.opaque": "opaque",
- "js.blockly_blocks.tile_0_see_through": "tile 0 see-through"
+ "js.blockly_blocks.tile_0_see_through": "tile 0 see-through",
+ "js.blockly_blocks.category_game": "Game",
+ "js.blockly_blocks.category_variables": "Variables",
+ "js.blockly_blocks.category_lists": "Lists",
+ "js.blockly_blocks.category_logic": "Logic",
+ "js.blockly_blocks.category_input": "Input",
+ "js.blockly_blocks.category_drawing": "Drawing",
+ "js.blockly_blocks.category_sprites_tiles": "Sprites & Tiles",
+ "js.blockly_blocks.category_palette": "Palette",
+ "js.blockly_blocks.category_sound": "Sound",
+ "js.blockly_blocks.category_scores_status": "Scores & Status",
+ "js.blockly_blocks.category_multiplayer": "Multiplayer",
+ "js.blockly_blocks.label_fields_accept_3_x_1_abs": "Fields accept: 3, x + 1, abs(x), min(a, b), sin(angle), random(1, 6), frame()",
+ "js.blockly_blocks.label_read_an_item_with_name_position": "Read an item with name[position]; the first position is 0",
+ "js.blockly_blocks.label_other_players_peers_peer_x_i": "Other players: peers(), peer_x(i), peer_y(i), peer_look(i)",
+ "js.blockly_blocks.comment_1": "comment %1",
+ "js.blockly_blocks.if_1_2_3": "if %1 %2 %3"
 }

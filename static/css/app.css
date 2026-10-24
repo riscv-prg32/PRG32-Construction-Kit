@@ -507,6 +507,18 @@ body.dbg-mode-advanced .dbg-beginner { display: none !important; }
 
 /* --- footer and the storage note (base.html, storage_notice.js) ------------------------- */
 .kit-navbar .nav-link { white-space: nowrap; }
+/* One row in every interface language (French and German labels are long): compact links once the
+   menu is unfolded (from 1400 px); below that it folds behind the menu button. */
+@media (min-width: 1400px) {
+  .kit-navbar .navbar-nav .nav-link { padding-left: .4rem; padding-right: .4rem; }
+  .kit-navbar .navbar-brand { margin-right: .5rem; }
+  .kit-navbar .navbar-brand span { font-size: 1.1rem; }
+}
+/* Between 1400 and 1600 px the longer Italian, Spanish, French and German labels need the room of
+   their icons: the words stay (tests/test_i18n_browser.py checks one row in every language). */
+@media (min-width: 1400px) and (max-width: 1599.98px) {
+  html:is([lang="it"], [lang="es"], [lang="fr"], [lang="de"]) .kit-navbar .navbar-nav .nav-link > .bi { display: none; }
+}
 /* When the menu does not fit on one line (wider fonts, an admin's longer menu), the account
    links wrap onto a second row inside the bar instead of running off the page. */
 .kit-navbar .navbar-collapse { flex-wrap: wrap; row-gap: .25rem; }

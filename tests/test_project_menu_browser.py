@@ -13,6 +13,7 @@ from test_browser_offline import Recorder, browser, live_kit, sign_in, wait_unti
 from test_guest_ide_browser import api
 
 READY = "document.getElementById('ide').dataset.ready === 'true'"
+WIDE = {"width": 1440, "height": 900}   # the top menu unfolded (it folds below 1400 px)
 
 
 def selected_tab(page) -> str:
@@ -24,7 +25,7 @@ def marked(page) -> str:
 
 
 def test_the_top_menu_works_on_the_open_project(browser, live_kit):  # noqa: F811
-    context = browser.new_context()
+    context = browser.new_context(viewport=WIDE)
     record = Recorder(context, live_kit)
     page = record.watch(context.new_page())
     sign_in(page, live_kit)
@@ -64,7 +65,7 @@ def test_the_top_menu_works_on_the_open_project(browser, live_kit):  # noqa: F81
 
 
 def test_each_project_card_opens_its_tools(browser, live_kit):  # noqa: F811
-    context = browser.new_context()
+    context = browser.new_context(viewport=WIDE)
     page = context.new_page()
     sign_in(page, live_kit)
     project = api(page, "/api/projects", "POST", {"title": "Card Game"})
@@ -83,7 +84,7 @@ def test_each_project_card_opens_its_tools(browser, live_kit):  # noqa: F811
 
 
 def test_day_and_night_colours_are_this_readers_choice(browser, live_kit):  # noqa: F811
-    context = browser.new_context()
+    context = browser.new_context(viewport=WIDE)
     record = Recorder(context, live_kit)
     page = record.watch(context.new_page())
     sign_in(page, live_kit)
@@ -107,7 +108,7 @@ def test_day_and_night_colours_are_this_readers_choice(browser, live_kit):  # no
 
 def test_the_blocks_follow_day_and_night(browser, live_kit):  # noqa: F811
     """The workspace and the block list get Night colours; the labels never take the page's text colour."""
-    context = browser.new_context()
+    context = browser.new_context(viewport=WIDE)
     record = Recorder(context, live_kit)
     page = record.watch(context.new_page())
     sign_in(page, live_kit)

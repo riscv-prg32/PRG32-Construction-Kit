@@ -155,6 +155,12 @@ def test_scripts_build_no_untranslated_html_text():
             leftovers.append((path.name, match.group(1).strip()))
         for match in re.finditer(r'\s(?:title|aria-label|placeholder)="([A-Z][a-z]+ [^"${}]*)"', source):
             leftovers.append((path.name, match.group(1)))
+        # Blockly's toolbox XML: category names and hint labels are shown too.
+        for match in re.finditer(r'<(?:category name|label text)="([^"$]*[A-Za-z]{2,}[^"$]*)"', source):
+            leftovers.append((path.name, match.group(1)))
+        # A block's text is written as  message0: '...'  (a literal one is never translated).
+        for match in re.finditer(r"message0: '([^']*[A-Za-z]{2,}[^']*)'", source):
+            leftovers.append((path.name, match.group(1)))
     assert leftovers == []
 
 
