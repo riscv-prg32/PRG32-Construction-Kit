@@ -821,23 +821,38 @@
       "audit_score": 2,
       "source": [
         "prg32_construction_kit/i18n.py::choose",
+        "prg32_construction_kit/i18n.py::locale_of",
         "prg32_construction_kit/i18n.py::translate",
-        "static/js/i18n.js",
+        "prg32_construction_kit/messages.py::key_for",
+        "prg32_construction_kit/messages.py::text",
+        "prg32_construction_kit/privacy.py::localized_notice",
         "static/i18n/en.json",
+        "static/js/app.js",
+        "static/js/i18n.js",
         "tools/build_i18n.py::render",
-        "prg32_construction_kit/privacy.py::localized_notice"
+        "tools/capture_visuals.py",
+        "tools/vendor_assets.py"
       ],
       "tests": [
+        "tests/test_doc_translations.py::test_every_lesson_is_translated_with_the_same_sections_and_code",
         "tests/test_i18n.py::test_every_language_has_exactly_the_english_keys",
-        "tests/test_i18n.py::test_placeholders_are_the_same_in_every_language",
+        "tests/test_i18n.py::test_generated_code_and_cartridges_are_the_same_in_every_language",
         "tests/test_i18n.py::test_nothing_is_left_in_english_by_accident",
-        "tests/test_i18n.py::test_templates_have_no_untranslated_text",
-        "tests/test_i18n.py::test_scripts_build_no_untranslated_html_text",
         "tests/test_i18n.py::test_pages_are_drawn_in_the_chosen_language",
+        "tests/test_i18n.py::test_placeholders_are_the_same_in_every_language",
+        "tests/test_i18n.py::test_scripts_build_no_untranslated_html_text",
+        "tests/test_i18n.py::test_templates_have_no_untranslated_text",
         "tests/test_i18n.py::test_the_browser_runtime_translates_with_fallback_and_plurals",
-        "tests/test_i18n.py::test_generated_code_and_cartridges_are_the_same_in_every_language"
+        "tests/test_i18n.py::test_the_six_languages_are_offered",
+        "tests/test_i18n_browser.py::test_a_guest_works_in_every_language",
+        "tests/test_i18n_browser.py::test_a_server_message_reaches_the_reader_in_their_language",
+        "tests/test_i18n_browser.py::test_chinese_has_a_font_breaks_lines_and_keeps_typed_text",
+        "tests/test_i18n_browser.py::test_signed_in_roles_see_their_pages_in_every_language",
+        "tests/test_i18n_browser.py::test_the_menu_bar_is_one_row_in_every_language",
+        "tests/test_messages.py::test_answers_carry_the_key_in_every_language_and_the_english_stays",
+        "tests/test_messages.py::test_every_message_is_in_the_catalog_with_its_english"
       ],
-      "note": "ADR-0027 currently implements English, Italian, Spanish, French and German. Simplified Chinese (zh-Hans) is required by the expanded audit matrix but is not implemented. The five existing catalogs cover every page, script message, block, tooltip, screen-reader label, offline pages and privacy notice summaries (1180+ keys each, same placeholders, plural pairs); language menu, cookie + Accept-Language + English fallback and offline caching are tested; builds are byte-identical in each implemented language. Still English: server-written messages (API errors, the PRG32 Python compiler's refusals, compiler logs), Blockly's and Monaco's own menus and long-form docs (the classroom quick start exists in five languages). No screen-reader session or per-locale screenshots yet."
+      "note": "ADR-0027 with its 2026-10-24 amendment: English, Italian, Spanish, French, German and Simplified Chinese (zh-Hans; Traditional Chinese readers get English, not the wrong script). Every page, script message, block and toolbox category, tooltip, screen-reader label, the offline pages, the privacy notice summaries and 225 server messages (PRG32 Python checker, C/assembly validators, AudioStudio, build, run, storage and project APIs, with stable keys) in six catalogs; Blockly's and Monaco's own menus from their vendored language packs; a CJK font (system, else Noto Sans SC from the kit) and line breaking; the quick start and the nine classroom lessons in six languages; per-language screenshots; real-browser checks for guest, student, teacher and admin pages in all six, one-row menus at 375-1920 px, Chinese input, mid-edit language change and offline use; builds byte-identical in every language (also in scenario L). Still English: compiler logs (GCC's words), the account, admin, sign-in and cloud API messages, and reference guides. No human keyboard/screen-reader session yet (docs/accessibility_session.md)."
     },
     {
       "id": "PY-01",
