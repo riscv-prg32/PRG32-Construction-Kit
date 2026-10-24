@@ -176,10 +176,10 @@
    "captured": "2026-10-24",
    "kind": "screenshot",
    "locale": "en-US",
-   "product_commit": "d06938f6b86dba309e97a79d848deb029b81460f",
+   "product_commit": "fe9dc349d0129a24d87ae379326ee45d6a60559f",
    "purpose": "The IDE with the Pong project: project tree, Blocks editor, generated C, Problems and Run panels",
    "recipe": "python3 tools/capture_visuals.py ide-hero",
-   "review_note": "new menu bar (PRG32 logo, name, Debug, Day/Night switch), PRG32 colours, game.py under Generated; the game runs",
+   "review_note": "the menu bar on one row; the interface, block categories and blocks in en-US",
    "reviewed": "2026-10-24",
    "reviewer": "kit maintainers (AI-assisted review: Claude)",
    "seed": "sample_data.seed_if_empty (sample projects, no real author); synthetic accounts admin, teacher1@example.test",
@@ -189,11 +189,7 @@
     "templates/ide.html",
     "static/js/ide/",
     "static/css/"
-   ],
-   "acknowledged": {
-    "commit": "7a95894",
-    "note": "only Chinese pages and other-language packs changed; the English screens are the same"
-   }
+   ]
   },
   "docs/figures/architecture.svg": {
    "browser": "n/a",
@@ -251,10 +247,10 @@
    "captured": "2026-10-24",
    "kind": "screenshot",
    "locale": "en-US",
-   "product_commit": "d06938f6b86dba309e97a79d848deb029b81460f",
+   "product_commit": "fe9dc349d0129a24d87ae379326ee45d6a60559f",
    "purpose": "The Asteroids project in the IDE: its blocks, and the game running in the simulator",
    "recipe": "python3 tools/capture_visuals.py asteroids-editor",
-   "review_note": "new menu bar (PRG32 logo, name, Debug, Day/Night switch), PRG32 colours, game.py under Generated; the game runs",
+   "review_note": "the menu bar on one row; the game runs",
    "reviewed": "2026-10-24",
    "reviewer": "kit maintainers (AI-assisted review: Claude)",
    "seed": "sample_data.seed_if_empty (sample projects, no real author); synthetic accounts admin, teacher1@example.test",
@@ -264,11 +260,7 @@
     "templates/ide.html",
     "static/js/ide/",
     "static/css/"
-   ],
-   "acknowledged": {
-    "commit": "7a95894",
-    "note": "only Chinese pages and other-language packs changed; the English screens are the same"
-   }
+   ]
   },
   "docs/figures/games/asteroids-prg32qt.png": {
    "browser": "n/a",
@@ -386,10 +378,10 @@
    "captured": "2026-10-24",
    "kind": "screenshot",
    "locale": "en-US",
-   "product_commit": "d06938f6b86dba309e97a79d848deb029b81460f",
+   "product_commit": "fe9dc349d0129a24d87ae379326ee45d6a60559f",
    "purpose": "The Breakout project in the IDE: its blocks, and the game running in the simulator",
    "recipe": "python3 tools/capture_visuals.py breakout-editor",
-   "review_note": "new menu bar (PRG32 logo, name, Debug, Day/Night switch), PRG32 colours, game.py under Generated; the game runs",
+   "review_note": "the menu bar on one row; the game runs",
    "reviewed": "2026-10-24",
    "reviewer": "kit maintainers (AI-assisted review: Claude)",
    "seed": "sample_data.seed_if_empty (sample projects, no real author); synthetic accounts admin, teacher1@example.test",
@@ -399,11 +391,7 @@
     "templates/ide.html",
     "static/js/ide/",
     "static/css/"
-   ],
-   "acknowledged": {
-    "commit": "7a95894",
-    "note": "only Chinese pages and other-language packs changed; the English screens are the same"
-   }
+   ]
   },
   "docs/figures/games/breakout-prg32qt.png": {
    "browser": "n/a",
@@ -613,10 +601,10 @@
    "captured": "2026-10-24",
    "kind": "screenshot",
    "locale": "en-US",
-   "product_commit": "d06938f6b86dba309e97a79d848deb029b81460f",
+   "product_commit": "fe9dc349d0129a24d87ae379326ee45d6a60559f",
    "purpose": "The Pong project in the IDE: its blocks, and the game running in the simulator",
    "recipe": "python3 tools/capture_visuals.py pong-editor",
-   "review_note": "new menu bar (PRG32 logo, name, Debug, Day/Night switch), PRG32 colours, game.py under Generated; the game runs",
+   "review_note": "the menu bar on one row; the game runs",
    "reviewed": "2026-10-24",
    "reviewer": "kit maintainers (AI-assisted review: Claude)",
    "seed": "sample_data.seed_if_empty (sample projects, no real author); synthetic accounts admin, teacher1@example.test",
@@ -626,11 +614,7 @@
     "templates/ide.html",
     "static/js/ide/",
     "static/css/"
-   ],
-   "acknowledged": {
-    "commit": "7a95894",
-    "note": "only Chinese pages and other-language packs changed; the English screens are the same"
-   }
+   ]
   },
   "docs/figures/games/pong-prg32qt.png": {
    "browser": "n/a",
@@ -748,10 +732,10 @@
    "captured": "2026-10-24",
    "kind": "screenshot",
    "locale": "en-US",
-   "product_commit": "d06938f6b86dba309e97a79d848deb029b81460f",
+   "product_commit": "fe9dc349d0129a24d87ae379326ee45d6a60559f",
    "purpose": "The Snake project in the IDE: its blocks, and the game running in the simulator",
    "recipe": "python3 tools/capture_visuals.py snake-editor",
-   "review_note": "new menu bar (PRG32 logo, name, Debug, Day/Night switch), PRG32 colours, game.py under Generated; the game runs",
+   "review_note": "the menu bar on one row; the game runs",
    "reviewed": "2026-10-24",
    "reviewer": "kit maintainers (AI-assisted review: Claude)",
    "seed": "sample_data.seed_if_empty (sample projects, no real author); synthetic accounts admin, teacher1@example.test",
@@ -761,11 +745,7 @@
     "templates/ide.html",
     "static/js/ide/",
     "static/css/"
-   ],
-   "acknowledged": {
-    "commit": "7a95894",
-    "note": "only Chinese pages and other-language packs changed; the English screens are the same"
-   }
+   ]
   },
   "docs/figures/games/snake-prg32qt.png": {
    "browser": "n/a",
@@ -883,10 +863,10 @@
    "captured": "2026-10-24",
    "kind": "screenshot",
    "locale": "en-US",
-   "product_commit": "d06938f6b86dba309e97a79d848deb029b81460f",
+   "product_commit": "fe9dc349d0129a24d87ae379326ee45d6a60559f",
    "purpose": "The Space Invaders project in the IDE: its blocks, and the game running in the simulator",
    "recipe": "python3 tools/capture_visuals.py space_invaders-editor",
-   "review_note": "new menu bar (PRG32 logo, name, Debug, Day/Night switch), PRG32 colours, game.py under Generated; the game runs",
+   "review_note": "the menu bar on one row; the game runs",
    "reviewed": "2026-10-24",
    "reviewer": "kit maintainers (AI-assisted review: Claude)",
    "seed": "sample_data.seed_if_empty (sample projects, no real author); synthetic accounts admin, teacher1@example.test",
@@ -896,11 +876,7 @@
     "templates/ide.html",
     "static/js/ide/",
     "static/css/"
-   ],
-   "acknowledged": {
-    "commit": "7a95894",
-    "note": "only Chinese pages and other-language packs changed; the English screens are the same"
-   }
+   ]
   },
   "docs/figures/games/space_invaders-prg32qt.png": {
    "browser": "n/a",
@@ -975,6 +951,138 @@
    "watch": [
     "examples/games/space_invaders.json",
     "static/js/simulator.js"
+   ]
+  },
+  "docs/figures/locales/ide.de.png": {
+   "browser": "chromium 156.0.8078.47 (headless)",
+   "captured": "2026-10-24",
+   "kind": "screenshot",
+   "locale": "de-DE",
+   "product_commit": "fe9dc349d0129a24d87ae379326ee45d6a60559f",
+   "purpose": "The IDE with the Pong project, the interface in de",
+   "recipe": "python3 tools/capture_visuals.py ide-de",
+   "review_note": "the menu bar on one row; the interface, block categories and blocks in de-DE",
+   "reviewed": "2026-10-24",
+   "reviewer": "kit maintainers (AI-assisted review: Claude)",
+   "seed": "sample_data.seed_if_empty (sample projects, no real author); synthetic accounts admin, teacher1@example.test",
+   "theme": "light",
+   "viewport": "1440x900",
+   "watch": [
+    "templates/ide.html",
+    "templates/base.html",
+    "static/js/ide/",
+    "static/css/",
+    "static/i18n/"
+   ]
+  },
+  "docs/figures/locales/ide.en.png": {
+   "browser": "chromium 156.0.8078.47 (headless)",
+   "captured": "2026-10-24",
+   "kind": "screenshot",
+   "locale": "en-US",
+   "product_commit": "fe9dc349d0129a24d87ae379326ee45d6a60559f",
+   "purpose": "The IDE with the Pong project, the interface in en",
+   "recipe": "python3 tools/capture_visuals.py ide-en",
+   "review_note": "the menu bar on one row; the interface, block categories and blocks in en-US",
+   "reviewed": "2026-10-24",
+   "reviewer": "kit maintainers (AI-assisted review: Claude)",
+   "seed": "sample_data.seed_if_empty (sample projects, no real author); synthetic accounts admin, teacher1@example.test",
+   "theme": "light",
+   "viewport": "1440x900",
+   "watch": [
+    "templates/ide.html",
+    "templates/base.html",
+    "static/js/ide/",
+    "static/css/",
+    "static/i18n/"
+   ]
+  },
+  "docs/figures/locales/ide.es.png": {
+   "browser": "chromium 156.0.8078.47 (headless)",
+   "captured": "2026-10-24",
+   "kind": "screenshot",
+   "locale": "es-ES",
+   "product_commit": "fe9dc349d0129a24d87ae379326ee45d6a60559f",
+   "purpose": "The IDE with the Pong project, the interface in es",
+   "recipe": "python3 tools/capture_visuals.py ide-es",
+   "review_note": "the menu bar on one row; the interface, block categories and blocks in es-ES",
+   "reviewed": "2026-10-24",
+   "reviewer": "kit maintainers (AI-assisted review: Claude)",
+   "seed": "sample_data.seed_if_empty (sample projects, no real author); synthetic accounts admin, teacher1@example.test",
+   "theme": "light",
+   "viewport": "1440x900",
+   "watch": [
+    "templates/ide.html",
+    "templates/base.html",
+    "static/js/ide/",
+    "static/css/",
+    "static/i18n/"
+   ]
+  },
+  "docs/figures/locales/ide.fr.png": {
+   "browser": "chromium 156.0.8078.47 (headless)",
+   "captured": "2026-10-24",
+   "kind": "screenshot",
+   "locale": "fr-FR",
+   "product_commit": "fe9dc349d0129a24d87ae379326ee45d6a60559f",
+   "purpose": "The IDE with the Pong project, the interface in fr",
+   "recipe": "python3 tools/capture_visuals.py ide-fr",
+   "review_note": "the menu bar on one row; the interface, block categories and blocks in fr-FR",
+   "reviewed": "2026-10-24",
+   "reviewer": "kit maintainers (AI-assisted review: Claude)",
+   "seed": "sample_data.seed_if_empty (sample projects, no real author); synthetic accounts admin, teacher1@example.test",
+   "theme": "light",
+   "viewport": "1440x900",
+   "watch": [
+    "templates/ide.html",
+    "templates/base.html",
+    "static/js/ide/",
+    "static/css/",
+    "static/i18n/"
+   ]
+  },
+  "docs/figures/locales/ide.it.png": {
+   "browser": "chromium 156.0.8078.47 (headless)",
+   "captured": "2026-10-24",
+   "kind": "screenshot",
+   "locale": "it-IT",
+   "product_commit": "fe9dc349d0129a24d87ae379326ee45d6a60559f",
+   "purpose": "The IDE with the Pong project, the interface in it",
+   "recipe": "python3 tools/capture_visuals.py ide-it",
+   "review_note": "the menu bar on one row; the interface, block categories and blocks in it-IT",
+   "reviewed": "2026-10-24",
+   "reviewer": "kit maintainers (AI-assisted review: Claude)",
+   "seed": "sample_data.seed_if_empty (sample projects, no real author); synthetic accounts admin, teacher1@example.test",
+   "theme": "light",
+   "viewport": "1440x900",
+   "watch": [
+    "templates/ide.html",
+    "templates/base.html",
+    "static/js/ide/",
+    "static/css/",
+    "static/i18n/"
+   ]
+  },
+  "docs/figures/locales/ide.zh-Hans.png": {
+   "browser": "chromium 156.0.8078.47 (headless)",
+   "captured": "2026-10-24",
+   "kind": "screenshot",
+   "locale": "zh-CN",
+   "product_commit": "fe9dc349d0129a24d87ae379326ee45d6a60559f",
+   "purpose": "The IDE with the Pong project, the interface in zh-Hans",
+   "recipe": "python3 tools/capture_visuals.py ide-zh-Hans",
+   "review_note": "the menu bar on one row; the interface, block categories and blocks in zh-CN",
+   "reviewed": "2026-10-24",
+   "reviewer": "kit maintainers (AI-assisted review: Claude)",
+   "seed": "sample_data.seed_if_empty (sample projects, no real author); synthetic accounts admin, teacher1@example.test",
+   "theme": "light",
+   "viewport": "1440x900",
+   "watch": [
+    "templates/ide.html",
+    "templates/base.html",
+    "static/js/ide/",
+    "static/css/",
+    "static/i18n/"
    ]
   },
   "docs/figures/pipeline.svg": {
