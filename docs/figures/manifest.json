@@ -191,8 +191,8 @@
     "static/css/"
    ],
    "acknowledged": {
-    "commit": "c5cc10b",
-    "note": "ide.js only changed how server problems are shown (exact ranges); nothing on these screens changed"
+    "commit": "7a95894",
+    "note": "only Chinese pages and other-language packs changed; the English screens are the same"
    }
   },
   "docs/figures/architecture.svg": {
@@ -266,8 +266,8 @@
     "static/css/"
    ],
    "acknowledged": {
-    "commit": "c5cc10b",
-    "note": "ide.js only changed how server problems are shown (exact ranges); nothing on these screens changed"
+    "commit": "7a95894",
+    "note": "only Chinese pages and other-language packs changed; the English screens are the same"
    }
   },
   "docs/figures/games/asteroids-prg32qt.png": {
@@ -401,8 +401,8 @@
     "static/css/"
    ],
    "acknowledged": {
-    "commit": "c5cc10b",
-    "note": "ide.js only changed how server problems are shown (exact ranges); nothing on these screens changed"
+    "commit": "7a95894",
+    "note": "only Chinese pages and other-language packs changed; the English screens are the same"
    }
   },
   "docs/figures/games/breakout-prg32qt.png": {
@@ -628,8 +628,8 @@
     "static/css/"
    ],
    "acknowledged": {
-    "commit": "c5cc10b",
-    "note": "ide.js only changed how server problems are shown (exact ranges); nothing on these screens changed"
+    "commit": "7a95894",
+    "note": "only Chinese pages and other-language packs changed; the English screens are the same"
    }
   },
   "docs/figures/games/pong-prg32qt.png": {
@@ -763,8 +763,8 @@
     "static/css/"
    ],
    "acknowledged": {
-    "commit": "c5cc10b",
-    "note": "ide.js only changed how server problems are shown (exact ranges); nothing on these screens changed"
+    "commit": "7a95894",
+    "note": "only Chinese pages and other-language packs changed; the English screens are the same"
    }
   },
   "docs/figures/games/snake-prg32qt.png": {
@@ -898,8 +898,8 @@
     "static/css/"
    ],
    "acknowledged": {
-    "commit": "c5cc10b",
-    "note": "ide.js only changed how server problems are shown (exact ranges); nothing on these screens changed"
+    "commit": "7a95894",
+    "note": "only Chinese pages and other-language packs changed; the English screens are the same"
    }
   },
   "docs/figures/games/space_invaders-prg32qt.png": {
