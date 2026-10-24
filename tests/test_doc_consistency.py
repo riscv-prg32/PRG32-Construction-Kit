@@ -8,7 +8,11 @@ tags such as ``[IDE-01]``. These tests fail when a document contradicts it:
   "Implemented", "Partly implemented" or "Not implemented", matching its status;
 - any other ``[ID]`` tag in docs/ names a real capability, and the words just
   before it do not call an implemented capability missing, or a missing one done;
-- the commit that current-state.md describes exists;
+- the commit that current-state.md describes exists, and it is the latest audit's revision with that
+  audit's score;
+- its claims about the product are derived from the product: the real builds name every authoring
+  mode, and the quality gates it names (or says are missing) match the CI workflow;
+- no status page says work is "being refreshed" (a status is a state, not a plan);
 - no document says the pages still load from a CDN (they have not since ADR-0012).
 """
 
@@ -129,3 +133,72 @@ def test_every_refinement_phase_commit_is_a_listed_milestone():
         listed = re.search(rf"`{short[:7]}[0-9a-f]*`", table)
         assert listed, f"milestone {short} ({subject}) is missing from current-state.md"
     assert not re.search(r"this (?:change|commit)", table, re.IGNORECASE), "a milestone row must name its commit"
+
+
+WORKFLOW = ROOT / ".github" / "workflows" / "tests.yml"
+NAMES = {"blocks": "Blocks", "c": "C", "assembly": "assembly", "python": "Python"}
+
+
+def implemented_lines(tag: str) -> str:
+    """The bullet of current-state.md that carries ``[tag]`` (joined across its wrapped lines)."""
+    bullets = re.split(r"\n(?=- )", CURRENT_STATE.read_text())
+    found = [re.sub(r"\s+", " ", bullet) for bullet in bullets if f"[{tag}]" in bullet]
+    assert found, f"current-state.md has no bullet for [{tag}]"
+    return found[0]
+
+
+def test_real_builds_name_every_authoring_mode():
+    """The audit of 7a700ba found 'real builds from Blocks, C and assembly' after Python was added."""
+    from prg32_construction_kit.project_format import AUTHORING_MODES
+
+    bullet = implemented_lines("BLD-01")
+    for mode in AUTHORING_MODES:
+        assert re.search(rf"\b{re.escape(NAMES[mode])}\b", bullet), f"[BLD-01] bullet does not name {mode}: {bullet}"
+
+
+def test_quality_gates_match_the_ci_workflow():
+    """What current-state.md says about lint, coverage and performance budgets is what CI runs."""
+    workflow = WORKFLOW.read_text()
+    pyproject = (ROOT / "pyproject.toml").read_text()
+    gates = {
+        "lint": "ruff check" in workflow,
+        "coverage": bool(re.search(r"^fail_under\s*=\s*\d+", pyproject, re.MULTILINE)) and "coverage" in workflow,
+        "performance": "tests/test_performance_browser.py" in workflow,
+    }
+    bullet = implemented_lines("QLT-01")
+    denied = re.search(r"\bwithout ([^.;]*)", bullet)
+    for gate, in_ci in gates.items():
+        if in_ci:
+            assert not (denied and gate in denied.group(1)), f"current-state.md says CI has no {gate}: {bullet}"
+            assert gate in bullet.lower(), f"CI runs a {gate} gate but [QLT-01] does not name it: {bullet}"
+    floor = re.search(r"^fail_under\s*=\s*(\d+)", pyproject, re.MULTILINE)
+    if floor:
+        assert f"{floor.group(1)}%" in bullet, f"the coverage floor is {floor.group(1)}%: {bullet}"
+
+
+def test_current_state_names_the_latest_audit_and_its_score():
+    """The newest audit is the one whose audited revision is the newest commit (file times mean nothing
+    in a fresh checkout)."""
+    audits = []
+    for path in (ROOT / "audit").glob("AUDIT_*.md"):
+        text = path.read_text()
+        revision = re.search(r"revision `([0-9a-f]{7,40})`", text).group(1)
+        when = subprocess.run(["git", "show", "-s", "--format=%ct", revision], cwd=ROOT, capture_output=True, text=True)
+        if when.returncode != 0:
+            pytest.skip(f"the audited revision {revision[:7]} is not in this history (shallow clone?)")
+        audits.append((int(when.stdout.strip()), revision, text))
+    if not audits:
+        pytest.skip("no audit report in this checkout")
+    _, revision, latest = max(audits)
+    score = re.search(r"\*\*(?:NO-GO|GO)[^*]*?(\d+/\d+)", latest).group(1)
+    head = CURRENT_STATE.read_text().split("## Repositories", 1)[0]
+    assert f"`{revision[:7]}`" in head, f"current-state.md does not name the audited revision {revision[:7]}"
+    assert score in head, f"current-state.md does not give the audit's score {score}"
+
+
+def test_no_status_page_describes_a_plan_as_a_state():
+    stale = re.compile(r"\bbeing (?:refreshed|updated|rewritten|reworked)\b", re.IGNORECASE)
+    for path in [CURRENT_STATE, DOCS / "capabilities.md"]:
+        text = re.sub(r"\s+", " ", path.read_text())
+        found = stale.search(text)
+        assert not found, f"{path.name}: '{found.group(0)}' is a plan, not a state"

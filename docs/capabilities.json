@@ -8,7 +8,7 @@
     "reference-verified",
     "blocked"
   ],
-  "note": "Self-assessed status with evidence. audit_score is copied from audit/REQUIREMENTS_MATRIX.md and only the auditor changes it.",
+  "note": "Self-assessed status with evidence. audit_score is copied from audit/REQUIREMENTS_MATRIX.md (the audit of 7a700ba, audit/AUDIT_7A700BA.md: 136/172) and only the auditor changes it.",
   "capabilities": [
     {
       "id": "IDE-01",
@@ -870,6 +870,24 @@
         "tests/test_concurrency.py::test_real_cartridges_from_blocks_c_assembly_and_python"
       ],
       "note": "ADR-0026, docs/python_language.md. game.py is parsed (never imported or run) within limits, checked against an allow-list with static types, and translated into the Blocks' game IR, then by the same generators into commented C and RV32IM assembly and by the sandboxed toolchain into a PRG32 cartridge. Fixed project type (schema v2, src/game.py), editor completion/hover/live checks from the language index, debugger on game.py lines (source maps py:line), provenance with language, grammar and IR hashes. Real-toolchain and C-vs-assembly parity tests run where the toolchain and GCC exist (CI); locally they skip. No conversion to or from Python in version 1."
+    },
+    {
+      "id": "DEP-04",
+      "title": "Unified Deploy tool for a physical PRG32, QEMU and PRG32-QT",
+      "status": "missing",
+      "audit_score": 0,
+      "source": [],
+      "tests": [],
+      "note": "Planned (audit of 7a700ba). No top-menu Deploy tool yet. Existing pieces it will build on: tools/delivery_check.py (physical console recording, stand-in device only), QEMU audio runs and the PRG32-QT web-API delivery of DEP-02. An emulator run is never physical-device evidence."
+    },
+    {
+      "id": "EVAL-01",
+      "title": "Scientific Evaluate tool: one performance protocol on three targets",
+      "status": "missing",
+      "audit_score": 0,
+      "source": [],
+      "tests": [],
+      "note": "Planned (audit of 7a700ba). No top-menu Evaluate tool, versioned performance protocol, raw dataset or chart export yet. The browser performance budgets of QLT-01 are CI quality gates, not cartridge measurements."
     }
   ]
 }
