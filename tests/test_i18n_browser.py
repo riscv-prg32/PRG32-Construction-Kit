@@ -164,3 +164,22 @@ def test_the_offline_page_and_its_blocks_speak_chinese(browser, live_kit):  # no
     assert CATALOGS["zh-Hans"]["offline.save_as_file"] in page.inner_text("body")
     assert record.csp_violations() == []
     ctx.close()
+
+
+def test_a_server_message_reaches_the_reader_in_their_language(browser, live_kit):  # noqa: F811
+    """The PRG32 Python checker's refusal (written by the server in English, with its key) is listed
+    in Problems in Chinese, at its line."""
+    ctx = context(browser, live_kit, "zh-Hans")
+    page = ctx.new_page()
+    sign_in(page, live_kit)
+    source = ("import prg32\nx: int = 0\n\n\ndef init() -> None:\n    global x\n    x = y + 1\n\n\n"
+              "def update() -> None:\n    pass\n\n\ndef draw() -> None:\n    pass\n")
+    project = api(page, "/api/projects", "POST", {"title": "Mensaje", "game_json": {
+        "source_mode": "python", "source_python": source, "python_language_version": 1}})
+    page.goto(f"{live_kit}/ide/{project['id']}")
+    wait_until(page, READY, timeout=60)
+    page.click("#ideGenerate")
+    wait_until(page, "document.getElementById('ideProblems').textContent.includes('没有定义')", timeout=30)
+    text = page.inner_text("#ideProblems")
+    assert "第 7 行" in text and "y 没有定义" in text and "is not defined" not in text
+    ctx.close()

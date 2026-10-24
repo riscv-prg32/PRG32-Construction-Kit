@@ -40,7 +40,11 @@ window.PRG32GuestApi = (function () {
     return fetch(path, options).then(async response => {
       const binary = (response.headers.get('content-type') || '').includes('application/octet-stream');
       const data = binary && response.ok ? await response.arrayBuffer() : await response.json().catch(() => ({}));
-      if (!response.ok) return fail((data && data.error) || response.statusText, response.status, data && data.code, data);
+      if (!response.ok) {
+        const english = (data && data.error) || response.statusText;
+        // A message the server wrote with its catalog key is shown in the reader's language.
+        return fail(data && data.message_key ? Kit.serverMessage(data, english) : english, response.status, data && data.code, data);
+      }
       return data;
     });
   }

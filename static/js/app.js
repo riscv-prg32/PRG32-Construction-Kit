@@ -30,7 +30,10 @@ window.Kit = {
         Kit.userChanged(data.error);
       }
       if (!response.ok) {
-        const message = data && data.error ? data.error : response.statusText;
+        // A message the server wrote with its catalog key (messages.py) is shown in the reader's
+        // language; the English the server sent is the fallback.
+        const english = data && data.error ? data.error : response.statusText;
+        const message = data && data.message_key ? Kit.serverMessage(data, english) : english;
         const error = new Error(message);
         error.status = response.status;   // e.g. 409 version_conflict, 413 quota_exceeded (ADR-0017)
         error.code = data && data.code;
@@ -39,6 +42,13 @@ window.Kit = {
       }
       return data;
     });
+  },
+  // The text of a server message ({error, message_key, params}) in the reader's language. A message
+  // about a place in the source ("Line 6: ...") keeps that place in front.
+  serverMessage(data, english) {
+    const translated = tr(data.message_key, english.replace(/^Line \d+: /, ''), data.params || {});
+    const line = /^Line (\d+): /.exec(english);
+    return line ? tr('js.ide.line_n', 'Line {line}: ', { line: line[1] }) + translated : translated;
   },
   // Download a file the server makes (an export). For a guest, it is made in this browser.
   download(path) {

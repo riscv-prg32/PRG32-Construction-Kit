@@ -109,6 +109,10 @@ def test_every_catalog_key_is_used():
     for page in ("offline.html", "offline-player.html"):
         used |= set(re.findall(r'data-i18n(?:-attr)?="(?:[\w-]+:)?([\w.]+)"', (ROOT / "static" / page).read_text()))
         used |= set(re.findall(r':([\w.]+)"', (ROOT / "static" / page).read_text()))
+    from test_messages import CALLS
+    from prg32_construction_kit.messages import key_for
+
+    used |= {key_for(area, template) for _file, _line, area, template, _names in CALLS}   # server messages
     base = {key.rsplit(".", 1)[0] if key.endswith((".one", ".other")) else key for key in EN}
     assert sorted(key for key in base if key not in used and key != "base.language") == []
 

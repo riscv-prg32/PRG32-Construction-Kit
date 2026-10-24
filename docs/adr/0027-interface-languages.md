@@ -54,6 +54,13 @@ CJK font, else Noto Sans SC (SIL OFL 1.1) served by the kit and cached as it is 
 works offline; `:lang(zh-Hans)` breaks lines between characters but not inside code.
 `tests/test_i18n_browser.py` checks the six languages in a real browser.
 
+The messages the server writes for people are no longer English-only: each is a template with a
+stable key derived from its text (`messages.py`, 225 of them: the PRG32 Python checker, the C and
+assembly validators, AudioStudio, build, run, storage and project API refusals). Answers keep the
+English `error` and add `message_key` and `params`; the browser shows `tr(message_key, error,
+params)`. Problems keep their exact place. Compiler logs (GCC's own words) and the account, admin,
+sign-in and cloud APIs are still English.
+
 ## Consequences
 
 - A new message means an entry in all five catalogs and `python3 tools/build_i18n.py`.

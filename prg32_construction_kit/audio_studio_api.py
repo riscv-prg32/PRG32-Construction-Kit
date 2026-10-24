@@ -29,6 +29,7 @@ from . import audio_studio, security
 from .storage_policy import QuotaExceeded
 from .audio_studio import AudioStudioError
 from .db import Asset, VersionConflict, create_resource, db, get_resource, update_resource
+from .messages import fields as message_fields, text as say
 
 KIND = "audio_studio"
 SAMPLE_KIND = "audio_sample"
@@ -46,12 +47,12 @@ class AudioRefused(Exception):
 
 @bp.errorhandler(AudioRefused)
 def refused(error: AudioRefused):
-    return jsonify({"error": str(error), **error.details}), error.status
+    return jsonify({"error": str(error), **message_fields(error), **error.details}), error.status
 
 
 @bp.errorhandler(AudioStudioError)
 def invalid(error: AudioStudioError):
-    return jsonify({"error": str(error), "code": "audio_invalid"}), 400
+    return jsonify({"error": str(error), **message_fields(error), "code": "audio_invalid"}), 400
 
 
 @bp.errorhandler(QuotaExceeded)
@@ -66,9 +67,9 @@ def _project(project_id: str, write: bool) -> dict[str, Any]:
 
     project = readable("projects", project_id)
     if project is None:
-        raise AudioRefused("Project not found", 404)
+        raise AudioRefused(say("audio", "Project not found"), 404)
     if write and not can_write(project):
-        raise AudioRefused("Only the owner of a project can change its sound", 403)
+        raise AudioRefused(say("audio", "Only the owner of a project can change its sound"), 403)
     return project
 
 
@@ -141,7 +142,7 @@ def project_audio(project: dict[str, Any]) -> tuple[bytes, dict[str, Any]] | Non
     if row is None:
         return None
     if document is None:
-        raise AudioRefused("The project's AudioStudio sound is damaged: open AudioStudio and save it again.")
+        raise AudioRefused(say("audio", "The project's AudioStudio sound is damaged: open AudioStudio and save it again."))
     sounds, missing = sample_sounds(project, document)
     if missing:
         raise AudioRefused("These AudioStudio samples have no sound: " + ", ".join(missing), 400,
@@ -178,7 +179,7 @@ def get_audio(project_id: str):
     project = _project(project_id, write=False)
     document, row = document_of(project_id)
     if row is not None and document is None:
-        raise AudioRefused("The project's AudioStudio sound is damaged", 422, code="audio_damaged")
+        raise AudioRefused(say("audio", "The project's AudioStudio sound is damaged"), 422, code="audio_damaged")
     return jsonify(_answer(project, document or audio_studio.default_document(), row))
 
 
@@ -188,13 +189,13 @@ def _save(project: dict[str, Any], document: dict[str, Any], expected: Any) -> t
     document = audio_studio.validate_document(document)
     text = json.dumps(document, sort_keys=True)
     if len(text) > audio_studio.MAX_DOCUMENT_BYTES:
-        raise AudioRefused("The AudioStudio document is too big", 413)
+        raise AudioRefused(say("audio", "The AudioStudio document is too big"), 413)
     row = audio_asset(project["id"])
     if expected is not None and (not isinstance(expected, int) or isinstance(expected, bool)):
-        raise AudioRefused("expected_version must be a whole number")
+        raise AudioRefused(say("audio", "expected_version must be a whole number"))
     if row is None:
         if expected not in (None, 0):
-            raise AudioRefused("This project's sound changed in another window.", 409, code="audio_version_conflict")
+            raise AudioRefused(say("audio", "This project's sound changed in another window."), 409, code="audio_version_conflict")
         quota(adding_bytes=len(text))
         created = create_resource("assets", {"owner_id": project.get("owner_id"), "project_id": project["id"],
                                              "name": "AudioStudio", "kind": KIND, "content_type": CONTENT_TYPE,
@@ -205,14 +206,13 @@ def _save(project: dict[str, Any], document: dict[str, Any], expected: Any) -> t
         return document, row
     if expected is not None and expected != row.version:
         current, _ = document_of(project["id"])
-        raise AudioRefused("This project's sound was saved in another window after you opened it. Nothing was "
-                           "overwritten: keep yours as a copy (export), or load the saved one.", 409,
+        raise AudioRefused(say("audio", "This project's sound was saved in another window after you opened it. Nothing was overwritten: keep yours as a copy (export), or load the saved one."), 409,
                            code="audio_version_conflict", current={"document": current, "version": row.version})
     quota(adding_bytes=len(text) - len(row.data or ""))
     try:
         update_resource("assets", row.id, {"data": document}, expected_version=expected)
     except VersionConflict:
-        raise AudioRefused("This project's sound was saved in another window.", 409,
+        raise AudioRefused(say("audio", "This project's sound was saved in another window."), 409,
                            code="audio_version_conflict") from None
     db.session.refresh(row)
     return document, row
@@ -242,7 +242,7 @@ def preview(project_id: str):
         document = document or audio_studio.default_document()
     muted = payload.get("muted") or []
     if not isinstance(muted, list) or any(not isinstance(v, int) or not 0 <= v < 8 for v in muted):
-        raise AudioRefused("muted must be a list of voices 0..7")
+        raise AudioRefused(say("audio", "muted must be a list of voices 0..7"))
     document = audio_studio.validate_document(document)
     sounds, missing = sample_sounds(project, document)
     if missing:
@@ -259,7 +259,7 @@ def upload_sample(project_id: str):
     project = _project(project_id, write=True)
     upload = request.files.get("file")
     if upload is None:
-        raise AudioRefused("Choose a WAV file")
+        raise AudioRefused(say("audio", "Choose a WAV file"))
     data = upload.read(audio_studio.MAX_WAV_BYTES + 1)
     sound = audio_studio.wav_to_sample(data)
     quota(adding_bytes=len(sound))

@@ -321,7 +321,9 @@
     return given.map(problem => ({ line: problem.line || 0, column: problem.column || 0,
       endLine: problem.end_line || problem.line || 0, endColumn: problem.end_column || problem.column || 0,
       severity: problem.severity || 'error', code: problem.code || 'server',
-      message: String(problem.message || err.message), explanation: '' }));
+      // In the reader's language when the server sent the message's key (messages.py).
+      message: problem.message_key ? tr(problem.message_key, String(problem.message || ''), problem.params || {})
+        : String(problem.message || err.message), explanation: '' }));
   }
 
   // The same problem found by the live check and by the server is listed once. In another

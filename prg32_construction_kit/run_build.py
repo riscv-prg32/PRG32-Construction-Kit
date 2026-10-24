@@ -28,6 +28,7 @@ from .build_sandbox import settings_from_config
 from .build_slots import BuildServerBusy, build_slot
 from .db import release_connection
 from .packager import prepare_package
+from .messages import text as say
 
 RUN_ARCHITECTURE = "qemu"   # the portable cartridge the browser core runs (static/wasm/BUILD.json)
 
@@ -62,8 +63,7 @@ def run(project: dict[str, Any], audio: tuple[bytes, dict[str, Any]] | None = No
     sources = _generated_sources(language, game_ir, c_source)
     build_command = current_app.config["PRG32_BUILD_COMMAND"]
     if not toolchain_present(build_command):
-        raise RunRefused("This server cannot compile cartridges yet, so games cannot run in the simulator. "
-                         "Ask your teacher (docs/install_cartridge_build.md).", 503, "no_toolchain")
+        raise RunRefused(say("run", "This server cannot compile cartridges yet, so games cannot run in the simulator. Ask your teacher (docs/install_cartridge_build.md)."), 503, "no_toolchain")
     build_root = Path(current_app.config["BUILD_ROOT"])
     build_id = f"build_{uuid.uuid4().hex[:12]}"   # the name retention sweeps if a worker dies mid-build
     release_connection()
