@@ -55,6 +55,7 @@ def test_sdk_abi_matches_the_prg32_sdk_when_installed():
     abi = pytest.importorskip("prg32.abi.abi_generated")
     assert (abi.ABI_MAJOR, abi.ABI_MINOR, f"0x{abi.ABI_HASH:08x}") == (
         pf.SDK_ABI["major"], pf.SDK_ABI["minor"], pf.SDK_ABI["hash"])
+    assert tuple(abi.COMPATIBLE_ABI_HASHES) == pf.SDK_COMPATIBLE_ABI_HASHES
 
 
 def test_manifest_describes_a_blocks_project(client):

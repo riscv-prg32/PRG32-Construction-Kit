@@ -77,6 +77,8 @@ PERSONAL_TABLES: dict[str, tuple[str, str]] = {
     "registration_tokens": ("email", "email"),
     "privacy_notice_records": ("user", "user_id"),
     "privacy_requests": ("user", "user_id"),
+    "deployments": ("user", "owner_id"),
+    "deploy_targets": ("user", "created_by"),
 }
 # Tables with nothing about a person, and why.
 NOT_PERSONAL: dict[str, str] = {
@@ -386,6 +388,11 @@ def erase_account(user_id: int, handled_by: str) -> dict[str, Any]:
     def items():
         return delete_account_items(user_id, Path(current_app.config["BUILD_ROOT"]))
 
+    def deployments():
+        from .deploy import delete_deployments_of
+
+        return delete_deployments_of(user_id)
+
     def rows():
         counts = {}
         for model, column in ((ApiToken, ApiToken.user_id), (cloud_storage.CloudAccount, cloud_storage.CloudAccount.user_id),
@@ -441,6 +448,7 @@ def erase_account(user_id: int, handled_by: str) -> dict[str, Any]:
     step("cloud_tokens", revoke_cloud)
     step("store_publications", published)
     step("items_and_folders", items)
+    step("deployments", deployments)
     step("rows", rows)
     step("audit_events", audit)
     step("request_register", requests_register)

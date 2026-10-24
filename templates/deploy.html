@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}{{ t("deploy.title", name=(site.name)) }}{% endblock %}
+{% block content %}
+{# Deploy (ADR-0028, docs/deploy.md): a compiled cartridge onto a PRG32 console, PRG32-QT or QEMU. deploy.js. #}
+<div id="deployPage" data-project="{{ nav_project.id if nav_project else '' }}" data-admin="{{ 'true' if is_admin else 'false' }}">
+  <h1 class="h3 mb-2"><i class="bi bi-cpu" aria-hidden="true"></i> {{ t("deploy.deploy") }}</h1>
+  <p class="text-muted">{{ t("deploy.intro") }}</p>
+  <div class="alert alert-info" role="note"><i class="bi bi-info-circle" aria-hidden="true"></i> {{ t("deploy.evidence_note") }}</div>
+
+  <div class="row g-4">
+    <div class="col-lg-6">
+      <section class="card shadow-sm mb-4" aria-labelledby="deployCartridgeTitle">
+        <div class="card-header"><h2 class="h6 mb-0" id="deployCartridgeTitle">{{ t("deploy.step_cartridge") }}</h2></div>
+        <div class="card-body">
+          <label class="form-label" for="deployProject">{{ t("deploy.project") }}</label>
+          <select class="form-select mb-3" id="deployProject"></select>
+          <label class="form-label" for="deployCartridge">{{ t("deploy.cartridge") }}</label>
+          <select class="form-select" id="deployCartridge" aria-describedby="deployCartridgeHelp"></select>
+          <div class="form-text" id="deployCartridgeHelp">{{ t("deploy.cartridge_help") }}</div>
+        </div>
+      </section>
+
+      <section class="card shadow-sm mb-4" aria-labelledby="deployTargetTitle">
+        <div class="card-header"><h2 class="h6 mb-0" id="deployTargetTitle">{{ t("deploy.step_target") }}</h2></div>
+        <div class="card-body">
+          <label class="form-label" for="deployTarget">{{ t("deploy.target") }}</label>
+          <div class="input-group mb-2">
+            <select class="form-select" id="deployTarget"></select>
+            <button class="btn btn-outline-primary" type="button" id="deployLook"><i class="bi bi-search" aria-hidden="true"></i> {{ t("deploy.look") }}</button>
+          </div>
+          <div id="deployNoTargets" class="alert alert-warning d-none">{{ t("deploy.no_targets") }}</div>
+          <div id="deployProbe" aria-live="polite"></div>
+        </div>
+      </section>
+    </div>
+
+    <div class="col-lg-6">
+      <section class="card shadow-sm mb-4" aria-labelledby="deployRunTitle">
+        <div class="card-header"><h2 class="h6 mb-0" id="deployRunTitle">{{ t("deploy.step_deploy") }}</h2></div>
+        <div class="card-body">
+          <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" id="deployConfirm" disabled>
+            <label class="form-check-label" for="deployConfirm" id="deployConfirmLabel">{{ t("deploy.confirm_first") }}</label>
+          </div>
+          <div class="d-flex gap-2 mb-3">
+            <button class="btn btn-primary" type="button" id="deployStart" disabled><i class="bi bi-send" aria-hidden="true"></i> {{ t("deploy.deploy") }}</button>
+            <button class="btn btn-outline-danger" type="button" id="deployCancel" disabled><i class="bi bi-x-circle" aria-hidden="true"></i> {{ t("common.cancel") }}</button>
+          </div>
+          <div class="progress mb-2" role="progressbar" aria-labelledby="deployStatus" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="deployProgress">
+            <div class="progress-bar"></div>
+          </div>
+          <p class="small mb-2" id="deployStatus" aria-live="polite">{{ t("deploy.not_started") }}</p>
+          <div id="deployResult" aria-live="polite"></div>
+          <ol class="small text-muted mb-0" id="deployLog" aria-label="{{ t('deploy.log') }}"></ol>
+        </div>
+      </section>
+
+      <section class="card shadow-sm mb-4" aria-labelledby="deployHistoryTitle">
+        <div class="card-header"><h2 class="h6 mb-0" id="deployHistoryTitle">{{ t("deploy.recent") }}</h2></div>
+        <ul class="list-group list-group-flush" id="deployHistory"></ul>
+      </section>
+    </div>
+  </div>
+
+  {% if is_admin %}
+  <section class="card shadow-sm" aria-labelledby="deployAdminTitle">
+    <div class="card-header"><h2 class="h6 mb-0" id="deployAdminTitle">{{ t("deploy.targets_admin") }}</h2></div>
+    <div class="card-body">
+      <p class="small text-muted">{{ t("deploy.targets_admin_help") }}</p>
+      <form class="row g-2 mb-3" id="deployTargetForm">
+        <div class="col-md-4"><label class="visually-hidden" for="targetName">{{ t("deploy.target_name") }}</label>
+          <input class="form-control" id="targetName" name="name" required maxlength="80" placeholder="{{ t('deploy.target_name') }}"></div>
+        <div class="col-md-3"><label class="visually-hidden" for="targetKind">{{ t("deploy.target_kind") }}</label>
+          <select class="form-select" id="targetKind" name="kind">
+            <option value="prg32">{{ t("deploy.kind_prg32") }}</option>
+            <option value="prg32qt">{{ t("deploy.kind_prg32qt") }}</option>
+          </select></div>
+        <div class="col-md-3"><label class="visually-hidden" for="targetAddress">{{ t("deploy.target_address") }}</label>
+          <input class="form-control" id="targetAddress" name="address" required placeholder="{{ t('deploy.address_example') }}"></div>
+        <div class="col-md-2"><button class="btn btn-outline-primary w-100" type="submit">{{ t("deploy.add") }}</button></div>
+      </form>
+      <ul class="list-group" id="deployTargetList"></ul>
+    </div>
+  </section>
+  {% endif %}
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/deploy.js') }}"></script>
+{% endblock %}

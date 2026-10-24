@@ -42,6 +42,11 @@ class Config:
     BUILD_ROOT = Path(os.environ.get("PRG32_KIT_BUILD_ROOT", DATA_DIR / "builds")).resolve()
     ARTIFACT_ROOT = Path(os.environ.get("PRG32_KIT_ARTIFACT_ROOT", DATA_DIR / "artifacts")).resolve()
     DEFAULT_STORE_URL = os.environ.get("PRG32_STORE_URL", "http://127.0.0.1:5080")
+    # Deploy to QEMU on this server (deploy.py, docs/deploy.md): a firmware folder made by
+    # tools/build_qemu_firmware.py, Espressif's qemu-system-riscv32 and (for screenshots) its GDB.
+    QEMU_FIRMWARE = os.environ.get("PRG32_QEMU_FIRMWARE") or None
+    QEMU_BINARY = os.environ.get("PRG32_QEMU") or None
+    QEMU_GDB = os.environ.get("PRG32_QEMU_GDB") or None
     # Store egress policy (docs/adr/0008-store-egress-policy.md). Origins bundles may be
     # sent to; unset = the origins of PRG32_STORE_URL and PRG32_SSO_PEER_URL.
     STORE_ALLOWED_ORIGINS = ([item.strip() for item in os.environ["PRG32_STORE_ALLOWED_ORIGINS"].split(",") if item.strip()]

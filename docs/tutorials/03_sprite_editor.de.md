@@ -27,4 +27,4 @@ Klicke auf **In C umwandeln**. Das C-Feld zeigt ein RGB565-Array aus `uint16_t`.
 
 ## 5. Finde das Artefakt
 
-Öffne **Artefakte**. Lade die erzeugte C-Datei des Sprites herunter.
+Öffne das Menü mit deinem Namen (oben rechts) und wähle **Artefakte**. Lade die erzeugte C-Datei des Sprites herunter.

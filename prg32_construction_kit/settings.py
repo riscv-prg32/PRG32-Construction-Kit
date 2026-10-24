@@ -199,6 +199,7 @@ ENVIRONMENT_ONLY = (
     ("PRG32_KIT_THROTTLE_*", "sign-in attempt limits"),
     ("PRG32_SAML_*", "SAML sign-in (its routes are made at start-up)"),
     ("PRG32_CLOUD_*_CLIENT_ID / _SECRET", "cloud storage and GitHub app credentials"),
+    ("PRG32_QEMU_FIRMWARE / PRG32_QEMU / PRG32_QEMU_GDB", "Deploy to QEMU on this server (a firmware folder and the programs to run it)"),
 )
 
 _SECRET_PURPOSE = b"site-settings"

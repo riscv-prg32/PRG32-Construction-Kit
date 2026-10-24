@@ -367,6 +367,53 @@
    "next_review": "2027-10-21 or on any change to the kit's data model"
   },
   {
+   "id": "deployment",
+   "data": "which cartridge was put on which console, PRG32-QT or QEMU, in which slot, each step's log, the target's answers and a screenshot; the consoles and PRG32-QT addresses an administrator registered",
+   "fields": {
+    "deployments": [
+     "id",
+     "owner_id",
+     "project_id",
+     "artifact_id",
+     "target",
+     "target_kind",
+     "target_name",
+     "slot",
+     "status",
+     "progress",
+     "cancel_requested",
+     "log",
+     "result",
+     "created_at",
+     "updated_at"
+    ],
+    "deploy_targets": [
+     "id",
+     "name",
+     "kind",
+     "url",
+     "notes",
+     "created_by",
+     "created_at"
+    ]
+   },
+   "subjects": [
+    "students",
+    "teachers"
+   ],
+   "purpose": "running a student's game on a classroom PRG32 console or emulator, and showing them whether it worked",
+   "legal_basis": "Art. 6(1)(e) (part of the course); PROPOSED - not decided: the controller confirms with its DPO (decisions.md)",
+   "special_categories": "none",
+   "access": "the person; administrators",
+   "recipients": "none: the console, PRG32-QT or QEMU receives the cartridge only, never a name",
+   "location": "the server chosen by the operator (configure in the EU/EEA, see processors_and_transfers.md)",
+   "retention": "while the account exists",
+   "deletion": "erasure deletes the deployments and their folders; a registered console stays, without who registered it",
+   "transfers": "none",
+   "review_owner": "the operator's privacy lead (name it in decisions.md)",
+   "next_review": "2027-10-21 or on any change to the kit's data model"
+  },
+  {
    "id": "security_log",
    "data": "audit events (who did what, when, from which address; API-token use; sign-ins from new addresses) and sign-in counters (hashed)",
    "fields": {
@@ -613,6 +660,14 @@
    "retention": "none: not written, not logged",
    "deletion": "automatic at the end of the request",
    "personal": false
+  },
+  {
+   "id": "deployment_folders",
+   "data": "each deployment's screenshot, QEMU flash copy and serial log (DATA_DIR/deployments/<id>/)",
+   "where": "the server's data folder",
+   "retention": "while the account exists",
+   "deletion": "erasure deletes the folders with the deployments",
+   "personal": true
   }
  ]
 }

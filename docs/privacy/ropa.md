@@ -163,6 +163,25 @@ not decisions: see [decisions.md](decisions.md).
 | Next review | 2027-10-21 or on any change to the kit's data model |
 | Fields | `publish_profiles`: id, name, store_url, bearer_token, token_set_at, created_at, updated_at, owner_id; `publish_attempts`: id, digest, user_id, profile_id, artifact_id, state, result, store_host, cartridge_id, cartridge_version, bundle_sha256, created_at, updated_at |
 
+## deployment
+
+| | |
+|---|---|
+| Data | which cartridge was put on which console, PRG32-QT or QEMU, in which slot, each step's log, the target's answers and a screenshot; the consoles and PRG32-QT addresses an administrator registered |
+| People | students, teachers |
+| Purpose | running a student's game on a classroom PRG32 console or emulator, and showing them whether it worked |
+| Legal basis | Art. 6(1)(e) (part of the course); PROPOSED - not decided: the controller confirms with its DPO (decisions.md) |
+| Special categories | none |
+| Who can see it | the person; administrators |
+| Recipients | none: the console, PRG32-QT or QEMU receives the cartridge only, never a name |
+| Where | the server chosen by the operator (configure in the EU/EEA, see processors_and_transfers.md) |
+| Kept for | while the account exists |
+| Deleted by | erasure deletes the deployments and their folders; a registered console stays, without who registered it |
+| Transfers | none |
+| Review owner | the operator's privacy lead (name it in decisions.md) |
+| Next review | 2027-10-21 or on any change to the kit's data model |
+| Fields | `deployments`: id, owner_id, project_id, artifact_id, target, target_kind, target_name, slot, status, progress, cancel_requested, log, result, created_at, updated_at; `deploy_targets`: id, name, kind, url, notes, created_by, created_at |
+
 ## security_log
 
 | | |
@@ -254,3 +273,4 @@ not decisions: see [decisions.md](decisions.md).
 | tickets_in_transit | single sign-on tickets and OAuth codes and tokens, in transit | between the browser, the kit, the Store and the providers (HTTPS) | minutes; refresh tokens encrypted at rest (cloud) | expiry | yes |
 | support_evidence | screenshots, logs and recordings kept as release evidence (docs/evidence) | the kit's repository | kept with the release | never contains real people: synthetic users only (visual manifest checks) | no |
 | guest_requests | a guest's blocks, code, sound or sprite, sent to generate code, preview sound or build the game to run it (ADR-0023, ADR-0024) | server memory, and for a run build a private build folder removed as soon as the cartridge is read | none: not written, not logged | automatic at the end of the request | no |
+| deployment_folders | each deployment's screenshot, QEMU flash copy and serial log (DATA_DIR/deployments/<id>/) | the server's data folder | while the account exists | erasure deletes the folders with the deployments | yes |

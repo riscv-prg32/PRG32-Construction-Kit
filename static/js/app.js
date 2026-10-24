@@ -149,8 +149,8 @@ $(function () {
   try { localStorage.setItem('prg32-kit-last-project', projectId); } catch (_) { /* private window */ }
 });
 
-// The top menu of an open project (base.html): which of Editor, Sprite Lab, AudioStudio and
-// Player is shown now.
+// The top menu of an open project (base.html): which of Editor, Sprite Lab, AudioStudio, Debug
+// and Deploy is shown now.
 Kit.projectMenu = {
   mark(item) {
     $('[data-ide-tool]').removeClass('active').removeAttr('aria-current');
@@ -160,8 +160,8 @@ Kit.projectMenu = {
 $(function () {
   if (!$('#navCloseProject').length) return;
   const hash = window.location.hash.slice(1);
-  Kit.projectMenu.mark(window.location.pathname === '/player' ? 'player'
-    : hash === 'sprites' || hash === 'sound' ? hash : 'editor');
+  const page = { '/player': 'player', '/deploy': 'deploy' }[window.location.pathname];
+  Kit.projectMenu.mark(page || (hash === 'sprites' || hash === 'sound' ? hash : 'editor'));
 });
 
 // The Day/Night switch (base.html): this reader's colours, kept in this browser; theme.js applies

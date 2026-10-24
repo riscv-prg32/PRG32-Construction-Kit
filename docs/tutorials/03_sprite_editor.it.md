@@ -27,4 +27,4 @@ Fai clic su **Converti in C**. Il pannello C mostra un array RGB565 di `uint16_t
 
 ## 5. Trova l'artefatto
 
-Apri **Artefatti**. Scarica il file C generato dello sprite.
+Apri il menu con il tuo nome (in alto a destra) e scegli **Artefatti**. Scarica il file C generato dello sprite.

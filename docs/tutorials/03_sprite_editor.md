@@ -26,4 +26,4 @@ Click **Convert to C**. The C panel shows a `uint16_t` RGB565 array.
 
 ## 5. Find the artifact
 
-Open **Artifacts**. Download the generated sprite C file.
+Open the menu with your name (top right) and choose **Artifacts**. Download the generated sprite C file.

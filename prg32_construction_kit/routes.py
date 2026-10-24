@@ -1228,7 +1228,8 @@ def _run_package_build(project_id: str, project: dict[str, Any], game_ir: dict[s
     c_artifact, asm_artifact = artifacts.get("c"), artifacts.get("asm")
     build = create_resource("builds", owned({
         "project_id": project_id, "status": "running", "c_artifact_id": c_artifact["id"] if c_artifact else None,
-        "metadata": {"project_updated_at": project.get("updated_at"), "built_from": built_from,
+        "metadata": {"project_updated_at": project.get("updated_at"), "project_version": project.get("version"),
+                     "built_from": built_from,
                      "asm_artifact_id": asm_artifact["id"] if asm_artifact else None}}))
     release_connection()
     build_command = current_app.config["PRG32_BUILD_COMMAND"]
@@ -1323,6 +1324,7 @@ def _run_package_build(project_id: str, project: dict[str, Any], game_ir: dict[s
                 "cart_ram_kib": result["cart_ram_kib"],
                 "publishable": result["publishable"],
                 "project_updated_at": project.get("updated_at"),
+                "project_version": project.get("version"),
                 "built_from": built_from,
                 "asm_artifact_id": asm_artifact["id"] if asm_artifact else None,
                 "audio_block_sha256": hashlib.sha256(audio[0]).hexdigest() if audio else None,
