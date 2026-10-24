@@ -79,6 +79,9 @@ Automated accessibility and keyboard scenarios pass, but AudioStudio tasks 10–
 
 ## Release conclusion
 
-The expanded assessment scores **132/156**. The release remains **NO-GO** because
+After the 2026-10-24 requirements expansion, the assessment scores **136/172**.
+The new DEP-04 unified Deploy and EVAL-01 scientific Evaluate requirements are
+missing, and I18N-01 now also requires absent Simplified Chinese coverage. The
+release remains **NO-GO** because
 the actual-deployment GDPR decisions and qualified review are open. Documentation
 freshness is closed; shared-account identity and audio/hardware blockers remain.

@@ -782,7 +782,7 @@
       "id": "DOC-02",
       "title": "Truthful entry point, architecture and visual freshness",
       "status": "partial",
-      "audit_score": 4,
+      "audit_score": 3,
       "source": [
         "README.md",
         "docs/architecture.md",
@@ -816,9 +816,9 @@
     },
     {
       "id": "I18N-01",
-      "title": "Interface in English, Italian, Spanish, French and German",
+      "title": "Interface in English, Italian, Spanish, French, German and Simplified Chinese",
       "status": "partial",
-      "audit_score": null,
+      "audit_score": 2,
       "source": [
         "prg32_construction_kit/i18n.py::choose",
         "prg32_construction_kit/i18n.py::translate",
@@ -837,13 +837,13 @@
         "tests/test_i18n.py::test_the_browser_runtime_translates_with_fallback_and_plurals",
         "tests/test_i18n.py::test_generated_code_and_cartridges_are_the_same_in_every_language"
       ],
-      "note": "ADR-0027. Every page, script message, block, tooltip, screen-reader label, the offline pages and the privacy notice summaries in five languages (1180+ keys each, same placeholders, plural pairs); language menu, cookie + Accept-Language + English fallback, catalogs cached offline; builds byte-identical in every language. Still English: server-written messages (API errors, the PRG32 Python compiler's refusals, compiler logs), Blockly's and Monaco's own menus, long-form docs (the classroom quick start is in five languages). No screen-reader session or per-locale screenshots yet."
+      "note": "ADR-0027 currently implements English, Italian, Spanish, French and German. Simplified Chinese (zh-Hans) is required by the expanded audit matrix but is not implemented. The five existing catalogs cover every page, script message, block, tooltip, screen-reader label, offline pages and privacy notice summaries (1180+ keys each, same placeholders, plural pairs); language menu, cookie + Accept-Language + English fallback and offline caching are tested; builds are byte-identical in each implemented language. Still English: server-written messages (API errors, the PRG32 Python compiler's refusals, compiler logs), Blockly's and Monaco's own menus and long-form docs (the classroom quick start exists in five languages). No screen-reader session or per-locale screenshots yet."
     },
     {
       "id": "PY-01",
       "title": "PRG32 Python projects compiled ahead of time to real cartridges",
       "status": "implemented",
-      "audit_score": null,
+      "audit_score": 3,
       "source": [
         "prg32_construction_kit/python_project.py::python_to_ir_traced",
         "prg32_construction_kit/python_project.py::parse",

@@ -8,6 +8,8 @@ Scores: 0 missing, 1 prototype, 2 partial, 3 implemented/tested with an evidence
 | IDE-02 | 3 | Implemented/tested | Monaco shell, accessibility and responsive browser flows pass. |
 | IDE-03 | 4 | Reference-verified | Portable-ABI completion/navigation and validator ranges are backed by the real PRG32 compiler after every validated save. |
 | IDE-04 | 4 | Reference-verified | RV32IMC/Zicsr, ABI/labels/navigation and safe validation are backed by the real PRG32 assembler/compiler after every save. |
+| I18N-01 | 2 | Partial | English, Italian, Spanish, French and German catalogs cover much of the UI with offline fallback and deterministic artifacts. Simplified Chinese, server/compiler diagnostics, editor menus, most long-form docs and six-locale human accessibility/visual evidence are missing. |
+| PY-01 | 3 | Implemented/tested | Restricted non-executing parse, typed/limited AST, shared IR, deterministic C/assembly, source maps, provenance and archive/package flows have meaningful tests; exact-revision real-toolchain, browser and canonical PRG32-QT scenario-L evidence is missing. |
 | PRJ-01 | 3 | Implemented/tested | Deterministic project model, revisions and archive/import are covered. |
 | BLD-01 | 4 | Reference-verified | Retained Docker evidence rebuilds Blocks-C, Blocks-assembly, Advanced C and handwritten assembly for both targets; hashes match macOS builds. |
 | BLD-02 | 4 | Reference-verified | Isolation/provenance/diagnostics/debug identity plus successful production-image CI under 300 hidden same-UID processes; sandbox, budgets, AppArmor and real/concurrent cartridge builds passed at the audited SHA. |
@@ -36,14 +38,16 @@ Scores: 0 missing, 1 prototype, 2 partial, 3 implemented/tested with an evidence
 | DEP-01 | 0 | Missing | Physical PRG32 transfer/launch not verified. |
 | DEP-02 | 3 | Implemented/tested | Canonical PRG32-QT stored, launched and drew five hashed Kit cartridges through its web API; desktop Import-menu workflow remains untested. |
 | DEP-03 | 0 | Missing | iOS handoff not verified. |
+| DEP-04 | 0 | Missing | No unified top-menu Deploy tool targets physical PRG32, QEMU and PRG32-QT with explicit identity, integrity, confirmation, progress/cancellation, launch and recovery. |
+| EVAL-01 | 0 | Missing | No top-menu Evaluate tool runs a versioned three-target performance protocol or exports raw data and publication-quality charts with scientific provenance and uncertainty. |
 | SEC-01 | 3 | Implemented/tested | SSRF/sandbox boundaries tested; builds still share a host UID, and the corrected kernel-count RLIMIT_NPROC path was not freshly exercised on Linux. |
 | SEC-02 | 4 | Reference-verified | Credential/session controls, retention, auditing, throttling, CSP, hash-locked dependencies and SBOM are covered. |
 | GDPR-01 | 3 | Implemented/tested; operational gate open | Generated field-level ROPA, notices, complete export/erasure/restriction, backup re-erasure, processor/transfer templates and technical breach rehearsal pass meaningful tests. Actual controller/legal bases, Member-State rules, DPIA, DPO/counsel review, contracts/transfers and staffed exercise remain explicitly open release blockers. |
 | OPS-01 | 4 | Reference-verified | CI/deployment/migrations and a tested backup/restore drill are documented and exercised. |
 | DOC-01 | 4 | Reference-verified | Capability IDs, generated status, traceability and commit-named milestones pass consistency tests with no ambiguous “this change” rows. |
-| DOC-02 | 4 | Reference-verified | Current README/architecture, generated diagrams, synthetic screenshots, visual manifest, human review records and CI checks for links/images/alt text/orphans/names/IDs/freshness all pass. |
+| DOC-02 | 3 | Implemented/tested | Visual and link checks pass, but current-state documentation still describes only the older three build modes and incorrectly says CI lacks lint, coverage and performance budgets. |
 | QLT-01 | 3 | Implemented/tested with external integration failures | Broad coverage and quality gates remain strong, but the fresh feasible suite has three expected failures against unpatched canonical CartridgeStore; browser and Linux sandbox reruns were unavailable locally. |
 
-Domain totals: IDE 14/16; Project 3/4; Build 8/8; WASM 8/8; Audio 13/16; Debug 22/24; Accounts 8/8; SSO 15/16; Cloud 6/8; Store 7/8; Delivery 3/12; Security 7/8; GDPR 3/4; Operations 4/4; Documentation 8/8; Quality 3/4.
+Domain totals: IDE 14/16; Internationalization 2/4; Python 3/4; Project 3/4; Build 8/8; WASM 8/8; Audio 13/16; Debug 22/24; Accounts 8/8; SSO 15/16; Cloud 6/8; Store 7/8; Delivery 3/16; Evaluation 0/4; Security 7/8; GDPR 3/4; Operations 4/4; Documentation 7/8; Quality 3/4.
 
-**Total: 132/156 (84.6%).**
+**Total: 136/172 (79.1%).**

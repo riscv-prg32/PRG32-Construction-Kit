@@ -75,8 +75,11 @@ Earlier retained execution at `951f782`:
 - broad feasible suite: **1,009 passed, 85 skipped, 1 deselected**, with only the five sandbox-denied delivery setups;
 - syntax and locally feasible reproducibility checks passed; toolchain fixture rebuilds were verified from retained Docker evidence but could not run locally.
 
-The expanded matrix score is **132/156 (84.6%)**. The recommendation remains
-**NO-GO** because deployment-specific GDPR decisions/sign-off are open. Other
+After the 2026-10-24 requirements expansion (Simplified Chinese in I18N-01 plus
+DEP-04 unified deployment and EVAL-01 scientific evaluation), the current matrix
+score is **136/172 (79.1%)**. The recommendation remains **NO-GO** because
+deployment-specific GDPR decisions/sign-off are open. The new Deploy and Evaluate
+requirements are missing, and Chinese coverage is absent. Other
 blockers are the unmerged shared-account Store patch, canonical upstream audio
 patch adoption, physical PRG32 stereo/delivery evidence, complete QEMU/frame-event
 alignment, human screen-reader evidence and unsupported iOS handoff.
