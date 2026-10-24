@@ -29,7 +29,7 @@ page is about that project:
 | **Editor** | Back to the project's Blocks, `game.c`, `game.S` or `game.py`. |
 | **Sprite Lab** | Opens Sprite Lab for this project (a tab of the IDE). |
 | **AudioStudio** | Opens AudioStudio for this project (a tab of the IDE). |
-| **Player** | Plays the newest cartridge compiled for this project (press **Compile** first). |
+| **Debug** | Opens the Player with its debugger on the newest cartridge compiled for this project (press **Compile** first): play it, step frame by frame, stop at breakpoints. |
 
 In the IDE, Editor, Sprite Lab and AudioStudio change tab without loading the page again, and
 the address remembers the tool (`#sprites`, `#sound`), so reloading opens it again. On the

@@ -9,8 +9,8 @@ there.
 
 1. In the IDE press **Run**: the kit builds the game and plays it on the right (also
    without an account; nothing is kept). Or open **Player** and choose **Open a .prg32 file**.
-   With a project open (or from **Player** on its card on the Projects page), **Player** plays
-   the newest cartridge compiled for that project (`/player?project=<id>`): press **Compile**
+   With a project open, **Debug** in the top menu (or **Player** on its card on the Projects page)
+   plays the newest cartridge compiled for that project, with the debugger below it (`/player?project=<id>`): press **Compile**
    in the IDE first.
 2. Press **Play**. Buttons: arrows or W A S D, **Z**/**J** = A, **X**/**K** = B,
    **Enter**/**Space** = Select. On a tablet, use the on-screen buttons.

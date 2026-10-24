@@ -21,8 +21,9 @@
 
 - While a project is open (the IDE, `/player?project=<id>`), the PRG32 icon closes it and goes
   back to Projects, the project's name replaces the kit's, and **Editor**, **Sprite Lab**,
-  **AudioStudio** and **Player** work on that project: the first three switch tab in the IDE
-  without a reload, Player plays the project's newest compiled cartridge (`docs/ide.md`).
+  **AudioStudio** and **Debug** work on that project: the first three switch tab in the IDE
+  without a reload, Debug opens the Player and its debugger on the project's newest compiled
+  cartridge (`docs/ide.md`).
 - **Generated (read-only)** of a Blocks project now has `game.py`: the same game in PRG32
   Python, to read beside `game.c` and `game.S` (`generated_code.md`). Every example gives a
   `game.py` the PRG32 Python compiler accepts and that plays exactly like the blocks.
@@ -31,7 +32,7 @@
 - Each project card on the Projects page has **Sprite Lab**, **AudioStudio** and **Player**
   beside **Open**; the welcome banner has **Sprite Lab**, **AudioStudio** and **Player** not tied
   to a project (choose the game, or open a `.prg32` file). With no project open, the menu keeps
-  the project pickers and the empty Player.
+  the project pickers, and Debug opens the empty Player.
 
 ### PRG32 Python projects and five interface languages (I18N-01, PY-01)
 

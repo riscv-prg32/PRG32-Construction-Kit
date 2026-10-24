@@ -59,10 +59,10 @@
         <li class="nav-item"><a class="nav-link" href="/artifacts"><i class="bi bi-box-seam"></i> {{ t("common.artifacts") }}</a></li>
         {% endif %}
         {% if nav_project %}
-        {# This project's newest compiled cartridge (player.js). #}
-        <li class="nav-item"><a class="nav-link" href="/player?project={{ nav_project.id | urlencode }}" data-ide-tool="player"><i class="bi bi-cpu"></i> {{ t("base.player") }}</a></li>
+        {# Debug: the Player page with its debugger, on this project's newest compiled cartridge (player.js). #}
+        <li class="nav-item"><a class="nav-link" href="/player?project={{ nav_project.id | urlencode }}" data-ide-tool="player"><i class="bi bi-bug"></i> {{ t("ide.debug") }}</a></li>
         {% else %}
-        <li class="nav-item"><a class="nav-link" href="/player"><i class="bi bi-cpu"></i> {{ t("base.player") }}</a></li>
+        <li class="nav-item"><a class="nav-link" href="/player"><i class="bi bi-bug"></i> {{ t("ide.debug") }}</a></li>
         {% endif %}
         {% if current_user.authenticated %}
         <li class="nav-item"><a class="nav-link" href="/publish"><i class="bi bi-cloud-upload"></i> {{ t("common.publish") }}</a></li>
