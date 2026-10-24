@@ -1,0 +1,1052 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index c055275..204d00d 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -6,6 +6,12 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
+ option(PRG32QT_BUILD_APP "Build Qt application" ON)
+ option(PRG32QT_BUILD_TESTS "Build portable core tests" ON)
+ option(PRG32QT_TV_MODE "Build a controller-first fullscreen TV application" OFF)
++# The PRG32 firmware's own audio engine (components/prg32_audio of the PRG32 SDK), so the desktop
++# renders exactly the console's sound: 8 voices, ADSR envelopes, the SID-like synth, the stereo
++# mix. On by default; OFF keeps the older float mixer (no ADSR), which is not an audio reference.
++option(PRG32QT_FIRMWARE_AUDIO "Render sound with the PRG32 firmware audio engine" ON)
++set(PRG32_SDK_DIR "" CACHE PATH "PRG32 SDK checkout (default: the pinned PRG32_SDK_REVISION, fetched)")
++set(PRG32_SDK_REVISION "679dfb58783bd007125de9ca0b75eaa077908739" CACHE STRING "PRG32 SDK commit fetched when PRG32_SDK_DIR is empty")
+ 
+ file(WRITE "${CMAKE_BINARY_DIR}/prg32qt-version.txt" "${PRG32QT_VERSION}\n")
+ 
+@@ -20,6 +26,37 @@ add_library(prg32qt_core
+ target_include_directories(prg32qt_core PUBLIC src/core)
+ target_compile_definitions(prg32qt_core PUBLIC PRG32QT_VERSION="${PRG32QT_VERSION}")
+ 
++if(PRG32QT_FIRMWARE_AUDIO)
++  if(NOT PRG32_SDK_DIR)
++    # Only the sources are needed: SOURCE_SUBDIR points at a folder without a CMakeLists.txt,
++    # so the SDK's own (ESP-IDF) build is never configured here.
++    include(FetchContent)
++    FetchContent_Declare(prg32_sdk
++        GIT_REPOSITORY https://github.com/riscv-prg32/PRG32.git
++        GIT_TAG ${PRG32_SDK_REVISION}
++        SOURCE_SUBDIR components/prg32_audio/include)
++    FetchContent_MakeAvailable(prg32_sdk)
++    set(PRG32_SDK_DIR "${prg32_sdk_SOURCE_DIR}")
++  endif()
++  set(PRG32_AUDIO_DIR "${PRG32_SDK_DIR}/components/prg32_audio")
++  if(NOT EXISTS "${PRG32_AUDIO_DIR}/audio_synth.c")
++    message(FATAL_ERROR "PRG32QT_FIRMWARE_AUDIO: no PRG32 audio engine in ${PRG32_SDK_DIR} (set PRG32_SDK_DIR, or OFF for the older mixer)")
++  endif()
++  enable_language(C)
++  # The engine is compiled unchanged; firmware_audio/ gives it time in 20 ms steps and a PCM queue
++  # in place of the console's audio task and I2S driver (the same port as PRG32-Construction-Kit's).
++  add_library(prg32_firmware_audio STATIC
++      ${PRG32_AUDIO_DIR}/audio.c ${PRG32_AUDIO_DIR}/audio_assets.c ${PRG32_AUDIO_DIR}/audio_mixer.c
++      ${PRG32_AUDIO_DIR}/audio_synth.c ${PRG32_AUDIO_DIR}/audio_tracker.c src/core/firmware_audio/audio_port.c)
++  target_include_directories(prg32_firmware_audio
++      PRIVATE src/core/firmware_audio/shim ${PRG32_AUDIO_DIR}
++      PUBLIC src/core/firmware_audio ${PRG32_AUDIO_DIR}/include)
++  target_compile_options(prg32_firmware_audio PRIVATE -O2 -ffp-contract=off)
++  target_sources(prg32qt_core PRIVATE src/core/FirmwareAudio.cpp)
++  target_link_libraries(prg32qt_core PUBLIC prg32_firmware_audio)
++  target_compile_definitions(prg32qt_core PUBLIC PRG32QT_FIRMWARE_AUDIO=1)
++endif()
++
+ if(PRG32QT_BUILD_TESTS)
+   enable_testing()
+   add_executable(prg32qt-headless src/core/headless.cpp)
+@@ -71,6 +108,18 @@ if(PRG32QT_BUILD_APP)
+     list(APPEND PRG32QT_APP_SOURCES src/qt/MdnsAdvertiser_udp.cpp)
+   endif()
+ 
++  if(PRG32QT_BUILD_TESTS AND PRG32QT_FIRMWARE_AUDIO AND NOT CMAKE_CROSSCOMPILING)
++    # The firmware engine's sound through the real output device (skipped without one). Desktop
++    # builds only: on Android and iOS a second Qt executable becomes a second app package, and
++    # the test could not run on the build machine anyway.
++    qt_add_executable(prg32qt_audio_device_check tests/audio_device_check.cpp src/qt/QtAudioEngine.cpp)
++    target_include_directories(prg32qt_audio_device_check PRIVATE src/core src/qt)
++    target_link_libraries(prg32qt_audio_device_check PRIVATE prg32qt_core Qt6::Core Qt6::Multimedia)
++    add_test(NAME prg32qt_audio_device COMMAND prg32qt_audio_device_check
++             ${CMAKE_CURRENT_SOURCE_DIR}/tests/fixtures/Bach.prg32 3)
++    set_tests_properties(prg32qt_audio_device PROPERTIES SKIP_RETURN_CODE 77)
++  endif()
++
+   qt_add_executable(PRG32_QT ${PRG32QT_APP_SOURCES})
+   qt_add_qml_module(PRG32_QT URI PRG32Qt VERSION 1.0 QML_FILES qml/Main.qml)
+   qt_add_resources(PRG32_QT prg32qt_assets PREFIX "/prg32qt" FILES assets/prg32_logo.png assets/prg32_title.png assets/prg32_appicon_1024.png)
+diff --git a/src/core/FirmwareAudio.cpp b/src/core/FirmwareAudio.cpp
+new file mode 100644
+index 0000000..3b403fb
+--- /dev/null
++++ b/src/core/FirmwareAudio.cpp
+@@ -0,0 +1,178 @@
++#include "FirmwareAudio.h"
++#include <algorithm>
++#include <cstring>
++
++extern "C" {
++#include "audio_port.h"
++#include "prg32_audio.h"
++}
++
++namespace prg32 {
++namespace {
++constexpr uint32_t FirstAudioCall = 5, LastAudioCall = 25; // the portable ABI's audio entries
++
++/** The cartridge's AUD0 block, where the console looks for it: after the header and the code. */
++std::vector<uint8_t> audioBlockOf(std::span<const uint8_t> data) {
++    if (data.size() < 20)
++        return {};
++    const uint32_t headerSize = uint32_t(data[8]) | uint32_t(data[9]) << 8;
++    const uint32_t codeSize =
++        uint32_t(data[16]) | uint32_t(data[17]) << 8 | uint32_t(data[18]) << 16 | uint32_t(data[19]) << 24;
++    const uint64_t offset = uint64_t(headerSize) + codeSize;
++    if (offset + 40 > data.size() || std::memcmp(data.data() + offset, "AUD0", 4) != 0)
++        return {};
++    const uint8_t* block = data.data() + offset;
++    const uint32_t blockSize = uint32_t(block[36]) | uint32_t(block[37]) << 8 | uint32_t(block[38]) << 16 |
++                               uint32_t(block[39]) << 24;
++    if (blockSize < 40 || offset + blockSize > data.size())
++        return {};
++    return {block, block + blockSize};
++}
++} // namespace
++
++bool FirmwareAudio::attach(Runtime& runtime, std::span<const uint8_t> cartridge, std::string& error) {
++    runtime_ = &runtime;
++    frames_ = 0;
++    audioNanoseconds_ = 0;
++    if (prg32_kit_audio_start() != 0) {
++        error = "the audio engine did not start";
++        return false;
++    }
++    block_ = audioBlockOf(cartridge);
++    if (prg32_kit_audio_load(block_.data(), block_.size()) != 0) {
++        error = "failed to load cartridge AUDIO block";
++        return false;
++    }
++    runtime.setHostHooks([this](uint32_t i) { before(i); }, [this](uint32_t i) { after(i); });
++    return true;
++}
++
++void FirmwareAudio::frameDone() {
++    ++frames_;
++    catchUp();
++}
++
++void FirmwareAudio::catchUp() {
++    const uint64_t now = frames_ * VirtualClock::FramePeriodNanoseconds;
++    if (now <= audioNanoseconds_)
++        return;
++    const uint64_t ms = (now - audioNanoseconds_) / 1000000ull;
++    if (ms == 0)
++        return;
++    audioNanoseconds_ += ms * 1000000ull;
++    prg32_kit_audio_advance_ms(uint32_t(std::min<uint64_t>(ms, 60000)));
++}
++
++std::vector<int16_t> FirmwareAudio::take() {
++    const size_t frames = prg32_kit_audio_frames();
++    const int16_t* pcm = prg32_kit_audio_pcm();
++    std::vector<int16_t> out(pcm, pcm + frames * 2);
++    prg32_kit_audio_clear();
++    return out;
++}
++
++uint64_t FirmwareAudio::pcmHash() const {
++    return prg32_kit_audio_hash();
++}
++
++void FirmwareAudio::before(uint32_t index) {
++    if (index < FirstAudioCall || index > LastAudioCall)
++        return;
++    catchUp(); // the call takes effect at the start of the frame that makes it
++    for (int n = 0; n < 8; ++n)
++        args_[n] = runtime_->registerValue(10 + n);
++}
++
++void FirmwareAudio::after(uint32_t index) {
++    if (index < FirstAudioCall || index > LastAudioCall)
++        return;
++    const uint32_t* a = args_;
++    auto& runtime = *runtime_;
++    auto u8 = [](uint32_t v) { return uint8_t(v); };
++    auto i8 = [](uint32_t v) { return int8_t(uint8_t(v)); };
++    switch (index) {
++    case 5: // prg32_buzzer_tone, prg32_buzzer_play_notes, prg32_buzzer_sample_u8: obsolete, silent
++    case 7:
++    case 8:
++        ++buzzerCalls_;
++        break;
++    case 6:
++        prg32_audio_note(u8(a[0]), u8(a[1]), u8(a[2]), u8(a[3]), a[4]);
++        break;
++    case 9: {
++        prg32_audio_config_t config{};
++        config.sample_rate = SampleRate;
++        config.mode = PRG32_AUDIO_MODE_STEREO;
++        config.max_voices = 8;
++        if (a[0]) {
++            const auto bytes = runtime.debugMemory(a[0], 9);
++            if (bytes.size() == 9) {
++                const uint32_t mode = uint32_t(bytes[4]) | uint32_t(bytes[5]) << 8;
++                config.mode = mode == PRG32_AUDIO_MODE_MONO ? PRG32_AUDIO_MODE_MONO : PRG32_AUDIO_MODE_STEREO;
++                config.max_voices = bytes[8] && bytes[8] < 8 ? bytes[8] : 8;
++            }
++        }
++        config.gpio_bclk = config.gpio_lrclk = config.gpio_data = config.gpio_sd = -1;
++        runtime.setHostResult(prg32_audio_init(&config) ? 1 : 0);
++        break;
++    }
++    case 10:
++        prg32_audio_shutdown();
++        break;
++    case 11:
++        runtime.setHostResult(uint32_t(prg32_audio_get_mode()));
++        break;
++    case 12:
++        runtime.setHostResult(uint32_t(prg32_audio_play_sample(uint16_t(a[0]), u8(a[1]), uint16_t(a[2]))));
++        break;
++    case 13:
++        runtime.setHostResult(
++            uint32_t(prg32_audio_play_sample_pan(uint16_t(a[0]), u8(a[1]), uint16_t(a[2]), i8(a[3]))));
++        break;
++    case 14:
++        prg32_audio_stop_channel(int32_t(a[0]));
++        break;
++    case 15:
++        prg32_audio_stop_all();
++        break;
++    case 16:
++        prg32_audio_note_on(u8(a[0]), u8(a[1]), u8(a[2]), u8(a[3]));
++        break;
++    case 17:
++        prg32_audio_note_on_pan(u8(a[0]), u8(a[1]), u8(a[2]), u8(a[3]), i8(a[4]));
++        break;
++    case 18:
++        prg32_audio_note_off(u8(a[0]));
++        break;
++    case 19: {
++        const uint32_t count = std::min<uint32_t>(a[4], 256);
++        const auto bytes = runtime.debugMemory(a[3], size_t(count) * 4);
++        std::vector<prg32_midi_note_t> notes;
++        for (size_t n = 0; n + 4 <= bytes.size(); n += 4)
++            notes.push_back({bytes[n], uint16_t(bytes[n + 2] | bytes[n + 3] << 8)});
++        prg32_audio_notes(u8(a[0]), u8(a[1]), u8(a[2]), notes.data(), notes.size());
++        break;
++    }
++    case 20:
++        prg32_audio_play_track(uint16_t(a[0]));
++        break;
++    case 21:
++        prg32_audio_stop_track();
++        break;
++    case 22:
++        prg32_audio_set_tempo(uint16_t(a[0]));
++        break;
++    case 23:
++        prg32_audio_set_master_volume(u8(a[0]));
++        break;
++    case 24:
++        prg32_audio_set_channel_volume(u8(a[0]), u8(a[1]));
++        break;
++    case 25:
++        prg32_audio_set_channel_pan(u8(a[0]), i8(a[1]));
++        break;
++    default:
++        break;
++    }
++}
++} // namespace prg32
+diff --git a/src/core/FirmwareAudio.h b/src/core/FirmwareAudio.h
+new file mode 100644
+index 0000000..e20b9db
+--- /dev/null
++++ b/src/core/FirmwareAudio.h
+@@ -0,0 +1,47 @@
++#pragma once
++// The PRG32 firmware's own audio engine (components/prg32_audio of the PRG32 SDK), driven by
++// a Runtime's host calls, so PRG32-QT renders exactly what the console mixes: 8 voices, the
++// SID-like synth and its filter, ADSR envelopes, samples, the tracker and the stereo mix.
++// Built when PRG32QT_FIRMWARE_AUDIO is ON (CMake option, needs PRG32_SDK_DIR).
++#include "Runtime.h"
++#include <cstddef>
++#include <cstdint>
++#include <span>
++#include <string>
++#include <vector>
++
++namespace prg32 {
++class FirmwareAudio {
++  public:
++    static constexpr int SampleRate = 22050;
++
++    /** Start the engine as the console does for a cartridge: its AUD0 block (if any) replaces the assets.
++     *  The Runtime's own AudioSink must be a NullAudioSink: the engine makes the sound. */
++    bool attach(Runtime& runtime, std::span<const uint8_t> cartridge, std::string& error);
++    /** One frame (update + draw) has run: render the audio up to the next frame's start.
++     *
++     *  The scheduling boundary (the same in the PRG32 firmware under QEMU and in the
++     *  Construction Kit's browser core): frame N, counting from 0 after init, starts at
++     *  N x 33 ms, and every audio call made by init or by that frame takes effect at its
++     *  start, whatever the instruction count. The engine renders whole 20 ms buffers. */
++    void frameDone();
++    /** Interleaved signed 16-bit stereo frames mixed since the last take (left, right, ...). */
++    std::vector<int16_t> take();
++    /** 64-bit FNV-1a over every sample mixed since attach (equal on every build of the same sound). */
++    uint64_t pcmHash() const;
++    uint32_t obsoleteBuzzerCalls() const {
++        return buzzerCalls_;
++    }
++
++  private:
++    void before(uint32_t index);
++    void after(uint32_t index);
++    void catchUp();
++    Runtime* runtime_ = nullptr;
++    std::vector<uint8_t> block_;
++    uint64_t frames_ = 0;           // frames run since attach
++    uint64_t audioNanoseconds_ = 0; // cartridge time the engine has reached
++    uint32_t args_[8]{};
++    uint32_t buzzerCalls_ = 0;
++};
++} // namespace prg32
+diff --git a/src/core/Runtime.cpp b/src/core/Runtime.cpp
+index ceb5bba..31610df 100644
+--- a/src/core/Runtime.cpp
++++ b/src/core/Runtime.cpp
+@@ -772,6 +772,13 @@ uint32_t Runtime::performanceCall(uint32_t i, uint32_t p, uint32_t arg) {
+     return uint32_t(-1);
+ }
+ void Runtime::hostCall(uint32_t i) {
++    if (hostBefore_)
++        hostBefore_(i);
++    hostCallCore(i);
++    if (hostAfter_)
++        hostAfter_(i);
++}
++void Runtime::hostCallCore(uint32_t i) {
+     // PRG32 ABI arguments follow the RISC-V integer calling convention: a0-a7 are x10-x17 and the
+     // scalar result is returned in a0. Every numeric case below is a stable public table index.
+     auto a = [&](int n) { return cpu_.reg(10 + n); };
+diff --git a/src/core/Runtime.h b/src/core/Runtime.h
+index 5018eba..7d957ce 100644
+--- a/src/core/Runtime.h
++++ b/src/core/Runtime.h
+@@ -126,6 +126,15 @@ class Runtime {
+     void setPresentCallback(std::function<void()> cb) {
+         present_ = std::move(cb);
+     }
++    /** Called before and after every host call (the firmware audio engine listens here). */
++    void setHostHooks(std::function<void(uint32_t)> before, std::function<void(uint32_t)> after) {
++        hostBefore_ = std::move(before);
++        hostAfter_ = std::move(after);
++    }
++    /** The value a host call returns in a0. */
++    void setHostResult(uint32_t value) {
++        cpu_.setReg(10, value);
++    }
+     void setLEDCallback(std::function<void(RGBState)> cb) {
+         ledCallback_ = std::move(cb);
+     }
+@@ -160,6 +169,7 @@ class Runtime {
+ 
+   private:
+     void hostCall(uint32_t);
++    void hostCallCore(uint32_t);
+     uint32_t performanceCall(uint32_t, uint32_t, uint32_t);
+     uint32_t guestPtr(uint32_t off) const {
+         return base_ + off;
+@@ -221,6 +231,7 @@ class Runtime {
+     Framebuffer fb_;
+     std::function<void()> present_;
+     std::function<void(RGBState)> ledCallback_;
++    std::function<void(uint32_t)> hostBefore_, hostAfter_;
+     std::string log_;
+     std::chrono::steady_clock::time_point started_;
+     uint32_t rng_ = 0x12345678u;
+diff --git a/src/core/firmware_audio/audio_port.c b/src/core/firmware_audio/audio_port.c
+new file mode 100644
+index 0000000..4260efd
+--- /dev/null
++++ b/src/core/firmware_audio/audio_port.c
+@@ -0,0 +1,149 @@
++/* The kit's side of the PRG32 audio engine: see audio_port.h and ADR-0021.
++ *
++ * Everything that makes a sound (voices, ADSR, synth, filter, samples, tracker, mixing,
++ * clipping) is the firmware's own code. This file replaces only what is tied to the
++ * console's hardware: the I2S output (the queue below) and the audio task's timing
++ * (prg32_kit_audio_advance_ms, in exact 20 ms steps as the console under QEMU uses). */
++#include "audio_port.h"
++
++#include <string.h>
++
++#include "audio_internal.h"
++
++#if CONFIG_PRG32_AUDIO_MAX_VOICES != 8
++#error "The Construction Kit's audio engine must have exactly 8 voices (contracts/prg32-audio-contract-1.json)"
++#endif
++#if CONFIG_PRG32_AUDIO_SAMPLE_RATE != 22050
++#error "The Construction Kit's audio engine runs at 22050 Hz"
++#endif
++
++static int16_t queue_[PRG32_KIT_AUDIO_QUEUE_FRAMES * 2u];
++static size_t queued_;          /* frames in queue_ */
++static uint32_t dropped_;
++static uint32_t pending_ms_;    /* engine time not yet mixed (under 20 ms) */
++static uint64_t hash_ = 0xcbf29ce484222325ull;
++static uint32_t delay_depth_;
++
++/* --- what the I2S driver would do (audio.c calls these) ----------------------------- */
++
++int prg32_audio_i2s_start(const prg32_audio_config_t *config) {
++    (void)config;
++    return 0;   /* an output is there: the kit's queue */
++}
++
++void prg32_audio_i2s_stop(void) {}
++
++int prg32_audio_i2s_write(const int16_t *samples, size_t frames, prg32_audio_mode_t mode) {
++    (void)samples;
++    (void)frames;
++    (void)mode;
++    return 0;   /* not used: the kit mixes in prg32_kit_audio_advance_ms */
++}
++
++/* --- time ---------------------------------------------------------------------------- */
++
++static void push(const int16_t *frames, size_t count) {
++    if (count > PRG32_KIT_AUDIO_QUEUE_FRAMES) {
++        frames += (count - PRG32_KIT_AUDIO_QUEUE_FRAMES) * 2u;
++        dropped_ += (uint32_t)(count - PRG32_KIT_AUDIO_QUEUE_FRAMES);
++        count = PRG32_KIT_AUDIO_QUEUE_FRAMES;
++    }
++    if (queued_ + count > PRG32_KIT_AUDIO_QUEUE_FRAMES) {   /* drop the oldest */
++        size_t drop = queued_ + count - PRG32_KIT_AUDIO_QUEUE_FRAMES;
++        memmove(queue_, queue_ + drop * 2u, (queued_ - drop) * 2u * sizeof(int16_t));
++        queued_ -= drop;
++        dropped_ += (uint32_t)drop;
++    }
++    memcpy(queue_ + queued_ * 2u, frames, count * 2u * sizeof(int16_t));
++    queued_ += count;
++}
++
++static void step(void) {
++    int16_t mixed[PRG32_KIT_AUDIO_STEP_FRAMES * 2u];
++    prg32_audio_tracker_step(PRG32_KIT_AUDIO_STEP_MS);
++    prg32_audio_voices_step(PRG32_KIT_AUDIO_STEP_MS);
++    if (prg32_audio_get_mode() == PRG32_AUDIO_MODE_STEREO) {
++        prg32_audio_mix_stereo(mixed, PRG32_KIT_AUDIO_STEP_FRAMES);
++    } else {
++        /* A mono console drives one speaker: the same mix on both sides. */
++        int16_t mono[PRG32_KIT_AUDIO_STEP_FRAMES];
++        prg32_audio_mix_mono(mono, PRG32_KIT_AUDIO_STEP_FRAMES);
++        for (size_t i = 0; i < PRG32_KIT_AUDIO_STEP_FRAMES; ++i) {
++            mixed[i * 2u] = mono[i];
++            mixed[i * 2u + 1u] = mono[i];
++        }
++    }
++    for (size_t i = 0; i < PRG32_KIT_AUDIO_STEP_FRAMES * 2u; ++i) {
++        hash_ ^= (uint16_t)mixed[i];
++        hash_ *= 1099511628211ull;
++    }
++    push(mixed, PRG32_KIT_AUDIO_STEP_FRAMES);
++}
++
++void prg32_kit_audio_advance_ms(uint32_t ms) {
++    if (!g_prg32_audio.initialized) {
++        return;
++    }
++    if (ms > 60000u) {
++        ms = 60000u;   /* one call never renders more than a minute */
++    }
++    pending_ms_ += ms;
++    while (pending_ms_ >= PRG32_KIT_AUDIO_STEP_MS) {
++        pending_ms_ -= PRG32_KIT_AUDIO_STEP_MS;
++        step();
++    }
++}
++
++/* prg32_audio_notes waits between notes (vTaskDelay); here that time is rendered. */
++void prg32_kit_audio_delay_ms(uint32_t ms) {
++    if (delay_depth_ > 0) {
++        return;
++    }
++    delay_depth_++;
++    prg32_kit_audio_advance_ms(ms);
++    delay_depth_--;
++}
++
++/* --- start, cartridges, output --------------------------------------------------------- */
++
++int prg32_kit_audio_start(void) {
++    queued_ = 0;
++    dropped_ = 0;
++    pending_ms_ = 0;
++    hash_ = 0xcbf29ce484222325ull;
++    return prg32_audio_init(NULL) ? 0 : -1;
++}
++
++int prg32_kit_audio_load(const uint8_t *block, size_t size) {
++    if (block && size) {
++        return prg32_audio_load_block(block, size);
++    }
++    prg32_audio_clear_assets();
++    return 0;
++}
++
++size_t prg32_kit_audio_frames(void) { return queued_; }
++
++const int16_t *prg32_kit_audio_pcm(void) { return queue_; }
++
++void prg32_kit_audio_clear(void) { queued_ = 0; }
++
++uint32_t prg32_kit_audio_dropped(void) { return dropped_; }
++
++uint64_t prg32_kit_audio_hash(void) { return hash_; }
++
++int prg32_kit_audio_tracker_active(void) { return g_prg32_audio.tracker.active ? 1 : 0; }
++
++void prg32_kit_audio_voice(int voice, int32_t out[6]) {
++    memset(out, 0, 6 * sizeof(int32_t));
++    if (voice < 0 || voice >= CONFIG_PRG32_AUDIO_MAX_VOICES) {
++        return;
++    }
++    const prg32_audio_voice_t *v = &g_prg32_audio.voices[voice];
++    out[0] = v->active;
++    out[1] = v->synth;
++    out[2] = v->synth_state.envelope_state;
++    out[3] = (int32_t)v->synth_state.envelope_level;
++    out[4] = v->volume;
++    out[5] = v->pan;
++}
+diff --git a/src/core/firmware_audio/audio_port.h b/src/core/firmware_audio/audio_port.h
+new file mode 100644
+index 0000000..d671129
+--- /dev/null
++++ b/src/core/firmware_audio/audio_port.h
+@@ -0,0 +1,50 @@
++/* The kit's side of the PRG32 audio engine (ADR-0021, docs/audio_engine.md).
++ *
++ * The engine itself is the PRG32 firmware's (components/prg32_audio). This file gives it
++ * what the console's audio task and I2S driver would: time, in steps of 20 ms, and a place
++ * to put what it mixed, a bounded queue of signed 16-bit stereo frames (left, right). */
++#ifndef PRG32_KIT_AUDIO_PORT_H
++#define PRG32_KIT_AUDIO_PORT_H
++
++#include <stddef.h>
++#include <stdint.h>
++
++#ifdef __cplusplus
++extern "C" {
++#endif
++
++#define PRG32_KIT_AUDIO_STEP_MS 20u
++#define PRG32_KIT_AUDIO_STEP_FRAMES 441u            /* 20 ms at 22050 Hz */
++#define PRG32_KIT_AUDIO_QUEUE_FRAMES (22050u * 4u)  /* at most 4 s waiting to be played */
++
++/* Start the engine as the console does at power-on (prg32_audio_init(NULL)): 8 voices,
++ * 22050 Hz, stereo, the default instruments. */
++int prg32_kit_audio_start(void);
++/* Load a cartridge's AUD0 block (or clear the assets when there is none), as the
++ * console does when it starts a cartridge. The block must stay alive while used. */
++int prg32_kit_audio_load(const uint8_t *block, size_t size);
++
++/* Let `ms` of engine time pass: every full 20 ms runs the tracker and the voices and
++ * mixes 441 frames into the queue. */
++void prg32_kit_audio_advance_ms(uint32_t ms);
++/* Frames waiting, a pointer to them (interleaved left, right) and removing them. */
++size_t prg32_kit_audio_frames(void);
++const int16_t *prg32_kit_audio_pcm(void);
++void prg32_kit_audio_clear(void);
++/* Frames dropped because nobody took them in time (the queue is bounded). */
++uint32_t prg32_kit_audio_dropped(void);
++/* FNV-1a (64-bit) over every sample mixed since the start, as unsigned 16-bit values in
++ * order (left, right, ...): equal on every build that renders the same sound. */
++uint64_t prg32_kit_audio_hash(void);
++
++/* One voice, for envelope traces: active, synth, envelope state (0 off, 1 attack,
++ * 2 decay, 3 sustain, 4 release), envelope level 0..65535, volume, pan. */
++void prg32_kit_audio_voice(int voice, int32_t out[6]);
++/* 1 while a soundtrack is playing (it can wait between notes with every voice quiet). */
++int prg32_kit_audio_tracker_active(void);
++
++#ifdef __cplusplus
++}
++#endif
++
++#endif
+diff --git a/src/core/firmware_audio/shim/esp_timer.h b/src/core/firmware_audio/shim/esp_timer.h
+new file mode 100644
+index 0000000..1fdf9d1
+--- /dev/null
++++ b/src/core/firmware_audio/shim/esp_timer.h
+@@ -0,0 +1,9 @@
++/* The audio task's clock; the kit has no audio task (see freertos/task.h). */
++#ifndef PRG32_KIT_ESP_TIMER_H
++#define PRG32_KIT_ESP_TIMER_H
++
++#include <stdint.h>
++
++static inline int64_t esp_timer_get_time(void) { return 0; }
++
++#endif
+diff --git a/src/core/firmware_audio/shim/freertos/FreeRTOS.h b/src/core/firmware_audio/shim/freertos/FreeRTOS.h
+new file mode 100644
+index 0000000..1428a16
+--- /dev/null
++++ b/src/core/firmware_audio/shim/freertos/FreeRTOS.h
+@@ -0,0 +1,27 @@
++/* Just enough FreeRTOS for the PRG32 audio engine off the console (ADR-0021).
++ *
++ * In the browser the engine runs on one thread: there is no audio task and no lock to
++ * take. A delay inside the engine (prg32_audio_notes waits between notes) renders that
++ * much audio instead, so the notes still follow each other in engine time. */
++#ifndef PRG32_KIT_FREERTOS_H
++#define PRG32_KIT_FREERTOS_H
++
++#include <stdint.h>
++#include <stdio.h>
++
++/* The tracker logs every event on the console's serial port; the browser stays quiet. */
++#define printf(...) ((void)0)
++
++typedef void *SemaphoreHandle_t;
++typedef void *TaskHandle_t;
++typedef uint32_t TickType_t;
++typedef int BaseType_t;
++
++#define pdMS_TO_TICKS(ms) ((TickType_t)(ms))
++#define portMAX_DELAY ((TickType_t)0xffffffffu)
++#define tskIDLE_PRIORITY 0
++#define pdPASS 1
++
++void prg32_kit_audio_delay_ms(uint32_t ms);
++
++#endif
+diff --git a/src/core/firmware_audio/shim/freertos/semphr.h b/src/core/firmware_audio/shim/freertos/semphr.h
+new file mode 100644
+index 0000000..93777a5
+--- /dev/null
++++ b/src/core/firmware_audio/shim/freertos/semphr.h
+@@ -0,0 +1,12 @@
++/* One thread, no lock (see FreeRTOS.h). */
++#ifndef PRG32_KIT_SEMPHR_H
++#define PRG32_KIT_SEMPHR_H
++
++#include "FreeRTOS.h"
++
++#define xSemaphoreCreateMutex() ((SemaphoreHandle_t)1)
++#define xSemaphoreTake(handle, ticks) ((void)(handle), (void)(ticks), 1)
++#define xSemaphoreGive(handle) ((void)(handle), 1)
++#define vSemaphoreDelete(handle) ((void)(handle))
++
++#endif
+diff --git a/src/core/firmware_audio/shim/freertos/task.h b/src/core/firmware_audio/shim/freertos/task.h
+new file mode 100644
+index 0000000..665b748
+--- /dev/null
++++ b/src/core/firmware_audio/shim/freertos/task.h
+@@ -0,0 +1,13 @@
++/* No audio task in the browser: the kit renders audio when engine time advances
++ * (audio_port.c). A delay renders that much audio (see FreeRTOS.h). */
++#ifndef PRG32_KIT_TASK_H
++#define PRG32_KIT_TASK_H
++
++#include "FreeRTOS.h"
++
++#define vTaskDelay(ticks) prg32_kit_audio_delay_ms((uint32_t)(ticks))
++#define vTaskDelete(handle) ((void)(handle))
++#define xTaskCreate(function, name, stack, argument, priority, handle) \
++    ((void)(function), (void)(name), (void)(stack), (void)(argument), (void)(priority), *(handle) = 0, pdPASS)
++
++#endif
+diff --git a/src/core/firmware_audio/shim/sdkconfig.h b/src/core/firmware_audio/shim/sdkconfig.h
+new file mode 100644
+index 0000000..7bfc509
+--- /dev/null
++++ b/src/core/firmware_audio/shim/sdkconfig.h
+@@ -0,0 +1,20 @@
++/* The PRG32 audio engine's build settings for the Construction Kit (ADR-0021).
++ *
++ * The firmware's own audio sources (the .c files of components/prg32_audio in the PRG32 SDK) are
++ * compiled unchanged; ESP-IDF normally generates this file from Kconfig. These are the
++ * values of the PRG32 profiles (profiles/sdkconfig.defaults) with stereo output, which
++ * is what contracts/prg32-audio-contract-1.json describes. */
++#ifndef PRG32_KIT_SDKCONFIG_H
++#define PRG32_KIT_SDKCONFIG_H
++
++#define CONFIG_PRG32_AUDIO_ENABLED 1
++#define CONFIG_PRG32_AUDIO_SAMPLE_RATE 22050
++#define CONFIG_PRG32_AUDIO_MAX_VOICES 8
++#define CONFIG_PRG32_AUDIO_MODE_STEREO 1
++#define CONFIG_PRG32_DISPLAY_QEMU_RGB 0
++#define CONFIG_PRG32_AUDIO_I2S_BCLK_GPIO -1
++#define CONFIG_PRG32_AUDIO_I2S_LRCLK_GPIO -1
++#define CONFIG_PRG32_AUDIO_I2S_DATA_GPIO -1
++#define CONFIG_PRG32_AUDIO_I2S_SD_GPIO -1
++
++#endif
+diff --git a/src/core/headless.cpp b/src/core/headless.cpp
+index 166f68a..82e2b31 100644
+--- a/src/core/headless.cpp
++++ b/src/core/headless.cpp
+@@ -1,5 +1,9 @@
+ #include "Cartridge.h"
+ #include "Runtime.h"
++#include <cstdio>
++#ifdef PRG32QT_FIRMWARE_AUDIO
++#include "FirmwareAudio.h"
++#endif
+ #include <algorithm>
+ #include <array>
+ #include <fstream>
+@@ -64,7 +68,7 @@ uint64_t framebufferHash(const std::vector<uint16_t>& pixels) {
+ int main(int argc, char** argv) {
+     if (argc < 2) {
+         std::cerr << "usage: prg32qt-headless file.prg32 [frames] [--require-performance] [--verify-media] "
+-                     "[--unlimited] [--input frame:mask] [--dump-ppm path]\n";
++                     "[--unlimited] [--input frame:mask] [--dump-ppm path] [--audio-wav path]\n";
+         return 2;
+     }
+     std::ifstream f(argv[1], std::ios::binary);
+@@ -78,6 +82,15 @@ int main(int argc, char** argv) {
+     prg32::Runtime r;
+     AuditAudioSink audio;
+     r.setAudioSink(&audio);
++#ifdef PRG32QT_FIRMWARE_AUDIO
++    // The PRG32 firmware's audio engine makes the sound (AuditAudioSink only counts).
++    prg32::FirmwareAudio firmwareAudio;
++    if (!firmwareAudio.attach(r, b, e)) {
++        std::cerr << e << "\n";
++        return 4;
++    }
++    std::vector<int16_t> pcm;
++#endif
+     if (!r.load(*c, e) || !r.init(e)) {
+         std::cerr << e << "\n";
+         return 4;
+@@ -88,6 +101,7 @@ int main(int argc, char** argv) {
+     bool unlimited = false;
+     std::map<int, uint32_t> scriptedInput;
+     std::string dumpPath;
++    std::string audioPath;
+     for (int argument = 3; argument < argc; ++argument) {
+         std::string option = argv[argument];
+         verifyMedia |= option == "--verify-media";
+@@ -105,6 +119,8 @@ int main(int argc, char** argv) {
+         }
+         if (option == "--dump-ppm" && argument + 1 < argc)
+             dumpPath = argv[++argument];
++        if (option == "--audio-wav" && argument + 1 < argc)
++            audioPath = argv[++argument];
+     }
+     if (unlimited)
+         r.setPerformanceMode(prg32::PerformanceMode::Unlimited);
+@@ -119,6 +135,12 @@ int main(int argc, char** argv) {
+             std::cerr << "frame " << i << ": " << e << "\n";
+             return 5;
+         }
++#ifdef PRG32QT_FIRMWARE_AUDIO
++        firmwareAudio.frameDone();
++        auto mixed = firmwareAudio.take();
++        if (!audioPath.empty())
++            pcm.insert(pcm.end(), mixed.begin(), mixed.end());
++#endif
+         if (verifyMedia && i % 15 == 0) {
+             const auto& pixels = r.framebuffer().rgb565Pixels();
+             frameHashes.insert(framebufferHash(pixels));
+@@ -143,6 +165,37 @@ int main(int argc, char** argv) {
+         return 6;
+     }
+     std::cout << c->name() << ": OK (" << frames << " frames)\n";
++#ifdef PRG32QT_FIRMWARE_AUDIO
++    {
++        char hash[17];
++        std::snprintf(hash, sizeof hash, "%016llx", static_cast<unsigned long long>(firmwareAudio.pcmHash()));
++        std::cout << "AUDIO engine=prg32-firmware pcm_fnv1a=" << hash
++                  << " obsolete_buzzer_calls=" << firmwareAudio.obsoleteBuzzerCalls() << "\n";
++    }
++    if (!audioPath.empty()) {
++        // 22050 Hz, signed 16-bit, stereo WAV.
++        std::ofstream output(audioPath, std::ios::binary);
++        const uint32_t bytes = uint32_t(pcm.size() * 2);
++        auto u32 = [&](uint32_t v) { output.write(reinterpret_cast<const char*>(&v), 4); };
++        auto u16 = [&](uint16_t v) { output.write(reinterpret_cast<const char*>(&v), 2); };
++        output.write("RIFF", 4);
++        u32(36 + bytes);
++        output.write("WAVEfmt ", 8);
++        u32(16);
++        u16(1);
++        u16(2);
++        u32(prg32::FirmwareAudio::SampleRate);
++        u32(prg32::FirmwareAudio::SampleRate * 4);
++        u16(4);
++        u16(16);
++        output.write("data", 4);
++        u32(bytes);
++        output.write(reinterpret_cast<const char*>(pcm.data()), std::streamsize(bytes));
++    }
++#else
++    if (!audioPath.empty())
++        std::cerr << "--audio-wav needs a build with PRG32QT_FIRMWARE_AUDIO=ON\n";
++#endif
+     if (verifyMedia) {
+         std::cout << "MEDIA graphics_non_black=" << maximumNonBlackPixels
+                   << " unique_frame_hashes=" << frameHashes.size() << " audio_declared=" << bool(c->audio())
+diff --git a/src/qt/AppController.cpp b/src/qt/AppController.cpp
+index 89c4d0d..c5ef1a4 100644
+--- a/src/qt/AppController.cpp
++++ b/src/qt/AppController.cpp
+@@ -48,7 +48,9 @@ AppController::AppController(QObject* p)
+     else if (performanceMode_ == "unlimited")
+         runtimeMode = prg32::PerformanceMode::Unlimited;
+     rt_.setPerformanceMode(runtimeMode);
++#ifndef PRG32QT_FIRMWARE_AUDIO
+     rt_.setAudioSink(audio_.get());
++#endif
+     rt_.setMultiplayerService(multiplayer_.get());
+     rt_.setLEDCallback([this](prg32::RGBState v) {
+         led_ = v;
+@@ -128,6 +130,10 @@ AppController::AppController(QObject* p)
+         }
+         if (!frameComplete)
+             return;
++#ifdef PRG32QT_FIRMWARE_AUDIO
++        firmwareAudio_.frameDone(); // a frame ran (or was stepped through): its audio
++        audio_->pushFirmwarePcm(firmwareAudio_.take());
++#endif
+         ++frameCount_;
+         ++frameRateCount_;
+         const qint64 elapsedMilliseconds = frameRateTimer_.elapsed();
+@@ -222,6 +228,15 @@ bool AppController::loadBytes(const QByteArray& d, const QString& suggestedName)
+     }
+     timer_.stop();
+     rt_.stop();
++#ifdef PRG32QT_FIRMWARE_AUDIO
++    // The firmware audio engine makes the sound; the Runtime's own sink stays silent.
++    rt_.setAudioSink(&silentSink_);
++    if (!firmwareAudio_.attach(
++            rt_, std::span<const uint8_t>((const uint8_t*)d.constData(), size_t(d.size())), e)) {
++        setStatus(QString::fromStdString(e));
++        return false;
++    }
++#endif
+     if (!rt_.load(*c, e) || !rt_.init(e)) {
+         setStatus(QString::fromStdString(e));
+         return false;
+diff --git a/src/qt/AppController.h b/src/qt/AppController.h
+index 2fedfac..f813e5a 100644
+--- a/src/qt/AppController.h
++++ b/src/qt/AppController.h
+@@ -1,4 +1,7 @@
+ #pragma once
++#ifdef PRG32QT_FIRMWARE_AUDIO
++#include "FirmwareAudio.h"
++#endif
+ #include "InputState.h"
+ #include "Runtime.h"
+ #include <QByteArray>
+@@ -198,6 +201,10 @@ class AppController : public QObject {
+     void refreshIp();
+     QString slotPath(int) const;
+     prg32::Runtime rt_;
++#ifdef PRG32QT_FIRMWARE_AUDIO
++    prg32::FirmwareAudio firmwareAudio_;
++    prg32::NullAudioSink silentSink_;
++#endif
+     QTimer timer_, ipTimer_;
+     InputState input_;
+     QString status_, deviceIp_, cartridgeName_;
+diff --git a/src/qt/QtAudioEngine.cpp b/src/qt/QtAudioEngine.cpp
+index 7504e6e..d578041 100644
+--- a/src/qt/QtAudioEngine.cpp
++++ b/src/qt/QtAudioEngine.cpp
+@@ -248,6 +248,28 @@ void QtAudioEngine::encode(char* dst, int frames, const std::vector<float>& x) {
+         std::memset(dst, 0, format_.bytesForFrames(frames));
+     (void)ch;
+ }
++QtAudioEngine::DeviceStatus QtAudioEngine::deviceStatus() const {
++    QMutexLocker lock(&mutex_);
++    DeviceStatus status;
++    status.device = QMediaDevices::defaultAudioOutput().description();
++    if (sink_) {
++        status.state = int(sink_->state());
++        status.processedUs = sink_->processedUSecs();
++    }
++    status.firmwareFrames = firmwareFramesPlayed_;
++    status.firmwareHash = firmwareHash_;
++    return status;
++}
++void QtAudioEngine::pushFirmwarePcm(const std::vector<int16_t>& stereo) {
++    if (stereo.empty())
++        return;
++    ensureStarted();
++    QMutexLocker lock(&mutex_);
++    firmwarePcm_.insert(firmwarePcm_.end(), stereo.begin(), stereo.end());
++    constexpr size_t limit = 22050; // half a second of stereo frames (two values each)
++    if (firmwarePcm_.size() > limit * 2)
++        firmwarePcm_.erase(firmwarePcm_.begin(), firmwarePcm_.end() - std::ptrdiff_t(limit * 2));
++}
+ qint64 QtAudioEngine::readData(char* data, qint64 maxlen) {
+     if (format_.bytesPerFrame() <= 0)
+         return 0;
+@@ -256,6 +278,26 @@ qint64 QtAudioEngine::readData(char* data, qint64 maxlen) {
+         return 0;
+     std::vector<float> L(frames), R(frames);
+     render(L.data(), R.data(), frames);
++    {
++        // The firmware engine's frames, stepped through at 22050 Hz (linear between samples).
++        QMutexLocker lock(&mutex_);
++        const double step = 22050.0 / std::max(1, format_.sampleRate());
++        for (int f = 0; f < frames && firmwarePcm_.size() >= 4; f++) {
++            const double t = firmwarePosition_;
++            L[f] += float((firmwarePcm_[0] * (1 - t) + firmwarePcm_[2] * t) / 32768.0);
++            R[f] += float((firmwarePcm_[1] * (1 - t) + firmwarePcm_[3] * t) / 32768.0);
++            firmwarePosition_ += step;
++            while (firmwarePosition_ >= 1 && firmwarePcm_.size() >= 4) {
++                for (int side = 0; side < 2; ++side) {
++                    firmwareHash_ ^= quint16(firmwarePcm_.front());
++                    firmwareHash_ *= 1099511628211ull;
++                    firmwarePcm_.pop_front();
++                }
++                ++firmwareFramesPlayed_;
++                firmwarePosition_ -= 1;
++            }
++        }
++    }
+     int ch = std::max(1, format_.channelCount());
+     std::vector<float> x(size_t(frames) * ch);
+     for (int f = 0; f < frames; f++)
+diff --git a/src/qt/QtAudioEngine.h b/src/qt/QtAudioEngine.h
+index 9e2087e..6327d89 100644
+--- a/src/qt/QtAudioEngine.h
++++ b/src/qt/QtAudioEngine.h
+@@ -4,6 +4,7 @@
+ #include <QIODevice>
+ #include <QMutex>
+ #include <array>
++#include <deque>
+ #include <memory>
+ #include <vector>
+ class QAudioSink;
+@@ -39,6 +40,19 @@ class QtAudioEngine final : public QIODevice, public prg32::AudioSink {
+     qint64 bytesAvailable() const override {
+         return 32768 + QIODevice::bytesAvailable();
+     }
++    /** The PRG32 firmware audio engine's output (22050 Hz interleaved stereo): played as it is,
++     *  resampled to the device. Bounded to half a second so sound never lags the game. */
++    void pushFirmwarePcm(const std::vector<int16_t>& stereo);
++    /** What the output device has taken: its name, sink state, processed time, and the firmware
++     *  frames it pulled (count and 64-bit FNV-1a over their samples, before resampling). */
++    struct DeviceStatus {
++        QString device;
++        int state = -1;
++        qint64 processedUs = 0;
++        qint64 firmwareFrames = 0;
++        quint64 firmwareHash = 0;
++    };
++    DeviceStatus deviceStatus() const;
+     /** Return a bounded snapshot of recently rendered left-channel samples. */
+     std::vector<float> waveformLeft() const;
+     /** Return a bounded snapshot of recently rendered right-channel samples. */
+@@ -63,6 +77,10 @@ class QtAudioEngine final : public QIODevice, public prg32::AudioSink {
+     void encode(char* dst, int frames, const std::vector<float>& interleaved);
+     mutable QMutex mutex_;
+     std::vector<Voice> voices_;
++    std::deque<int16_t> firmwarePcm_;
++    double firmwarePosition_ = 0;
++    qint64 firmwareFramesPlayed_ = 0;
++    quint64 firmwareHash_ = 1469598103934665603ull;
+     std::unique_ptr<QAudioSink> sink_;
+     QAudioFormat format_;
+     float master_ = 0.86f;
+diff --git a/tests/audio_device_check.cpp b/tests/audio_device_check.cpp
+new file mode 100644
+index 0000000..2f23450
+--- /dev/null
++++ b/tests/audio_device_check.cpp
+@@ -0,0 +1,85 @@
++// Plays a cartridge's sound through the computer's real audio output with the PRG32 firmware
++// audio engine, as the desktop app does, and checks what the device took:
++//
++//     prg32qt_audio_device_check cartridge.prg32 [seconds]
++//
++// The cartridge runs in real time (one frame every 33 ms); each frame's engine PCM goes to
++// QtAudioEngine, whose QAudioSink pulls it for the default output device. Passes when the device
++// has processed the time, pulled the frames, and the frames it pulled are exactly the engine's
++// samples (FNV-1a before resampling). Exit 77 (a CTest skip) when the computer has no output.
++#include "Cartridge.h"
++#include "FirmwareAudio.h"
++#include "QtAudioEngine.h"
++#include "Runtime.h"
++#include <QAudioDevice>
++#include <QCoreApplication>
++#include <QMediaDevices>
++#include <QTimer>
++#include <cstdio>
++#include <fstream>
++#include <iterator>
++
++int main(int argc, char** argv) {
++    QCoreApplication app(argc, argv);
++    if (argc < 2) {
++        std::fprintf(stderr, "usage: prg32qt_audio_device_check cartridge.prg32 [seconds]\n");
++        return 2;
++    }
++    if (QMediaDevices::audioOutputs().isEmpty()) {
++        std::printf("SKIP: this computer has no audio output device\n");
++        return 77;
++    }
++    const int seconds = argc > 2 ? std::atoi(argv[2]) : 3;
++    std::ifstream file(argv[1], std::ios::binary);
++    std::vector<uint8_t> bytes((std::istreambuf_iterator<char>(file)), {});
++    std::string error;
++    auto cartridge = prg32::Cartridge::parse(bytes, error);
++    prg32::Runtime runtime;
++    prg32::NullAudioSink silent;
++    prg32::FirmwareAudio firmware;
++    runtime.setAudioSink(&silent);
++    if (!cartridge || !firmware.attach(runtime, bytes, error) || !runtime.load(*cartridge, error) ||
++        !runtime.init(error)) {
++        std::fprintf(stderr, "%s\n", error.c_str());
++        return 3;
++    }
++    QtAudioEngine output;
++    std::vector<int16_t> pushed;
++    QTimer frames;
++    QObject::connect(&frames, &QTimer::timeout, [&] {
++        std::string frameError;
++        if (!runtime.frame(0, frameError)) {
++            std::fprintf(stderr, "frame: %s\n", frameError.c_str());
++            app.exit(4);
++            return;
++        }
++        firmware.frameDone();
++        auto pcm = firmware.take();
++        pushed.insert(pushed.end(), pcm.begin(), pcm.end());
++        output.pushFirmwarePcm(pcm);
++    });
++    frames.start(33);
++    QTimer::singleShot(seconds * 1000, &app, [&] { app.exit(0); });
++    if (int code = app.exec())
++        return code;
++    frames.stop();
++    const auto status = output.deviceStatus();
++    quint64 hash = 1469598103934665603ull;
++    for (qint64 i = 0; i < status.firmwareFrames * 2 && i < qint64(pushed.size()); ++i) {
++        hash ^= quint16(pushed[size_t(i)]);
++        hash *= 1099511628211ull;
++    }
++    const bool timeOk = status.processedUs >= (seconds - 1) * 1000000LL;
++    const bool framesOk = status.firmwareFrames >= (seconds - 1) * prg32::FirmwareAudio::SampleRate;
++    const bool samplesOk = hash == status.firmwareHash;
++    std::printf(
++        "{\"device\": \"%s\", \"sink_state\": %d, \"processed_us\": %lld, \"firmware_frames_played\": %lld, "
++        "\"frames_pushed\": %zu, \"played_equal_engine\": %s}\n",
++        status.device.toUtf8().constData(),
++        status.state,
++        static_cast<long long>(status.processedUs),
++        static_cast<long long>(status.firmwareFrames),
++        pushed.size() / 2,
++        samplesOk ? "true" : "false");
++    return timeOk && framesOk && samplesOk ? 0 : 1;
++}

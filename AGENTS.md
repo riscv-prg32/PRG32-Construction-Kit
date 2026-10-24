@@ -26,9 +26,16 @@ This file applies to the whole repository.
 
 - Do not compile arbitrary unvalidated user C supplied by an LLM.
 - The normal pipeline is: Blockly JSON -> validated game IR -> deterministic C (and, on request, deterministic RISC-V assembly) -> PRG32 toolchain.
-- Generate assembly (`asm_generator.py`) only from the validated game IR, never from user-typed assembly. It must do exactly what the generated C does; keep `tests/test_asm_generator.py` proving that.
+- IDE language services (ADR-0014) run only in the browser on `static/js/ide/prg32_language_index.js`. Regenerate it with `tools/build_language_index.py` when the PRG32 SDK ABI/headers or the validators change. Suggest only what the validators accept and only portable ABI functions; live checks may add problems but never replace server validation.
+- Source and block debugging (ADR-0015): debug builds may only add `-g`/`-fdebug-prefix-map` through `debug_build.py`, and the cartridge must stay byte-identical (`debug_info.matches_cartridge`). Never serve the debug ELF. Source maps come from generator markers that must leave the generated code unchanged (`tests/test_source_debugger.py`). Regenerate `tests/fixtures/debug/` with `tools/build_debug_fixtures.py`.
+- Store bundles follow `contracts/prg32-store-contract-1.json` (ADR-0018): check them with `store_contract.validate_bundle` before upload and regenerate `tests/fixtures/contract/` with `tools/build_contract_fixtures.py`. Live Store tests (`tests/test_store_live.py`) run only against a throwaway loopback Store; never publish to or delete from a real Store in tests.
+- GitHub (ADR-0025) is a cloud provider like the others: a GitHub App (least privilege), fixed hosts, PKCE, sealed tokens; a push is one commit on top of the expected commit, never forced. Tests use `tests/fake_github.py`, never real GitHub.
+- Cloud storage (ADR-0019) is optional and for signed-in accounts only: keep the least-privilege scopes, PKCE, encrypted tokens that are never returned or logged, the fixed provider host list, and the rule that a cloud copy or a local project is replaced only by an explicit choice naming the version the student saw. Live cloud tests take settings from the environment only and touch only files they create.
+- Audio (ADR-0021): the browser core plays the PRG32 firmware's own audio engine (compiled from the SDK, `wasm/audio/` is only the port); keep exactly 8 voices, `contracts/prg32-audio-contract-1.json` checked against the SDK, the conformance fixture (`tools/build_audio_fixtures.py`) and its recorded trace. The buzzer is obsolete: never offer, generate or accept it (`source_project.OBSOLETE_*`, `tests/test_no_buzzer.py`).
+- Generate assembly (`asm_generator.py`) only from the validated game IR. It must do exactly what the generated C does; keep `tests/test_asm_generator.py` proving that.
+- Handwritten assembly projects (`game_json.source_mode: "asm"`, ADR-0004) are assembled as written, never mixed into generated code, and only after `validate_asm_source` passes: a directive allow-list (`ALLOWED_ASM_DIRECTIVES`), no `#include`/`.include`/`.incbin` or other file-reading words, only `#define NAME value` and `#if`-family preprocessor lines, and `.globl` labels `<prefix>_init/update/draw`. Widen the allow-list only with a test proving the new directive cannot read host files; keep `tests/test_handwritten_assembly.py` passing.
 - Generated assembly is RV32IM in a `.S` file for the portable PRG32 cartridge ABI. Full-line comments use `/* ... */` because the file goes through the C preprocessor.
-- `source_language` accepts only `"c"`, `"asm"` or `"both"`; Advanced C projects compile their own C only.
+- `source_language` accepts only `"c"`, `"asm"` or `"both"`; Advanced C projects compile their own C only, handwritten assembly projects their own assembly only.
 - AI assistants, when added, may propose block edits or explain errors, but they must not silently alter projects.
 - Validate expressions used in generated C. Reject or sanitize semicolons, braces, preprocessor directives, and unknown unsafe syntax.
 - Keep generated C freestanding and small. Avoid libc, floating point, dynamic allocation, and hidden network calls.
@@ -38,10 +45,12 @@ This file applies to the whole repository.
 - Save block programs as JSON in the `projects.blocks_json` field.
 - Save generated and uploaded artifacts through the artifact CRUD API.
 - Keep large bundles on disk and metadata in SQLite.
+- Storage policy (ADR-0017, ADR-0023): project saves from the IDE/editor send `expected_version` and must never overwrite a newer version silently; check quotas (`storage_policy`) before writes and compiles; guests store nothing on the server (IndexedDB only, answered by `static/js/guest_api.js`); retention deletes whole `<build_id>/` folders only after their database rows.
+- Runtime settings (`settings.py`, docs/admin_settings.md): read registry settings through `settings.get`/`settings.view()`, never copy them at start-up; an environment variable locks its setting; secrets are sealed and never returned; audit setting changes by key name only.
 - Do not store bearer tokens in logs or public responses.
 - Maintain idempotent SQLite initialization with `CREATE TABLE IF NOT EXISTS`.
-- Generated C is stored as `c_source` artifacts and generated assembly as `asm_source` artifacts.
-- Every build works only inside its own `<build_id>/` folder (with a private `tmp/`); builds must never share files.
+- Generated C is stored as `c_source` artifacts and generated assembly as `asm_source` artifacts (handwritten assembly also uses `asm_source`).
+- Every build works only inside its own `<build_id>/` folder (with a private `tmp/`); builds must never share files. Keep the disk budgets (`build_budget.reserve` before a build, `build_guard --disk-budget` during it) and the AppArmor profile `docker/apparmor/prg32-kit` in step with what bubblewrap needs.
 
 ## API constraints
 
@@ -70,21 +79,26 @@ Preserve these action routes:
 
 ## Security constraints
 
-- Every page and `/api/` route except sign-in, static files, docs and discovery requires a signed-in user.
+- Every page and `/api/` route except sign-in, static files, docs and discovery requires a signed-in user, unless the operator turned off **Sign-in required** (ADR-0023): then only the guest pages (`auth.GUEST_PAGES`) and the stateless guest API (`/api/guest/*`, `GET /api/examples`, `GET /api/starters/*`) open without an account. The guest API stores nothing, writes no files beyond a run build's own folder (removed at once) and logs no bodies. Guests may make **run builds** (`/api/guest/run`, ADR-0024: the validated source in the build sandbox, limited per address, nothing kept); compiling cartridges to download, publishing, classes and every saved resource still need a signed-in user.
 - Keep the account model aligned with PRG32 Cartridge Store (roles, groups, API tokens, `/auth/*` routes).
 - Items belong to their creator (`owner_id`); items without an owner are shared and read-only for non-admins.
 - `prg32_construction_kit/sso_protocol.py` must stay identical to `cartridge_store/sso_protocol.py` in CartridgeStore.
 - Never store plain-text passwords; synced records carry password hashes only.
+- School sign-in (ADR-0016): accounts are keyed by issuer + subject (`external_identities`); never join accounts by matching email; keep PKCE, single-use state/nonce and full ID-token verification. Provider claims may set academic roles only, never global roles. Supervision (teachers/facilitators of a class) is read-only and must never publish. API tokens are checked against their scopes before any route.
 - Browser API calls send `X-PRG32-Kit: 1` and `X-PRG32-User`; keep the `409 user_changed` refusal when a window's user no longer matches the session.
 
 ## Frontend constraints
+
+- The IDE is the only editor (ADR-0024): there is no classic editor; `/projects/<id>` redirects to `/ide/<id>`. Sprite Lab and AudioStudio are IDE tabs of the open project (`_sprite_lab.html`, `_audio_studio.html`), and the debugger is the shared `_debugger.html`; each is on a page once.
+- A project's type (Blocks, C, assembly) is fixed; only `convert_to` changes it, once, from Blocks. Never add a save path that changes `game_json.source_mode`.
 
 - Use Bootstrap for layout and components.
 - Use jQuery for app-level DOM and API wiring.
 - Use Blockly for the block editor.
 - Keep the app installable as a PWA with manifest and service worker.
 - Do not require a cloud account for normal classroom use.
-- The service worker caches static files only, never signed-in pages; bump its cache version when cached files change.
+- The service worker caches static files only, never signed-in pages; bump its cache version when cached files change (`tools/service_worker_lock.py` records it; a test enforces it).
+- Serve every browser library from `static/vendor/` (`tools/vendor_assets.py`, `VENDOR.json`); no CDN. Keep the Content Security Policy strict: no inline scripts, no `unsafe-inline`/`unsafe-eval` (ADR-0012).
 
 ## Documentation constraints
 
@@ -92,10 +106,11 @@ Preserve these action routes:
 - README.md must stay short and setup-focused.
 - Every feature must have at least one short teacher/student explanation in `docs/` or `docs/tutorials/`.
 - Keep `docs/install_cartridge_build.md` in step with the Dockerfile, `docker/`, and `examples/deploy/`.
+- `docs/capabilities.json` is the status record; `docs/capabilities.md` is rendered from it. `docs/architecture/current-state.md` lists every capability ID once, and `[ID]` tags elsewhere must agree (`tests/test_doc_consistency.py`). Audit scores are the auditor's: do not change them.
 
 ## Test constraints
 
 - Add or update pytest coverage for backend CRUD, conversion, and packaging logic when behavior changes.
-- CI must run tests on every push and pull request.
+- CI must run tests on every push and pull request, including the real-browser suites (`tests/test_*browser*.py`) with `PRG32_REQUIRE_BROWSER=1` so they cannot pass by skipping.
 - CI also builds the Docker image with the PRG32 toolchain and compiles real cartridges with `tools/check_build.py`; keep that job passing.
 - Tests that need a RISC-V assembler or the PRG32 toolchain must skip cleanly when it is missing.

@@ -23,6 +23,7 @@ Docker image runs it every time the container starts.
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 import tempfile
 from pathlib import Path
@@ -33,7 +34,7 @@ sys.path.insert(0, str(ROOT))
 from flask.testing import FlaskClient  # noqa: E402
 
 from prg32_construction_kit import create_app  # noqa: E402
-from prg32_construction_kit.build_check import check_command, classroom_check  # noqa: E402
+from prg32_construction_kit.build_check import check_command, classroom_check, source_modes_check  # noqa: E402
 from prg32_construction_kit.config import Config  # noqa: E402
 
 ADMIN_PASSWORD = "check-build-admin-password"
@@ -51,6 +52,20 @@ class Browser(FlaskClient):
                 raise SystemExit(f"could not sign in as {login[0]}")
 
 
+def sandbox_check() -> tuple[bool, str]:
+    """Can builds run in the configured sandbox (docs/build_sandbox.md)?"""
+    from prg32_construction_kit.build_sandbox import SandboxSettings, SandboxUnavailable, effective_mode
+
+    settings = SandboxSettings(mode=Config.PRG32_BUILD_SANDBOX.lower(), production=Config.KIT_ENV == "production")
+    try:
+        mode = effective_mode(settings)
+    except SandboxUnavailable as exc:
+        return False, f"build sandbox: {exc}"
+    if mode == "bwrap":
+        return True, "build sandbox: bubblewrap (no network, read-only SDK, private build folder)"
+    return True, "build sandbox: limits only (rlimit) - NOT isolated; use only on a trusted single-user machine"
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--students", type=int, default=3, help="students building at once (default 3)")
@@ -59,6 +74,8 @@ def main() -> int:
                         help="only this target (repeat for both; default both)")
     parser.add_argument("--tool-prefix", default="riscv32-esp-elf-", help="RISC-V compiler prefix")
     parser.add_argument("--quick", action="store_true", help="only check the build command and the compiler")
+    parser.add_argument("--evidence", type=Path, help="also write what was built (modes, targets, SHA-256) here as JSON")
+    parser.add_argument("--save-cartridges", type=Path, help="keep the four-way cartridges in this folder")
     args = parser.parse_args()
 
     print("PRG32-Construction-Kit cartridge build check\n")
@@ -66,6 +83,9 @@ def main() -> int:
     for ok, message in check_command(Config.PRG32_BUILD_COMMAND, args.tool_prefix):
         print(("  OK    " if ok else "  FAIL  ") + message)
         failed |= not ok
+    ok, message = sandbox_check()
+    print(("  OK    " if ok else "  FAIL  ") + message)
+    failed |= not ok
     if failed:
         print("\nFix the lines marked FAIL first. See docs/install_cartridge_build.md.")
         return 1
@@ -90,6 +110,11 @@ def main() -> int:
         print(f"\n  ...  {args.students} students x {args.windows} windows compiling at the same time "
               f"({jobs} builds, {app.config['PRG32_MAX_PARALLEL_BUILDS']} at once)")
         report = classroom_check(app, args.students, args.windows, architectures=args.architecture)
+        print("  ...  one game per way of writing it: Blocks (as C and as assembly), Advanced C, handwritten assembly")
+        if args.save_cartridges:
+            args.save_cartridges.mkdir(parents=True, exist_ok=True)
+        modes = source_modes_check(app, architectures=args.architecture, keep=args.save_cartridges)
+        report["problems"] += modes["problems"]
 
     if report["problems"]:
         for problem in report["problems"]:
@@ -99,6 +124,15 @@ def main() -> int:
             print("\nBuild log of the first build:\n" + first_log)
         return 1
     print(f"  OK    {report['cartridges']} cartridges built, each with the right game, none shared")
+    for item in modes["results"]:
+        ran = {True: ", runs in the browser core", None: ""}.get(item["runs_in_browser_core"], "")
+        print(f"  OK    {item['mode']} ({item['architecture']}): {item['bytes']} bytes, sha256 {item['sha256'][:16]}{ran}")
+    if args.evidence:
+        from prg32_construction_kit.provenance import kit_identity, sdk_identity
+
+        args.evidence.write_text(json.dumps({"kit": kit_identity(), "sdk": sdk_identity(),
+                                             "classroom_cartridges": report["cartridges"], "modes": modes["results"]},
+                                            indent=1) + "\n")
     print("  OK    students cannot download each other's cartridges")
     print("\nCartridge builds are ready for your class.")
     return 0

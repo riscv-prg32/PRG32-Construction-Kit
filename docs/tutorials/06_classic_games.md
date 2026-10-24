@@ -9,5 +9,5 @@ Goal: study, play and change complete games built only from blocks.
    arrow keys (`F` for full screen). Print to PDF for handouts.
 4. Follow the steps: each one shows the exact blocks of the game and the C
    they become.
-5. Finish with **Download .prg32** and run the cartridge on the PRG32 board,
+5. Finish with **Compile**, download the cartridge from the **Build** tab and run the cartridge on the PRG32 board,
    in QEMU or in PRG32-QT.

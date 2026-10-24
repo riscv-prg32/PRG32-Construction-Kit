@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% from "_privacy_notice.html" import notice %}
+{% block title %}{{ t("classes.classes", name=(site.name)) }}{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+  <div>
+    <h1 class="h3 mb-1"><i class="bi bi-people"></i> {{ t("common.classes") }}</h1>
+    <div class="text-muted">{{ t("classes.teachers_and_facilitators_can_look_at") }}
+      <a href="/docs/classes_and_roles.md">{{ t("classes.how_classes_work") }}</a></div>
+    {{ notice("classes") }}
+  </div>
+  {% if current_user.kit_role == 'teacher' or current_user.is_admin %}
+  <form class="d-flex gap-2" id="classForm">
+    <label class="visually-hidden" for="className">{{ t("classes.name_of_the_new_class") }}</label>
+    <input class="form-control" id="className" name="name" placeholder="{{ t('classes.new_class_e_g_3b') }}" maxlength="80" required>
+    <button class="btn btn-primary text-nowrap" type="submit">{{ t("classes.make_class") }}</button>
+  </form>
+  {% endif %}
+</div>
+<div class="row g-3" id="classCards"><div class="col text-muted">{{ t("common.loading") }}</div></div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/classes.js') }}"></script>
+{% endblock %}

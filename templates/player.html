@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}{{ t("player.cartridge_player", name=(site.name)) }}{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+  <div>
+    <h1 class="h3 mb-1"><i class="bi bi-cpu"></i> {{ t("player.cartridge_player_2") }}</h1>
+    <div class="text-muted">{{ t("player.runs_a_real") }} <code>.prg32</code> {{ t("player.cartridge_in_this_browser_its_risc") }}</div>
+  </div>
+  <label class="btn btn-primary mb-0"><i class="bi bi-folder2-open"></i> {{ t("player.open_a_prg32_file") }}
+    <input class="d-none" type="file" id="cartridgeFile" accept=".prg32,application/vnd.prg32.cartridge,application/octet-stream">
+  </label>
+</div>
+
+<div class="row g-3">
+  <div class="col-xl-8">
+    <div class="card shadow-sm">
+      <div class="card-header d-flex flex-wrap gap-2 align-items-center">
+        <strong id="cartridgeName">{{ t("common.no_cartridge_loaded") }}</strong>
+        <div class="ms-auto btn-toolbar gap-2">
+          <button class="btn btn-success btn-sm" id="playPause" disabled><i class="bi bi-play-fill"></i> {{ t("common.play") }}</button>
+          <button class="btn btn-warning btn-sm" id="stepFrame" disabled title="{{ t('common.run_exactly_one_frame_update_draw') }}"><i class="bi bi-skip-forward"></i> {{ t("common.frame") }}</button>
+          <label class="visually-hidden" for="speed">{{ t("common.speed") }}</label>
+          <select class="form-select form-select-sm w-auto" id="speed" title="{{ t('common.frames_per_real_second_the_cartridge') }}">
+            <option value="0.01">0.01×</option><option value="0.025">0.025×</option><option value="0.05">0.05×</option>
+            <option value="0.1">0.1×</option><option value="0.25">0.25×</option><option value="0.5">0.5×</option>
+            <option value="1" selected>{{ t("player.1_30_fps") }}</option><option value="2">2×</option><option value="4">4×</option>
+          </select>
+          <button class="btn btn-outline-secondary btn-sm" id="mute" title="{{ t('common.sound_on_off') }}"><i class="bi bi-volume-up"></i></button>
+        </div>
+      </div>
+      <div class="card-body text-center bg-dark">
+        <canvas id="playerScreen" class="prg32-screen" tabindex="0" aria-label="{{ t('common.prg32_screen_320_by_200_pixels') }}"></canvas>
+      </div>
+      <div class="card-footer small d-flex flex-wrap gap-3" id="playerStatus" aria-live="polite">{{ t("player.open_a_cartridge_or_compile_one") }} <em>{{ t("player.play_in_browser") }}</em>.</div>
+    </div>
+  </div>
+  <div class="col-xl-4">
+    <div class="card shadow-sm mb-3">
+      <div class="card-header"><strong>{{ t("player.buttons") }}</strong></div>
+      <div class="card-body small">
+        <table class="table table-sm mb-2">
+          <tr><td>{{ t("player.left_right_up_down") }}</td><td><kbd>←</kbd> <kbd>→</kbd> <kbd>↑</kbd> <kbd>↓</kbd> {{ t("player.or") }} <kbd>A</kbd> <kbd>D</kbd> <kbd>W</kbd> <kbd>S</kbd></td></tr>
+          <tr><td>A</td><td><kbd>Z</kbd> {{ t("player.or") }} <kbd>J</kbd></td></tr>
+          <tr><td>B</td><td><kbd>X</kbd> {{ t("player.or") }} <kbd>K</kbd></td></tr>
+          <tr><td>{{ t("player.select_start") }}</td><td><kbd>Enter</kbd> {{ t("player.or") }} <kbd>Space</kbd></td></tr>
+        </table>
+        <div class="d-flex flex-wrap gap-1" id="touchButtons" aria-label="{{ t('common.on_screen_buttons') }}">
+          {% for name in ["LEFT", "RIGHT", "UP", "DOWN", "A", "B", "SELECT"] %}
+          <button class="btn btn-outline-secondary btn-sm touch-button" data-button="{{ name }}">{{ name }}</button>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    <div class="card shadow-sm">
+      <div class="card-header"><strong>{{ t("player.what_is_running") }}</strong></div>
+      <div class="card-body small">
+        <p class="mb-2">{{ t("player.the_same_rv32imac_interpreter_and_prg32") }}</p>
+        <p class="mb-0 text-muted">{{ t("player.sound_is_an_approximation_of_prg32") }} <a href="/docs/wasm_runtime.md" target="_blank">{{ t("player.the_guide") }}</a>.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% include "_debugger.html" %}
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='vendor/blockly/11.2.1/blockly.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/blockly_blocks.js') }}"></script>
+<script src="{{ url_for('static', filename='js/prg32_runtime.js') }}"></script>
+<script src="{{ url_for('static', filename='js/player.js') }}"></script>
+<script src="{{ url_for('static', filename='js/prg32_debugger.js') }}"></script>
+<script src="{{ url_for('static', filename='js/source_debug.js') }}"></script>
+<script src="{{ url_for('static', filename='js/source_debugger.js') }}"></script>
+{% endblock %}

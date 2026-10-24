@@ -27,16 +27,16 @@ Students modify:
 
 ## 20-30 minutes: generated C discussion
 
-Students click **Generate C** and find the C statement produced by one block.
+Students click **Generate** and find the C statement produced by one block.
 Older students can choose **C + Assembly** in the **Generated code** list,
-click **Generate C + Assembly**, and find the same block in the
+click **Generate**, and find the same block in the
 **Generated Assembly** tab: its comment shows the C line, and every
 instruction says what it does (see `../generated_code.md`).
 
 ## 30-40 minutes: sprites and artifacts
 
 Students draw a sprite, convert it to C, and download the artifact.
-If a PRG32 board or QEMU is available, students click **Download .prg32**
+If a PRG32 board or QEMU is available, students click **Compile** and download from the **Build** tab
 and load their own PRG32 cartridge.
 
 ## 40-45 minutes: reflection

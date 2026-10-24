@@ -20,14 +20,17 @@ def student_client(app, name: str):
     return app.test_client(login=(name, STUDENT_PASSWORD))
 
 
-def test_signing_in_is_required(anon):
+def test_signing_in_is_required(app, anon):
+    app.config["LOGIN_REQUIRED"] = True     # Settings, Access: "Sign-in required for every page"
     assert anon.get("/api/projects").status_code == 401
+    assert anon.get("/").status_code == 302 and anon.get("/api/guest/audio", json={}).status_code in (401, 405)
     page = anon.get("/sprites")
     assert page.status_code == 302 and "/auth/login?next=/sprites" in page.headers["Location"]
     # Sign-in pages, static files, docs and discovery stay open.
     assert anon.get("/auth/login").status_code == 200
     assert anon.get("/static/js/app.js").status_code == 200
-    assert anon.get("/.well-known/prg32-construction-kit.json").get_json()["auth"]["required"] is True
+    discovery = anon.get("/.well-known/prg32-construction-kit.json").get_json()
+    assert discovery["auth"]["required"] is True and discovery["guest_workspace"] is False
 
 
 def test_login_logout_and_cookie(app, anon):
@@ -160,6 +163,9 @@ def test_only_admins_manage_users(app, client):
     assert ada.get("/api/users").status_code == 403
     assert ada.get("/admin/users").status_code == 403
     assert client.put(f"/api/users/{student['id']}", json={"role": "publisher", "groups": ["class-3b"]}).get_json()["groups"] == ["class-3b"]
+    # A new role ends the account's sessions (ADR-0016): signing in again shows it.
+    assert ada.get("/api/projects").status_code == 401
+    ada = student_client(app, "ada")
     assert ada.get("/auth/me").get_json()["user"]["role"] == "publisher"
     assert client.delete(f"/api/users/{student['id']}").get_json()["deleted"] is True
     assert ada.get("/api/projects").status_code == 401  # a deleted account is signed out
@@ -218,3 +224,12 @@ def test_service_worker_never_caches_signed_in_pages(client):
     shell = worker.split("const APP_SHELL = [", 1)[1].split("];", 1)[0]
     assert all(line.strip().startswith("'/static/") for line in shell.strip().splitlines())
     assert "startsWith('/static/')" in worker
+
+
+def test_ordinary_responses_do_not_resend_the_session_cookie(app, client):
+    """A page's API calls must not overwrite a newer session cookie (for example one holding a school
+    sign-in flow started meanwhile): only responses that change the session send it."""
+    assert "prg32_kit_session=" not in client.get("/api/projects").headers.get("Set-Cookie", "")
+    fresh = app.test_client(login=None)
+    signed_in = fresh.post("/auth/login", data={"username": "admin", "password": ADMIN_PASSWORD})
+    assert "prg32_kit_session=" in signed_in.headers.get("Set-Cookie", "")

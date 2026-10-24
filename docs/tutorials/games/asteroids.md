@@ -406,7 +406,7 @@ if (mode == 1 && (safe_timer == 0 || prg32_kit_frame() % 8 < 5)) {
 
 <!-- column -->
 
-**Download .prg32** builds `asteroids-esp32c6.prg32`; the arrow next to it builds `asteroids-qemu.prg32`.
+**Compile** builds `asteroids-esp32c6.prg32` and `asteroids-qemu.prg32`; download them from the links in the IDE's **Build** tab.
 
 ```bash
 python3 -m prg32 qemu upload asteroids-qemu.prg32

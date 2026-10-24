@@ -15,14 +15,25 @@ source/game.ir.json
 ```
 
 The `source/` directory is extra teaching material. Cartridge Store uses the manifest and `.prg32` files.
+The exact rules are in the shared Store contract (`store_contract.md`); the kit
+checks every bundle against it before anything is uploaded.
+
+## Which Stores can be used
+
+Publishing makes the kit's *server* send the bundle, so only Stores your
+teacher (the administrator) approved can be used. A profile with any other
+address cannot be saved, and an old profile whose Store was removed from the
+list is refused when you press **Publish**. The kit also refuses Stores that
+lead into a private network or answer with a redirect. See
+`admin-guide.md` (*Publishing to a Store*) and `adr/0008-store-egress-policy.md`.
 
 ## Configure a publish profile
 
 Open **Publish** and create a profile:
 
 ```text
-Name: Local Cartridge Store
-URL:  http://127.0.0.1:5080
+Name: School Cartridge Store
+URL:  https://store.your-school.example   (an approved Store)
 Token: optional bearer token
 ```
 
@@ -37,13 +48,44 @@ When the kit is linked with the Cartridge Store (`accounts_and_sso.md`), a
 profile whose address is `PRG32_SSO_PEER_URL` needs no token: the kit sends a
 one-time ticket and the bundle is published as the signed-in student.
 
+In the Store, the game is listed under the student's **public handle**, a made-up
+nickname such as `player-3f9a01c2`. Their username and email are not shown to other
+people (`accounts_and_sso.md`, "One username, shared").
+
+## Who can publish
+
+Publishing needs the **publisher** role (or admin). Everybody can compile and
+download cartridges; a teacher gives the publisher role on the **Users** page
+(it is synced with the Cartridge Store). Only bundles with compiled
+cartridges can be published: a *source-only* bundle (made on a server without
+build tools, or when the compiler failed) cannot.
+
 ## Publish flow
 
 1. Open a project.
-2. Click **Compile Cartridge** so the bundle contains both architectures (**Download .prg32** builds only one).
+2. Click **Compile** so the bundle contains both architectures.
 3. Open **Publish**.
 4. Select the store profile.
-5. Click **Publish** on a store bundle.
+5. Click **Review & publish** on a store bundle. The kit opens the bundle and
+   shows exactly what will be sent: the Store, the cartridge id, title and
+   version, every cartridge file with its size and SHA-256 fingerprint, and
+   what the Store does next.
+6. Tick *I checked this summary…* and press **Publish**.
+
+If anything changes between review and confirmation (another bundle, another
+Store address, an edited file) the kit refuses and asks you to review again.
+Pressing **Publish** twice never uploads twice. If the upload fails (the
+Store is unreachable, or it refuses the version), you can try again.
+The result says why with a contract code (`error_code`) and whether trying again
+can help (`retryable`).
+
+Two rules protect the Store's catalogue:
+
+- **One bundle per version.** Publishing the same version again sends nothing new.
+  Changed the game? Save it first: that gives it a new version.
+- **Store tokens get old.** A publish profile shows when its token stops working
+  (after 180 days, or `PRG32_STORE_TOKEN_MAX_DAYS`). Teachers: make a new token in the
+  Store, put it in the profile, and revoke the old one there.
 
 The backend sends:
 

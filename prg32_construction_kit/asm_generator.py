@@ -50,6 +50,8 @@ from .expressions import (
 from .generator import (
     BUTTON_MAP,
     COLOR_MAP,
+    MAP_BEGIN,
+    MAP_END,
     MAX_REPEAT,
     SINE_TABLE,
     _Emitter,
@@ -60,6 +62,8 @@ from .generator import (
     c_int,
     color_name,
     describe_statement,
+    is_python,
+    narrate,
     int32,
     rgb565_words,
 )
@@ -903,6 +907,7 @@ class _AsmEmitter:
         self.lines: list[str] = []
         self.max_slot = 0
         self.label_count = 0
+        self.trace: dict[int, str] | None = None  # see generator.ir_to_c
 
     # ---- small writers ---------------------------------------------------
     def emit(self, code: str, note: str = "") -> None:
@@ -1081,11 +1086,16 @@ class _AsmEmitter:
     def block(self, statements: Any, slot: int) -> None:
         for stmt in statements if isinstance(statements, list) else []:
             if isinstance(stmt, dict):
+                mark = self.trace.get(id(stmt)) if self.trace else None
+                if mark:
+                    self.lines.append(MAP_BEGIN + mark)
                 self.statement(stmt, slot)
+                if mark:
+                    self.lines.append(MAP_END + mark)
 
     def heading(self, stmt: dict[str, Any]) -> None:
         """The comment above a block's instructions: the block in words and its C line."""
-        sentence = describe_statement(stmt, self.show)
+        sentence = narrate(describe_statement(stmt, self.show), self.c.python)
         c_lines = [line.strip() for line in self.c.statement(stmt, "", 0)]
         if stmt.get("op") in {"if", "if_button", "if_button_once", "if_touching"}:
             c_lines = c_lines[:1]
@@ -1320,6 +1330,18 @@ class _AsmEmitter:
             self.call("prg32_audio_note_off", [typed("channel", "u8")], slot, "silence the channel")
         elif op == "volume":
             self.call("prg32_audio_set_master_volume", [typed("volume", "u8")], slot, "set the volume")
+        elif op == "sfx":
+            self.call("prg32_audio_note", [("imm", int(stmt["voice"]), None), ("imm", int(stmt["instrument"]), None),
+                                           ("imm", int(stmt["note"]), None), ("imm", int(stmt["volume"]), None),
+                                           ("imm", int(stmt["ms"]), None)], slot,
+                      f"sound effect {stmt.get('name')}: instrument {stmt['instrument']} on voice {stmt['voice']}")
+        elif op == "track_play":
+            self.call("prg32_audio_play_track", [("imm", int(stmt["track"]), None)], slot,
+                      f"soundtrack {stmt.get('name')}")
+        elif op == "track_stop":
+            self.call("prg32_audio_stop_track", [], slot, "stop the soundtrack")
+        elif op == "sound_stop_all":
+            self.call("prg32_audio_stop_all", [], slot, "silence every voice")
         elif op == "band":
             self.needs.add("band")
             has_value = "value" in stmt
@@ -1442,8 +1464,11 @@ def _mnemonics(lines: list[str]) -> set[str]:
     return found
 
 
-def ir_to_asm(game_ir: dict[str, Any]) -> str:
-    """Write the game IR as RISC-V assembly, explained line by line for students."""
+def ir_to_asm(game_ir: dict[str, Any], trace: dict[int, str] | None = None) -> str:
+    """Write the game IR as RISC-V assembly, explained line by line for students.
+
+    ``trace`` adds source-map marker lines, as in generator.ir_to_c.
+    """
     prefix = c_identifier(game_ir.get("entry_prefix"), "prg32_game")
     emitter = _AsmEmitter(game_ir)
     state = [(state_name(item.get("name")), int32(c_int(item.get("initial"), 0)))
@@ -1457,6 +1482,7 @@ def ir_to_asm(game_ir: dict[str, Any]) -> str:
     probe_needs = set(emitter.needs) | ({"list_fill"} if emitter.lists else set())
     once, frame = "once" in probe_needs, "frame" in probe_needs
     emitter = _AsmEmitter(game_ir)
+    emitter.trace = trace
 
     init_before: list[tuple] = []
     if state or emitter.lists:
@@ -1468,10 +1494,12 @@ def ir_to_asm(game_ir: dict[str, Any]) -> str:
     if once:
         init_before.append(("once_reset",))
     if init_before and phases["init"]:
-        init_before.append(("comment", "The 'when game starts' blocks."))
+        init_before.append(("comment", "The lines of def init()." if emitter.c.python
+                            else "The 'when game starts' blocks."))
     init = emitter.function(f"{prefix}_init", _doc(
         f"void {prefix}_init(void): runs once when the cartridge starts.",
-        "Same work as the C function: starting values first, then the 'when game starts' blocks."),
+        "Same work as the C function: starting values first, then " + (
+            "the lines of def init()." if emitter.c.python else "the 'when game starts' blocks.")),
         phases["init"], reads["init"], init_before, [])
     update_after: list[tuple] = []
     if once:
@@ -1538,8 +1566,11 @@ def ir_to_asm(game_ir: dict[str, Any]) -> str:
     lines = [
         "/*",
         f" * {title}",
-        " * RISC-V assembly generated by PRG32-Construction-Kit from the saved Blocks JSON.",
-        " * Edit the blocks, then regenerate this file. The C file made from the same blocks",
+        *((" * RISC-V assembly generated by PRG32-Construction-Kit from the saved PRG32 Python.",
+           " * Edit game.py, then regenerate this file. The C file made from the same game.py")
+          if is_python(game_ir) else
+          (" * RISC-V assembly generated by PRG32-Construction-Kit from the saved Blocks JSON.",
+           " * Edit the blocks, then regenerate this file. The C file made from the same blocks")),
         " * does exactly the same work: read the two side by side.",
         " *",
         " * HOW TO READ THIS FILE",

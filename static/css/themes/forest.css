@@ -1,0 +1,21 @@
+/* Skin "forest": greens and warm yellow. A skin only changes the --kit-* colours of app.css. */
+:root {
+  --kit-line: none;
+  --kit-navy: #14532d;
+  --kit-blue: #15803d;
+  --kit-gold: #facc15;
+  --kit-deep: #052e16;
+  --kit-bright: #166534;
+  --kit-accent-rgb: 250, 204, 21;
+  --kit-page-top: #f0fdf4;
+  --kit-pill-bg: #dcfce7;
+  --kit-pill-ink: #166534;
+}
+[data-bs-theme=dark] {
+  --kit-blue: #15803d;
+  --kit-page-top: #04170c;
+  --kit-page-bottom: #0a1f12;
+  --kit-card-bg: #12301d;
+  --kit-pill-bg: #166534;
+  --kit-pill-ink: #dcfce7;
+}

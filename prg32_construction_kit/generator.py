@@ -240,6 +240,15 @@ class ParseContext:
     lists: dict[str, int] = field(default_factory=dict)
     features: set[str] = field(default_factory=set)
     warnings: list[str] = field(default_factory=list)
+    # id(IR statement) -> the Blockly block id it was made from, for the source maps
+    # (source_maps.py, ADR-0015). It never changes the IR itself.
+    origins: dict[int, str] = field(default_factory=dict)
+    # The project's AudioStudio document (audio_studio.py): sound effects and soundtracks by name.
+    audio: dict[str, Any] | None = None
+
+    def remember(self, stmt: dict[str, Any], block: dict[str, Any]) -> None:
+        if isinstance(block.get("id"), str) and block["id"]:
+            self.origins[id(stmt)] = block["id"]
 
     def ensure_var(self, raw_name: Any, initial: int = 0) -> str | None:
         name = state_name(raw_name)
@@ -404,6 +413,32 @@ def parse_statement(block: dict[str, Any], ctx: ParseContext) -> dict[str, Any] 
     if btype == "prg32_audio_volume":
         ctx.features.add("audio")
         return {"op": "volume", "volume": f("VOLUME", 200)}
+    if btype in ("prg32_sound_effect", "prg32_soundtrack_play"):
+        # AudioStudio (docs/audio_studio.md): the name becomes fixed numbers from the project's
+        # document, so the generated code says exactly which instrument, voice and track play.
+        ctx.features.add("audio")
+        audio = ctx.audio or {"effects": [], "soundtracks": []}
+        if btype == "prg32_sound_effect":
+            name = str(field_value(block, "EFFECT", ""))[:32]
+            index = next((i for i, item in enumerate(audio.get("effects", [])) if item["name"] == name), None)
+            if index is None:
+                ctx.warnings.append(f"The sound effect {name!r} is not in this project's AudioStudio")
+                return {"op": "comment", "text": f"skipped: no sound effect named {name}"}
+            effect = audio["effects"][index]
+            return {"op": "sfx", "name": name, "voice": effect["voice"], "instrument": 8 + index,
+                    "note": effect["note"], "volume": effect["volume"], "ms": effect["duration_ms"]}
+        name = str(field_value(block, "TRACK", ""))[:32]
+        index = next((i for i, item in enumerate(audio.get("soundtracks", [])) if item["name"] == name), None)
+        if index is None:
+            ctx.warnings.append(f"The soundtrack {name!r} is not in this project's AudioStudio")
+            return {"op": "comment", "text": f"skipped: no soundtrack named {name}"}
+        return {"op": "track_play", "name": name, "track": index}
+    if btype == "prg32_soundtrack_stop":
+        ctx.features.add("audio")
+        return {"op": "track_stop"}
+    if btype == "prg32_sound_stop_all":
+        ctx.features.add("audio")
+        return {"op": "sound_stop_all"}
     if btype == "prg32_band_text":
         value = field_value(block, "VALUE", "")
         stmt = {"op": "band", "text": _text(block, "TEXT", "SCORE", 24)}
@@ -437,13 +472,19 @@ def parse_stack(first_block: dict[str, Any] | None, ctx: ParseContext) -> list[d
     for block in walk_stack(first_block):
         stmt = parse_statement(block, ctx)
         if stmt:
+            ctx.remember(stmt, block)
             statements.append(stmt)
     return statements
 
 
 def blocks_to_ir(blocks_json: Any, project: dict[str, Any] | None = None) -> dict[str, Any]:
+    return blocks_to_ir_traced(blocks_json, project)[0]
+
+
+def blocks_to_ir_traced(blocks_json: Any, project: dict[str, Any] | None = None) -> tuple[dict[str, Any], dict[int, str]]:
+    """blocks_to_ir, plus which block made each IR statement (keyed by id() of the statement)."""
     project = project or {}
-    ctx = ParseContext()
+    ctx = ParseContext(audio=project.get("audio_studio") or None)
     init: list[dict[str, Any]] = []
     update: list[dict[str, Any]] = []
     draw: list[dict[str, Any]] = []
@@ -470,6 +511,7 @@ def blocks_to_ir(blocks_json: Any, project: dict[str, Any] | None = None) -> dic
             # Loose blocks are treated as update logic so student work is not lost.
             stmt = parse_statement(top, ctx)
             if stmt:
+                ctx.remember(stmt, top)
                 update.append(stmt)
 
     if not ctx.variables and not ctx.lists:
@@ -498,7 +540,7 @@ def blocks_to_ir(blocks_json: Any, project: dict[str, Any] | None = None) -> dic
         "update": update,
         "draw": draw,
         "warnings": ctx.warnings,
-    }
+    }, ctx.origins
 
 
 # ---------------------------------------------------------------------------
@@ -517,6 +559,16 @@ def _button_words(value: Any) -> str:
     if key not in BUTTON_MAP:
         key = "A"
     return key.replace("P2_", "player 2 ")
+
+
+def narrate(sentence: str, python: bool) -> str:
+    """A PRG32 Python project has statements, not blocks: 'Block "x"' reads 'Step "x"' there."""
+    return "Step " + sentence[len("Block "):] if python and sentence.startswith('Block "') else sentence
+
+
+def is_python(game_ir: dict[str, Any]) -> bool:
+    """True for the IR of a PRG32 Python project (python_project.py, ADR-0026)."""
+    return game_ir.get("source_mode") == "python"
 
 
 def describe_statement(stmt: dict[str, Any], show: Callable[[Any], str] | None = None) -> str:
@@ -632,6 +684,17 @@ def describe_statement(stmt: dict[str, Any], show: Callable[[Any], str] | None =
         return f'Block "stop sound": silence channel {v("channel")}.'
     if op == "volume":
         return f'Block "set volume": master volume {v("volume")} (0 is silent, 255 is loudest).'
+    if op == "sfx":
+        return (f'Block "play sound effect {stmt.get("name")}": AudioStudio instrument {stmt.get("instrument")} plays '
+                f'note {stmt.get("note")} on voice {stmt.get("voice")} for {stmt.get("ms")} ms, then its envelope '
+                'releases.')
+    if op == "track_play":
+        return (f'Block "play soundtrack {stmt.get("name")}": track {stmt.get("track")} of the cartridge\'s audio '
+                'block starts; voice N plays instrument N.')
+    if op == "track_stop":
+        return 'Block "stop soundtrack": the soundtrack stops (notes already playing fade out).'
+    if op == "sound_stop_all":
+        return 'Block "stop all sounds": every voice goes silent at once.'
     if op == "band":
         shown = f' followed by the value of {v("value")}' if "value" in stmt else ""
         return f'Block "status band": show "{stmt.get("text", "")}"{shown} in the firmware status band.'
@@ -1095,8 +1158,11 @@ class _Emitter:
         self.needs: set[str] = set()
         self.bitmaps: dict[tuple[int, ...], str] = {}
         self.title = str(game_ir.get("title") or "PRG32 Game")
+        self.python = is_python(game_ir)
         self.explain = explain
         self.explained: set[str] = set()
+        # id(statement) -> block id: wrap each statement's lines in source-map markers.
+        self.trace: dict[int, str] | None = None
 
     def x(self, text: Any) -> str:
         """Translate one IR expression to C."""
@@ -1119,8 +1185,11 @@ class _Emitter:
         for stmt in statements if isinstance(statements, list) else []:
             if not isinstance(stmt, dict):
                 continue
+            mark = self.trace.get(id(stmt)) if self.trace else None
+            if mark:
+                lines.append(MAP_BEGIN + mark)
             if self.explain:
-                sentence = describe_statement(stmt, self.show)
+                sentence = narrate(describe_statement(stmt, self.show), self.python)
                 if sentence:
                     lines.extend(c_comment_block(sentence, indent))
             code = self.statement(stmt, indent, depth)
@@ -1130,6 +1199,8 @@ class _Emitter:
                 self.explained.add(op)
                 code = annotate_c([(code[0], C_SYNTAX_NOTES[op])]) + code[1:]
             lines.extend(code)
+            if mark:
+                lines.append(MAP_END + mark)
         return lines
 
     def note(self, code: str, text: str) -> list[str]:
@@ -1263,6 +1334,15 @@ class _Emitter:
             return [f"{indent}prg32_audio_note_off({x(stmt.get('channel'))});"]
         if op == "volume":
             return [f"{indent}prg32_audio_set_master_volume({x(stmt.get('volume'))});"]
+        if op == "sfx":
+            return [f"{indent}prg32_audio_note({int(stmt['voice'])}, {int(stmt['instrument'])}, {int(stmt['note'])}, "
+                    f"{int(stmt['volume'])}, {int(stmt['ms'])});"]
+        if op == "track_play":
+            return [f"{indent}prg32_audio_play_track({int(stmt['track'])});"]
+        if op == "track_stop":
+            return [f"{indent}prg32_audio_stop_track();"]
+        if op == "sound_stop_all":
+            return [f"{indent}prg32_audio_stop_all();"]
         if op == "band":
             self.needs.add("band")
             has_value = "value" in stmt
@@ -1302,13 +1382,16 @@ def _section(title: str, *text: str) -> list[str]:
     return ["/* " + rule, f" * {title}", *(f" * {line}".rstrip() for line in text), " * " + rule + " */"]
 
 
-def ir_to_c(game_ir: dict[str, Any], explain: bool = True) -> str:
+def ir_to_c(game_ir: dict[str, Any], explain: bool = True, trace: dict[int, str] | None = None) -> str:
     """Write the game IR as freestanding C, explained line by line for students.
 
     ``explain=False`` leaves out the explanations (the slide decks show short excerpts).
+    ``trace`` (from blocks_to_ir_traced) adds source-map marker lines; source_maps.py
+    removes them again, leaving exactly the normal output.
     """
     prefix = c_identifier(game_ir.get("entry_prefix"), "prg32_game")
     emitter = _Emitter(game_ir, explain)
+    emitter.trace = trace
 
     def annotate(rows: list[Any]) -> list[str]:
         if explain:
@@ -1330,24 +1413,30 @@ def ir_to_c(game_ir: dict[str, Any], explain: bool = True) -> str:
         needs.add("list_fill")  # init clears every list with prg32_kit_fill
     title = c_comment(emitter.title)
 
+    source = ("the saved PRG32 Python (game.py)", "Edit game.py") if emitter.python \
+        else ("the saved Blocks JSON", "Edit the blocks")
+    phase_names = ("def init()", "def update()", "def draw()") if emitter.python \
+        else ("'when game starts' blocks", "'every frame' blocks", "'draw' blocks")
     lines: list[str] = [
         "/*",
         f" * {title}",
-        " * Generated by PRG32-Construction-Kit from the saved Blocks JSON.",
-        " * Edit the blocks, then regenerate this file.",
+        f" * Generated by PRG32-Construction-Kit from {source[0]}.",
+        f" * {source[1]}, then regenerate this file.",
     ]
     guide = [
         " *",
         " * HOW TO READ THIS FILE",
         " * A PRG32 cartridge is a small program that the PRG32 firmware loads into memory",
         " * and calls through three functions (the 'cartridge lifecycle'):",
-        f" *   {prefix}_init()    once, when the game starts ('when game starts' blocks);",
-        f" *   {prefix}_update()  once per frame, to move things ('every frame' blocks);",
-        f" *   {prefix}_draw()    once per frame, after update, to paint the screen ('draw' blocks).",
+        f" *   {prefix}_init()    once, when the game starts ({phase_names[0]});",
+        f" *   {prefix}_update()  once per frame, to move things ({phase_names[1]});",
+        f" *   {prefix}_draw()    once per frame, after update, to paint the screen ({phase_names[2]}).",
         " * The file has five parts: 1 constants, 2 kit helper functions, 3 pictures,",
         " * 4 game state (the variables), 5 the three lifecycle functions.",
-        " * Above every block's code a comment repeats the block in words; beside many lines",
-        " * a second comment explains that line.",
+        (" * Above every step's code a comment repeats the Python statement in words; beside many"
+         if emitter.python else " * Above every block's code a comment repeats the block in words; beside many lines"),
+        (" * lines a second comment explains that line."
+         if emitter.python else " * a second comment explains that line."),
         " *",
         " * RULES THIS C FOLLOWS",
         " * - Freestanding C99: no standard library (no printf, no malloc), because a",
@@ -1355,7 +1444,8 @@ def ir_to_c(game_ir: dict[str, Any], explain: bool = True) -> str:
         " *   the firmware (functions named prg32_...) or written below in part 2.",
         " * - Every number is a 32-bit whole number (int). There is no floating point:",
         " *   7 / 2 is 3, and fractions are made with scaled numbers (256 means 1.0).",
-        " * - The same blocks always produce exactly the same file.",
+        (" * - The same game.py always produces exactly the same file." if emitter.python
+         else " * - The same blocks always produce exactly the same file."),
     ]
     if explain:
         lines.extend(guide)
@@ -1465,6 +1555,10 @@ def blocks_to_c(blocks_json: Any, project: dict[str, Any] | None = None, explain
     game_ir = blocks_to_ir(blocks_json, project)
     return game_ir, ir_to_c(game_ir, explain)
 
+
+# Source-map marker lines (ADR-0015): only ever present while source_maps.py builds a map.
+MAP_BEGIN = "\x00prg32-map-begin "
+MAP_END = "\x00prg32-map-end "
 
 _HEX_COLOR_RE = re.compile(r"^#?([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$")
 MAX_SPRITE_SIDE = 128

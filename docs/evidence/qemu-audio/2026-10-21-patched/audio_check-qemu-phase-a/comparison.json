@@ -1,0 +1,73 @@
+{
+ "cartridge": {
+  "file": "audio_check-qemu.prg32",
+  "sha256": "4f821b3047dcb9d000cc1a94f7b7c4ab8f2d707f018593eee66b787cf379d712"
+ },
+ "firmware": {
+  "sdk_revision": "679dfb58783bd007125de9ca0b75eaa077908739",
+  "flash_sha256": "cc09263f3396550b4d5913438bca0112aaa562392a0c838eb762dd7fa029d1ee",
+  "qemu": "QEMU emulator version 9.0.0 (esp_develop_9.0.0_20240606)",
+  "overlay": "# The firmware build for the QEMU audio comparison (tools/qemu_audio_capture.py, ADR-0021):\n# the PRG32 QEMU profile with stereo output (PRG32 Audio Plus). The QEMU profile sets the\n# I2S pins to -1, and the firmware's audio set-up refuses -1 pins even though QEMU sends the\n# sound over UART1 instead; any free ESP32-C3 pins make it start (4 and 5 are UART1).\n# CONFIG_PRG32_AUDIO_MODE_MONO is not set\nCONFIG_PRG32_AUDIO_MODE_STEREO=y\nCONFIG_PRG32_AUDIO_I2S_BCLK_GPIO=6\nCONFIG_PRG32_AUDIO_I2S_LRCLK_GPIO=7\nCONFIG_PRG32_AUDIO_I2S_DATA_GPIO=10\n",
+  "patches": [
+   {
+    "file": "docs/upstream/prg32-sdk-audio-clock-and-reset.patch",
+    "sha256": "3a29de21fbca59b72061d8f593f875bf5985a6af342ca82b3b4ddcf4d2c13313"
+   }
+  ]
+ },
+ "kit_revision": "5976c7d92d9e521795bcd417626cbcc27c14d82e",
+ "seconds": 11.0,
+ "firmware_pcm_sha256": "1064c0e2c00a517e5a394a02334b9a4b447b74aa39af4d125c50472a618feeb8",
+ "browser_pcm_sha256": "a035b9ed5602d759112eb1e7617909bc89a9c1fda7fa3c8e735bf6ef6b025ef3",
+ "qemu_options": [
+  "-icount",
+  "shift=3,sleep=off"
+ ],
+ "aligned": {
+  "shift_chunks": 0,
+  "equal_chunks": 531,
+  "compared_chunks": 546,
+  "differing_chunks": [
+   329,
+   330,
+   331,
+   332,
+   333,
+   334,
+   335,
+   336,
+   337,
+   338,
+   339,
+   340,
+   341,
+   342,
+   343
+  ],
+  "whole_recording_equal": false
+ },
+ "browser_chunks": 546,
+ "firmware_chunks": 550,
+ "browser_sounding_chunks": 269,
+ "identical_sounding_chunks": 545,
+ "segments": [
+  {
+   "browser_chunk": 0,
+   "firmware_chunk": 0,
+   "identical_chunks": 329,
+   "identical_ms": 6580
+  },
+  {
+   "browser_chunk": 330,
+   "firmware_chunk": 329,
+   "identical_chunks": 49,
+   "identical_ms": 980
+  },
+  {
+   "browser_chunk": 379,
+   "firmware_chunk": 379,
+   "identical_chunks": 167,
+   "identical_ms": 3340
+  }
+ ]
+}

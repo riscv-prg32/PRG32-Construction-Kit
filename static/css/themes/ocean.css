@@ -1,0 +1,21 @@
+/* Skin "ocean": deep blue and teal. A skin only changes the --kit-* colours of app.css. */
+:root {
+  --kit-line: none;
+  --kit-navy: #0c4a6e;
+  --kit-blue: #0891b2;
+  --kit-gold: #2dd4bf;
+  --kit-deep: #082f49;
+  --kit-bright: #0e7490;
+  --kit-accent-rgb: 45, 212, 191;
+  --kit-page-top: #ecfeff;
+  --kit-pill-bg: #cffafe;
+  --kit-pill-ink: #155e75;
+}
+[data-bs-theme=dark] {
+  --kit-blue: #0891b2;
+  --kit-page-top: #031b26;
+  --kit-page-bottom: #0b2530;
+  --kit-card-bg: #0f2f3b;
+  --kit-pill-bg: #155e75;
+  --kit-pill-ink: #cffafe;
+}

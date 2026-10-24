@@ -1,0 +1,43 @@
+{
+  "realm": "school",
+  "enabled": true,
+  "sslRequired": "none",
+  "accessTokenLifespan": 300,
+  "roles": {"realm": [{"name": "pupil"}, {"name": "faculty"}, {"name": "staff"}]},
+  "clients": [
+    {
+      "clientId": "prg32-kit",
+      "name": "PRG32-Construction-Kit (test)",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "kit-test-secret-not-for-production",
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "redirectUris": ["http://127.0.0.1:5155/auth/oidc/school/callback"],
+      "webOrigins": ["http://127.0.0.1:5155"],
+      "attributes": {"pkce.code.challenge.method": "S256"},
+      "protocolMappers": [
+        {
+          "name": "roles",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "config": {"claim.name": "roles", "multivalued": "true", "jsonType.label": "String",
+                     "id.token.claim": "true", "access.token.claim": "false", "userinfo.token.claim": "true"}
+        }
+      ]
+    }
+  ],
+  "users": [
+    {"username": "ada", "email": "ada@school.test", "emailVerified": true, "enabled": true,
+     "firstName": "Ada", "lastName": "Pupil", "realmRoles": ["pupil"],
+     "credentials": [{"type": "password", "value": "ada-test-pass-1", "temporary": false}]},
+    {"username": "prof", "email": "prof@school.test", "emailVerified": true, "enabled": true,
+     "firstName": "Pat", "lastName": "Teacher", "realmRoles": ["faculty"],
+     "credentials": [{"type": "password", "value": "prof-test-pass-1", "temporary": false}]},
+    {"username": "eve", "email": "eve@school.test", "emailVerified": true, "enabled": true,
+     "firstName": "Eve", "lastName": "Pupil", "realmRoles": ["pupil"],
+     "credentials": [{"type": "password", "value": "eve-test-pass-1", "temporary": false}]}
+  ]
+}

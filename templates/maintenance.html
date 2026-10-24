@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}{{ t("maintenance.maintenance", name=(site.name)) }}{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-7 col-lg-6">
+    <div class="alert alert-info" role="status">
+      <h1 class="h5"><i class="bi bi-tools" aria-hidden="true"></i> {{ t("maintenance.back_soon") }}</h1>
+      <p class="mb-0">{{ message }}</p>
+    </div>
+    <p class="small text-muted">{{ t("maintenance.your_games_are_safe_nothing_is") }}</p>
+  </div>
+</div>
+{% endblock %}

@@ -18,6 +18,10 @@ concurrency:
 
 env:
   CI_IMAGE: prg32-construction-kit:ci
+  # The production security settings for the kit container (docker-compose.yml).
+  SANDBOX_OPTS: >-
+    --security-opt seccomp=docker/seccomp-kit.json --security-opt apparmor=unconfined
+    --security-opt no-new-privileges:true --cap-drop ALL
 
 jobs:
   test:
@@ -31,6 +35,8 @@ jobs:
     steps:
       - name: Check out the repository
         uses: actions/checkout@v7
+        with:
+          fetch-depth: 0   # the visual manifest names commits (tools/check_docs.py)
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v7
@@ -55,9 +61,15 @@ jobs:
 
       - name: Check JavaScript syntax
         run: |
-          for file in static/js/*.js static/service-worker.js; do
+          for file in static/js/*.js static/service-worker.js tools/*.mjs; do
             node --check "$file"
           done
+
+      - name: Documentation and privacy records match the product
+        run: |
+          python tools/check_docs.py
+          python tools/build_diagrams.py --check
+          python tools/render_ropa.py --check
 
       - name: Run the test suite
         run: python -m pytest -q --junitxml="test-results-${{ matrix.python-version }}.xml"
@@ -69,6 +81,232 @@ jobs:
           name: test-results-python-${{ matrix.python-version }}
           path: test-results-${{ matrix.python-version }}.xml
           retention-days: 14
+
+  wasm-runtime:
+    name: Browser PRG32 core (WebAssembly) golden tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v7
+
+      - name: Read the PRG32-QT revision the committed module was built from
+        id: core
+        run: echo "revision=$(python3 -c 'import json; print(json.load(open("static/wasm/BUILD.json"))["core"]["revision"])')" >> "$GITHUB_OUTPUT"
+
+      - name: Check out PRG32-QT at that revision
+        uses: actions/checkout@v7
+        with:
+          repository: riscv-prg32/PRG32-QT
+          ref: ${{ steps.core.outputs.revision }}
+          path: PRG32-QT
+
+      # The core's sound is the PRG32 firmware's audio engine (ADR-0021), compiled from the SDK.
+      - name: Read the PRG32 SDK revision of the audio engine
+        id: audio
+        run: echo "revision=$(python3 -c 'import json; print(json.load(open("static/wasm/BUILD.json"))["audio"]["revision"])')" >> "$GITHUB_OUTPUT"
+
+      - name: Check out the PRG32 SDK at that revision
+        uses: actions/checkout@v7
+        with:
+          repository: riscv-prg32/PRG32
+          ref: ${{ steps.audio.outputs.revision }}
+          path: PRG32
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: "20"
+
+      - name: Install Python dependencies and build tools
+        run: |
+          python -m pip install --disable-pip-version-check -r requirements.txt
+          sudo apt-get update && sudo apt-get install -y --no-install-recommends ninja-build
+
+      - name: Install Emscripten
+        run: |
+          git clone --depth 1 https://github.com/emscripten-core/emsdk.git "$RUNNER_TEMP/emsdk"
+          "$RUNNER_TEMP/emsdk/emsdk" install latest
+          "$RUNNER_TEMP/emsdk/emsdk" activate latest
+          echo "$RUNNER_TEMP/emsdk" >> "$GITHUB_PATH"
+          echo "$RUNNER_TEMP/emsdk/upstream/emscripten" >> "$GITHUB_PATH"
+
+      - name: Golden tests with the committed module
+        env:
+          PRG32QT_DIR: ${{ github.workspace }}/PRG32-QT
+          PRG32_SOURCE: ${{ github.workspace }}/PRG32
+        run: python -m pytest -q -rs tests/test_wasm_runtime.py
+
+      - name: Audio contract, packer and eight-voice conformance (the SDK is required here)
+        env:
+          PRG32QT_DIR: ${{ github.workspace }}/PRG32-QT
+          PRG32_SOURCE: ${{ github.workspace }}/PRG32
+          PRG32_REQUIRE_SDK: "1"
+          PRG32_AUDIO_EVIDENCE: ${{ github.workspace }}/audio-evidence
+        run: >-
+          python -m pytest -q -rs tests/test_audio_contract.py tests/test_audio_block.py tests/test_audio_conformance.py
+          tests/test_prg32qt_firmware_audio.py tests/test_upstream_sdk_patches.py
+
+      # The conformance run's stereo PCM (WAV) and per-frame voice trace (JSON), kept as evidence.
+      - name: Keep the audio evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: audio-evidence-${{ github.sha }}
+          path: audio-evidence/
+          retention-days: 90
+
+      - name: Golden tests with a fresh build of the module
+        env:
+          PRG32QT_DIR: ${{ github.workspace }}/PRG32-QT
+          PRG32_WASM_MODULE: ${{ github.workspace }}/build/wasm-ci/prg32-core.js
+          PRG32_SOURCE: ${{ github.workspace }}/PRG32
+        run: |
+          emcmake cmake -S wasm -B build/wasm-ci -G Ninja -DPRG32QT_DIR="$PRG32QT_DIR" -DPRG32_DIR="$PRG32_SOURCE" -DCMAKE_BUILD_TYPE=Release
+          cmake --build build/wasm-ci
+          python -m pytest -q -rs tests/test_wasm_runtime.py -k "golden or audio or refused"
+
+  browser:
+    name: Real-browser tests (offline, CSP, IDE keyboard and accessibility)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v7
+
+      - name: Read the PRG32-QT revision of the browser core
+        id: core
+        run: echo "revision=$(python3 -c 'import json; print(json.load(open("static/wasm/BUILD.json"))["core"]["revision"])')" >> "$GITHUB_OUTPUT"
+
+      - name: Check out PRG32-QT (golden cartridge for the offline player)
+        uses: actions/checkout@v7
+        with:
+          repository: riscv-prg32/PRG32-QT
+          ref: ${{ steps.core.outputs.revision }}
+          path: PRG32-QT
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Install dependencies and Chromium
+        run: |
+          python -m pip install --disable-pip-version-check -r requirements.txt -r requirements-browser.txt
+          python -m playwright install --with-deps chromium
+
+      # The IDE suite (keyboard-only work, Monaco, phone layout, axe) runs here too, and
+      # PRG32_REQUIRE_BROWSER=1 makes a missing browser or fixture a failure, not a skip.
+      - name: Run the browser, IDE and frontend tests
+        env:
+          PRG32QT_DIR: ${{ github.workspace }}/PRG32-QT
+          PRG32_REQUIRE_BROWSER: "1"
+          PRG32_BROWSER_EVIDENCE: ${{ github.workspace }}/browser-evidence
+        run: >-
+          python -m pytest -q -rs --junitxml=browser-test-results.xml -o junit_suite_name=browser-${{ github.sha }}
+          tests/test_browser_offline.py tests/test_ide_browser.py tests/test_debugger_browser.py tests/test_accounts_browser.py tests/test_storage_browser.py tests/test_cloud_browser.py tests/test_performance_browser.py tests/test_audio_browser.py tests/test_guest_ide_browser.py tests/test_ide_layout_browser.py tests/test_github_browser.py tests/test_project_menu_browser.py tests/test_frontend_offline.py
+
+      - name: Upload the browser test results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: browser-test-results-${{ github.sha }}
+          path: |
+            browser-test-results.xml
+            browser-evidence/
+          retention-days: 90
+
+  # The shared Store contract against the Cartridge Store's own code, at the commit the
+  # contract names (contracts/prg32-store-contract-1.json store_reference.checked_against).
+  store-contract:
+    name: Store contract and SSO protocol against CartridgeStore
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v7
+
+      - name: Read the CartridgeStore commit the contract was checked against
+        id: store
+        run: echo "revision=$(python3 -c 'import json; print(json.load(open("contracts/prg32-store-contract-1.json"))["store_reference"]["checked_against"])')" >> "$GITHUB_OUTPUT"
+
+      - name: Check out CartridgeStore
+        uses: actions/checkout@v7
+        with:
+          repository: riscv-prg32/CartridgeStore
+          ref: ${{ steps.store.outputs.revision }}
+          path: CartridgeStore
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: Install the kit's and the Store's requirements
+        run: python -m pip install --disable-pip-version-check -r requirements.txt -r CartridgeStore/requirements.txt
+
+      # test_store_live.py starts a throwaway CartridgeStore on 127.0.0.1 with temporary
+      # data: real HTTP publishes, never a production Store.
+      - name: Run the contract, live publish and SSO conformance tests (a missing Store fails, never skips)
+        env:
+          PRG32_CARTRIDGE_STORE_SOURCE: ${{ github.workspace }}/CartridgeStore
+          PRG32_REQUIRE_STORE: "1"
+          PRG32_LIVE_STORE: local
+        run: >-
+          python -m pytest -q -rs --junitxml=store-contract-results.xml
+          tests/test_store_contract.py tests/test_store_live.py tests/test_sso_with_cartridge_store.py
+          tests/test_sso_live.py
+
+      - name: Keep the results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: store-contract-results-${{ github.sha }}
+          path: store-contract-results.xml
+          retention-days: 90
+
+  # Opt-in: only when started by hand (Actions -> Run workflow). A real OpenID Connect
+  # provider (Keycloak, test realm tests/fixtures/oidc/school-realm.json) in Docker.
+  live-identity:
+    name: Live identity provider (Keycloak, opt-in)
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies and Chromium
+        run: |
+          python -m pip install --disable-pip-version-check -r requirements.txt -r requirements-browser.txt
+          python -m playwright install --with-deps chromium
+
+      - name: Run the live identity suite
+        env:
+          PRG32_LIVE_OIDC: keycloak
+        run: python -m pytest -q -rs --junitxml=live-identity-results.xml tests/test_identity_live.py
+
+      - name: Keep the results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: live-identity-results-${{ github.sha }}
+          path: live-identity-results.xml
+          retention-days: 90
 
   dependency-review:
     name: Dependency review
@@ -84,6 +322,59 @@ jobs:
         with:
           fail-on-severity: high
 
+  # Lint (real mistakes only), a coverage floor, and the dependency lock and SBOM kept in step.
+  quality:
+    name: Lint, coverage, dependency lock and SBOM
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0   # tests/test_docs_check.py reads the visual manifest's commits
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: Install the kit's packages exactly as locked, and the quality tools
+        run: |
+          python -m pip install --disable-pip-version-check --require-hashes -r requirements.lock
+          python -m pip install --disable-pip-version-check "ruff==0.16.4" "coverage==7.15.4"
+
+      - name: Lint (pyflakes rules and syntax errors; settings in pyproject.toml)
+        run: ruff check .
+
+      - name: The dependency lock fits the requirements, and the SBOM matches the lock and VENDOR.json
+        run: |
+          python tools/lock_requirements.py --check
+          python tools/make_sbom.py --check
+
+      - name: Tests with coverage (fails under the floor in pyproject.toml)
+        run: |
+          python -m coverage run -m pytest -q -p no:cacheprovider
+          python -m coverage report
+
+  # Opt-in: only when started by hand. Known vulnerabilities in the locked packages
+  # (docs/dependencies.md says what to do with a finding).
+  dependency-audit:
+    name: Known vulnerabilities in the locked packages (manual)
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v7
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Audit requirements.lock
+        run: |
+          python -m pip install --disable-pip-version-check "pip-audit==2.9.0"
+          pip-audit --require-hashes --disable-pip -r requirements.lock
+
   container-smoke-test:
     name: Toolchain container and real cartridges
     needs: test
@@ -98,6 +389,12 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
 
+      # The test image builds with the PRG32 SDK commit the kit's fixtures were made with
+      # (static/wasm/BUILD.json "audio"), so the rebuild checks below compare byte for byte.
+      - name: Read the PRG32 SDK revision of the fixtures
+        id: sdk
+        run: echo "revision=$(python3 -c 'import json; print(json.load(open("static/wasm/BUILD.json"))["audio"]["revision"])')" >> "$GITHUB_OUTPUT"
+
       - name: Build the full toolchain image
         uses: docker/build-push-action@v7
         with:
@@ -105,17 +402,126 @@ jobs:
           load: true
           push: false
           tags: ${{ env.CI_IMAGE }}
-          build-args: PRG32_TOOLCHAIN=1
+          build-args: |
+            PRG32_TOOLCHAIN=1
+            PRG32_REF=${{ steps.sdk.outputs.revision }}
+            PRG32_KIT_REVISION=${{ github.sha }}
           cache-from: type=gha,scope=toolchain-image
           cache-to: type=gha,mode=max,scope=toolchain-image
 
+      # Ubuntu 24.04 lets only AppArmor-approved programs create user namespaces, and Docker's
+      # docker-default AppArmor profile forbids the mounts bubblewrap makes. The CI host relaxes
+      # both for the kit container (docs/build_sandbox.md, "AppArmor hosts").
+      - name: Allow user namespaces for the build sandbox
+        run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0 || true
+
+      # Evidence of this commit's container run is kept as an artifact (junit, logs, fixtures).
+      - name: Prepare the evidence folder
+        run: mkdir -p ci-evidence && chmod 777 ci-evidence
+
+      - name: Run the build sandbox escape tests in the container
+        run: >-
+          docker run --rm ${{ env.SANDBOX_OPTS }} -e PRG32_REQUIRE_BWRAP=1 -v "$PWD/ci-evidence:/evidence"
+          --entrypoint sh ${{ env.CI_IMAGE }} -c
+          "pip install -q --user pytest && python -m pytest -q -rs -p no:cacheprovider
+          --junitxml=/evidence/container-tests.xml
+          tests/test_build_sandbox.py tests/test_concurrency.py tests/test_handwritten_assembly.py
+          tests/test_build_provenance.py tests/test_source_debugger.py tests/test_build_budget.py
+          tests/test_debug_fuzz.py"
+
+      # The kit's own AppArmor profile (docker/apparmor/prg32-kit) instead of apparmor=unconfined,
+      # with Ubuntu's restriction on user namespaces switched back on: the profile alone must let
+      # bubblewrap work, and every escape test must still be refused.
+      - name: Load the kit's AppArmor profile
+        run: sudo apparmor_parser -r -W docker/apparmor/prg32-kit
+
+      - name: Run the sandbox tests confined by the kit's AppArmor profile
+        run: |
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=1
+          set +e
+          docker run --rm --security-opt seccomp=docker/seccomp-kit.json --security-opt apparmor=prg32-kit \
+            --security-opt no-new-privileges:true --cap-drop ALL -v "$PWD/ci-evidence:/evidence" \
+            -e PRG32_BUILD_SANDBOX=bwrap -e PRG32_REQUIRE_BWRAP=1 --entrypoint sh ${{ env.CI_IMAGE }} -c \
+            "pip install -q --user pytest && python -m pytest -q -rs -p no:cacheprovider \
+            --junitxml=/evidence/container-apparmor-tests.xml tests/test_build_sandbox.py tests/test_build_budget.py"
+          status=$?
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+          if [ $status -ne 0 ]; then
+            echo "AppArmor denials (if any):"; sudo dmesg | grep -i 'apparmor="DENIED"' | tail -40 || true
+          fi
+          exit $status
+
+      # On a real server other containers often run as the kit's user id (1000), and the kernel
+      # counts their processes against the build's RLIMIT_NPROC although the kit's /proc cannot
+      # see them (every build failed there before build_guard asked the kernel; ADR-0010,
+      # 2026-10-22 amendment). The runner's own user is not 1000, so CI makes that load itself.
+      - name: Load the kit's user id with processes outside the kit container
+        run: |
+          kit_uid=$(docker run --rm --entrypoint id ${{ env.CI_IMAGE }} -u)
+          docker run -d --name same-uid-load --user "$kit_uid:$kit_uid" --entrypoint sh ${{ env.CI_IMAGE }} \
+            -c 'for i in $(seq 300); do sleep 3600 & done; wait'
+          sleep 3
+
+      - name: Sandbox tests and real cartridges beside the same user id's processes
+        run: >-
+          docker run --rm ${{ env.SANDBOX_OPTS }} -e PRG32_BUILD_SANDBOX=bwrap -e PRG32_REQUIRE_BWRAP=1
+          -v "$PWD/ci-evidence:/evidence" --entrypoint sh ${{ env.CI_IMAGE }} -c
+          "set -e;
+          python tools/process_limit_evidence.py --expect-hidden 250 --out /evidence/same-uid-processes.json;
+          pip install -q --user pytest;
+          status=0;
+          python -m pytest -q -rs -p no:cacheprovider --junitxml=/evidence/same-uid-sandbox-tests.xml
+          tests/test_build_sandbox.py tests/test_build_budget.py > /evidence/same-uid-sandbox-tests.log 2>&1 || status=1;
+          cat /evidence/same-uid-sandbox-tests.log;
+          python tools/check_build.py --students 2 --windows 2 --evidence /evidence/same-uid-check_build.json
+          > /evidence/same-uid-check_build.log 2>&1 || status=1;
+          cat /evidence/same-uid-check_build.log;
+          exit $status"
+
+      - name: Remove the same user id's processes
+        if: always()
+        run: docker rm --force same-uid-load || true
+
       - name: Compile real cartridges concurrently
         run: >-
-          docker run --rm --entrypoint python ${{ env.CI_IMAGE }}
-          tools/check_build.py --students 2 --windows 2
+          docker run --rm ${{ env.SANDBOX_OPTS }} -v "$PWD/ci-evidence:/evidence" --entrypoint sh ${{ env.CI_IMAGE }} -c
+          "python tools/check_build.py --students 2 --windows 2 --evidence /evidence/check_build.json > /evidence/check_build.log 2>&1;
+          status=$?; cat /evidence/check_build.log; exit $status"
+
+      - name: Rebuild the debugger fixtures with the image's toolchain
+        run: >-
+          docker run --rm ${{ env.SANDBOX_OPTS }} -v "$PWD/ci-evidence:/evidence" --entrypoint sh ${{ env.CI_IMAGE }} -c
+          "python tools/build_debug_fixtures.py --check-if-comparable --out /evidence/debug-fixtures
+          > /evidence/debug-fixtures.log 2>&1; status=$?; cat /evidence/debug-fixtures.log; exit $status"
+
+      - name: Rebuild the audio conformance fixtures with the image's toolchain
+        run: >-
+          docker run --rm ${{ env.SANDBOX_OPTS }} -v "$PWD/ci-evidence:/evidence" --entrypoint sh ${{ env.CI_IMAGE }} -c
+          "python tools/build_audio_fixtures.py --check > /evidence/audio-fixtures.log 2>&1;
+          status=$?; cat /evidence/audio-fixtures.log; exit $status"
+
+      - name: Rebuild the console audio check with the image's toolchain
+        run: >-
+          docker run --rm ${{ env.SANDBOX_OPTS }} -v "$PWD/ci-evidence:/evidence" --entrypoint sh ${{ env.CI_IMAGE }} -c
+          "python tools/build_hardware_audio_check.py --check-if-comparable --out /evidence/hardware-audio-check
+          > /evidence/hardware-audio-check.log 2>&1; status=$?; cat /evidence/hardware-audio-check.log; exit $status"
+
+      - name: Keep this commit's container evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: container-evidence-${{ github.sha }}
+          path: ci-evidence/
+          retention-days: 90
+
+      - name: The container refuses to start without the sandbox profile
+        run: |
+          if docker run --rm --security-opt apparmor=unconfined ${{ env.CI_IMAGE }} true; then
+            echo "The container started without a working build sandbox"; exit 1
+          fi
 
       - name: Start the production container
-        run: docker run -d --name prg32-kit-ci -p 5090:5090 ${{ env.CI_IMAGE }}
+        run: docker run -d --name prg32-kit-ci -p 5090:5090 ${{ env.SANDBOX_OPTS }} ${{ env.CI_IMAGE }}
 
       - name: Check health and discovery
         run: |
@@ -206,7 +612,9 @@ jobs:
           push: true
           tags: ${{ steps.metadata.outputs.tags }}
           labels: ${{ steps.metadata.outputs.labels }}
-          build-args: PRG32_TOOLCHAIN=1
+          build-args: |
+            PRG32_TOOLCHAIN=1
+            PRG32_KIT_REVISION=${{ github.sha }}
           cache-from: type=gha,scope=toolchain-image
           cache-to: type=gha,mode=max,scope=published-image
 

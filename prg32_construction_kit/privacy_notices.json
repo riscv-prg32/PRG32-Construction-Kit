@@ -1,0 +1,103 @@
+{
+  "_comment": "The privacy notices shown where the kit collects personal data (docs/privacy/notices.md). Change 'summary' or the full notice only together with a new 'version' and a line in docs/privacy/CHANGELOG.md; the kit records which version each person was shown. 'translations' holds the summary in the other interface languages (ADR-0027); a new version needs new translations.",
+  "notices": [
+    {
+      "id": "guest",
+      "version": "1.2",
+      "effective": "2026-10-22",
+      "where": "every page without an account (the guest workspace), and the sign-in page",
+      "summary": "Without an account, your games, sprites and sounds stay in this browser only. To show you the C code, play a sound or run your game, the server works on them for a moment and keeps nothing. Clearing the browser's data deletes them.",
+      "full": "docs/privacy/notices/guest.md",
+      "translations": {
+        "it": "Senza account, i tuoi giochi, sprite e suoni restano solo in questo browser. Per mostrarti il codice C, suonare un suono o far girare il gioco, il server ci lavora per un attimo e non conserva nulla. Cancellare i dati del browser li elimina.",
+        "es": "Sin cuenta, tus juegos, sprites y sonidos se quedan solo en este navegador. Para mostrarte el código C, tocar un sonido o ejecutar tu juego, el servidor trabaja con ellos un momento y no guarda nada. Borrar los datos del navegador los elimina.",
+        "fr": "Sans compte, tes jeux, sprites et sons restent uniquement dans ce navigateur. Pour te montrer le code C, jouer un son ou lancer ton jeu, le serveur les traite un instant et ne garde rien. Effacer les données du navigateur les supprime.",
+        "de": "Ohne Konto bleiben deine Spiele, Sprites und Klänge nur in diesem Browser. Um dir den C-Code zu zeigen, einen Klang abzuspielen oder dein Spiel laufen zu lassen, arbeitet der Server kurz damit und speichert nichts. Wenn du die Browserdaten löschst, sind sie weg."
+      }
+    },
+    {
+      "id": "account",
+      "version": "1.0",
+      "effective": "2026-10-21",
+      "where": "account registration, every sign-in until this version has been shown",
+      "summary": "Your school runs this kit. It keeps your username, email, role and classes, and the games, sprites and sounds you make, so you and your teachers can work on them. You can see, download, correct or ask to delete them on your Account page.",
+      "full": "docs/privacy/notices/account.md",
+      "translations": {
+        "it": "Questo kit è gestito dalla tua scuola. Conserva il tuo nome utente, l'email, il ruolo e le classi, e i giochi, gli sprite e i suoni che crei, così tu e i tuoi insegnanti potete lavorarci. Nella pagina Account puoi vederli, scaricarli, correggerli o chiederne la cancellazione.",
+        "es": "Tu centro gestiona este kit. Guarda tu usuario, correo, rol y clases, y los juegos, sprites y sonidos que haces, para que tú y tus profesores podáis trabajar con ellos. En la página de tu cuenta puedes verlos, descargarlos, corregirlos o pedir que se borren.",
+        "fr": "Ton école gère ce kit. Il garde ton nom d'utilisateur, ton e-mail, ton rôle et tes classes, ainsi que les jeux, sprites et sons que tu crées, pour que toi et tes enseignants puissiez travailler dessus. Sur ta page Compte, tu peux les voir, les télécharger, les corriger ou demander leur suppression.",
+        "de": "Deine Schule betreibt dieses Kit. Es speichert deinen Benutzernamen, deine E-Mail, deine Rolle und Klassen sowie die Spiele, Sprites und Klänge, die du machst, damit du und deine Lehrkräfte daran arbeiten könnt. Auf deiner Kontoseite kannst du sie ansehen, herunterladen, berichtigen oder ihre Löschung verlangen."
+      }
+    },
+    {
+      "id": "school_sign_in",
+      "version": "1.0",
+      "effective": "2026-10-21",
+      "where": "school sign-in button, first school sign-in",
+      "summary": "Signing in with your school account sends you to your school's sign-in page. The kit receives a number that identifies you there, your email and, if your school sends it, whether you are a student or a teacher. Nothing else.",
+      "full": "docs/privacy/notices/school_sign_in.md",
+      "translations": {
+        "it": "Accedere con l'account della scuola ti porta alla pagina di accesso della tua scuola. Il kit riceve un numero che ti identifica lì, la tua email e, se la scuola lo invia, se sei uno studente o un insegnante. Nient'altro.",
+        "es": "Entrar con la cuenta de tu centro te lleva a la página de acceso de tu centro. El kit recibe un número que te identifica allí, tu correo y, si tu centro lo envía, si eres alumno o profesor. Nada más.",
+        "fr": "Te connecter avec ton compte de l'école t'envoie sur la page de connexion de ton école. Le kit reçoit un numéro qui t'identifie là-bas, ton e-mail et, si ton école l'envoie, si tu es élève ou enseignant. Rien d'autre.",
+        "de": "Die Anmeldung mit deinem Schulkonto führt dich zur Anmeldeseite deiner Schule. Das Kit erhält eine Nummer, die dich dort erkennt, deine E-Mail und, falls deine Schule es sendet, ob du Schüler/in oder Lehrkraft bist. Sonst nichts."
+      }
+    },
+    {
+      "id": "cloud",
+      "version": "1.1",
+      "effective": "2026-10-22",
+      "where": "Account page, before 'Connect' for Google Drive or OneDrive",
+      "summary": "Connecting a cloud account lets the kit save copies of your games in a folder of your own Google Drive or OneDrive, or in a GitHub repository you choose, and only there. You can disconnect at any time; the copies stay yours.",
+      "full": "docs/privacy/notices/cloud.md",
+      "translations": {
+        "it": "Collegare un account cloud permette al kit di salvare copie dei tuoi giochi in una cartella tua di Google Drive o OneDrive, o in un repository GitHub che scegli tu, e solo lì. Puoi scollegarlo quando vuoi; le copie restano tue.",
+        "es": "Conectar una cuenta en la nube permite al kit guardar copias de tus juegos en una carpeta tuya de Google Drive o OneDrive, o en un repositorio de GitHub que elijas, y solo allí. Puedes desconectarla cuando quieras; las copias siguen siendo tuyas.",
+        "fr": "Connecter un compte en ligne permet au kit d'enregistrer des copies de tes jeux dans un dossier à toi sur Google Drive ou OneDrive, ou dans un dépôt GitHub que tu choisis, et seulement là. Tu peux le déconnecter à tout moment ; les copies restent à toi.",
+        "de": "Wenn du ein Cloud-Konto verbindest, kann das Kit Kopien deiner Spiele in einem eigenen Ordner in Google Drive oder OneDrive oder in einem GitHub-Repository deiner Wahl speichern, und nur dort. Du kannst es jederzeit trennen; die Kopien bleiben deine."
+      }
+    },
+    {
+      "id": "publishing",
+      "version": "1.0",
+      "effective": "2026-10-21",
+      "where": "Publish page, before sending a game to the Cartridge Store",
+      "summary": "Publishing sends your game, its title and the author name you chose to the Cartridge Store, where other people can see it after a teacher has checked it. Use a nickname, not your full name.",
+      "full": "docs/privacy/notices/publishing.md",
+      "translations": {
+        "it": "Pubblicare invia il tuo gioco, il titolo e il nome d'autore che hai scelto al Cartridge Store, dove altre persone possono vederlo dopo che un insegnante l'ha controllato. Usa un soprannome, non il tuo nome completo.",
+        "es": "Publicar envía tu juego, su título y el nombre de autor que elegiste al Cartridge Store, donde otras personas pueden verlo después de que un profesor lo revise. Usa un apodo, no tu nombre completo.",
+        "fr": "Publier envoie ton jeu, son titre et le nom d'auteur que tu as choisi au Cartridge Store, où d'autres personnes peuvent le voir après qu'un enseignant l'a vérifié. Utilise un pseudo, pas ton nom complet.",
+        "de": "Beim Veröffentlichen gehen dein Spiel, sein Titel und der gewählte Autorenname an den Cartridge Store, wo andere es sehen können, nachdem eine Lehrkraft es geprüft hat. Benutze einen Spitznamen, nicht deinen vollen Namen."
+      }
+    },
+    {
+      "id": "classes",
+      "version": "1.0",
+      "effective": "2026-10-21",
+      "where": "Classes page, when a teacher adds a student",
+      "summary": "Teachers and facilitators of your class can open your games to help you. They can read them but not change or publish them.",
+      "full": "docs/privacy/notices/classes.md",
+      "translations": {
+        "it": "Gli insegnanti e i facilitatori della tua classe possono aprire i tuoi giochi per aiutarti. Possono leggerli ma non modificarli né pubblicarli.",
+        "es": "Los profesores y facilitadores de tu clase pueden abrir tus juegos para ayudarte. Pueden leerlos, pero no cambiarlos ni publicarlos.",
+        "fr": "Les enseignants et animateurs de ta classe peuvent ouvrir tes jeux pour t'aider. Ils peuvent les lire mais pas les modifier ni les publier.",
+        "de": "Lehrkräfte und Betreuende deiner Klasse können deine Spiele öffnen, um dir zu helfen. Sie können sie lesen, aber nicht ändern oder veröffentlichen."
+      }
+    },
+    {
+      "id": "storage",
+      "version": "1.1",
+      "effective": "2026-10-24",
+      "where": "every page, once per browser: cookies and browser storage",
+      "summary": "This kit uses two cookies, one to keep you signed in and one to remember the language you chose, and keeps your own games, settings and breakpoints in this browser. There is no advertising or tracking, and nothing is shared with other sites.",
+      "full": "docs/privacy/notices/storage.md",
+      "translations": {
+        "it": "Questo kit usa due cookie, uno per mantenerti connesso e uno per ricordare la lingua che hai scelto, e conserva i tuoi giochi, le impostazioni e i punti di interruzione in questo browser. Non ci sono pubblicità né tracciamento, e niente viene condiviso con altri siti.",
+        "es": "Este kit usa dos cookies, una para mantener tu sesión y otra para recordar el idioma que elegiste, y guarda tus juegos, ajustes y puntos de interrupción en este navegador. No hay publicidad ni seguimiento, y no se comparte nada con otros sitios.",
+        "fr": "Ce kit utilise deux cookies, l'un pour te garder connecté et l'autre pour se souvenir de la langue choisie, et garde tes jeux, réglages et points d'arrêt dans ce navigateur. Il n'y a ni publicité ni pistage, et rien n'est partagé avec d'autres sites.",
+        "de": "Dieses Kit verwendet zwei Cookies, eines, damit du angemeldet bleibst, und eines, das sich deine gewählte Sprache merkt, und speichert deine Spiele, Einstellungen und Haltepunkte in diesem Browser. Es gibt keine Werbung und kein Tracking, und nichts wird mit anderen Websites geteilt."
+      }
+    }
+  ]
+}

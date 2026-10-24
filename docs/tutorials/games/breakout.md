@@ -345,7 +345,7 @@ repeat with i from 0 to 59
 1. Dashboard, **Examples**, *Breakout* (complete game), **Add**.
 2. **Play**: LEFT/RIGHT, then A to launch.
 3. Watch `bricks_left`, `score` and `mode` in the debug line under the screen.
-4. **Generate C** and find `static int bricks[60];`.
+4. **Generate** and find `static int bricks[60];`.
 
 ---
 
@@ -354,7 +354,7 @@ repeat with i from 0 to 59
 
 <!-- column -->
 
-**Download .prg32** builds `breakout-esp32c6.prg32`; the arrow next to it builds `breakout-qemu.prg32`.
+**Compile** builds `breakout-esp32c6.prg32` and `breakout-qemu.prg32`; download them from the links in the IDE's **Build** tab.
 
 ```bash
 python3 -m prg32 qemu upload breakout-qemu.prg32

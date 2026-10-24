@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 import uuid
@@ -40,6 +41,42 @@ class Project(TimestampedModel):
     tags: Mapped[str] = mapped_column(db.Text, nullable=False, default="[]")
     blocks_json: Mapped[str] = mapped_column(db.Text, nullable=False, default="{}")
     game_json: Mapped[str] = mapped_column(db.Text, nullable=False, default="{}")
+    # Set when a student deletes the project: it moves to "Recently deleted"
+    # and can be restored. Only an admin removes it for good (purge).
+    deleted_at: Mapped[str | None] = mapped_column(db.Text, index=True)
+    # +1 on every change: a save that names an older version is a conflict (ADR-0017).
+    version: Mapped[int] = mapped_column(db.Integer, nullable=False, default=0)
+
+
+class ProjectRevision(db.Model):
+    """One saved version of a project, kept so a student can go back to it.
+
+    A revision holds exactly the files of a project archive
+    (see project_format.project_files): the manifest, the source, and one file
+    per sprite and asset. So restoring a revision or downloading it as a
+    .prg32project.zip works the same way as importing an archive.
+    """
+    __tablename__ = "project_revisions"
+    id: Mapped[str] = mapped_column(db.Text, primary_key=True)
+    project_id: Mapped[str] = mapped_column(db.Text, db.ForeignKey("projects.id", ondelete="CASCADE"),
+                                            nullable=False, index=True)
+    owner_id: Mapped[int | None] = mapped_column(db.Integer, index=True)
+    created_at: Mapped[str] = mapped_column(db.Text, nullable=False)
+    # 1, 2, 3, ... per project: orders revisions saved within the same second.
+    seq: Mapped[int] = mapped_column(nullable=False, default=1)
+    # Why it was saved: "save" (before a change was stored) or "restore" (before going back).
+    reason: Mapped[str] = mapped_column(db.Text, nullable=False, default="save")
+    # The prg32.project.json text, the source file text (blocks JSON or C),
+    # and the sprite/asset files as a JSON object {path: text}.
+    manifest: Mapped[str] = mapped_column(db.Text, nullable=False)
+    source: Mapped[str] = mapped_column(db.Text, nullable=False, default="")
+    assets: Mapped[str] = mapped_column(db.Text, nullable=False, default="{}")
+    # A fingerprint of all the files, to skip saving the same version twice in a row.
+    digest: Mapped[str] = mapped_column(db.Text, nullable=False)
+    # Which database row each sprite/asset file came from, as {archive path: row id}.
+    # Restoring puts a file back into that same row, so links to it (for example a
+    # sprite's generated-C artifact) survive. Not part of the digest or the archive.
+    child_ids: Mapped[str] = mapped_column(db.Text, nullable=False, default="{}")
 
 
 class Sprite(TimestampedModel):
@@ -59,6 +96,8 @@ class Asset(TimestampedModel):
     kind: Mapped[str] = mapped_column(db.Text, nullable=False, default="text")
     content_type: Mapped[str] = mapped_column(db.Text, nullable=False, default="text/plain")
     data: Mapped[str] = mapped_column(db.Text, nullable=False, default="{}")
+    # +1 on every change, like projects.version: AudioStudio saves name the one they started from.
+    version: Mapped[int] = mapped_column(db.Integer, nullable=False, default=0)
 
 
 class Artifact(TimestampedModel):
@@ -88,6 +127,8 @@ class PublishProfile(TimestampedModel):
     name: Mapped[str] = mapped_column(db.Text, nullable=False)
     store_url: Mapped[str] = mapped_column(db.Text, nullable=False)
     bearer_token: Mapped[str] = mapped_column(db.Text, nullable=False, default="")
+    # When the token was put in (server-set): tokens older than PRG32_STORE_TOKEN_MAX_DAYS are refused.
+    token_set_at: Mapped[str] = mapped_column(db.Text, nullable=False, default="")
 
 
 RESOURCE_COLUMNS: dict[str, list[str]] = {
@@ -96,7 +137,7 @@ RESOURCE_COLUMNS: dict[str, list[str]] = {
     "assets": ["project_id", "name", "kind", "content_type", "data", "owner_id"],
     "artifacts": ["project_id", "sprite_id", "kind", "name", "content_type", "path", "text_content", "metadata", "owner_id"],
     "builds": ["project_id", "status", "log", "c_artifact_id", "bundle_artifact_id", "metadata", "owner_id"],
-    "publish_profiles": ["name", "store_url", "bearer_token", "owner_id"],
+    "publish_profiles": ["name", "store_url", "bearer_token", "token_set_at", "owner_id"],
 }
 RESOURCE_MODELS = {"projects": Project, "sprites": Sprite, "assets": Asset, "artifacts": Artifact, "builds": Build, "publish_profiles": PublishProfile}
 JSON_COLUMNS = {"projects": {"tags", "blocks_json", "game_json"}, "sprites": {"pixels"}, "assets": {"data"}, "artifacts": {"metadata"}, "builds": {"metadata"}, "publish_profiles": set()}
@@ -158,6 +199,12 @@ def _as_dict(resource: str, instance: TimestampedModel | None) -> dict[str, Any]
     for column in RESOURCE_COLUMNS[resource]:
         item[column] = _decode_value(resource, column, getattr(instance, _attribute(column)))
     item.update(created_at=instance.created_at, updated_at=instance.updated_at)
+    if resource == "projects":
+        # Shown, but not in RESOURCE_COLUMNS: only DELETE and restore may change it.
+        item["deleted_at"] = instance.deleted_at
+        item["version"] = instance.version or 0
+    if resource == "assets":
+        item["version"] = instance.version or 0
     return item
 
 
@@ -182,6 +229,46 @@ def init_app(app) -> None:
 def init_db() -> None:
     db.create_all()
     _add_missing_owner_columns()
+    _add_missing_deleted_at_column()
+    _add_missing_revision_child_ids()
+    _add_missing_version_column()
+    _add_missing_publishing_columns()
+    _add_missing_asset_version()
+
+
+def _add_missing_asset_version() -> None:
+    """Databases made before AudioStudio have no assets.version; add it."""
+    columns = {column["name"] for column in inspect(db.engine).get_columns("assets")}
+    if "version" not in columns:
+        with db.engine.begin() as connection:
+            connection.execute(text("ALTER TABLE assets ADD COLUMN version INTEGER NOT NULL DEFAULT 0"))
+
+
+def _add_missing_publishing_columns() -> None:
+    """Publish records and profiles made before the Store lifecycle rules (contract tokens/versioning)."""
+    wanted = {"publish_attempts": ("store_host", "cartridge_id", "cartridge_version", "bundle_sha256"),
+              "publish_profiles": ("token_set_at",)}
+    inspector = inspect(db.engine)
+    with db.engine.begin() as connection:
+        for table, names in wanted.items():
+            if not inspector.has_table(table):
+                continue
+            columns = {column["name"] for column in inspector.get_columns(table)}
+            for name in names:
+                if name not in columns:
+                    connection.execute(text(f"ALTER TABLE {table} ADD COLUMN {name} TEXT NOT NULL DEFAULT ''"))
+        if inspector.has_table("publish_profiles"):
+            # Tokens of unknown age start counting now, not at the epoch (that would refuse them all at once).
+            connection.execute(text("UPDATE publish_profiles SET token_set_at = :now "
+                                    "WHERE bearer_token != '' AND token_set_at = ''"), {"now": utcnow()})
+
+
+def _add_missing_version_column() -> None:
+    """Databases made before conflict-safe saves (ADR-0017) have no projects.version; add it."""
+    columns = {column["name"] for column in inspect(db.engine).get_columns("projects")}
+    if "version" not in columns:
+        with db.engine.begin() as connection:
+            connection.execute(text("ALTER TABLE projects ADD COLUMN version INTEGER NOT NULL DEFAULT 0"))
 
 
 def _add_missing_owner_columns() -> None:
@@ -198,13 +285,39 @@ def _add_missing_owner_columns() -> None:
             connection.execute(text(f"CREATE INDEX IF NOT EXISTS ix_{table}_owner_id ON {table} (owner_id)"))
 
 
-def list_resources(resource: str, filters: dict[str, str] | None = None, viewer_id: int | None = None) -> list[dict[str, Any]]:
-    """List items. With ``viewer_id`` only that user's items and shared items are listed."""
+def _add_missing_deleted_at_column() -> None:
+    """Databases made before "Recently deleted" existed have no projects.deleted_at; add it."""
+    columns = {column["name"] for column in inspect(db.engine).get_columns("projects")}
+    with db.engine.begin() as connection:
+        if "deleted_at" not in columns:
+            connection.execute(text("ALTER TABLE projects ADD COLUMN deleted_at TEXT"))
+        connection.execute(text("CREATE INDEX IF NOT EXISTS ix_projects_deleted_at ON projects (deleted_at)"))
+
+
+def _add_missing_revision_child_ids() -> None:
+    """Revisions saved before relationship-safe restore have no child_ids; add it (empty = unknown)."""
+    columns = {column["name"] for column in inspect(db.engine).get_columns("project_revisions")}
+    if "child_ids" not in columns:
+        with db.engine.begin() as connection:
+            connection.execute(text("ALTER TABLE project_revisions ADD COLUMN child_ids TEXT NOT NULL DEFAULT '{}'"))
+
+
+def list_resources(resource: str, filters: dict[str, str] | None = None, viewer_id: int | None = None,
+                   deleted: bool = False) -> list[dict[str, Any]]:
+    """List items. With ``viewer_id`` only that user's items and shared items are listed.
+
+    Deleted projects are left out; ``deleted=True`` lists only those instead
+    (and then only the viewer's own, never the shared ones).
+    """
     model = RESOURCE_MODELS.get(resource)
     if model is None:
         raise KeyError(resource)
     statement = select(model)
-    if viewer_id is not None:
+    if resource == "projects":
+        statement = statement.where(model.deleted_at.is_not(None) if deleted else model.deleted_at.is_(None))
+    if deleted and viewer_id is not None:
+        statement = statement.where(model.owner_id == viewer_id)
+    elif viewer_id is not None:
         statement = statement.where(or_(model.owner_id == viewer_id, model.owner_id.is_(None)))
     for key, value in (filters or {}).items():
         if key in {"project_id", "sprite_id", "kind", "status"} and key in RESOURCE_COLUMNS[resource]:
@@ -213,11 +326,15 @@ def list_resources(resource: str, filters: dict[str, str] | None = None, viewer_
     return [_as_dict(resource, item) for item in db.session.scalars(statement).all()]
 
 
-def get_resource(resource: str, item_id: str) -> dict[str, Any] | None:
+def get_resource(resource: str, item_id: str, include_deleted: bool = False) -> dict[str, Any] | None:
+    """One item, or None. A deleted project counts as missing unless ``include_deleted``."""
     model = RESOURCE_MODELS.get(resource)
     if model is None:
         raise KeyError(resource)
-    return _as_dict(resource, db.session.get(model, item_id))
+    instance = db.session.get(model, item_id)
+    if resource == "projects" and instance is not None and instance.deleted_at and not include_deleted:
+        return None
+    return _as_dict(resource, instance)
 
 
 def _check_payload(payload: Any) -> dict[str, Any]:
@@ -250,7 +367,13 @@ def create_resource(resource: str, payload: dict[str, Any]) -> dict[str, Any]:
     return created
 
 
-def update_resource(resource: str, item_id: str, payload: dict[str, Any]) -> dict[str, Any] | None:
+class VersionConflict(Exception):
+    """The project was saved by someone (or another window) after the version the save was based on."""
+
+
+def update_resource(resource: str, item_id: str, payload: dict[str, Any],
+                    expected_version: int | None = None) -> dict[str, Any] | None:
+    """Change an item. For a project, ``expected_version`` makes the save conditional (ADR-0017)."""
     model = RESOURCE_MODELS.get(resource)
     if model is None:
         raise KeyError(resource)
@@ -259,6 +382,15 @@ def update_resource(resource: str, item_id: str, payload: dict[str, Any]) -> dic
     if instance is None:
         return None
     try:
+        if resource in ("projects", "assets"):
+            # One atomic step: claim the next version only if nobody saved in between.
+            claim = update(model).where(model.id == item_id)
+            if expected_version is not None:
+                claim = claim.where(model.version == expected_version)
+            if db.session.execute(claim.values(version=model.version + 1)).rowcount != 1:
+                db.session.rollback()
+                raise VersionConflict(item_id)
+            db.session.refresh(instance)
         for column in RESOURCE_COLUMNS[resource]:
             if column in payload:
                 setattr(instance, _attribute(column), _encode_value(resource, column, payload[column]))
@@ -284,6 +416,117 @@ def delete_resource(resource: str, item_id: str) -> bool:
         db.session.rollback()
         raise
     return True
+
+
+def set_project_deleted(project_id: str, deleted: bool) -> dict[str, Any] | None:
+    """Move a project to "Recently deleted" (``deleted=True``) or bring it back."""
+    instance = db.session.get(Project, project_id)
+    if instance is None:
+        return None
+    try:
+        instance.deleted_at = utcnow() if deleted else None
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        raise
+    return _as_dict("projects", instance)
+
+
+# --- project revisions ---------------------------------------------------------
+
+def _revision_dict(revision: ProjectRevision, with_files: bool = False) -> dict[str, Any]:
+    try:
+        manifest = json.loads(revision.manifest)
+        assets = json.loads(revision.assets or "{}")
+        damaged = not isinstance(manifest, dict) or not isinstance(assets, dict) or "source" not in manifest
+    except (TypeError, json.JSONDecodeError):
+        damaged = True
+    if damaged:
+        # A damaged row is still listed (so it can be seen and deleted with its project),
+        # but it has no files: restoring or downloading it gives a clear error.
+        manifest, assets = {"title": "(damaged revision)"}, {}
+    item: dict[str, Any] = {
+        "id": revision.id,
+        "project_id": revision.project_id,
+        "owner_id": revision.owner_id,
+        "created_at": revision.created_at,
+        "reason": revision.reason,
+        "title": manifest.get("title", ""),
+        "authoring_mode": manifest.get("authoring_mode", "blocks"),
+        "number": revision.seq,
+        "source_bytes": len(revision.source.encode("utf-8")),
+        "sprite_count": sum(1 for entry in manifest.get("assets", []) if entry.get("kind") == "sprite"),
+        "asset_count": sum(1 for entry in manifest.get("assets", []) if entry.get("kind") == "asset"),
+    }
+    item["damaged"] = damaged
+    if with_files:
+        files = {} if damaged else {"prg32.project.json": revision.manifest, manifest["source"]: revision.source}
+        files.update(assets)
+        item["files"] = {path: content.encode("utf-8") for path, content in files.items()}
+        item["child_ids"] = _child_ids(revision.child_ids)
+    return item
+
+
+def _child_ids(value: str | None) -> dict[str, str]:
+    """The {path: row id} map of a revision; anything malformed counts as "unknown" ({})."""
+    try:
+        parsed = json.loads(value or "{}")
+    except (TypeError, json.JSONDecodeError):
+        return {}
+    if not isinstance(parsed, dict):
+        return {}
+    return {str(path): str(row_id) for path, row_id in parsed.items()
+            if isinstance(path, str) and isinstance(row_id, str) and _ID_RE.match(row_id)}
+
+
+def list_revisions(project_id: str) -> list[dict[str, Any]]:
+    """A project's revisions, newest first."""
+    statement = (select(ProjectRevision).where(ProjectRevision.project_id == project_id)
+                 .order_by(ProjectRevision.created_at.desc(), ProjectRevision.seq.desc()))
+    return [_revision_dict(revision) for revision in db.session.scalars(statement).all()]
+
+
+def get_revision(project_id: str, revision_id: str) -> dict[str, Any] | None:
+    """One revision with its files ({path: bytes}), or None if it is not this project's."""
+    revision = db.session.get(ProjectRevision, revision_id)
+    if revision is None or revision.project_id != project_id:
+        return None
+    return _revision_dict(revision, with_files=True)
+
+
+def add_revision(project: dict[str, Any], files: dict[str, bytes], reason: str, keep: int,
+                 child_ids: dict[str, str] | None = None) -> dict[str, Any] | None:
+    """Save the project files as a new revision and keep only the newest ``keep``.
+
+    Nothing is saved (and None is returned) when the files are the same as in
+    the newest revision: pressing Save twice does not fill the history.
+    """
+    texts = {path: content.decode("utf-8") for path, content in files.items()}
+    manifest_text = texts.pop("prg32.project.json")
+    source_path = json.loads(manifest_text)["source"]
+    source = texts.pop(source_path, "")
+    assets_text = json.dumps(texts, sort_keys=True, ensure_ascii=False)
+    digest = hashlib.sha256(json.dumps([manifest_text, source, assets_text]).encode("utf-8")).hexdigest()
+    newest = db.session.scalars(select(ProjectRevision).where(ProjectRevision.project_id == project["id"])
+                                .order_by(ProjectRevision.seq.desc()).limit(1)).first()
+    if newest is not None and newest.digest == digest:
+        return None
+    revision = ProjectRevision(id=new_id("rev"), project_id=project["id"], owner_id=project.get("owner_id"),
+                               created_at=utcnow(), seq=(newest.seq + 1) if newest else 1, reason=reason,
+                               manifest=manifest_text, source=source, assets=assets_text, digest=digest,
+                               child_ids=json.dumps(child_ids or {}, sort_keys=True))
+    try:
+        db.session.add(revision)
+        db.session.flush()
+        old = db.session.scalars(select(ProjectRevision).where(ProjectRevision.project_id == project["id"])
+                                 .order_by(ProjectRevision.seq.desc()).offset(max(1, keep))).all()
+        for item in old:
+            db.session.delete(item)
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        raise
+    return _revision_dict(revision)
 
 
 def update_if_unchanged(resource: str, item_id: str, expected: dict[str, Any], changes: dict[str, Any]) -> bool:
@@ -320,3 +563,56 @@ def count(resource: str) -> int:
     if model is None:
         raise KeyError(resource)
     return int(db.session.scalar(select(func.count()).select_from(model)) or 0)
+
+
+def restore_project_state(project_id: str, project_values: dict[str, Any],
+                          children: dict[str, dict[str, Any]], new_owner_id: int | None,
+                          expected_version: int | None = None) -> dict[str, Any] | None:
+    """Put a project and its sprites/assets back as a revision had them, in ONE transaction.
+
+    ``children`` is {"sprites"|"assets": {"update": [(row id, values)], "create": [values],
+    "delete": [row ids]}}. Rows are changed in place where possible, so their ids (and
+    every link to them) stay the same. Either everything is stored or, if anything goes
+    wrong, nothing is: the project and its children stay exactly as they were.
+    Like every save, it gives the project a new version, so a window still showing the
+    old one cannot save over it (ADR-0017); ``expected_version`` makes it conditional.
+    """
+    project = db.session.get(Project, project_id)
+    if project is None:
+        return None
+    now = utcnow()
+    try:
+        claim = update(Project).where(Project.id == project_id)
+        if expected_version is not None:
+            claim = claim.where(Project.version == expected_version)
+        if db.session.execute(claim.values(version=Project.version + 1)).rowcount != 1:
+            db.session.rollback()
+            raise VersionConflict(project_id)
+        db.session.refresh(project)
+        for column, value in project_values.items():
+            setattr(project, _attribute(column), _encode_value("projects", column, value))
+        project.updated_at = now
+        for resource in ("sprites", "assets"):
+            model = RESOURCE_MODELS[resource]
+            plan = children.get(resource, {})
+            for row_id in plan.get("delete", []):
+                row = db.session.get(model, row_id)
+                if row is not None and row.project_id == project_id:
+                    db.session.delete(row)
+            for row_id, values in plan.get("update", []):
+                row = db.session.get(model, row_id)
+                if row is None or row.project_id != project_id:
+                    raise ValueError(f"{resource} {row_id} does not belong to project {project_id}")
+                for column, value in values.items():
+                    setattr(row, _attribute(column), _encode_value(resource, column, value))
+                row.updated_at = now
+            for values in plan.get("create", []):
+                attributes = {**DEFAULTS[resource], **values, "project_id": project_id, "owner_id": new_owner_id}
+                db.session.add(model(id=new_id(resource.rstrip("s")), created_at=now, updated_at=now,
+                                     **{_attribute(column): _encode_value(resource, column, attributes.get(column))
+                                        for column in RESOURCE_COLUMNS[resource]}))
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        raise
+    return _as_dict("projects", project)

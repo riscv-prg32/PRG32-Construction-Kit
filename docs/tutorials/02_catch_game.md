@@ -28,7 +28,7 @@ keep player_x between 0 and 304
 
 ## 4. Inspect the C
 
-Click **Generate C** and find:
+Click **Generate** and find:
 
 ```c
 uint32_t input = prg32_input_read();

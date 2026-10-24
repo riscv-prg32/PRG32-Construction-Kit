@@ -56,3 +56,33 @@ def client(app):
 @pytest.fixture()
 def anon(app):
     return app.test_client(login=None)
+
+
+# --- publishing helpers (ADR-0009: publisher role, publishable bundle, review then confirm) ---
+
+def make_store_bundle(client, monkeypatch, title="Publish Me"):
+    """A real Store bundle (with fake-compiled PRG2 cartridges) made through the package API."""
+    from types import SimpleNamespace
+
+    from prg32_construction_kit.sample_data import default_blocks
+
+    def fake_builder(command, **_kwargs):
+        with open(command[command.index("--out") + 1], "wb") as cartridge:
+            cartridge.write(b"PRG2" + b"\x00" * 60)
+        return SimpleNamespace(returncode=0, stdout="", stderr="")
+
+    monkeypatch.setattr("prg32_construction_kit.packager.subprocess.run", fake_builder)
+    monkeypatch.setattr("prg32_construction_kit.routes.toolchain_present", lambda _command: True)
+    project = client.post("/api/projects", json={"title": title, "blocks_json": default_blocks()}).get_json()
+    bundle = client.post(f"/api/projects/{project['id']}/package", json={}).get_json()["bundle_artifact"]
+    assert bundle["kind"] == "store_bundle"
+    return bundle
+
+
+def review_and_publish(client, profile_id, bundle_id):
+    """Review a bundle, then confirm it. Returns the confirm response."""
+    request = {"profile_id": profile_id, "bundle_artifact_id": bundle_id}
+    review = client.post("/api/publish/review", json=request)
+    assert review.status_code == 200, review.get_data(as_text=True)
+    return client.post("/api/publish", json={**request, "review_token": review.get_json()["review_token"],
+                                             "confirm": True})

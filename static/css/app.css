@@ -1,25 +1,60 @@
+/* The PRG32 colours, from the official logo (static/img/prg32-logo.png): black, deep purple,
+   electric blue, cyan and neon magenta. The skin "prg32" is these; other skins
+   (static/css/themes/<skin>.css) change the --kit-* colours. */
 :root {
-  --kit-navy: #14213d;
-  --kit-blue: #2563eb;
-  --kit-gold: #fca311;
+  --kit-navy: #2a0f45;
+  --kit-blue: #0062dd;          /* links, focus rings, outline buttons (4.5:1 on white) */
+  --kit-gold: #ff2094;          /* the neon accent */
+  --kit-cyan: #00d2ff;
   --kit-paper: #f8fafc;
-  --kit-ink: #111827;
+  --kit-ink: #160c24;
+  --kit-deep: #000000;          /* the dark end of the menu bar and the welcome panel */
+  --kit-bright: #3d1670;        /* the bright end */
+  --kit-accent-rgb: 255, 32, 148;
+  --kit-line: linear-gradient(90deg, #ff2094, #9050dc 50%, #00d2ff);   /* the neon line under the menu bar */
+  --kit-page-top: #f5efff;
+  --kit-page-bottom: #ffffff;
+  --kit-card-bg: #ffffff;
+  --kit-pill-bg: #fde4f2;
+  --kit-pill-ink: #9a0b70;
+  --kit-shadow-rgb: 42, 15, 69;
 }
 
+/* Night (the Day/Night switch in the menu bar, or Settings, Appearance): Bootstrap switches its
+   own colours with data-bs-theme. */
+[data-bs-theme=dark] {
+  --kit-ink: #ece6f5;
+  --kit-blue: #4da3ff;
+  --kit-page-top: #07030d;
+  --kit-page-bottom: #110820;
+  --kit-card-bg: #1a0f2b;
+  --kit-pill-bg: #4a1145;
+  --kit-pill-ink: #ffd0ec;
+  --kit-shadow-rgb: 0, 0, 0;
+}
+
+/* The hidden attribute always hides, even on an element with a Bootstrap display utility
+   (d-flex is !important too and would win: a "0 games" banner showed). */
+[hidden][hidden] { display: none !important; }
+
 body {
-  background: linear-gradient(180deg, #f6f8ff 0%, #ffffff 45%);
+  background: linear-gradient(180deg, var(--kit-page-top) 0%, var(--kit-page-bottom) 45%);
   color: var(--kit-ink);
 }
 
 .kit-navbar {
-  background: linear-gradient(90deg, #111827 0%, var(--kit-navy) 55%, #1d4ed8 100%);
+  background: linear-gradient(90deg, var(--kit-deep) 0%, var(--kit-navy) 55%, var(--kit-bright) 100%);
+  border-bottom: 2px solid transparent;
+  border-image: var(--kit-line, none) 1;
 }
+/* The PRG32 logo is pixel art on black: keep it crisp, with rounded corners like a cartridge label. */
+.kit-logo { height: 36px; width: auto; border-radius: 6px; image-rendering: pixelated; }
 
 .kit-hero {
   color: white;
   background:
-    radial-gradient(circle at 80% 10%, rgba(252, 163, 17, 0.35), transparent 24rem),
-    linear-gradient(135deg, #111827 0%, #14213d 50%, #1d4ed8 100%);
+    radial-gradient(circle at 80% 10%, rgba(var(--kit-accent-rgb), 0.35), transparent 24rem),
+    linear-gradient(135deg, var(--kit-deep) 0%, var(--kit-navy) 50%, var(--kit-bright) 100%);
   box-shadow: 0 1rem 3rem rgba(20, 33, 61, 0.2);
 }
 
@@ -85,9 +120,9 @@ body {
 .metric-card {
   padding: 1rem;
   border-radius: 1rem;
-  background: white;
-  border: 1px solid rgba(17, 24, 39, .08);
-  box-shadow: 0 .5rem 1rem rgba(17, 24, 39, .05);
+  background: var(--kit-card-bg);
+  border: 1px solid rgba(var(--kit-shadow-rgb), .08);
+  box-shadow: 0 .5rem 1rem rgba(var(--kit-shadow-rgb), .05);
 }
 
 .metric {
@@ -100,20 +135,20 @@ body {
   border: 0;
   border-radius: 1.25rem;
   overflow: hidden;
-  box-shadow: 0 .8rem 2rem rgba(17, 24, 39, .08);
+  box-shadow: 0 .8rem 2rem rgba(var(--kit-shadow-rgb), .08);
   transition: transform .15s ease, box-shadow .15s ease;
 }
 
 .project-card:hover {
   transform: translateY(-3px);
-  box-shadow: 0 1rem 2.4rem rgba(17, 24, 39, .12);
+  box-shadow: 0 1rem 2.4rem rgba(var(--kit-shadow-rgb), .12);
 }
 
 .project-icon {
   height: 120px;
   background:
-    radial-gradient(circle at 70% 35%, #fca311 0 16px, transparent 17px),
-    linear-gradient(135deg, #14213d, #2563eb);
+    radial-gradient(circle at 70% 35%, var(--kit-gold) 0 16px, transparent 17px),
+    linear-gradient(135deg, var(--kit-navy), var(--kit-blue));
 }
 
 .tag-pill {
@@ -121,8 +156,8 @@ body {
   font-size: .75rem;
   padding: .2rem .55rem;
   border-radius: 999px;
-  background: #eef2ff;
-  color: #3730a3;
+  background: var(--kit-pill-bg);
+  color: var(--kit-pill-ink);
   margin: 0 .25rem .25rem 0;
 }
 
@@ -260,4 +295,221 @@ body {
 
 .doc-card:hover {
   border-color: var(--kit-blue);
+}
+
+/* History dropdown in the editor: earlier saved versions of a project. */
+.history-menu { min-width: min(30rem, 90vw); max-height: 60vh; overflow-y: auto; }
+
+/* The PRG32 screen: 320 x 200 pixels, scaled up without blurring. */
+.prg32-screen {
+  width: 100%;
+  max-width: 960px;
+  aspect-ratio: 320 / 200;
+  image-rendering: pixelated;
+  background: #000;
+}
+
+/* Cartridge Player debugger (static/js/prg32_debugger.js) */
+.dbg-code { max-height: 26rem; overflow-y: auto; }
+.dbg-code table { font-size: .8rem; }
+.dbg-code td { padding: .1rem .4rem; white-space: nowrap; }
+.dbg-code .dbg-gutter { width: 1.6rem; cursor: pointer; text-align: center; background: var(--bs-tertiary-bg); user-select: none; }
+.dbg-code .dbg-gutter:hover { background: var(--bs-secondary-bg); }
+.dbg-code .dbg-bp .dbg-gutter { color: #dc3545; }
+.dbg-code .dbg-current td { background: #075985; color: #fff; font-weight: 700; }
+.dbg-code .dbg-current .dbg-gutter { color: #45c9ff; }
+.dbg-code .dbg-op { color: #a21caf; font-weight: 600; }
+.dbg-code .dbg-word { color: var(--bs-secondary-color); }
+.dbg-code .dbg-current .dbg-word { color: #e0f2fe; }
+.dbg-code .dbg-current .dbg-op { color: #f5d0fe; }
+/* Source and block debugger (ADR-0015) */
+.dbg-blocks { height: 22rem; }
+.dbg-source { max-height: 22rem; overflow: auto; }
+.dbg-src-line { display: flex; white-space: pre; line-height: 1.35; }
+.dbg-src-line code { color: inherit; padding-left: .5rem; }
+.dbg-src-gutter { min-width: 3.2rem; text-align: right; border: 0; background: var(--bs-tertiary-bg); color: var(--bs-secondary-color); padding: 0 .4rem; font: inherit; }
+.dbg-src-gutter:hover, .dbg-src-gutter:focus-visible { background: var(--bs-secondary-bg); }
+.dbg-src-line.dbg-bp .dbg-src-gutter { color: #b02a37; font-weight: 700; }
+.dbg-src-line.dbg-bp .dbg-src-gutter::before { content: "● "; }
+.dbg-src-line.dbg-bp-off .dbg-src-gutter { color: #6c757d; }
+.dbg-src-line.dbg-bp-off .dbg-src-gutter::before { content: "○ "; }
+.dbg-src-line.dbg-current { background: #075985; color: #fff; }
+.dbg-src-line.dbg-current .dbg-src-gutter { background: #0c4a6e; color: #fff; }
+#dbgStackWords .dbg-current td { background: #075985; color: #fff; }
+.dbg-block-breakpoint > .blocklyPath { stroke: #dc3545 !important; stroke-width: 4px !important; }
+.dbg-block-active > .blocklyPath { stroke: #0284c7 !important; stroke-width: 5px !important; }
+.dbg-registers td { padding: .05rem .35rem; }
+.dbg-registers .dbg-changed { background: #fff3cd; color: #664d03; font-weight: 700; }
+.dbg-memory { max-height: 26rem; overflow: auto; font-size: .75rem; }
+body.dbg-mode-beginner .dbg-advanced { display: none !important; }
+body.dbg-mode-advanced .dbg-beginner { display: none !important; }
+
+/* Moved from inline styles so the Content Security Policy needs no inline style attributes. */
+/* The blocks pane in Day and Night (the menu bar's switch). Plain CSS, not a Blockly theme: a theme
+   makes Blockly write new <style> elements, which the offline pages' style hashes do not allow.
+   The labels get their own colour, so they never take the page's text colour. The blocks keep theirs. */
+#blocklyDiv { --kit-blocks-bg: #ffffff; --kit-blocks-list: #f3eefb; --kit-blocks-flyout: #e9e1f5;
+              --kit-blocks-ink: #160c24; --kit-blocks-grid: #d1d5db; --kit-blocks-scroll: #b9a7d3; }
+[data-bs-theme=dark] #blocklyDiv { --kit-blocks-bg: #120a1d; --kit-blocks-list: #1a0f2b; --kit-blocks-flyout: #241539;
+              --kit-blocks-ink: #ece6f5; --kit-blocks-grid: #3a2a55; --kit-blocks-scroll: #6b4f94; }
+#blocklyDiv .blocklyMainBackground { fill: var(--kit-blocks-bg) !important; }
+#blocklyDiv pattern line { stroke: var(--kit-blocks-grid); }
+#blocklyDiv .blocklyToolboxDiv, #blocklyDiv .blocklyToolbox { background-color: var(--kit-blocks-list); color: var(--kit-blocks-ink); }
+#blocklyDiv .blocklyTreeLabel, #blocklyDiv .blocklyToolboxCategoryLabel { color: var(--kit-blocks-ink); }
+#blocklyDiv .blocklyFlyoutBackground { fill: var(--kit-blocks-flyout) !important; fill-opacity: 1 !important; }
+#blocklyDiv .blocklyFlyoutLabelText { fill: var(--kit-blocks-ink); }
+#blocklyDiv .blocklyScrollbarHandle { fill: var(--kit-blocks-scroll); }
+#blocklyDiv { height: 72vh; min-height: 560px; width: 100%; border-radius: 1rem; overflow: hidden; }
+.kit-source-area { min-height: 560px; }
+.kit-w-kind { max-width: 140px; }
+.kit-w-address { width: 9rem; }
+.kit-tiny-close { font-size: .5rem; }
+
+/* --- IDE (templates/ide.html, ADR-0013) ------------------------------------------------- */
+.ide-page main.container-fluid { padding: 0 !important; }
+/* The IDE fills the window below the menu bar, however tall the bar is (it can wrap). Its
+   footer links are in the account menu, so the footer is left out here. */
+@media (min-width: 992px) {
+  .ide-page { display: flex; flex-direction: column; height: 100vh; }
+  .ide-page > main.container-fluid { flex: 1 1 auto; min-height: 0; }
+}
+.ide-page > .kit-footer { display: none; }
+/* JetBrains-style (ADR-0024): files | editor over the tool window | simulator. The pane sizes are
+   CSS variables the splitters change (shell.js); a hidden pane takes no room. */
+.ide {
+  --ide-tree-w: 15rem;
+  --ide-sim-w: 360px;
+  --ide-panel-h: 30vh;
+  --ide-split: 5px;
+  --ide-split-tree: var(--ide-split);
+  --ide-split-sim: var(--ide-split);
+  --ide-split-panel: var(--ide-split);
+  display: grid;
+  grid-template-columns: var(--ide-tree-w) var(--ide-split-tree) minmax(0, 1fr) var(--ide-split-sim) var(--ide-sim-w);
+  grid-template-rows: auto minmax(8rem, 1fr) var(--ide-split-panel) var(--ide-panel-h) auto;
+  grid-template-areas:
+    "toolbar toolbar toolbar toolbar toolbar"
+    "tree splitTree editor splitSim sim"
+    "tree splitTree splitPanel splitSim sim"
+    "tree splitTree panel splitSim sim"
+    "status status status status status";
+  height: 100%;
+  background: var(--bs-body-bg);
+}
+.ide[data-tree=closed] { --ide-tree-w: 0px; --ide-split-tree: 0px; }
+.ide[data-sim=closed] { --ide-sim-w: 0px; --ide-split-sim: 0px; }
+.ide[data-panel=closed] { --ide-panel-h: 0px; --ide-split-panel: 0px; }
+.ide[data-tree=closed] .ide-tree, .ide[data-tree=closed] .ide-splitter-tree,
+.ide[data-sim=closed] .ide-sim, .ide[data-sim=closed] .ide-splitter-sim,
+.ide[data-panel=closed] .ide-panel, .ide[data-panel=closed] .ide-splitter-panel { display: none; }
+.ide-splitter { background: var(--bs-border-color); touch-action: none; }
+.ide-splitter:hover, .ide-splitter:focus-visible, .ide-splitter.is-dragging { background: #0d6efd; outline: none; }
+.ide-splitter-tree { grid-area: splitTree; cursor: col-resize; }
+.ide-splitter-sim { grid-area: splitSim; cursor: col-resize; }
+.ide-splitter-panel { grid-area: splitPanel; cursor: row-resize; }
+.ide-pane-toggle[aria-pressed=true] { background: var(--bs-secondary-bg); }
+/* The simulator pane: the PRG32 screen, its controls and the on-screen buttons. */
+.ide-sim { grid-area: sim; display: flex; flex-direction: column; gap: .5rem; min-width: 0; min-height: 0; overflow: auto;
+           background: var(--bs-tertiary-bg); padding-bottom: .5rem; }
+.ide-sim-toolbar { display: flex; flex-wrap: wrap; gap: .35rem; align-items: center; padding: .5rem .5rem 0; }
+.ide-sim-screen { background: #000; padding: .5rem; }
+.ide-sim-screen canvas { display: block; width: 100%; height: auto; aspect-ratio: 320 / 200; image-rendering: pixelated; }
+.ide-sim-screen canvas[hidden] { display: none; }
+.ide-sim-status { min-height: 1.2em; display: flex; flex-wrap: wrap; gap: .25rem .75rem; }
+.ide-gamepad { display: flex; align-items: center; justify-content: space-around; gap: .5rem; padding: 0 .5rem; }
+.ide-dpad { display: grid; grid-template-columns: repeat(3, 2.2rem); grid-template-rows: repeat(3, 2.2rem); gap: 2px; }
+.ide-dpad [data-button=UP] { grid-area: 1 / 2; }
+.ide-dpad [data-button=LEFT] { grid-area: 2 / 1; }
+.ide-dpad [data-button=RIGHT] { grid-area: 2 / 3; }
+.ide-dpad [data-button=DOWN] { grid-area: 3 / 2; }
+.ide-ab { width: 2.6rem; height: 2.6rem; font-weight: 700; }
+.ide-console { list-style: none; margin: 0; padding: 0; font-family: var(--bs-font-monospace); font-size: .85rem; }
+.ide-console li { padding: .05rem 0; border-bottom: 1px solid var(--bs-border-color-translucent); }
+.ide-console time { color: var(--bs-secondary-color); margin-right: .5rem; }
+.ide-console .text-danger, .ide-console .text-success { font-weight: 600; }
+/* Sprite Lab and AudioStudio (_sprite_lab.html, _audio_studio.html): one layout for both tools,
+   as IDE tabs. Toolbar on top; list | main | side below. */
+.kit-tool { display: flex; flex-direction: column; height: 100%; min-height: 0; gap: .25rem; }
+.kit-tool-bar { display: flex; flex-wrap: wrap; align-items: center; gap: .35rem; padding: .4rem .5rem; border-bottom: 1px solid var(--bs-border-color); }
+.kit-tool-body { flex: 1; min-height: 0; display: grid; grid-template-columns: 13rem minmax(0, 1fr) 17rem; }
+.kit-tool-list, .kit-tool-side { overflow: auto; padding: .5rem; background: var(--bs-tertiary-bg); }
+.kit-tool-list { border-right: 1px solid var(--bs-border-color); }
+.kit-tool-side { border-left: 1px solid var(--bs-border-color); }
+.kit-tool-main { overflow: auto; padding: .75rem; display: flex; justify-content: center; align-items: flex-start; }
+.kit-tool-main-form { display: block; }
+.kit-tool-heading { font-size: .75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--bs-secondary-color); margin: .25rem 0 .4rem; }
+.kit-tool .sprite-canvas { max-width: 100%; height: auto; }
+.kit-sections { margin-bottom: .5rem; }
+.kit-sections .nav-link { text-align: left; padding: .3rem .6rem; color: var(--bs-body-color); transition: none; }
+.kit-sections .nav-link.active { color: #fff; }
+.kit-sections .nav-link:not(.active):hover, .kit-sections .nav-link:not(.active):focus { color: var(--bs-body-color); background: var(--bs-secondary-bg); }
+.ide-tool-panel { overflow: hidden; }
+@media (max-width: 1199.98px) {
+  .kit-tool-body { grid-template-columns: 11rem minmax(0, 1fr); }
+  .kit-tool-side { grid-column: 1 / -1; border-left: 0; border-top: 1px solid var(--bs-border-color); }
+}
+.ide-panel #debuggerCard { margin-top: 0 !important; border: 0; box-shadow: none !important; }
+.ide-toolbar { grid-area: toolbar; display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; padding: .5rem .75rem; border-bottom: 1px solid var(--bs-border-color); }
+.ide-tree { grid-area: tree; overflow: auto; border-right: 1px solid var(--bs-border-color); padding: .5rem 0; background: var(--bs-tertiary-bg); }
+.ide-tree ul { list-style: none; margin: 0; padding-left: .75rem; }
+.ide-tree > ul { padding-left: .25rem; }
+.ide-tree [role=treeitem] > .ide-tree-label { display: block; padding: .15rem .5rem; border-radius: .25rem; cursor: pointer; white-space: nowrap; }
+.ide-tree [role=treeitem]:focus { outline: none; }
+.ide-tree [role=treeitem]:focus > .ide-tree-label { outline: 2px solid #0d6efd; outline-offset: -2px; background: rgba(13, 110, 253, .1); }
+.ide-tree [role=treeitem][aria-expanded=false] > [role=group] { display: none; }
+.ide-editor { grid-area: editor; display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+.ide #blocklyDiv { height: auto; min-height: 0; border-radius: 0; }   /* fills the tab, not the classic editor's 72vh */
+.ide-tab-panels { flex: 1; min-height: 0; position: relative; }
+.ide-tab-panel { position: absolute; inset: 0; display: flex; flex-direction: column; }
+.ide-tab-panel[hidden] { display: none; }
+.ide-monaco, .ide-blockly { flex: 1; min-height: 0; }
+.ide-editor-toolbar { display: flex; justify-content: space-between; align-items: center; padding: .25rem .5rem; border-bottom: 1px solid var(--bs-border-color); }
+.ide-tabs { display: flex; gap: 2px; overflow-x: auto; border-bottom: 1px solid var(--bs-border-color); background: var(--bs-tertiary-bg); }
+.ide-tabs [role=tab] { border: 0; background: transparent; padding: .4rem .75rem; white-space: nowrap; color: var(--bs-body-color); border-bottom: 2px solid transparent; }
+.ide-tabs [role=tab][aria-selected=true] { background: var(--bs-body-bg); border-bottom-color: #0d6efd; font-weight: 600; }
+.ide-tabs [role=tab]:focus-visible { outline: 2px solid #0d6efd; outline-offset: -2px; }
+.ide-tab-close { margin-left: .4rem; opacity: .6; }
+.ide-panel { grid-area: panel; display: flex; flex-direction: column; min-height: 0; border-top: 1px solid var(--bs-border-color); }
+.ide-panel > [role=tabpanel] { flex: 1; overflow: auto; padding: .5rem .75rem; }
+.ide-panel > [role=tabpanel][hidden] { display: none; }
+.ide-output { margin: 0; white-space: pre-wrap; font-size: .85rem; }
+.ide-problems { list-style: none; padding: 0; margin: 0; }
+.ide-problem { border: 0; background: transparent; text-align: left; width: 100%; padding: .2rem .25rem; font-family: var(--bs-font-monospace); font-size: .85rem; }
+.ide-problem:hover, .ide-problem:focus-visible { background: var(--bs-tertiary-bg); }
+.ide-status { grid-area: status; display: flex; gap: 1.25rem; padding: .2rem .75rem; font-size: .8rem; background: var(--kit-navy); color: #fff; }
+.ide-sprite { image-rendering: pixelated; width: 8rem; border: 1px solid var(--bs-border-color); }
+/* Small screens: one column; the file tree slides in over the editor (Files button, Alt+0). */
+@media (max-width: 991.98px) {
+  .ide { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(16rem, 1fr) auto minmax(10rem, 35vh) auto;
+         grid-template-areas: "toolbar" "editor" "sim" "panel" "status"; height: auto; min-height: calc(100vh - 62px); }
+  .ide-splitter { display: none; }
+  .ide[data-sim=closed] .ide-sim, .ide[data-panel=closed] .ide-panel { display: flex; }
+  .ide-sim-screen { max-width: 480px; margin: 0 auto; width: 100%; }
+  .ide-tree { display: none; }
+  .ide.ide-tree-open .ide-tree { display: block; position: fixed; z-index: 1040; top: 0; bottom: 0; left: 0; width: min(80vw, 18rem); box-shadow: 0 0 1rem rgba(0,0,0,.3); }
+}
+
+/* Cloud storage (ADR-0019): only when a cloud account is connected. */
+.cloud-only { display: none; }
+.cloud-ready .cloud-only { display: inline-block; }
+
+/* --- footer and the storage note (base.html, storage_notice.js) ------------------------- */
+.kit-navbar .nav-link { white-space: nowrap; }
+/* When the menu does not fit on one line (wider fonts, an admin's longer menu), the account
+   links wrap onto a second row inside the bar instead of running off the page. */
+.kit-navbar .navbar-collapse { flex-wrap: wrap; row-gap: .25rem; }
+.kit-navbar .navbar-collapse > * { min-width: 0; }
+.kit-footer { background: var(--bs-tertiary-bg); }
+.kit-footer a { color: var(--bs-body-color); text-decoration: underline; }
+.kit-storage-notice a { color: var(--bs-body-color); text-decoration: underline; }
+#guestWelcome a { color: inherit; font-weight: 600; text-decoration: underline; }
+.kit-storage-notice {
+  position: fixed;
+  left: 1rem;
+  bottom: 1rem;
+  z-index: 1080;
+  max-width: 32rem;
+}
+@media (max-width: 575.98px) {
+  .kit-storage-notice { left: .5rem; right: .5rem; bottom: .5rem; max-width: none; }
 }

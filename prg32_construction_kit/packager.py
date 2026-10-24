@@ -1,16 +1,18 @@
 from __future__ import annotations
 
+import hashlib
 import json
-import os
+import re
 import shlex
 import shutil
 import struct
 import subprocess
-import zlib
 import zipfile
+import zlib
 from pathlib import Path
 from typing import Any
 
+from . import build_guard, build_sandbox, debug_build, debug_info, store_contract
 from .generator import c_identifier
 
 # Cartridge targets the kit knows how to build: the real board and the QEMU emulator.
@@ -55,7 +57,8 @@ def project_manifest(project: dict[str, Any], game_ir: dict[str, Any], architect
         "abi": "prg32-metadata-1.0",
         "id": f"org.prg32kit.{slug}",
         "title": project.get("title") or game_ir.get("title") or "PRG32 Blocks Game",
-        "version": "0.1.0",
+        # A saved change makes a new version; an unchanged project keeps it (contracts/prg32-store-contract-1.json).
+        "version": f"0.1.{int(project.get('version') or 0)}",
         "summary": project.get("description") or "A PRG32 game made with blocks.",
         "description": project.get("description") or "Built with PRG32-Construction-Kit.",
         "authors": [project.get("author") or "Student"],
@@ -71,28 +74,48 @@ def project_manifest(project: dict[str, Any], game_ir: dict[str, Any], architect
 
 
 def build_environment(work_dir: Path) -> dict[str, str]:
-    """Environment for one build: a private temporary folder inside the build's own folder.
+    """Environment for one build: a short allow-list (no secrets) and a private ``<build_id>/tmp``.
 
     The PRG32 builder already compiles in a fresh temporary folder, but pointing
     TMPDIR at ``<build_id>/tmp`` means nothing a build writes can ever land next
-    to another student's build, even with a different or older build command.
+    to another student's build. Nothing else of the server's environment
+    (secret keys, passwords, tokens) is passed on (build_sandbox.ALLOWED_ENV).
     """
-    tmp_dir = work_dir / "tmp"
-    tmp_dir.mkdir(parents=True, exist_ok=True)
-    env = os.environ.copy()
-    for name in ("TMPDIR", "TEMP", "TMP"):
-        env[name] = str(tmp_dir)
-    return env
+    (work_dir / "tmp").mkdir(parents=True, exist_ok=True)
+    return build_sandbox.build_env(work_dir)
+
+
+# An absolute folder path such as /opt/PRG32/components/ (not part of a URL or <build>/).
+_HOST_FOLDER = re.compile(r"(?<![\w>.:/])/(?:[^\s/:'\"()<>]+/)+")
+_SECRET_WORDS = ("token", "password", "secret", "key", "auth")
 
 
 def redact_build_path(log: str, work_dir: Path) -> str:
-    """Keep compiler logs useful without exposing the server's directory layout."""
-    return log.replace(str(work_dir), "<build>")
+    """Keep compiler logs useful without exposing the server's directory layout.
+
+    The build's own folder becomes ``<build>``; any other absolute folder (the
+    SDK, the Python installation) is dropped, keeping the file name.
+    """
+    return _HOST_FOLDER.sub("", log.replace(str(work_dir), "<build>"))
 
 
-def run_prg32_build(build_command: str, source_path: Path, out_path: Path, entry_prefix: str, name: str, architecture: str, cart_ram_kib: int, required_features: list[str] | None = None, timeout: float = 120) -> tuple[bool, str]:
+def public_command(parts: list[str]) -> str:
+    """A build command as students may see it: program names only, secret-looking options hidden."""
+    shown = []
+    for part in parts:
+        if "=" in part and any(word in part.split("=", 1)[0].lower() for word in _SECRET_WORDS):
+            shown.append(part.split("=", 1)[0] + "=<hidden>")
+        elif "/" in part or "\\" in part:
+            shown.append(Path(part.replace("\\", "/")).name)
+        else:
+            shown.append(part)
+    return " ".join(shown)
+
+
+def run_prg32_build(build_command: str, source_path: Path, out_path: Path, entry_prefix: str, name: str, architecture: str, cart_ram_kib: int, required_features: list[str] | None = None, timeout: float = 120, sandbox: build_sandbox.SandboxSettings | None = None, extra_args: list[str] | None = None) -> tuple[bool, str]:
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    command = shlex.split(build_command) + [
+    program = shlex.split(build_command)
+    command = program + [
         str(source_path),
         "--portable",
         "--architecture",
@@ -108,18 +131,47 @@ def run_prg32_build(build_command: str, source_path: Path, out_path: Path, entry
     ]
     for feature in required_features or []:
         command.extend(["--required-feature", feature])
+    command.extend(extra_args or [])  # --tool-prefix of a debug build (debug_build.py)
     if "multiplayer" in (required_features or []):
         # Also sets the cartridge header's multiplayer flag (PRG32 builder option).
         command.append("--multiplayer")
+    # The log shows the build command by program name (no server folders or secrets);
+    # the build's own paths stay and become <build>/... in redact_build_path.
+    shown = " ".join([public_command(program), *command[len(program):]])
+    # Every compiler run goes through the build sandbox (build_sandbox.py, ADR-0010): bubblewrap
+    # isolation plus build_guard.py's limits, timeout and process-group kill.
     try:
-        result = subprocess.run(command, check=False, capture_output=True, text=True, timeout=timeout,
-                                env=build_environment(out_path.parent))
-    except FileNotFoundError as exc:
-        return False, f"Build command not found: {exc}\nCommand: {' '.join(command)}"
+        prepared = build_sandbox.prepare(sandbox or build_sandbox.SandboxSettings(), command, out_path.parent,
+                                         build_command, timeout)
+    except build_sandbox.SandboxUnavailable as exc:
+        return False, f"{exc}\nCommand: {shown}"
+    try:
+        # The guard stops the build at `timeout`; the extra time only covers starting the sandbox.
+        result = subprocess.run(prepared.argv, check=False, capture_output=True, text=True, timeout=timeout + 30,
+                                env=prepared.env, pass_fds=prepared.pass_fds, cwd=prepared.cwd)
+    except FileNotFoundError:
+        return False, f"Build command not found: {public_command(program[:1])}\nCommand: {shown}"
     except subprocess.TimeoutExpired:
-        return False, f"Build command timed out after {timeout:g} seconds.\nCommand: {' '.join(command)}"
-    log = "$ " + " ".join(command) + "\n" + result.stdout + result.stderr
+        return False, f"Build command timed out after {timeout:g} seconds.\nCommand: {shown}"
+    finally:
+        prepared.close()
+    log = "$ " + shown + "\n" + (result.stdout or "") + (result.stderr or "")
+    if result.returncode == build_guard.TIMEOUT_EXIT:
+        log += f"\nBuild command timed out after {timeout:g} seconds."
+    elif result.returncode == build_guard.DISK_EXIT:
+        log += "\nThe build was stopped because it wrote more than one build may (PRG32_BUILD_MAX_MB)."
     return result.returncode == 0 and out_path.exists(), log
+
+
+def sha256_file(path: Path) -> tuple[str, int]:
+    """SHA-256 (hex) and size in bytes of a file."""
+    digest = hashlib.sha256()
+    size = 0
+    with path.open("rb") as stream:
+        for chunk in iter(lambda: stream.read(65536), b""):
+            digest.update(chunk)
+            size += len(chunk)
+    return digest.hexdigest(), size
 
 
 def prepare_package(
@@ -137,12 +189,17 @@ def prepare_package(
     build_timeout: float = 120,
     asm_source: str | None = None,
     build_language: str = "c",
+    sandbox: build_sandbox.SandboxSettings | None = None,
+    debug_info_enabled: bool = False,
+    audio: tuple[bytes, dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     """Write the sources, compile one cartridge per architecture and zip a Store bundle.
 
     ``c_source`` and ``asm_source`` are the generated files (either may be None);
     ``build_language`` ("c" or "asm") says which one the PRG32 builder compiles.
     Both files are put in the bundle so students can study them side by side.
+    ``audio`` is the project's AudioStudio sound (the AUD0 block and its document, ADR-0021):
+    the block goes into every cartridge, the document into the bundle's source/ folder.
     """
     slug = slugify(project.get("title") or game_ir.get("title"), "game")
     entry_prefix = game_ir.get("entry_prefix") or c_identifier(slug, "game")
@@ -161,23 +218,54 @@ def prepare_package(
     source_path = sources[build_language]
     (work_dir / "project.blocks.json").write_text(json.dumps(project_json, indent=2), encoding="utf-8")
     (work_dir / "game.ir.json").write_text(json.dumps(game_ir, indent=2), encoding="utf-8")
+    # A PRG32 Python project (ADR-0026): its game.py goes into the bundle beside the C and assembly made from it.
+    python_source = (project.get("game_json") or {}).get("source_python") \
+        if game_ir.get("source_mode") == "python" else None
+    if isinstance(python_source, str):
+        (work_dir / "game.py").write_text(python_source, encoding="utf-8")
     icon_path = work_dir / "icon.png"
     write_png_icon(icon_path)
+    audio_args: list[str] = []
+    if audio:
+        (work_dir / "audio.aud").write_bytes(audio[0])
+        (work_dir / "audio.json").write_text(json.dumps(audio[1], indent=2, sort_keys=True), encoding="utf-8")
+        audio_args = ["--audio-block", str(work_dir / "audio.aud")]
 
     logs: list[str] = []
     targets = architectures or SUPPORTED_ARCHITECTURES
     architectures: list[dict[str, str]] = []
+    attempts: list[dict[str, Any]] = []
+    cartridges: list[dict[str, Any]] = []
+    # Debug information (ADR-0015): the same cartridge, plus an ELF with DWARF kept aside.
+    tools = debug_build.prepare(work_dir, (sandbox or build_sandbox.SandboxSettings()).tool_prefix,
+                                build_command) if debug_info_enabled else None
+    debug_maps: dict[str, dict[str, Any]] = {}
     for arch in targets:
         out_name = f"{slug}-{arch}.prg32"
         out_path = work_dir / out_name
+        if tools:
+            tools.elf_out.unlink(missing_ok=True)
         ok, log = run_prg32_build(build_command, source_path, out_path, str(entry_prefix), slug, arch, cart_ram_kib,
-                                  game_ir.get("required_features", []), build_timeout)
+                                  game_ir.get("required_features", []), build_timeout, sandbox,
+                                  (["--tool-prefix", tools.prefix] if tools else []) + audio_args or None)
         logs.append(f"[{arch}]\n{redact_build_path(log, work_dir)}")
+        attempts.append({"architecture": arch, "ok": ok})
         if ok:
             architectures.append({"id": arch, "file": out_name})
+            # The cartridge's fingerprint: the same source and tools give the same SHA-256.
+            digest, size = sha256_file(out_path)
+            cartridges.append({"architecture": arch, "file": out_name, "sha256": digest, "bytes": size})
+            if tools:
+                elf = debug_build.collect(tools, arch, out_path)
+                debug_maps[arch] = debug_info.build_debug_map(elf) if elf else debug_info.unavailable(
+                    "no debug information matched this cartridge")
     shutil.rmtree(work_dir / "tmp", ignore_errors=True)
+    if tools:
+        shutil.rmtree(work_dir / debug_build.WRAPPED_TOOLS_DIR, ignore_errors=True)
 
     manifest = project_manifest(project, game_ir, architectures)
+    if architectures:
+        store_contract.validate_manifest(manifest)  # a manifest the Store would refuse never becomes a bundle
     manifest_path = work_dir / "manifest.json"
     manifest_path.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
 
@@ -189,6 +277,10 @@ def prepare_package(
             zf.write(path, f"source/{path.name}")
         zf.write(work_dir / "project.blocks.json", "source/project.blocks.json")
         zf.write(work_dir / "game.ir.json", "source/game.ir.json")
+        if isinstance(python_source, str):
+            zf.write(work_dir / "game.py", "source/game.py")
+        if audio:
+            zf.write(work_dir / "audio.json", "source/audio.json")
         for arch in architectures:
             zf.write(work_dir / arch["file"], arch["file"])
         if not architectures:
@@ -210,4 +302,40 @@ def prepare_package(
         "cart_ram_kib": cart_ram_kib,
         "log": "\n\n".join(logs),
         "publishable": bool(architectures),
+        "attempts": attempts,
+        "cartridges": cartridges,
+        "sandbox": _sandbox_mode(sandbox),
+        "debug_maps": debug_maps,
     }
+
+
+def _sandbox_mode(sandbox: build_sandbox.SandboxSettings | None) -> str:
+    try:
+        return build_sandbox.effective_mode(sandbox or build_sandbox.SandboxSettings())
+    except build_sandbox.SandboxUnavailable:
+        return "unavailable"
+
+
+def check_source(*, build_root: Path, project: dict[str, Any], game_ir: dict[str, Any], source: str, language: str,
+                 build_command: str, cart_ram_kib: int, timeout: float,
+                 sandbox: build_sandbox.SandboxSettings | None = None) -> tuple[bool, str]:
+    """Compile and link one validated source exactly as a build does, and keep nothing.
+
+    The IDE's compiler check (ADR-0014): the PRG32 builder runs in the build sandbox, in its
+    own ``build_<id>/`` folder with a private ``tmp/``, for one target; the folder is removed
+    afterwards, cartridge included. Returns whether it compiled and the log without server
+    paths, for the Problems panel."""
+    import uuid
+
+    slug = slugify(project.get("title") or game_ir.get("title"), "game")
+    entry_prefix = game_ir.get("entry_prefix") or c_identifier(slug, "game")
+    work_dir = build_root / f"build_{uuid.uuid4().hex[:12]}"
+    work_dir.mkdir(parents=True, exist_ok=True)
+    try:
+        source_path = work_dir / ("game.c" if language == "c" else "game.S")
+        source_path.write_text(source, encoding="utf-8")
+        ok, log = run_prg32_build(build_command, source_path, work_dir / f"{slug}-check.prg32", str(entry_prefix), slug,
+                                  "qemu", cart_ram_kib, game_ir.get("required_features", []), timeout, sandbox)
+        return ok, redact_build_path(log, work_dir)
+    finally:
+        shutil.rmtree(work_dir, ignore_errors=True)

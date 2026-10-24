@@ -12,17 +12,21 @@ almost every line carries an explanation.
 
 ## Choosing what to generate
 
-In the project editor, the **Generated code** list next to the Generate button
-has three choices:
+In the IDE, **Generate** makes both files from the blocks: `game.c` and `game.S`
+(and `game.ir.json`), each a read-only tab you can copy or **Download**. A Blocks project
+also gets `game.py`: the same game in PRG32 Python (see below). **Run** and
+**Compile** build from the C. In the **Build** tab, *Compile Blocks from* chooses what
+Compile builds:
 
-| Choice | Generate makes | Compile Cartridge builds from |
-| --- | --- | --- |
-| C | `generated C` | the C |
-| Assembly (RISC-V) | `generated assembly` | the assembly (`game.S`) |
-| C + Assembly | both files | the C; the bundle holds both files |
+| Choice | Compile builds from |
+| --- | --- |
+| the generated C | the C |
+| the generated assembly | the assembly (`game.S`) |
+| C (and put the assembly in the bundle too) | the C; the bundle holds both files |
 
-The editor remembers the choice for each project in this browser. Advanced C
-projects always use their own C: assembly is generated from Blocks only.
+The IDE remembers the choice for each project in this browser. C and assembly projects
+always build their own code: assembly is generated from Blocks only. To make a Blocks
+project into C or assembly for good, use **Project, Convert to C…** (one way).
 
 Through the API, send `{"source_language": "c" | "asm" | "both"}` to
 `POST /api/projects/<id>/convert` or `/package` (see `api.md`).
@@ -124,3 +128,26 @@ convention requires.
   in binary.
 - **Signed or unsigned?** `prg32_kit_get` checks a list position with a single
   `bgeu`. Explain why a negative position fails that test too.
+
+## The blocks in PRG32 Python (`game.py`)
+
+For a Blocks project, **Generate** also writes the blocks as PRG32 Python
+(`python_language.md`), in **Generated (read-only)**, so you can put the same game side
+by side as blocks, Python, C and assembly. It is only for reading: the cartridge is still
+built from `game.c`. To write a game in Python yourself, make a **Python** project.
+
+- Each block becomes one Python line or `if`/`for`: *change x by -3* is `x -= 3`,
+  *repeat i from 0 to 9* is `for i in range(10):` (Python's `range` stops before its end),
+  *if LEFT is held* is `if prg32.held(prg32.LEFT):`.
+- Brackets follow Python, not C. C reads `a & b == c` as `a & (b == c)`; Python would read
+  the same text as `(a & b) == c`, so `game.py` writes the brackets C meant.
+- Python keeps numbers and tests (`True`/`False`) apart. A number used as a test becomes
+  `n != 0`. A test used as a number (C counts true as 1) is stored first:
+  `if b == c: as_number = 1 else: as_number = 0`, then `a & as_number`.
+- What PRG32 Python cannot say yet (a variable named like a Python word, such as `lambda`,
+  or a test used as a number in a line with `random`) is listed at the top of `game.py`, and
+  that line is left as a note where it would be.
+
+The kit's tests run every example twice in the browser simulator, from the blocks and
+from `game.py` compiled back, with the same buttons and random numbers, and check that every
+variable, list item and pixel is the same in every frame (`tests/test_py_generator.py`).

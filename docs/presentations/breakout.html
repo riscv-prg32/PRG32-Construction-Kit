@@ -154,12 +154,12 @@ if (ball_x + 2 &gt;= 5 &amp;&amp; ball_y + 2 &gt;= 30 &amp;&amp; col &lt; 10 &am
 <li>Dashboard, <strong>Examples</strong>, <em>Breakout</em> (complete game), <strong>Add</strong>.</li>
 <li><strong>Play</strong>: LEFT/RIGHT, then A to launch.</li>
 <li>Watch <code>bricks_left</code>, <code>score</code> and <code>mode</code> in the debug line under the screen.</li>
-<li><strong>Generate C</strong> and find <code>static int bricks[60];</code>.</li>
+<li><strong>Generate</strong> and find <code>static int bricks[60];</code>.</li>
 </ol></div></div>
 </section>
 <section class="slide shots">
 <!-- class: shots -->
-<h2>Build and run the cartridge</h2><div class="cols"><div class="col"><p><strong>Download .prg32</strong> builds <code>breakout-esp32c6.prg32</code>; the arrow next to it builds <code>breakout-qemu.prg32</code>.</p>
+<h2>Build and run the cartridge</h2><div class="cols"><div class="col"><p><strong>Compile</strong> builds <code>breakout-esp32c6.prg32</code> and <code>breakout-qemu.prg32</code>; download them from the links in the IDE's <strong>Build</strong> tab.</p>
 <pre><code class="language-bash">python3 -m prg32 qemu upload breakout-qemu.prg32
 python3 -m prg32 qemu run
 </code></pre>

@@ -1,6 +1,6 @@
 # Many Students Building at Once
 
-In a lab, thirty students may click **Compile Cartridge** or **Download .prg32**
+In a lab, thirty students may click **Compile**
 in the same minute. Some of them may have the same project open in two
 browser windows too. The kit is designed for that.
 

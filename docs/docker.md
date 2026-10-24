@@ -36,7 +36,8 @@ see `concurrent_builds.md`.
 
 SQLite is the convenient single-container default. For a multi-user production
 deployment, run PostgreSQL as a separate managed service or Compose service,
-install `requirements-production.txt`, and provide:
+install `requirements-production.txt` (the image already installs exactly
+`requirements.lock`, which includes it; `dependencies.md`), and provide:
 
 ```yaml
 environment:
@@ -52,6 +53,8 @@ the large cartridge and bundle files themselves.
 ```bash
 docker build -t prg32-construction-kit .
 docker run --rm -it \
+  --security-opt seccomp="$PWD/docker/seccomp-kit.json" \
+  --security-opt no-new-privileges:true --cap-drop ALL \
   -p 5090:5090 \
   --env-file .env \
   -e PRG32_KIT_DATA=/data \
@@ -72,8 +75,8 @@ On Linux, `host.docker.internal` may need extra configuration. A simple classroo
 ## Cartridge builds in the container
 
 The image installs the RISC-V compiler (ESP-IDF 5.4's `riscv32-esp-elf-gcc`)
-and the PRG32 build tools by default, so **Compile Cartridge** and
-**Download .prg32** work straight away. Check it:
+and the PRG32 build tools by default, so **Compile** and
+the cartridge downloads work straight away. Check it:
 
 ```bash
 docker compose exec prg32-construction-kit python tools/check_build.py

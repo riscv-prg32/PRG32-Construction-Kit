@@ -35,6 +35,6 @@ point for students' own versions.
 
 Sketches are not source-for-source translations. Platformer physics,
 streamed samples, tracker music and Wi-Fi setup need APIs that are only
-available in **Advanced C** (see `prg32_feature_coverage.md`). Open a sketch,
-make a change, run it in the simulator, then use **Generate C** to see the
+available in **C** projects (see `prg32_feature_coverage.md`). Open a sketch,
+make a change, run it in the simulator, then use **Generate** to see the
 deterministic C generated from its saved Blocks JSON.

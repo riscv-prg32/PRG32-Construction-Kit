@@ -6,6 +6,7 @@ import json
 import zipfile
 
 import pytest
+from conftest import make_store_bundle, review_and_publish
 
 from prg32_construction_kit.db import get_resource
 from prg32_construction_kit.sample_data import default_blocks
@@ -76,13 +77,13 @@ def test_upstream_blocks_examples_can_be_listed_and_imported(client):
     response = client.get("/api/examples")
     assert response.status_code == 200
     examples = response.get_json()["examples"]
-    # Five complete games replace four of the 22 upstream sketches: 22 - 4 + 5.
-    assert len(examples) == 23
+    # Five complete games replace four of the 22 upstream sketches: 22 - 4 + 5, plus one PRG32 Python game.
+    assert len(examples) == 24
     assert {example["slug"] for example in examples} >= {"pong", "raycaster", "audio_synth", "snake"}
     kinds = {example["slug"]: example["kind"] for example in examples}
     assert [slug for slug, kind in kinds.items() if kind == "game"] == [
         "pong", "breakout", "space_invaders", "asteroids", "snake"]
-    assert kinds["raycaster"] == "sketch"
+    assert kinds["raycaster"] == "sketch" and kinds["brick_catch_python"] == "python"
 
     response = client.post("/api/examples/pong/import", json={})
     assert response.status_code == 201
@@ -209,8 +210,9 @@ def test_advanced_c_rejects_host_includes_and_wrong_entry_names(client):
     assert client.post(f"/api/projects/{project['id']}/package", json={}).status_code == 400
 
 
-def test_publish_profile_tokens_are_write_only(client, monkeypatch, tmp_path):
-    response = client.post("/api/publish_profiles", json={"name": "Store", "store_url": "http://store.test", "bearer_token": "secret-123"})
+def test_publish_profile_tokens_are_write_only(app, client, monkeypatch, tmp_path):
+    app.config["STORE_ALLOWED_ORIGINS"] = ["https://store.test"]  # the administrator's approved Store (ADR-0008)
+    response = client.post("/api/publish_profiles", json={"name": "Store", "store_url": "https://store.test", "bearer_token": "secret-123"})
     assert response.status_code == 201
     profile = response.get_json()
     assert "bearer_token" not in profile and profile["has_token"] is True
@@ -221,13 +223,10 @@ def test_publish_profile_tokens_are_write_only(client, monkeypatch, tmp_path):
     sent = {}
     def fake_publish(store_url, token, path):
         sent.update(store_url=store_url, token=token, path=path)
-        return {"ok": True, "status_code": 200, "endpoint": store_url, "response": {}}
+        return {"ok": True, "status_code": 200, "response": {}}
     monkeypatch.setattr("prg32_construction_kit.routes.publish_bundle", fake_publish)
-    bundle = tmp_path / "builds" / "bundle.zip"
-    bundle.parent.mkdir(parents=True, exist_ok=True)
-    bundle.write_bytes(b"zip")
-    artifact = client.post("/api/artifacts", json={"kind": "store_bundle", "name": "b.zip", "path": str(bundle)}).get_json()
-    response = client.post("/api/publish", json={"profile_id": profile["id"], "bundle_artifact_id": artifact["id"]})
+    artifact = make_store_bundle(client, monkeypatch)
+    response = review_and_publish(client, profile["id"], artifact["id"])
     assert response.status_code == 200
     assert sent["token"] == "secret-123"
     assert "secret-123" not in response.get_data(as_text=True)
@@ -299,6 +298,8 @@ def test_package_failure_marks_build_failed(client, monkeypatch):
 
 
 def test_package_uses_configured_build_root(client, app, monkeypatch):
+    # As on a server without the build tools, whatever this machine has installed.
+    monkeypatch.setattr("prg32_construction_kit.routes.toolchain_present", lambda _command: False)
     monkeypatch.setattr("prg32_construction_kit.packager.subprocess.run",
                         lambda command, **_kw: SimpleNamespace(returncode=1, stdout="", stderr="no toolchain"))
     project = client.post("/api/projects", json={"title": "Where", "blocks_json": default_blocks()}).get_json()

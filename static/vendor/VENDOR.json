@@ -1,0 +1,98 @@
+{
+  "schema": "prg32-kit-vendor-1",
+  "packages": [
+    {
+      "name": "bootstrap",
+      "version": "5.3.3",
+      "license": "MIT",
+      "source": "https://registry.npmjs.org/bootstrap/-/bootstrap-5.3.3.tgz",
+      "integrity": "sha512-8HLCdWgyoMguSO9o+aH+iuZ+aht+mzW0u3HIMzVu7Srrpv7EBBxTnrFlSCskwdY1+EOFQSm7uMJhNQHkdPcmjg==",
+      "files": {
+        "bootstrap/5.3.3/css/bootstrap.min.css": "3c8f27e6009ccfd710a905e6dcf12d0ee3c6f2ac7da05b0572d3e0d12e736fc8",
+        "bootstrap/5.3.3/js/bootstrap.bundle.min.js": "0833b2e9c3a26c258476c46266e6877fc75218625162e0460be9a3a098a61c6c",
+        "bootstrap/5.3.3/LICENSE": "8c14611ae41ac6fd543c13349f22188eb12c69b3e59105c5eca3925a8e4eca3e"
+      },
+      "extra_sources": []
+    },
+    {
+      "name": "bootstrap-icons",
+      "version": "1.11.3",
+      "license": "MIT",
+      "source": "https://registry.npmjs.org/bootstrap-icons/-/bootstrap-icons-1.11.3.tgz",
+      "integrity": "sha512-+3lpHrCw/it2/7lBL15VR0HEumaBss0+f/Lb6ZvHISn1mlK83jjFpooTLsMWbIjJMDjDjOExMsTxnXSIT4k4ww==",
+      "files": {
+        "bootstrap-icons/1.11.3/font/bootstrap-icons.min.css": "f643d6fe7e679f9de3e16311600c5ef5cd6b098f7a3a8828fcc29255d2b33e62",
+        "bootstrap-icons/1.11.3/font/fonts/bootstrap-icons.woff2": "476adf42b40325098fcfa8b36ab3e769186bb4f6ce6a249753e2e1a9c22bf99e",
+        "bootstrap-icons/1.11.3/font/fonts/bootstrap-icons.woff": "bb1de989b83970f6f4e54de1cd974c5cba55b73582da5e1b225a6d0edf029483",
+        "bootstrap-icons/1.11.3/LICENSE": "0fb3e11bd57e896c5a512afd64864d28a37de45d19835016c87ca1ad19ead969"
+      },
+      "extra_sources": []
+    },
+    {
+      "name": "jquery",
+      "version": "3.7.1",
+      "license": "MIT",
+      "source": "https://registry.npmjs.org/jquery/-/jquery-3.7.1.tgz",
+      "integrity": "sha512-m4avr8yL8kmFN8psrbFFFmB/If14iN5o9nw/NgnnM+kybDJpRsAynV2BsfpTYrTRysYUdADVD7CkUUizgkpLfg==",
+      "files": {
+        "jquery/3.7.1/jquery.min.js": "fc9a93dd241f6b045cbff0481cf4e1901becd0e12fb45166a8f17f95823f0b1a",
+        "jquery/3.7.1/LICENSE.txt": "d4db9ebe6f29f5168eac45ad713f055623ac5d0dcd5ba92da23d650ae012020d"
+      },
+      "extra_sources": []
+    },
+    {
+      "name": "blockly",
+      "version": "11.2.1",
+      "license": "Apache-2.0",
+      "source": "https://registry.npmjs.org/blockly/-/blockly-11.2.1.tgz",
+      "integrity": "sha512-20sCwSwX2Z6UxR/er0B5y6wRFukuIdvOjc7jMuIwyCO/yT35+UbAqYueMga3JFA9NoWPwQc+3s6/XnLkyceAww==",
+      "files": {
+        "blockly/11.2.1/blockly.min.js": "e04d9ff8e1508b5d96405f919527d3a3d339b13cc1c5bd2e1a0b87ea08ebaa57",
+        "blockly/11.2.1/media/1x1.gif": "a1d88b2c952b790f5f23473c63ef99473327d02e11ebe174799ad912db08f629",
+        "blockly/11.2.1/media/click.mp3": "1048f2539ac47e4eaa4bd1688968c0d7b9956bd6fef507644ee5131924c6517c",
+        "blockly/11.2.1/media/click.ogg": "90f628941d7aa10db43d0eb84fb0975f55b27c5b9130bcfbd6d6e14db20f469b",
+        "blockly/11.2.1/media/click.wav": "1c2194a0d12a71d416d97665c437a8b0b0fb83c14b26a5fcd7013089e164845b",
+        "blockly/11.2.1/media/delete-icon.svg": "3eee02b06f476ce746566808178543389e53cd4e9d7fd32b69e329eff4fc71ef",
+        "blockly/11.2.1/media/delete.mp3": "6ea0afab062cb3ba5409dc65d7a9fdf85d602b1870d231d80bdf3cc5b32432b6",
+        "blockly/11.2.1/media/delete.ogg": "b96d6b00dc8d3053eefff8997fed91c81e3710569d47a1214e0321ed1963b664",
+        "blockly/11.2.1/media/delete.wav": "8adfc57da35dd3b6ad65adc67b9cf9f2efebcbd94baaf1671ab320331497abef",
+        "blockly/11.2.1/media/disconnect.mp3": "849465a8968836ab5b24b68a7289ee76ca1a6a50ba87a295a32efe1e507e3451",
+        "blockly/11.2.1/media/disconnect.ogg": "63ceb6668890b173166eb207a665d02c1b3a8ff80fc20414ec25ebe1b2e88aac",
+        "blockly/11.2.1/media/disconnect.wav": "af6be7442f17223421cc012c59bf72bd5303e2878d0287acb4d0368d3995cf8a",
+        "blockly/11.2.1/media/dropdown-arrow.svg": "bc3873b086b25a01c417cb3b5fe61fd7eef360b8f7c85c2c7f7b802a2626faf9",
+        "blockly/11.2.1/media/foldout-icon.svg": "0ac7478b56f5e5cc583c26710cb7ee5edcedb563cde65cd2385f4dd3e9e08c64",
+        "blockly/11.2.1/media/handclosed.cur": "4a1637e16f33e1b02f96f699ada695edededfd089530372126d375ad9ed2f0a5",
+        "blockly/11.2.1/media/handdelete.cur": "e53ef200d76fef617bd2e307a100d778834ad49784f80c1abc6da547e50b8040",
+        "blockly/11.2.1/media/handopen.cur": "d2ec9a81d9a76b0f64b7168e5f05ee660ffb6ba7e35695caaf9851e6b01a04fd",
+        "blockly/11.2.1/media/pilcrow.png": "4e4aa37ce0c162b0239203e538a7ae8eee706554514ff611cfb3a94baaa66167",
+        "blockly/11.2.1/media/quote0.png": "a06f7a05d9c86851266e55357090d3af37ff24e116258c94d52c4f436c614c7c",
+        "blockly/11.2.1/media/quote1.png": "56c52fc75cf7d2926d7502aaa7e95efb46c229aa266306d932795325722aba35",
+        "blockly/11.2.1/media/resize-handle.svg": "c95d07b3fb3aaa088e6665061b01952e7ea9dda462b7032a85e095bf8a12855b",
+        "blockly/11.2.1/media/sprites.png": "6be49176dc8bef41c97958e02903c77c5e298b8dc26d2a09905851bfb73cc459",
+        "blockly/11.2.1/media/sprites.svg": "862de0ee081fa9baf504e673736d7446439c15246452258cab964a82566ef40f",
+        "blockly/11.2.1/LICENSE": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+      },
+      "extra_sources": [
+        "https://raw.githubusercontent.com/google/blockly/blockly-v11.2.1/LICENSE"
+      ]
+    },
+    {
+      "name": "monaco-editor",
+      "version": "0.52.2",
+      "license": "MIT",
+      "source": "https://registry.npmjs.org/monaco-editor/-/monaco-editor-0.52.2.tgz",
+      "integrity": "sha512-GEQWEZmfkOGLdd3XK8ryrfWz3AIP8YymVXiPHEdewrUq7mh0qrKrfHLNCXcbB6sTnMLnOZ3ztSiKcciFUkIJwQ==",
+      "files": {
+        "monaco-editor/0.52.2/min/vs/loader.js": "28f3584fd04b182dfce15a9a1ce35b25bea22b31464aee500372bed18b7fee1a",
+        "monaco-editor/0.52.2/min/vs/editor/editor.main.js": "90b588bc0b624e24052a576e1bcab2eaffec7bc666895188862eebd9c9745782",
+        "monaco-editor/0.52.2/min/vs/editor/editor.main.css": "857bc0beafefbcc83ab5cf3510e929391c0314add43ee1a4cb8ecaf4726abbac",
+        "monaco-editor/0.52.2/min/vs/base/worker/workerMain.js": "dbe4aa4f2874f5768e8d98e94281667c0bc493e02dd9760adca930699ff3279b",
+        "monaco-editor/0.52.2/min/vs/base/browser/ui/codicons/codicon/codicon.ttf": "0f1d5219934e96e83b8db162d60b4d8c09b5de1e7d38031cbafe4a3c0f2889c9",
+        "monaco-editor/0.52.2/min/vs/basic-languages/cpp/cpp.js": "52124e8e802797f89ca8e4415c6b9d63a55264de54ea1b38b5aa663159c46c1b",
+        "monaco-editor/0.52.2/LICENSE": "33e4ff1a06ef62ba21788ea162564ee8165269a24a9ce6ef301837447eab0ac6",
+        "monaco-editor/0.52.2/ThirdPartyNotices.txt": "790537262fc78a764e121e6b92b959bcd3f5c310b47d9d9b9e92e17fe0af5336"
+      },
+      "extra_sources": []
+    }
+  ]
+}

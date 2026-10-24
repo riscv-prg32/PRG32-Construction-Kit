@@ -1,74 +1,88 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540" style="white-space: pre" font-family="Helvetica, Arial, sans-serif">
-  <title>PRG32-Construction-Kit pipeline: from blocks to cartridges on three runtimes</title>
-  <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-      <path d="M0,0 L10,5 L0,10 z" fill="#334155"/>
-    </marker>
-  </defs>
-  <rect width="960" height="540" fill="#ffffff"/>
-  <text x="480" y="40" text-anchor="middle" font-size="24" font-weight="bold" fill="#0f172a">One source of truth, three runtimes</text>
-  <text x="480" y="66" text-anchor="middle" font-size="15" fill="#475569">Every step is deterministic: the same Blocks JSON always gives the same IR, the same C and the same cartridge.</text>
-
-  <!-- authoring column -->
-  <g font-size="15">
-    <rect x="30" y="100" width="190" height="80" rx="12" fill="#fde68a" stroke="#b45309"/>
-    <text x="125" y="133" text-anchor="middle" font-weight="bold" fill="#78350f">Blockly editor</text>
-    <text x="125" y="156" text-anchor="middle" fill="#78350f">students drag blocks</text>
-
-    <rect x="30" y="230" width="190" height="80" rx="12" fill="#e0e7ff" stroke="#4338ca"/>
-    <text x="125" y="263" text-anchor="middle" font-weight="bold" fill="#312e81">Blocks JSON</text>
-    <text x="125" y="286" text-anchor="middle" fill="#312e81">projects.blocks_json</text>
-
-    <rect x="30" y="360" width="190" height="80" rx="12" fill="#dcfce7" stroke="#15803d"/>
-    <text x="125" y="393" text-anchor="middle" font-weight="bold" fill="#14532d">Game IR</text>
-    <text x="125" y="416" text-anchor="middle" fill="#14532d">checked expressions</text>
-  </g>
-  <line x1="125" y1="180" x2="125" y2="226" stroke="#334155" stroke-width="2.5" marker-end="url(#arrow)"/>
-  <line x1="125" y1="310" x2="125" y2="356" stroke="#334155" stroke-width="2.5" marker-end="url(#arrow)"/>
-
-  <!-- simulator branch -->
-  <rect x="300" y="360" width="200" height="80" rx="12" fill="#f1f5f9" stroke="#475569"/>
-  <text x="400" y="393" text-anchor="middle" font-size="15" font-weight="bold" fill="#0f172a">Browser simulator</text>
-  <text x="400" y="416" text-anchor="middle" font-size="14" fill="#334155">JavaScript, 30 FPS</text>
-  <line x1="220" y1="400" x2="296" y2="400" stroke="#334155" stroke-width="2.5" marker-end="url(#arrow)"/>
-
-  <!-- C branch -->
-  <rect x="300" y="230" width="200" height="80" rx="12" fill="#fee2e2" stroke="#b91c1c"/>
-  <text x="400" y="263" text-anchor="middle" font-size="15" font-weight="bold" fill="#7f1d1d">Generated C</text>
-  <text x="400" y="286" text-anchor="middle" font-size="14" fill="#7f1d1d">init / update / draw + helpers</text>
-  <path d="M220,385 C260,385 260,270 296,270" fill="none" stroke="#334155" stroke-width="2.5" marker-end="url(#arrow)"/>
-
-  <rect x="300" y="100" width="200" height="80" rx="12" fill="#f5f3ff" stroke="#6d28d9"/>
-  <text x="400" y="128" text-anchor="middle" font-size="15" font-weight="bold" fill="#4c1d95">PRG32 builder</text>
-  <text x="400" y="149" text-anchor="middle" font-size="13" fill="#4c1d95">riscv32-esp-elf-gcc rv32imc</text>
-  <text x="400" y="167" text-anchor="middle" font-size="13" fill="#4c1d95">portable ABI table</text>
-  <line x1="400" y1="230" x2="400" y2="184" stroke="#334155" stroke-width="2.5" marker-end="url(#arrow)"/>
-
-  <!-- cartridge -->
-  <rect x="580" y="100" width="150" height="80" rx="12" fill="#0f172a"/>
-  <text x="655" y="133" text-anchor="middle" font-size="17" font-weight="bold" fill="#facc15">.prg32</text>
-  <text x="655" y="156" text-anchor="middle" font-size="13" fill="#e2e8f0">PRG2 cartridge</text>
-  <line x1="500" y1="140" x2="576" y2="140" stroke="#334155" stroke-width="2.5" marker-end="url(#arrow)"/>
-
-  <!-- runtimes -->
-  <g font-size="14">
-    <rect x="790" y="90" width="150" height="70" rx="10" fill="#ecfeff" stroke="#0e7490"/>
-    <text x="865" y="119" text-anchor="middle" font-weight="bold" fill="#164e63">ESP32-C6 board</text>
-    <text x="865" y="140" text-anchor="middle" fill="#164e63">esp32c6 cartridge</text>
-    <rect x="790" y="185" width="150" height="70" rx="10" fill="#ecfeff" stroke="#0e7490"/>
-    <text x="865" y="214" text-anchor="middle" font-weight="bold" fill="#164e63">QEMU</text>
-    <text x="865" y="235" text-anchor="middle" fill="#164e63">ESP32-C3 firmware</text>
-    <rect x="790" y="280" width="150" height="70" rx="10" fill="#ecfeff" stroke="#0e7490"/>
-    <text x="865" y="309" text-anchor="middle" font-weight="bold" fill="#164e63">PRG32-QT</text>
-    <text x="865" y="330" text-anchor="middle" fill="#164e63">RV32IMAC host</text>
-    <rect x="790" y="375" width="150" height="70" rx="10" fill="#fefce8" stroke="#a16207"/>
-    <text x="865" y="404" text-anchor="middle" font-weight="bold" fill="#713f12">Cartridge Store</text>
-    <text x="865" y="425" text-anchor="middle" fill="#713f12">publish bundle</text>
-  </g>
-  <path d="M730,130 L786,125" stroke="#334155" stroke-width="2" marker-end="url(#arrow)" fill="none"/>
-  <path d="M730,145 C760,150 760,220 786,220" stroke="#334155" stroke-width="2" marker-end="url(#arrow)" fill="none"/>
-  <path d="M730,160 C770,170 760,315 786,315" stroke="#334155" stroke-width="2" marker-end="url(#arrow)" fill="none"/>
-  <path d="M700,180 C720,300 760,410 786,410" stroke="#334155" stroke-width="2" marker-end="url(#arrow)" fill="none"/>
-
-  <text x="480" y="500" text-anchor="middle" font-size="14" fill="#475569">Tools: tools/simulate.js runs the simulator headless; tools/runtime_check.py builds every example and runs it on PRG32-QT and QEMU.</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 590" role="img" aria-labelledby="title desc" font-family="Helvetica, Arial, sans-serif">
+  <title id="title">From Blocks, C or assembly to a PRG32 cartridge</title>
+  <desc id="desc">Three ways to write a game: Blocks, Advanced C and handwritten assembly. Blocks are saved as JSON and turned into a validated game IR; C and assembly are checked by the validators before anything is compiled. The deterministic generators write C and, on request, RV32IM assembly that does exactly what the C does, with explanations; AudioStudio&#x27;s sounds become an AUD0 block. The PRG32 toolchain in the build sandbox makes a .prg32 cartridge (a debug build adds source maps and is byte-identical). The cartridge runs in the browser&#x27;s WebAssembly runtime with the debugger, on PRG32-QT, in QEMU, on a PRG32 console (not verified) or goes to the Cartridge Store as a reviewed bundle. Run makes the same cartridge for the IDE&#x27;s simulator, also for guests, and keeps nothing; Compile keeps it for download and publishing (signed in).</desc>
+  <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#334155"/></marker></defs>
+  <rect width="1240" height="590" fill="#ffffff"/>
+  <text x="620" y="34" font-size="22" text-anchor="middle" fill="#0f172a" font-weight="bold">One validated, deterministic pipeline</text>
+  <text x="620" y="58" font-size="13" text-anchor="middle" fill="#475569">The same saved project always gives the same IR, the same C and assembly, and the same cartridge.</text>
+  <rect x="20" y="90" width="200" height="70" rx="10" fill="#e0f2fe" stroke="#0369a1" stroke-width="1.5"/>
+  <text x="30" y="111" font-size="14" font-weight="bold" fill="#0f172a">Blocks</text>
+  <text x="30" y="130" font-size="12.5" fill="#475569">projects.blocks_json</text>
+  <rect x="20" y="200" width="200" height="70" rx="10" fill="#e0f2fe" stroke="#0369a1" stroke-width="1.5"/>
+  <text x="30" y="221" font-size="14" font-weight="bold" fill="#0f172a">Advanced C</text>
+  <text x="30" y="240" font-size="12.5" fill="#475569">game_json.source_c</text>
+  <rect x="20" y="310" width="200" height="70" rx="10" fill="#e0f2fe" stroke="#0369a1" stroke-width="1.5"/>
+  <text x="30" y="331" font-size="14" font-weight="bold" fill="#0f172a">Handwritten assembly</text>
+  <text x="30" y="350" font-size="12.5" fill="#475569">game_json.source_asm</text>
+  <rect x="20" y="420" width="200" height="70" rx="10" fill="#e0f2fe" stroke="#0369a1" stroke-width="1.5"/>
+  <text x="30" y="441" font-size="14" font-weight="bold" fill="#0f172a">AudioStudio</text>
+  <text x="30" y="460" font-size="12.5" fill="#475569">instruments, effects, tracker</text>
+  <rect x="270" y="90" width="210" height="70" rx="10" fill="#fef9c3" stroke="#a16207" stroke-width="1.5"/>
+  <text x="280" y="111" font-size="14" font-weight="bold" fill="#0f172a">Game IR</text>
+  <text x="280" y="130" font-size="12.5" fill="#475569">checked expressions</text>
+  <rect x="270" y="200" width="210" height="70" rx="10" fill="#fef9c3" stroke="#a16207" stroke-width="1.5"/>
+  <text x="280" y="221" font-size="14" font-weight="bold" fill="#0f172a">C validator</text>
+  <text x="280" y="240" font-size="12.5" fill="#475569">portable ABI, no libc</text>
+  <rect x="270" y="310" width="210" height="70" rx="10" fill="#fef9c3" stroke="#a16207" stroke-width="1.5"/>
+  <text x="280" y="331" font-size="14" font-weight="bold" fill="#0f172a">Assembly validator</text>
+  <text x="280" y="350" font-size="12.5" fill="#475569">directive allow-list</text>
+  <rect x="270" y="420" width="210" height="70" rx="10" fill="#ecfccb" stroke="#4d7c0f" stroke-width="1.5"/>
+  <text x="280" y="441" font-size="14" font-weight="bold" fill="#0f172a">AUD0 block</text>
+  <text x="280" y="460" font-size="12.5" fill="#475569">8 voices, stereo, deterministic</text>
+  <rect x="530" y="90" width="230" height="90" rx="10" fill="#ecfccb" stroke="#4d7c0f" stroke-width="1.5"/>
+  <text x="540" y="111" font-size="14" font-weight="bold" fill="#0f172a">Generators</text>
+  <text x="540" y="130" font-size="12.5" fill="#475569">deterministic C, RV32IM asm,</text>
+  <text x="540" y="147" font-size="12.5" fill="#475569">per-block comments, source maps</text>
+  <rect x="530" y="250" width="230" height="110" rx="10" fill="#ecfccb" stroke="#4d7c0f" stroke-width="1.5"/>
+  <text x="540" y="271" font-size="14" font-weight="bold" fill="#0f172a">Build sandbox</text>
+  <text x="540" y="290" font-size="12.5" fill="#475569">PRG32 toolchain (rv32imc)</text>
+  <text x="540" y="307" font-size="12.5" fill="#475569">bubblewrap, no network,</text>
+  <text x="540" y="324" font-size="12.5" fill="#475569">one folder per build</text>
+  <rect x="800" y="250" width="160" height="110" rx="10" fill="#fff7ed" stroke="#c2410c" stroke-width="1.5"/>
+  <text x="810" y="271" font-size="14" font-weight="bold" fill="#0f172a">.prg32 cartridge</text>
+  <text x="810" y="290" font-size="12.5" fill="#475569">PRG2 header + code</text>
+  <text x="810" y="307" font-size="12.5" fill="#475569">+ AUD0, SHA-256</text>
+  <text x="810" y="324" font-size="12.5" fill="#475569">debug build: same bytes</text>
+  <rect x="1005" y="80" width="225" height="70" rx="10" fill="#e0f2fe" stroke="#0369a1" stroke-width="1.5"/>
+  <text x="1015" y="101" font-size="14" font-weight="bold" fill="#0f172a">Browser runtime</text>
+  <text x="1015" y="120" font-size="12.5" fill="#475569">IDE simulator + debugger</text>
+  <rect x="1152" y="87" width="70" height="17" rx="8" fill="#15803d"/>
+  <text x="1187" y="99" font-size="11" text-anchor="middle" fill="#ffffff">verified</text>
+  <rect x="1005" y="170" width="225" height="70" rx="10" fill="#f5f3ff" stroke="#6d28d9" stroke-width="1.5"/>
+  <text x="1015" y="191" font-size="14" font-weight="bold" fill="#0f172a">PRG32-QT</text>
+  <text x="1015" y="210" font-size="12.5" fill="#475569">web API delivery</text>
+  <rect x="1152" y="177" width="70" height="17" rx="8" fill="#15803d"/>
+  <text x="1187" y="189" font-size="11" text-anchor="middle" fill="#ffffff">verified</text>
+  <rect x="1005" y="260" width="225" height="70" rx="10" fill="#f5f3ff" stroke="#6d28d9" stroke-width="1.5"/>
+  <text x="1015" y="281" font-size="14" font-weight="bold" fill="#0f172a">QEMU</text>
+  <text x="1015" y="300" font-size="12.5" fill="#475569">ESP32-C3 firmware</text>
+  <rect x="1152" y="267" width="70" height="17" rx="8" fill="#15803d"/>
+  <text x="1187" y="279" font-size="11" text-anchor="middle" fill="#ffffff">verified</text>
+  <rect x="1005" y="350" width="225" height="70" rx="10" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4 4"/>
+  <text x="1015" y="371" font-size="14" font-weight="bold" fill="#0f172a">PRG32 console</text>
+  <text x="1015" y="390" font-size="12.5" fill="#475569">no recorded delivery</text>
+  <rect x="1138" y="357" width="84" height="17" rx="8" fill="#64748b"/>
+  <text x="1180" y="369" font-size="11" text-anchor="middle" fill="#ffffff">unverified</text>
+  <rect x="1005" y="440" width="225" height="70" rx="10" fill="#f5f3ff" stroke="#6d28d9" stroke-width="1.5"/>
+  <text x="1015" y="461" font-size="14" font-weight="bold" fill="#0f172a">Cartridge Store</text>
+  <text x="1015" y="480" font-size="12.5" fill="#475569">reviewed bundle</text>
+  <rect x="1152" y="447" width="70" height="17" rx="8" fill="#15803d"/>
+  <text x="1187" y="459" font-size="11" text-anchor="middle" fill="#ffffff">verified</text>
+  <path d="M220,125 L270,125" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#arrow)"/>
+  <path d="M220,235 L270,235" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#arrow)"/>
+  <path d="M220,345 L270,345" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#arrow)"/>
+  <path d="M220,455 L270,455" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#arrow)"/>
+  <path d="M480,125 L530,130" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#arrow)"/>
+  <path d="M480,235 L560,250" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#arrow)"/>
+  <path d="M480,345 L530,330" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#arrow)"/>
+  <path d="M480,455 L600,455 L600,360" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#arrow)"/>
+  <path d="M645,180 L645,250" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#arrow)"/>
+  <path d="M760,305 L800,305" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#arrow)"/>
+  <path d="M960,305 L982,305 L982,115 L1005,115" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#arrow)"/>
+  <path d="M960,305 L982,305 L982,205 L1005,205" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#arrow)"/>
+  <path d="M960,305 L982,305 L982,295 L1005,295" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#arrow)"/>
+  <path d="M960,305 L982,305 L982,385 L1005,385" fill="none" stroke="#334155" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#arrow)"/>
+  <path d="M960,305 L982,305 L982,475 L1005,475" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="20" y="540" font-size="13" text-anchor="start" fill="#0f172a">Never compiled: C an AI suggests, or anything a validator refuses. Students can open the generated C and assembly.</text>
+  <text x="20" y="568" font-size="13" text-anchor="start" fill="#0f172a">Run: the same cartridge for the IDE&#x27;s simulator, also for guests; nothing is kept. Compile (signed in): kept for download and publishing.</text>
 </svg>

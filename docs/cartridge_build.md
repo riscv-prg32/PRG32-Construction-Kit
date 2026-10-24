@@ -2,10 +2,10 @@
 
 ## What the app generates
 
-When a student clicks **Generate C**, the app converts Blocks JSON to game IR and then deterministic C.
+When a student clicks **Generate**, the app converts Blocks JSON to game IR and then deterministic C.
 With **Assembly (RISC-V)** or **C + Assembly** chosen in the **Generated code**
 list, the same game IR also becomes explained RISC-V (RV32IM) assembly, and
-**Compile Cartridge** can build the cartridge from `game.S` instead of
+**Compile** can build the cartridge from `game.S` instead of
 `game.c`. See `generated_code.md`.
 
 Generated C exports three functions:
@@ -20,12 +20,12 @@ The function prefix comes from the project title, sanitized as a C identifier.
 
 ## Advanced C projects
 
-Choose **Advanced C** in the project editor to write against the full portable
-PRG32 cartridge ABI. `prg32.h` also declares resident-only services; the
+Choose **C** in the **New Project** dialog (or convert a Blocks project once, with
+**Project, Convert to C…** in the IDE) to write against the full portable PRG32 cartridge ABI. `prg32.h` also declares resident-only services; the
 cartridge toolchain reports an undefined symbol if one is used. Use
 [PRG32's ABI specification](https://github.com/riscv-prg32/PRG32/blob/main/prg32/abi/prg32_abi.json)
-to identify the portable functions. **Copy generated Blocks C** provides a
-starting point. Save the C source before compiling. The source remains in the
+to identify the portable functions. A new C project starts from a small working game, generated and explained line
+by line. Save the C source before compiling. The source remains in the
 project JSON export, and the bundle includes the exact saved file as
 `source/game.c`. Define `<title_prefix>_init`, `<title_prefix>_update`, and
 `<title_prefix>_draw` with `void` arguments; for a project titled "My Game",
@@ -35,7 +35,8 @@ read files on the server while it compiles: directives hidden behind comments,
 `%:` digraphs and `??=` trigraphs, inline assembly (`asm`, `__asm__`),
 `_Pragma`, `__has_include`, and the `##` token-pasting operator. The PRG32
 compiler checks the actual API calls and types.
-List any firmware features the cartridge needs in **Required PRG32 features**.
+List any firmware features the cartridge needs in **Required PRG32 features**
+(**Project, Properties…** in the IDE).
 The kit passes those names to PRG32's `--required-feature` option so an
 incompatible runtime rejects the cartridge before execution. For Blocks
 projects the kit works the features out from the blocks (sound blocks need
@@ -43,13 +44,14 @@ projects the kit works the features out from the blocks (sound blocks need
 get the builder's `--multiplayer` option, which marks the cartridge header.
 See `prg32_feature_coverage.md`.
 
-The browser simulator runs Blocks projects. Test Advanced C cartridges in
-PRG32 QEMU or on the physical ESP32-C6 board. The editor does not compile C
-proposed by an AI assistant or silently change saved source.
+**Run** builds the project and plays it in the simulator on the right of the IDE (the
+PRG32 core in WebAssembly), for C, assembly and Blocks alike; test on PRG32 QEMU or the
+ESP32-C6 board too. The kit does not compile C proposed by an AI assistant or silently
+change saved source.
 
 ## Compile and download a cartridge
 
-When a student clicks **Compile Cartridge**, the app:
+When a student clicks **Compile**, the app:
 
 1. saves the Blockly JSON;
 2. regenerates C;
@@ -60,14 +62,14 @@ When a student clicks **Compile Cartridge**, the app:
    afterwards) and a time limit of `PRG32_BUILD_TIMEOUT` seconds;
 6. creates directly downloadable `.prg32` artifacts and a Cartridge Store bundle zip.
 
-After a successful build, green download buttons appear above the editor. The
+After a successful build, download links appear in the IDE's **Build** tab. The
 portable cartridge can be uploaded to a device slot through the PRG32 setup
 page or the upstream `python3 -m prg32 esp32c6 upload` command.
 
 ## Download a .prg32 cartridge in one click
 
 Students who only want the finished cartridge do not need to download the C
-source. Click **Download .prg32** in the editor toolbar: the app saves the
+source. Click **Compile** in the IDE, then the download link in the **Build** tab: the app saves the
 project, generates C, compiles a cartridge for the PRG32 board (ESP32-C6), and
 the browser downloads the `.prg32` file straight away. Use the small arrow next
 to the button to choose **QEMU emulator** instead.

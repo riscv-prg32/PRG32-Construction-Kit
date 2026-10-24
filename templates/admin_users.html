@@ -1,46 +1,58 @@
 {% extends "base.html" %}
-{% block title %}Users - PRG32-Construction-Kit{% endblock %}
+{% block title %}{{ t("admin_users.users", name=(site.name)) }}{% endblock %}
 {% block content %}
 <div class="row g-4">
   <div class="col-lg-4">
     <div class="card shadow-sm mb-4">
-      <div class="card-header"><strong id="userFormTitle"><i class="bi bi-person-plus"></i> New user</strong></div>
+      <div class="card-header"><strong id="userFormTitle"><i class="bi bi-person-plus"></i> {{ t("admin_users.new_user") }}</strong></div>
       <div class="card-body">
         <form id="userForm" class="vstack gap-2">
           <input type="hidden" name="id">
-          <input class="form-control" name="username" placeholder="Username" required>
-          <input class="form-control" name="email" type="email" placeholder="Email" required>
-          <input class="form-control" name="password" type="password" autocomplete="new-password" placeholder="Password (empty = keep / single sign-on only)">
-          <select class="form-select" name="role">
+          <input class="form-control" name="username" placeholder="{{ t('common.username') }}" required>
+          <input class="form-control" name="email" type="email" placeholder="{{ t('common.email') }}" required>
+          <input class="form-control" name="password" type="password" autocomplete="new-password" placeholder="{{ t('admin_users.password_empty_keep_single_sign_on') }}">
+          <label class="small text-muted mb-0" for="userRole">{{ t("admin_users.role_shared_with_the_cartridge_store") }}</label>
+          <select class="form-select" name="role" id="userRole">
             {% for role in roles %}<option value="{{ role }}" {% if role == 'user' %}selected{% endif %}>{{ role }}</option>{% endfor %}
           </select>
-          <input class="form-control" name="groups" placeholder="Groups, comma separated (e.g. editors, class-3b)">
+          <label class="small text-muted mb-0" for="userKitRole">{{ t("admin_users.in_class_academic_role") }}</label>
+          <select class="form-select" name="kit_role" id="userKitRole">
+            <option value="student" selected>{{ t("admin_users.student") }}</option><option value="teacher">{{ t("admin_users.teacher") }}</option>
+            <option value="facilitator">{{ t("admin_users.facilitator") }}</option><option value="service">{{ t("admin_users.service_api_tokens_only") }}</option>
+          </select>
+          <input class="form-control" name="groups" placeholder="{{ t('admin_users.groups_comma_separated_e_g_editors') }}">
           <div class="d-flex gap-2">
-            <button class="btn btn-primary" type="submit">Save user</button>
-            <button class="btn btn-outline-secondary" type="reset" id="resetUserForm">New</button>
+            <button class="btn btn-primary" type="submit">{{ t("admin_users.save_user") }}</button>
+            <button class="btn btn-outline-secondary" type="reset" id="resetUserForm">{{ t("common.new") }}</button>
           </div>
         </form>
       </div>
     </div>
+    <div class="card shadow-sm mb-4">
+      <div class="card-body small">
+        <a href="/admin/identity"><i class="bi bi-mortarboard"></i> {{ t("common.school_sign_in_providers") }}</a> ·
+        <a href="/classes"><i class="bi bi-people"></i> {{ t("common.classes") }}</a>
+      </div>
+    </div>
     <div class="card shadow-sm">
-      <div class="card-header"><strong><i class="bi bi-arrow-left-right"></i> Cartridge Store sync</strong></div>
+      <div class="card-header"><strong><i class="bi bi-arrow-left-right"></i> {{ t("admin_users.cartridge_store_sync") }}</strong></div>
       <div class="card-body">
         {% if sso.enabled %}
-        <p class="small">Users are kept in sync with <strong>{{ sso.peer_url }}</strong>. Changes waiting to be sent: <span id="ssoPending">{{ sso.pending }}</span>.</p>
-        <button class="btn btn-outline-primary" id="syncNow"><i class="bi bi-arrow-repeat"></i> Sync now</button>
+        <p class="small">{{ t("admin_users.users_are_kept_in_sync_with") }} <strong>{{ sso.peer_url }}</strong>{{ t("admin_users.changes_waiting_to_be_sent") }} <span id="ssoPending">{{ sso.pending }}</span>.</p>
+        <button class="btn btn-outline-primary" id="syncNow"><i class="bi bi-arrow-repeat"></i> {{ t("admin_users.sync_now") }}</button>
         <pre class="small mt-2 mb-0 d-none" id="syncResult"></pre>
         {% else %}
-        <p class="small text-muted mb-0">Off. Set <code>PRG32_SSO_SECRET</code> and <code>PRG32_SSO_PEER_URL</code> on this kit and on the Cartridge Store to share accounts. See <a href="/docs/accounts_and_sso.md">Accounts and single sign-on</a>.</p>
+        <p class="small text-muted mb-0">{{ t("admin_users.off_set") }} <code>PRG32_SSO_SECRET</code> {{ t("admin_users.and") }} <code>PRG32_SSO_PEER_URL</code> {{ t("admin_users.on_this_kit_and_on_the") }} <a href="/docs/accounts_and_sso.md">{{ t("admin_users.accounts_and_single_sign_on") }}</a>.</p>
         {% endif %}
       </div>
     </div>
   </div>
   <div class="col-lg-8">
     <div class="card shadow-sm">
-      <div class="card-header"><strong><i class="bi bi-people"></i> Users</strong></div>
+      <div class="card-header"><strong><i class="bi bi-people"></i> {{ t("common.users") }}</strong></div>
       <div class="table-responsive">
         <table class="table table-sm align-middle mb-0">
-          <thead><tr><th>Username</th><th>Email</th><th>Role</th><th>Groups</th><th>Last sign-in</th><th></th></tr></thead>
+          <thead><tr><th>{{ t("common.username") }}</th><th>{{ t("common.email") }}</th><th>{{ t("common.role") }}</th><th>{{ t("common.in_class") }}</th><th>{{ t("common.groups") }}</th><th>{{ t("admin_users.last_sign_in") }}</th><th></th></tr></thead>
           <tbody id="userRows"></tbody>
         </table>
       </div>

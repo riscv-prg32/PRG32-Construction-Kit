@@ -1,0 +1,875 @@
+{
+  "schema": "prg32-kit-capabilities-1",
+  "statuses": [
+    "missing",
+    "prototype",
+    "partial",
+    "implemented",
+    "reference-verified",
+    "blocked"
+  ],
+  "note": "Self-assessed status with evidence. audit_score is copied from audit/REQUIREMENTS_MATRIX.md and only the auditor changes it.",
+  "capabilities": [
+    {
+      "id": "IDE-01",
+      "title": "IDE shell: project tree, tabs, panels, palette, keyboard",
+      "status": "implemented",
+      "audit_score": 3,
+      "source": [
+        "templates/ide.html",
+        "static/js/ide/shell.js::openPalette",
+        "static/js/ide/shell.js::cycleRegion",
+        "static/js/ide/shell.js::renderTree",
+        "static/js/ide/ide.js::compile",
+        "templates/ide.html",
+        "static/js/ide/shell.js::showPane"
+      ],
+      "tests": [
+        "tests/test_ide_browser.py::test_keyboard_only_c_workflow",
+        "tests/test_ide_browser.py::test_ide_has_no_csp_violations_or_serious_accessibility_problems",
+        "tests/test_ide_browser.py::test_small_screens_show_the_files_on_demand",
+        "tests/test_ide_browser.py::test_blocks_stay_editable_and_generated_code_is_read_only",
+        "tests/test_ide_layout_browser.py::test_panes_resize_hide_and_are_remembered",
+        "tests/test_ide_layout_browser.py::test_the_project_menu_replaces_the_classic_editor"
+      ],
+      "note": "Tree, tabs, panels, palette, status bar, F6 regions, small-screen fallback (ADR-0013). axe-core scan only; no screen-reader session. JetBrains layout (ADR-0024): files | editor over the tool window (Problems, Build, Console, Debug, Git) | simulator; splitters, Alt+1/4/9; the classic editor is retired."
+    },
+    {
+      "id": "IDE-02",
+      "title": "Blockly editing with deterministic generation and block-to-source maps",
+      "status": "implemented",
+      "audit_score": 3,
+      "source": [
+        "prg32_construction_kit/generator.py::blocks_to_ir_traced",
+        "prg32_construction_kit/source_maps.py::build_source_map",
+        "prg32_construction_kit/generator.py::blocks_to_c",
+        "static/js/blockly_blocks.js"
+      ],
+      "tests": [
+        "tests/test_examples.py::test_example_projects_generate_clean_deterministic_c",
+        "tests/test_examples.py::test_simulator_reads_blocks_into_the_same_ir",
+        "tests/test_ide_browser.py::test_blocks_stay_editable_and_generated_code_is_read_only",
+        "tests/test_source_debugger.py::test_source_maps_leave_the_generated_code_unchanged",
+        "tests/test_source_debugger.py::test_every_statement_block_is_mapped_with_nested_paths",
+        "tests/test_source_debugger.py::test_block_breakpoint_finds_the_active_block"
+      ],
+      "note": "Block id -> IR path -> C/assembly lines (source_map artifact) -> addresses (DWARF line table), saved per build; generated code unchanged (ADR-0015)."
+    },
+    {
+      "id": "IDE-03",
+      "title": "C editor with language services",
+      "status": "implemented",
+      "audit_score": 4,
+      "source": [
+        "static/js/ide/language.js::cDiagnostics",
+        "static/js/ide/language.js::cCompletions",
+        "static/js/ide/language.js::signatureHelp",
+        "static/js/ide/language.js::definition",
+        "static/js/ide/language.js::normalizeCompilerOutput",
+        "static/js/ide/monaco_language.js::register",
+        "tools/build_language_index.py::build",
+        "prg32_construction_kit/source_project.py::validate_c_source",
+        "prg32_construction_kit/routes.py::api_check_project",
+        "prg32_construction_kit/packager.py::check_source"
+      ],
+      "tests": [
+        "tests/test_language_services.py::test_every_fixture_gives_exactly_the_recorded_answer",
+        "tests/test_language_services.py::test_live_c_checks_agree_with_the_server",
+        "tests/test_language_services.py::test_live_checks_agree_with_the_server_on_generated_sources",
+        "tests/test_language_services.py::test_resident_only_functions_are_never_offered_as_portable",
+        "tests/test_language_services.py::test_compiler_messages_come_back_without_server_paths",
+        "tests/test_ide_browser.py::test_c_language_services_work_offline_with_the_keyboard",
+        "tests/test_ide_browser.py::test_keyboard_only_c_workflow",
+        "tests/test_source_project.py::test_host_access_tricks_are_rejected",
+        "tests/test_compiler_check.py::test_the_real_compiler_reports_the_exact_place",
+        "tests/test_ide_browser.py::test_the_compiler_check_after_saving_adds_its_problems"
+      ],
+      "note": "Offline completion (portable ABI only), hover, signature help, F12 into a generated prg32.h, live diagnostics at exact ranges that mirror validate_c_source, resident-only calls, compiler messages without paths (ADR-0014). No C type or scope analysis: deeper errors come from the compiler. After every save the real PRG32 compiler checks the saved, validated source in the build sandbox (nothing kept) and its messages join Problems at their lines (ADR-0014); compiler errors from Compile now reach their line too (<build>/ paths)."
+    },
+    {
+      "id": "IDE-04",
+      "title": "RISC-V assembly editor with language services",
+      "status": "implemented",
+      "audit_score": 4,
+      "source": [
+        "static/js/ide/language.js::asmDiagnostics",
+        "static/js/ide/language.js::asmCompletions",
+        "static/js/ide/language.js::hover",
+        "static/js/ide/monaco_setup.js::registerAssembly",
+        "tools/build_language_index.py::build",
+        "prg32_construction_kit/source_project.py::validate_asm_source",
+        "prg32_construction_kit/routes.py::api_check_project",
+        "prg32_construction_kit/packager.py::check_source"
+      ],
+      "tests": [
+        "tests/test_language_services.py::test_every_fixture_gives_exactly_the_recorded_answer",
+        "tests/test_language_services.py::test_live_assembly_checks_agree_with_the_server",
+        "tests/test_language_services.py::test_suggested_headers_and_directives_are_exactly_the_allowed_ones",
+        "tests/test_language_services.py::test_kit_generated_sources_are_clean_in_the_editor",
+        "tests/test_ide_browser.py::test_assembly_language_services",
+        "tests/test_ide_browser.py::test_assembly_problems_mark_the_line_and_jump_there",
+        "tests/test_frontend_offline.py::test_the_assembly_grammar_knows_exactly_the_allowed_directives",
+        "tests/test_compiler_check.py::test_the_real_compiler_reports_the_exact_place",
+        "tests/test_ide_browser.py::test_the_compiler_check_after_saving_adds_its_problems"
+      ],
+      "note": "RV32IMC + Zicsr instruction, register and allowed-directive completion, PRG32 call help with the ilp32 calling convention, labels and F12, live diagnostics at exact ranges mirroring validate_asm_source plus unknown instructions/registers (ADR-0014). Operand types are not checked. After every save the real PRG32 compiler checks the saved, validated source in the build sandbox (nothing kept) and its messages join Problems at their lines (ADR-0014); compiler errors from Compile now reach their line too (<build>/ paths)."
+    },
+    {
+      "id": "PRJ-01",
+      "title": "Versioned project model, archive, history, migrations",
+      "status": "implemented",
+      "audit_score": 3,
+      "source": [
+        "prg32_construction_kit/project_format.py::build_manifest",
+        "prg32_construction_kit/project_format.py::upgrade",
+        "prg32_construction_kit/routes.py::save_revision",
+        "prg32_construction_kit/routes.py::restore_plan",
+        "prg32_construction_kit/sample_data.py::starter_project",
+        "prg32_construction_kit/routes.py::api_convert_project_type"
+      ],
+      "tests": [
+        "tests/test_project_format.py::test_archive_round_trip_keeps_blocks_sprites_and_assets",
+        "tests/test_project_format.py::test_legacy_json_export_is_migrated",
+        "tests/test_restore_relationships.py::test_restore_updates_in_place_adds_and_removes",
+        "tests/test_project_starters.py::test_c_and_assembly_starters_pass_the_handwritten_checks",
+        "tests/test_project_type.py::test_blocks_convert_once_and_the_blocks_stay_in_history"
+      ],
+      "note": "Autosave and conflict-safe saves done (ADR-0017); no project search and no automatic merge of concurrent edits (the student chooses). New Project offers Blocks, C or assembly; C and assembly start from the starter game turned into code (/api/starters). Project types are fixed; Blocks convert to C or assembly once (ADR-0024)."
+    },
+    {
+      "id": "BLD-01",
+      "title": "Blocks, C and assembly build real PRG32 cartridges",
+      "status": "implemented",
+      "audit_score": 4,
+      "source": [
+        "prg32_construction_kit/packager.py::prepare_package",
+        "prg32_construction_kit/packager.py::run_prg32_build",
+        "prg32_construction_kit/build_check.py::source_modes_check",
+        "tools/reproduce_toolchain_checks.py"
+      ],
+      "tests": [
+        "tests/test_wasm_runtime.py::test_kit_cartridges_run_the_same_in_the_browser_core",
+        "tests/test_concurrency.py::test_real_cartridges_for_many_students_and_windows",
+        "tests/test_handwritten_assembly.py::test_handwritten_assembly_builds_a_real_cartridge",
+        "tests/test_concurrency.py::test_real_cartridges_from_blocks_c_assembly_and_python",
+        "tests/test_concurrency.py::test_source_modes_check_builds_each_way_of_writing_a_game"
+      ],
+      "note": "Real-build tests need the PRG32 toolchain and skip without it. tools/reproduce_toolchain_checks.py runs them with Docker only: on 2026-10-21 (kit b547d82) check_build built Blocks (as C and as assembly), Advanced C and handwritten assembly for both targets, the fixtures rebuilt byte for byte, and 112 toolchain tests passed (docs/evidence/toolchain); the same cartridges, built on macOS, have identical SHA-256."
+    },
+    {
+      "id": "BLD-02",
+      "title": "Isolated, reproducible builds with provenance",
+      "status": "implemented",
+      "audit_score": 4,
+      "source": [
+        "prg32_construction_kit/provenance.py::build_provenance",
+        "prg32_construction_kit/build_sandbox.py::prepare",
+        "prg32_construction_kit/build_guard.py::main"
+      ],
+      "tests": [
+        "tests/test_build_provenance.py::test_same_inputs_give_the_same_provenance",
+        "tests/test_build_sandbox.py::test_timeout_kills_the_whole_process_group",
+        "tests/test_concurrency.py::test_parallel_builds_from_many_browsers_stay_separate"
+      ],
+      "note": "bubblewrap escape tests run only where bubblewrap works (Linux container, CI)."
+    },
+    {
+      "id": "WASM-01",
+      "title": "Browser runtime is the pinned PRG32-QT core",
+      "status": "reference-verified",
+      "audit_score": 4,
+      "source": [
+        "wasm/prg32_core_api.cpp::prg32_frame",
+        "tools/build_wasm.py::build",
+        "prg32_construction_kit/run_build.py::run"
+      ],
+      "tests": [
+        "tests/test_wasm_runtime.py::test_wasm_runs_golden_cartridges_exactly_like_native",
+        "tests/test_wasm_runtime.py::test_native_harness_draws_exactly_like_prg32qt_headless",
+        "tests/test_run_build.py::test_every_project_type_runs_and_nothing_is_kept",
+        "tests/test_ide_layout_browser.py::test_a_guest_runs_blocks_c_and_assembly_in_the_simulator"
+      ],
+      "note": "Reference: PRG32-QT prg32qt-headless and native core, revision in static/wasm/BUILD.json. Run builds (ADR-0024): every project type runs in the IDE simulator, for accounts and guests, nothing kept."
+    },
+    {
+      "id": "WASM-02",
+      "title": "Browser host: framebuffer, input, timing, audio, offline",
+      "status": "partial",
+      "audit_score": 4,
+      "source": [
+        "static/js/prg32_runtime.js::PRG32CartridgePlayer",
+        "static/service-worker.js"
+      ],
+      "tests": [
+        "tests/test_wasm_runtime.py::test_audio_calls_reach_the_browser_host",
+        "tests/test_browser_offline.py::test_offline_player_runs_a_real_cartridge",
+        "tests/test_browser_offline.py::test_cold_offline_start_shows_an_editable_scratchpad"
+      ],
+      "note": "Framebuffer/input/timing/offline covered; sound is the firmware's audio engine played as PCM (ADR-0021)."
+    },
+    {
+      "id": "AUD-01",
+      "title": "Eight SID-like voices with independent ADSR",
+      "status": "implemented",
+      "audit_score": 4,
+      "source": [
+        "wasm/prg32_core_api.cpp::afterHostCall",
+        "wasm/audio/audio_port.c::prg32_kit_audio_advance_ms",
+        "contracts/prg32-audio-contract-1.json"
+      ],
+      "tests": [
+        "tests/test_audio_conformance.py::test_eight_voices_sound_at_once_each_with_its_own_envelope",
+        "tests/test_audio_conformance.py::test_sustain_levels_are_exactly_sustain_times_257",
+        "tests/test_audio_conformance.py::test_a_slow_attack_lasts_its_time_and_releases_end",
+        "tests/test_audio_contract.py::test_eight_voices_and_the_upstream_fallback",
+        "tests/test_audio_studio.py::test_the_engine_plays_each_note_on_its_step"
+      ],
+      "note": "The browser core runs the PRG32 firmware's own audio engine (ADR-0021): 8 voices, SID-like synth with filter, independent ADSR, samples, tracker; checked against the contract's formulas on a toolchain-built 8-voice fixture. The real firmware in QEMU renders the same samples between events, and with the proposed SDK patch the console check's whole soundtrack (8-voice chord, envelopes, hard left/right, silences) is equal sample for sample (docs/evidence/qemu-audio). No console recording yet (docs/hardware_audio_check.md)."
+    },
+    {
+      "id": "AUD-02",
+      "title": "Stereo audio and cross-runtime sample parity",
+      "status": "partial",
+      "audit_score": 3,
+      "source": [
+        "static/js/prg32_runtime.js::PcmAudioOutput",
+        "wasm/audio/audio_port.c::step",
+        "tools/qemu_audio_capture.py::record_firmware",
+        "tools/hardware_audio_compare.py::compare"
+      ],
+      "tests": [
+        "tests/test_audio_conformance.py::test_hard_left_and_hard_right_are_separate",
+        "tests/test_audio_conformance.py::test_the_native_build_renders_the_same_samples",
+        "tests/test_audio_conformance.py::test_the_run_is_deterministic_and_matches_the_record",
+        "tests/test_audio_browser.py::test_the_player_plays_the_engines_stereo_frames",
+        "tests/test_audio_conformance.py::test_the_qemu_firmware_evidence_still_holds",
+        "tests/test_prg32qt_firmware_audio.py::test_patched_prg32qt_renders_the_conformance_fixture_like_the_browser",
+        "tests/test_hardware_audio_check.py::test_an_exact_i2s_capture_passes_the_strict_checks",
+        "tests/test_audio_conformance.py::test_qemu_firmware_equals_the_browser_core_over_the_whole_recording",
+        "tests/test_audio_conformance.py::test_frame_triggered_effects_sound_from_their_frames_buffer",
+        "tests/test_audio_conformance.py::test_a_one_buffer_shift_of_one_effect_breaks_whole_recording_equality"
+      ],
+      "note": "Stereo PCM from the firmware's mixer: WebAssembly, native and PRG32-QT with the proposed patch (firmware audio by default, real output device checked) are bit-identical on the conformance fixture and the console check. One scheduling boundary (ADR-0021 frame clock): audio calls take effect at their frame's start, N x 33 ms, so effects sound from buffer floor(N x 33 / 20). With the proposed SDK patch the QEMU firmware equals the browser core over the whole recording in three runs each: console check 546/546 buffers, conformance 348/348, same SHA-256 (PRG32-QT with its patch too). Patches proposed as riscv-prg32/PRG32#45, #46 and riscv-prg32/PRG32-QT#1 (open, not merged). Not yet: the patches merged upstream, and a console capture (procedure, comparator and evidence check ready)."
+    },
+    {
+      "id": "AUD-03",
+      "title": "AudioStudio instruments, sound effects and soundtracks",
+      "status": "implemented",
+      "audit_score": 4,
+      "source": [
+        "prg32_construction_kit/audio_studio.py::compile_document",
+        "prg32_construction_kit/audio_studio_api.py::put_audio",
+        "static/js/audio_studio.js",
+        "static/js/prg32_audio.js::PRG32AudioEngine",
+        "prg32_construction_kit/packager.py::prepare_package"
+      ],
+      "tests": [
+        "tests/test_audio_studio.py::test_saving_names_the_version_and_never_overwrites_a_newer_one",
+        "tests/test_audio_studio.py::test_only_the_owner_changes_a_projects_sound",
+        "tests/test_audio_studio.py::test_generated_c_and_assembly_use_the_documents_numbers",
+        "tests/test_audio_studio.py::test_the_cartridge_build_gets_the_audio_block",
+        "tests/test_audio_studio.py::test_the_project_archive_carries_the_sound_and_imports_again",
+        "tests/test_audio_browser.py::test_audio_studio_edits_previews_saves_and_reloads",
+        "tests/test_audio_browser.py::test_audio_studio_works_with_the_keyboard_only",
+        "tests/test_audio_browser.py::test_audio_studio_sound_goes_into_the_archive_and_the_cartridge",
+        "tests/test_audio_studio.py::test_the_engine_plays_each_note_on_its_step",
+        "tests/test_ide_layout_browser.py::test_sprite_lab_and_audio_studio_are_tabs_of_the_open_project"
+      ],
+      "note": "AudioStudio page parallel to Sprite Lab: 8 voice instruments with ADSR, sound effects, an 8-row soundtrack grid, WAV samples; previewed through the PRG32 engine; one versioned audio_studio asset per project (expected_version, 409, quotas, ownership); named blocks become fixed instrument/track numbers in the generated C and assembly; the AUD0 block is packed deterministically into the cartridge build; archive, copy and export carry the samples. Soundtrack timing fixed to the tracker's wait-after deltas (13766c9 played notes one gap early). Keyboard-only, archive and Compile paths checked in a real browser; the console check cartridge is built from an AudioStudio project. No screen-reader session or console recording yet. AudioStudio and Sprite Lab are tabs of the open project in the IDE, one layout (ADR-0024)."
+    },
+    {
+      "id": "AUD-04",
+      "title": "Obsolete buzzer removal",
+      "status": "partial",
+      "audit_score": 2,
+      "source": [
+        "prg32_construction_kit/source_project.py::OBSOLETE_FUNCTIONS",
+        "tools/build_language_index.py",
+        "static/js/ide/language.js"
+      ],
+      "tests": [
+        "tests/test_no_buzzer.py::test_nothing_reachable_names_the_buzzer_except_its_refusal",
+        "tests/test_no_buzzer.py::test_c_projects_using_it_get_a_clear_message",
+        "tests/test_audio_conformance.py::test_an_old_buzzer_cartridge_is_silent_and_counted",
+        "tests/test_upstream_sdk_patches.py::test_the_buzzer_slots_are_retired_and_every_other_slot_keeps_its_index",
+        "tests/test_no_buzzer.py::test_the_index_builder_skips_retired_abi_slots"
+      ],
+      "note": "Kit side complete: refused in C and assembly, obsolete-only in the language index, silent and counted for old cartridges, a repository-wide guard. The SDK retirement is a tested patch (docs/upstream/prg32-sdk-retire-buzzer.patch: ABI 1.7, slots 5/7/8 kept and silent, the 1.6 hash compatible, no public declaration, examples migrated; SDK tests 89 passed); the canonical SDK still exports the buzzer until it is merged."
+    },
+    {
+      "id": "DBG-01",
+      "title": "Pause, continue, restart, speed",
+      "status": "reference-verified",
+      "audit_score": 4,
+      "source": [
+        "wasm/prg32_core_api.cpp::prg32_debug_run",
+        "static/js/prg32_runtime.js::debug"
+      ],
+      "tests": [
+        "tests/test_wasm_runtime.py::test_debugger_steps_exactly_like_native",
+        "tests/test_wasm_runtime.py::test_debug_frames_match_normal_frames"
+      ],
+      "note": ""
+    },
+    {
+      "id": "DBG-02",
+      "title": "Instruction, over, out stepping",
+      "status": "implemented",
+      "audit_score": 4,
+      "source": [
+        "wasm/prg32_core_api.cpp::prg32_debug_step_instruction",
+        "static/js/prg32_runtime.js::debug"
+      ],
+      "tests": [
+        "tests/test_wasm_runtime.py::test_single_steps_add_up",
+        "tests/test_wasm_runtime.py::test_step_over_and_step_out_follow_calls",
+        "tests/test_wasm_runtime.py::test_compressed_fixture_steps_one_instruction_at_a_time",
+        "tests/test_source_debugger.py::test_compressed_instructions_step_by_their_own_width"
+      ],
+      "note": "Dedicated RV32C fixture (tests/fixtures/debug/compressed.S) steps 2- and 4-byte instructions alike in WebAssembly and natively; Step line/Next block over calls."
+    },
+    {
+      "id": "DBG-03",
+      "title": "Breakpoints",
+      "status": "implemented",
+      "audit_score": 3,
+      "source": [
+        "wasm/prg32_core_api.cpp::prg32_breakpoint",
+        "static/js/source_debug.js::breakpointForLine",
+        "static/js/source_debug.js::breakpointForBlock",
+        "static/js/source_debug.js::condition"
+      ],
+      "tests": [
+        "tests/test_wasm_runtime.py::test_breakpoint_stops_once_per_visit",
+        "tests/test_wasm_runtime.py::test_source_breakpoints_stop_alike_in_browser_and_native",
+        "tests/test_source_debugger.py::test_conditional_breakpoints_run_on_while_false",
+        "tests/test_debugger_browser.py::test_scenario_d_block_and_source_debugging"
+      ],
+      "note": "Address, C/assembly line and Blockly block breakpoints, with optional conditions checked when they hit; remembered per cartridge."
+    },
+    {
+      "id": "DBG-04",
+      "title": "Registers, memory, disassembly, CSR, stack, watches",
+      "status": "implemented",
+      "audit_score": 3,
+      "source": [
+        "wasm/prg32_core_api.cpp::prg32_read_memory",
+        "wasm/prg32_core_api.cpp::prg32_disassemble",
+        "wasm/prg32_core_api.cpp::prg32_debug_state_json",
+        "static/js/source_debug.js::csrRows",
+        "static/js/source_debug.js::stackRows",
+        "static/js/source_debug.js::watch"
+      ],
+      "tests": [
+        "tests/test_wasm_runtime.py::test_disassembly_uses_prg32_qt_names",
+        "tests/test_source_debugger.py::test_csr_counters_follow_the_core",
+        "tests/test_source_debugger.py::test_watches_read_members_elements_and_registers",
+        "tests/test_debugger_browser.py::test_scenario_d_block_and_source_debugging"
+      ],
+      "note": "CSR view = the counters the core implements (cycle/time/instret + high halves); no other CSRs exist in the core. Stack view = words around sp."
+    },
+    {
+      "id": "DBG-05",
+      "title": "C locals, call stack, watches (DWARF); active Blockly block",
+      "status": "implemented",
+      "audit_score": 4,
+      "source": [
+        "prg32_construction_kit/debug_build.py::prepare",
+        "prg32_construction_kit/debug_info.py::build_debug_map",
+        "static/js/source_debug.js::callStack",
+        "static/js/source_debug.js::variables",
+        "static/js/source_debugger.js::showBlock"
+      ],
+      "tests": [
+        "tests/test_source_debugger.py::test_source_breakpoint_call_stack_and_variables",
+        "tests/test_source_debugger.py::test_real_debug_build_gives_the_same_cartridge",
+        "tests/test_source_debugger.py::test_damaged_or_missing_debug_information_is_unavailable",
+        "tests/test_debugger_browser.py::test_scenario_d_block_and_source_debugging",
+        "tests/test_debugger_browser.py::test_without_debug_information_the_address_debugger_remains",
+        "tests/test_wasm_runtime.py::test_source_breakpoints_do_not_change_the_game",
+        "tests/test_debug_fuzz.py::test_damaged_debug_elfs_are_harmless",
+        "tests/test_source_debugger.py::test_an_inlined_function_is_its_own_frame_and_invents_no_values",
+        "tests/test_debugger_browser.py::test_breakpoints_switch_off_and_survive_compiling_again"
+      ],
+      "note": "DWARF from a -g build with an identical cartridge; locals optimised out at -Os are labelled; inlined functions are frames 'inlined into' their caller (no variables shown); breakpoints persist per project and follow their code across regeneration, with enable/disable; handwritten assembly gets lines, labels and an ra-based caller."
+    },
+    {
+      "id": "DBG-06",
+      "title": "Browser and PRG32-QT state agree",
+      "status": "reference-verified",
+      "audit_score": 4,
+      "source": [],
+      "tests": [
+        "tests/test_wasm_runtime.py::test_debugger_steps_exactly_like_native",
+        "tests/test_wasm_runtime.py::test_native_harness_draws_exactly_like_prg32qt_headless"
+      ],
+      "note": ""
+    },
+    {
+      "id": "ACC-01",
+      "title": "Guest policies and IndexedDB guest projects",
+      "status": "implemented",
+      "audit_score": 4,
+      "source": [
+        "static/js/guest_store.js",
+        "static/js/offline.js",
+        "static/js/dashboard.js",
+        "prg32_construction_kit/config.py::Config",
+        "static/js/guest_api.js",
+        "prg32_construction_kit/guest_api.py::convert",
+        "prg32_construction_kit/auth.py::guest_may"
+      ],
+      "tests": [
+        "tests/test_storage_browser.py::test_guest_games_stay_in_this_browser",
+        "tests/test_storage_browser.py::test_the_old_scratchpad_becomes_a_guest_game",
+        "tests/test_storage_browser.py::test_guest_games_move_into_the_account_after_sign_in",
+        "tests/test_storage_policy.py::test_guest_mode_is_offered_or_not",
+        "tests/test_storage_policy.py::test_the_guest_workspace_is_static_and_stores_nothing_on_the_server",
+        "tests/test_guest_access.py::test_guest_code_is_the_same_as_an_accounts_and_nothing_is_kept",
+        "tests/test_guest_access.py::test_everything_else_still_needs_a_sign_in",
+        "tests/test_guest_ide_browser.py::test_a_guest_makes_a_game_and_it_stays_in_this_browser",
+        "tests/test_guest_ide_browser.py::test_guest_games_move_into_the_account_with_their_sound_and_sprites"
+      ],
+      "note": "Policy local/off (PRG32_GUEST_MODE); IndexedDB guest games with capacity message, export/import, safe clearing, legacy migration and move-to-account after sign-in (ADR-0017). Temporary server storage for guests deliberately not offered. ADR-0023: the full kit (IDE, Sprite Lab, AudioStudio, Player) opens without an account by default; guest data in IndexedDB v2, stateless guest API for code and sound; build, publish and classes need a sign-in."
+    },
+    {
+      "id": "ACC-02",
+      "title": "Registered storage: ownership, history, quotas, autosave, retention",
+      "status": "implemented",
+      "audit_score": 4,
+      "source": [
+        "prg32_construction_kit/routes.py::can_read",
+        "prg32_construction_kit/routes.py::can_write",
+        "prg32_construction_kit/auth.py::guard_request",
+        "prg32_construction_kit/storage_policy.py::check",
+        "prg32_construction_kit/db.py::update_resource",
+        "prg32_construction_kit/retention.py::apply",
+        "prg32_construction_kit/retention.py::prune_builds"
+      ],
+      "tests": [
+        "tests/test_auth.py::test_signing_in_is_required",
+        "tests/test_project_format.py::test_duplicate_copies_children_and_belongs_to_the_caller",
+        "tests/test_authorization.py::test_deactivation_ends_sessions_tokens_and_sign_in_and_keeps_items",
+        "tests/test_authorization.py::test_nobody_reads_or_changes_another_students_items",
+        "tests/test_storage_policy.py::test_a_save_from_an_older_version_changes_nothing",
+        "tests/test_storage_policy.py::test_the_version_check_is_atomic",
+        "tests/test_storage_policy.py::test_autosaves_do_not_fill_the_history",
+        "tests/test_storage_policy.py::test_project_count_quota",
+        "tests/test_storage_policy.py::test_space_quota_refuses_growth_but_allows_shrinking",
+        "tests/test_storage_policy.py::test_each_project_keeps_its_newest_builds_with_their_files",
+        "tests/test_storage_policy.py::test_trash_is_emptied_after_its_days_and_dry_runs_change_nothing",
+        "tests/test_storage_browser.py::test_autosave_and_a_conflict_between_two_windows"
+      ],
+      "note": "Ownership, history, conflict-safe versions, autosave, quotas, retention (trash, builds, orphan folders) and deprovisioning (ADR-0016/0017). No automatic deletion of accounts."
+    },
+    {
+      "id": "SSO-01",
+      "title": "OIDC with PKCE, issuer+subject identity",
+      "status": "implemented",
+      "audit_score": 4,
+      "source": [
+        "prg32_construction_kit/identity.py::verify_id_token",
+        "prg32_construction_kit/identity.py::callback",
+        "prg32_construction_kit/identity.py::complete_external_sign_in",
+        "prg32_construction_kit/identity.py::_pkce_pair"
+      ],
+      "tests": [
+        "tests/test_identity.py::test_sign_in_uses_pkce_state_and_nonce",
+        "tests/test_identity.py::test_a_tampered_pkce_verifier_is_refused",
+        "tests/test_identity.py::test_bad_id_tokens_are_refused",
+        "tests/test_identity.py::test_key_rotation_is_followed_but_unknown_keys_are_not",
+        "tests/test_identity.py::test_accounts_are_found_by_issuer_and_subject",
+        "tests/test_identity.py::test_matching_email_never_joins_accounts",
+        "tests/test_identity.py::test_state_from_another_browser_is_refused",
+        "tests/test_identity_live.py::test_real_sign_in_with_discovery_jwks_and_pkce",
+        "tests/test_identity_live.py::test_the_provider_enforces_pkce",
+        "tests/test_identity_live.py::test_a_tampered_state_is_refused",
+        "tests/test_identity_live.py::test_expired_tokens_are_refused",
+        "tests/test_identity_live.py::test_a_wrong_audience_is_refused",
+        "tests/test_identity.py::test_caches_do_not_freeze_when_the_clock_goes_back",
+        "tests/test_live_suites.py::test_the_recorded_live_run"
+      ],
+      "note": "Authorization Code + PKCE (S256), single-use state and nonce, ID token signature (RS256/PS256/ES256, JWKS rotation), iss/aud/azp/exp/iat; accounts by issuer+subject, never joined by email (ADR-0016). In-process provider tests plus an opt-in live suite against Keycloak 26.0.7 (docs/identity_live_testing.md), run 2026-10-21 through tools/run_live_suites.py: 9 passed (docs/evidence/live/2026-10-21); no institutional tenant run recorded."
+    },
+    {
+      "id": "SSO-02",
+      "title": "Multiple admin-configured IdPs, claim mapping, recovery",
+      "status": "implemented",
+      "audit_score": 4,
+      "source": [
+        "prg32_construction_kit/identity.py::admin_providers",
+        "prg32_construction_kit/identity.py::academic_role",
+        "prg32_construction_kit/identity.py::link"
+      ],
+      "tests": [
+        "tests/test_identity.py::test_two_providers_never_collide",
+        "tests/test_identity.py::test_provider_claims_grant_academic_roles_only",
+        "tests/test_identity.py::test_linking_is_a_deliberate_act_of_the_signed_in_owner",
+        "tests/test_identity.py::test_only_administrators_manage_providers_and_secrets_stay_references",
+        "tests/test_identity.py::test_unlinking_keeps_a_way_to_sign_in",
+        "tests/test_identity_live.py::test_collision_then_explicit_linking_then_recovery",
+        "tests/test_identity_live.py::test_deactivation_on_both_sides",
+        "tests/test_identity_live.py::test_key_rotation_and_role_claims",
+        "tests/test_identity.py::test_signing_out_is_local_only_and_says_so"
+      ],
+      "note": "Admin-configured providers (secret by reference), claim -> academic role mapping, allowed domains, explicit linking/unlinking as recovery. No SCIM (just-in-time accounts, admin deprovisioning); logout is local only and says so (ADR-0016 amendment)."
+    },
+    {
+      "id": "SSO-03",
+      "title": "Scoped student/TA/teacher/publisher/admin capabilities",
+      "status": "implemented",
+      "audit_score": 4,
+      "source": [
+        "prg32_construction_kit/classes.py::supervises",
+        "prg32_construction_kit/routes.py::can_read",
+        "prg32_construction_kit/auth.py::required_scope",
+        "prg32_construction_kit/auth.py::role_at_least"
+      ],
+      "tests": [
+        "tests/test_authorization.py::test_teachers_and_facilitators_read_their_students_work_only",
+        "tests/test_authorization.py::test_supervision_is_read_only",
+        "tests/test_authorization.py::test_teachers_cannot_publish_their_students_bundles",
+        "tests/test_authorization.py::test_only_administrators_add_teachers_and_facilitators",
+        "tests/test_authorization.py::test_token_scopes_are_enforced",
+        "tests/test_authorization.py::test_students_cannot_raise_their_own_roles",
+        "tests/test_publish_authorization.py::test_students_without_the_publisher_role_get_403"
+      ],
+      "note": "Global roles shared with CartridgeStore unchanged; kit-only academic roles (student/teacher/facilitator/service) and class memberships give read-only supervision; scoped, expiring API tokens."
+    },
+    {
+      "id": "SSO-04",
+      "title": "Shared accounts with CartridgeStore",
+      "status": "implemented",
+      "audit_score": 3,
+      "source": [
+        "prg32_construction_kit/sso_protocol.py::make_ticket",
+        "prg32_construction_kit/sso_protocol.py::verify_request"
+      ],
+      "tests": [
+        "tests/test_sso_with_cartridge_store.py::test_protocol_file_is_the_same_in_both_repositories",
+        "tests/test_sso.py::test_signed_requests_and_tickets",
+        "tests/test_sso_live.py::test_single_sign_on_both_ways_and_each_ticket_once",
+        "tests/test_sso_live.py::test_publishing_as_the_student_with_a_one_time_api_ticket",
+        "tests/test_sso_live.py::test_a_student_without_the_publisher_role_sends_nothing"
+      ],
+      "note": "Shared users checked against CartridgeStore's own code in the store-contract CI job (disposable, in-process); no production Store. Live (2026-10-21, tests/test_sso_live.py, CI Store job): the kit as an HTTP server and a throwaway CartridgeStore process share users and roles, sign in both ways with one-time tickets, and a publisher's bundle reaches the Store with a one-time API ticket while reused, forged or sign-in tickets are refused; the Store checks sign-in only, so the kit's publisher check is the authorization."
+    },
+    {
+      "id": "CLD-01",
+      "title": "Google Drive",
+      "status": "partial",
+      "audit_score": 3,
+      "source": [
+        "prg32_construction_kit/cloud_storage.py::GoogleDrive",
+        "prg32_construction_kit/cloud_storage.py::api_push",
+        "prg32_construction_kit/cloud_storage.py::api_pull",
+        "static/js/cloud.js",
+        "prg32_construction_kit/cloud_storage.py::GitHub"
+      ],
+      "tests": [
+        "tests/test_cloud_storage.py::test_push_over_a_cloud_change_is_a_conflict_with_choices",
+        "tests/test_cloud_storage.py::test_a_revoked_connection_asks_to_reconnect_and_changes_nothing",
+        "tests/test_cloud_browser.py::test_connect_save_and_resolve_a_conflict",
+        "tests/test_github.py::test_commit_and_push_writes_readable_files_with_the_message",
+        "tests/test_github.py::test_both_sides_changed_is_a_conflict_with_choices",
+        "tests/test_github_browser.py::test_commit_and_push_from_the_ide"
+      ],
+      "note": "One provider interface (ADR-0019), proven against an in-process fake and a real browser; the opt-in live suite (tests/test_cloud_live.py) has not run against a real test account. GitHub as a third provider (ADR-0025): a GitHub App, one folder of files per project, commits with the student's message; tested against an in-process GitHub only."
+    },
+    {
+      "id": "CLD-02",
+      "title": "OneDrive",
+      "status": "partial",
+      "audit_score": 3,
+      "source": [
+        "prg32_construction_kit/cloud_storage.py::OneDrive",
+        "prg32_construction_kit/cloud_storage.py::api_push",
+        "prg32_construction_kit/cloud_storage.py::api_pull",
+        "static/js/cloud.js"
+      ],
+      "tests": [
+        "tests/test_cloud_storage.py::test_push_over_a_cloud_change_is_a_conflict_with_choices",
+        "tests/test_cloud_storage.py::test_a_revoked_connection_asks_to_reconnect_and_changes_nothing",
+        "tests/test_cloud_browser.py::test_connect_save_and_resolve_a_conflict"
+      ],
+      "note": "One provider interface (ADR-0019), proven against an in-process fake and a real browser; the opt-in live suite (tests/test_cloud_live.py) has not run against a real test account."
+    },
+    {
+      "id": "STR-01",
+      "title": "Store bundle preparation and validation",
+      "status": "partial",
+      "audit_score": 4,
+      "source": [
+        "prg32_construction_kit/packager.py::project_manifest",
+        "prg32_construction_kit/publishing.py::inspect_bundle",
+        "contracts/prg32-store-contract-1.json",
+        "prg32_construction_kit/store_contract.py::validate_bundle",
+        "prg32_construction_kit/store_contract.py::classify",
+        "prg32_construction_kit/publishing.py::submitted_version"
+      ],
+      "tests": [
+        "tests/test_publish_authorization.py::test_cartridges_that_differ_from_the_build_are_refused",
+        "tests/test_publish_authorization.py::test_bad_manifests_are_refused",
+        "tests/test_store_contract.py::test_the_store_decides_like_the_contract",
+        "tests/test_store_contract.py::test_a_bundle_that_breaks_the_contract_is_never_uploaded",
+        "tests/test_store_live.py::test_the_store_going_away_is_retryable_and_the_retry_publishes_once",
+        "tests/test_store_lifecycle.py::test_one_id_and_version_goes_to_a_store_once",
+        "tests/test_store_lifecycle.py::test_an_old_store_token_is_refused_and_a_new_one_works"
+      ],
+      "note": "Shared versioned contract (ADR-0018) checked against the Store's own code and a disposable loopback Store in CI. Store gaps (duplicate pending id/version, tokens without expiry) are closed on the kit side (one bundle per version, token age limit) and proposed to CartridgeStore; not yet changed there."
+    },
+    {
+      "id": "STR-02",
+      "title": "Authorized, reviewed, confirmed publishing",
+      "status": "implemented",
+      "audit_score": 3,
+      "source": [
+        "prg32_construction_kit/routes.py::api_publish_review",
+        "prg32_construction_kit/routes.py::api_publish",
+        "prg32_construction_kit/publishing.py::check_review_token",
+        "prg32_construction_kit/store_policy.py::check_url"
+      ],
+      "tests": [
+        "tests/test_publish_authorization.py::test_publisher_reviews_then_confirms",
+        "tests/test_publish_authorization.py::test_confirming_twice_does_not_upload_twice",
+        "tests/test_store_egress.py::test_dns_rebinding_cannot_move_the_upload"
+      ],
+      "note": "Only disposable loopback Stores (tests/test_store_live.py); never a production Store."
+    },
+    {
+      "id": "DEP-01",
+      "title": "Physical PRG32 transfer and launch",
+      "status": "missing",
+      "audit_score": 0,
+      "source": [
+        "tools/delivery_check.py::check_on_device"
+      ],
+      "tests": [
+        "tests/test_delivery_check.py::test_device_check_uses_only_the_given_slot_and_records_outcomes"
+      ],
+      "note": "No hardware available; tools/delivery_check.py records a console run (tested against a stand-in device only)."
+    },
+    {
+      "id": "DEP-02",
+      "title": "PRG32-QT delivery",
+      "status": "partial",
+      "audit_score": 3,
+      "source": [
+        "tools/delivery_check.py::check_on_device"
+      ],
+      "tests": [
+        "tests/test_wasm_runtime.py::test_native_harness_draws_exactly_like_prg32qt_headless",
+        "tests/test_delivery_check.py::test_the_recorded_prg32_qt_delivery_matches_the_reproduced_builds",
+        "tests/test_delivery_check.py::test_prg32_qt_slots_are_checked_before_anything_is_uploaded",
+        "tests/test_delivery_check.py::test_the_checked_prg32_qt_delivery_shows_each_cartridge_running_itself"
+      ],
+      "note": "Delivery recorded 2026-10-21 (docs/evidence/delivery/2026-10-21-prg32qt): canonical PRG32-QT f6d80ad stored, started and drew five kit cartridges (Blocks as C and as assembly, Advanced C, handwritten assembly, the console audio check) through its web API, with screenshots; their SHA-256 equal the Docker-built ones. Delivered again with the integrity checks (2026-10-21-prg32qt-checked): PRG32-QT reported each selected cartridge running, by name and code size, before and after its screenshot. Through the API, not the desktop Import menu clicked by a person."
+    },
+    {
+      "id": "DEP-03",
+      "title": "PRG32-iOS handoff",
+      "status": "missing",
+      "audit_score": 0,
+      "source": [],
+      "tests": [],
+      "note": "Deferred (ADR-0020): PRG32-iOS has no import contract beyond its file importer and no device is available; the kit claims no iOS handoff."
+    },
+    {
+      "id": "SEC-01",
+      "title": "Threat model, SSRF and build isolation",
+      "status": "implemented",
+      "audit_score": 3,
+      "source": [
+        "prg32_construction_kit/store_policy.py::choose_address",
+        "prg32_construction_kit/build_sandbox.py::bwrap_arguments",
+        "prg32_construction_kit/build_sandbox.py::seccomp_filter",
+        "prg32_construction_kit/build_budget.py::reserve"
+      ],
+      "tests": [
+        "tests/test_store_egress.py::test_non_public_destinations_are_refused",
+        "tests/test_build_sandbox.py::test_a_compiler_cannot_read_other_builds_or_the_kit_data",
+        "tests/test_build_sandbox.py::test_seccomp_program_checks_the_architecture_and_blocks_escape_calls",
+        "tests/test_build_budget.py::test_builds_starting_together_never_overcommit",
+        "tests/test_build_budget.py::test_the_guard_stops_a_build_whose_folder_grows_too_big"
+      ],
+      "note": "Escape tests need bubblewrap; AppArmor profile docker/apparmor/prg32-kit and build disk budgets (build_budget.py) added, confined run in CI; builds share one user id outside their namespaces."
+    },
+    {
+      "id": "SEC-02",
+      "title": "Credentials, throttling, audit, secrets",
+      "status": "partial",
+      "audit_score": 4,
+      "source": [
+        "prg32_construction_kit/auth.py::bootstrap_admin",
+        "prg32_construction_kit/security.py::check",
+        "prg32_construction_kit/security.py::record",
+        "prg32_construction_kit/__init__.py::content_security_policy",
+        "prg32_construction_kit/auth.py::end_sessions"
+      ],
+      "tests": [
+        "tests/test_admin_bootstrap.py::test_fresh_production_start_makes_a_random_password_file",
+        "tests/test_security_controls.py::test_five_wrong_passwords_lock_that_name_from_that_address",
+        "tests/test_frontend_offline.py::test_content_security_policy_is_strict",
+        "tests/test_authorization.py::test_password_change_ends_other_sessions_but_not_this_one",
+        "tests/test_authorization.py::test_sessions_end_after_their_lifetime_however_active",
+        "tests/test_identity.py::test_no_secret_code_or_token_reaches_the_audit_log"
+      ],
+      "note": "Session epochs (password/role change, deactivation, sign out everywhere) and absolute session lifetime done. No hash-locked dependencies, quotas, retention or broad rate limits."
+    },
+    {
+      "id": "GDPR-01",
+      "title": "Personal data: accountability, rights and incident response",
+      "status": "partial",
+      "audit_score": 3,
+      "source": [
+        "prg32_construction_kit/privacy.py::erase_account",
+        "prg32_construction_kit/privacy.py::export_personal_data",
+        "docs/privacy/ropa.json",
+        "tools/breach_rehearsal.py::run"
+      ],
+      "tests": [
+        "tests/test_privacy_rights.py::test_erasure_reaches_everything_the_kit_holds",
+        "tests/test_privacy_rights.py::test_the_export_holds_everything_and_no_secret",
+        "tests/test_privacy_rights.py::test_a_restored_backup_does_not_bring_an_erased_student_back",
+        "tests/test_privacy_records.py::test_the_record_of_processing_names_every_column_once",
+        "tests/test_privacy_records.py::test_nothing_claims_the_gdpr_gate_while_a_blocker_is_open",
+        "tests/test_site_chrome.py::test_the_privacy_page_lists_every_storage_key_the_scripts_use"
+      ],
+      "note": "docs/privacy/: field-level record of processing (every column), proposed roles and legal bases, retention, processors and transfers, children/DPIA/DPO screening, notices with recorded versions, rights workflows (export, register with deadlines, restriction, erasure across tables, folders, files, cloud tokens, audit pseudonyms, backups re-apply), Article 32 review, breach playbook and a technical rehearsal (ADR-0022). NO-GO remains: the controller's legal decisions D-0 to D-10, DPO/counsel review, DPIA and a staffed exercise are open (docs/privacy/decisions.md). Every page links /privacy; informational storage notice and per-key storage list (/privacy#storage)."
+    },
+    {
+      "id": "OPS-01",
+      "title": "CI, Docker, migrations, health",
+      "status": "implemented",
+      "audit_score": 4,
+      "source": [
+        "tools/check_build.py::main",
+        "docker/entrypoint.sh",
+        ".github/workflows/tests.yml",
+        "tools/backup_restore.py::restore",
+        "prg32_construction_kit/settings.py::get"
+      ],
+      "tests": [
+        "tests/test_api.py::test_discovery_reports_whether_cartridges_can_be_built",
+        "tests/test_db.py::test_sqlalchemy_creates_the_compatible_resource_schema",
+        "tests/test_backup_restore.py::test_backup_restore_verify_and_use",
+        "tests/test_settings.py::test_the_environment_wins_and_locks_the_setting",
+        "tests/test_settings.py::test_another_process_sees_a_change",
+        "tests/test_settings.py::test_maintenance_lets_admins_in_and_tells_everybody_else"
+      ],
+      "note": "Restore drill automated (tools/backup_restore.py, tests/test_backup_restore.py); hash-locked image dependencies and a CycloneDX SBOM; no metrics/SLO or TLS proof. Runtime settings on the admin Settings page (docs/admin_settings.md): environment wins and locks, values checked, secrets sealed, maintenance mode."
+    },
+    {
+      "id": "DOC-01",
+      "title": "Documentation and traceability",
+      "status": "implemented",
+      "audit_score": 4,
+      "source": [
+        "docs/capabilities.json",
+        "docs/traceability.md",
+        "tools/render_capabilities.py::render"
+      ],
+      "tests": [
+        "tests/test_capabilities.py::test_implemented_rows_name_existing_source_and_tests",
+        "tests/test_presentations.py::test_tutorials_and_decks_are_up_to_date",
+        "tests/test_doc_consistency.py::test_current_state_lists_every_capability_once_with_its_status",
+        "tests/test_doc_consistency.py::test_capability_tags_do_not_contradict_the_record",
+        "tests/test_doc_consistency.py::test_every_refinement_phase_commit_is_a_listed_milestone"
+      ],
+      "note": ""
+    },
+    {
+      "id": "DOC-02",
+      "title": "Truthful entry point, architecture and visual freshness",
+      "status": "partial",
+      "audit_score": 4,
+      "source": [
+        "README.md",
+        "docs/architecture.md",
+        "tools/build_diagrams.py::architecture",
+        "tools/check_docs.py::check_manifest",
+        "tools/capture_visuals.py::capture",
+        "docs/figures/manifest.json"
+      ],
+      "tests": [
+        "tests/test_docs_check.py::test_the_documentation_passes",
+        "tests/test_docs_check.py::test_a_stale_or_unreviewed_picture_is_found",
+        "tests/test_docs_check.py::test_broken_links_and_missing_alt_text_are_found",
+        "tests/test_docs_check.py::test_obsolete_settings_routes_and_abi_versions_are_found",
+        "tests/test_docs_check.py::test_the_diagrams_and_the_record_of_processing_are_regenerated"
+      ],
+      "note": "README rewritten (IDE modes, real compiler and builds, WASM runtime and debugger, Sprite Lab and AudioStudio, accounts and boundaries, privacy, a verified/not-verified table). docs/architecture.md rebuilt around generated diagrams: components and trust boundaries, pipeline, game loop and frame clock, personal data and retention. Every picture is in docs/figures/manifest.json (purpose, recipe, viewport, browser, theme, locale, seed, commit, capture and review); screenshots re-captured from synthetic data, runtime frames re-rendered (identical pixels). tools/check_docs.py in CI: links, images, alt text, orphans, stale pictures, obsolete settings/routes/ABI, ADR and capability IDs; a human release checklist (docs/release_checklist.md)."
+    },
+    {
+      "id": "QLT-01",
+      "title": "Quality gates: tests, lint, E2E, a11y, performance",
+      "status": "partial",
+      "audit_score": 3,
+      "source": [],
+      "tests": [
+        "tests/test_capabilities.py::test_rendered_table_is_up_to_date",
+        "tests/test_browser_offline.py::test_pages_load_only_from_the_kit_without_csp_violations",
+        "tests/test_ide_browser.py::test_ide_has_no_csp_violations_or_serious_accessibility_problems",
+        "tests/test_performance_browser.py::test_ide_is_ready_on_a_slow_laptop"
+      ],
+      "note": "Large pytest suite; real-browser keyboard workflows, axe-core scan and performance budgets at 4x CPU slowdown; ruff (pyflakes) and a coverage floor (88%) in CI; no type gate (decided: annotations would not help learners); no real screen-reader session yet (docs/accessibility_session.md)."
+    },
+    {
+      "id": "I18N-01",
+      "title": "Interface in English, Italian, Spanish, French and German",
+      "status": "partial",
+      "audit_score": null,
+      "source": [
+        "prg32_construction_kit/i18n.py::choose",
+        "prg32_construction_kit/i18n.py::translate",
+        "static/js/i18n.js",
+        "static/i18n/en.json",
+        "tools/build_i18n.py::render",
+        "prg32_construction_kit/privacy.py::localized_notice"
+      ],
+      "tests": [
+        "tests/test_i18n.py::test_every_language_has_exactly_the_english_keys",
+        "tests/test_i18n.py::test_placeholders_are_the_same_in_every_language",
+        "tests/test_i18n.py::test_nothing_is_left_in_english_by_accident",
+        "tests/test_i18n.py::test_templates_have_no_untranslated_text",
+        "tests/test_i18n.py::test_scripts_build_no_untranslated_html_text",
+        "tests/test_i18n.py::test_pages_are_drawn_in_the_chosen_language",
+        "tests/test_i18n.py::test_the_browser_runtime_translates_with_fallback_and_plurals",
+        "tests/test_i18n.py::test_generated_code_and_cartridges_are_the_same_in_every_language"
+      ],
+      "note": "ADR-0027. Every page, script message, block, tooltip, screen-reader label, the offline pages and the privacy notice summaries in five languages (1180+ keys each, same placeholders, plural pairs); language menu, cookie + Accept-Language + English fallback, catalogs cached offline; builds byte-identical in every language. Still English: server-written messages (API errors, the PRG32 Python compiler's refusals, compiler logs), Blockly's and Monaco's own menus, long-form docs (the classroom quick start is in five languages). No screen-reader session or per-locale screenshots yet."
+    },
+    {
+      "id": "PY-01",
+      "title": "PRG32 Python projects compiled ahead of time to real cartridges",
+      "status": "implemented",
+      "audit_score": null,
+      "source": [
+        "prg32_construction_kit/python_project.py::python_to_ir_traced",
+        "prg32_construction_kit/python_project.py::parse",
+        "prg32_construction_kit/python_project.py::api_reference",
+        "prg32_construction_kit/routes.py::generate_sources",
+        "prg32_construction_kit/source_maps.py::project_source_map",
+        "prg32_construction_kit/project_format.py::_v1_to_v2",
+        "prg32_construction_kit/provenance.py::build_provenance",
+        "static/js/ide/language.js",
+        "prg32_construction_kit/build_check.py::source_modes_check"
+      ],
+      "tests": [
+        "tests/test_python_project.py::test_the_starter_becomes_the_same_ir_contract_as_the_blocks",
+        "tests/test_python_project.py::test_builds_are_deterministic_in_fresh_processes",
+        "tests/test_python_project.py::test_anything_outside_prg32_python_is_refused_with_its_place",
+        "tests/test_python_project.py::test_size_and_nesting_limits",
+        "tests/test_python_project.py::test_the_program_is_never_imported_or_run",
+        "tests/test_python_project.py::test_source_maps_lead_from_generated_lines_back_to_python",
+        "tests/test_python_project.py::test_python_and_blocks_make_the_same_firmware_calls",
+        "tests/test_python_project.py::test_python_c_and_assembly_make_the_same_firmware_calls",
+        "tests/test_python_project.py::test_archives_round_trip_a_python_project",
+        "tests/test_python_project.py::test_package_puts_game_py_in_the_bundle_and_records_provenance",
+        "tests/test_python_project.py::test_real_cartridge_from_python",
+        "tests/test_concurrency.py::test_real_cartridges_from_blocks_c_assembly_and_python"
+      ],
+      "note": "ADR-0026, docs/python_language.md. game.py is parsed (never imported or run) within limits, checked against an allow-list with static types, and translated into the Blocks' game IR, then by the same generators into commented C and RV32IM assembly and by the sandboxed toolchain into a PRG32 cartridge. Fixed project type (schema v2, src/game.py), editor completion/hover/live checks from the language index, debugger on game.py lines (source maps py:line), provenance with language, grammar and IR hashes. Real-toolchain and C-vs-assembly parity tests run where the toolchain and GCC exist (CI); locally they skip. No conversion to or from Python in version 1."
+    }
+  ]
+}

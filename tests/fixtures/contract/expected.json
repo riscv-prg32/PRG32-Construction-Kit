@@ -1,0 +1,53 @@
+{
+ "icon-not-image": {
+  "accepted": false,
+  "kit_code": "bad_image"
+ },
+ "missing-cartridge": {
+  "accepted": false,
+  "kit_code": "file_missing"
+ },
+ "no-architectures": {
+  "accepted": false,
+  "kit_code": "manifest_invalid"
+ },
+ "no-manifest": {
+  "accepted": false,
+  "kit_code": "manifest_missing"
+ },
+ "not-a-cartridge": {
+  "accepted": false,
+  "kit_code": "bad_cartridge"
+ },
+ "not-a-zip": {
+  "accepted": false,
+  "kit_code": "not_a_zip"
+ },
+ "parent-path": {
+  "accepted": false,
+  "kit_code": "unsafe_path"
+ },
+ "repeated-architecture": {
+  "accepted": false,
+  "kit_code": "bad_architecture"
+ },
+ "unknown-architecture": {
+  "accepted": false,
+  "kit_code": "bad_architecture"
+ },
+ "unsafe-id": {
+  "accepted": false,
+  "kit_code": "unsafe_id_or_version"
+ },
+ "unsafe-version": {
+  "accepted": false,
+  "kit_code": "unsafe_id_or_version"
+ },
+ "valid": {
+  "accepted": true
+ },
+ "wrong-abi": {
+  "accepted": false,
+  "kit_code": "manifest_invalid"
+ }
+}

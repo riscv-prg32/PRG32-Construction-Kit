@@ -41,6 +41,27 @@ Each game was checked through the whole pipeline with
 The same cartridge code is built for `esp32c6` (the PRG32 board) and `qemu`.
 See [../../runtime_check.md](../../runtime_check.md) to repeat the checks.
 
+### One game on three runtimes
+
+Each game runs with the same scripted buttons, and `tools/runtime_check.py --figures` takes
+the pictures (recipes and dates: `docs/figures/manifest.json`):
+
+- The simulator and PRG32-QT count frames, so they show the same final frame, identical on
+  every run.
+- QEMU runs the real firmware on the computer's clock, and its picture is read while the game
+  is running. It shows another moment of the same game, different from run to run.
+- The simulator draws 320 x 200. QEMU's frame buffer is 320 x 240, so its pictures have a
+  black band at the bottom.
+
+| Game | Construction Kit simulator | PRG32-QT | PRG32 firmware in QEMU |
+|---|---|---|---|
+| Pong | ![Pong in the Construction Kit simulator](../../figures/games/pong-simulator.png) | ![Pong on PRG32-QT](../../figures/games/pong-prg32qt.png) | ![Pong on the PRG32 firmware in QEMU](../../figures/games/pong-qemu.png) |
+| Breakout | ![Breakout in the Construction Kit simulator](../../figures/games/breakout-simulator.png) | ![Breakout on PRG32-QT](../../figures/games/breakout-prg32qt.png) | ![Breakout on the PRG32 firmware in QEMU](../../figures/games/breakout-qemu.png) |
+| Space Invaders | ![Space Invaders in the Construction Kit simulator](../../figures/games/space_invaders-simulator.png) | ![Space Invaders on PRG32-QT](../../figures/games/space_invaders-prg32qt.png) | ![Space Invaders on the PRG32 firmware in QEMU](../../figures/games/space_invaders-qemu.png) |
+| Asteroids | ![Asteroids in the Construction Kit simulator](../../figures/games/asteroids-simulator.png) | ![Asteroids on PRG32-QT](../../figures/games/asteroids-prg32qt.png) | ![Asteroids on the PRG32 firmware in QEMU](../../figures/games/asteroids-qemu.png) |
+| Snake | ![Snake in the Construction Kit simulator](../../figures/games/snake-simulator.png) | ![Snake on PRG32-QT](../../figures/games/snake-prg32qt.png) | ![Snake on the PRG32 firmware in QEMU](../../figures/games/snake-qemu.png) |
+| Feature tour | ![Feature tour in the Construction Kit simulator](../../figures/games/feature_tour-simulator.png) | ![Feature tour on PRG32-QT](../../figures/games/feature_tour-prg32qt.png) | ![Feature tour on the PRG32 firmware in QEMU](../../figures/games/feature_tour-qemu.png) |
+
 ## For maintainers
 
 - The games are written in `tools/build_example_games.py`, a small Python

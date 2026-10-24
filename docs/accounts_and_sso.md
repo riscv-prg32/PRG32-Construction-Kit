@@ -26,8 +26,11 @@ Accounts live in the kit's own database: no cloud service is needed.
 ### First start
 
 The first start creates the account `admin` / `admin@localhost`. Its password
-is `PRG32_ADMIN_PASSWORD`, or `password` when that is not set. **Change it
-right away** on the **My account** page (click your name in the menu).
+is `PRG32_ADMIN_PASSWORD` when you set a long one; otherwise the kit makes a
+random password and writes it to `initial_admin_password` in the data folder
+(readable only by the server's user). Sign in, then **change it** on the **My
+account** page (click your name in the menu); the file is deleted then. There
+is no built-in default password. Details: `admin-guide.md`.
 
 The kit only ever creates this account while there is no admin at all, so
 renaming or deleting it never brings it back.
@@ -46,12 +49,27 @@ the `editors` group for its review queue.
 The **Users** page (admins only) creates, edits and deletes accounts. The kit
 refuses to delete or demote the last admin, and you cannot delete yourself.
 
+Beside the role, every account has a **role in class**: `student` (the
+default), `teacher`, `facilitator` or `service` (for scripts: API tokens only,
+no sign-in). Only an administrator changes it. Teachers make **classes** and add
+students; teachers and facilitators can look at, never change, their students'
+work. See `classes_and_roles.md`. Roles in class stay in the kit; the Cartridge
+Store only sees the role above.
+
+**Switch off** (Users page) deprovisions an account: it cannot sign in, its
+sessions end and its API tokens are revoked; its projects stay. **Switch on**
+restores sign-in (make new tokens). A new password, a new role or a new role in
+class also ends the account's other sessions, and every session ends
+`PRG32_KIT_SESSION_HOURS` after sign-in. **My account → Sign out everywhere**
+ends them all at once.
+
 ### Who sees what
 
 | Item | Owner | Other students | Admins |
 |---|---|---|---|
 | Project, sprite, artifact, build, publish profile | read and change | nothing | read and change |
 | Shared item (no owner, e.g. starter games) | - | read only | read and change |
+| A student's item, for a teacher or facilitator of that student's class | read and change | read only (never change or publish) | read and change |
 
 Projects made before accounts existed have no owner, so they become shared
 items. An admin can give one to a student by setting `owner_id` (the user's
@@ -62,20 +80,53 @@ id) with `PUT /api/projects/<id>`.
 | Variable | Default | Meaning |
 |---|---|---|
 | `SECRET_KEY` | random, kept in `data/secret_key` | Signs the sign-in cookie |
-| `PRG32_ADMIN_PASSWORD` | `password` | Password of the first `admin` account |
+| `PRG32_ADMIN_PASSWORD` | unset (random password file) | Password of the first `admin` account |
 | `PRG32_KIT_ALLOW_REGISTRATION` | `true` | Let people create their own accounts |
 | `PRG32_KIT_REQUIRE_EMAIL_DOMAIN` | empty | Only allow emails like `name@school.edu` |
 | `PRG32_KIT_DEFAULT_ROLE` | `user` | Role of self-registered accounts |
-| `PRG32_KIT_SESSION_HOURS` | `12` | How long a sign-in lasts |
+| `PRG32_KIT_SESSION_HOURS` | `12` | How long a sign-in lasts (from sign-in, however active) |
+| `PRG32_KIT_PUBLIC_URL` | empty | The kit's public address, for school sign-in redirect addresses (set it behind a proxy) |
 | `PRG32_KIT_SECURE_COOKIES` | `false` | Set `true` when the kit is served over HTTPS |
 | `PRG32_SMTP_HOST`, `_PORT`, `_FROM`, `_USER`, `_PASSWORD`, `_TLS` | empty | Mail server for registration links. Without one, the link is printed in the server log. |
-| `PRG32_OIDC_*`, `PRG32_SAML_*` | off | School sign-in, same names as the Cartridge Store |
+| `PRG32_OIDC_*`, `PRG32_SAML_*` | off | One school sign-in provider from the environment (more on **Users → School sign-in providers**) |
+
+### School sign-in (OpenID Connect)
+
+On **Users → School sign-in providers** an administrator adds the school's
+OpenID Connect provider: issuer, client id and where the client secret is
+(`env:NAME` or `file:/path`; the secret itself is never typed into the kit).
+Register the redirect address the page shows with the provider. Students then
+see a **sign-in button** for it. Several providers can be added (two schools,
+or students and staff).
+
+- Sign-in uses Authorization Code with PKCE; the kit checks the ID token's
+  signature, issuer, audience, expiry and nonce, and follows key rotation.
+- An account belongs to one identity: the provider's **issuer + subject**. A
+  first sign-in makes a new account. If an account with that email already
+  exists, sign-in is **refused**: the person signs in to the existing account
+  and presses **Link** on **My account**. The kit never joins accounts because
+  their emails match.
+- A provider claim (for example `roles: faculty`) can set the role in class of
+  **new** accounts (`student`, `teacher`, `facilitator`); it never gives
+  `publisher` or `admin`.
+- `allowed domains` limits which emails may make new accounts.
+- Signing out of the kit does **not** sign you out of the school: on a shared
+  computer, close the browser. Switching a person off at the school stops new
+  sign-ins at once; switch the account off in the kit too to end a running session.
+- Accounts are made at the first sign-in; there is no provisioning feed (SCIM).
+- How to test against a real provider: `identity_live_testing.md`.
+
+SAML (`PRG32_SAML_*`) uses the same rules, with the IdP entity id as issuer and
+the NameID as subject. Design: `adr/0016-academic-identity-and-scoped-roles.md`.
 
 ### Scripts and API tokens
 
-On **My account**, make an API token. Scripts send it as
-`Authorization: Bearer prg32_...`. The token is shown once; the kit keeps
-only a hash. Revoke it there if it leaks.
+On **My account**, make an API token and choose what it may do: **read**,
+**change** (write), **compile** (build), **publish**, **administer** (admins
+only), and when it expires. Scripts send it as `Authorization: Bearer prg32_...`.
+The token is shown once; the kit keeps only a hash. A token cannot change the
+password or make a token with more rights than its own. Revoke it there if it
+leaks. Tokens made before scopes existed keep full access until revoked.
 
 ## Linking the kit with a Cartridge Store
 
@@ -135,7 +186,15 @@ Then add a publish profile in the kit whose store address is exactly
  Publish ──bundle + one-time API ticket (Bearer)──▶ /api/publish/bundle
 ```
 
-- **Same email = same person.** Accounts are matched by email.
+- **Same email = same person.** Accounts are matched by email, never by username.
+- **One username, shared.** Your username is the same in the kit and the Store, and only
+  you (and admins) see it. Other people see your Store **public handle**, a made-up name
+  such as `player-3f9a01c2`, which a Store admin can change. If the Store already has
+  someone else with your username, your Store account uses your email as its username
+  instead, and the two accounts stay apart. (This needs the Store change in
+  `docs/upstream/README.md` §6.1 on Stores from `4a3138b`.)
+- **The Store's own privacy notice.** The first time you arrive at the Store, and after it
+  changes its notice, it shows you that notice once.
 - **Newest change wins.** Every account has an `updated_at` time; an older
   change never overwrites a newer one.
 - **Passwords are copied as hashes**, never as plain text, so the same
@@ -161,3 +220,20 @@ The protocol is in `prg32_construction_kit/sso_protocol.py`, the same file as
 - Anyone who knows the secret can create admin accounts on both sides. Keep it
   like a password, and change it on both sides if it leaks.
 - Linking means an admin on one side is an admin on the other side too.
+- Publishing rights are checked by the **kit**: only a publisher, editor or admin can
+  publish, and a student's request is refused before anything is sent. The Store itself
+  accepts a bundle from any signed-in user and does not record who sent it (2026-10-21),
+  so keep publishing on the kit's side.
+
+### How it is checked
+
+- `tests/test_sso_with_cartridge_store.py` runs both services in one process, including
+  the shared username, the separate public handle and a username already taken in the Store.
+- `tests/test_sso_live.py` (with `PRG32_LIVE_STORE=local`, in CI's Store job) runs the kit
+  as an HTTP server and a throwaway Cartridge Store as a separate process, both on
+  127.0.0.1 with a test-only secret. Over real HTTP it checks:
+  - users and role changes sync both ways;
+  - single sign-on works both ways, and each ticket works only once;
+  - a publisher's bundle reaches the Store as a pending submission with a one-time API ticket;
+  - the same ticket again, a forged one, or a sign-in ticket used for the API is refused;
+  - a student's publish is refused by the kit, with nothing sent.

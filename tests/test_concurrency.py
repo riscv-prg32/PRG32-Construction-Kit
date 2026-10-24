@@ -126,9 +126,10 @@ def test_build_notices_changed_advanced_c(client, monkeypatch):
 
 def test_generated_ir_never_overwrites_a_newer_save(app, client):
     project = client.post("/api/projects", json={"title": "Race", "blocks_json": default_blocks()}).get_json()
-    # Another window switches the project to Advanced C after we read it.
-    newer = {"source_mode": "c", "source_c": "void race_init(void) {}"}
-    client.put(f"/api/projects/{project['id']}", json={"game_json": newer})
+    # Another window saves newer blocks (and their IR) after we read the project.
+    newer_blocks = {"blocks": {"languageVersion": 0, "blocks": [{"type": "prg32_on_start", "id": "newer"}]}}
+    newer = {"abi": "newer"}
+    client.put(f"/api/projects/{project['id']}", json={"blocks_json": newer_blocks, "game_json": newer})
     with app.app_context():
         stored = update_if_unchanged("projects", project["id"],
                                      {"blocks_json": project["blocks_json"], "game_json": project["game_json"]},
@@ -142,7 +143,9 @@ def test_each_build_gets_a_private_temporary_folder(app, client, monkeypatch):
 
     def compiler(command, **kwargs):
         out_path = Path(command[command.index("--out") + 1])
-        seen.append((out_path.parent, Path(kwargs["env"]["TMPDIR"]), kwargs["timeout"]))
+        # build_guard enforces the build timeout (--timeout); the outer timeout only adds start-up time.
+        seen.append((out_path.parent, Path(kwargs["env"]["TMPDIR"]), float(command[command.index("--timeout") + 1])))
+        assert kwargs["timeout"] >= 42
         out_path.write_bytes(b"cart")
         return SimpleNamespace(returncode=0, stdout="", stderr="")
 
@@ -202,3 +205,53 @@ def test_real_cartridges_for_many_students_and_windows(app):
     assert report["cartridges"] == 12
     assert {cartridge_name(item["data"]) for item in report["results"]} == {
         "lab-check-student1", "lab-check-student2", "lab-check-student3"}
+
+
+def test_source_modes_check_builds_each_way_of_writing_a_game(app, monkeypatch):
+    from prg32_construction_kit import build_check
+
+    sources = []
+
+    def compiler(command, **_kwargs):
+        source = next(Path(arg) for arg in command if arg.endswith(("game.c", "game.S")))
+        sources.append((source.name, source.read_text()))
+        Path(command[command.index("--out") + 1]).write_bytes(b"PRG2" + bytes(60))
+        return SimpleNamespace(returncode=0, stdout="", stderr="")
+
+    monkeypatch.setattr("prg32_construction_kit.packager.subprocess.run", compiler)
+    monkeypatch.setattr(build_check, "runs", lambda _data: None)
+    report = build_check.source_modes_check(app, architectures=["qemu"])
+    assert report["problems"] == []
+    assert [item["mode"] for item in report["results"]] == [
+        "blocks (generated C)", "blocks (generated assembly)", "advanced C", "handwritten assembly",
+        "python (generated C)", "python (generated assembly)"]
+    names = [name for name, _text in sources]
+    assert names == ["game.c", "game.S", "game.c", "game.S", "game.c", "game.S"]
+    assert "mode_check_c_draw" in sources[2][1] and "mode_check_asm_update" in sources[3][1]
+    assert "mode_check_python_draw" in sources[4][1] and "from the saved PRG32 Python" in sources[5][1]
+
+
+def test_source_modes_check_reports_a_failed_build(app, monkeypatch):
+    from prg32_construction_kit import build_check
+
+    def broken(command, **_kwargs):
+        return SimpleNamespace(returncode=1, stdout="", stderr="error: something")
+
+    monkeypatch.setattr("prg32_construction_kit.packager.subprocess.run", broken)
+    report = build_check.source_modes_check(app, architectures=["qemu"])
+    assert len(report["problems"]) == 6 and report["results"] == []
+
+
+def test_real_cartridges_from_blocks_c_assembly_and_python(app):
+    """Uses the real PRG32 toolchain when it is installed (skipped otherwise); with Node.js each
+    cartridge also runs in the browser core."""
+    import pytest
+
+    from prg32_construction_kit.build_check import source_modes_check
+
+    if _real_toolchain_missing(app.config["PRG32_BUILD_COMMAND"]):
+        pytest.skip("PRG32 build toolchain is not installed")
+    report = source_modes_check(app)
+    assert report["problems"] == []
+    assert len(report["results"]) == 12
+    assert all(item["runs_in_browser_core"] is not False for item in report["results"])

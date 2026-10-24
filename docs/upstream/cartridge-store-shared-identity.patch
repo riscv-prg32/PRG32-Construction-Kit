@@ -1,0 +1,435 @@
+From 3c5d633e199cb3b88c16780c10aa46d07e5ffdc8 Mon Sep 17 00:00:00 2001
+From: raffmont <raffaele.montella@uniparthenope.it>
+Date: Thu, 22 Oct 2026 17:30:53 +0200
+Subject: [PATCH] Shared identity with the Construction Kit: /api/me username
+ is the account username, public handle apart
+
+- Principal.as_dict() returns the account username (shared over SSO) and public_handle;
+  public_dict() is what other people see (multiplayer errors no longer send email).
+- SSO sign-in shows the privacy notice once per version, like local sign-in.
+- The notice gate answers /api/ calls in JSON (403 privacy_notice_required); /api/me
+  reports privacy_notice_pending.
+- An /api/ POST with no signed-in session and no Bearer token gets 401, not a CSRF 400.
+- tests/test_shared_identity.py: contract, collision, rename, migration, notice, CSRF.
+---
+ cartridge_store/app.py           |   2 +
+ cartridge_store/auth/__init__.py |  15 ++-
+ cartridge_store/multiplayer.py   |   2 +-
+ cartridge_store/privacy.py       |   5 +
+ cartridge_store/sso.py           |   8 +-
+ docs/api.md                      |   9 ++
+ docs/gdpr.md                     |   7 ++
+ tests/test_privacy.py            |  13 ++-
+ tests/test_shared_identity.py    | 192 +++++++++++++++++++++++++++++++
+ 9 files changed, 241 insertions(+), 12 deletions(-)
+ create mode 100644 tests/test_shared_identity.py
+
+diff --git a/cartridge_store/app.py b/cartridge_store/app.py
+index 49982c1..aa55ec3 100644
+--- a/cartridge_store/app.py
++++ b/cartridge_store/app.py
+@@ -27,6 +27,7 @@ from flask import (
+     render_template,
+     request,
+     send_file,
++    session,
+     url_for,
+ )
+ from werkzeug.security import generate_password_hash
+@@ -623,6 +624,7 @@ def create_app(test_config: dict[str, Any] | None = None) -> Flask:
+                 "ok": True,
+                 "auth_enabled": auth_is_configured(),
+                 "user": current_principal().as_dict(),
++                "privacy_notice_pending": bool(session.get("privacy_notice_pending")),
+                 "sso": {"enabled": sso.enabled(), "abi": sso.protocol.SSO_ABI},
+             }
+         )
+diff --git a/cartridge_store/auth/__init__.py b/cartridge_store/auth/__init__.py
+index 12ba427..bad3e09 100644
+--- a/cartridge_store/auth/__init__.py
++++ b/cartridge_store/auth/__init__.py
+@@ -110,22 +110,30 @@ class Principal:
+     email: str = ""
+     external_provider: str | None = None
+     groups: tuple[str, ...] = ()
++    account_username: str = ""
+ 
+     @property
+     def username(self) -> str:
+-        return self.name
++        """The account's sign-in name, shared with the Construction Kit over SSO. Private to its owner."""
++        return self.account_username or self.name
+ 
+     def as_dict(self) -> dict[str, Any]:
++        """The signed-in user's own view (/api/me): their account username and, apart, their public handle."""
+         return {
+             "id": self.id,
+             "name": self.name,
+-            "username": self.name,
++            "username": self.username,
++            "public_handle": self.name,
+             "email": self.email,
+             "role": self.role,
+             "groups": list(self.groups),
+             "authenticated": self.authenticated,
+         }
+ 
++    def public_dict(self) -> dict[str, Any]:
++        """What other people may see: the public handle only, never the username or email."""
++        return {"name": self.name, "public_handle": self.name, "role": self.role, "authenticated": self.authenticated}
++
+ 
+ ANONYMOUS = Principal(name="anonymous", role="reader", authenticated=False)
+ 
+@@ -293,6 +301,7 @@ def principal_from_row(row: Any | None, *, token: str = "") -> Principal:
+         authenticated=True,
+         external_provider=row["external_provider"],
+         groups=groups_for_user(int(row["id"])),
++        account_username=str(row["username"] or ""),
+     )
+ 
+ 
+@@ -793,6 +802,8 @@ def register_auth_routes(app: Flask) -> None:
+             return None
+         if request.is_json or request_token() or request.path in {"/auth/saml/acs", "/auth/sso/accept"}:
+             return None
++        if request.path.startswith("/api/") and not session.get("user_id"):
++            return None     # no signed-in session to ride on: the route's own sign-in check answers 401
+         supplied = request.form.get("csrf_token", "") or request.headers.get("X-CSRF-Token", "")
+         expected = session.get("csrf_token", "")
+         if expected and supplied and hmac.compare_digest(str(expected), str(supplied)):
+diff --git a/cartridge_store/multiplayer.py b/cartridge_store/multiplayer.py
+index b2fe085..fee800a 100644
+--- a/cartridge_store/multiplayer.py
++++ b/cartridge_store/multiplayer.py
+@@ -109,7 +109,7 @@ class MultiplayerHub:
+                 {
+                     "type": "error",
+                     "error": "player role required",
+-                    "user": peer.principal.as_dict(),
++                    "user": peer.principal.public_dict(),
+                 }
+             )
+             return
+diff --git a/cartridge_store/privacy.py b/cartridge_store/privacy.py
+index 19889f1..6abde55 100644
+--- a/cartridge_store/privacy.py
++++ b/cartridge_store/privacy.py
+@@ -272,7 +272,12 @@ def register_privacy_routes(app: Flask, store: GameStore) -> None:
+             "privacy_acknowledge_post",
+             "auth_logout",
+             "static",
++            "api_me",
+         }:
++            if request.path.startswith("/api/"):
++                return jsonify({"ok": False, "code": "privacy_notice_required",
++                                "error": "Read and acknowledge the privacy notice first.",
++                                "acknowledge_url": url_for("privacy_acknowledge")}), 403
+             return redirect(url_for("privacy_acknowledge", next=request.full_path))
+ 
+     @app.after_request
+diff --git a/cartridge_store/sso.py b/cartridge_store/sso.py
+index e7e1e34..7ce124d 100644
+--- a/cartridge_store/sso.py
++++ b/cartridge_store/sso.py
+@@ -361,13 +361,15 @@ def register_sso_routes(app: Flask) -> None:
+         session["user_id"] = principal.id
+         session["role"] = principal.role
+         session["authenticated_at"] = time.time()
+-        if not current_app.config.get("TESTING"):
+-            session["privacy_notice_pending"] = True
+         target = request.form.get("next") or "/"
+         if not target.startswith("/") or target.startswith("//"):
+             target = "/"
+-        if current_app.config.get("TESTING"):
++        from .privacy import PRIVACY_NOTICE_VERSION
++
++        seen = get_db().execute("SELECT privacy_notice_version FROM users WHERE id = ?", (principal.id,)).fetchone()
++        if current_app.config.get("TESTING") or (seen and seen["privacy_notice_version"] == PRIVACY_NOTICE_VERSION):
+             return redirect(target)
++        session["privacy_notice_pending"] = True     # the Store's own notice, once per version
+         return redirect(url_for("privacy_acknowledge", next=target))
+ 
+     @app.context_processor
+diff --git a/docs/api.md b/docs/api.md
+index 49fe8f2..1d7e7d6 100644
+--- a/docs/api.md
++++ b/docs/api.md
+@@ -47,6 +47,15 @@ Account email and login username are private. Public response fields such as
+ safe public handle. Existing email-based profile URLs remain available only to
+ that account and administrators during migration; anonymous requests receive a
+ not-found response.
++
++`GET /api/me` is the signed-in user's own view. Its `username` is the private
++account username, the one shared with a linked PRG32-Construction-Kit over
++single sign-on; `public_handle` (also in `name`) is the public display name.
++Other people only ever see `public_handle`. While the user still has to
++acknowledge the current privacy notice, `/api/me` answers with
++`"privacy_notice_pending": true` and other `/api/` routes answer `403` with
++`"code": "privacy_notice_required"` instead of redirecting. A `POST` to an
++`/api/` route without a signed-in session or a Bearer token answers `401`.
+ | `GET` | `/auth/me` | Current user JSON |
+ | `GET` | `/auth/tokens` | List your Bearer tokens or open the token manager |
+ | `POST` | `/auth/tokens` | Create a Bearer token |
+diff --git a/docs/gdpr.md b/docs/gdpr.md
+index 714b343..f414b2c 100644
+--- a/docs/gdpr.md
++++ b/docs/gdpr.md
+@@ -123,6 +123,13 @@ the corresponding handle. Unattributed legacy strings containing `@` become
+ filesystem store lock. Published authors/developers in cartridge metadata are
+ creative credits and are not silently rewritten.
+ 
++The account username stays the sign-in name shared with a linked
++Construction Kit: SSO matches accounts by email, an imported account keeps the
++kit's username (or its email when another Store account already uses that
++username; accounts are never joined by username), and `/api/me` returns it only
++to its owner. The public handle is never derived from it for SSO imports.
++A user arriving by SSO sees the Store's notice once per notice version.
++
+ ## Notice Versioning
+ 
+ The Setup page stores the controller's actual processing records as a JSON
+diff --git a/tests/test_privacy.py b/tests/test_privacy.py
+index 03b6c69..2f4d813 100644
+--- a/tests/test_privacy.py
++++ b/tests/test_privacy.py
+@@ -67,18 +67,19 @@ def test_email_is_not_exposed_as_public_identity(tmp_path) -> None:
+     user = app.test_client()
+     register(user, "student@example.test")
+     me = user.get("/api/me").get_json()["user"]
+-    assert me["username"].startswith("player-")
+-    assert "@" not in me["username"]
++    assert me["public_handle"].startswith("player-")
++    assert "@" not in me["public_handle"]
++    assert me["name"] == me["public_handle"]
+ 
+     assert user.post(
+         "/api/scores", json={"game": "pong", "player": "Ada", "score": 7}
+     ).status_code == 200
+     public = app.test_client()
+     scores = public.get("/api/scores").get_json()
+-    assert scores[0]["submitted_by"] == me["username"]
++    assert scores[0]["submitted_by"] == me["public_handle"]
+     assert "student@example.test" not in public.get("/api/scores").text
+     assert public.get("/users/student@example.test").status_code == 404
+-    assert public.get(f"/users/{me['username']}").status_code == 200
++    assert public.get(f"/users/{me['public_handle']}").status_code == 200
+ 
+ 
+ def test_existing_email_username_gets_safe_public_handle(tmp_path) -> None:
+@@ -105,12 +106,12 @@ def test_erasure_anonymises_reviewer_and_catalog_publisher(tmp_path) -> None:
+         db = get_db()
+         db.execute(
+             "INSERT INTO cartridge_submissions(game_id, version, status, reviewed_by_user_id, reviewed_by, metadata_json, architectures_json) VALUES ('game', '1', 'verified', ?, ?, '{}', '[]')",
+-            (me["id"], me["username"]),
++            (me["id"], me["public_handle"]),
+         )
+         db.commit()
+     store = GameStore(data_dir)
+     store.save_index({
+-        "games": {"game": {"id": "game", "publisher": me["username"], "latest_version": "1", "versions": {"1": {"version": "1", "published_by": me["username"], "metadata": {}, "architectures": {}}}}}
++        "games": {"game": {"id": "game", "publisher": me["public_handle"], "latest_version": "1", "versions": {"1": {"version": "1", "published_by": me["public_handle"], "metadata": {}, "architectures": {}}}}}
+     })
+ 
+     response = user.post(
+diff --git a/tests/test_shared_identity.py b/tests/test_shared_identity.py
+new file mode 100644
+index 0000000..8e5a05d
+--- /dev/null
++++ b/tests/test_shared_identity.py
+@@ -0,0 +1,192 @@
++"""The account identity shared with a PRG32-Construction-Kit (SSO contract).
++
++- The account username is the sign-in name both services share. /api/me returns it to its
++  owner, with the public handle beside it.
++- The public handle is the only name other people see (catalog, scores, multiplayer). It is
++  pseudonymous and never the username or the email.
++- An account that arrives over SSO keeps the kit's username; if that username is already
++  taken by another Store account, the accounts are not joined.
++- Accounts are matched by email over SSO, never by username or handle.
++"""
++
++from __future__ import annotations
++
++from cartridge_store import create_app, sso
++from cartridge_store.auth import init_auth_db, load_user
++from cartridge_store.database import get_db
++from cartridge_store import sso_protocol as protocol
++
++SECRET = "a-shared-classroom-secret-that-is-long-enough"
++PASSWORD = "student-password-1"
++
++
++def make_store(path, **extra):
++    app = create_app({"TESTING": True, "DATA_DIR": str(path), "SSO_SECRET": SECRET,
++                      "SSO_PEER_URL": "http://kit.test", **extra})
++    app.test_client().get("/")          # the first request makes the tables
++    return app
++
++
++def kit_record(username, email, **extra):
++    from werkzeug.security import generate_password_hash
++
++    return {"username": username, "email": email, "role": "user", "groups": [],
++            "password_hash": generate_password_hash(PASSWORD), "updated_at": protocol.timestamp_now(), **extra}
++
++
++def import_from_kit(app, record):
++    with app.app_context():
++        return sso.apply_record(record)
++
++
++def row(app, email):
++    with app.app_context():
++        return dict(get_db().execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone())
++
++
++def sign_in(app, login):
++    client = app.test_client()
++    assert client.post("/auth/login", data={"username": login, "password": PASSWORD}).status_code == 302
++    return client
++
++
++def test_me_returns_the_account_username_and_a_separate_public_handle(tmp_path):
++    app = make_store(tmp_path)
++    assert import_from_kit(app, kit_record("ada", "ada@school.test")) == "created"
++    me = sign_in(app, "ada@school.test").get("/api/me").get_json()["user"]
++    assert me["username"] == "ada"
++    assert me["public_handle"].startswith("player-") and me["name"] == me["public_handle"]
++    assert "ada" not in me["public_handle"] and "@" not in me["public_handle"]
++
++
++def test_sso_ticket_sign_in_gives_the_same_username(tmp_path):
++    app = make_store(tmp_path)
++    import_from_kit(app, kit_record("ada", "ada@school.test"))
++    ticket = protocol.make_ticket(SECRET, email="ada@school.test", audience="cartridge-store", purpose="login", ttl=60)
++    browser = app.test_client()
++    assert browser.post("/auth/sso/accept", data={"ticket": ticket}).status_code == 302
++    assert browser.get("/api/me").get_json()["user"]["username"] == "ada"
++
++
++def test_other_people_only_see_the_public_handle(tmp_path):
++    app = make_store(tmp_path)
++    import_from_kit(app, kit_record("ada", "ada@school.test"))
++    ada = sign_in(app, "ada@school.test")
++    handle = ada.get("/api/me").get_json()["user"]["public_handle"]
++    assert ada.post("/api/scores", json={"game": "pong", "player": "A", "score": 3}).status_code == 200
++    public = app.test_client().get("/api/scores").get_data(as_text=True)
++    assert handle in public and "ada@school.test" not in public and '"ada"' not in public
++    with app.app_context():
++        seen_by_peers = load_user(int(row(app, "ada@school.test")["id"])).public_dict()
++    assert seen_by_peers == {"name": handle, "public_handle": handle, "role": "user", "authenticated": True}
++
++
++def test_a_username_taken_by_another_store_account_is_not_joined(tmp_path):
++    """Collision: a Store-only "ada" exists with another email. The kit's ada gets her own account."""
++    app = make_store(tmp_path)
++    import_from_kit(app, kit_record("ada", "ada@other-school.test"))
++    with app.app_context():
++        get_db().execute("UPDATE users SET updated_at = '2000-01-01T00:00:00Z'")   # Store-only from now on
++        get_db().commit()
++    store_ada = row(app, "ada@other-school.test")
++    assert import_from_kit(app, kit_record("ada", "ada@school.test")) == "created"
++    kit_ada = row(app, "ada@school.test")
++    assert kit_ada["id"] != store_ada["id"]
++    assert kit_ada["username"] == "ada@school.test"            # falls back to the email, never "ada"
++    assert row(app, "ada@other-school.test") == store_ada       # the other account is untouched
++    assert kit_ada["public_handle"] != store_ada["public_handle"]
++    # Each signs in to their own account.
++    assert sign_in(app, "ada@school.test").get("/api/me").get_json()["user"]["email"] == "ada@school.test"
++    assert sign_in(app, "ada@other-school.test").get("/api/me").get_json()["user"]["email"] == "ada@other-school.test"
++
++
++def test_a_rename_onto_a_taken_username_keeps_the_old_one(tmp_path):
++    app = make_store(tmp_path)
++    import_from_kit(app, kit_record("ada", "ada@school.test"))
++    import_from_kit(app, kit_record("bob", "bob@school.test"))
++    assert import_from_kit(app, kit_record("bob", "ada@school.test")) == "updated"
++    assert row(app, "ada@school.test")["username"] == "ada"
++    assert import_from_kit(app, kit_record("ada-lovelace", "ada@school.test")) == "updated"
++    assert row(app, "ada@school.test")["username"] == "ada-lovelace"
++
++
++def test_a_public_handle_never_decides_who_signs_in(tmp_path):
++    """A handle that equals another account's username does not let anyone sign in as that account."""
++    app = make_store(tmp_path)
++    import_from_kit(app, kit_record("ada", "ada@school.test"))
++    import_from_kit(app, kit_record("bob", "bob@school.test"))
++    with app.app_context():
++        get_db().execute("UPDATE users SET public_handle = 'ada' WHERE email = 'bob@school.test'")
++        get_db().commit()
++    me = sign_in(app, "ada").get("/api/me").get_json()["user"]
++    assert me["email"] == "ada@school.test" and me["username"] == "ada"
++    ticket = protocol.make_ticket(SECRET, email="bob@school.test", audience="cartridge-store", purpose="login", ttl=60)
++    browser = app.test_client()
++    browser.post("/auth/sso/accept", data={"ticket": ticket})
++    assert browser.get("/api/me").get_json()["user"]["username"] == "bob"
++
++
++def test_migrated_accounts_keep_their_username(tmp_path):
++    """Migration: rows from before public handles keep their username; only the handle is added."""
++    app = make_store(tmp_path)
++    import_from_kit(app, kit_record("cyrus", "cy@school.test"))
++    import_from_kit(app, kit_record("dee@school.test", "dee@school.test"))
++    with app.app_context():
++        db = get_db()
++        db.execute("DROP INDEX users_public_handle_idx")
++        db.execute("UPDATE users SET public_handle = NULL WHERE email IN ('cy@school.test', 'dee@school.test')")
++        db.commit()
++        init_auth_db()
++    cy, dee = row(app, "cy@school.test"), row(app, "dee@school.test")
++    assert cy["username"] == "cyrus" and cy["public_handle"] == "cyrus"
++    assert dee["username"] == "dee@school.test" and "@" not in dee["public_handle"]
++    assert sign_in(app, "cyrus").get("/api/me").get_json()["user"]["username"] == "cyrus"
++    assert sign_in(app, "dee@school.test").get("/api/me").get_json()["user"]["username"] == "dee@school.test"
++
++
++def test_the_notice_gate_answers_api_calls_in_json(tmp_path):
++    app = make_store(tmp_path)
++    import_from_kit(app, kit_record("ada", "ada@school.test"))
++    ada = sign_in(app, "ada@school.test")
++    with ada.session_transaction() as browser_session:
++        browser_session["privacy_notice_pending"] = True
++    me = ada.get("/api/me")
++    assert me.status_code == 200 and me.get_json()["privacy_notice_pending"] is True
++    assert me.get_json()["user"]["username"] == "ada"
++    refused = ada.post("/api/scores", json={"game": "pong", "player": "A", "score": 3})
++    assert refused.status_code == 403 and refused.get_json()["code"] == "privacy_notice_required"
++    page = ada.get("/publish")
++    assert page.status_code == 302 and "/auth/privacy-acknowledge" in page.headers["Location"]
++
++
++def test_sso_sign_in_shows_the_notice_once_per_version(tmp_path):
++    app = make_store(tmp_path)
++    app.config["TESTING"] = False
++    with app.app_context():
++        sso.apply_record(kit_record("ada", "ada@school.test"))
++
++    def arrive():
++        ticket = protocol.make_ticket(SECRET, email="ada@school.test", audience="cartridge-store", purpose="login", ttl=60)
++        browser = app.test_client()
++        return browser, browser.post("/auth/sso/accept", data={"ticket": ticket, "next": "/publish"})
++
++    browser, first = arrive()
++    assert "/auth/privacy-acknowledge" in first.headers["Location"]
++    form = browser.get("/auth/privacy-acknowledge").get_data(as_text=True)
++    version = form.split('name="privacy_notice_version" value="', 1)[1].split('"', 1)[0]
++    csrf = form.split('name="csrf-token" content="', 1)[1].split('"', 1)[0]
++    assert browser.post("/auth/privacy-acknowledge", data={"privacy_notice_version": version, "csrf_token": csrf,
++                                                           "next": "/publish"}).status_code == 302
++    _browser, second = arrive()
++    assert second.headers["Location"] == "/publish"
++
++
++def test_unsigned_api_posts_get_401_not_a_csrf_error(tmp_path):
++    app = make_store(tmp_path, CSRF_ENABLED=True)
++    assert app.test_client().post("/api/publish/bundle").status_code == 401
++    browser = app.test_client()
++    browser.get("/auth/login")
++    with browser.session_transaction() as browser_session:
++        csrf = browser_session["csrf_token"]
++    browser.post("/auth/login", data={"username": "admin", "password": "password", "csrf_token": csrf})
++    assert browser.post("/api/publish/bundle").status_code == 400          # a signed-in browser still needs the token
+-- 
+2.55.0
+

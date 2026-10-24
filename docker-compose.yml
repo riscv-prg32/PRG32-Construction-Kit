@@ -13,13 +13,25 @@ services:
         RISCV_GCC_VERSION: ${RISCV_GCC_VERSION:-esp-14.2.0_20241119}
     # The container checks the build tools when it starts and stops if they are
     # broken (see docker/entrypoint.sh). `docker compose logs` shows the check.
+    # Lets bubblewrap isolate each compiler run (docs/build_sandbox.md): Docker's default
+    # seccomp profile plus only the namespace calls bubblewrap needs. No extra capabilities.
+    security_opt:
+      - seccomp=./docker/seccomp-kit.json
+      # AppArmor hosts (Ubuntu 24.04): sudo apparmor_parser -r -W docker/apparmor/prg32-kit, then add
+      # - apparmor=prg32-kit
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
     ports:
       - "5090:5090"
     environment:
       PRG32_KIT_DATA: /data
       PRG32_KIT_PORT: 5090
-      PRG32_STORE_URL: http://host.docker.internal:5080
-      PRG32_ADMIN_PASSWORD: ${PRG32_ADMIN_PASSWORD:-password}
+      # First admin: leave unset to get a random password in ./data/initial_admin_password
+      # (deleted once you change it), or set a long one in .env. Weak ones stop the start.
+      PRG32_ADMIN_PASSWORD: ${PRG32_ADMIN_PASSWORD:-}
+      # Number of trusted reverse proxies in front of the kit (for sign-in limits).
+      PRG32_KIT_PROXY_COUNT: ${PRG32_KIT_PROXY_COUNT:-0}
       # Cartridge builds: how many compile at once, how long a build may wait
       # for a free slot, and how long one compiler run may take (seconds).
       PRG32_MAX_PARALLEL_BUILDS: ${PRG32_MAX_PARALLEL_BUILDS:-4}
@@ -31,6 +43,13 @@ services:
       # Web server: worker processes x threads = students served at once.
       PRG32_KIT_WORKERS: ${PRG32_KIT_WORKERS:-2}
       PRG32_KIT_THREADS: ${PRG32_KIT_THREADS:-16}
+      # Cartridge Stores bundles may be sent to (comma-separated https origins). Unset: the
+      # origins of PRG32_STORE_URL and PRG32_SSO_PEER_URL. See docs/admin-guide.md.
+      PRG32_STORE_URL: ${PRG32_STORE_URL:-http://host.docker.internal:5080}
+      PRG32_STORE_ALLOWED_ORIGINS: ${PRG32_STORE_ALLOWED_ORIGINS:-}
+      # 1 = the Store is on a private network (classroom LAN) and is trusted. Plain http
+      # still needs a non-production server, so the Docker image needs https.
+      PRG32_STORE_TRUSTED_LOCAL: ${PRG32_STORE_TRUSTED_LOCAL:-0}
       # Share accounts with a Cartridge Store (same secret on both sides):
       PRG32_SSO_SECRET: ${PRG32_SSO_SECRET:-}
       PRG32_SSO_PEER_URL: ${PRG32_SSO_PEER_URL:-}

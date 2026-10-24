@@ -1,0 +1,17 @@
+{
+ "started": "2026-10-21T13:13:58+00:00",
+ "kit_revision": "b547d8291dadf724d939f07be39506c94f1bb88e",
+ "kit_dirty": false,
+ "prg32_sdk_revision": "679dfb58783bd007125de9ca0b75eaa077908739",
+ "image": "prg32-construction-kit:toolchain-checks",
+ "steps": {
+  "check_build": "passed",
+  "audio_fixtures": "passed",
+  "debug_fixtures": "passed",
+  "hardware_audio_check": "passed",
+  "toolchain_tests": "passed"
+ },
+ "compiler": "riscv32-esp-elf-gcc (crosstool-NG esp-14.2.0_20241119) 14.2.0",
+ "finished": "2026-10-21T13:14:51+00:00",
+ "outcome": "passed"
+}

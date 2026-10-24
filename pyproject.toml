@@ -14,6 +14,25 @@ dependencies = [
 [project.optional-dependencies]
 production = ["psycopg[binary]>=3.2,<4.0"]
 
+# A small lint gate (CI "quality" job): real mistakes only (pyflakes: unused or undefined
+# names; syntax errors). No style rules, so the code can stay written for learners.
+[tool.ruff]
+target-version = "py311"
+line-length = 120
+extend-exclude = ["static", "data", "build-*"]
+
+[tool.ruff.lint]
+select = ["F", "E9"]
+
+[tool.coverage.run]
+source = ["prg32_construction_kit"]
+omit = ["prg32_construction_kit/build_guard.py"]   # runs as its own process inside the sandbox
+
+[tool.coverage.report]
+skip_empty = true
+# Measured 91% (2026-10-20, without browser and toolchain suites); the gate catches real drops.
+fail_under = 88
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]

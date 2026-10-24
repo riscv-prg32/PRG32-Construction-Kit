@@ -1,0 +1,1726 @@
+[
+ {
+  "expected": {
+   "items": [
+    {
+     "detail": "header",
+     "documentation": "PRG32 SDK header",
+     "insertText": "prg32.h\"",
+     "kind": "file",
+     "label": "prg32.h"
+    },
+    {
+     "detail": "header",
+     "documentation": "PRG32 SDK header",
+     "insertText": "prg32_audio.h\"",
+     "kind": "file",
+     "label": "prg32_audio.h"
+    },
+    {
+     "detail": "header",
+     "documentation": "freestanding C header",
+     "insertText": "stdbool.h\"",
+     "kind": "file",
+     "label": "stdbool.h"
+    },
+    {
+     "detail": "header",
+     "documentation": "freestanding C header",
+     "insertText": "stddef.h\"",
+     "kind": "file",
+     "label": "stddef.h"
+    },
+    {
+     "detail": "header",
+     "documentation": "freestanding C header",
+     "insertText": "stdint.h\"",
+     "kind": "file",
+     "label": "stdint.h"
+    }
+   ],
+   "range": {
+    "column": 11,
+    "endColumn": 11,
+    "line": 1
+   }
+  },
+  "name": "c: #include offers only the approved headers",
+  "request": {
+   "language": "c",
+   "op": "completions",
+   "position": {
+    "column": 11,
+    "line": 1
+   },
+   "source": "#include \""
+  }
+ },
+ {
+  "expected": {
+   "items": [
+    {
+     "detail": "header",
+     "documentation": "freestanding C header",
+     "insertText": "stdbool.h>",
+     "kind": "file",
+     "label": "stdbool.h"
+    },
+    {
+     "detail": "header",
+     "documentation": "freestanding C header",
+     "insertText": "stddef.h>",
+     "kind": "file",
+     "label": "stddef.h"
+    },
+    {
+     "detail": "header",
+     "documentation": "freestanding C header",
+     "insertText": "stdint.h>",
+     "kind": "file",
+     "label": "stdint.h"
+    }
+   ],
+   "range": {
+    "column": 11,
+    "endColumn": 13,
+    "line": 1
+   }
+  },
+  "name": "c: #include <st offers the freestanding headers",
+  "request": {
+   "language": "c",
+   "op": "completions",
+   "position": {
+    "column": 13,
+    "line": 1
+   },
+   "source": "#include <st"
+  }
+ },
+ {
+  "expected": {
+   "items": [
+    {
+     "detail": "preprocessor",
+     "insertText": "include",
+     "kind": "keyword",
+     "label": "include"
+    },
+    {
+     "detail": "preprocessor",
+     "insertText": "define",
+     "kind": "keyword",
+     "label": "define"
+    },
+    {
+     "detail": "preprocessor",
+     "insertText": "undef",
+     "kind": "keyword",
+     "label": "undef"
+    },
+    {
+     "detail": "preprocessor",
+     "insertText": "if",
+     "kind": "keyword",
+     "label": "if"
+    },
+    {
+     "detail": "preprocessor",
+     "insertText": "ifdef",
+     "kind": "keyword",
+     "label": "ifdef"
+    },
+    {
+     "detail": "preprocessor",
+     "insertText": "ifndef",
+     "kind": "keyword",
+     "label": "ifndef"
+    },
+    {
+     "detail": "preprocessor",
+     "insertText": "elif",
+     "kind": "keyword",
+     "label": "elif"
+    },
+    {
+     "detail": "preprocessor",
+     "insertText": "else",
+     "kind": "keyword",
+     "label": "else"
+    },
+    {
+     "detail": "preprocessor",
+     "insertText": "endif",
+     "kind": "keyword",
+     "label": "endif"
+    }
+   ],
+   "range": {
+    "column": 2,
+    "endColumn": 2,
+    "line": 1
+   }
+  },
+  "name": "c: # offers only the allowed preprocessor words",
+  "request": {
+   "language": "c",
+   "op": "completions",
+   "position": {
+    "column": 2,
+    "line": 1
+   },
+   "source": "#"
+  }
+ },
+ {
+  "expected": {
+   "items": [
+    {
+     "detail": "void prg32_gfx_clear(uint16_t color)",
+     "documentation": "```c\nvoid prg32_gfx_clear(uint16_t color);\n```\nFill the whole game screen with one colour. Call it first in your draw function.\n\n*Immediate-mode graphics and status bands:* Cartridge coordinates address the 320x200 viewport unless fullscreen mode is enabled by resident UI. Drawing is clipped; non-positive rectangle sizes draw nothing. `present` publishes the completed back buffer. Cartridge draw callbacks are already serialized by the runtime and normally should not acquire the graphics lock themselves. Snapshot rows copy RGB565 pixels into caller storage and return the number copied or a negative error. Band text is copied by the runtime. Fullscreen, persistent band configuration, and lock management are primarily resident firmware services and should be used cautiously by cartridges.\n\nPortable PRG32 ABI 1.6 \u00b7 feature: core",
+     "insertText": "prg32_gfx_clear(${1:color})",
+     "kind": "function",
+     "label": "prg32_gfx_clear",
+     "snippet": true
+    },
+    {
+     "detail": "void prg32_gfx_clear_indexed(uint8_t index)",
+     "documentation": "```c\nvoid prg32_gfx_clear_indexed(uint8_t index);\n```\nClear the game viewport to one system-palette index.\n\n*Immediate-mode graphics and status bands:* Cartridge coordinates address the 320x200 viewport unless fullscreen mode is enabled by resident UI. Drawing is clipped; non-positive rectangle sizes draw nothing. `present` publishes the completed back buffer. Cartridge draw callbacks are already serialized by the runtime and normally should not acquire the graphics lock themselves. Snapshot rows copy RGB565 pixels into caller storage and return the number copied or a negative error. Band text is copied by the runtime. Fullscreen, persistent band configuration, and lock management are primarily resident firmware services and should be used cautiously by cartridges.\n\nPortable PRG32 ABI 1.6 \u00b7 feature: graphics",
+     "insertText": "prg32_gfx_clear_indexed(${1:index})",
+     "kind": "function",
+     "label": "prg32_gfx_clear_indexed",
+     "snippet": true
+    }
+   ],
+   "range": {
+    "column": 3,
+    "endColumn": 15,
+    "line": 1
+   }
+  },
+  "name": "c: prg32_gfx_cl offers portable functions only",
+  "request": {
+   "language": "c",
+   "op": "completions",
+   "position": {
+    "column": 15,
+    "line": 1
+   },
+   "source": "  prg32_gfx_cl"
+  }
+ },
+ {
+  "expected": {
+   "items": [],
+   "range": {
+    "column": 3,
+    "endColumn": 12,
+    "line": 1
+   }
+  },
+  "name": "c: prg32_rgb offers nothing (resident firmware only)",
+  "request": {
+   "language": "c",
+   "op": "completions",
+   "position": {
+    "column": 12,
+    "line": 1
+   },
+   "source": "  prg32_rgb"
+  }
+ },
+ {
+  "expected": {
+   "items": [
+    {
+     "detail": "#define PRG32_BTN_A (1u << 4)",
+     "documentation": "Controller bitmask. Player 1 occupies bits 0..6 and player 2 occupies bits 8..14. SELECT and START are names for the same physical input.",
+     "insertText": "PRG32_BTN_A",
+     "kind": "constant",
+     "label": "PRG32_BTN_A"
+    },
+    {
+     "detail": "#define PRG32_BTN_B (1u << 5)",
+     "documentation": "Controller bitmask. Player 1 occupies bits 0..6 and player 2 occupies bits 8..14. SELECT and START are names for the same physical input.",
+     "insertText": "PRG32_BTN_B",
+     "kind": "constant",
+     "label": "PRG32_BTN_B"
+    },
+    {
+     "detail": "#define PRG32_BTN_DOWN (1u << 3)",
+     "documentation": "Controller bitmask. Player 1 occupies bits 0..6 and player 2 occupies bits 8..14. SELECT and START are names for the same physical input.",
+     "insertText": "PRG32_BTN_DOWN",
+     "kind": "constant",
+     "label": "PRG32_BTN_DOWN"
+    },
+    {
+     "detail": "#define PRG32_BTN_LEFT (1u << 0)",
+     "documentation": "Controller bitmask. Player 1 occupies bits 0..6 and player 2 occupies bits 8..14. SELECT and START are names for the same physical input.",
+     "insertText": "PRG32_BTN_LEFT",
+     "kind": "constant",
+     "label": "PRG32_BTN_LEFT"
+    },
+    {
+     "detail": "#define PRG32_BTN_RIGHT (1u << 1)",
+     "documentation": "Controller bitmask. Player 1 occupies bits 0..6 and player 2 occupies bits 8..14. SELECT and START are names for the same physical input.",
+     "insertText": "PRG32_BTN_RIGHT",
+     "kind": "constant",
+     "label": "PRG32_BTN_RIGHT"
+    },
+    {
+     "detail": "#define PRG32_BTN_SELECT PRG32_BTN_START",
+     "documentation": "Controller bitmask. Player 1 occupies bits 0..6 and player 2 occupies bits 8..14. SELECT and START are names for the same physical input.",
+     "insertText": "PRG32_BTN_SELECT",
+     "kind": "constant",
+     "label": "PRG32_BTN_SELECT"
+    },
+    {
+     "detail": "#define PRG32_BTN_START (1u << 6)",
+     "documentation": "Controller bitmask. Player 1 occupies bits 0..6 and player 2 occupies bits 8..14. SELECT and START are names for the same physical input.",
+     "insertText": "PRG32_BTN_START",
+     "kind": "constant",
+     "label": "PRG32_BTN_START"
+    },
+    {
+     "detail": "#define PRG32_BTN_UP (1u << 2)",
+     "documentation": "Controller bitmask. Player 1 occupies bits 0..6 and player 2 occupies bits 8..14. SELECT and START are names for the same physical input.",
+     "insertText": "PRG32_BTN_UP",
+     "kind": "constant",
+     "label": "PRG32_BTN_UP"
+    }
+   ],
+   "range": {
+    "column": 7,
+    "endColumn": 17,
+    "line": 1
+   }
+  },
+  "name": "c: PRG32_BTN_ offers the button constants",
+  "request": {
+   "language": "c",
+   "op": "completions",
+   "position": {
+    "column": 17,
+    "line": 1
+   },
+   "source": "  x & PRG32_BTN_"
+  }
+ },
+ {
+  "expected": {
+   "items": [
+    {
+     "detail": ".2byte value, ...",
+     "documentation": "Store 16-bit numbers without alignment.",
+     "insertText": ".2byte",
+     "kind": "keyword",
+     "label": ".2byte"
+    },
+    {
+     "detail": ".4byte value, ...",
+     "documentation": "Store 32-bit numbers without alignment.",
+     "insertText": ".4byte",
+     "kind": "keyword",
+     "label": ".4byte"
+    },
+    {
+     "detail": ".align n",
+     "documentation": "Align the next item to 2^n bytes.",
+     "insertText": ".align",
+     "kind": "keyword",
+     "label": ".align"
+    },
+    {
+     "detail": ".ascii \"text\"",
+     "documentation": "Store text without an ending 0 byte.",
+     "insertText": ".ascii",
+     "kind": "keyword",
+     "label": ".ascii"
+    },
+    {
+     "detail": ".asciz \"text\"",
+     "documentation": "Store text with an ending 0 byte (a C string).",
+     "insertText": ".asciz",
+     "kind": "keyword",
+     "label": ".asciz"
+    },
+    {
+     "detail": ".balign bytes",
+     "documentation": "Align the next item to a multiple of bytes.",
+     "insertText": ".balign",
+     "kind": "keyword",
+     "label": ".balign"
+    },
+    {
+     "detail": ".bss",
+     "documentation": "What follows is variables that start at zero.",
+     "insertText": ".bss",
+     "kind": "keyword",
+     "label": ".bss"
+    },
+    {
+     "detail": ".byte value, ...",
+     "documentation": "Store 8-bit numbers.",
+     "insertText": ".byte",
+     "kind": "keyword",
+     "label": ".byte"
+    },
+    {
+     "detail": ".data",
+     "documentation": "What follows is variables with a starting value.",
+     "insertText": ".data",
+     "kind": "keyword",
+     "label": ".data"
+    },
+    {
+     "detail": ".equ NAME, value",
+     "documentation": "Give a number a name.",
+     "insertText": ".equ",
+     "kind": "keyword",
+     "label": ".equ"
+    },
+    {
+     "detail": ".equiv NAME, value",
+     "documentation": "Give a number a name; an error if the name exists.",
+     "insertText": ".equiv",
+     "kind": "keyword",
+     "label": ".equiv"
+    },
+    {
+     "detail": ".global symbol",
+     "documentation": "Same as .globl.",
+     "insertText": ".global",
+     "kind": "keyword",
+     "label": ".global"
+    },
+    {
+     "detail": ".globl symbol",
+     "documentation": "Make a label visible outside this file. Your init, update and draw labels need it.",
+     "insertText": ".globl",
+     "kind": "keyword",
+     "label": ".globl"
+    },
+    {
+     "detail": ".half value, ...",
+     "documentation": "Store 16-bit numbers.",
+     "insertText": ".half",
+     "kind": "keyword",
+     "label": ".half"
+    },
+    {
+     "detail": ".local symbol",
+     "documentation": "Keep a symbol private to this file.",
+     "insertText": ".local",
+     "kind": "keyword",
+     "label": ".local"
+    },
+    {
+     "detail": ".option push | pop | norelax | rvc | norvc",
+     "documentation": "Change how the assembler works for the next lines.",
+     "insertText": ".option",
+     "kind": "keyword",
+     "label": ".option"
+    },
+    {
+     "detail": ".p2align n",
+     "documentation": "Align the next item to 2^n bytes.",
+     "insertText": ".p2align",
+     "kind": "keyword",
+     "label": ".p2align"
+    },
+    {
+     "detail": ".rodata",
+     "documentation": "What follows is read-only data, like tables and text.",
+     "insertText": ".rodata",
+     "kind": "keyword",
+     "label": ".rodata"
+    },
+    {
+     "detail": ".section .text | .rodata | .data | .bss",
+     "documentation": "Put what follows into a section. Only these four (and their .name sub-sections) are allowed.",
+     "insertText": ".section",
+     "kind": "keyword",
+     "label": ".section"
+    },
+    {
+     "detail": ".set NAME, value",
+     "documentation": "Give a number a name (it can be changed later).",
+     "insertText": ".set",
+     "kind": "keyword",
+     "label": ".set"
+    },
+    {
+     "detail": ".short value, ...",
+     "documentation": "Store 16-bit numbers.",
+     "insertText": ".short",
+     "kind": "keyword",
+     "label": ".short"
+    },
+    {
+     "detail": ".size symbol, . - symbol",
+     "documentation": "Tell the debugger how big a symbol is.",
+     "insertText": ".size",
+     "kind": "keyword",
+     "label": ".size"
+    },
+    {
+     "detail": ".skip bytes",
+     "documentation": "Reserve bytes filled with 0.",
+     "insertText": ".skip",
+     "kind": "keyword",
+     "label": ".skip"
+    },
+    {
+     "detail": ".space bytes",
+     "documentation": "Reserve bytes filled with 0.",
+     "insertText": ".space",
+     "kind": "keyword",
+     "label": ".space"
+    },
+    {
+     "detail": ".string \"text\"",
+     "documentation": "Store text with an ending 0 byte (a C string).",
+     "insertText": ".string",
+     "kind": "keyword",
+     "label": ".string"
+    },
+    {
+     "detail": ".text",
+     "documentation": "What follows is code.",
+     "insertText": ".text",
+     "kind": "keyword",
+     "label": ".text"
+    },
+    {
+     "detail": ".type symbol, @function | @object",
+     "documentation": "Tell the debugger what a symbol is.",
+     "insertText": ".type",
+     "kind": "keyword",
+     "label": ".type"
+    },
+    {
+     "detail": ".word value, ...",
+     "documentation": "Store 32-bit numbers.",
+     "insertText": ".word",
+     "kind": "keyword",
+     "label": ".word"
+    },
+    {
+     "detail": ".zero bytes",
+     "documentation": "Reserve bytes filled with 0.",
+     "insertText": ".zero",
+     "kind": "keyword",
+     "label": ".zero"
+    }
+   ],
+   "range": {
+    "column": 5,
+    "endColumn": 6,
+    "line": 1
+   }
+  },
+  "name": "asm: . offers exactly the allowed directives",
+  "request": {
+   "language": "asm",
+   "op": "completions",
+   "position": {
+    "column": 6,
+    "line": 1
+   },
+   "source": "    ."
+  }
+ },
+ {
+  "expected": {
+   "items": [
+    {
+     "detail": "section",
+     "insertText": ".text",
+     "kind": "module",
+     "label": ".text"
+    },
+    {
+     "detail": "section",
+     "insertText": ".rodata",
+     "kind": "module",
+     "label": ".rodata"
+    },
+    {
+     "detail": "section",
+     "insertText": ".data",
+     "kind": "module",
+     "label": ".data"
+    },
+    {
+     "detail": "section",
+     "insertText": ".bss",
+     "kind": "module",
+     "label": ".bss"
+    }
+   ],
+   "range": {
+    "column": 14,
+    "endColumn": 15,
+    "line": 1
+   }
+  },
+  "name": "asm: .section offers the four sections",
+  "request": {
+   "language": "asm",
+   "op": "completions",
+   "position": {
+    "column": 15,
+    "line": 1
+   },
+   "source": "    .section ."
+  }
+ },
+ {
+  "expected": {
+   "items": [
+    {
+     "detail": "mul rd, rs1, rs2",
+     "documentation": "rd = low 32 bits of rs1 * rs2. (RV32M)",
+     "insertText": "mul",
+     "kind": "operator",
+     "label": "mul"
+    },
+    {
+     "detail": "mulh rd, rs1, rs2",
+     "documentation": "rd = high 32 bits of rs1 * rs2 (signed). (RV32M)",
+     "insertText": "mulh",
+     "kind": "operator",
+     "label": "mulh"
+    },
+    {
+     "detail": "mulhsu rd, rs1, rs2",
+     "documentation": "rd = high 32 bits of rs1 (signed) * rs2 (unsigned). (RV32M)",
+     "insertText": "mulhsu",
+     "kind": "operator",
+     "label": "mulhsu"
+    },
+    {
+     "detail": "mulhu rd, rs1, rs2",
+     "documentation": "rd = high 32 bits of rs1 * rs2 (unsigned). (RV32M)",
+     "insertText": "mulhu",
+     "kind": "operator",
+     "label": "mulhu"
+    }
+   ],
+   "range": {
+    "column": 5,
+    "endColumn": 7,
+    "line": 1
+   }
+  },
+  "name": "asm: mu offers the M-extension instructions",
+  "request": {
+   "language": "asm",
+   "op": "completions",
+   "position": {
+    "column": 7,
+    "line": 1
+   },
+   "source": "    mu"
+  }
+ },
+ {
+  "expected": {
+   "items": [
+    {
+     "detail": "x10 / a0",
+     "documentation": "**a0** (x10): argument 1 and return value. may change in any call.",
+     "insertText": "a0",
+     "kind": "variable",
+     "label": "a0"
+    },
+    {
+     "detail": "x11 / a1",
+     "documentation": "**a1** (x11): argument 2 (second half of a 64-bit result). may change in any call.",
+     "insertText": "a1",
+     "kind": "variable",
+     "label": "a1"
+    },
+    {
+     "detail": "x12 / a2",
+     "documentation": "**a2** (x12): argument 3. may change in any call.",
+     "insertText": "a2",
+     "kind": "variable",
+     "label": "a2"
+    },
+    {
+     "detail": "x13 / a3",
+     "documentation": "**a3** (x13): argument 4. may change in any call.",
+     "insertText": "a3",
+     "kind": "variable",
+     "label": "a3"
+    },
+    {
+     "detail": "x14 / a4",
+     "documentation": "**a4** (x14): argument 5. may change in any call.",
+     "insertText": "a4",
+     "kind": "variable",
+     "label": "a4"
+    },
+    {
+     "detail": "x15 / a5",
+     "documentation": "**a5** (x15): argument 6. may change in any call.",
+     "insertText": "a5",
+     "kind": "variable",
+     "label": "a5"
+    },
+    {
+     "detail": "x16 / a6",
+     "documentation": "**a6** (x16): argument 7. may change in any call.",
+     "insertText": "a6",
+     "kind": "variable",
+     "label": "a6"
+    },
+    {
+     "detail": "x17 / a7",
+     "documentation": "**a7** (x17): argument 8. may change in any call.",
+     "insertText": "a7",
+     "kind": "variable",
+     "label": "a7"
+    }
+   ],
+   "range": {
+    "column": 10,
+    "endColumn": 11,
+    "line": 1
+   }
+  },
+  "name": "asm: a operand offers a registers",
+  "request": {
+   "language": "asm",
+   "op": "completions",
+   "position": {
+    "column": 11,
+    "line": 1
+   },
+   "source": "    addi a"
+  }
+ },
+ {
+  "expected": {
+   "items": [
+    {
+     "detail": "void prg32_gfx_clear(uint16_t color)",
+     "documentation": "```c\nvoid prg32_gfx_clear(uint16_t color);\n```\nFill the whole game screen with one colour. Call it first in your draw function.\n\nBefore `call prg32_gfx_clear`: a0 = color (uint16_t).\n\nCalling a PRG32 function from assembly (RISC-V ilp32): put the arguments in a0, a1, ... a7 (in order), then `call prg32_name`. The result comes back in a0. A call may change ra, t0-t6 and a0-a7, so save what you still need (and ra, if your function calls others) on the stack first; s0-s11 and sp keep their values. Keep sp a multiple of 16.",
+     "insertText": "prg32_gfx_clear",
+     "kind": "function",
+     "label": "prg32_gfx_clear"
+    },
+    {
+     "detail": "void prg32_gfx_clear_indexed(uint8_t index)",
+     "documentation": "```c\nvoid prg32_gfx_clear_indexed(uint8_t index);\n```\nClear the game viewport to one system-palette index.\n\nBefore `call prg32_gfx_clear_indexed`: a0 = index (uint8_t).\n\nCalling a PRG32 function from assembly (RISC-V ilp32): put the arguments in a0, a1, ... a7 (in order), then `call prg32_name`. The result comes back in a0. A call may change ra, t0-t6 and a0-a7, so save what you still need (and ra, if your function calls others) on the stack first; s0-s11 and sp keep their values. Keep sp a multiple of 16.",
+     "insertText": "prg32_gfx_clear_indexed",
+     "kind": "function",
+     "label": "prg32_gfx_clear_indexed"
+    }
+   ],
+   "range": {
+    "column": 10,
+    "endColumn": 22,
+    "line": 1
+   }
+  },
+  "name": "asm: call prg32_gfx_cl offers ABI symbols",
+  "request": {
+   "language": "asm",
+   "op": "completions",
+   "position": {
+    "column": 22,
+    "line": 1
+   },
+   "source": "    call prg32_gfx_cl"
+  }
+ },
+ {
+  "expected": {
+   "items": [
+    {
+     "detail": "preprocessor",
+     "insertText": "define",
+     "kind": "keyword",
+     "label": "define"
+    },
+    {
+     "detail": "preprocessor",
+     "insertText": "undef",
+     "kind": "keyword",
+     "label": "undef"
+    },
+    {
+     "detail": "preprocessor",
+     "insertText": "if",
+     "kind": "keyword",
+     "label": "if"
+    },
+    {
+     "detail": "preprocessor",
+     "insertText": "ifdef",
+     "kind": "keyword",
+     "label": "ifdef"
+    },
+    {
+     "detail": "preprocessor",
+     "insertText": "ifndef",
+     "kind": "keyword",
+     "label": "ifndef"
+    },
+    {
+     "detail": "preprocessor",
+     "insertText": "elif",
+     "kind": "keyword",
+     "label": "elif"
+    },
+    {
+     "detail": "preprocessor",
+     "insertText": "else",
+     "kind": "keyword",
+     "label": "else"
+    },
+    {
+     "detail": "preprocessor",
+     "insertText": "endif",
+     "kind": "keyword",
+     "label": "endif"
+    }
+   ],
+   "range": {
+    "column": 2,
+    "endColumn": 2,
+    "line": 1
+   }
+  },
+  "name": "asm: # offers the allowed preprocessor words",
+  "request": {
+   "language": "asm",
+   "op": "completions",
+   "position": {
+    "column": 2,
+    "line": 1
+   },
+   "source": "#"
+  }
+ },
+ {
+  "expected": {
+   "contents": "```c\nvoid prg32_gfx_clear(uint16_t color);\n```\nFill the whole game screen with one colour. Call it first in your draw function.\n\n*Immediate-mode graphics and status bands:* Cartridge coordinates address the 320x200 viewport unless fullscreen mode is enabled by resident UI. Drawing is clipped; non-positive rectangle sizes draw nothing. `present` publishes the completed back buffer. Cartridge draw callbacks are already serialized by the runtime and normally should not acquire the graphics lock themselves. Snapshot rows copy RGB565 pixels into caller storage and return the number copied or a negative error. Band text is copied by the runtime. Fullscreen, persistent band configuration, and lock management are primarily resident firmware services and should be used cautiously by cartridges.\n\nPortable PRG32 ABI 1.6 \u00b7 feature: core",
+   "range": {
+    "column": 5,
+    "endColumn": 20,
+    "line": 6,
+    "word": "prg32_gfx_clear"
+   }
+  },
+  "name": "c: hover on a portable function",
+  "request": {
+   "language": "c",
+   "op": "hover",
+   "position": {
+    "column": 8,
+    "line": 6
+   },
+   "source": "#include \"prg32.h\"\n\nvoid demo_init(void) {}\nvoid demo_update(void) {}\nvoid demo_draw(void) {\n    prg32_gfx_clear(PRG32_COLOR_BLACK);\n}\n"
+  }
+ },
+ {
+  "expected": {
+   "contents": "```c\n#define PRG32_COLOR_BLACK 0x0000\n```\nCommon RGB565 colors. Custom colors use RRRRRGGGGGGBBBBB packing.",
+   "range": {
+    "column": 21,
+    "endColumn": 38,
+    "line": 6,
+    "word": "PRG32_COLOR_BLACK"
+   }
+  },
+  "name": "c: hover on a constant",
+  "request": {
+   "language": "c",
+   "op": "hover",
+   "position": {
+    "column": 25,
+    "line": 6
+   },
+   "source": "#include \"prg32.h\"\n\nvoid demo_init(void) {}\nvoid demo_update(void) {}\nvoid demo_draw(void) {\n    prg32_gfx_clear(PRG32_COLOR_BLACK);\n}\n"
+  }
+ },
+ {
+  "expected": {
+   "contents": "```c\nvoid prg32_rgb_led_set(uint8_t red, uint8_t green, uint8_t blue);\n```\nResident firmware only: This function exists only inside the PRG32 firmware. A portable cartridge can call only the functions in the PRG32 ABI, so the build would stop with \"undefined reference\".",
+   "range": {
+    "column": 1,
+    "endColumn": 18,
+    "line": 1,
+    "word": "prg32_rgb_led_set"
+   }
+  },
+  "name": "c: hover on a resident-only function",
+  "request": {
+   "language": "c",
+   "op": "hover",
+   "position": {
+    "column": 3,
+    "line": 1
+   },
+   "source": "prg32_rgb_led_set(1, 2, 3);"
+  }
+ },
+ {
+  "expected": {
+   "contents": "```\nli rd, value\n```\nLoad any 32-bit constant into rd. (pseudo)",
+   "range": {
+    "column": 5,
+    "endColumn": 7,
+    "line": 10,
+    "word": "li"
+   }
+  },
+  "name": "asm: hover on an instruction",
+  "request": {
+   "language": "asm",
+   "op": "hover",
+   "position": {
+    "column": 6,
+    "line": 10
+   },
+   "source": "    .section .text\n    .globl demo_init\n    .globl demo_update\n    .globl demo_draw\ndemo_init:\n    ret\ndemo_update:\n    ret\ndemo_draw:\n    li a0, 0\n    call prg32_gfx_clear\n    ret\n"
+  }
+ },
+ {
+  "expected": {
+   "contents": "**a0** (x10): argument 1 and return value. may change in any call.",
+   "range": {
+    "column": 8,
+    "endColumn": 10,
+    "line": 10,
+    "word": "a0"
+   }
+  },
+  "name": "asm: hover on a register",
+  "request": {
+   "language": "asm",
+   "op": "hover",
+   "position": {
+    "column": 8,
+    "line": 10
+   },
+   "source": "    .section .text\n    .globl demo_init\n    .globl demo_update\n    .globl demo_draw\ndemo_init:\n    ret\ndemo_update:\n    ret\ndemo_draw:\n    li a0, 0\n    call prg32_gfx_clear\n    ret\n"
+  }
+ },
+ {
+  "expected": {
+   "contents": "```\n.globl symbol\n```\nMake a label visible outside this file. Your init, update and draw labels need it.",
+   "range": {
+    "column": 5,
+    "endColumn": 11,
+    "line": 2,
+    "word": ".globl"
+   }
+  },
+  "name": "asm: hover on a directive",
+  "request": {
+   "language": "asm",
+   "op": "hover",
+   "position": {
+    "column": 6,
+    "line": 2
+   },
+   "source": "    .section .text\n    .globl demo_init\n    .globl demo_update\n    .globl demo_draw\ndemo_init:\n    ret\ndemo_update:\n    ret\ndemo_draw:\n    li a0, 0\n    call prg32_gfx_clear\n    ret\n"
+  }
+ },
+ {
+  "expected": {
+   "contents": "```c\nvoid prg32_gfx_clear(uint16_t color);\n```\nFill the whole game screen with one colour. Call it first in your draw function.\n\nBefore `call prg32_gfx_clear`: a0 = color (uint16_t).\n\nCalling a PRG32 function from assembly (RISC-V ilp32): put the arguments in a0, a1, ... a7 (in order), then `call prg32_name`. The result comes back in a0. A call may change ra, t0-t6 and a0-a7, so save what you still need (and ra, if your function calls others) on the stack first; s0-s11 and sp keep their values. Keep sp a multiple of 16.",
+   "range": {
+    "column": 10,
+    "endColumn": 25,
+    "line": 11,
+    "word": "prg32_gfx_clear"
+   }
+  },
+  "name": "asm: hover on a PRG32 call explains the calling convention",
+  "request": {
+   "language": "asm",
+   "op": "hover",
+   "position": {
+    "column": 12,
+    "line": 11
+   },
+   "source": "    .section .text\n    .globl demo_init\n    .globl demo_update\n    .globl demo_draw\ndemo_init:\n    ret\ndemo_update:\n    ret\ndemo_draw:\n    li a0, 0\n    call prg32_gfx_clear\n    ret\n"
+  }
+ },
+ {
+  "expected": {
+   "activeParameter": 2,
+   "documentation": "Draw a filled rectangle: top-left corner (x, y), width w, height h, colour.",
+   "label": "void prg32_gfx_rect(int x, int y, int w, int h, uint16_t color)",
+   "parameters": [
+    "int x",
+    "int y",
+    "int w",
+    "int h",
+    "uint16_t color"
+   ]
+  },
+  "name": "c: signature help, third argument",
+  "request": {
+   "language": "c",
+   "op": "signatureHelp",
+   "position": {
+    "column": 30,
+    "line": 1
+   },
+   "source": "  prg32_gfx_rect(1, f(2, 3), "
+  }
+ },
+ {
+  "expected": {
+   "column": 1,
+   "line": 123,
+   "target": "sdk"
+  },
+  "name": "c: go to the declaration of a PRG32 function",
+  "request": {
+   "language": "c",
+   "op": "definition",
+   "position": {
+    "column": 8,
+    "line": 6
+   },
+   "source": "#include \"prg32.h\"\n\nvoid demo_init(void) {}\nvoid demo_update(void) {}\nvoid demo_draw(void) {\n    prg32_gfx_clear(PRG32_COLOR_BLACK);\n}\n"
+  }
+ },
+ {
+  "expected": {
+   "column": 1,
+   "line": 399,
+   "target": "sdk"
+  },
+  "name": "c: go to the declaration of a PRG32 constant",
+  "request": {
+   "language": "c",
+   "op": "definition",
+   "position": {
+    "column": 25,
+    "line": 6
+   },
+   "source": "#include \"prg32.h\"\n\nvoid demo_init(void) {}\nvoid demo_update(void) {}\nvoid demo_draw(void) {\n    prg32_gfx_clear(PRG32_COLOR_BLACK);\n}\n"
+  }
+ },
+ {
+  "expected": {
+   "column": 6,
+   "line": 1,
+   "target": "self"
+  },
+  "name": "c: go to a function in the same file",
+  "request": {
+   "language": "c",
+   "op": "definition",
+   "position": {
+    "column": 17,
+    "line": 2
+   },
+   "source": "void helper(void) {}\nvoid g(void) { helper(); }\n"
+  }
+ },
+ {
+  "expected": {
+   "column": 1,
+   "line": 5,
+   "target": "self"
+  },
+  "name": "asm: go to a label",
+  "request": {
+   "language": "asm",
+   "op": "definition",
+   "position": {
+    "column": 15,
+    "line": 2
+   },
+   "source": "    .section .text\n    .globl demo_init\n    .globl demo_update\n    .globl demo_draw\ndemo_init:\n    ret\ndemo_update:\n    ret\ndemo_draw:\n    li a0, 0\n    call prg32_gfx_clear\n    ret\n"
+  }
+ },
+ {
+  "expected": {
+   "column": 1,
+   "line": 123,
+   "target": "sdk"
+  },
+  "name": "asm: go to the declaration of a PRG32 call",
+  "request": {
+   "language": "asm",
+   "op": "definition",
+   "position": {
+    "column": 12,
+    "line": 11
+   },
+   "source": "    .section .text\n    .globl demo_init\n    .globl demo_update\n    .globl demo_draw\ndemo_init:\n    ret\ndemo_update:\n    ret\ndemo_draw:\n    li a0, 0\n    call prg32_gfx_clear\n    ret\n"
+  }
+ },
+ {
+  "expected": [],
+  "name": "c: a clean program has no problems",
+  "request": {
+   "language": "c",
+   "op": "diagnostics",
+   "source": "#include \"prg32.h\"\n\nvoid demo_init(void) {}\nvoid demo_update(void) {}\nvoid demo_draw(void) {\n    prg32_gfx_clear(PRG32_COLOR_BLACK);\n}\n",
+   "title": "Demo"
+  }
+ },
+ {
+  "expected": [
+   {
+    "code": "c-include",
+    "column": 11,
+    "endColumn": 18,
+    "endLine": 2,
+    "explanation": "A PRG32 cartridge can include only prg32.h, prg32_audio.h, stdint.h, stddef.h and stdbool.h. Other headers would need a C library or files on the server.",
+    "line": 2,
+    "message": "The header stdio.h is not available in a PRG32 cartridge",
+    "severity": "error"
+   },
+   {
+    "code": "c-directive",
+    "column": 1,
+    "endColumn": 13,
+    "endLine": 3,
+    "explanation": "Allowed preprocessor lines: #include (approved headers), #define, #undef, #if, #ifdef, #ifndef, #elif, #else and #endif.",
+    "line": 3,
+    "message": "Only approved PRG32/standard headers and basic conditional or define directives are supported",
+    "severity": "error"
+   },
+   {
+    "code": "c-token-paste",
+    "column": 20,
+    "endColumn": 22,
+    "endLine": 4,
+    "explanation": "The ## operator can build hidden words, so the kit does not accept it.",
+    "line": 4,
+    "message": "The ## token-pasting operator is not supported",
+    "severity": "error"
+   },
+   {
+    "code": "c-forbidden",
+    "column": 24,
+    "endColumn": 31,
+    "endLine": 5,
+    "explanation": "Inline assembly and _Pragma could read files on the server while compiling. Write assembly in an Assembly project instead.",
+    "line": 5,
+    "message": "'__asm__' is not supported in PRG32 cartridge C",
+    "severity": "error"
+   },
+   {
+    "code": "c-entry",
+    "column": 6,
+    "endColumn": 17,
+    "endLine": 6,
+    "explanation": "The console calls three functions named after your project title: init once, then update and draw for every frame. Each must be written exactly as  void NAME(void) { ... }.",
+    "line": 6,
+    "message": "C source must define void demo_init/update/draw(void): write demo_update as  void demo_update(void) { ... }",
+    "severity": "error"
+   },
+   {
+    "code": "c-resident-only",
+    "column": 24,
+    "endColumn": 41,
+    "endLine": 7,
+    "explanation": "This function exists only inside the PRG32 firmware. A portable cartridge can call only the functions in the PRG32 ABI, so the build would stop with \"undefined reference\".",
+    "line": 7,
+    "message": "prg32_rgb_led_off belongs to the resident PRG32 firmware, not to the portable cartridge ABI 1.6: the cartridge would not link",
+    "severity": "error"
+   },
+   {
+    "code": "c-unknown-api",
+    "column": 45,
+    "endColumn": 56,
+    "endLine": 7,
+    "explanation": "This name starts with prg32_ but is not part of the PRG32 API. Check the spelling.",
+    "line": 7,
+    "message": "prg32_bogus is not a PRG32 function",
+    "severity": "warning"
+   }
+  ],
+  "name": "c: every rejected construct at its exact place",
+  "request": {
+   "language": "c",
+   "op": "diagnostics",
+   "source": "#include \"prg32.h\"\n#include <stdio.h>\n#pragma once\n#define CAT(a, b) a##b\nvoid demo_init(void) { __asm__(\"nop\"); }\nvoid demo_update(int x) {}\nvoid demo_draw(void) { prg32_rgb_led_off(); prg32_bogus(1); }\n",
+   "title": "Demo"
+  }
+ },
+ {
+  "expected": [
+   {
+    "code": "c-include",
+    "column": 14,
+    "endColumn": 25,
+    "endLine": 2,
+    "explanation": "A PRG32 cartridge can include only prg32.h, prg32_audio.h, stdint.h, stddef.h and stdbool.h. Other headers would need a C library or files on the server.",
+    "line": 2,
+    "message": "The header /etc/passwd is not available in a PRG32 cartridge",
+    "severity": "error"
+   }
+  ],
+  "name": "c: a directive hidden behind a comment start",
+  "request": {
+   "language": "c",
+   "op": "diagnostics",
+   "source": "/*\n*/ #include \"/etc/passwd\"\n\nvoid demo_init(void) {}\nvoid demo_update(void) {}\nvoid demo_draw(void) {\n    prg32_gfx_clear(PRG32_COLOR_BLACK);\n}\n",
+   "title": "Demo"
+  }
+ },
+ {
+  "expected": [
+   {
+    "code": "comment",
+    "column": 1,
+    "endColumn": 3,
+    "endLine": 8,
+    "explanation": "A /* comment needs a matching */ to end it.",
+    "line": 8,
+    "message": "C source has a comment that never ends",
+    "severity": "error"
+   }
+  ],
+  "name": "c: a comment that never ends",
+  "request": {
+   "language": "c",
+   "op": "diagnostics",
+   "source": "#include \"prg32.h\"\n\nvoid demo_init(void) {}\nvoid demo_update(void) {}\nvoid demo_draw(void) {\n    prg32_gfx_clear(PRG32_COLOR_BLACK);\n}\n/* never closed\n",
+   "title": "Demo"
+  }
+ },
+ {
+  "expected": [
+   {
+    "code": "trigraph",
+    "column": 1,
+    "endColumn": 4,
+    "endLine": 1,
+    "explanation": "Trigraphs (??= and ??/) are an old C feature the kit does not accept.",
+    "line": 1,
+    "message": "Trigraphs (??= and ??/) are not supported",
+    "severity": "error"
+   }
+  ],
+  "name": "c: trigraphs",
+  "request": {
+   "language": "c",
+   "op": "diagnostics",
+   "source": "??=include \"x\"\n#include \"prg32.h\"\n\nvoid demo_init(void) {}\nvoid demo_update(void) {}\nvoid demo_draw(void) {\n    prg32_gfx_clear(PRG32_COLOR_BLACK);\n}\n",
+   "title": "Demo"
+  }
+ },
+ {
+  "expected": [
+   {
+    "code": "empty",
+    "column": 1,
+    "endColumn": 2,
+    "endLine": 1,
+    "explanation": "Write the game before checking it.",
+    "line": 1,
+    "message": "C source is empty",
+    "severity": "error"
+   }
+  ],
+  "name": "c: empty",
+  "request": {
+   "language": "c",
+   "op": "diagnostics",
+   "source": "   \n",
+   "title": "Demo"
+  }
+ },
+ {
+  "expected": [],
+  "name": "asm: a clean program has no problems",
+  "request": {
+   "language": "asm",
+   "op": "diagnostics",
+   "source": "    .section .text\n    .globl demo_init\n    .globl demo_update\n    .globl demo_draw\ndemo_init:\n    ret\ndemo_update:\n    ret\ndemo_draw:\n    li a0, 0\n    call prg32_gfx_clear\n    ret\n",
+   "title": "Demo"
+  }
+ },
+ {
+  "expected": [
+   {
+    "code": "asm-directive",
+    "column": 5,
+    "endColumn": 10,
+    "endLine": 3,
+    "explanation": "Only the directives the kit lists are allowed; others could read files or change how the cartridge is built.",
+    "line": 3,
+    "message": "Line 3: the directive .fill is not allowed. Allowed: .2byte, .4byte, .align, .ascii, .asciz, .balign, .bss, .byte, .data, .equ, .equiv, .global, .globl, .half, .local, .option, .p2align, .rodata, .section, .set, .short, .size, .skip, .space, .string, .text, .type, .word, .zero",
+    "severity": "error"
+   },
+   {
+    "code": "asm-section",
+    "column": 14,
+    "endColumn": 25,
+    "endLine": 4,
+    "explanation": "Put code in .text and data in .rodata, .data or .bss (or sub-sections such as .text.game).",
+    "line": 4,
+    "message": "Line 4: use .text, .rodata, .data or .bss sections, not '.init_array'",
+    "severity": "error"
+   },
+   {
+    "code": "asm-preprocessor",
+    "column": 1,
+    "endColumn": 15,
+    "endLine": 5,
+    "explanation": "In assembly only  #define NAME value  and #if / #ifdef / #ifndef / #elif / #else / #endif / #undef are allowed as preprocessor lines.",
+    "line": 5,
+    "message": "Line 5: only '#define NAME value' and #if/#ifdef/#else/#endif are allowed as preprocessor lines",
+    "severity": "error"
+   },
+   {
+    "code": "asm-file-access",
+    "column": 2,
+    "endColumn": 9,
+    "endLine": 5,
+    "explanation": "include, incbin and _Pragma could read files on the server, so they are not allowed.",
+    "line": 5,
+    "message": "'include' is not allowed in PRG32 cartridge assembly: it could read files on the server",
+    "severity": "error"
+   },
+   {
+    "code": "asm-preprocessor",
+    "column": 1,
+    "endColumn": 15,
+    "endLine": 6,
+    "explanation": "In assembly only  #define NAME value  and #if / #ifdef / #ifndef / #elif / #else / #endif / #undef are allowed as preprocessor lines.",
+    "line": 6,
+    "message": "Line 6: only '#define NAME value' and #if/#ifdef/#else/#endif are allowed as preprocessor lines",
+    "severity": "error"
+   },
+   {
+    "code": "asm-directive",
+    "column": 5,
+    "endColumn": 12,
+    "endLine": 7,
+    "explanation": "Only the directives the kit lists are allowed; others could read files or change how the cartridge is built.",
+    "line": 7,
+    "message": "Line 7: the directive .incbin is not allowed. Allowed: .2byte, .4byte, .align, .ascii, .asciz, .balign, .bss, .byte, .data, .equ, .equiv, .global, .globl, .half, .local, .option, .p2align, .rodata, .section, .set, .short, .size, .skip, .space, .string, .text, .type, .word, .zero",
+    "severity": "error"
+   },
+   {
+    "code": "asm-file-access",
+    "column": 6,
+    "endColumn": 12,
+    "endLine": 7,
+    "explanation": "include, incbin and _Pragma could read files on the server, so they are not allowed.",
+    "line": 7,
+    "message": "'incbin' is not allowed in PRG32 cartridge assembly: it could read files on the server",
+    "severity": "error"
+   },
+   {
+    "code": "asm-entry",
+    "column": 1,
+    "endColumn": 12,
+    "endLine": 13,
+    "explanation": "The console calls three labels named after your project title: init, update and draw. Each needs a label (NAME:) and .globl NAME so the console can find it.",
+    "line": 13,
+    "message": "Assembly source must make demo_update visible with .globl demo_update",
+    "severity": "error"
+   },
+   {
+    "code": "asm-register",
+    "column": 8,
+    "endColumn": 10,
+    "endLine": 16,
+    "explanation": "RISC-V has 32 registers: x0-x31, or by their ABI names zero, ra, sp, gp, tp, t0-t6, s0-s11 (fp = s0) and a0-a7.",
+    "line": 16,
+    "message": "a9 is not a RISC-V register",
+    "severity": "error"
+   },
+   {
+    "code": "asm-instruction",
+    "column": 5,
+    "endColumn": 9,
+    "endLine": 17,
+    "explanation": "This is not an RV32IMC instruction or pseudo-instruction the assembler knows.",
+    "line": 17,
+    "message": "frob is not an RV32IMC instruction",
+    "severity": "error"
+   }
+  ],
+  "name": "asm: every rejected construct at its exact line and columns",
+  "request": {
+   "language": "asm",
+   "op": "diagnostics",
+   "source": "/* a comment\n   on two lines */\n    .fill 4, 1, 0\n    .section .init_array\n#include \"x.S\"\n#define F(a) a\n    .incbin \"/etc/passwd\"\n    .section .text\n    .globl demo_init\n    .globl demo_draw\ndemo_init:\n    ret\ndemo_update:\n    ret\ndemo_draw:\n    li a9, 0\n    frob t0\n    call prg32_gfx_clear\n    ret\n",
+   "title": "Demo"
+  }
+ },
+ {
+  "expected": [
+   {
+    "code": "asm-entry",
+    "column": 5,
+    "endColumn": 19,
+    "endLine": 1,
+    "explanation": "The console calls three labels named after your project title: init, update and draw. Each needs a label (NAME:) and .globl NAME so the console can find it.",
+    "line": 1,
+    "message": "Assembly source must define the label demo_draw:",
+    "severity": "error"
+   }
+  ],
+  "name": "asm: missing entry label",
+  "request": {
+   "language": "asm",
+   "op": "diagnostics",
+   "source": "    .section .text\n    .globl demo_init\n    .globl demo_update\n    .globl demo_draw\ndemo_init:\n    ret\ndemo_update:\n    ret\nother:\n    li a0, 0\n    call prg32_gfx_clear\n    ret\n",
+   "title": "Demo"
+  }
+ },
+ {
+  "expected": [
+   {
+    "code": "compiler",
+    "column": 5,
+    "endColumn": 8,
+    "endLine": 3,
+    "explanation": "The compiler found this problem.",
+    "line": 3,
+    "message": "unused variable 'x' [-Wunused-variable]",
+    "severity": "warning"
+   },
+   {
+    "code": "compiler",
+    "column": 1,
+    "endColumn": 2,
+    "endLine": 4,
+    "explanation": "The compiler found this problem.",
+    "line": 4,
+    "message": "expected ',' or ';' before '}' token",
+    "severity": "error"
+   },
+   {
+    "code": "c-resident-only",
+    "column": 5,
+    "endColumn": 22,
+    "endLine": 2,
+    "explanation": "This function exists only inside the PRG32 firmware. A portable cartridge can call only the functions in the PRG32 ABI, so the build would stop with \"undefined reference\".",
+    "line": 2,
+    "message": "prg32_rgb_led_off belongs to the resident PRG32 firmware: a portable cartridge cannot call it",
+    "severity": "error"
+   }
+  ],
+  "name": "c: compiler output without server paths, link errors on their line",
+  "request": {
+   "language": "c",
+   "op": "normalize",
+   "output": "/srv/prg32/builds/b_1/tmp/game.c: In function 'demo_draw':\n/srv/prg32/builds/b_1/tmp/game.c:3:5: warning: unused variable 'x' [-Wunused-variable]\n/srv/prg32/builds/b_1/tmp/game.c:4:1: error: expected ',' or ';' before '}' token\n/home/kit/.espressif/tools/riscv32-esp-elf/bin/../lib/gcc/ld: /srv/prg32/builds/b_1/tmp/game.o: in function `demo_draw':\ngame.c:(.text+0x8): undefined reference to `prg32_rgb_led_off'\ncollect2: error: ld returned 1 exit status\n",
+   "source": "void demo_draw(void) {\n    prg32_rgb_led_off();\n    int x = 1\n}\n"
+  }
+ },
+ {
+  "expected": [
+   {
+    "code": "compiler",
+    "column": 5,
+    "endColumn": 13,
+    "endLine": 10,
+    "explanation": "The assembler does not understand this instruction or its operands.",
+    "line": 10,
+    "message": "unrecognized opcode `lii a0,0'",
+    "severity": "error"
+   }
+  ],
+  "name": "asm: assembler output",
+  "request": {
+   "language": "asm",
+   "op": "normalize",
+   "output": "/srv/prg32/builds/b_2/tmp/game.S: Assembler messages:\n/srv/prg32/builds/b_2/tmp/game.S:10: Error: unrecognized opcode `lii a0,0'\n",
+   "source": "    .section .text\n    .globl demo_init\n    .globl demo_update\n    .globl demo_draw\ndemo_init:\n    ret\ndemo_update:\n    ret\ndemo_draw:\n    li a0, 0\n    call prg32_gfx_clear\n    ret\n"
+  }
+ },
+ {
+  "expected": [
+   {
+    "code": "server",
+    "column": 1,
+    "endColumn": 24,
+    "endLine": 3,
+    "explanation": "",
+    "line": 3,
+    "message": "something",
+    "severity": "error"
+   }
+  ],
+  "name": "c: a server check message",
+  "request": {
+   "language": "c",
+   "op": "normalize",
+   "output": "Line 3: something\nC source must define void demo_init/update/draw(void)",
+   "source": "#include \"prg32.h\"\n\nvoid demo_init(void) {}\nvoid demo_update(void) {}\nvoid demo_draw(void) {\n    prg32_gfx_clear(PRG32_COLOR_BLACK);\n}\n"
+  }
+ },
+ {
+  "expected": [
+   {
+    "code": "obsolete-buzzer",
+    "column": 24,
+    "endColumn": 41,
+    "endLine": 2,
+    "explanation": "The buzzer is obsolete: PRG32 games use the eight-voice audio engine (instruments with ADSR envelopes, stereo pan, sound effects and soundtracks made in AudioStudio). The server refuses this name.",
+    "line": 2,
+    "message": "prg32_buzzer_tone belongs to the old PRG32 buzzer, which is no longer supported. Use prg32_audio_note_on_pan (a voice playing an instrument), or an AudioStudio sound effect.",
+    "severity": "error"
+   }
+  ],
+  "name": "c: the obsolete buzzer is an error that says what to use",
+  "request": {
+   "language": "c",
+   "op": "diagnostics",
+   "source": "#include \"prg32.h\"\nvoid demo_init(void) { prg32_buzzer_tone(440, 100, 512); }\nvoid demo_update(void) {}\nvoid demo_draw(void) {}\n",
+   "title": "demo"
+  }
+ },
+ {
+  "expected": [
+   {
+    "code": "obsolete-buzzer",
+    "column": 10,
+    "endColumn": 33,
+    "endLine": 5,
+    "explanation": "The buzzer is obsolete: PRG32 games use the eight-voice audio engine (instruments with ADSR envelopes, stereo pan, sound effects and soundtracks made in AudioStudio). The server refuses this name.",
+    "line": 5,
+    "message": "prg32_buzzer_play_notes belongs to the old PRG32 buzzer, which is no longer supported. Use prg32_audio_play_track with an AudioStudio soundtrack.",
+    "severity": "error"
+   }
+  ],
+  "name": "asm: the obsolete buzzer is an error that says what to use",
+  "request": {
+   "language": "asm",
+   "op": "diagnostics",
+   "source": ".globl demo_init\n.globl demo_update\n.globl demo_draw\ndemo_init:\n    call prg32_buzzer_play_notes\n    ret\ndemo_update:\n    ret\ndemo_draw:\n    ret\n",
+   "title": "demo"
+  }
+ },
+ {
+  "expected": {
+   "contents": "**Obsolete: the old buzzer.** Use prg32_audio_note_on_pan (a voice playing an instrument), or an AudioStudio sound effect.\n\nThe buzzer is obsolete: PRG32 games use the eight-voice audio engine (instruments with ADSR envelopes, stereo pan, sound effects and soundtracks made in AudioStudio). The server refuses this name.",
+   "range": {
+    "column": 24,
+    "endColumn": 41,
+    "line": 2,
+    "word": "prg32_buzzer_tone"
+   }
+  },
+  "name": "c: hover on the obsolete buzzer",
+  "request": {
+   "language": "c",
+   "op": "hover",
+   "position": {
+    "column": 30,
+    "line": 2
+   },
+   "source": "#include \"prg32.h\"\nvoid demo_init(void) { prg32_buzzer_tone(440, 100, 512); }\nvoid demo_update(void) {}\nvoid demo_draw(void) {}\n"
+  }
+ },
+ {
+  "expected": {
+   "items": [
+    {
+     "detail": "void prg32_band_set_mode(uint8_t band, prg32_band_mode_t mode)",
+     "documentation": "```c\nvoid prg32_band_set_mode(uint8_t band, prg32_band_mode_t mode);\n```\nImmediate-mode graphics and status bands.\n\n*Immediate-mode graphics and status bands:* Cartridge coordinates address the 320x200 viewport unless fullscreen mode is enabled by resident UI. Drawing is clipped; non-positive rectangle sizes draw nothing. `present` publishes the completed back buffer. Cartridge draw callbacks are already serialized by the runtime and normally should not acquire the graphics lock themselves. Snapshot rows copy RGB565 pixels into caller storage and return the number copied or a negative error. Band text is copied by the runtime. Fullscreen, persistent band configuration, and lock management are primarily resident firmware services and should be used cautiously by cartridges.\n\nPortable PRG32 ABI 1.6 \u00b7 feature: core",
+     "insertText": "prg32_band_set_mode(${1:band}, ${2:mode})",
+     "kind": "function",
+     "label": "prg32_band_set_mode",
+     "snippet": true
+    },
+    {
+     "detail": "prg32_band_mode_t prg32_band_mode(uint8_t band)",
+     "documentation": "```c\nprg32_band_mode_t prg32_band_mode(uint8_t band);\n```\nImmediate-mode graphics and status bands.\n\n*Immediate-mode graphics and status bands:* Cartridge coordinates address the 320x200 viewport unless fullscreen mode is enabled by resident UI. Drawing is clipped; non-positive rectangle sizes draw nothing. `present` publishes the completed back buffer. Cartridge draw callbacks are already serialized by the runtime and normally should not acquire the graphics lock themselves. Snapshot rows copy RGB565 pixels into caller storage and return the number copied or a negative error. Band text is copied by the runtime. Fullscreen, persistent band configuration, and lock management are primarily resident firmware services and should be used cautiously by cartridges.\n\nPortable PRG32 ABI 1.6 \u00b7 feature: core",
+     "insertText": "prg32_band_mode(${1:band})",
+     "kind": "function",
+     "label": "prg32_band_mode",
+     "snippet": true
+    },
+    {
+     "detail": "const char *prg32_band_mode_name(prg32_band_mode_t mode)",
+     "documentation": "```c\nconst char *prg32_band_mode_name(prg32_band_mode_t mode);\n```\nImmediate-mode graphics and status bands.\n\n*Immediate-mode graphics and status bands:* Cartridge coordinates address the 320x200 viewport unless fullscreen mode is enabled by resident UI. Drawing is clipped; non-positive rectangle sizes draw nothing. `present` publishes the completed back buffer. Cartridge draw callbacks are already serialized by the runtime and normally should not acquire the graphics lock themselves. Snapshot rows copy RGB565 pixels into caller storage and return the number copied or a negative error. Band text is copied by the runtime. Fullscreen, persistent band configuration, and lock management are primarily resident firmware services and should be used cautiously by cartridges.\n\nPortable PRG32 ABI 1.6 \u00b7 feature: core",
+     "insertText": "prg32_band_mode_name(${1:mode})",
+     "kind": "function",
+     "label": "prg32_band_mode_name",
+     "snippet": true
+    },
+    {
+     "detail": "void prg32_band_set_text(uint8_t band, const char *text)",
+     "documentation": "```c\nvoid prg32_band_set_text(uint8_t band, const char *text);\n```\nImmediate-mode graphics and status bands.\n\n*Immediate-mode graphics and status bands:* Cartridge coordinates address the 320x200 viewport unless fullscreen mode is enabled by resident UI. Drawing is clipped; non-positive rectangle sizes draw nothing. `present` publishes the completed back buffer. Cartridge draw callbacks are already serialized by the runtime and normally should not acquire the graphics lock themselves. Snapshot rows copy RGB565 pixels into caller storage and return the number copied or a negative error. Band text is copied by the runtime. Fullscreen, persistent band configuration, and lock management are primarily resident firmware services and should be used cautiously by cartridges.\n\nPortable PRG32 ABI 1.6 \u00b7 feature: core",
+     "insertText": "prg32_band_set_text(${1:band}, ${2:text})",
+     "kind": "function",
+     "label": "prg32_band_set_text",
+     "snippet": true
+    },
+    {
+     "detail": "void prg32_band_set_game_info(const char *text)",
+     "documentation": "```c\nvoid prg32_band_set_game_info(const char *text);\n```\nImmediate-mode graphics and status bands.\n\n*Immediate-mode graphics and status bands:* Cartridge coordinates address the 320x200 viewport unless fullscreen mode is enabled by resident UI. Drawing is clipped; non-positive rectangle sizes draw nothing. `present` publishes the completed back buffer. Cartridge draw callbacks are already serialized by the runtime and normally should not acquire the graphics lock themselves. Snapshot rows copy RGB565 pixels into caller storage and return the number copied or a negative error. Band text is copied by the runtime. Fullscreen, persistent band configuration, and lock management are primarily resident firmware services and should be used cautiously by cartridges.\n\nPortable PRG32 ABI 1.6 \u00b7 feature: core",
+     "insertText": "prg32_band_set_game_info(${1:text})",
+     "kind": "function",
+     "label": "prg32_band_set_game_info",
+     "snippet": true
+    },
+    {
+     "detail": "void prg32_band_log(const char *message)",
+     "documentation": "```c\nvoid prg32_band_log(const char *message);\n```\nImmediate-mode graphics and status bands.\n\n*Immediate-mode graphics and status bands:* Cartridge coordinates address the 320x200 viewport unless fullscreen mode is enabled by resident UI. Drawing is clipped; non-positive rectangle sizes draw nothing. `present` publishes the completed back buffer. Cartridge draw callbacks are already serialized by the runtime and normally should not acquire the graphics lock themselves. Snapshot rows copy RGB565 pixels into caller storage and return the number copied or a negative error. Band text is copied by the runtime. Fullscreen, persistent band configuration, and lock management are primarily resident firmware services and should be used cautiously by cartridges.\n\nPortable PRG32 ABI 1.6 \u00b7 feature: core",
+     "insertText": "prg32_band_log(${1:message})",
+     "kind": "function",
+     "label": "prg32_band_log",
+     "snippet": true
+    },
+    {
+     "detail": "void prg32_band_set_colors(uint8_t band, uint16_t fg, uint16_t bg)",
+     "documentation": "```c\nvoid prg32_band_set_colors(uint8_t band, uint16_t fg, uint16_t bg);\n```\nImmediate-mode graphics and status bands.\n\n*Immediate-mode graphics and status bands:* Cartridge coordinates address the 320x200 viewport unless fullscreen mode is enabled by resident UI. Drawing is clipped; non-positive rectangle sizes draw nothing. `present` publishes the completed back buffer. Cartridge draw callbacks are already serialized by the runtime and normally should not acquire the graphics lock themselves. Snapshot rows copy RGB565 pixels into caller storage and return the number copied or a negative error. Band text is copied by the runtime. Fullscreen, persistent band configuration, and lock management are primarily resident firmware services and should be used cautiously by cartridges.\n\nPortable PRG32 ABI 1.6 \u00b7 feature: core",
+     "insertText": "prg32_band_set_colors(${1:band}, ${2:fg}, ${3:bg})",
+     "kind": "function",
+     "label": "prg32_band_set_colors",
+     "snippet": true
+    },
+    {
+     "detail": "void prg32_band_use_default_colors(uint8_t band)",
+     "documentation": "```c\nvoid prg32_band_use_default_colors(uint8_t band);\n```\nImmediate-mode graphics and status bands.\n\n*Immediate-mode graphics and status bands:* Cartridge coordinates address the 320x200 viewport unless fullscreen mode is enabled by resident UI. Drawing is clipped; non-positive rectangle sizes draw nothing. `present` publishes the completed back buffer. Cartridge draw callbacks are already serialized by the runtime and normally should not acquire the graphics lock themselves. Snapshot rows copy RGB565 pixels into caller storage and return the number copied or a negative error. Band text is copied by the runtime. Fullscreen, persistent band configuration, and lock management are primarily resident firmware services and should be used cautiously by cartridges.\n\nPortable PRG32 ABI 1.6 \u00b7 feature: core",
+     "insertText": "prg32_band_use_default_colors(${1:band})",
+     "kind": "function",
+     "label": "prg32_band_use_default_colors",
+     "snippet": true
+    },
+    {
+     "detail": "void prg32_band_load_config(void)",
+     "documentation": "```c\nvoid prg32_band_load_config(void);\n```\nImmediate-mode graphics and status bands.\n\n*Immediate-mode graphics and status bands:* Cartridge coordinates address the 320x200 viewport unless fullscreen mode is enabled by resident UI. Drawing is clipped; non-positive rectangle sizes draw nothing. `present` publishes the completed back buffer. Cartridge draw callbacks are already serialized by the runtime and normally should not acquire the graphics lock themselves. Snapshot rows copy RGB565 pixels into caller storage and return the number copied or a negative error. Band text is copied by the runtime. Fullscreen, persistent band configuration, and lock management are primarily resident firmware services and should be used cautiously by cartridges.\n\nPortable PRG32 ABI 1.6 \u00b7 feature: core",
+     "insertText": "prg32_band_load_config()",
+     "kind": "function",
+     "label": "prg32_band_load_config",
+     "snippet": true
+    },
+    {
+     "detail": "void prg32_band_save_config(void)",
+     "documentation": "```c\nvoid prg32_band_save_config(void);\n```\nImmediate-mode graphics and status bands.\n\n*Immediate-mode graphics and status bands:* Cartridge coordinates address the 320x200 viewport unless fullscreen mode is enabled by resident UI. Drawing is clipped; non-positive rectangle sizes draw nothing. `present` publishes the completed back buffer. Cartridge draw callbacks are already serialized by the runtime and normally should not acquire the graphics lock themselves. Snapshot rows copy RGB565 pixels into caller storage and return the number copied or a negative error. Band text is copied by the runtime. Fullscreen, persistent band configuration, and lock management are primarily resident firmware services and should be used cautiously by cartridges.\n\nPortable PRG32 ABI 1.6 \u00b7 feature: core",
+     "insertText": "prg32_band_save_config()",
+     "kind": "function",
+     "label": "prg32_band_save_config",
+     "snippet": true
+    },
+    {
+     "detail": "#define PRG32_BAND_BOTTOM 1",
+     "documentation": "Firmware-owned status-band identifiers.",
+     "insertText": "PRG32_BAND_BOTTOM",
+     "kind": "constant",
+     "label": "PRG32_BAND_BOTTOM"
+    },
+    {
+     "detail": "#define PRG32_BAND_TOP 0",
+     "documentation": "Firmware-owned status-band identifiers.",
+     "insertText": "PRG32_BAND_TOP",
+     "kind": "constant",
+     "label": "PRG32_BAND_TOP"
+    },
+    {
+     "detail": "#define PRG32_BTN_A (1u << 4)",
+     "documentation": "Controller bitmask. Player 1 occupies bits 0..6 and player 2 occupies bits 8..14. SELECT and START are names for the same physical input.",
+     "insertText": "PRG32_BTN_A",
+     "kind": "constant",
+     "label": "PRG32_BTN_A"
+    },
+    {
+     "detail": "#define PRG32_BTN_B (1u << 5)",
+     "documentation": "Controller bitmask. Player 1 occupies bits 0..6 and player 2 occupies bits 8..14. SELECT and START are names for the same physical input.",
+     "insertText": "PRG32_BTN_B",
+     "kind": "constant",
+     "label": "PRG32_BTN_B"
+    },
+    {
+     "detail": "#define PRG32_BTN_DOWN (1u << 3)",
+     "documentation": "Controller bitmask. Player 1 occupies bits 0..6 and player 2 occupies bits 8..14. SELECT and START are names for the same physical input.",
+     "insertText": "PRG32_BTN_DOWN",
+     "kind": "constant",
+     "label": "PRG32_BTN_DOWN"
+    },
+    {
+     "detail": "#define PRG32_BTN_LEFT (1u << 0)",
+     "documentation": "Controller bitmask. Player 1 occupies bits 0..6 and player 2 occupies bits 8..14. SELECT and START are names for the same physical input.",
+     "insertText": "PRG32_BTN_LEFT",
+     "kind": "constant",
+     "label": "PRG32_BTN_LEFT"
+    },
+    {
+     "detail": "#define PRG32_BTN_RIGHT (1u << 1)",
+     "documentation": "Controller bitmask. Player 1 occupies bits 0..6 and player 2 occupies bits 8..14. SELECT and START are names for the same physical input.",
+     "insertText": "PRG32_BTN_RIGHT",
+     "kind": "constant",
+     "label": "PRG32_BTN_RIGHT"
+    },
+    {
+     "detail": "#define PRG32_BTN_SELECT PRG32_BTN_START",
+     "documentation": "Controller bitmask. Player 1 occupies bits 0..6 and player 2 occupies bits 8..14. SELECT and START are names for the same physical input.",
+     "insertText": "PRG32_BTN_SELECT",
+     "kind": "constant",
+     "label": "PRG32_BTN_SELECT"
+    },
+    {
+     "detail": "#define PRG32_BTN_START (1u << 6)",
+     "documentation": "Controller bitmask. Player 1 occupies bits 0..6 and player 2 occupies bits 8..14. SELECT and START are names for the same physical input.",
+     "insertText": "PRG32_BTN_START",
+     "kind": "constant",
+     "label": "PRG32_BTN_START"
+    },
+    {
+     "detail": "#define PRG32_BTN_UP (1u << 2)",
+     "documentation": "Controller bitmask. Player 1 occupies bits 0..6 and player 2 occupies bits 8..14. SELECT and START are names for the same physical input.",
+     "insertText": "PRG32_BTN_UP",
+     "kind": "constant",
+     "label": "PRG32_BTN_UP"
+    },
+    {
+     "detail": "PRG32 type",
+     "documentation": "",
+     "insertText": "prg32_band_mode_t",
+     "kind": "struct",
+     "label": "prg32_band_mode_t"
+    }
+   ],
+   "range": {
+    "column": 16,
+    "endColumn": 23,
+    "line": 1
+   }
+  },
+  "name": "c: the buzzer is never suggested",
+  "request": {
+   "language": "c",
+   "op": "completions",
+   "position": {
+    "column": 23,
+    "line": 1
+   },
+   "source": "void f(void) { prg32_b"
+  }
+ },
+ {
+  "expected": [
+   {
+    "code": "compiler",
+    "column": 59,
+    "endColumn": 72,
+    "endLine": 3,
+    "explanation": "This name is not declared: check the spelling, or declare the variable first.",
+    "line": 3,
+    "message": "'missing_value' undeclared (first use in this function)",
+    "severity": "error"
+   }
+  ],
+  "name": "c: a build log from the kit (<build>/ paths) maps to the student's line",
+  "request": {
+   "language": "c",
+   "op": "normalize",
+   "output": "$ python3 -m prg32 cartridge build <build>/game.c --portable --architecture qemu --cart-ram-kib 64 --entry-prefix broken --name broken --out <build>/broken-check.prg32\n<build>/game.c: In function 'broken_update':\n<build>/game.c:3:59: error: 'missing_value' undeclared (first use in this function)\n<build>/game.c:3:59: note: each undeclared identifier is reported only once for each function it appears in\n",
+   "source": "#include \"prg32.h\"\nvoid broken_init(void) {}\nvoid broken_update(void) { int score = 0; score = score + missing_value; }\nvoid broken_draw(void) {}\n"
+  }
+ }
+]

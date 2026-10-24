@@ -1,0 +1,17 @@
+{
+  "schema": "prg32-kit-vendor-1",
+  "packages": [
+    {
+      "name": "axe-core",
+      "version": "4.10.2",
+      "license": "MPL-2.0",
+      "source": "https://registry.npmjs.org/axe-core/-/axe-core-4.10.2.tgz",
+      "integrity": "sha512-RE3mdQ7P3FRSe7eqCWoeQ/Z9QXrtniSjp1wUjt5nRC3WIpz5rSCve6o3fsZ2aCpJtrZjSZgjwXAoTO5k4tEI0w==",
+      "files": {
+        "axe-core/4.10.2/axe.min.js": "b511cd9dec01c76f4b2ad1723b66b6db37d4c2eb4ed199076e1829d9ee7b75e3",
+        "axe-core/4.10.2/LICENSE": "af175b9d96ee93c21a036152e1b905b0b95304d4ae8c2c921c7609100ba8df7e"
+      },
+      "extra_sources": []
+    }
+  ]
+}

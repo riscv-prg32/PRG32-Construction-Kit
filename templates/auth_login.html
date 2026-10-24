@@ -1,29 +1,37 @@
 {% extends "base.html" %}
-{% block title %}Sign in - PRG32-Construction-Kit{% endblock %}
+{% from "_privacy_notice.html" import notice %}
+{% block title %}{{ t("auth_login.sign_in", name=(site.name)) }}{% endblock %}
 {% block content %}
 <div class="row justify-content-center">
   <div class="col-md-6 col-lg-4">
     <div class="card shadow-sm">
       <div class="card-body">
-        <h1 class="h4 mb-3"><i class="bi bi-person-lock"></i> Sign in</h1>
+        <h1 class="h4 mb-3"><i class="bi bi-person-lock"></i> {{ t("common.sign_in") }}</h1>
         {% if error %}<div class="alert alert-danger">{{ error }}</div>{% endif %}
         {% with messages = get_flashed_messages() %}{% for message in messages %}<div class="alert alert-info">{{ message }}</div>{% endfor %}{% endwith %}
         <form method="post" action="/auth/login" class="vstack gap-3">
           <input type="hidden" name="next" value="{{ next }}">
-          <div><label class="form-label" for="username">Username or email</label>
+          <div><label class="form-label" for="username">{{ t("auth_login.username_or_email") }}</label>
             <input class="form-control" id="username" name="username" autocomplete="username" required autofocus></div>
-          <div><label class="form-label" for="password">Password</label>
+          <div><label class="form-label" for="password">{{ t("auth_login.password") }}</label>
             <input class="form-control" id="password" name="password" type="password" autocomplete="current-password" required></div>
-          <button class="btn btn-primary" type="submit">Sign in</button>
+          <button class="btn btn-primary" type="submit">{{ t("common.sign_in") }}</button>
         </form>
+        {{ notice("account") }}
         {% for login in external_logins %}
         <a class="btn btn-outline-secondary w-100 mt-2" href="{{ login.url }}">{{ login.label }}</a>
         {% endfor %}
+        {% if external_logins %}{{ notice("school_sign_in") }}{% endif %}
         {% if sso.enabled %}
-        <p class="small text-muted mt-3 mb-0"><i class="bi bi-link-45deg"></i> Accounts are shared with the Cartridge Store at {{ sso.peer_url }}: the same email and password work on both.</p>
+        <p class="small text-muted mt-3 mb-0"><i class="bi bi-link-45deg"></i> {{ t("auth_login.accounts_are_shared_with_the_cartridge", peer_url=(sso.peer_url)) }}</p>
         {% endif %}
         <hr>
-        <a href="/auth/register">Create an account</a>
+        <a href="/auth/register">{{ t("common.create_an_account") }}</a>
+        {% if guest_mode == 'local' %}
+        <p class="small mt-2 mb-0"><a href="/static/offline.html?guest=1">{{ t("auth_login.try_without_an_account") }}</a>
+          <span class="text-muted">{{ t("auth_login.your_games_stay_in_this_browser") }}</span></p>
+        {{ notice("guest") }}
+        {% endif %}
       </div>
     </div>
   </div>

@@ -8,6 +8,9 @@ from .db import count, create_resource
 # Complete, playable Blocks games. Each file is a normal exported project
 # (examples/games/<slug>.json); tools/build_example_games.py regenerates them.
 GAMES_DIR = Path(__file__).resolve().parent.parent / "examples" / "games"
+# PRG32 Python examples (ADR-0026): one game.py each; slug -> (title, description).
+PYTHON_DIR = Path(__file__).resolve().parent.parent / "examples" / "python"
+PYTHON_EXAMPLES = {"brick_catch": ("Brick Catch (Python)", "Catch falling bricks with a paddle: a game written in PRG32 Python.")}
 CLASSIC_GAMES = ("pong", "breakout", "space_invaders", "asteroids", "snake")
 
 
@@ -40,6 +43,13 @@ def example_catalog() -> list[dict]:
             project = classic_game_project(slug)
             catalog.append({"slug": slug, "title": project["title"], "description": project["description"],
                             "kind": "game", "project": project})
+    for slug, (title, description) in PYTHON_EXAMPLES.items():
+        source = (PYTHON_DIR / f"{slug}.py").read_text(encoding="utf-8")
+        catalog.append({"slug": f"{slug}_python", "title": title, "description": description, "kind": "python",
+                        "project": {"title": title, "description": description, "author": "PRG32-Construction-Kit",
+                                    "tags": ["python", "example"], "blocks_json": {},
+                                    "game_json": {"source_mode": "python", "source_python": source,
+                                                  "python_language_version": 1}}})
     complete = {item["slug"] for item in catalog}
     for example, project in zip(UPSTREAM_EXAMPLES, upstream_example_projects()):
         if example[0] not in complete:
@@ -52,7 +62,7 @@ def example_catalog() -> list[dict]:
 # small Block-language lessons: students can open every project, run it in the
 # simulator, and inspect its generated C without needing hidden C source.
 UPSTREAM_EXAMPLES = (
-    ("pong", "Pong", "Move the lower paddle in a two-paddle court.", "BLUE", "paddle_x", "paddle_y"),
+    ("pong", "Pong", "Move the lower paddle in a two-paddle court.", "WHITE", "paddle_x", "paddle_y"),
     ("breakout", "Breakout", "Move a paddle below a colourful brick wall.", "ORANGE", "paddle_x", "paddle_y"),
     ("space_invaders", "Space Invaders", "Pilot a ship beneath a row of invaders.", "GREEN", "ship_x", "ship_y"),
     ("pacman", "Pacman", "Guide a yellow maze runner around a simple arena.", "YELLOW", "hero_x", "hero_y"),
@@ -60,12 +70,12 @@ UPSTREAM_EXAMPLES = (
     ("tetris", "Tetris", "Slide a falling block into the playfield.", "MAGENTA", "piece_x", "piece_y"),
     ("platformer", "Platformer", "Explore a side-view platform scene.", "GREEN", "hero_x", "hero_y"),
     ("raycaster", "Raycaster", "Explore a first-person-style corridor sketch.", "CYAN", "viewer_x", "viewer_y"),
-    ("wing_commander", "Wing Commander", "Fly a cockpit ship through a star field.", "BLUE", "ship_x", "ship_y"),
+    ("wing_commander", "Wing Commander", "Fly a cockpit ship through a star field.", "YELLOW", "ship_x", "ship_y"),
     ("frogger", "Frogger", "Help a frog cross a busy road.", "GREEN", "frog_x", "frog_y"),
-    ("scrolling_parallax", "Scrolling Parallax", "Move through two differently moving background bands.", "BLUE", "camera_x", "camera_y"),
+    ("scrolling_parallax", "Scrolling Parallax", "Move through two differently moving background bands.", "LIME", "camera_x", "camera_y"),
     ("animated_sprites", "Animated Sprites", "Move a character while its colour-frame marker changes.", "ORANGE", "sprite_x", "sprite_y"),
     ("dual_playfield", "Dual Playfield", "Compare a background playfield with a moving foreground ship.", "MAGENTA", "ship_x", "ship_y"),
-    ("splash_screen", "Splash Screen", "Make a game title screen with a start button.", "BLUE", "cursor_x", "cursor_y"),
+    ("splash_screen", "Splash Screen", "Make a game title screen with a start button.", "WHITE", "cursor_x", "cursor_y"),
     ("keyboard_input", "Keyboard Input", "Use the directional controls to move a text cursor.", "WHITE", "cursor_x", "cursor_y"),
     ("wifi_setup", "Wi-Fi Setup", "Prototype a friendly setup choice screen.", "CYAN", "choice_x", "choice_y"),
     ("audio_synth", "Audio Synth", "Play a note with the A button.", "MAGENTA", "note_x", "note_y"),
@@ -75,6 +85,9 @@ UPSTREAM_EXAMPLES = (
     ("audio_stereo_music", "Audio Stereo Music", "Sketch music lanes in a Blocks-friendly form.", "CYAN", "track_x", "track_y"),
     ("audio_stereo_pan_test", "Audio Stereo Pan Test", "Explore left and right music lanes with a control marker.", "PINK", "pan_x", "pan_y"),
 )
+
+
+ARENA_COLOR = "BLUE"
 
 
 def upstream_example_blocks(slug: str, title: str, color: str, x_name: str, y_name: str) -> dict:
@@ -87,8 +100,9 @@ def upstream_example_blocks(slug: str, title: str, color: str, x_name: str, y_na
             value["inputs"] = inputs
         return value
 
+    # The player is drawn on top of the arena, so it needs a colour of its own to be seen.
     draw = block("prg32_clear_screen", "clear", {"COLOR": "BLACK"}, block(
-        "prg32_draw_rect", "arena", {"X": "8", "Y": "24", "W": "304", "H": "168", "COLOR": "BLUE"}, block(
+        "prg32_draw_rect", "arena", {"X": "8", "Y": "24", "W": "304", "H": "168", "COLOR": ARENA_COLOR}, block(
             "prg32_draw_rect", "player", {"X": x_name, "Y": y_name, "W": "16", "H": "16", "COLOR": color}, block(
                 "prg32_draw_text", "title", {"TEXT": title.upper(), "X": "12", "Y": "6", "FG": "WHITE", "BG": "BLACK"}
             )
@@ -258,3 +272,59 @@ def seed_if_empty(default_store_url: str = "http://127.0.0.1:5080") -> None:
         create_resource("sprites", {"name": "smile", "width": 16, "height": 16, "pixels": pixels})
     if count("publish_profiles") == 0:
         create_resource("publish_profiles", {"name": "Local Cartridge Store", "store_url": default_store_url, "bearer_token": ""})
+
+
+# --- New Project: a starting point in Blocks, C, assembly or PRG32 Python -----------------
+
+STARTER_KINDS = ("blocks", "c", "asm", "python")
+
+_C_GENERATED = (" * Generated by PRG32-Construction-Kit from the saved Blocks JSON.\n"
+                " * Edit the blocks, then regenerate this file.\n")
+_C_STARTER = (" * Made by PRG32-Construction-Kit from Blocks:\n"
+              " * this is your own C now. Change it freely; the explanations below stay true until you do.\n")
+_ASM_GENERATED = (" * RISC-V assembly generated by PRG32-Construction-Kit from the saved Blocks JSON.\n"
+                  " * Edit the blocks, then regenerate this file. The C file made from the same blocks\n"
+                  " * does exactly the same work: read the two side by side.\n")
+_ASM_STARTER = (" * Made by PRG32-Construction-Kit from Blocks:\n"
+                " * this is your own RISC-V assembly now. Change it freely; the explanations below\n"
+                " * stay true until you do.\n")
+
+
+def starter_project(kind: str, title: str) -> dict:
+    """The blocks_json and game_json of a new project of one kind (the New Project dialog).
+
+    The C and assembly starters are the starter Blocks game turned into code by the kit's own
+    generators, so they pass the same checks as handwritten code and keep the per-line
+    explanations; their entry names come from the title, as the checks require.
+    """
+    if kind not in STARTER_KINDS:
+        raise ValueError("kind must be one of: " + ", ".join(STARTER_KINDS))
+    if kind == "python":
+        # PRG32 Python (ADR-0026): the same small game, written as game.py.
+        from .python_project import LANGUAGE_VERSION, STARTER
+        return {"blocks_json": {}, "game_json": {"source_mode": "python", "source_python": STARTER,
+                                                 "python_language_version": LANGUAGE_VERSION}}
+    blocks = default_blocks()
+    if kind == "blocks":
+        return {"blocks_json": blocks, "game_json": {}}
+    return {"blocks_json": blocks, "game_json": blocks_as_code({"title": title, "blocks_json": blocks}, kind)}
+
+
+def blocks_as_code(project: dict, language: str) -> dict:
+    """A Blocks project's game as the ``game_json`` of a C or assembly project (one-way conversion, ADR-0024).
+
+    The code is what the kit's generators make from the blocks (``project["audio_studio"]``, when
+    given, fixes the sound numbers), with its explanations, and a header saying it is the
+    student's own code now. Raises ValueError when the blocks do not generate.
+    """
+    from .asm_generator import ir_to_asm
+    from .generator import blocks_to_c
+
+    if language not in ("c", "asm"):
+        raise ValueError("language must be c or asm")
+    game_ir, c_source = blocks_to_c(project.get("blocks_json") or {}, project)
+    features = list(game_ir.get("required_features") or [])
+    if language == "c":
+        return {"source_mode": "c", "source_c": c_source.replace(_C_GENERATED, _C_STARTER), "required_features": features}
+    return {"source_mode": "asm", "source_asm": ir_to_asm(game_ir).replace(_ASM_GENERATED, _ASM_STARTER),
+            "required_features": features}

@@ -468,7 +468,7 @@ if (ball_dx > 0) {
 1. Dashboard, **Examples**, *Pong* (complete game), **Add**.
 2. **Play**; use the arrow keys or the on-screen pad.
 3. Change a number (paddle speed, `cpu_error`), press **Play** again.
-4. **Generate C** shows the C above; **Game IR** shows the checked program.
+4. **Generate** shows the C above; **Game IR** shows the checked program.
 
 The simulator draws with the same 8 x 8 font and the same RGB565 colours as the firmware.
 
@@ -479,7 +479,7 @@ The simulator draws with the same 8 x 8 font and the same RGB565 colours as the 
 
 <!-- column -->
 
-**Download .prg32** builds `pong-esp32c6.prg32`; the arrow next to it builds `pong-qemu.prg32`.
+**Compile** builds `pong-esp32c6.prg32` and `pong-qemu.prg32`; download them from the links in the IDE's **Build** tab.
 
 ```bash
 python3 -m prg32 qemu upload pong-qemu.prg32

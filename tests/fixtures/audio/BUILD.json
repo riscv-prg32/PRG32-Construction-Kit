@@ -1,0 +1,4 @@
+{
+ "compiler": "riscv32-esp-elf-gcc (crosstool-NG esp-14.2.0_20241119) 14.2.0",
+ "prg32_sdk": "679dfb5"
+}

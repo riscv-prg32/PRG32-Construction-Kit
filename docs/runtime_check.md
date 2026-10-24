@@ -1,7 +1,7 @@
 # Checking games on PRG32 runtimes
 
 `tools/runtime_check.py` repeats, outside the web app, everything a student's
-click on **Download .prg32** does, and then runs the result on real PRG32
+click on **Compile** (and a download link in the IDE's Build tab) does, and then runs the result on real PRG32
 runtimes:
 
 ```text

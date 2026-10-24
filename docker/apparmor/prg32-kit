@@ -1,0 +1,52 @@
+# AppArmor profile for the PRG32-Construction-Kit container (docs/build_sandbox.md, ADR-0010).
+#
+# Docker's own docker-default profile, plus exactly what the bubblewrap build sandbox
+# needs: creating user namespaces, and inside them its own mounts. The container still
+# runs with every capability dropped and no-new-privileges, so the capabilities and
+# mounts allowed here exist only inside a build's user namespace.
+#
+#   sudo apparmor_parser -r -W docker/apparmor/prg32-kit
+#   docker run --security-opt apparmor=prg32-kit ...      (or security_opt in docker-compose.yml)
+#
+# With this profile, Ubuntu 24.04 needs neither apparmor=unconfined nor
+# kernel.apparmor_restrict_unprivileged_userns=0.
+
+abi <abi/4.0>,
+include <tunables/global>
+
+profile prg32-kit flags=(attach_disconnected,mediate_deleted) {
+  include <abstractions/base>
+
+  network,
+  file,
+  umount,
+  signal (send, receive) peer=prg32-kit,
+  ptrace (trace, read, tracedby, readby) peer=prg32-kit,
+
+  # bubblewrap: a new user namespace per build, and in it a private /tmp and /dev (with
+  # devpts), read-only binds, the build folder, a read-only remount of /, a loopback
+  # network and pivot_root. As in Ubuntu's own bwrap profile, capabilities and mounts are
+  # allowed here: the container itself has none (cap_drop ALL, no-new-privileges), so they
+  # exist only inside a build's user namespace.
+  userns,
+  capability,
+  mount,
+  remount,
+  pivot_root,
+
+  # As in docker-default: no kernel settings, no sensitive kernel files.
+  deny @{PROC}/* w,
+  deny @{PROC}/{[^1-9],[^1-9][^0-9],[^1-9s][^0-9y][^0-9s],[^1-9][^0-9][^0-9][^0-9/]*}/** w,
+  deny @{PROC}/sys/[^k]** w,
+  deny @{PROC}/sys/kernel/{?,??,[^s][^h][^m]**} w,
+  deny @{PROC}/sysrq-trigger rwklx,
+  deny @{PROC}/kcore rwklx,
+  deny /sys/[^f]*/** wklx,
+  deny /sys/f[^s]*/** wklx,
+  deny /sys/fs/[^c]*/** wklx,
+  deny /sys/fs/c[^g]*/** wklx,
+  deny /sys/fs/cg[^r]*/** wklx,
+  deny /sys/firmware/** rwklx,
+  deny /sys/devices/virtual/powercap/** rwklx,
+  deny /sys/kernel/security/** rwklx,
+}

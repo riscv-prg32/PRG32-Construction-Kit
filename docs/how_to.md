@@ -17,27 +17,24 @@ Below the simulator screen, the classic-style gamepad lets students test games w
 
 ## How to inspect generated C
 
-1. Open the project editor.
-2. Click **Save**.
-3. Click **Generate C**.
-4. Read the C panel. Match each block to one generated C statement.
+1. Open the project in the IDE.
+2. Click **Generate**.
+3. Open **game.c** under *Generated* in the project files. Match each block to one generated C
+   statement.
 
 ## How to inspect generated RISC-V assembly
 
-1. Open the project editor.
-2. In the **Generated code** list next to the Generate button, choose
-   **Assembly (RISC-V)** or **C + Assembly**.
-3. Click **Generate Assembly** (or **Generate C + Assembly**).
-4. Open the **Generated Assembly** tab. Above each group of instructions a
-   comment repeats the block and shows its C line (`C: ...`). Find the same
-   block in the **Generated C** tab and compare.
-5. **Compile Cartridge** with **Assembly (RISC-V)** chosen builds the
-   cartridge from the assembly instead of the C. See `generated_code.md`.
+1. Open the project in the IDE.
+2. Click **Generate**.
+3. Open **game.S** under *Generated*. Above each group of instructions a comment repeats the
+   block and shows its C line (`C: ...`). Open **game.c** beside it and compare.
+4. In the **Build** tab, *Compile Blocks from: the generated assembly* makes **Compile**
+   build the cartridge from the assembly instead of the C. See `generated_code.md`.
 
 ## How to download a PRG32 cartridge
 
-1. Open the project editor.
-2. Click **Download .prg32**. The browser saves a file such as `my-game-esp32c6.prg32`.
+1. Open the project in the IDE.
+2. Click **Compile**, then **Download esp32c6 .prg32** in the IDE's **Build** tab. The browser saves a file such as `my-game-esp32c6.prg32`.
 3. To test in the emulator instead, open the arrow next to the button and choose **QEMU emulator**.
 4. Upload the PRG32 cartridge to a cartridge slot on the board.
 

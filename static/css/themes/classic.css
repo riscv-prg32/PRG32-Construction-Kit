@@ -1,0 +1,25 @@
+/* Skin "classic" (the kit's first colours): navy and gold. A skin only changes the --kit-*
+   colours of app.css. */
+:root {
+  --kit-navy: #14213d;
+  --kit-blue: #2563eb;
+  --kit-gold: #fca311;
+  --kit-ink: #111827;
+  --kit-deep: #111827;
+  --kit-bright: #1d4ed8;
+  --kit-accent-rgb: 252, 163, 17;
+  --kit-line: none;
+  --kit-page-top: #f6f8ff;
+  --kit-pill-bg: #eef2ff;
+  --kit-pill-ink: #3730a3;
+  --kit-shadow-rgb: 17, 24, 39;
+}
+[data-bs-theme=dark] {
+  --kit-ink: #e5e7eb;
+  --kit-blue: #2563eb;
+  --kit-page-top: #0b1220;
+  --kit-page-bottom: #111827;
+  --kit-card-bg: #1f2937;
+  --kit-pill-bg: #312e81;
+  --kit-pill-ink: #e0e7ff;
+}

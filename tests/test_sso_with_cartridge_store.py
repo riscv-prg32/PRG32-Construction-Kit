@@ -6,10 +6,8 @@ PRG32_CARTRIDGE_STORE_SOURCE points at it) and its requirements are installed.
 
 from __future__ import annotations
 
-import io
 import os
 import sys
-import zipfile
 from pathlib import Path
 from urllib.parse import urlsplit
 
@@ -77,6 +75,46 @@ def test_kit_user_can_sign_in_to_the_store(kit_and_store):
     assert browser.get("/api/me").get_json()["user"]["username"] == "ada"
 
 
+def test_the_username_is_shared_and_the_store_handle_stays_public_only(kit_and_store):
+    """Identity contract (docs/accounts_and_sso.md): the username is shared; the Store's public
+    handle is a separate, pseudonymous display name that never replaces it on either side."""
+    kit, store = kit_and_store
+    kit.test_client().post("/api/users", json={"username": "ada", "email": "ada@school.test", "password": PASSWORD})
+    me = store.test_client()
+    me.post("/auth/login", data={"username": "ada", "password": PASSWORD})
+    user = me.get("/api/me").get_json()["user"]
+    assert user["username"] == "ada"
+    if "public_handle" in user:            # Stores from 4a3138b on (with docs/upstream §6's patch)
+        assert user["public_handle"] not in ("ada", "ada@school.test")
+    ada = kit.test_client(login=("ada", PASSWORD))
+    assert ada.get("/auth/me").get_json()["user"]["username"] == "ada"
+
+
+def test_a_store_only_account_with_the_same_username_is_never_joined(kit_and_store):
+    """Collision: the Store already has another "ada". Accounts are matched by email, so the kit's
+    ada gets her own Store account (named by her email there) and the other one is untouched."""
+    kit, store = kit_and_store
+    store.test_client().get("/")
+    with store.app_context():
+        from cartridge_store.database import get_db
+        from werkzeug.security import generate_password_hash
+
+        get_db().execute("INSERT INTO users(username, email, password_hash, role) VALUES ('ada', 'ada@elsewhere.test', ?, 'user')",
+                         (generate_password_hash("another-password-1"),))
+        get_db().commit()
+    kit.test_client().post("/api/users", json={"username": "ada", "email": "ada@school.test", "password": PASSWORD})
+    kit_ada = store.test_client()
+    assert kit_ada.post("/auth/login", data={"username": "ada@school.test", "password": PASSWORD}).status_code == 302
+    mine = kit_ada.get("/api/me").get_json()["user"]
+    assert mine["email"] == "ada@school.test" and mine["username"] == "ada@school.test"
+    other = store.test_client()
+    assert other.post("/auth/login", data={"username": "ada", "password": PASSWORD}).status_code == 401
+    assert other.post("/auth/login", data={"username": "ada", "password": "another-password-1"}).status_code == 302
+    assert other.get("/api/me").get_json()["user"]["email"] == "ada@elsewhere.test"
+    ada = kit.test_client(login=("ada", PASSWORD))
+    assert ada.get("/auth/me").get_json()["user"]["email"] == "ada@school.test"
+
+
 def test_store_registration_reaches_the_kit(kit_and_store):
     kit, store = kit_and_store
     browser = store.test_client()
@@ -126,7 +164,10 @@ def test_single_sign_on_both_ways(kit_and_store):
 
 def test_kit_publishes_to_the_store_as_the_student(kit_and_store, monkeypatch):
     kit, store = kit_and_store
-    kit.test_client().post("/api/users", json={"username": "ada", "email": "ada@school.test", "password": PASSWORD})
+    kit.config["STORE_TRUSTED_LOCAL"] = True  # the peer here is plain http, as on a classroom LAN (ADR-0008)
+    # Publishing needs the publisher role (ADR-0009); the role is synced with the Store too.
+    kit.test_client().post("/api/users", json={"username": "ada", "email": "ada@school.test", "password": PASSWORD,
+                                               "role": "publisher"})
     ada = kit.test_client(login=("ada", PASSWORD))
     seen = {}
 
@@ -139,12 +180,10 @@ def test_kit_publishes_to_the_store_as_the_student(kit_and_store, monkeypatch):
 
     monkeypatch.setattr("prg32_construction_kit.routes.publish_bundle", publish_through_store)
     profile = ada.post("/api/publish_profiles", json={"name": "School", "store_url": "http://store.test"}).get_json()
-    bundle = io.BytesIO()
-    with zipfile.ZipFile(bundle, "w") as archive:
-        archive.writestr("manifest.json", "{}")
-    artifact = ada.post("/api/artifacts/upload", data={"file": (io.BytesIO(bundle.getvalue()), "b.zip"), "kind": "store_bundle"},
-                        content_type="multipart/form-data").get_json()
-    ada.post("/api/publish", json={"profile_id": profile["id"], "bundle_artifact_id": artifact["id"]})
+    from conftest import make_store_bundle, review_and_publish
+
+    artifact = make_store_bundle(ada, monkeypatch)
+    review_and_publish(ada, profile["id"], artifact["id"])
     assert seen["user"]["email"] == "ada@school.test" and seen["user"]["authenticated"] is True
     assert seen["reused"] is False  # an API ticket works only once
 

@@ -1,0 +1,3 @@
+# Third-party files are kept byte-for-byte as published (static/vendor/VENDOR.json hashes).
+static/vendor/** -whitespace -text
+tests/vendor/** -whitespace -text

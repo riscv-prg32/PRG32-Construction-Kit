@@ -12,8 +12,11 @@ ARG PRG32_REF=main
 # RISC-V GCC release of ESP-IDF 5.4.
 ARG RISCV_GCC_VERSION=esp-14.2.0_20241119
 
+# The image is a production server: no weak first-admin password is accepted
+# (see docs/admin-guide.md).
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
+    PRG32_KIT_ENV=production \
     PRG32_KIT_DATA=/data \
     PRG32_KIT_PORT=5090 \
     PRG32_REQUIRE_TOOLCHAIN=$PRG32_TOOLCHAIN \
@@ -42,16 +45,29 @@ RUN if [ "$PRG32_TOOLCHAIN" = "1" ]; then \
       rm -rf /var/lib/apt/lists/*; \
     fi
 
+# Every compiler run is isolated with bubblewrap (docs/build_sandbox.md, ADR-0010).
+# The container needs the kit's seccomp profile (docker/seccomp-kit.json) so that
+# bubblewrap may create its namespaces; without it, builds are refused.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends bubblewrap \
+    && rm -rf /var/lib/apt/lists/*
+ENV PRG32_BUILD_SANDBOX=bwrap
+
 WORKDIR /app
 
-COPY requirements.txt requirements-production.txt ./
-RUN pip install --no-cache-dir -r requirements-production.txt
+# Exactly the packages and files in requirements.lock (tools/lock_requirements.py, docs/dependencies.md).
+COPY requirements.txt requirements-production.txt requirements.lock ./
+RUN pip install --no-cache-dir --require-hashes -r requirements.lock
 
 LABEL org.opencontainers.image.title="PRG32-Construction-Kit" \
       prg32.toolchain="$PRG32_TOOLCHAIN" \
       prg32.ref="$PRG32_REF" \
       prg32.riscv-gcc="$RISCV_GCC_VERSION"
 
+# The kit's commit, recorded in every build's provenance (.git is not copied in).
+# Declared here, after the toolchain layers, so a new commit does not rebuild them.
+ARG PRG32_KIT_REVISION=
+ENV PRG32_KIT_REVISION=$PRG32_KIT_REVISION
 COPY . .
 RUN mkdir -p /data && useradd -ms /bin/bash kit && chown -R kit:kit /data /app
 USER kit

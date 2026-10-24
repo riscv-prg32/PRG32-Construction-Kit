@@ -1,0 +1,338 @@
+{
+  "contract": "prg32-store-contract-1",
+  "description": "What a PRG32 Store bundle is, what the Cartridge Store accepts, and what its refusals mean. One file for the kit and the Store (docs/store_contract.md).",
+  "store_reference": {
+    "repository": "riscv-prg32/CartridgeStore",
+    "checked_against": "820f74bfe9364c8727db92cb0f15f3b9dd85feab",
+    "code": [
+      "cartridge_store/app.py::_prepare_bundle",
+      "cartridge_store/prg32_format.py::validate_metadata",
+      "cartridge_store/store.py::SAFE_ID_RE",
+      "cartridge_store/store.py::SAFE_VERSION_RE"
+    ]
+  },
+  "bundle": {
+    "container": "zip",
+    "manifest": "manifest.json",
+    "max_bytes_default": 33554432,
+    "rules": [
+      "manifest.json is a UTF-8 JSON object at the top of the zip",
+      "every file the manifest names (assets.icon, assets.splash, architectures[].file) is in the zip, by a relative name without '..'",
+      "the icon (and splash, if any) is PNG or JPEG",
+      "each architectures[].file ends in .prg32 and is a PRG32 cartridge (magic PRG2)",
+      "each architecture appears once"
+    ]
+  },
+  "manifest_schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://prg32.org/contracts/prg32-store-contract-1/manifest.schema.json",
+    "title": "PRG32 Store bundle manifest",
+    "type": "object",
+    "required": [
+      "abi",
+      "id",
+      "title",
+      "version",
+      "assets",
+      "architectures"
+    ],
+    "properties": {
+      "abi": {
+        "const": "prg32-metadata-1.0"
+      },
+      "id": {
+        "type": "string",
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,95}$"
+      },
+      "title": {
+        "type": "string",
+        "minLength": 1,
+        "pattern": "\\S"
+      },
+      "version": {
+        "type": "string",
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9._+-]{0,63}$"
+      },
+      "summary": {
+        "type": "string"
+      },
+      "description": {
+        "type": "string"
+      },
+      "authors": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "license": {
+        "type": "string"
+      },
+      "tags": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "runtime": {
+        "type": "object"
+      },
+      "assets": {
+        "type": "object",
+        "required": [
+          "icon"
+        ],
+        "properties": {
+          "icon": {
+            "type": "string",
+            "pattern": "^(?!/)(?!.*(^|/)\\.\\.(/|$)).+$"
+          },
+          "splash": {
+            "type": "string",
+            "pattern": "^(?!/)(?!.*(^|/)\\.\\.(/|$)).+$"
+          }
+        }
+      },
+      "architectures": {
+        "type": "array",
+        "minItems": 1,
+        "items": {
+          "type": "object",
+          "required": [
+            "id",
+            "file"
+          ],
+          "properties": {
+            "id": {
+              "type": "string",
+              "enum": [
+                "esp32c6",
+                "qemu",
+                "esp32-c6",
+                "riscv-esp32-c6",
+                "risc-v-esp32-c6",
+                "hardware",
+                "esp32c3-qemu",
+                "qemu-rgb",
+                "emulator"
+              ]
+            },
+            "file": {
+              "type": "string",
+              "pattern": "^(?!/)(?!.*(^|/)\\.\\.(/|$)).+\\.prg32$"
+            }
+          }
+        }
+      },
+      "generator": {
+        "type": "object"
+      }
+    }
+  },
+  "architectures": {
+    "canonical": [
+      "esp32c6",
+      "qemu"
+    ],
+    "aliases": {
+      "esp32-c6": "esp32c6",
+      "riscv-esp32-c6": "esp32c6",
+      "risc-v-esp32-c6": "esp32c6",
+      "hardware": "esp32c6",
+      "esp32c3-qemu": "qemu",
+      "qemu-rgb": "qemu",
+      "emulator": "qemu"
+    }
+  },
+  "versioning": {
+    "kit_rule": "The kit's manifest version is 0.1.<project version>: every saved change gives a new version, and an unchanged project republishes the same one.",
+    "duplicate_identity_version": "store_accepts_duplicate_pending",
+    "known_store_gap": "The Cartridge Store (820f74b) accepts a second pending submission with the same id and version; approving it replaces that version's published files. The kit never sends the same id/version twice from one review (publish attempts are idempotent by digest) and asks the Store to refuse duplicates (proposal in docs/store_contract.md).",
+    "kit_duplicate_rule": "The kit sends one bundle per cartridge id and version to a Store: the same files again answer with the first result (nothing is uploaded), different files are refused with version_already_published until the project is saved (a new version).",
+    "store_proposal": "CartridgeStore refuses an upload whose id/version is already published or pending with a different bundle digest (409, code duplicate_version) and accepts the same digest again idempotently. Until then this section's duplicate_identity_version stays store_accepts_duplicate_pending."
+  },
+  "publish": {
+    "endpoint": "POST /api/publish/bundle",
+    "form_field": "bundle",
+    "auth": "Authorization: Bearer <Store API token>",
+    "accepted_status": 200,
+    "accepted_body": {
+      "required": [
+        "ok",
+        "status",
+        "submission_id",
+        "id",
+        "version",
+        "submitted"
+      ],
+      "status": "pending",
+      "review_required": true
+    },
+    "visibility": "A submission is not listed in GET /api/games until an editor verifies it (POST /api/submissions/<id>/verify)."
+  },
+  "errors": [
+    {
+      "code": "token_expired",
+      "status": 401,
+      "match": "token_expired|token has expired|expired token",
+      "retryable": false,
+      "student_message": "The Store token has expired. Ask your teacher to make a new one for the publish profile.",
+      "proposed": true
+    },
+    {
+      "code": "duplicate_version",
+      "status": 409,
+      "match": null,
+      "retryable": false,
+      "student_message": "The Store already has this version with different files. Save the project (a new version), compile again, then publish.",
+      "proposed": true
+    },
+    {
+      "code": "unauthorized",
+      "status": 401,
+      "match": null,
+      "retryable": false,
+      "student_message": "The Store did not accept the publish token. Ask your teacher to check the publish profile."
+    },
+    {
+      "code": "forbidden",
+      "status": 403,
+      "match": null,
+      "retryable": false,
+      "student_message": "This Store account may not publish."
+    },
+    {
+      "code": "too_large",
+      "status": 413,
+      "match": "too large",
+      "retryable": false,
+      "student_message": "The bundle is too big for this Store."
+    },
+    {
+      "code": "not_a_zip",
+      "status": 400,
+      "match": "must be a (valid )?zip file",
+      "retryable": false,
+      "student_message": "The bundle is not a valid zip file."
+    },
+    {
+      "code": "manifest_missing",
+      "status": 400,
+      "match": "missing manifest\\.json",
+      "retryable": false,
+      "student_message": "The bundle has no manifest.json."
+    },
+    {
+      "code": "unsafe_path",
+      "status": 400,
+      "match": "relative filename",
+      "retryable": false,
+      "student_message": "The bundle names a file outside itself (an absolute path or '..')."
+    },
+    {
+      "code": "manifest_invalid",
+      "status": 400,
+      "match": "manifest|metadata\\.",
+      "retryable": false,
+      "student_message": "The bundle's manifest is not what the Store expects."
+    },
+    {
+      "code": "unsafe_id_or_version",
+      "status": 400,
+      "match": "game id|version",
+      "retryable": false,
+      "student_message": "The game's id or version uses characters the Store does not allow."
+    },
+    {
+      "code": "file_missing",
+      "status": 400,
+      "match": "file is missing|missing: ",
+      "retryable": false,
+      "student_message": "A file the manifest names is not in the bundle."
+    },
+    {
+      "code": "bad_image",
+      "status": 400,
+      "match": "must be PNG or JPEG",
+      "retryable": false,
+      "student_message": "The icon or splash picture must be PNG or JPEG."
+    },
+    {
+      "code": "bad_architecture",
+      "status": 400,
+      "match": "architecture",
+      "retryable": false,
+      "student_message": "The bundle names an unknown or repeated architecture."
+    },
+    {
+      "code": "bad_cartridge",
+      "status": 400,
+      "match": "cartridge",
+      "retryable": false,
+      "student_message": "A cartridge in the bundle is not a valid PRG32 cartridge."
+    },
+    {
+      "code": "server_error",
+      "status": 500,
+      "match": null,
+      "retryable": true,
+      "student_message": "The Store had a problem. Try again later."
+    },
+    {
+      "code": "unavailable",
+      "status": 503,
+      "match": null,
+      "retryable": true,
+      "student_message": "The Store is busy or down. Try again later."
+    },
+    {
+      "code": "network",
+      "status": null,
+      "match": null,
+      "retryable": true,
+      "student_message": "The Store could not be reached. Nothing was published; try again."
+    }
+  ],
+  "tokens": {
+    "create": "POST /auth/tokens (signed in) answers {id, token}; the token is shown once",
+    "revoke": "DELETE /auth/tokens/<id>; a revoked token is refused with 401 at once",
+    "expiry": "none",
+    "known_store_gap": "Cartridge Store (820f74b) API tokens never expire; a teacher revokes them by hand. The kit stores the token write-only in the publish profile and never logs it.",
+    "kit_rotation": {
+      "setting": "PRG32_STORE_TOKEN_MAX_DAYS",
+      "default_days": 180,
+      "rule": "The kit records when a publish profile's token was put in and refuses to use it after this many days (token_too_old); a teacher makes a new token in the Store and revokes the old one."
+    },
+    "store_proposal": "POST /auth/tokens accepts expires_in_days (default 180, at most 365); GET /auth/tokens shows expires_at; an expired token is refused with 401 and code token_expired, like a revoked one. Until then expiry stays none."
+  },
+  "publish_profile": {
+    "fields": {
+      "name": "string",
+      "store_url": "https URL of an approved Store (ADR-0008)",
+      "bearer_token": "write-only, never returned"
+    },
+    "kit_api": [
+      "GET/POST /api/publish_profiles",
+      "GET/PUT/DELETE /api/publish_profiles/<id>"
+    ]
+  },
+  "cartridge_artifact_metadata": {
+    "fields": {
+      "architecture": "esp32c6 | qemu",
+      "portable": "true",
+      "build_id": "string",
+      "cart_ram_kib": "integer",
+      "sha256": "hex",
+      "bytes": "integer",
+      "debug_map_artifact_id": "string (optional)",
+      "source_map_artifact_id": "string (optional)",
+      "built_from": "c | asm"
+    },
+    "header": {
+      "magic": "PRG2",
+      "header_size_offset": 8,
+      "code_size_offset": 16,
+      "endianness": "little"
+    }
+  }
+}

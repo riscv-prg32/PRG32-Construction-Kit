@@ -1,0 +1,114 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 620" role="img" aria-labelledby="title desc" font-family="Helvetica, Arial, sans-serif">
+  <title id="title">Personal data: who, where, how long, and who receives it</title>
+  <desc id="desc">Personal data, where it is kept and for how long. Guests: games stay in the browser (IndexedDB) until the person clears them. Students, teachers and administrators: account, classes and work in SQLite while the account exists; builds keep the newest 10 per project; deleted projects 30 days; the audit log 365 days; backups 35 days. Recipients by choice: the school identity provider (sign-in), Google Drive, OneDrive or GitHub (consent, the person&#x27;s own folder or repository, possibly outside the EU), the Cartridge Store (publishing under a public handle; with shared accounts the private username, matched by email), an SMTP provider. Rights: download, correct, erase, restrict, object; erasure reaches tables, folders, files and cloud tokens, pseudonymises the audit log and is re-applied after a restore.</desc>
+  <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#334155"/></marker></defs>
+  <rect width="1240" height="620" fill="#ffffff"/>
+  <text x="620" y="34" font-size="22" text-anchor="middle" fill="#0f172a" font-weight="bold">Personal data, retention and recipients</text>
+  <rect x="20" y="60" width="260" height="520" rx="16" fill="#f8fafc" fill-opacity="0.45" stroke="#475569" stroke-width="2" stroke-dasharray="8 6"/>
+  <text x="34" y="86" font-size="17" font-weight="bold" fill="#475569">People</text>
+  <rect x="38" y="100" width="224" height="70" rx="10" fill="#f8fafc" stroke="#475569" stroke-width="1.5"/>
+  <text x="48" y="121" font-size="14" font-weight="bold" fill="#0f172a">Guest</text>
+  <text x="48" y="140" font-size="12.5" fill="#475569">no account</text>
+  <rect x="38" y="200" width="224" height="84" rx="10" fill="#f8fafc" stroke="#475569" stroke-width="1.5"/>
+  <text x="48" y="221" font-size="14" font-weight="bold" fill="#0f172a">Student</text>
+  <text x="48" y="240" font-size="12.5" fill="#475569">username, email, classes,</text>
+  <text x="48" y="257" font-size="12.5" fill="#475569">games, sprites, sounds</text>
+  <rect x="184" y="207" width="70" height="17" rx="8" fill="#c2410c"/>
+  <text x="219" y="219" font-size="11" text-anchor="middle" fill="#ffffff">personal</text>
+  <rect x="38" y="314" width="224" height="70" rx="10" fill="#f8fafc" stroke="#475569" stroke-width="1.5"/>
+  <text x="48" y="335" font-size="14" font-weight="bold" fill="#0f172a">Teacher / facilitator</text>
+  <text x="48" y="354" font-size="12.5" fill="#475569">reads class work only</text>
+  <rect x="184" y="321" width="70" height="17" rx="8" fill="#c2410c"/>
+  <text x="219" y="333" font-size="11" text-anchor="middle" fill="#ffffff">personal</text>
+  <rect x="38" y="414" width="224" height="70" rx="10" fill="#f8fafc" stroke="#475569" stroke-width="1.5"/>
+  <text x="48" y="435" font-size="14" font-weight="bold" fill="#0f172a">Administrator</text>
+  <text x="48" y="454" font-size="12.5" fill="#475569">all actions audited</text>
+  <rect x="184" y="421" width="70" height="17" rx="8" fill="#c2410c"/>
+  <text x="219" y="433" font-size="11" text-anchor="middle" fill="#ffffff">personal</text>
+  <rect x="310" y="60" width="520" height="520" rx="16" fill="#ecfccb" fill-opacity="0.45" stroke="#4d7c0f" stroke-width="2" stroke-dasharray="8 6"/>
+  <text x="324" y="86" font-size="17" font-weight="bold" fill="#4d7c0f">Kept by the kit (controller: the school)</text>
+  <rect x="328" y="100" width="484" height="64" rx="10" fill="#fff7ed" stroke="#c2410c" stroke-width="1.5"/>
+  <text x="338" y="121" font-size="14" font-weight="bold" fill="#0f172a">Browser IndexedDB (device only)</text>
+  <text x="338" y="140" font-size="12.5" fill="#475569">guest games; until the person clears them</text>
+  <rect x="734" y="107" width="70" height="17" rx="8" fill="#c2410c"/>
+  <text x="769" y="119" font-size="11" text-anchor="middle" fill="#ffffff">personal</text>
+  <rect x="328" y="176" width="484" height="82" rx="10" fill="#fff7ed" stroke="#c2410c" stroke-width="1.5"/>
+  <text x="338" y="197" font-size="14" font-weight="bold" fill="#0f172a">SQLite: accounts, classes, projects, history</text>
+  <text x="338" y="216" font-size="12.5" fill="#475569">while the account exists; trash 30 days;</text>
+  <text x="338" y="233" font-size="12.5" fill="#475569">password and token hashes only</text>
+  <rect x="749" y="183" width="55" height="17" rx="8" fill="#b91c1c"/>
+  <text x="776" y="195" font-size="11" text-anchor="middle" fill="#ffffff">secret</text>
+  <rect x="675" y="183" width="70" height="17" rx="8" fill="#c2410c"/>
+  <text x="710" y="195" font-size="11" text-anchor="middle" fill="#ffffff">personal</text>
+  <rect x="328" y="270" width="484" height="64" rx="10" fill="#fff7ed" stroke="#c2410c" stroke-width="1.5"/>
+  <text x="338" y="291" font-size="14" font-weight="bold" fill="#0f172a">Builds and artifacts</text>
+  <text x="338" y="310" font-size="12.5" fill="#475569">newest 10 builds per project; files go with them</text>
+  <rect x="727" y="277" width="77" height="17" rx="8" fill="#1d4ed8"/>
+  <text x="766" y="289" font-size="11" text-anchor="middle" fill="#ffffff">retention</text>
+  <rect x="654" y="277" width="70" height="17" rx="8" fill="#c2410c"/>
+  <text x="688" y="289" font-size="11" text-anchor="middle" fill="#ffffff">personal</text>
+  <rect x="328" y="346" width="484" height="64" rx="10" fill="#fff7ed" stroke="#c2410c" stroke-width="1.5"/>
+  <text x="338" y="367" font-size="14" font-weight="bold" fill="#0f172a">Audit log and request register</text>
+  <text x="338" y="386" font-size="12.5" fill="#475569">365 days; erasure pseudonymises the person</text>
+  <rect x="727" y="353" width="77" height="17" rx="8" fill="#1d4ed8"/>
+  <text x="766" y="365" font-size="11" text-anchor="middle" fill="#ffffff">retention</text>
+  <rect x="654" y="353" width="70" height="17" rx="8" fill="#c2410c"/>
+  <text x="688" y="365" font-size="11" text-anchor="middle" fill="#ffffff">personal</text>
+  <rect x="328" y="422" width="484" height="64" rx="10" fill="#fff7ed" stroke="#c2410c" stroke-width="1.5"/>
+  <text x="338" y="443" font-size="14" font-weight="bold" fill="#0f172a">Backups</text>
+  <text x="338" y="462" font-size="12.5" fill="#475569">35 days (prune); erasure register re-applied</text>
+  <rect x="727" y="429" width="77" height="17" rx="8" fill="#1d4ed8"/>
+  <text x="766" y="441" font-size="11" text-anchor="middle" fill="#ffffff">retention</text>
+  <rect x="668" y="429" width="55" height="17" rx="8" fill="#b91c1c"/>
+  <text x="696" y="441" font-size="11" text-anchor="middle" fill="#ffffff">secret</text>
+  <rect x="594" y="429" width="70" height="17" rx="8" fill="#c2410c"/>
+  <text x="629" y="441" font-size="11" text-anchor="middle" fill="#ffffff">personal</text>
+  <rect x="328" y="498" width="484" height="64" rx="10" fill="#fef9c3" stroke="#a16207" stroke-width="1.5"/>
+  <text x="338" y="519" font-size="14" font-weight="bold" fill="#0f172a">Rights</text>
+  <text x="338" y="538" font-size="12.5" fill="#475569">download, correct, erase, restrict, object (one month)</text>
+  <rect x="860" y="60" width="360" height="520" rx="16" fill="#f5f3ff" fill-opacity="0.45" stroke="#6d28d9" stroke-width="2" stroke-dasharray="8 6"/>
+  <text x="874" y="86" font-size="17" font-weight="bold" fill="#6d28d9">Recipients (by choice or setting)</text>
+  <rect x="878" y="100" width="324" height="70" rx="10" fill="#f5f3ff" stroke="#6d28d9" stroke-width="1.5"/>
+  <text x="888" y="121" font-size="14" font-weight="bold" fill="#0f172a">School identity provider</text>
+  <text x="888" y="140" font-size="12.5" fill="#475569">issuer, subject, email, role</text>
+  <rect x="878" y="190" width="324" height="84" rx="10" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4 4"/>
+  <text x="888" y="211" font-size="14" font-weight="bold" fill="#0f172a">Drive, OneDrive, GitHub</text>
+  <text x="888" y="230" font-size="12.5" fill="#475569">consent; own folder or repository;</text>
+  <text x="888" y="247" font-size="12.5" fill="#475569">possibly USA (DPF, SCCs)</text>
+  <rect x="1110" y="197" width="84" height="17" rx="8" fill="#64748b"/>
+  <text x="1152" y="209" font-size="11" text-anchor="middle" fill="#ffffff">unverified</text>
+  <rect x="878" y="294" width="324" height="84" rx="10" fill="#f5f3ff" stroke="#6d28d9" stroke-width="1.5"/>
+  <text x="888" y="315" font-size="14" font-weight="bold" fill="#0f172a">Cartridge Store</text>
+  <text x="888" y="334" font-size="12.5" fill="#475569">published games under a public handle;</text>
+  <text x="888" y="351" font-size="12.5" fill="#475569">shared username by email (optional)</text>
+  <rect x="878" y="398" width="324" height="64" rx="10" fill="#f5f3ff" stroke="#6d28d9" stroke-width="1.5"/>
+  <text x="888" y="419" font-size="14" font-weight="bold" fill="#0f172a">SMTP provider</text>
+  <text x="888" y="438" font-size="12.5" fill="#475569">email address, sign-up link</text>
+  <rect x="878" y="482" width="324" height="64" rx="10" fill="#f5f3ff" stroke="#6d28d9" stroke-width="1.5"/>
+  <text x="888" y="503" font-size="14" font-weight="bold" fill="#0f172a">Hosting provider (processor)</text>
+  <text x="888" y="522" font-size="12.5" fill="#475569">everything on the server; EU/EEA</text>
+  <path d="M262,135 L328,132" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#arrow)"/>
+  <path d="M262,242 L328,217" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#arrow)"/>
+  <path d="M262,349 L328,217" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#arrow)"/>
+  <path d="M262,449 L328,217" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#arrow)"/>
+  <path d="M812,217 L878,135" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#arrow)" marker-start="url(#arrow)"/>
+  <text x="845" y="169" font-size="12" text-anchor="middle" fill="#0f172a" paint-order="stroke" stroke="#ffffff" stroke-width="4">sign-in</text>
+  <path d="M812,230 L878,232" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="845" y="224" font-size="12" text-anchor="middle" fill="#0f172a" paint-order="stroke" stroke="#ffffff" stroke-width="4">copies</text>
+  <path d="M812,245 L878,336" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="845" y="284" font-size="12" text-anchor="middle" fill="#0f172a" paint-order="stroke" stroke="#ffffff" stroke-width="4">publish</text>
+  <path d="M812,200 L878,430" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="845" y="308" font-size="12" text-anchor="middle" fill="#0f172a" paint-order="stroke" stroke="#ffffff" stroke-width="4">email</text>
+  <text x="24" y="606" font-size="13" text-anchor="start" fill="#0f172a" font-weight="bold">Legend:</text>
+  <text x="88" y="606" font-size="13" text-anchor="start" fill="#475569">dashed frame = trust boundary;  dashed box = not verified or unsupported;</text>
+  <rect x="544" y="594" width="70" height="17" rx="8" fill="#c2410c"/>
+  <text x="579" y="606" font-size="11" text-anchor="middle" fill="#ffffff">personal</text>
+  <rect x="622" y="594" width="55" height="17" rx="8" fill="#b91c1c"/>
+  <text x="649" y="606" font-size="11" text-anchor="middle" fill="#ffffff">secret</text>
+  <rect x="685" y="594" width="77" height="17" rx="8" fill="#1d4ed8"/>
+  <text x="723" y="606" font-size="11" text-anchor="middle" fill="#ffffff">retention</text>
+  <rect x="770" y="594" width="70" height="17" rx="8" fill="#15803d"/>
+  <text x="804" y="606" font-size="11" text-anchor="middle" fill="#ffffff">verified</text>
+  <rect x="847" y="594" width="84" height="17" rx="8" fill="#64748b"/>
+  <text x="889" y="606" font-size="11" text-anchor="middle" fill="#ffffff">unverified</text>
+</svg>
