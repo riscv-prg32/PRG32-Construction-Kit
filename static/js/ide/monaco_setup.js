@@ -102,11 +102,15 @@ window.PRG32Monaco = (function () {
     };
     ready = new Promise((resolve, reject) => {
       window.require.config({ paths: { vs: BASE } });
-      window.require(['vs/editor/editor.main'], () => {
+      // Monaco's own menus and messages in the reader's language (ADR-0027): its language pack
+      // must be loaded before the editor. English needs none.
+      const pack = (document.querySelector('meta[name="prg32-monaco-pack"]') || {}).content;
+      const first = pack ? ['vs/nls.messages.' + pack] : [];
+      window.require(first, () => window.require(['vs/editor/editor.main'], () => {
         registerAssembly(window.monaco);
         registerPython(window.monaco);
         resolve(window.monaco);
-      }, reject);
+      }, reject), reject);
     });
     return ready;
   }

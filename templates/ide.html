@@ -248,6 +248,8 @@
 {# Blockly first: Monaco's AMD loader would otherwise capture it as a module. The player (player.js)
    is created before the debugger scripts, which drive it. #}
 <script src="{{ url_for('static', filename='vendor/blockly/11.2.1/blockly.min.js') }}"></script>
+{# Blockly's own menus in the reader's language (ADR-0027), before Monaco's AMD loader exists. #}
+{% if blockly_pack %}<script src="{{ url_for('static', filename='vendor/blockly/11.2.1/msg/' ~ blockly_pack ~ '.js') }}"></script>{% endif %}
 <script src="{{ url_for('static', filename='js/blockly_blocks.js') }}"></script>
 <script src="{{ url_for('static', filename='js/simulator.js') }}"></script>
 <script src="{{ url_for('static', filename='js/prg32_runtime.js') }}"></script>

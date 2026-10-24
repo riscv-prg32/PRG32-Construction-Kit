@@ -1,4 +1,5 @@
-"""The kit's interface in five languages: English, Italian, Spanish, French and German (ADR-0027).
+"""The kit's interface in six languages: English, Italian, Spanish, French, German and Simplified
+Chinese (ADR-0027).
 
 One catalog per language, ``static/i18n/<locale>.json``: a flat object from message key to text.
 The server renders pages with ``t(key, **values)`` (a Jinja global); the browser reads the same
@@ -21,9 +22,28 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
-LOCALES = ("en", "it", "es", "fr", "de")
+LOCALES = ("en", "it", "es", "fr", "de", "zh-Hans")
 DEFAULT = "en"
-NAMES = {"en": "English", "it": "Italiano", "es": "Español", "fr": "Français", "de": "Deutsch"}
+NAMES = {"en": "English", "it": "Italiano", "es": "Español", "fr": "Français", "de": "Deutsch", "zh-Hans": "简体中文"}
+# Chinese written in Simplified characters: zh-Hans, and the regions that use it. Traditional
+# Chinese (zh-Hant, zh-TW, zh-HK, zh-MO) is a different script: those readers get English, not
+# the wrong characters.
+SIMPLIFIED_CHINESE = ("zh", "zh-hans", "zh-cn", "zh-sg", "zh-my")
+TRADITIONAL_CHINESE = ("zh-hant", "zh-tw", "zh-hk", "zh-mo")
+# The names Blockly's and Monaco's own language packs use (static/vendor; English needs none).
+BLOCKLY_PACKS = {"it": "it", "es": "es", "fr": "fr", "de": "de", "zh-Hans": "zh-hans"}
+MONACO_PACKS = {"it": "it", "es": "es", "fr": "fr", "de": "de", "zh-Hans": "zh-cn"}
+
+
+def locale_of(tag: str) -> str | None:
+    """The kit's locale for one language tag (en-GB -> en, zh-Hans-CN -> zh-Hans), or None."""
+    tag = tag.strip().replace("_", "-").lower()
+    if tag.startswith("zh"):
+        if any(tag == prefix or tag.startswith(prefix + "-") for prefix in TRADITIONAL_CHINESE):
+            return None
+        return "zh-Hans" if any(tag == prefix or tag.startswith(prefix + "-") for prefix in SIMPLIFIED_CHINESE) else None
+    code = tag.split("-", 1)[0]
+    return code if code in LOCALES else None
 COOKIE = "prg32_locale"
 CATALOG_DIR = Path(__file__).resolve().parent.parent / "static" / "i18n"
 PLACEHOLDER = re.compile(r"\{([a-z_][a-z0-9_]*)\}")
@@ -46,7 +66,7 @@ def choose(cookie: str | None, accept_language: str | None) -> str:
     wanted: list[tuple[float, int, str]] = []
     for index, part in enumerate((accept_language or "").split(",")[:20]):
         pieces = part.strip().split(";")
-        code = pieces[0].strip().lower()[:2]
+        code = locale_of(pieces[0])
         quality = 1.0
         for piece in pieces[1:]:
             name, _, value = piece.strip().partition("=")
@@ -55,13 +75,15 @@ def choose(cookie: str | None, accept_language: str | None) -> str:
                     quality = float(value)
                 except ValueError:
                     quality = 0.0
-        if code in LOCALES and quality > 0:
+        if code is not None and quality > 0:
             wanted.append((-quality, index, code))
     return sorted(wanted)[0][2] if wanted else DEFAULT
 
 
 def plural_form(locale: str, count: int) -> str:
-    """'one' or 'other': the five languages share this rule (French counts 0 as one)."""
+    """'one' or 'other': one for 1 (and 0 in French); Chinese has no plural, so always 'other'."""
+    if locale == "zh-Hans":
+        return "other"
     if count == 1 or (locale == "fr" and count == 0):
         return "one"
     return "other"
@@ -97,7 +119,9 @@ def init_app(app) -> None:
 
     @app.context_processor
     def inject_locale() -> dict:
-        return {"locale": current(), "locales": [(code, NAMES[code]) for code in LOCALES]}
+        locale = current()
+        return {"locale": locale, "locales": [(code, NAMES[code]) for code in LOCALES],
+                "blockly_pack": BLOCKLY_PACKS.get(locale), "monaco_pack": MONACO_PACKS.get(locale)}
 
     @app.after_request
     def vary_on_language(response):

@@ -1,4 +1,5 @@
-"""The interface in English, Italian, Spanish, French and German (ADR-0027, docs/i18n.md).
+"""The interface in English, Italian, Spanish, French, German and Simplified Chinese (ADR-0027,
+docs/i18n.md).
 
 Catalogs: the same keys and placeholders everywhere, nothing left in English by accident.
 Pages and scripts: every visible text goes through a catalog. Locale: chosen by the reader,
@@ -33,8 +34,8 @@ def messages(locale: str) -> dict[str, str]:
 
 # --- the catalogs ------------------------------------------------------------------------------
 
-def test_the_five_languages_are_offered():
-    assert i18n.LOCALES == ("en", "it", "es", "fr", "de")
+def test_the_six_languages_are_offered():
+    assert i18n.LOCALES == ("en", "it", "es", "fr", "de", "zh-Hans")
     assert set(i18n.NAMES) == set(i18n.LOCALES)
 
 
@@ -175,7 +176,16 @@ def test_the_service_worker_caches_the_catalogs_for_offline_use():
     (None, "fr-CH, fr;q=0.9, en;q=0.8", "fr"),
     (None, "pt-BR,pt;q=0.9,es;q=0.5", "es"),        # first supported language asked for
     (None, "de;q=0.2,it;q=0.8", "it"),              # quality decides, not order
-    (None, "ja,zh", "en"),                          # nothing supported: English
+    (None, "ja,ko", "en"),                          # nothing supported: English
+    (None, "ja,zh", "zh-Hans"),                     # Chinese: Simplified characters
+    (None, "zh-CN,zh;q=0.9,en;q=0.5", "zh-Hans"),
+    (None, "zh-Hans-SG", "zh-Hans"),
+    (None, "zh_CN", "zh-Hans"),
+    (None, "zh-TW,en;q=0.5", "en"),                 # Traditional characters are another script:
+    (None, "zh-Hant-HK", "en"),                     # not the wrong characters, English
+    (None, "zh-HK,zh;q=0.8", "zh-Hans"),            # unless the reader also accepts plain zh
+    ("zh-Hans", "en", "zh-Hans"),
+    ("zh", "", "en"),                               # the cookie names a locale exactly
     ("xx", "", "en"),                               # an unknown cookie is ignored
     (None, "es;q=0", "en"),
 ])
@@ -190,10 +200,13 @@ def test_messages_fall_back_and_fill_in_values():
     assert i18n.translate("fr", "js.ide.compiler_problems", count=0) == "Compilateur : 0 problème"
     assert i18n.translate("fr", "js.ide.compiler_problems", count=2) == "Compilateur : 2 problèmes"
     assert i18n.translate("en", "js.ide.compiler_problems", count=1) == "Compiler: 1 problem"
+    # Chinese has no plural forms: one text for every count.
+    assert i18n.translate("zh-Hans", "js.ide.compiler_problems", count=1) == "编译器：1 个问题"
+    assert i18n.translate("zh-Hans", "js.ide.compiler_problems", count=2) == "编译器：2 个问题"
 
 
 @pytest.mark.parametrize("locale,word", [("en", "Projects"), ("it", "Progetti"), ("es", "Proyectos"),
-                                         ("fr", "Projets"), ("de", "Projekte")])
+                                         ("fr", "Projets"), ("de", "Projekte"), ("zh-Hans", "项目")])
 def test_pages_are_drawn_in_the_chosen_language(anon, locale, word):
     anon.set_cookie(i18n.COOKIE, locale)
     page = anon.get("/auth/login")

@@ -1,7 +1,7 @@
 {
  "bomFormat": "CycloneDX",
  "specVersion": "1.5",
- "serialNumber": "urn:uuid:7725afe8-0315-5b53-88ab-da6d1da03c25",
+ "serialNumber": "urn:uuid:59804e45-fcac-52d6-8b65-5458645d4f1f",
  "version": 1,
  "metadata": {
   "component": {
@@ -27,6 +27,38 @@
   }
  },
  "components": [
+  {
+   "type": "library",
+   "bom-ref": "pkg:npm/@fontsource/noto-sans-sc@5.3.1",
+   "name": "@fontsource/noto-sans-sc",
+   "version": "5.3.1",
+   "purl": "pkg:npm/@fontsource/noto-sans-sc@5.3.1",
+   "licenses": [
+    {
+     "license": {
+      "id": "OFL-1.1"
+     }
+    }
+   ],
+   "externalReferences": [
+    {
+     "type": "distribution",
+     "url": "https://registry.npmjs.org/@fontsource/noto-sans-sc/-/noto-sans-sc-5.3.1.tgz"
+    }
+   ],
+   "properties": [
+    {
+     "name": "prg32:origin",
+     "value": "static/vendor/VENDOR.json"
+    }
+   ],
+   "hashes": [
+    {
+     "alg": "SHA-512",
+     "content": "63167f556016a3d156cc7d3c43a7c64f3216eaf60d3f64cc8541429df8658a66e17579d6af124baf35f7296b7614a9d5d2cf1788ce6f8e9187422c854654e3d3"
+    }
+   ]
+  },
   {
    "type": "library",
    "bom-ref": "pkg:npm/blockly@11.2.1",
@@ -3268,6 +3300,7 @@
   {
    "ref": "prg32-construction-kit",
    "dependsOn": [
+    "pkg:npm/@fontsource/noto-sans-sc@5.3.1",
     "pkg:npm/blockly@11.2.1",
     "pkg:npm/bootstrap-icons@1.11.3",
     "pkg:npm/bootstrap@5.3.3",

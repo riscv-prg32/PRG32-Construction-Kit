@@ -41,6 +41,19 @@ byte-identical whatever the language.
    cognate (`tests/fixtures/i18n/same_as_english.json`), text in a template outside `t()`, and
    HTML text built by scripts outside `tr()`.
 
+## Amendment (2026-10-24): Simplified Chinese, library language packs, CJK font
+
+After the audit of `7a700ba` the sixth language is **Simplified Chinese**, locale `zh-Hans` (a BCP 47
+script tag, written into `<html lang>`). `i18n.locale_of` maps `zh`, `zh-CN`, `zh-SG` and `zh-Hans-*`
+to it and refuses Traditional Chinese (`zh-Hant`, `zh-TW`, `zh-HK`, `zh-MO`): those readers get
+English, not the wrong script. Chinese has no plural forms, so `plural_form` always answers
+`other`. Blockly's and Monaco's own menus now come from their language packs, vendored from the
+same pinned npm packages (`tools/vendor_assets.py`): Blockly's pack is loaded right after Blockly
+(before Monaco's AMD loader exists), Monaco's before its editor. Chinese text uses the computer's
+CJK font, else Noto Sans SC (SIL OFL 1.1) served by the kit and cached as it is used, so it also
+works offline; `:lang(zh-Hans)` breaks lines between characters but not inside code.
+`tests/test_i18n_browser.py` checks the six languages in a real browser.
+
 ## Consequences
 
 - A new message means an entry in all five catalogs and `python3 tools/build_i18n.py`.

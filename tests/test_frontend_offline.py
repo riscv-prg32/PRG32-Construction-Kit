@@ -21,9 +21,9 @@ def test_vendored_files_match_their_recorded_hashes():
     assert vendor_assets.check() == 0
     record = json.loads((ROOT / "static" / "vendor" / "VENDOR.json").read_text())
     names = {package["name"]: package for package in record["packages"]}
-    assert set(names) == {"bootstrap", "bootstrap-icons", "jquery", "blockly", "monaco-editor"}
+    assert set(names) == {"bootstrap", "bootstrap-icons", "jquery", "blockly", "monaco-editor", "@fontsource/noto-sans-sc"}
     for package in record["packages"]:
-        assert package["license"] in {"MIT", "Apache-2.0"} and package["integrity"].startswith("sha512-")
+        assert package["license"] in {"MIT", "Apache-2.0", "OFL-1.1"} and package["integrity"].startswith("sha512-")
         assert any(Path(path).name.startswith("LICENSE") for path in package["files"]), package["name"]
 
 
@@ -54,9 +54,19 @@ def test_javascript_builds_no_inline_styles_or_handlers():
 def test_every_static_file_a_page_uses_exists():
     for page in PAGES:
         for path in re.findall(r"""["'](/static/[^"'?#]+)""", page.read_text()):
-            assert (ROOT / path.lstrip("/")).is_file(), f"{page.name}: {path}"
+            if not path.endswith("/"):   # a folder a script adds the file name to: checked below
+                assert (ROOT / path.lstrip("/")).is_file(), f"{page.name}: {path}"
         for path in re.findall(r"""filename=['"]([^'"]+)['"]""", page.read_text()):
-            assert (ROOT / "static" / path).is_file(), f"{page.name}: {path}"
+            if not path.endswith("/"):
+                assert (ROOT / "static" / path).is_file(), f"{page.name}: {path}"
+    # Names made from the reader's language: its catalog and Blockly's and Monaco's own packs.
+    from prg32_construction_kit import i18n
+
+    for locale in i18n.LOCALES[1:]:
+        assert (ROOT / "static" / "i18n" / f"{locale}.js").is_file(), locale
+        assert (ROOT / "static" / "vendor" / "blockly" / "11.2.1" / "msg" / f"{i18n.BLOCKLY_PACKS[locale]}.js").is_file()
+        assert (ROOT / "static" / "vendor" / "monaco-editor" / "0.52.2" / "min" / "vs"
+                / f"nls.messages.{i18n.MONACO_PACKS[locale]}.js").is_file()
 
 
 def test_service_worker_caches_every_vendored_file_the_pages_need():
@@ -70,6 +80,10 @@ def test_service_worker_caches_every_vendored_file_the_pages_need():
         text = (ROOT / page).read_text()
         needed |= {"/static/" + path for path in re.findall(r"""filename=['"](vendor/[^'"]+)['"]""", text)}
         needed |= set(re.findall(r"""["'](/static/vendor/[^"'?#]+)""", text))
+    # A folder a script completes (Blockly's language packs, static/js/i18n.js): every file in it.
+    for folder in [path for path in needed if path.endswith("/")]:
+        needed.discard(folder)
+        needed |= {"/" + str(path.relative_to(ROOT)) for path in (ROOT / folder.lstrip("/")).iterdir()}
     assert needed and needed <= set(shell), needed - set(shell)
     assert "/static/offline.html" in shell and "/static/wasm/prg32-core.wasm" in shell
 

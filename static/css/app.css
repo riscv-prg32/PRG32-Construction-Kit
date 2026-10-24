@@ -37,6 +37,18 @@
    (d-flex is !important too and would win: a "0 games" banner showed). */
 [hidden][hidden] { display: none !important; }
 
+/* Simplified Chinese (ADR-0027): the computer's own CJK font first, then Noto Sans SC from the kit
+   (static/vendor/@fontsource). Lines break between characters, never inside Latin words or code,
+   and not before closing punctuation (line-break: strict). */
+:lang(zh-Hans) {
+  font-family: system-ui, -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC",
+    "Source Han Sans SC", "Noto Sans SC", "WenQuanYi Micro Hei", sans-serif;
+  line-break: strict;
+  word-break: normal;
+  overflow-wrap: anywhere;
+}
+:lang(zh-Hans) code, :lang(zh-Hans) kbd, :lang(zh-Hans) pre { overflow-wrap: normal; }
+
 body {
   background: linear-gradient(180deg, var(--kit-page-top) 0%, var(--kit-page-bottom) 45%);
   color: var(--kit-ink);

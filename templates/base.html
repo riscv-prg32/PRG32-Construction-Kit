@@ -8,6 +8,8 @@
   <meta name="prg32-user" content="{{ current_user.id if current_user.authenticated else '' }}">
   {# "1": no account, so projects, sprites and sounds are kept in this browser (guest_api.js, ADR-0023). #}
   <meta name="prg32-guest" content="{{ '1' if guest_workspace else '' }}">
+  {# Monaco's own menus in the reader's language (static/js/ide/monaco_setup.js). #}
+  <meta name="prg32-monaco-pack" content="{{ monaco_pack or '' }}">
   {# Read once by static/js/csp_nonce.js; the same nonce is in this page's CSP header. #}
   <meta name="csp-nonce" content="{{ csp_nonce }}">
   <script src="{{ url_for('static', filename='js/csp_nonce.js') }}"></script>
@@ -25,6 +27,11 @@
   <link href="{{ url_for('static', filename='css/app.css') }}" rel="stylesheet">
   {# The skin chosen on the Settings page: it only changes the --kit-* colours of app.css. #}
   <link href="{{ url_for('static', filename=site.skin_css) }}" rel="stylesheet">
+  {% if locale == 'zh-Hans' %}
+  {# Chinese characters on computers without a CJK font (ADR-0027): Noto Sans SC from the kit itself,
+     fetched piece by piece only for the characters a page shows. #}
+  <link href="{{ url_for('static', filename='vendor/@fontsource/noto-sans-sc/5.3.1/400.css') }}" rel="stylesheet">
+  {% endif %}
   {% block head %}{% endblock %}
 </head>
 <body class="{% block body_class %}{% endblock %}" data-admin="{{ '1' if current_user and current_user.is_admin else '0' }}">
@@ -154,10 +161,7 @@
 
 {# The interface language (ADR-0027): English always (the fallback), then the reader's own. #}
 <script src="{{ url_for('static', filename='i18n/en.js') }}"></script>
-{% if locale == 'it' %}<script src="{{ url_for('static', filename='i18n/it.js') }}"></script>
-{% elif locale == 'es' %}<script src="{{ url_for('static', filename='i18n/es.js') }}"></script>
-{% elif locale == 'fr' %}<script src="{{ url_for('static', filename='i18n/fr.js') }}"></script>
-{% elif locale == 'de' %}<script src="{{ url_for('static', filename='i18n/de.js') }}"></script>{% endif %}
+{% if locale != 'en' %}<script src="{{ url_for('static', filename='i18n/' ~ locale ~ '.js') }}"></script>{% endif %}
 <script src="{{ url_for('static', filename='js/i18n.js') }}"></script>
 <script src="{{ url_for('static', filename='vendor/jquery/3.7.1/jquery.min.js') }}"></script>
 <script src="{{ url_for('static', filename='vendor/bootstrap/5.3.3/js/bootstrap.bundle.min.js') }}"></script>

@@ -184,5 +184,23 @@
   "player.select_start",
   "privacy.docs_privacy",
   "publish.https_store_your_school_example"
+ ],
+ "zh-Hans": [
+  "admin_identity.https_login_school_example_realms_studen",
+  "admin_identity.roles",
+  "admin_identity.school",
+  "admin_identity.school_example",
+  "debugger.draw",
+  "debugger.init",
+  "debugger.pc",
+  "debugger.score_player_x_heights_2_a0",
+  "debugger.update",
+  "ide.git",
+  "ide.ide",
+  "js.dashboard.python",
+  "js.ide.ide_prg32_construction_kit",
+  "player.select_start",
+  "privacy.docs_privacy",
+  "publish.https_store_your_school_example"
  ]
 }
