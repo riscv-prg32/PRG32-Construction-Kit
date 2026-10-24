@@ -207,5 +207,6 @@ nothing is imported or executed. Each part of the tree is accepted only if PRG32
 it (an allow-list), and every value is type-checked. The result is the kit's game IR, the same
 one the Blocks make, so the C and assembly generators, the build sandbox and the cartridge are
 exactly the ones Blocks projects use. The same game.py always gives byte-identical C, assembly
-and cartridge (the build provenance records the language version, the parser grammar and the
+and cartridge (scenario L, `tools/python_reference.py`, checks it on every push with the real
+toolchain and canonical PRG32-QT: `evidence.md`) (the build provenance records the language version, the parser grammar and the
 SHA-256 of game.py and of the IR).

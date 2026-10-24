@@ -58,8 +58,28 @@ from .auth import guest_workspace_open as auth_guest_workspace_open
 bp = Blueprint("kit", __name__)
 
 
+class Refusal(str):
+    """A refusal's message, carrying its problem when there is one: a stable code and the exact
+    place in the source ({"code", "line", "column", "end_line", "end_column", ...}), so the IDE can
+    underline it and show it in the reader's language."""
+
+    problem: dict[str, Any] | None = None
+
+    @classmethod
+    def of(cls, message: str, problem: dict[str, Any] | None) -> "Refusal":
+        refusal = cls(message)
+        refusal.problem = problem
+        return refusal
+
+
+def problem_fields(message: Any) -> dict[str, Any]:
+    """{"code", "problems"} for a Refusal that names its problem; {} for a plain message."""
+    problem = getattr(message, "problem", None)
+    return {"code": problem["code"], "problems": [problem]} if problem else {}
+
+
 def json_error(message: str, status: int = 400) -> tuple[Response, int]:
-    return jsonify({"error": message}), status
+    return jsonify({"error": message, **problem_fields(message)}), status
 
 
 @bp.errorhandler(audio_studio.AudioStudioError)
@@ -950,7 +970,7 @@ def generate_sources(project: dict[str, Any]) -> tuple[dict[str, Any] | None, st
         try:
             game_ir = python_project.python_to_ir(saved.get("source_python", ""), project)
         except python_project.PythonError as exc:
-            return None, None, str(exc)
+            return None, None, Refusal.of(str(exc), exc.as_problem())
         return game_ir, ir_to_c(game_ir), None
     try:
         game_ir, c_source = blocks_to_c(project.get("blocks_json") or {}, project)
@@ -1140,7 +1160,8 @@ def api_run_project(project_id: str):
     except audio_studio.AudioStudioError as invalid:
         return json_error(f"The project's AudioStudio sound cannot be packed: {invalid}")
     except run_build.RunRefused as refused:
-        response = jsonify({"error": str(refused), "code": refused.code})
+        response = jsonify({"error": str(refused), "code": refused.code,
+                            **({"problems": refused.details["problems"]} if refused.details.get("problems") else {})})
         if refused.details.get("retry_after"):
             response.headers["Retry-After"] = str(refused.details["retry_after"])
         return response, refused.status

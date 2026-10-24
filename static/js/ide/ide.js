@@ -313,6 +313,17 @@
     return problems;
   }
 
+  // A refusal that names its problem (code and exact range, routes.Refusal) is used as it is;
+  // other errors are read from their text.
+  function problemsOf(err) {
+    const given = err && err.data && Array.isArray(err.data.problems) ? err.data.problems : null;
+    if (!given) return parseProblems(err && err.message);
+    return given.map(problem => ({ line: problem.line || 0, column: problem.column || 0,
+      endLine: problem.end_line || problem.line || 0, endColumn: problem.end_column || problem.column || 0,
+      severity: problem.severity || 'error', code: problem.code || 'server',
+      message: String(problem.message || err.message), explanation: '' }));
+  }
+
   // The same problem found by the live check and by the server is listed once. In another
   // interface language the live check speaks that language and the server English: a live
   // problem then stands for the server's problem on the same line.
@@ -376,8 +387,8 @@
       showProblems(problems, options.quiet);
       setBuildStatus(result.ok ? tr('js.ide.compiler_no_problems', 'Compiler: no problems') : tr('js.ide.compiler_problems', 'Compiler: {count} problems', { count: problems.length }));
     }).catch(err => {
-      if (mode === 'python' && project.version === version && /^Line \d+: /.test(err.message)) {
-        const problems = parseProblems(err.message);
+      if (mode === 'python' && project.version === version && (err.data && err.data.problems || /^Line \d+: /.test(err.message))) {
+        const problems = problemsOf(err);
         showProblems(problems, options.quiet);
         setBuildStatus(tr('js.ide.python_problems', 'PRG32 Python: {count} problems', { count: problems.length }));
         return;
@@ -488,7 +499,7 @@
         $('#ideOutput').text(mode === 'blocks' ? tr('js.ide.generated_c_assembly_and_ir_from', 'Generated C, assembly and IR from the blocks.')
           : mode === 'python' ? tr('js.ide.generated_c_assembly_and_ir_from_2', 'Generated C, assembly and IR from game.py.') : tr('js.ide.the_source_passed_the_kit_s', 'The source passed the kit\'s checks.'));
       })
-      .catch(err => { showProblems(parseProblems(err.message)); setBuildStatus(tr('js.ide.problems_found', 'Problems found')); });
+      .catch(err => { showProblems(problemsOf(err)); setBuildStatus(tr('js.ide.problems_found', 'Problems found')); });
   }
 
   function compile() {
@@ -512,7 +523,7 @@
             cartridges.length ? 'ok' : 'error');
       })
       .catch(err => {
-        $('#ideOutput').text(err.message); showProblems(parseProblems(err.message)); setBuildStatus(tr('js.ide.build_failed', 'Build failed'));
+        $('#ideOutput').text(err.message); showProblems(problemsOf(err)); setBuildStatus(tr('js.ide.build_failed', 'Build failed'));
         log(tr('js.ide.compile', 'Compile: {message}', { message: err.message }), 'error');
       });
   }
@@ -576,6 +587,7 @@
           return;
         }
         setBuildStatus(tr('js.ide.not_running', 'Not running'));
+        if (err.data && err.data.problems) showProblems(problemsOf(err));
         log(tr('js.ide.run', 'Run: {message}', { message: err.message }), 'error');
         if (err.code !== 'sign_in_required') Kit.toast(err.message, 'danger');
       })

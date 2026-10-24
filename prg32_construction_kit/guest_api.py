@@ -88,7 +88,9 @@ def convert():
         return _refused(str(error))
     game_ir, c_source, message = generate_sources(project)
     if message is not None:
-        return _refused(message)
+        from .routes import problem_fields
+
+        return _refused(message, **problem_fields(message))
     assert game_ir is not None and c_source is not None
     handwritten = game_ir.get("source_mode") == "asm"
     language = "asm" if handwritten else payload.get("source_language", "c")
@@ -174,7 +176,8 @@ def run():
         audio = (audio_studio.pack_document(document, {}), document) if document else None
         return jsonify(run_build.run(project, audio))
     except run_build.RunRefused as refused:
-        return _refused(str(refused), refused.status, code=refused.code)
+        return _refused(str(refused), refused.status, code=refused.code,
+                        **({"problems": refused.details["problems"]} if refused.details.get("problems") else {}))
     except (ValueError, AudioStudioError) as error:
         return _refused(str(error))
 

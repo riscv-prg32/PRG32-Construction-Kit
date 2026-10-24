@@ -54,7 +54,9 @@ def run(project: dict[str, Any], audio: tuple[bytes, dict[str, Any]] | None = No
 
     game_ir, c_source, refusal = generate_sources(project)
     if refusal is not None:
-        raise RunRefused(refusal)
+        problem = getattr(refusal, "problem", None)
+        raise RunRefused(refusal, code=problem["code"] if problem else "run_refused",
+                         **({"problems": [problem]} if problem else {}))
     assert game_ir is not None and c_source is not None
     language = "asm" if game_ir.get("source_mode") == "asm" else "c"
     sources = _generated_sources(language, game_ir, c_source)

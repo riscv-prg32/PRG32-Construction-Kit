@@ -308,6 +308,60 @@ jobs:
           path: live-identity-results.xml
           retention-days: 90
 
+  python-reference:
+    name: "Scenario L: the PRG32 Python cartridge on the browser core and canonical PRG32-QT"
+    needs: container-smoke-test
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v7
+
+      - name: Read the PRG32-QT and SDK revisions of the browser core
+        id: rev
+        run: |
+          echo "core=$(python3 -c 'import json; print(json.load(open("static/wasm/BUILD.json"))["core"]["revision"])')" >> "$GITHUB_OUTPUT"
+          echo "sdk=$(python3 -c 'import json; print(json.load(open("static/wasm/BUILD.json"))["audio"]["revision"])')" >> "$GITHUB_OUTPUT"
+
+      - name: Check out canonical PRG32-QT at that revision
+        uses: actions/checkout@v7
+        with:
+          repository: riscv-prg32/PRG32-QT
+          ref: ${{ steps.rev.outputs.core }}
+          path: PRG32-QT
+
+      - name: Check out the PRG32 SDK at that revision
+        uses: actions/checkout@v7
+        with:
+          repository: riscv-prg32/PRG32
+          ref: ${{ steps.rev.outputs.sdk }}
+          path: PRG32
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: "20"
+
+      - name: Download the cartridge and evidence the container built
+        uses: actions/download-artifact@v7
+        with:
+          name: container-evidence-${{ github.sha }}
+          path: container-evidence
+
+      - name: Run that cartridge, compare the cores, debug a game.py line
+        run: >-
+          python3 tools/python_reference.py run --evidence container-evidence/python-reference
+          --prg32qt PRG32-QT --sdk PRG32
+          --prg32qt-revision ${{ steps.rev.outputs.core }} --sdk-revision ${{ steps.rev.outputs.sdk }}
+
+      - name: Keep the scenario L evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: python-reference-${{ github.sha }}
+          path: container-evidence/python-reference/
+          retention-days: 90
+
   dependency-review:
     name: Dependency review
     if: github.event_name == 'pull_request'
@@ -505,6 +559,16 @@ jobs:
           docker run --rm ${{ env.SANDBOX_OPTS }} -v "$PWD/ci-evidence:/evidence" --entrypoint sh ${{ env.CI_IMAGE }} -c
           "python tools/build_hardware_audio_check.py --check-if-comparable --out /evidence/hardware-audio-check
           > /evidence/hardware-audio-check.log 2>&1; status=$?; cat /evidence/hardware-audio-check.log; exit $status"
+
+      # Scenario L (audit of 7a700ba): one PRG32 Python game through the real API and toolchain,
+      # deterministic in fresh processes and in every interface language, hostile programs refused
+      # without running. The python-reference job then runs this exact cartridge.
+      - name: "Scenario L: a PRG32 Python game from source to cartridge"
+        run: >-
+          docker run --rm ${{ env.SANDBOX_OPTS }} -e PRG32_BUILD_SANDBOX=bwrap -e PRG32_KIT_REVISION=${{ github.sha }}
+          -v "$PWD/ci-evidence:/evidence" --entrypoint sh ${{ env.CI_IMAGE }} -c
+          "python tools/python_reference.py build --out /evidence/python-reference
+          > /evidence/python-reference.log 2>&1; status=$?; cat /evidence/python-reference.log; exit $status"
 
       - name: Keep this commit's container evidence
         if: always()
