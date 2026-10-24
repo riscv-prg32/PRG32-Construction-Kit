@@ -383,7 +383,7 @@
  "index.you_are_using_the_kit_without": "You are using the kit without an account.",
  "index.make_games_with_blocks_c_or": "Make games with blocks, C or assembly, draw sprites and compose sounds: everything is kept in this browser. To build a real cartridge, publish it or join a class,",
  "index.sign_in": "sign in",
- "index.your_games_come_with_you": "; your games come with you. {guest}",
+ "index.your_games_come_with_you": "; your games come with you.",
  "index.made_in_this_browser_without_an": "made in this browser without an account (kept only here).",
  "index.move_them_into_my_account": "Move them into my account",
  "index.open_them": "Open them",

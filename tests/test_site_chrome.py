@@ -50,3 +50,14 @@ def test_audio_studio_menu_opens_a_project_picker(client):
     assert page.status_code == 200
     html = page.get_data(as_text=True)
     assert 'id="audioProjects"' in html and "audio_studio_pick.js" in html
+
+
+def test_no_page_shows_html_tags_as_text(client, anon):
+    """HTML (a privacy note, a link) goes beside a translated message, never into its values,
+    which are escaped: the guest banner once showed  <p class=...>  as text."""
+    for browser, path in ((anon, "/"), (anon, "/ide/guest-abc"), (anon, "/player"), (anon, "/privacy"),
+                          (client, "/"), (client, "/privacy"), (client, "/account")):
+        html = browser.get(path).get_data(as_text=True)
+        assert not re.search(r"&lt;/?(p|a|i|span|strong|div)\b", html), path
+    guest = anon.get("/").get_data(as_text=True)
+    assert 'data-privacy-notice="guest"' in guest and '<a href="/privacy#guest">' in guest

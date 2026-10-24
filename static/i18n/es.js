@@ -414,7 +414,7 @@
 "index.write_the_game_in_c_with": "Escribe el juego en C con las funciones PRG32. Empieza con un juego peque\u00f1o que funciona, explicado l\u00ednea a l\u00ednea.",
 "index.write_the_instructions_the_processor_run": "Escribe las instrucciones que ejecuta el procesador. Empieza con el mismo juego peque\u00f1o, explicado l\u00ednea a l\u00ednea.",
 "index.you_are_using_the_kit_without": "Est\u00e1s usando el kit sin cuenta.",
-"index.your_games_come_with_you": "; tus juegos se vienen contigo. {guest}",
+"index.your_games_come_with_you": "; tus juegos se vienen contigo.",
 "index.your_version_here_goes_into_the": "- tu versi\u00f3n de aqu\u00ed va al Historial del proyecto",
 "js.account.api_token": "Token de API",
 "js.account.copy_this_token_now": "Copia ahora este token, no se volver\u00e1 a mostrar:",

@@ -5,7 +5,10 @@
 {% if guest_workspace %}
 <div class="alert alert-info" role="status" id="guestWelcome">
   <strong><i class="bi bi-browser-chrome" aria-hidden="true"></i> {{ t("index.you_are_using_the_kit_without") }}</strong>
-  {{ t("index.make_games_with_blocks_c_or") }} <a href="/auth/login">{{ t("index.sign_in") }}</a>{{ t("index.your_games_come_with_you", guest=(notice("guest"))) }}
+  {{ t("index.make_games_with_blocks_c_or") }} <a href="/auth/login">{{ t("index.sign_in") }}</a>{{ t("index.your_games_come_with_you") }}
+  {# The privacy note is HTML from _privacy_notice.html: it goes beside the message, never into it
+     (a message's values are escaped, so it would show as text). #}
+  {{ notice("guest") }}
 </div>
 {% endif %}
 <div class="alert alert-info d-flex flex-wrap gap-2 align-items-center" id="guestProjectsBanner" role="status" hidden>

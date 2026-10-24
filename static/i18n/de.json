@@ -383,7 +383,7 @@
  "index.you_are_using_the_kit_without": "Du benutzt das Kit ohne Konto.",
  "index.make_games_with_blocks_c_or": "Baue Spiele mit Blöcken, C oder Assembly, zeichne Sprites und komponiere Klänge: Alles bleibt in diesem Browser. Um eine echte Cartridge zu bauen, sie zu veröffentlichen oder einer Klasse beizutreten,",
  "index.sign_in": "melde dich an",
- "index.your_games_come_with_you": "; deine Spiele kommen mit. {guest}",
+ "index.your_games_come_with_you": "; deine Spiele kommen mit.",
  "index.made_in_this_browser_without_an": "in diesem Browser ohne Konto erstellt (nur hier gespeichert).",
  "index.move_them_into_my_account": "In mein Konto verschieben",
  "index.open_them": "Öffnen",

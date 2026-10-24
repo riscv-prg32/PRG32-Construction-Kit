@@ -383,7 +383,7 @@
  "index.you_are_using_the_kit_without": "Tu utilises le kit sans compte.",
  "index.make_games_with_blocks_c_or": "Crée des jeux avec des blocs, en C ou en assembleur, dessine des sprites et compose des sons : tout est gardé dans ce navigateur. Pour compiler une vraie cartouche, la publier ou rejoindre une classe,",
  "index.sign_in": "connecte-toi",
- "index.your_games_come_with_you": " ; tes jeux te suivent. {guest}",
+ "index.your_games_come_with_you": " ; tes jeux te suivent.",
  "index.made_in_this_browser_without_an": "créés dans ce navigateur sans compte (gardés seulement ici).",
  "index.move_them_into_my_account": "Les déplacer dans mon compte",
  "index.open_them": "Les ouvrir",

@@ -383,7 +383,7 @@
  "index.you_are_using_the_kit_without": "Stai usando il kit senza un account.",
  "index.make_games_with_blocks_c_or": "Crea giochi con blocchi, C o assembly, disegna sprite e componi suoni: tutto resta in questo browser. Per compilare una vera cartuccia, pubblicarla o entrare in una classe,",
  "index.sign_in": "accedi",
- "index.your_games_come_with_you": "; i tuoi giochi vengono con te. {guest}",
+ "index.your_games_come_with_you": "; i tuoi giochi vengono con te.",
  "index.made_in_this_browser_without_an": "creati in questo browser senza account (conservati solo qui).",
  "index.move_them_into_my_account": "Spostali nel mio account",
  "index.open_them": "Aprili",
