@@ -7,6 +7,7 @@ are the ones the template names; answers carry the key and values next to the En
 from __future__ import annotations
 
 import ast
+import html
 import json
 from pathlib import Path
 
@@ -85,3 +86,14 @@ def test_answers_carry_the_key_in_every_language_and_the_english_stays(client, a
 def test_the_chinese_text_of_a_python_problem():
     assert i18n.translate("zh-Hans", UNDEFINED, name="y") == \
         "y 没有定义。请先声明它，例如  y: int = 0"
+
+
+@pytest.mark.parametrize("locale", i18n.LOCALES)
+def test_server_drawn_pages_and_account_answers_are_in_the_reader_s_language(anon, locale):
+    anon.set_cookie(i18n.COOKIE, locale)
+    page = anon.post("/auth/login", data={"username": "nobody", "password": "wrong"}).get_data(as_text=True)
+    assert i18n.translate(locale, messages.key_for("auth", "Invalid username or password.")) in html.unescape(page)
+    answer = anon.post("/auth/login", data={"username": "nobody", "password": "wrong"},
+                       headers={"Accept": "application/json"}).get_json()
+    assert answer["error"] == "invalid username or password"
+    assert answer["message_key"] == messages.key_for("auth", "invalid username or password")

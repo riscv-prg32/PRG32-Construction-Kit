@@ -149,10 +149,11 @@ capability IDs.
 ### Partly implemented
 
 - Interface languages (ADR-0027): English, Italian, Spanish, French, German and Simplified
-  Chinese for pages, scripts, blocks, the offline pages, privacy notice summaries and 225
-  student-facing server messages (stable keys), Blockly's and Monaco's own menus, a CJK font,
-  the quick start and the nine lessons; builds byte-identical in every language. Compiler logs,
-  the account/admin/sign-in/cloud API messages and the reference guides are still English, and
+  Chinese for pages, scripts, blocks, the offline pages, privacy notice summaries and 361
+  server messages (stable keys; build, project, account, admin, sign-in, privacy and settings
+  answers and the server-drawn pages), Blockly's and Monaco's own menus, a CJK font, the quick
+  start and the nine lessons; builds byte-identical in every language. Compiler logs and the
+  reference guides are still English, and
   no human screen-reader session has been run. [I18N-01]
 - Store bundles against a shared versioned contract (ADR-0018), checked with the
   Store's own code and a throwaway live Store; Store gaps (repeated id/version,

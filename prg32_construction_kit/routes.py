@@ -55,7 +55,7 @@ from .source_project import validate_asm_source, validate_c_source, validate_fea
 from . import settings as site_settings
 from .auth import guest_workspace_open as auth_guest_workspace_open
 from . import messages
-from .messages import fields as message_fields, text as say
+from .messages import body as message_body, fields as message_fields, text as say
 
 bp = Blueprint("kit", __name__)
 
@@ -88,7 +88,7 @@ def problem_fields(message: Any) -> dict[str, Any]:
 
 def json_error(message: Any, status: int = 400) -> tuple[Response, int]:
     """{"error": the English message, ...problem_fields}: ``message`` is text, a Message or an exception."""
-    return jsonify({"error": str(message), **problem_fields(message)}), status
+    return jsonify({"error": str(message), **message_fields(message), **problem_fields(message)}), status
 
 
 @bp.errorhandler(audio_studio.AudioStudioError)
@@ -190,11 +190,11 @@ def checked_payload(resource: str, payload: dict[str, Any]) -> dict[str, Any]:
         if payload.get(column) and column in RESOURCE_COLUMNS[resource]:
             linked = get_resource(target, str(payload[column]))
             if linked is None and target == "projects" and get_resource(target, str(payload[column]), include_deleted=True):
-                raise PermissionError(f"Project {payload[column]} is in Recently deleted: restore it first")
+                raise PermissionError(say("api", "Project {payload} is in Recently deleted: restore it first", payload=payload[column]))
             if linked is None:
                 continue  # the database refuses links to missing items with a clear 409
             if not can_read(linked) or (target == "projects" and not can_write(linked)):
-                raise PermissionError(f"You cannot link to {target} {payload[column]}")
+                raise PermissionError(say("api", "You cannot link to {target} {payload}", target=target, payload=payload[column]))
     if resource == "projects" and isinstance(payload.get("game_json"), dict):
         payload["game_json"] = _checked_python(payload["game_json"])
     return payload
@@ -488,7 +488,7 @@ def api_item(resource: str, item_id: str):
         return json_error(say("api", "expected_version must be a whole number"))
     if expected is not None and expected != existing.get("version", 0):
         if resource == "assets":
-            return jsonify({"error": "This item was saved elsewhere after you opened it. Nothing was overwritten.",
+            return jsonify({**message_body(say("api", "This item was saved elsewhere after you opened it. Nothing was overwritten.")),
                             "code": "version_conflict", "current": public("assets", existing)}), 409
         return _version_conflict(existing)
     if resource == "projects" and "game_json" in payload and project_type(payload["game_json"]) != project_type(existing.get("game_json")):
@@ -503,7 +503,7 @@ def api_item(resource: str, item_id: str):
         item = update_resource(resource, item_id, payload, expected_version=expected)
     except VersionConflict:
         if resource == "assets":
-            return jsonify({"error": "This item was saved elsewhere after you opened it. Nothing was overwritten.",
+            return jsonify({**message_body(say("api", "This item was saved elsewhere after you opened it. Nothing was overwritten.")),
                             "code": "version_conflict"}), 409
         return _version_conflict(get_resource("projects", item_id))
     if item is None:
@@ -527,7 +527,7 @@ def _type_locked(project: dict[str, Any]):
     kind = project_type(project.get("game_json"))
     hint = (" A Blocks project can be converted to C or assembly once (Convert), and never back."
             if kind == "blocks" else "")
-    return jsonify({"error": f"This project is written in {PROJECT_TYPES[kind]}; its type cannot change.{hint}",
+    return jsonify({**message_body(say("api", "This project is written in {project_types}; its type cannot change.{hint}", project_types=PROJECT_TYPES[kind], hint=hint)),
                     "code": "type_locked", "project_type": kind}), 409
 
 
@@ -568,8 +568,7 @@ def api_convert_project_type(project_id: str):
 
 def _version_conflict(current: dict[str, Any] | None):
     """409: somebody saved this project after the version this save started from. Nothing was changed."""
-    return jsonify({"error": "This project was saved in another window (or by someone else) after you opened it. "
-                             "Nothing was overwritten: keep your version as a copy, or load the saved one.",
+    return jsonify({**message_body(say("api", "This project was saved in another window (or by someone else) after you opened it. Nothing was overwritten: keep your version as a copy, or load the saved one.")),
                     "code": "version_conflict", "current": public("projects", current)}), 409
 
 
@@ -1637,7 +1636,7 @@ def api_publish():
         return error
     if not payload.get("review_token") or payload.get("confirm") is not True:
         _audit_publish("refused", payload, profile, stage="refused", reason="not_confirmed")
-        return jsonify({"error": "Review the bundle first (POST /api/publish/review), then confirm.",
+        return jsonify({**message_body(say("api", "Review the bundle first (POST /api/publish/review), then confirm.")),
                         "reason": "not_confirmed"}), 428
     user_id = current_principal().id
     problem = publishing.check_review_token(current_app.config["SECRET_KEY"], payload["review_token"], summary, user_id)
@@ -1655,15 +1654,14 @@ def api_publish():
         _audit_publish("success", payload, profile, stage="duplicate")
         return jsonify({"state": "submitted", "duplicate": True, "summary": summary, "result": previous})
     if state == "busy":
-        return jsonify({"error": "This bundle is being sent right now. Wait a moment.", "reason": "in_progress",
+        return jsonify({**message_body(say("api", "This bundle is being sent right now. Wait a moment.")), "reason": "in_progress",
                         "state": "uploading"}), 409
     _audit_publish("success", payload, profile, stage="upload", cartridge=summary["cartridge"]["id"],
                    version=summary["cartridge"]["version"])
     token = secrets_at_rest.unseal(profile.get("bearer_token", ""))
     if token is None:
         publishing.finish_attempt(digest, "failed", {"ok": False, "reason": "token_unreadable"})
-        return jsonify({"error": "The Store token of this profile cannot be read any more (the kit's secret key "
-                                 "changed). Enter the token again in the profile.", "reason": "token_unreadable",
+        return jsonify({**message_body(say("api", "The Store token of this profile cannot be read any more (the kit's secret key changed). Enter the token again in the profile.")), "reason": "token_unreadable",
                         "state": "failed"}), 400
     if not token and summary["store"]["authentication"] == "single_sign_on":
         # Single sign-on: publish as the signed-in student with a one-time ticket.
@@ -1683,7 +1681,7 @@ def api_publish():
         current_app.logger.warning("Publishing failed: %s", type(exc).__name__)
         publishing.finish_attempt(digest, "failed", {"ok": False, "reason": "error"})
         _audit_publish("failed", payload, profile, stage="failed", reason=type(exc).__name__)
-        return jsonify({"error": "Publishing failed. Try again later or ask your teacher.", "reason": "error",
+        return jsonify({**message_body(say("api", "Publishing failed. Try again later or ask your teacher.")), "reason": "error",
                         "state": "failed"}), 502
     state = "submitted" if result.get("ok") else "failed"
     publishing.finish_attempt(digest, state, result)

@@ -43,6 +43,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 from .auth import admin_required
 from .db import db, utcnow
 from . import settings as site_settings
+from .messages import body as message_body, fields as message_fields, text as say
 
 bp = Blueprint("privacy", __name__)
 
@@ -206,7 +207,7 @@ def export_personal_data(user_id: int) -> dict[str, Any]:
 
     user = db.session.get(User, user_id)
     if user is None:
-        raise LookupError("no such account")
+        raise LookupError(say("privacy", "no such account"))
     sections: dict[str, list[dict[str, Any]]] = {}
     for table, (kind, column) in PERSONAL_TABLES.items():
         value = user.email if kind == "email" else user_id
@@ -269,7 +270,7 @@ def request_as_dict(item: PrivacyRequest) -> dict[str, Any]:
 
 def open_request(user_id: int, kind: str, details: str, verified_by: str) -> PrivacyRequest:
     if kind not in KINDS:
-        raise ValueError(f"kind must be one of {', '.join(KINDS)}")
+        raise ValueError(say("privacy", "kind must be one of {value}", value=', '.join(KINDS)))
     received = utcnow()
     item = PrivacyRequest(user_id=user_id, subject_ref=pseudonym(user_id), kind=kind, details=details[:2000],
                           verified_by=verified_by[:200], received_at=received, due_at=_days_from(received, RESPONSE_DAYS))
@@ -305,7 +306,7 @@ def set_restricted(user_id: int, restricted: bool) -> None:
 
     user = db.session.get(User, user_id)
     if user is None:
-        raise LookupError("no such account")
+        raise LookupError(say("privacy", "no such account"))
     user.restricted_at = (user.restricted_at or utcnow()) if restricted else None
     db.session.commit()
 
@@ -342,7 +343,7 @@ def erase_account(user_id: int, handled_by: str) -> dict[str, Any]:
 
     user = db.session.get(User, user_id)
     if user is None:
-        raise LookupError("no such account")
+        raise LookupError(say("privacy", "no such account"))
     username, email, ref = user.username, user.email, pseudonym(user_id)
     outcome: dict[str, Any] = {"subject": ref, "steps": {}, "failures": [], "outside_the_kit": []}
 
@@ -489,7 +490,7 @@ def _me():
     if getattr(g, "prg32_auth_by_token", False):
         # A rights request changes or reveals everything about a person: only their own
         # signed-in browser may make it, never an API token that might have leaked.
-        return None, (jsonify({"error": "privacy requests need a signed-in browser, not an API token"}), 403)
+        return None, (jsonify({**message_body(say("privacy", "privacy requests need a signed-in browser, not an API token"))}), 403)
     return principal, None
 
 
@@ -586,8 +587,7 @@ def api_my_requests():
         data = request.get_json(silent=True) or {}
         kind = str(data.get("kind") or "")
         if kind not in KINDS or kind in ("access", "portability"):
-            return jsonify({"error": "ask for rectification, erasure, restriction, objection or withdrawal; "
-                                     "download your data with /api/me/privacy/export"}), 400
+            return jsonify({**message_body(say("privacy", "ask for rectification, erasure, restriction, objection or withdrawal; download your data with /api/me/privacy/export"))}), 400
         item = open_request(principal.id, kind, str(data.get("details") or ""), "signed in")
         security.record("privacy_request", target_type="privacy_request", target_id=item.id, metadata={"kind": kind})
         return jsonify(request_as_dict(item)), 201
@@ -613,13 +613,13 @@ def api_admin_open(user_id: int):
     data = request.get_json(silent=True) or {}
     verified = str(data.get("verified_by") or "").strip()
     if not verified:
-        return jsonify({"error": "say how the person's identity was checked (verified_by)"}), 400
+        return jsonify({**message_body(say("privacy", "say how the person's identity was checked (verified_by)"))}), 400
     if db.session.get(User, user_id) is None:
-        return jsonify({"error": "user not found"}), 404
+        return jsonify({**message_body(say("privacy", "user not found"))}), 404
     try:
         item = open_request(user_id, str(data.get("kind") or ""), str(data.get("details") or ""), verified)
     except ValueError as error:
-        return jsonify({"error": str(error)}), 400
+        return jsonify({"error": str(error), **message_fields(error)}), 400
     security.record("privacy_request", target_type="privacy_request", target_id=item.id,
                     metadata={"kind": item.kind, "on_behalf": True})
     return jsonify(request_as_dict(item)), 201
@@ -634,9 +634,9 @@ def api_admin_decide(request_id: int):
 
     item = db.session.get(PrivacyRequest, request_id)
     if item is None:
-        return jsonify({"error": "request not found"}), 404
+        return jsonify({**message_body(say("privacy", "request not found"))}), 404
     if item.status in FINAL_STATES:
-        return jsonify({"error": f"this request is already {item.status}"}), 409
+        return jsonify({**message_body(say("privacy", "this request is already {status}", status=item.status))}), 409
     data = request.get_json(silent=True) or {}
     action = str(data.get("action") or "")
     reason = str(data.get("reason") or "").strip()
@@ -644,20 +644,20 @@ def api_admin_decide(request_id: int):
     if action == "extend":
         days = int(data.get("days") or 0)
         if not reason or not 0 < days <= MAX_EXTENSION_DAYS:
-            return jsonify({"error": f"an extension needs a reason and 1-{MAX_EXTENSION_DAYS} days"}), 400
+            return jsonify({**message_body(say("privacy", "an extension needs a reason and 1-{max_extension_days} days", max_extension_days=MAX_EXTENSION_DAYS))}), 400
         item.due_at = _days_from(item.due_at, days)
         item.extension_reason = reason[:500]
         db.session.commit()
     elif action == "refuse":
         if not reason:
-            return jsonify({"error": "a refusal needs its reason (the exemption relied on)"}), 400
+            return jsonify({**message_body(say("privacy", "a refusal needs its reason (the exemption relied on)"))}), 400
         close_request(item, "refused", {"reason": reason}, staff)
     elif action == "complete":
         if item.user_id is None:
-            return jsonify({"error": "the account no longer exists"}), 409
+            return jsonify({**message_body(say("privacy", "the account no longer exists"))}), 409
         # The confirmation must name the account: an erasure cannot be confirmed by accident.
         if item.kind == "erasure" and str(data.get("confirm_user_id")) != str(item.user_id):
-            return jsonify({"error": "confirm the erasure with confirm_user_id", "code": "confirm_required"}), 400
+            return jsonify({**message_body(say("privacy", "confirm the erasure with confirm_user_id")), "code": "confirm_required"}), 400
         if item.kind == "erasure":
             outcome = erase_account(item.user_id, staff)
             close_request(item, outcome["status"], outcome, staff)
@@ -668,10 +668,10 @@ def api_admin_decide(request_id: int):
             # Rectification is done with the account editor (PUT /api/users/<id>); objection and
             # withdrawal are decided by the controller. The outcome records what was done.
             if not reason:
-                return jsonify({"error": "describe what was done (reason)"}), 400
+                return jsonify({**message_body(say("privacy", "describe what was done (reason)"))}), 400
             close_request(item, "completed", {"note": reason}, staff)
     else:
-        return jsonify({"error": "action must be complete, refuse or extend"}), 400
+        return jsonify({**message_body(say("privacy", "action must be complete, refuse or extend"))}), 400
     security.record("privacy_request_" + action, target_type="privacy_request", target_id=item.id,
                     outcome=item.status, metadata={"kind": item.kind})
     return jsonify(request_as_dict(item))
@@ -685,7 +685,7 @@ def api_admin_export(user_id: int):
     try:
         document = export_personal_data(user_id)
     except LookupError:
-        return jsonify({"error": "user not found"}), 404
+        return jsonify({**message_body(say("privacy", "user not found"))}), 404
     security.record("privacy_export", target_type="user", target_id=user_id, metadata={"by_admin": True})
     response = jsonify(document)
     response.headers["Cache-Control"] = "no-store"

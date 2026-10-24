@@ -69,3 +69,20 @@ def fields(value: Any) -> dict[str, Any]:
     """{"message_key", "params"} for a Message (or an exception carrying one); {} otherwise."""
     message = of(value)
     return {"message_key": message.key, "params": message.params} if message is not None else {}
+
+
+def body(message: Any) -> dict[str, Any]:
+    """{"error": the English text, "message_key", "params"}: the error part of an API answer."""
+    return {"error": str(message), **fields(message)}
+
+
+def localized(value: Any) -> Any:
+    """A Message in the language of the page being drawn (the server's own pages: sign-in, errors);
+    anything else as it is. Also a Jinja filter: {{ message|localized }}."""
+    message = of(value)
+    if message is None or not message.key:
+        return value
+    from . import i18n
+
+    text = i18n.translate(i18n.current(), message.key, **message.params)
+    return value if text == message.key else text

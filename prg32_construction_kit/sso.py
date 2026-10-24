@@ -33,6 +33,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 from . import sso_protocol as protocol
 from .db import db, utcnow
 from . import settings as site_settings
+from .messages import body as message_body, fields as message_fields, text as say
 
 AUDIENCE_HERE = protocol.AUDIENCE_KIT
 AUDIENCE_PEER = protocol.AUDIENCE_STORE
@@ -102,7 +103,7 @@ def _call_peer(method: str, payload: dict[str, Any] | None = None) -> dict[str, 
     transport: Transport = current_app.config.get("SSO_TRANSPORT") or _urllib_transport
     status_code, raw = transport(method, peer_url() + protocol.USERS_PATH, headers, body)
     if status_code != 200:
-        raise ConnectionError(f"Cartridge Store answered {status_code}: {raw[:200]!r}")
+        raise ConnectionError(say("sso", "Cartridge Store answered {status_code}: {raw}", status_code=status_code, raw=repr(raw[:200])))
     return json.loads(raw.decode("utf-8"))
 
 
@@ -216,9 +217,9 @@ def full_sync() -> dict[str, Any]:
     from .auth import User
 
     if not enabled():
-        raise ValueError("Single sign-on is not configured (PRG32_SSO_SECRET and PRG32_SSO_PEER_URL)")
+        raise ValueError(say("sso", "Single sign-on is not configured (PRG32_SSO_SECRET and PRG32_SSO_PEER_URL)"))
     if not push([]):
-        raise ConnectionError(f"Could not reach {peer_url()}")
+        raise ConnectionError(say("sso", "Could not reach {value}", value=peer_url()))
     remote = _call_peer("GET").get("users", [])
     results: dict[str, int] = {}
     for record in remote:
@@ -272,14 +273,14 @@ def peer_users():
     from .auth import User
 
     if not _signed_by_peer():
-        return jsonify({"error": "bad or missing SSO signature"}), 403
+        return jsonify({**message_body(say("sso", "bad or missing SSO signature"))}), 403
     if request.method == "GET":
         users = [user_record(user) for user in db.session.scalars(select(User))]
         return jsonify({"abi": protocol.SSO_ABI, "users": users})
     data = request.get_json(silent=True) or {}
     records = data.get("users")
     if not isinstance(records, list):
-        return jsonify({"error": "users must be a list"}), 400
+        return jsonify({**message_body(say("sso", "users must be a list"))}), 400
     results = []
     for record in records:
         try:
@@ -297,15 +298,15 @@ def sync_now():
 
     if not current_principal().is_admin:
         security.record("sso_sync", target_type="sso", outcome="denied")
-        return jsonify({"error": "Only teachers with the admin role can do this"}), 403
+        return jsonify({**message_body(say("sso", "Only teachers with the admin role can do this"))}), 403
     try:
         result = full_sync()
     except ValueError as exc:
         security.record("sso_sync", target_type="sso", outcome="refused", metadata={"reason": str(exc)})
-        return jsonify({"error": str(exc)}), 400
+        return jsonify({"error": str(exc), **message_fields(exc)}), 400
     except Exception as exc:
         security.record("sso_sync", target_type="sso", outcome="failed", metadata={"reason": type(exc).__name__})
-        return jsonify({"error": f"Sync failed: {exc}"}), 502
+        return jsonify({**message_body(say("sso", "Sync failed: {exc}", exc=exc))}), 502
     from urllib.parse import urlparse
 
     security.record("sso_sync", target_type="sso", metadata={"peer_host": urlparse(peer_url()).hostname or ""})
@@ -321,7 +322,7 @@ def go_to_peer():
     if not principal.authenticated:
         return auth_failure("Please sign in first", 401)
     if not enabled():
-        return render_template("error.html", error="Single sign-on with a Cartridge Store is not configured."), 404
+        return render_template("error.html", error=say("sso", "Single sign-on with a Cartridge Store is not configured.")), 404
     target = request.args.get("next") or "/"
     if not target.startswith("/") or target.startswith("//"):
         target = "/"
@@ -336,11 +337,10 @@ def accept_login():
 
     email = use_ticket(request.form.get("ticket", ""), "login")
     if email is None:
-        return render_template("error.html", error="This sign-in link is invalid, expired, or already used."), 400
+        return render_template("error.html", error=say("sso", "This sign-in link is invalid, expired, or already used.")), 400
     user = find_user_by_email(email)
     if user is None:
-        return render_template("error.html", error="Your account has not reached the Construction Kit yet. "
-                                                   "Ask your teacher to press Sync now."), 404
+        return render_template("error.html", error=say("sso", "Your account has not reached the Construction Kit yet. Ask your teacher to press Sync now.")), 404
     sign_in(principal_from_user(user))
     session["sso"] = True
     return redirect(safe_next())

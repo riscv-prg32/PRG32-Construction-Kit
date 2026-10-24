@@ -37,7 +37,7 @@ def kept_on_server(record):
 
 
 def test_a_guest_makes_a_game_and_it_stays_in_this_browser(browser, live_kit):  # noqa: F811
-    context = browser.new_context()
+    context = browser.new_context(viewport={"width": 1440, "height": 900})   # the menu, with its badge, unfolded
     record = Recorder(context, live_kit)
     page = record.watch(guest_home(context, live_kit))
     assert page.is_visible("text=Guest: games stay in this browser")

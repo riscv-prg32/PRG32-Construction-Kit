@@ -57,7 +57,7 @@ def _document(value: Any) -> dict[str, Any]:
     """A guest's AudioStudio document, checked; samples need an account (their sound is a server file)."""
     document = audio_studio.validate_document(value) if value is not None else audio_studio.default_document()
     if document.get("samples"):
-        raise AudioStudioError("Recorded samples need an account: sign in to use them.")
+        raise AudioStudioError(say("api", "Recorded samples need an account: sign in to use them."))
     return document
 
 

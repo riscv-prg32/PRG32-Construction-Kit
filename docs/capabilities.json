@@ -824,6 +824,7 @@
         "prg32_construction_kit/i18n.py::locale_of",
         "prg32_construction_kit/i18n.py::translate",
         "prg32_construction_kit/messages.py::key_for",
+        "prg32_construction_kit/messages.py::localized",
         "prg32_construction_kit/messages.py::text",
         "prg32_construction_kit/privacy.py::localized_notice",
         "static/i18n/en.json",
@@ -850,9 +851,10 @@
         "tests/test_i18n_browser.py::test_signed_in_roles_see_their_pages_in_every_language",
         "tests/test_i18n_browser.py::test_the_menu_bar_is_one_row_in_every_language",
         "tests/test_messages.py::test_answers_carry_the_key_in_every_language_and_the_english_stays",
-        "tests/test_messages.py::test_every_message_is_in_the_catalog_with_its_english"
+        "tests/test_messages.py::test_every_message_is_in_the_catalog_with_its_english",
+        "tests/test_messages.py::test_server_drawn_pages_and_account_answers_are_in_the_reader_s_language"
       ],
-      "note": "ADR-0027 with its 2026-10-24 amendment: English, Italian, Spanish, French, German and Simplified Chinese (zh-Hans; Traditional Chinese readers get English, not the wrong script). Every page, script message, block and toolbox category, tooltip, screen-reader label, the offline pages, the privacy notice summaries and 225 server messages (PRG32 Python checker, C/assembly validators, AudioStudio, build, run, storage and project APIs, with stable keys) in six catalogs; Blockly's and Monaco's own menus from their vendored language packs; a CJK font (system, else Noto Sans SC from the kit) and line breaking; the quick start and the nine classroom lessons in six languages; per-language screenshots; real-browser checks for guest, student, teacher and admin pages in all six, one-row menus at 375-1920 px, Chinese input, mid-edit language change and offline use; builds byte-identical in every language (also in scenario L). Still English: compiler logs (GCC's words), the account, admin, sign-in and cloud API messages, and reference guides. No human keyboard/screen-reader session yet (docs/accessibility_session.md)."
+      "note": "ADR-0027 with its 2026-10-24 amendment: English, Italian, Spanish, French, German and Simplified Chinese (zh-Hans; Traditional Chinese readers get English, not the wrong script). Every page, script message, block and toolbox category, tooltip, screen-reader label, the offline pages, the privacy notice summaries and 361 server messages (PRG32 Python checker, C/assembly validators, AudioStudio, build, run, storage, project, publishing, account, admin, class, sign-in, privacy-request and settings answers, and the server-drawn sign-in and error pages, with stable keys) in six catalogs; Blockly's and Monaco's own menus from their vendored language packs; a CJK font (system, else Noto Sans SC from the kit) and line breaking; the quick start and the nine classroom lessons in six languages; per-language screenshots; real-browser checks for guest, student, teacher and admin pages in all six, one-row menus at 375-1920 px, Chinese input, mid-edit language change and offline use; builds byte-identical in every language (also in scenario L). Still English: compiler logs (GCC's words) and reference guides. No human keyboard/screen-reader session yet (docs/accessibility_session.md)."
     },
     {
       "id": "PY-01",

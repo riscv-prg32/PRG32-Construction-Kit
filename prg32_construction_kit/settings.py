@@ -34,6 +34,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Mapped, mapped_column
 
 from .db import db, utcnow
+from .messages import body as message_body, fields as message_fields, text as say
 
 
 class SiteSetting(db.Model):
@@ -299,15 +300,15 @@ def _clean(setting: Setting, value: Any) -> Any:
     kind = setting.kind
     if kind == "bool":
         if not isinstance(value, bool):
-            raise SettingRefused(f"{setting.label}: must be on or off")
+            raise SettingRefused(say("settings", "{label}: must be on or off", label=setting.label))
         return value
     if kind in ("int", "float"):
         try:
             number = int(value) if kind == "int" else float(value)
         except (TypeError, ValueError):
-            raise SettingRefused(f"{setting.label}: must be a number") from None
+            raise SettingRefused(say("settings", "{label}: must be a number", label=setting.label)) from None
         if isinstance(value, bool):
-            raise SettingRefused(f"{setting.label}: must be a number")
+            raise SettingRefused(say("settings", "{label}: must be a number", label=setting.label))
         if setting.minimum is not None and number < setting.minimum:
             raise SettingRefused(f"{setting.label}: at least {setting.minimum:g}")
         if setting.maximum is not None and number > setting.maximum:
@@ -315,28 +316,28 @@ def _clean(setting: Setting, value: Any) -> Any:
         return number
     if kind == "choice":
         if value not in setting.choices:
-            raise SettingRefused(f"{setting.label}: one of {', '.join(setting.choices)}")
+            raise SettingRefused(say("settings", "{label}: one of {value}", label=setting.label, value=', '.join(setting.choices)))
         return value
     if kind == "list":
         items = value if isinstance(value, list) else str(value or "").split(",")
         cleaned = [str(item).strip() for item in items if str(item).strip()]
         for item in cleaned:
             if not item.startswith(("https://", "http://")) or any(ch.isspace() for ch in item):
-                raise SettingRefused(f"{setting.label}: {item!r} is not a web address")
+                raise SettingRefused(say("settings", "{label}: {item} is not a web address", label=setting.label, item=repr(item)))
         return cleaned or None
     if not isinstance(value, str):
-        raise SettingRefused(f"{setting.label}: must be text")
+        raise SettingRefused(say("settings", "{label}: must be text", label=setting.label))
     limit = 2000 if kind == "text" else 300
     if len(value) > limit:
-        raise SettingRefused(f"{setting.label}: at most {limit} characters")
+        raise SettingRefused(say("settings", "{label}: at most {limit} characters", label=setting.label, limit=limit))
     if kind != "text" and any(ch in value for ch in "\r\n"):
-        raise SettingRefused(f"{setting.label}: one line only")
+        raise SettingRefused(say("settings", "{label}: one line only", label=setting.label))
     value = value.strip()
     if kind == "url" and value and (not value.startswith(("https://", "http://")) or " " in value):
-        raise SettingRefused(f"{setting.label}: must start with https:// or http://")
+        raise SettingRefused(say("settings", "{label}: must start with https:// or http://", label=setting.label))
     if kind == "secret":
         if setting.key == "SSO_SECRET" and value and len(value) < 32:
-            raise SettingRefused(f"{setting.label}: at least 32 characters")
+            raise SettingRefused(say("settings", "{label}: at least 32 characters", label=setting.label))
         from .secrets_at_rest import seal
 
         return seal(value, purpose=_SECRET_PURPOSE)
@@ -352,9 +353,9 @@ def update(changes: dict[str, Any]) -> list[str]:
     for key, value in changes.items():
         setting = BY_KEY.get(key)
         if setting is None:
-            raise SettingRefused(f"unknown setting {key!r}")
+            raise SettingRefused(say("settings", "unknown setting {key}", key=repr(key)))
         if locked(key):
-            raise SettingRefused(f"{setting.label} is set by {setting.env} on the server")
+            raise SettingRefused(say("settings", "{label} is set by {env} on the server", label=setting.label, env=setting.env))
         cleaned[key] = None if value is None else _clean(setting, value)
     now = utcnow()
     revision = (db.session.scalar(select(func.max(SiteSetting.revision))) or 0) + 1
@@ -423,11 +424,11 @@ def api_update_settings():
     payload = request.get_json(silent=True) or {}
     changes = payload.get("settings")
     if not isinstance(changes, dict) or not changes:
-        return jsonify({"error": "send {\"settings\": {NAME: value, ...}}"}), 400
+        return jsonify({**message_body(say("settings", "send {\"settings\": {NAME: value, ...}}"))}), 400
     try:
         keys = update(changes)
     except SettingRefused as error:
-        return jsonify({"error": str(error)}), 400
+        return jsonify({"error": str(error), **message_fields(error)}), 400
     # Names only: values may be secrets or personal (a contact address).
     security.record("settings_update", target_type="settings", metadata={"keys": ",".join(keys)})
     return jsonify({"changed": keys, "settings": describe()})
@@ -447,9 +448,9 @@ def api_smtp_test():
     user = db.session.get(User, principal.id)
     address = (user.email if user else "") or ""
     if not address:
-        return jsonify({"error": "Your account has no email address to send the test to"}), 400
+        return jsonify({**message_body(say("settings", "Your account has no email address to send the test to"))}), 400
     if not str(get("SMTP_HOST") or "").strip():
-        return jsonify({"error": "No SMTP server is set"}), 400
+        return jsonify({**message_body(say("settings", "No SMTP server is set"))}), 400
     message = EmailMessage()
     message["From"] = get("SMTP_FROM")
     message["To"] = address
@@ -462,7 +463,7 @@ def api_smtp_test():
             _smtp_send(message)
         except (OSError, smtplib.SMTPException) as error:
             security.record("settings_smtp_test", target_type="settings", outcome="failure")
-            return jsonify({"error": f"The mail could not be sent: {error}"}), 502
+            return jsonify({**message_body(say("settings", "The mail could not be sent: {error}", error=error))}), 502
     security.record("settings_smtp_test", target_type="settings")
     return jsonify({"sent_to": address})
 

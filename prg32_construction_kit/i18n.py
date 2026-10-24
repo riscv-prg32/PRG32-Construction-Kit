@@ -115,7 +115,10 @@ def t(key: str, **values: Any) -> str:
 
 
 def init_app(app) -> None:
+    from .messages import localized
+
     app.jinja_env.globals["t"] = t
+    app.jinja_env.filters["localized"] = localized   # a server message (messages.py) in the page's language
 
     @app.context_processor
     def inject_locale() -> dict:

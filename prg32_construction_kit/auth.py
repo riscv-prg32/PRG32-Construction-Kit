@@ -53,6 +53,7 @@ from . import security
 from .db import db, utcnow
 from .sso_protocol import timestamp_now
 from . import settings as site_settings
+from .messages import body as message_body, fields as message_fields, localized, text as say
 
 ROLE_LEVELS = {
     "reader": 0,
@@ -182,7 +183,7 @@ ANONYMOUS = Principal(name="anonymous", role="reader", authenticated=False)
 def normalize_role(role: str) -> str:
     normalized = str(role or "").strip().lower()
     if normalized not in ROLE_LEVELS:
-        raise ValueError(f"unknown role: {role!r}")
+        raise ValueError(say("auth", "unknown role: {role}", role=repr(role)))
     return normalized
 
 
@@ -333,7 +334,7 @@ def admin_required(func: Callable[..., Any]) -> Callable[..., Any]:
 def _group_id(name: str) -> int:
     normalized = str(name).strip().lower()
     if not normalized:
-        raise ValueError("group name is required")
+        raise ValueError(say("auth", "group name is required"))
     group = db.session.scalar(select(Group).where(Group.name == normalized))
     if group is None:
         group = Group(name=normalized)
@@ -366,7 +367,7 @@ def unique_username(preferred: str, email: str, ignore_user_id: int | None = Non
 
 def _check_password(password: str) -> None:
     if len(password or "") < MIN_PASSWORD_LENGTH:
-        raise ValueError(f"password must be at least {MIN_PASSWORD_LENGTH} characters")
+        raise ValueError(say("auth", "password must be at least {min_password_length} characters", min_password_length=MIN_PASSWORD_LENGTH))
 
 
 def admin_count(excluding: int | None = None) -> int:
@@ -390,13 +391,13 @@ def create_user(username: str, email: str, password: str | None, *, role: str = 
     email = normalize_email(email)
     username = str(username or email).strip()
     if not EMAIL_RE.fullmatch(email):
-        raise ValueError("email must be valid")
+        raise ValueError(say("auth", "email must be valid"))
     if not username:
-        raise ValueError("username is required")
+        raise ValueError(say("auth", "username is required"))
     if password:
         _check_password(password)
     if find_user_by_email(email) is not None or db.session.scalar(select(User.id).where(User.username == username)):
-        raise ValueError("a user with the same name or email already exists")
+        raise ValueError(say("auth", "a user with the same name or email already exists"))
     user = User(
         username=username,
         email=email,
@@ -426,17 +427,17 @@ def update_user(user: User, *, username: str | None = None, email: str | None = 
     if email is not None:
         email = normalize_email(email)
         if not EMAIL_RE.fullmatch(email):
-            raise ValueError("email must be valid")
+            raise ValueError(say("auth", "email must be valid"))
         other = find_user_by_email(email)
         if other is not None and other.id != user.id:
-            raise ValueError("another user already has that email")
+            raise ValueError(say("auth", "another user already has that email"))
         user.email = email
     if username is not None:
         username = username.strip()
         if not username:
-            raise ValueError("username is required")
+            raise ValueError(say("auth", "username is required"))
         if db.session.scalar(select(User.id).where(User.username == username, User.id != user.id)):
-            raise ValueError("another user already has that username")
+            raise ValueError(say("auth", "another user already has that username"))
         user.username = username
     if password:
         _check_password(password)
@@ -445,7 +446,7 @@ def update_user(user: User, *, username: str | None = None, email: str | None = 
     if role is not None:
         role = normalize_role(role)
         if user.role == "admin" and role != "admin" and admin_count(excluding=user.id) == 0:
-            raise ValueError("the last admin cannot be demoted")
+            raise ValueError(say("auth", "the last admin cannot be demoted"))
         if role != user.role:
             end_sessions(user)
         user.role = role
@@ -461,7 +462,7 @@ def update_user(user: User, *, username: str | None = None, email: str | None = 
 
 def delete_user(user: User) -> None:
     if user.role == "admin" and admin_count(excluding=user.id) == 0:
-        raise ValueError("the last admin cannot be deleted")
+        raise ValueError(say("auth", "the last admin cannot be deleted"))
     email = user.email
     db.session.delete(user)
     db.session.commit()
@@ -547,9 +548,7 @@ def bootstrap_admin(app) -> str:
         weak = weak_admin_password(password)
         if weak and production:
             raise BootstrapError(
-                "PRG32_ADMIN_PASSWORD is too short or a well-known password, so this production server will not "
-                "create its first admin with it. Choose a long random password, or leave PRG32_ADMIN_PASSWORD "
-                f"unset to get a random one in the data folder ({BOOTSTRAP_PASSWORD_FILE}).")
+                say("auth", "PRG32_ADMIN_PASSWORD is too short or a well-known password, so this production server will not create its first admin with it. Choose a long random password, or leave PRG32_ADMIN_PASSWORD unset to get a random one in the data folder ({bootstrap_password_file}).", bootstrap_password_file=BOOTSTRAP_PASSWORD_FILE))
         if weak:
             app.logger.warning("INSECURE: the first admin uses a weak PRG32_ADMIN_PASSWORD. This is allowed only "
                                "because PRG32_KIT_ENV is not 'production'. Never expose this server to a network.")
@@ -761,7 +760,7 @@ def guard_request():
         if not principal.has_scope(needed) or path.startswith("/auth/password"):
             security.record("api_token_scope", target_type="route", target_id=path, outcome="denied",
                             metadata={"needed": needed, "method": request.method})
-            return jsonify({"error": f"this API token does not have the {needed!r} scope",
+            return jsonify({**message_body(say("auth", "this API token does not have the {needed} scope", needed=repr(needed))),
                             "code": "insufficient_scope"}), 403
     if getattr(g, "prg32_auth_by_token", False):
         # S-5: every request made with an API token is in the audit log (method and path, never the
@@ -771,23 +770,20 @@ def guard_request():
     from .privacy import restriction_blocks
 
     if restriction_blocks(principal, request.method, path):
-        return jsonify({"error": "Processing of this account is restricted (a privacy request): you can read and "
-                                 "download your data, but not change, build or publish.",
+        return jsonify({**message_body(say("auth", "Processing of this account is restricted (a privacy request): you can read and download your data, but not change, build or publish.")),
                         "code": "restricted"}), 423
     if (request.method == "POST" and not getattr(g, "prg32_auth_by_token", False)
             and not request.is_json and request.headers.get("X-PRG32-Kit") != "1"):
         # A web page on another site can submit a plain form (always a POST) to
         # us with the student's cookie, but it cannot add this header or send a
         # JSON body; PUT and DELETE cannot be sent from another site at all.
-        return jsonify({"error": "This request must come from the Construction Kit pages"}), 403
+        return jsonify({**message_body(say("auth", "This request must come from the Construction Kit pages"))}), 403
     opened_as = str(request.headers.get("X-PRG32-User", "")).strip()
     if opened_as and not getattr(g, "prg32_auth_by_token", False) and opened_as != str(principal.id):
         # One browser shares one sign-in cookie between all its windows. This
         # window was opened as another account, so saving or building now would
         # use the wrong student's account.
-        return jsonify({"error": "Somebody signed in as a different user in another window of this browser. "
-                                 "Reload this window before saving or compiling. To work as two users at once, "
-                                 "use two browsers or a private window.",
+        return jsonify({**message_body(say("auth", "Somebody signed in as a different user in another window of this browser. Reload this window before saving or compiling. To work as two users at once, use two browsers or a private window.")),
                         "code": "user_changed"}), 409
     return None
 
@@ -846,8 +842,8 @@ def login():
                                                          | (User.email == username.strip().lower())))
         security.record("login_failed", target_type="user", target_id=known or "", outcome="denied", actor=None)
         if wants_json():
-            return jsonify({"error": "invalid username or password"}), 401
-        return render_template("auth_login.html", error="Invalid username or password.", **form_context), 401
+            return jsonify({**message_body(say("auth", "invalid username or password"))}), 401
+        return render_template("auth_login.html", error=say("auth", "Invalid username or password."), **form_context), 401
     security.reset("login_user", address, username)
     sign_in(principal)
     security.record("login", target_type="user", target_id=principal.id, actor=principal)
@@ -865,8 +861,7 @@ def logout():
     if wants_json():
         return jsonify({"ok": True, "school_session_ended": False if school else None})
     if school:
-        flash("You are signed out of the kit. Your school account may still be signed in on this browser: "
-              "close the browser, or sign out on the school's sign-in page, on a shared computer.")
+        flash(localized(say("auth", "You are signed out of the kit. Your school account may still be signed in on this browser: close the browser, or sign out on the school's sign-in page, on a shared computer.")))
     return redirect(url_for("auth.login_form"))
 
 
@@ -887,12 +882,12 @@ def register():
     email = normalize_email(request.form.get("email", ""))
     errors = []
     if not EMAIL_RE.fullmatch(email):
-        errors.append("email must be valid")
+        errors.append(say("auth", "email must be valid"))
     if not site_settings.get("ALLOW_REGISTRATION"):
-        errors.append("registration is closed; ask your teacher for an account")
+        errors.append(say("auth", "registration is closed; ask your teacher for an account"))
     domain = str(site_settings.get("REQUIRE_EMAIL_DOMAIN") or "").lower().lstrip("@")
     if domain and not email.endswith("@" + domain):
-        errors.append(f"email must belong to {domain}")
+        errors.append(say("auth", "email must belong to {domain}", domain=domain))
     if errors:
         if wants_json():
             return jsonify({"error": "; ".join(errors)}), 400
@@ -908,8 +903,8 @@ def register():
         _send_registration_email(email, url_for("auth.register_complete_form", token=token, _external=True))
     if wants_json():
         return jsonify({"ok": True, "email": email, "message": "registration email sent"})
-    return render_template("auth_message.html", title="Check your email",
-                           message=f"If {email} can register, a link to finish is on its way. It works for 24 hours.")
+    return render_template("auth_message.html", title=say("auth", "Check your email"),
+                           message=say("auth", "If {email} can register, a link to finish is on its way. It works for 24 hours.", email=email))
 
 
 @bp.get("/auth/register/complete")
@@ -917,7 +912,7 @@ def register_complete_form():
     token = request.args.get("token", "")
     record = _load_registration_token(token)
     if record is None:
-        return render_template("error.html", error="This registration link is invalid or expired."), 400
+        return render_template("error.html", error=say("auth", "This registration link is invalid or expired.")), 400
     return render_template("auth_register_complete.html", email=record.email, token=token)
 
 
@@ -933,14 +928,14 @@ def register_complete():
     if record is None:
         security.hit("register_complete", address)
         if wants_json():
-            return jsonify({"error": "registration link is invalid or expired"}), 400
-        return render_template("error.html", error="This registration link is invalid or expired."), 400
+            return jsonify({**message_body(say("auth", "registration link is invalid or expired"))}), 400
+        return render_template("error.html", error=say("auth", "This registration link is invalid or expired.")), 400
     password = request.form.get("password", "")
     errors = []
     if len(password) < MIN_PASSWORD_LENGTH:
-        errors.append(f"password must be at least {MIN_PASSWORD_LENGTH} characters")
+        errors.append(say("auth", "password must be at least {min_password_length} characters", min_password_length=MIN_PASSWORD_LENGTH))
     if password != request.form.get("password_confirm", password):
-        errors.append("password confirmation does not match")
+        errors.append(say("auth", "password confirmation does not match"))
     if errors:
         if wants_json():
             return jsonify({"error": "; ".join(errors)}), 400
@@ -949,8 +944,8 @@ def register_complete():
     db.session.commit()
     if find_user_by_email(record.email) is not None:
         if wants_json():
-            return jsonify({"error": "account already exists"}), 400
-        return render_template("error.html", error="This account already exists. Sign in instead."), 400
+            return jsonify({**message_body(say("auth", "account already exists"))}), 400
+        return render_template("error.html", error=say("auth", "This account already exists. Sign in instead.")), 400
     role = site_settings.get("DEFAULT_ROLE")
     user = create_user(unique_username(record.email, record.email), record.email, password, role=role)
     security.record("user_registered", target_type="user", target_id=user.id, actor=None,
@@ -959,7 +954,7 @@ def register_complete():
     sign_in(principal)
     if wants_json():
         return jsonify({"ok": True, "user": principal.as_dict()})
-    flash("Account created.")
+    flash(localized(say("auth", "Account created.")))
     return redirect(safe_next())
 
 
@@ -977,9 +972,9 @@ def change_password():
     data = request.get_json(silent=True) or {}
     user = db.session.get(User, current_principal().id)
     if user is None:
-        return jsonify({"error": "account not found"}), 404
+        return jsonify({**message_body(say("auth", "account not found"))}), 404
     if user.password_hash and not check_password_hash(user.password_hash, str(data.get("current_password", ""))):
-        return jsonify({"error": "current password is wrong"}), 400
+        return jsonify({**message_body(say("auth", "current password is wrong"))}), 400
     update_user(user, password=str(data.get("new_password", "")) or None)
     security.record("password_change", target_type="user", target_id=user.id)
     sign_in(principal_from_user(user))  # this window stays signed in; every other session ends
@@ -1025,11 +1020,11 @@ def _requested_scopes(data: dict[str, Any], principal: Principal) -> list[str]:
     if not isinstance(scopes, list) or not scopes or any(scope not in TOKEN_SCOPES for scope in scopes):
         raise ValueError("scopes must be a list of: " + ", ".join(TOKEN_SCOPES))
     if "admin" in scopes and not principal.is_admin:
-        raise ValueError("only administrators can make tokens with the admin scope")
+        raise ValueError(say("auth", "only administrators can make tokens with the admin scope"))
     if "publish" in scopes and not role_at_least(principal.role, "publisher"):
-        raise ValueError("only publishers can make tokens with the publish scope")
+        raise ValueError(say("auth", "only publishers can make tokens with the publish scope"))
     if principal.token_scopes is not None and not set(scopes) <= set(principal.token_scopes):
-        raise ValueError("a token cannot make a token with more scopes than its own")
+        raise ValueError(say("auth", "a token cannot make a token with more scopes than its own"))
     return [scope for scope in TOKEN_SCOPES if scope in scopes]
 
 
@@ -1054,7 +1049,7 @@ def create_token():
     scopes = _requested_scopes(data, current_principal())
     days = data.get("expires_in_days")
     if days is not None and (not isinstance(days, int) or isinstance(days, bool) or not 1 <= days <= 3650):
-        raise ValueError("expires_in_days must be a whole number of days from 1 to 3650")
+        raise ValueError(say("auth", "expires_in_days must be a whole number of days from 1 to 3650"))
     expires = ((datetime.now(timezone.utc) + timedelta(days=days)).replace(microsecond=0).isoformat()
                if days else None)
     token = "prg32_" + secrets.token_urlsafe(32)
@@ -1075,10 +1070,10 @@ def rename_token(token_id: int):
     data = request.get_json(silent=True) or {}
     label = str(data.get("label") or "").strip()[:80]
     if not label:
-        return jsonify({"error": "label is required"}), 400
+        return jsonify({**message_body(say("auth", "label is required"))}), 400
     row = db.session.scalar(select(ApiToken).where(ApiToken.id == token_id, ApiToken.user_id == current_principal().id))
     if row is None:
-        return jsonify({"error": "token not found"}), 404
+        return jsonify({**message_body(say("auth", "token not found"))}), 404
     row.label = label
     db.session.commit()
     return jsonify({"ok": True, "id": token_id, "label": label})
@@ -1118,7 +1113,7 @@ def _groups_from(data: dict[str, Any]) -> list[str] | None:
     if isinstance(groups, str):
         groups = groups.split(",")
     if not isinstance(groups, list):
-        raise ValueError("groups must be a list")
+        raise ValueError(say("auth", "groups must be a list"))
     return [str(group) for group in groups]
 
 
@@ -1145,13 +1140,13 @@ def api_create_user():
 def api_user(user_id: int):
     user = db.session.get(User, user_id)
     if user is None:
-        return jsonify({"error": "user not found"}), 404
+        return jsonify({**message_body(say("auth", "user not found"))}), 404
     if request.method == "GET":
         return jsonify(user_as_dict(user))
     me = current_principal()
     if request.method == "DELETE":
         if user.id == me.id:
-            return jsonify({"error": "you cannot delete your own account"}), 400
+            return jsonify({**message_body(say("auth", "you cannot delete your own account"))}), 400
         username, role = user.username, user.role
         removed = None
         if request.args.get("with_items") in ("1", "true"):
@@ -1169,10 +1164,10 @@ def api_user(user_id: int):
         return jsonify({"deleted": True, "id": user_id, "items_removed": removed or {}})
     data = request.get_json(silent=True) or {}
     if user.id == me.id and "role" in data and data["role"] != "admin":
-        return jsonify({"error": "admins cannot demote themselves"}), 400
+        return jsonify({**message_body(say("auth", "admins cannot demote themselves"))}), 400
     before = {"username": user.username, "email": user.email, "role": user.role, "groups": list(groups_for_user(user.id))}
     if user.id == me.id and "kit_role" in data and data["kit_role"] != user.kit_role:
-        return jsonify({"error": "you cannot change your own academic role"}), 400
+        return jsonify({**message_body(say("auth", "you cannot change your own academic role"))}), 400
     before["kit_role"] = user.kit_role
     update_user(
         user,
@@ -1199,11 +1194,11 @@ def api_user(user_id: int):
 def _set_disabled(user_id: int, disabled: bool):
     user = db.session.get(User, user_id)
     if user is None:
-        return jsonify({"error": "user not found"}), 404
+        return jsonify({**message_body(say("auth", "user not found"))}), 404
     if user.id == current_principal().id:
-        return jsonify({"error": "you cannot deactivate your own account"}), 400
+        return jsonify({**message_body(say("auth", "you cannot deactivate your own account"))}), 400
     if disabled and user.role == "admin" and admin_count(excluding=user.id) == 0:
-        return jsonify({"error": "the last admin cannot be deactivated"}), 400
+        return jsonify({**message_body(say("auth", "the last admin cannot be deactivated"))}), 400
     if disabled:
         user.disabled_at = user.disabled_at or utcnow()
         end_sessions(user)
@@ -1234,7 +1229,7 @@ def api_reactivate_user(user_id: int):
 def api_revoke_user_sessions(user_id: int):
     user = db.session.get(User, user_id)
     if user is None:
-        return jsonify({"error": "user not found"}), 404
+        return jsonify({**message_body(say("auth", "user not found"))}), 404
     end_sessions(user)
     db.session.commit()
     security.record("sessions_revoke", target_type="user", target_id=user.id, metadata={"by": "admin"})
@@ -1251,7 +1246,7 @@ def api_audit_events():
         limit = int(request.args.get("limit", "100"))
         before = int(request.args["before"]) if request.args.get("before") else None
     except ValueError:
-        return jsonify({"error": "limit and before must be whole numbers"}), 400
+        return jsonify({**message_body(say("auth", "limit and before must be whole numbers"))}), 400
     return jsonify({"events": security.audit_events(limit, request.args.get("action") or None, before)})
 
 
@@ -1267,7 +1262,7 @@ def api_clear_throttles():
 @bp.errorhandler(ValueError)
 def handle_bad_value(exc: ValueError):
     if wants_json():
-        return jsonify({"error": str(exc)}), 400
+        return jsonify({"error": str(exc), **message_fields(exc)}), 400
     return render_template("error.html", error=str(exc)), 400
 
 

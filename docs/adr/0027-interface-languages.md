@@ -55,16 +55,18 @@ works offline; `:lang(zh-Hans)` breaks lines between characters but not inside c
 `tests/test_i18n_browser.py` checks the six languages in a real browser.
 
 The messages the server writes for people are no longer English-only: each is a template with a
-stable key derived from its text (`messages.py`, 225 of them: the PRG32 Python checker, the C and
-assembly validators, AudioStudio, build, run, storage and project API refusals). Answers keep the
+stable key derived from its text (`messages.py`, 361 of them: the PRG32 Python checker, the C and
+assembly validators, AudioStudio, build, run, storage, project, publishing, account, admin,
+class, school sign-in, single sign-on, privacy-request and settings answers). Answers keep the
 English `error` and add `message_key` and `params`; the browser shows `tr(message_key, error,
-params)`. Problems keep their exact place. Compiler logs (GCC's own words) and the account, admin,
-sign-in and cloud APIs are still English.
+params)`. Problems keep their exact place. Pages the server draws itself (sign-in, registration,
+error and maintenance pages, flashed notes) use the `localized` filter. Compiler logs (GCC's own
+words) and machine codes such as `quota_exceeded` stay as they are.
 
 ## Consequences
 
 - A new message means an entry in all five catalogs and `python3 tools/build_i18n.py`.
-- Generated code comments, the PRG32 Python compiler's server diagnostics, the server's API error
+- (Superseded for server messages and the language packs by the amendments above.) Generated code comments, the PRG32 Python compiler's server diagnostics, the server's API error
   messages, Blockly's and Monaco's own menus, and the long-form documentation in `docs/` stay in English; the editor's live checks
   and the explanations under each problem are translated. `docs/i18n.md` lists what is and is
   not translated, and the classroom quick start exists in all five languages.
