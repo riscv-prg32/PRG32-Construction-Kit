@@ -716,7 +716,7 @@ def required_scope(method: str, path: str) -> str:
     if path.startswith("/api/publish"):
         return "publish"
     if method == "POST" and (path.endswith(("/package", "/convert", "/check", "/run"))
-                             or path.startswith(("/api/deployments", "/api/deploy/"))):
+                             or path.startswith(("/api/deployments", "/api/deploy/", "/api/evaluations"))):
         return "build"
     if method in ("GET", "HEAD", "OPTIONS"):
         return "read"

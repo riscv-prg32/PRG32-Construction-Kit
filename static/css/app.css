@@ -544,3 +544,10 @@ body.dbg-mode-advanced .dbg-beginner { display: none !important; }
   max-width: 100%;
   image-rendering: pixelated;
 }
+
+/* Evaluate (evaluate.js): the chart at its own size, never wider than the card. */
+.evaluation-chart {
+  width: 760px;
+  max-width: 100%;
+  background: #ffffff;
+}

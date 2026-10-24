@@ -76,6 +76,7 @@ MIN_FRAMES = 30             # frames of the new cartridge before its screenshot 
 JOB_LIMIT_SECONDS = 300     # a deployment still "running" after this was interrupted
 MAX_JSON_BYTES = 64 * 1024
 MAX_SCREENSHOT_BYTES = 512 * 1024
+POLL_SECONDS = 2.0          # how often a running evaluation asks for its result (EVAL-01)
 
 # The PRG2 header (PRG32 SDK prg32/utilities/env_variables.py: CART_HEADER, CART_HEADER_V2).
 HEADER_V1 = struct.Struct("<4sHHHHIIIIIII32s")
@@ -275,6 +276,25 @@ class HttpTarget:
         status, data = self._call("GET", "/api/screenshot.bmp", limit=MAX_SCREENSHOT_BYTES)
         return bmp_to_png(data) if status == 200 and data[:2] == b"BM" else None
 
+    def performance(self) -> dict[str, Any] | None:
+        """The performance broker's last result (GET /api/performance.json), or None."""
+        status, data = self._call("GET", "/api/performance.json")
+        if status != 200 or len(data) > MAX_JSON_BYTES:
+            return None
+        answer = json.loads(data or b"null")
+        return answer if isinstance(answer, dict) else None
+
+    def collect_performance(self, previous_run: str | None, wait: Callable[[float], None], timeout: float) -> dict[str, Any]:
+        """The result of the run just started: asked for every POLL_SECONDS until it has a new run_id."""
+        deadline = time.monotonic() + timeout
+        while time.monotonic() < deadline:
+            wait(POLL_SECONDS)
+            answer = self.performance()
+            if answer and answer.get("ok") and answer.get("run_id") and answer["run_id"] != previous_run:
+                return answer
+        raise DeployProblem("no_result", say("deploy", "The target gave no result within {seconds} seconds.",
+                                             seconds=int(timeout)), final="failed")
+
     def close(self) -> None:
         pass
 
@@ -444,6 +464,59 @@ class QemuTarget:
         except subprocess.TimeoutExpired:
             return None
         return rgb565_to_png(raw.read_bytes(), 320, 240) if raw.is_file() else None
+
+    def performance(self) -> dict[str, Any] | None:
+        return None                       # each run boots afresh: there is no earlier result
+
+    def collect_performance(self, previous_run: str | None, wait: Callable[[float], None], timeout: float) -> dict[str, Any]:
+        """The run's result, read through QEMU's GDB stub: stop at the end of the suite (a hardware
+        breakpoint at prg32_perf_end costs nothing until it is reached), let it finish, and ask the
+        firmware itself for its JSON (prg32_performance_json_alloc)."""
+        commands = ["set pagination off", "set confirm off", f"target remote 127.0.0.1:{self.gdb_port}",
+                    "hbreak prg32_perf_end", "continue", "finish", "set $json = (char *) prg32_performance_json_alloc()",
+                    'printf "PRG32-PERFORMANCE:%s\\n", $json', "detach"]
+        if not self.settings.get("gdb"):
+            raise DeployProblem("no_result", say("deploy", "QEMU's GDB is not set up on this server (PRG32_QEMU_GDB)."), final="failed")
+        process = subprocess.Popen([self.settings["gdb"], "-nx", "-batch", "-ex", f"file {self.settings['firmware'] / 'PRG32.elf'}",
+                                    *[part for command in commands for part in ("-ex", command)]],
+                                   stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)
+        deadline = time.monotonic() + timeout
+        try:
+            while process.poll() is None:
+                if time.monotonic() > deadline:
+                    raise DeployProblem("no_result", say("deploy", "The target gave no result within {seconds} seconds.",
+                                                         seconds=int(timeout)), final="failed")
+                wait(0.5)
+            output = process.stdout.read() if process.stdout else ""
+        finally:
+            if process.poll() is None:
+                process.kill()
+                process.wait()
+        line = next((item for item in output.splitlines() if item.startswith("PRG32-PERFORMANCE:")), None)
+        try:
+            answer = json.loads(line.split(":", 1)[1]) if line else None
+        except ValueError:
+            answer = None
+        if not isinstance(answer, dict) or not answer.get("ok"):
+            raise DeployProblem("no_result", say("deploy", "The firmware in QEMU gave no result for this run."), final="failed")
+        return answer
+
+    def restart(self) -> None:
+        """Stop QEMU (the staged flash image stays) so that launch boots it again."""
+        self._stop.set()
+        if self.process is not None:
+            self.process.terminate()
+            try:
+                self.process.wait(timeout=10)
+            except subprocess.TimeoutExpired:
+                self.process.kill()
+            self.log_file.close()
+            self.process = None
+        if getattr(self, "_locked", False):
+            _qemu_lock.release()
+            self._locked = False
+        self._stop = threading.Event()
+        self.serial = bytearray()
 
     def close(self) -> None:
         self._stop.set()
@@ -621,14 +694,14 @@ def as_dict(item: Deployment) -> dict[str, Any]:
 
 
 class Job:
-    """The running deployment's record: each step, its progress and log lines, saved as it goes."""
+    """A running deployment's (or evaluation's) record: each step, its progress and log lines, saved as it goes."""
 
-    def __init__(self, deployment_id: str):
-        self.id = deployment_id
+    def __init__(self, row_id: str, model=None):
+        self.id, self.model = row_id, model or Deployment
 
-    def _row(self) -> Deployment:
+    def _row(self):
         db.session.expire_all()
-        return db.session.get(Deployment, self.id)
+        return db.session.get(self.model, self.id)
 
     def say(self, line: Message | str) -> None:
         row = self._row()
@@ -665,7 +738,6 @@ def run_deployment(deployment_id: str, target: dict[str, Any], data: bytes, expe
     result: dict[str, Any] = {"evidence": EVIDENCE[target["kind"]], "physical_device": target["kind"] == "prg32",
                               "cartridge": {key: value for key, value in cartridge_header(data).items()}}
     adapter = None
-    sent = False
 
     def wait(seconds: float) -> None:
         if job.cancelled():
@@ -675,41 +747,7 @@ def run_deployment(deployment_id: str, target: dict[str, Any], data: bytes, expe
     try:
         job.step("checking", 10, say("deploy", "Asking {target} who it is", target=target["name"]))
         adapter = adapter_for(target, work)
-        probe = probe_target(adapter)
-        result["target"] = {key: probe[key] for key in ("identity", "abi", "limits", "fingerprint")}
-        if probe["fingerprint"] != expect.get("fingerprint"):
-            raise DeployProblem("target_changed", say("deploy", "The target is not the one you looked at (its firmware or "
-                                                      "address changed). Look at it again."))
-        seen = next((item for item in probe["slots"] if item["slot"] == slot), None)
-        if seen is None:
-            raise DeployProblem("slot_unknown", say("deploy", "The target has no slot {slot}.", slot=slot))
-        if slot_content(seen) != slot_content(expect.get("slot_content") or {}):
-            raise DeployProblem("slot_changed", say("deploy", "{slot} holds something else now than when you looked. "
-                                                    "Look at the target again.", slot=slot))
-        header = result["cartridge"]
-        problems = abi_problems(header, probe)
-        if problems:
-            raise DeployProblem("unsupported_abi", say("deploy", "This target cannot run the cartridge: {problems}",
-                                                       problems=" ".join(str(item) for item in problems)))
-        problems = room_problems(header, probe, seen)
-        if problems:
-            raise DeployProblem("target_full", say("deploy", "The cartridge does not fit: {problems}",
-                                                   problems=" ".join(str(item) for item in problems)))
-        job.step("uploading", 30, say("deploy", "Sending {bytes} bytes to {slot}", bytes=len(data), slot=slot))
-        for attempt in range(RETRIES + 1):
-            try:
-                sent = True
-                result["upload"] = adapter.upload(slot, data)
-                break
-            except ConnectionError as error:
-                if attempt == RETRIES:
-                    raise DeployProblem("disconnected", say("deploy", "The connection broke while sending: {error}",
-                                                            error=str(error)[:200]), final="failed",
-                                        left=say("deploy", "{slot} may hold part of the cartridge: deploy again to the same slot, "
-                                                 "or choose another slot.", slot=slot)) from error
-                job.say(say("deploy", "The connection broke; trying again ({attempt} of {retries})",
-                            attempt=attempt + 1, retries=RETRIES))
-                wait(1.0 * (attempt + 1))
+        header = check_and_upload(job, adapter, target, data, slot, expect, result, wait)
         job.step("starting", 60, say("deploy", "Starting {slot}", slot=slot))
         try:
             result["launch"] = adapter.launch(slot)
@@ -729,7 +767,7 @@ def run_deployment(deployment_id: str, target: dict[str, Any], data: bytes, expe
         job.say(say("deploy", "Running on {target} ({evidence})", target=target["name"], evidence=EVIDENCE[target["kind"]]))
         job.finish("launched", result)
     except Cancelled:
-        result["left"] = str(stored_but_not_started(slot) if sent else say("deploy", "Nothing was sent: the target is as it was."))
+        result["left"] = str(stored_but_not_started(slot) if result.get("sent") else say("deploy", "Nothing was sent: the target is as it was."))
         job.say(say("deploy", "Cancelled"))
         job.finish("cancelled", result)
     except DeployProblem as problem:
@@ -740,11 +778,53 @@ def run_deployment(deployment_id: str, target: dict[str, Any], data: bytes, expe
     except Exception as error:   # noqa: BLE001 - the record must end, whatever happened
         current_app.logger.exception("Deployment %s failed", deployment_id)
         result.update({"code": "failed", "error": str(error)[:300],
-                       "left": str(stored_but_not_started(slot) if sent else say("deploy", "Nothing was sent: the target is as it was."))})
+                       "left": str(stored_but_not_started(slot) if result.get("sent") else say("deploy", "Nothing was sent: the target is as it was."))})
         job.finish("failed", result)
     finally:
         if adapter is not None:
             adapter.close()
+
+
+def check_and_upload(job: Job, adapter, target: dict[str, Any], data: bytes, slot: str, expect: dict[str, Any],
+                     result: dict[str, Any], wait: Callable[[float], None]) -> dict[str, Any]:
+    """Steps 2-4 of the module docstring: the target is the one seen, it can run the cartridge, the slot
+    is as seen; then the upload (retried). ``result["sent"]`` is set once bytes may have reached it."""
+    probe = probe_target(adapter)
+    result["target"] = {key: probe[key] for key in ("identity", "abi", "limits", "fingerprint")}
+    if probe["fingerprint"] != expect.get("fingerprint"):
+        raise DeployProblem("target_changed", say("deploy", "The target is not the one you looked at (its firmware or "
+                                                  "address changed). Look at it again."))
+    seen = next((item for item in probe["slots"] if item["slot"] == slot), None)
+    if seen is None:
+        raise DeployProblem("slot_unknown", say("deploy", "The target has no slot {slot}.", slot=slot))
+    if slot_content(seen) != slot_content(expect.get("slot_content") or {}):
+        raise DeployProblem("slot_changed", say("deploy", "{slot} holds something else now than when you looked. "
+                                                "Look at the target again.", slot=slot))
+    header = result["cartridge"]
+    problems = abi_problems(header, probe)
+    if problems:
+        raise DeployProblem("unsupported_abi", say("deploy", "This target cannot run the cartridge: {problems}",
+                                                   problems=" ".join(str(item) for item in problems)))
+    problems = room_problems(header, probe, seen)
+    if problems:
+        raise DeployProblem("target_full", say("deploy", "The cartridge does not fit: {problems}",
+                                               problems=" ".join(str(item) for item in problems)))
+    job.step("uploading", 30, say("deploy", "Sending {bytes} bytes to {slot}", bytes=len(data), slot=slot))
+    for attempt in range(RETRIES + 1):
+        try:
+            result["sent"] = True
+            result["upload"] = adapter.upload(slot, data)
+            break
+        except ConnectionError as error:
+            if attempt == RETRIES:
+                raise DeployProblem("disconnected", say("deploy", "The connection broke while sending: {error}",
+                                                        error=str(error)[:200]), final="failed",
+                                    left=say("deploy", "{slot} may hold part of the cartridge: deploy again to the same slot, "
+                                             "or choose another slot.", slot=slot)) from error
+            job.say(say("deploy", "The connection broke; trying again ({attempt} of {retries})",
+                        attempt=attempt + 1, retries=RETRIES))
+            wait(1.0 * (attempt + 1))
+    return header
 
 
 def interrupted(item: Deployment) -> bool:

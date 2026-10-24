@@ -78,6 +78,7 @@ PERSONAL_TABLES: dict[str, tuple[str, str]] = {
     "privacy_notice_records": ("user", "user_id"),
     "privacy_requests": ("user", "user_id"),
     "deployments": ("user", "owner_id"),
+    "evaluations": ("user", "owner_id"),
     "deploy_targets": ("user", "created_by"),
 }
 # Tables with nothing about a person, and why.
@@ -390,8 +391,9 @@ def erase_account(user_id: int, handled_by: str) -> dict[str, Any]:
 
     def deployments():
         from .deploy import delete_deployments_of
+        from .evaluation import delete_evaluations_of
 
-        return delete_deployments_of(user_id)
+        return {"deployments": delete_deployments_of(user_id), "evaluations": delete_evaluations_of(user_id)}
 
     def rows():
         counts = {}

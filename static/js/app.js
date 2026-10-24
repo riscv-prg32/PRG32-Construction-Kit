@@ -160,7 +160,7 @@ Kit.projectMenu = {
 $(function () {
   if (!$('#navCloseProject').length) return;
   const hash = window.location.hash.slice(1);
-  const page = { '/player': 'player', '/deploy': 'deploy' }[window.location.pathname];
+  const page = { '/player': 'player', '/deploy': 'deploy', '/evaluate': 'evaluate' }[window.location.pathname];
   Kit.projectMenu.mark(page || (hash === 'sprites' || hash === 'sound' ? hash : 'editor'));
 });
 

@@ -9,6 +9,10 @@ counts frames while one runs. ``fail`` makes it misbehave the way real devices d
 - ``"never_runs"``: accepts select but never reports the cartridge running;
 - ``"select_refused"``: select answers 400;
 - ``"gone_after_upload"``: stops answering after the cartridge is stored.
+
+Like the firmware's performance broker, /api/performance.json gives the last finished suite:
+each select starts a run, which "finishes" after ``suite_seconds``. Its numbers are made
+from the run number, so tests know them; runs listed in ``silent_runs`` never finish.
 """
 
 from __future__ import annotations
@@ -36,6 +40,10 @@ class FakePrg32:
         self.drops = 0
         self.uploads: list[tuple[str, int]] = []
         self.gone = False
+        self.suite_seconds = 0.2
+        self.runs = 0                      # selects so far: each starts one run of the suite
+        self.silent_runs: set[int] = set()
+        self.finished_run = 0              # the last run whose result /api/performance.json gives
         fake = self
 
         class Handler(BaseHTTPRequestHandler):
@@ -60,6 +68,8 @@ class FakePrg32:
                     self._send(200, json.dumps([fake.slot_info(name) for name in fake.slots]).encode())
                 elif path == "/api/screenshot.bmp":
                     self._send(200, fake.bmp(), "image/bmp")
+                elif path == "/api/performance.json":
+                    self._send(200, json.dumps(fake.performance()).encode())
                 else:
                     self._send(404, b"not found")
 
@@ -91,6 +101,7 @@ class FakePrg32:
                         self._send(400, b"slot is empty" if fake.slots[slot] is None else b"cartridge rejected")
                         return
                     fake.loaded, fake.started = slot, time.monotonic()
+                    fake.runs += 1
                     self._send(200, json.dumps({"ok": True, "slot": slot}).encode())
                 else:
                     self._send(404, b"not found")
@@ -124,6 +135,30 @@ class FakePrg32:
         if self.host:
             answer["host"] = self.host
         return answer
+
+    CASES = ("clear-fill", "text-overlay", "sprite-storm", "scrolling", "mixed-gameplay")
+
+    @staticmethod
+    def frame_us(run: int, case: int) -> int:
+        """The mean frame time this fake reports for a run and case (microseconds)."""
+        return 10000 + 1000 * case + 10 * run
+
+    def performance(self) -> dict:
+        if self.loaded is not None and self.runs not in self.silent_runs and time.monotonic() - self.started >= self.suite_seconds:
+            self.finished_run = self.runs
+        if not self.finished_run:
+            return {"ok": False, "running": True} if self.loaded else {"ok": False, "error": "no performance test results"}
+        run = self.finished_run
+        cases = [{"screen_index": index, "screen_name": name, "color_mode": "rgb565", "frames": 60,
+                  "fps_mean": round(1e6 / self.frame_us(run, index), 2), "frame_us_min": self.frame_us(run, index) - 500,
+                  "frame_us_mean": self.frame_us(run, index), "frame_us_p50": self.frame_us(run, index),
+                  "frame_us_p95": self.frame_us(run, index) + 800, "frame_us_p99": self.frame_us(run, index) + 900,
+                  "frame_us_max": self.frame_us(run, index) + 1000, "missed_deadlines": 0, "update_us_mean": 20,
+                  "draw_us_mean": 300 + index, "present_us_mean": self.frame_us(run, index) - 320 - index, "heap_min": 1000}
+                 for index, name in enumerate(self.CASES)]
+        return {"ok": True, "schema_version": 2, "run_id": f"perf-{run}", "target": "fake", "display_backend": "fake",
+                "result_count": len(cases), "duration_us": 9_000_000, "screen_summaries": cases,
+                "memory": {"baseline_free_bytes": 1}, "samples": []}
 
     def bmp(self) -> bytes:
         """A 4x2 24-bit BMP, yellow when a cartridge runs."""

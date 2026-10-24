@@ -1,0 +1,65 @@
+{
+  "name": "prg32-evaluation-protocol",
+  "version": 1,
+  "about": "How the kit measures the performance of PRG32 targets so that runs can be repeated and compared (EVAL-01, docs/evaluate.md). Changing anything here that changes a number needs a new version.",
+  "cartridge": {
+    "title": "PRG32 Evaluation",
+    "source": "examples/evaluation/prg32_evaluation.c",
+    "source_sha256": "180a81bc68e4c35863dcf94b27a37eb7254495424311889991abd8d7c98afb17",
+    "source_mode": "c",
+    "required_features": ["metrics"],
+    "suite": "prg32-evaluation-1",
+    "cases": [
+      {"name": "clear-fill", "goal": "clearing the screen and filling large rectangles", "frames": 60},
+      {"name": "text-overlay", "goal": "drawing lines of 8x8 text", "frames": 60},
+      {"name": "sprite-storm", "goal": "many moving sprite-sized rectangles", "frames": 60},
+      {"name": "scrolling", "goal": "scrolling pixels and stripes", "frames": 60},
+      {"name": "mixed-gameplay", "goal": "text, sprites and scrolling together", "frames": 60}
+    ],
+    "same_bytes": "The kit builds this source; the cartridge's SHA-256 is recorded with every run. Runs are compared only when their cartridges have the same SHA-256."
+  },
+  "repetitions": {"default": 5, "min": 1, "max": 20},
+  "warm_up": {"default": 1, "min": 0, "max": 3, "meaning": "the first runs after the cartridge is sent; recorded, never used in the statistics"},
+  "repetition": {
+    "prg32": "the slot is selected again (POST /api/games/select): the cartridge starts from init and runs the suite once",
+    "prg32qt": "the slot is selected again (POST /api/games/select): the cartridge starts from init and runs the suite once",
+    "qemu": "the firmware boots again from the same staged flash image and runs the suite once"
+  },
+  "retrieval": {
+    "prg32": "GET /api/performance.json, every 2 seconds, until a result with a new run_id",
+    "prg32qt": "GET /api/performance.json, every 2 seconds, until a result with a new run_id",
+    "qemu": "QEMU's GDB stub: a hardware breakpoint at prg32_perf_end, then the firmware's prg32_performance_json_alloc(); the program is stopped only after the suite"
+  },
+  "timing_source": {
+    "prg32": "the console's microsecond timer (esp_timer), read by the cartridge with prg32_perf_now_us()",
+    "prg32qt": "PRG32-QT's clock for the cartridge, read with prg32_perf_now_us(): the host computer's time",
+    "qemu": "the emulated ESP32-C3 timer, read with prg32_perf_now_us(): it follows the host computer's clock"
+  },
+  "granularity": "PRG32 performance broker ABI 1 keeps one summary per case (mean, percentiles over its frames), not every frame: one run gives one value per case and metric. The statistics are over runs.",
+  "metrics": [
+    {"name": "frame_us_mean", "label": "Frame time, mean", "unit": "us"},
+    {"name": "frame_us_p50", "label": "Frame time, median", "unit": "us"},
+    {"name": "frame_us_p95", "label": "Frame time, 95th percentile", "unit": "us"},
+    {"name": "frame_us_p99", "label": "Frame time, 99th percentile", "unit": "us"},
+    {"name": "frame_us_min", "label": "Frame time, shortest", "unit": "us"},
+    {"name": "frame_us_max", "label": "Frame time, longest", "unit": "us"},
+    {"name": "update_us_mean", "label": "Update time, mean", "unit": "us"},
+    {"name": "draw_us_mean", "label": "Draw time, mean", "unit": "us"},
+    {"name": "present_us_mean", "label": "Present time, mean", "unit": "us"},
+    {"name": "fps_mean", "label": "Frames per second", "unit": "Hz"},
+    {"name": "missed_deadlines", "label": "Missed frame deadlines", "unit": "frames"}
+  ],
+  "statistics": {
+    "over": "the measured runs (warm-up excluded); a failed run has no values and is listed as failed",
+    "reported": ["n", "mean", "sd", "sem", "ci95_low", "ci95_high", "median", "min", "max", "cv"],
+    "sd": "sample standard deviation (n - 1)",
+    "ci95": "two-sided 95% Student t interval of the mean (t from the table for n - 1 degrees of freedom); none for n < 2",
+    "cv": "sd / mean"
+  },
+  "caveat": "Times measured on an emulator (PRG32-QT, QEMU) depend on the host computer and on the emulator; they are not the times of a PRG32 console, and a faster or slower emulator run says nothing about the console. Only a prg32 target is a physical device.",
+  "dataset": {
+    "format": "prg32-evaluation-dataset-1",
+    "csv_columns": ["evaluation_id", "target_kind", "target_name", "evidence", "firmware_version", "cartridge_sha256", "repetition", "role", "run_id", "case", "metric", "value", "unit"],
+    "csv_numbers": "a dot for decimals, no thousands separator, in every interface language"
+  }
+}

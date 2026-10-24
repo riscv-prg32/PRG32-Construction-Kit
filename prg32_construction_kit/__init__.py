@@ -7,7 +7,7 @@ from pathlib import Path
 import click
 from flask import Flask
 
-from . import audio_studio_api, auth, classes, cloud_storage, deploy, guest_api, identity, privacy, security, sso  # noqa: F401 - their tables must exist before create_all
+from . import audio_studio_api, auth, classes, cloud_storage, deploy, evaluation, guest_api, identity, privacy, security, sso  # noqa: F401 - their tables must exist before create_all
 from .config import Config
 from .db import db
 from .db import init_app as init_db_app
@@ -60,6 +60,7 @@ def create_app(test_config: dict | None = None) -> Flask:
     cloud_storage.init_app(app)
     audio_studio_api.init_app(app)
     deploy.init_app(app)
+    evaluation.init_app(app)
     sso.init_app(app)
     app.register_blueprint(bp)
     app.register_blueprint(privacy.bp)

@@ -368,7 +368,7 @@
   },
   {
    "id": "deployment",
-   "data": "which cartridge was put on which console, PRG32-QT or QEMU, in which slot, each step's log, the target's answers and a screenshot; the consoles and PRG32-QT addresses an administrator registered",
+   "data": "which cartridge was put on which console, PRG32-QT or QEMU, in which slot, each step's log, the target's answers and a screenshot; the consoles and PRG32-QT addresses an administrator registered; performance evaluations of the PRG32 Evaluation cartridge on those targets (each run's numbers)",
    "fields": {
     "deployments": [
      "id",
@@ -395,6 +395,25 @@
      "notes",
      "created_by",
      "created_at"
+    ],
+    "evaluations": [
+     "id",
+     "owner_id",
+     "project_id",
+     "artifact_id",
+     "target",
+     "target_kind",
+     "target_name",
+     "slot",
+     "repetitions",
+     "warm_up",
+     "status",
+     "progress",
+     "cancel_requested",
+     "log",
+     "result",
+     "created_at",
+     "updated_at"
     ]
    },
    "subjects": [
@@ -408,7 +427,7 @@
    "recipients": "none: the console, PRG32-QT or QEMU receives the cartridge only, never a name",
    "location": "the server chosen by the operator (configure in the EU/EEA, see processors_and_transfers.md)",
    "retention": "while the account exists",
-   "deletion": "erasure deletes the deployments and their folders; a registered console stays, without who registered it",
+   "deletion": "erasure deletes the deployments, the evaluations and their folders; a registered console stays, without who registered it",
    "transfers": "none",
    "review_owner": "the operator's privacy lead (name it in decisions.md)",
    "next_review": "2027-10-21 or on any change to the kit's data model"
@@ -663,7 +682,7 @@
   },
   {
    "id": "deployment_folders",
-   "data": "each deployment's screenshot, QEMU flash copy and serial log (DATA_DIR/deployments/<id>/)",
+   "data": "each deployment's screenshot, QEMU flash copy and serial log (DATA_DIR/deployments/<id>/); each evaluation's dataset (DATA_DIR/evaluations/<id>/dataset.json)",
    "where": "the server's data folder",
    "retention": "while the account exists",
    "deletion": "erasure deletes the folders with the deployments",

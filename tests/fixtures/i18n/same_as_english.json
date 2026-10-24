@@ -170,6 +170,8 @@
   "deploy.address_example",
   "deploy.kind_prg32qt",
   "error.problem",
+  "evaluate.median",
+  "evaluate.sd",
   "ide.build",
   "ide.git",
   "ide.ide",

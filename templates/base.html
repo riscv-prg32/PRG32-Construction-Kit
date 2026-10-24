@@ -71,6 +71,8 @@
         {% if current_user.authenticated %}
         {# Deploy: this project's compiled cartridge onto a console, PRG32-QT or QEMU (deploy.js, ADR-0028). #}
         <li class="nav-item"><a class="nav-link" href="/deploy{{ '?project=' ~ (nav_project.id | urlencode) if nav_project else '' }}"{% if nav_project %} data-ide-tool="deploy"{% endif %}><i class="bi bi-cpu"></i> {{ t("deploy.deploy") }}</a></li>
+        {# Evaluate: the PRG32 performance protocol on a target, raw data and charts (evaluate.js, EVAL-01). #}
+        <li class="nav-item"><a class="nav-link" href="/evaluate{{ '?project=' ~ (nav_project.id | urlencode) if nav_project else '' }}"{% if nav_project %} data-ide-tool="evaluate"{% endif %}><i class="bi bi-speedometer2"></i> {{ t("evaluate.evaluate") }}</a></li>
         <li class="nav-item"><a class="nav-link" href="/publish"><i class="bi bi-cloud-upload"></i> {{ t("common.publish") }}</a></li>
         {% endif %}
         <li class="nav-item"><a class="nav-link" href="/documentation"><i class="bi bi-book"></i> {{ t("base.docs") }}</a></li>
