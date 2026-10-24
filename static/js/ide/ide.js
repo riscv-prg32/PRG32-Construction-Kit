@@ -30,7 +30,7 @@
   let blocklyReady = false;
   let simulator = null;
   const editors = {};      // tab id -> Monaco editor
-  const generated = { c: null, asm: null, ir: null };
+  const generated = { c: null, asm: null, py: null, ir: null };
   let liveProblems = [];   // from the live checks of the open source
   let serverProblems = []; // from the last Generate or Compile
   let liveChecks = null;
@@ -97,6 +97,9 @@
       items.push({ id: 'folder-generated', label: tr('js.ide.generated_read_only', 'Generated (read-only)'), children: [
         { id: 'gen-c', label: 'game.c', icon: 'bi-file-earmark-lock', readonly: true },
         { id: 'gen-asm', label: 'game.S', icon: 'bi-file-earmark-lock', readonly: true },
+        // The Blocks as PRG32 Python, to read and compare (py_generator.py); a Python project's
+        // game.py is its own source.
+        ...(mode === 'blocks' ? [{ id: 'gen-py', label: 'game.py', icon: 'bi-file-earmark-lock', readonly: true }] : []),
         { id: 'gen-ir', label: 'game.ir.json', icon: 'bi-file-earmark-lock', readonly: true }] });
     }
     // Sprites and sound open Sprite Lab and AudioStudio as tabs, for this project (ADR-0024).
@@ -114,13 +117,16 @@
   function openFile(id) {
     if (id === 'blocks') return openBlocks(true);
     if (id === 'src') return openSource(true);
-    if (id === 'gen-c' || id === 'gen-asm' || id === 'gen-ir') return openGenerated(id.slice(4), true);
+    if (id === 'gen-c' || id === 'gen-asm' || id === 'gen-py' || id === 'gen-ir') return openGenerated(id.slice(4), true);
     if (id === 'sprite-new') { openTool('sprites'); return PRG32SpriteLab.create(); }
     if (id.startsWith('sprite-')) { openTool('sprites'); return PRG32SpriteLab.open(id.slice(7)); }
     if (id.startsWith('sound-')) return openTool('sound', id.slice(6));
   }
 
   // --- editors ---------------------------------------------------------------------------------
+  // The code editors follow the page's Day or Night colours, also when the menu bar's switch changes them.
+  const monacoTheme = () => (document.documentElement.getAttribute('data-bs-theme') === 'dark' ? 'vs-dark' : 'vs');
+  $(document).on('kit:color-scheme', () => { if (monaco) monaco.editor.setTheme(monacoTheme()); });
   function monacoTab(id, title, language, value, options) {
     return IdeShell.openTab({
       id, title, closable: options.closable,
@@ -131,12 +137,13 @@
               ${options.download ? '<button class="btn btn-outline-secondary btn-sm ide-download" type="button"><i class="bi bi-download" aria-hidden="true"></i> ' + Kit.escape(tr('js.ide.download', 'Download')) + '</button>' : ''}
               </span></div>`).appendTo(panel)
           : null;
-        if (toolbar) toolbar.find('span').text(options.note || (mode === 'python' ? tr('js.ide.read_only_made_from_game_py', 'Read-only: made from game.py.')
+        if (toolbar) toolbar.find('span').first().text(options.note || (mode === 'python' ? tr('js.ide.read_only_made_from_game_py', 'Read-only: made from game.py.')
           : tr('js.ide.read_only_made_from_the_blocks', 'Read-only: made from the blocks.')));
         const host = $('<div class="ide-monaco" data-focus-target></div>').appendTo(panel);
         const editor = monaco.editor.create(host[0], Object.assign(options.model ? { model: options.model } : { value, language }, {
           readOnly: !!options.readOnly, automaticLayout: true, minimap: { enabled: false },
           ariaLabel: options.ariaLabel, fontSize: 14, scrollBeyondLastLine: false, tabSize: 4,
+          theme: monacoTheme(),
         }));
         editors[id] = editor;
         host.data('focus', () => editor.focus());
@@ -197,22 +204,24 @@
   }
 
   function openGenerated(kind, focus) {
-    const titles = { c: tr('js.ide.game_c_generated', 'game.c (generated)'), asm: tr('js.ide.game_s_generated', 'game.S (generated)'), ir: 'game.ir.json' };
-    const languages = { c: 'c', asm: 'prg32-asm', ir: 'json' };
+    const titles = { c: tr('js.ide.game_c_generated', 'game.c (generated)'), asm: tr('js.ide.game_s_generated', 'game.S (generated)'),
+                     py: tr('js.ide.game_py_generated', 'game.py (generated)'), ir: 'game.ir.json' };
+    const languages = { c: 'c', asm: 'prg32-asm', py: 'prg32-python', ir: 'json' };
     const tab = IdeShell.tabs.get('gen-' + kind);
     if (tab && editors['gen-' + kind]) {
       IdeShell.activateTab('gen-' + kind);
     } else {
-      monacoTab('gen-' + kind, titles[kind], languages[kind], generated[kind] || '// Press Generate to make this file.',
+      monacoTab('gen-' + kind, titles[kind], languages[kind], generated[kind] || (kind === 'py' ? '# ' : '// ') + 'Press Generate to make this file.',
                 { readOnly: true, closable: true, ariaLabel: titles[kind] + tr('js.ide.read_only', ', read-only'),
-                  download: { c: 'game.c', asm: 'game.S', ir: 'game.ir.json' }[kind] });
+                  download: { c: 'game.c', asm: 'game.S', py: 'game.py', ir: 'game.ir.json' }[kind],
+                  note: kind === 'py' ? tr('js.ide.read_only_the_blocks_in_prg32_python', 'Read-only: the blocks written in PRG32 Python, to compare. The cartridge is built from game.c.') : undefined });
     }
     if (focus) editors['gen-' + kind].focus();
     if (generated[kind] === null) generate();
   }
 
   function updateGenerated() {
-    for (const kind of ['c', 'asm', 'ir']) {
+    for (const kind of ['c', 'asm', 'py', 'ir']) {
       const editor = editors['gen-' + kind];
       if (editor && generated[kind] !== null) editor.setValue(generated[kind]);
     }
@@ -263,6 +272,20 @@
     if (wanted === 'sprites' || wanted === 'sound') openTool(wanted);
   }
   window.addEventListener('hashchange', () => { if (project) openToolFromHash(); });
+
+  // The top menu's Editor, Sprite Lab and AudioStudio (base.html) switch tab here, without
+  // loading the page again; the address keeps the tool, so reloading opens it again.
+  $('[data-ide-tool="editor"], [data-ide-tool="sprites"], [data-ide-tool="sound"]').on('click', function (event) {
+    event.preventDefault();
+    const item = $(this).attr('data-ide-tool');
+    // The folded menu of a small screen closes.
+    if ($('#topNav').hasClass('show')) bootstrap.Collapse.getOrCreateInstance(document.getElementById('topNav'), { toggle: false }).hide();
+    history.replaceState(null, '', window.location.pathname + (item === 'editor' ? '' : '#' + item));
+    if (!project) return;               // still loading: the start opens the tool from the address
+    if (item === 'editor') openFile(mode === 'blocks' ? 'blocks' : 'src');
+    else openTool(item);
+  });
+  $(document).on('ide:tab', (event, id) => Kit.projectMenu.mark(id === 'tool-sprites' ? 'sprites' : id === 'tool-sound' ? 'sound' : 'editor'));
 
   // A tool changed the project: the tree and the blocks follow.
   $(document).on('prg32:sprites-changed', () => {
@@ -456,6 +479,7 @@
         if (generatesCode()) {
           generated.c = result.c_source || '';
           generated.asm = result.asm_source || '';
+          generated.py = result.python_source || '';
           generated.ir = JSON.stringify(result.game_ir, null, 2);
           updateGenerated();
         }
@@ -595,6 +619,7 @@
     command('open-source', tr('js.ide.open_source', 'Open source'), '', () => (mode === 'blocks' ? openBlocks(true) : openSource(true)));
     command('open-gen-c', tr('js.ide.open_generated_c', 'Open generated C'), '', () => generatesCode() && openGenerated('c', true));
     command('open-gen-asm', tr('js.ide.open_generated_assembly', 'Open generated assembly'), '', () => generatesCode() && openGenerated('asm', true));
+    command('open-gen-py', tr('js.ide.open_generated_python', 'Open the blocks as PRG32 Python'), '', () => mode === 'blocks' && openGenerated('py', true));
     command('open-gen-ir', tr('js.ide.open_game_ir', 'Open game IR'), '', () => generatesCode() && openGenerated('ir', true));
     command('focus-tree', tr('js.ide.focus_project_files', 'Focus project files'), 'F6', () => { IdeShell.toggleTree(true); IdeShell.focusTree(); });
     command('focus-editor', tr('js.ide.focus_editor', 'Focus editor'), 'F6', () => IdeShell.focusRegion('editor'));
@@ -784,7 +809,7 @@
       PRG32MonacoLanguage.register(monaco, { openSdk: openSdkHeader });
       spriteList = sprites.sprites || [];
       $('#ideTitle').text(project.title);
-      document.title = project.title + tr('js.ide.ide_prg32_construction_kit', ' - IDE - PRG32-Construction-Kit');
+      document.title = project.title + tr('js.ide.ide_prg32_construction_kit', ' - IDE - PRG32 Construction Kit');
       const saved = project.game_json || {};
       applyMode(['c', 'asm', 'python'].includes(saved.source_mode) ? saved.source_mode : 'blocks', spriteList);
       setDirty(false);

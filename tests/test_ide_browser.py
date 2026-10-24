@@ -310,3 +310,18 @@ def test_the_compiler_check_after_saving_adds_its_problems(browser, live_kit, mo
     assert page.evaluate("monaco.editor.getModelMarkers({owner: 'prg32'}).map(m => m.startLineNumber)") == [3]
     assert compiler.sources and compiler.sources[-1][1].endswith("/* saved */\n")
     context.close()
+
+
+def test_a_blocks_project_shows_its_game_py_beside_the_c(browser, live_kit):  # noqa: F811
+    """Generated (read-only) has game.py for Blocks (py_generator.py), with its note, Copy and Download."""
+    context = browser.new_context()
+    page, _ = open_ide(context, live_kit)
+    page.click("#ideTree [data-id='gen-py']")
+    wait_until(page, "!!document.querySelector('#tab-gen-py[aria-selected=true]')")
+    wait_until(page, "PRG32Ide.editors['gen-py'] && PRG32Ide.editors['gen-py'].getValue().includes('import prg32')")
+    source = page.evaluate("PRG32Ide.editors['gen-py'].getValue()")
+    assert source.startswith('"""Pong: the Blocks program written in PRG32 Python.') and "def update() -> None:" in source
+    toolbar = page.locator("#tabpanel-gen-py .ide-editor-toolbar")
+    assert "the blocks written in PRG32 Python" in toolbar.locator("span").first.inner_text()
+    assert toolbar.locator(".ide-copy").count() == 1 and toolbar.locator(".ide-download").count() == 1
+    context.close()

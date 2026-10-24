@@ -34,7 +34,7 @@ from typing import Any
 
 from .expressions import CONSTANTS, FUNCTION_FEATURES, FUNCTIONS, MAX_INT, ExpressionError, c_identifier, \
     parse_expr, render, state_name
-from .generator import BUTTON_NAMES, COLOR_NAMES, IR_ABI, MAX_LIST_SIZE, MAX_REPEAT, _ON_PIXEL
+from .generator import BUTTON_MAP, BUTTON_NAMES, COLOR_NAMES, IR_ABI, MAX_LIST_SIZE, MAX_REPEAT, _ON_PIXEL
 
 LANGUAGE_VERSION = 1
 LANGUAGE = f"prg32-python-{LANGUAGE_VERSION}"
@@ -1028,8 +1028,9 @@ class _Compiler:
             return constant
         if kind == "button":
             constant = self.prg32_name(node)
-            if constant not in BUTTON_NAMES:
-                raise self.fail("button", "Name a button: " + ", ".join(f"prg32.{b}" for b in BUTTON_NAMES), node)
+            if constant not in BUTTON_MAP:   # player 2's buttons too: prg32.P2_LEFT, ...
+                raise self.fail("button", "Name a button: " + ", ".join(f"prg32.{b}" for b in BUTTON_NAMES)
+                                + " (player 2: prg32.P2_LEFT, ...)", node)
             return constant
         if kind == "flag":
             if not (isinstance(node, ast.Constant) and isinstance(node.value, bool)):
@@ -1178,7 +1179,8 @@ class _Compiler:
             name = name if name is not None else call.func.id  # type: ignore[union-attr]
             if not builtin and name in CONDITIONS:
                 raise self.fail("condition_use", f"prg32.{name}(...) is a test: use it directly in an if", call)
-            if not builtin and name in STATEMENTS:
+            # prg32.frame is both: frame(x, y, w, h) draws an outline, frame() is the frame count.
+            if not builtin and name in STATEMENTS and not (name in VALUE_FUNCTIONS and not call.args and not call.keywords):
                 raise self.fail("value_expected", f"prg32.{name}(...) does something but gives no value", call)
             if not builtin and name not in VALUE_FUNCTIONS:
                 raise self.fail("unknown_function", f"prg32 has no function {name}", call.func)

@@ -1,29 +1,35 @@
+/* The PRG32 colours, from the official logo (static/img/prg32-logo.png): black, deep purple,
+   electric blue, cyan and neon magenta. The skin "prg32" is these; other skins
+   (static/css/themes/<skin>.css) change the --kit-* colours. */
 :root {
-  --kit-navy: #14213d;
-  --kit-blue: #2563eb;
-  --kit-gold: #fca311;
+  --kit-navy: #2a0f45;
+  --kit-blue: #0062dd;          /* links, focus rings, outline buttons (4.5:1 on white) */
+  --kit-gold: #ff2094;          /* the neon accent */
+  --kit-cyan: #00d2ff;
   --kit-paper: #f8fafc;
-  --kit-ink: #111827;
-  /* The colours a skin (static/css/themes/<skin>.css) may change; illustrations keep their own. */
-  --kit-deep: #111827;          /* the dark end of the menu bar and the welcome panel */
-  --kit-bright: #1d4ed8;        /* the bright end */
-  --kit-accent-rgb: 252, 163, 17;
-  --kit-page-top: #f6f8ff;
+  --kit-ink: #160c24;
+  --kit-deep: #000000;          /* the dark end of the menu bar and the welcome panel */
+  --kit-bright: #3d1670;        /* the bright end */
+  --kit-accent-rgb: 255, 32, 148;
+  --kit-line: linear-gradient(90deg, #ff2094, #9050dc 50%, #00d2ff);   /* the neon line under the menu bar */
+  --kit-page-top: #f5efff;
   --kit-page-bottom: #ffffff;
   --kit-card-bg: #ffffff;
-  --kit-pill-bg: #eef2ff;
-  --kit-pill-ink: #3730a3;
-  --kit-shadow-rgb: 17, 24, 39;
+  --kit-pill-bg: #fde4f2;
+  --kit-pill-ink: #9a0b70;
+  --kit-shadow-rgb: 42, 15, 69;
 }
 
-/* Dark colour scheme (Settings, Appearance): Bootstrap switches its own colours with data-bs-theme. */
+/* Night (the Day/Night switch in the menu bar, or Settings, Appearance): Bootstrap switches its
+   own colours with data-bs-theme. */
 [data-bs-theme=dark] {
-  --kit-ink: #e5e7eb;
-  --kit-page-top: #0b1220;
-  --kit-page-bottom: #111827;
-  --kit-card-bg: #1f2937;
-  --kit-pill-bg: #312e81;
-  --kit-pill-ink: #e0e7ff;
+  --kit-ink: #ece6f5;
+  --kit-blue: #4da3ff;
+  --kit-page-top: #07030d;
+  --kit-page-bottom: #110820;
+  --kit-card-bg: #1a0f2b;
+  --kit-pill-bg: #4a1145;
+  --kit-pill-ink: #ffd0ec;
   --kit-shadow-rgb: 0, 0, 0;
 }
 
@@ -38,7 +44,11 @@ body {
 
 .kit-navbar {
   background: linear-gradient(90deg, var(--kit-deep) 0%, var(--kit-navy) 55%, var(--kit-bright) 100%);
+  border-bottom: 2px solid transparent;
+  border-image: var(--kit-line, none) 1;
 }
+/* The PRG32 logo is pixel art on black: keep it crisp, with rounded corners like a cartridge label. */
+.kit-logo { height: 36px; width: auto; border-radius: 6px; image-rendering: pixelated; }
 
 .kit-hero {
   color: white;
@@ -335,6 +345,20 @@ body.dbg-mode-beginner .dbg-advanced { display: none !important; }
 body.dbg-mode-advanced .dbg-beginner { display: none !important; }
 
 /* Moved from inline styles so the Content Security Policy needs no inline style attributes. */
+/* The blocks pane in Day and Night (the menu bar's switch). Plain CSS, not a Blockly theme: a theme
+   makes Blockly write new <style> elements, which the offline pages' style hashes do not allow.
+   The labels get their own colour, so they never take the page's text colour. The blocks keep theirs. */
+#blocklyDiv { --kit-blocks-bg: #ffffff; --kit-blocks-list: #f3eefb; --kit-blocks-flyout: #e9e1f5;
+              --kit-blocks-ink: #160c24; --kit-blocks-grid: #d1d5db; --kit-blocks-scroll: #b9a7d3; }
+[data-bs-theme=dark] #blocklyDiv { --kit-blocks-bg: #120a1d; --kit-blocks-list: #1a0f2b; --kit-blocks-flyout: #241539;
+              --kit-blocks-ink: #ece6f5; --kit-blocks-grid: #3a2a55; --kit-blocks-scroll: #6b4f94; }
+#blocklyDiv .blocklyMainBackground { fill: var(--kit-blocks-bg) !important; }
+#blocklyDiv pattern line { stroke: var(--kit-blocks-grid); }
+#blocklyDiv .blocklyToolboxDiv, #blocklyDiv .blocklyToolbox { background-color: var(--kit-blocks-list); color: var(--kit-blocks-ink); }
+#blocklyDiv .blocklyTreeLabel, #blocklyDiv .blocklyToolboxCategoryLabel { color: var(--kit-blocks-ink); }
+#blocklyDiv .blocklyFlyoutBackground { fill: var(--kit-blocks-flyout) !important; fill-opacity: 1 !important; }
+#blocklyDiv .blocklyFlyoutLabelText { fill: var(--kit-blocks-ink); }
+#blocklyDiv .blocklyScrollbarHandle { fill: var(--kit-blocks-scroll); }
 #blocklyDiv { height: 72vh; min-height: 560px; width: 100%; border-radius: 1rem; overflow: hidden; }
 .kit-source-area { min-height: 560px; }
 .kit-w-kind { max-width: 140px; }

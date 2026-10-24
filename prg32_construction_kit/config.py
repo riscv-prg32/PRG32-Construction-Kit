@@ -121,10 +121,10 @@ class Config:
     MAINTENANCE_MESSAGE = os.environ.get("PRG32_KIT_MAINTENANCE_MESSAGE",
                                          "The kit is being updated. Please come back in a few minutes.")
     # Appearance (docs/admin_settings.md). Skins are static/css/themes/<skin>.css.
-    SITE_NAME = os.environ.get("PRG32_KIT_SITE_NAME", "PRG32-Construction-Kit")
+    SITE_NAME = os.environ.get("PRG32_KIT_SITE_NAME", "PRG32 Construction Kit")
     WELCOME_TEXT = os.environ.get("PRG32_KIT_WELCOME_TEXT", "")
     COLOR_SCHEME = os.environ.get("PRG32_KIT_COLOR_SCHEME", "light")
-    SKIN = os.environ.get("PRG32_KIT_SKIN", "classic")
+    SKIN = os.environ.get("PRG32_KIT_SKIN", "prg32")
     MAX_CONTENT_LENGTH = int(os.environ.get("PRG32_KIT_MAX_UPLOAD", str(32 * 1024 * 1024)))
     JSON_SORT_KEYS = False
 

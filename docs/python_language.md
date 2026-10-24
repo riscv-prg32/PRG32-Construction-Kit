@@ -157,12 +157,13 @@ A picture (`rows`) is 8 texts of up to 8 characters, `.` for an empty pixel:
 `sound_stop_all()`. The old buzzer does not exist.
 
 **Tests for `if`:** `held(button)` (every frame while held), `pressed(button)` (only the
-frame it goes down), `touching(ax, ay, aw, ah, bx, by, bw, bh)` (two rectangles overlap). They
+frame it goes down; player 2's buttons are `prg32.P2_LEFT`, `prg32.P2_A`, ...), `touching(ax, ay, aw, ah, bx, by, bw, bh)` (two rectangles overlap). They
 are used as the whole test, or joined with `and`: `if prg32.pressed(prg32.A) and playing:`.
 **Cartridge rule:** such an `if` cannot have `elif`/`else` yet; write a second `if`.
 
 **Values:** `clamp(v, low, high)`, `sign(x)`, `sin(degrees)` and `cos(degrees)` (times 256),
-`rgb(r, g, b)`, `random(low, high)` (both included), `frame()`, and for multiplayer `peers()`,
+`rgb(r, g, b)`, `random(low, high)` (both included), `frame()` (the frame count; `frame(x, y, w, h)`
+still draws an outline), and for multiplayer `peers()`,
 `peer_x(n)`, `peer_y(n)`, `peer_look(n)`.
 
 **Game services:** `band("TEXT", value)`, `score_submit(value)`, `scoreboard("TITLE")`,

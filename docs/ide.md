@@ -8,7 +8,7 @@ like a JetBrains IDE (ADR-0024):
 | Part | What it does |
 | --- | --- |
 | Toolbar | The project's name and type, **Project** menu, **Save**, **Run**, **Generate**, **Compile**, **Commands**, and buttons to show or hide the side panes. |
-| Files (left) | Your source: the Blocks program, `game.c`, `game.S` or `game.py`. For Blocks and Python also the **generated** `game.c`, `game.S` and `game.ir.json` (read-only, with **Copy** and **Download**). **Sprites** and **Sound** open Sprite Lab and AudioStudio. |
+| Files (left) | Your source: the Blocks program, `game.c`, `game.S` or `game.py`. For Blocks and Python also the **generated** `game.c`, `game.S` and `game.ir.json`, and for Blocks `game.py`, the same game in PRG32 Python (read-only, with **Copy** and **Download**). **Sprites** and **Sound** open Sprite Lab and AudioStudio. |
 | Editor (centre) | One tab per open file or tool. Blocks open in Blockly; C, assembly and PRG32 Python in a code editor with colours, suggestions and help (see below); Sprite Lab and AudioStudio as tabs of this project. |
 | Tool window (below the editor) | **Problems** (Enter on one jumps to its line), **Build** (the build log and the cartridge downloads), **Console** (what the kit did, read-only), **Debug** (stop at a block, a line or an instruction: lesson 7), **Git** (the project on GitHub: `github.md`). |
 | Simulator (right) | **Run** builds your game and plays it here, in the PRG32 core compiled to WebAssembly: Blocks, C, assembly and Python alike, also without an account. Play/Pause, Frame, Restart, speed, sound and on-screen buttons. |
@@ -16,6 +16,27 @@ like a JetBrains IDE (ADR-0024):
 
 Drag the lines between the panes to resize them, or move them with the arrow keys; the IDE
 remembers the layout in this browser.
+
+## The top menu works on the open project
+
+While a project is open (the IDE, and the Player opened from it), the menu at the top of the
+page is about that project:
+
+| Item | What it does |
+| --- | --- |
+| The PRG32 icon | Closes the project and goes back to the Projects page. |
+| The project's name | Shown where the kit's name usually is, so you always know which game you are changing. |
+| **Editor** | Back to the project's Blocks, `game.c`, `game.S` or `game.py`. |
+| **Sprite Lab** | Opens Sprite Lab for this project (a tab of the IDE). |
+| **AudioStudio** | Opens AudioStudio for this project (a tab of the IDE). |
+| **Player** | Plays the newest cartridge compiled for this project (press **Compile** first). |
+
+In the IDE, Editor, Sprite Lab and AudioStudio change tab without loading the page again, and
+the address remembers the tool (`#sprites`, `#sound`), so reloading opens it again. On the
+Projects page no project is open: each project card has **Open**, **Sprite Lab**,
+**AudioStudio** and **Player** for that project instead, and the welcome banner has
+**Sprite Lab**, **AudioStudio** and **Player** not tied to a project: the first two ask which
+game to open (they are tabs of its IDE), the Player opens any `.prg32` file.
 
 ## The project type
 

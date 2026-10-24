@@ -2,7 +2,8 @@
 
 Sprite Lab is a small pixel editor for a game's pictures. It opens as a tab of the IDE, for
 the project that is open: **Sprites** in the project files (each sprite, or **New sprite…**),
-or the **Sprite Lab** menu item, which asks for the project first. It has the same layout as
+the **Sprite Lab** item of the top menu while the project is open, or **Sprite Lab** on a
+project card on the Projects page. It has the same layout as
 AudioStudio: the toolbar on top (**New**, **Save**, **Import**, **Export PNG**, **Delete**,
 **Convert to C**), the project's sprites on the left, the canvas in the centre, the
 properties and the generated C on the right.

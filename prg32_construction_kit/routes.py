@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import io
 import json
+import re
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
@@ -41,6 +42,7 @@ from .provenance import build_provenance
 from .build_slots import BuildServerBusy, build_slot
 from .classes import supervises
 from .asm_generator import ir_to_asm
+from .py_generator import from_blocks, ir_to_python
 from .debug_info import unavailable as debug_unavailable
 from .generator import blocks_to_c, ir_to_c, sprite_to_c
 from .source_maps import project_source_map
@@ -260,8 +262,20 @@ def stored_file(path_value: str | None) -> Path | None:
     return path if path.is_file() else None
 
 
+# A project id as it appears in page addresses (the same shape auth.GUEST_PAGES accepts).
+PAGE_PROJECT_ID = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
+
+
+def open_project(project_id: str | None) -> dict[str, str] | None:
+    """The project the top menu works on (base.html), or None. Only its id: the menu's links."""
+    if not project_id or not PAGE_PROJECT_ID.match(project_id):
+        return None
+    return {"id": project_id}
+
+
 @bp.get("/")
 def index():
+    # The Projects page: no project is open, so the top menu shows the kit's own items.
     return render_template("index.html")
 
 
@@ -279,7 +293,7 @@ def project_ide(project_id: str):
     # A guest's project is in their browser (theirs to change); a missing or someone else's
     # project is reported by the page itself, and its tools open read-only.
     can_edit = can_write(project) if project is not None else not signed_in
-    return render_template("ide.html", project_id=project_id, can_edit=can_edit)
+    return render_template("ide.html", project_id=project_id, can_edit=can_edit, nav_project=open_project(project_id))
 
 
 @bp.get("/sprites")
@@ -295,8 +309,11 @@ def artifacts_page():
 
 @bp.get("/player")
 def player_page():
-    """Run a .prg32 cartridge in the browser (the PRG32-QT core compiled to WebAssembly)."""
-    return render_template("player.html")
+    """Run a .prg32 cartridge in the browser (the PRG32-QT core compiled to WebAssembly).
+
+    /player?project=<id> plays that project's newest compiled cartridge (player.js).
+    """
+    return render_template("player.html", nav_project=open_project(request.args.get("project")))
 
 
 @bp.get("/publish")
@@ -1037,6 +1054,9 @@ def api_convert_project(project_id: str):
     if "asm" in sources:
         body["asm_source"] = sources["asm"]
         body["asm_artifact"] = public("artifacts", artifacts["asm"])
+    if from_blocks(game_ir):
+        # The same game in PRG32 Python, to read beside game.c (py_generator.py); it is never built.
+        body["python_source"] = ir_to_python(game_ir)
     return jsonify(body)
 
 

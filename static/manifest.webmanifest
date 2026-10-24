@@ -1,13 +1,14 @@
 {
-  "name": "PRG32-Construction-Kit",
+  "name": "PRG32 Construction Kit",
   "short_name": "PRG32 Kit",
   "description": "Scratch-inspired PRG32 blocks-to-cartridge classroom studio.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "background_color": "#f8fafc",
-  "theme_color": "#14213d",
+  "theme_color": "#180c20",
   "icons": [
-    {"src": "/static/img/prg32-icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable"}
+    {"src": "/static/img/prg32-icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable"},
+    {"src": "/static/img/prg32-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
   ]
 }

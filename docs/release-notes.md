@@ -2,6 +2,37 @@
 
 ## Unreleased
 
+### The PRG32 look: logo, colours, Day and Night
+
+- The Projects page's title says what the kit does: cartridges in RISC-V assembly, C, Python
+  or blocks, with sprites and audio, simulated, run on a real PRG32 and published on the
+  Cartridge Store (in all five languages).
+- The menu bar shows the official PRG32 logo (`PRG32/assets/prg32_logo.png`) and the name
+  **PRG32 Construction Kit**, always; the project's name is in the IDE's toolbar. The logo
+  closes an open project. The browser-tab, home-screen and installed-app icons are made from
+  the same logo by `tools/make_icons.py`.
+- The kit's colours are the logo's (black, deep purple, blue, cyan and neon magenta): the new
+  default skin **prg32**. The first navy and gold stay as the skin **classic**.
+- A **Day/Night** switch in the menu bar: each reader's choice, kept in this browser
+  (`prg32-kit-color-scheme`, on `/privacy#storage`), applied before a page is drawn, also
+  on the offline pages; the IDE's code editors follow it.
+
+### The top menu works on the open project (IDE-01)
+
+- While a project is open (the IDE, `/player?project=<id>`), the PRG32 icon closes it and goes
+  back to Projects, the project's name replaces the kit's, and **Editor**, **Sprite Lab**,
+  **AudioStudio** and **Player** work on that project: the first three switch tab in the IDE
+  without a reload, Player plays the project's newest compiled cartridge (`docs/ide.md`).
+- **Generated (read-only)** of a Blocks project now has `game.py`: the same game in PRG32
+  Python, to read beside `game.c` and `game.S` (`generated_code.md`). Every example gives a
+  `game.py` the PRG32 Python compiler accepts and that plays exactly like the blocks.
+  PRG32 Python also accepts player 2's buttons (`prg32.P2_LEFT`, ...) and `prg32.frame()` as
+  the frame count, as its guide said.
+- Each project card on the Projects page has **Sprite Lab**, **AudioStudio** and **Player**
+  beside **Open**; the welcome banner has **Sprite Lab**, **AudioStudio** and **Player** not tied
+  to a project (choose the game, or open a `.prg32` file). With no project open, the menu keeps
+  the project pickers and the empty Player.
+
 ### PRG32 Python projects and five interface languages (I18N-01, PY-01)
 
 - **PRG32 Python** (ADR-0026, `python_language.md`, tutorial 9): a fourth project type. `game.py`

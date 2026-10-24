@@ -67,18 +67,33 @@
     player.setButton($(this).data('button'), false);
   });
 
-  // /player?artifact=<id>: a cartridge compiled in the editor.
-  const artifact = new URLSearchParams(window.location.search).get('artifact');
-  if (artifact) {
-    fetch('/api/artifacts/' + encodeURIComponent(artifact) + '/download', { headers: { 'X-PRG32-Kit': '1' } })
+  // A cartridge compiled in the IDE (an artifact of kind prg32_cartridge).
+  function play(artifact, name) {
+    return fetch('/api/artifacts/' + encodeURIComponent(artifact) + '/download', { headers: { 'X-PRG32-Kit': '1' } })
       .then(response => {
         if (!response.ok) throw new Error(tr('js.player.could_not_download_artifact', 'could not download artifact {artifact}', { artifact: artifact }));
         return response.arrayBuffer();
       })
-      .then(bytes => open(bytes, artifact))
+      .then(bytes => open(bytes, name || artifact))
       // Source and block debugging (ADR-0015): the maps the kit saved with this cartridge.
       .then(() => Kit.api('/api/artifacts/' + encodeURIComponent(artifact) + '/debug'))
       .then(answer => window.PRG32SourceDebugger && window.PRG32SourceDebugger.attach(answer))
       .catch(err => Kit.toast(err.message, 'danger'));
+  }
+
+  // /player?artifact=<id>: that cartridge. /player?project=<id> (the Player item of the top menu
+  // and of the Projects page): the newest cartridge compiled for that project.
+  const params = new URLSearchParams(window.location.search);
+  const artifact = params.get('artifact');
+  const project = params.get('project');
+  if (artifact) play(artifact);
+  else if (project) {
+    Kit.api('/api/artifacts?project_id=' + encodeURIComponent(project) + '&kind=prg32_cartridge').then(data => {
+      const newest = (data.artifacts || [])[0];   // the server lists the newest first
+      if (newest) return play(newest.id, newest.name);
+      $('#playerStatus').empty()
+        .append($('<span></span>').text(tr('js.player.this_project_has_no_cartridge_yet', 'This project has no compiled cartridge yet: press Compile in the Editor, then come back here.')))
+        .append($('<a></a>').attr('href', '/ide/' + encodeURIComponent(project)).text(tr('js.player.open_the_editor', 'Open the Editor')));
+    }).catch(err => Kit.toast(err.message, 'danger'));
   }
 })();

@@ -34,9 +34,9 @@ def test_a_change_applies_at_once_and_can_go_back_to_the_default(client):
     page = client.get("/").get_data(as_text=True)
     assert "Room 12 Game Lab" in page
     item = setting(client, "SITE_NAME")
-    assert item["changed"] and item["value"] == "Room 12 Game Lab" and item["default"] == "PRG32-Construction-Kit"
+    assert item["changed"] and item["value"] == "Room 12 Game Lab" and item["default"] == "PRG32 Construction Kit"
     assert put(client, SITE_NAME=None).status_code == 200
-    assert setting(client, "SITE_NAME")["value"] == "PRG32-Construction-Kit"
+    assert setting(client, "SITE_NAME")["value"] == "PRG32 Construction Kit"
 
 
 @pytest.mark.parametrize("changes", [
@@ -48,7 +48,7 @@ def test_a_change_applies_at_once_and_can_go_back_to_the_default(client):
 def test_wrong_values_are_refused_and_nothing_is_saved(client, changes):
     response = put(client, **{"SITE_NAME": "Saved?", **changes})
     assert response.status_code == 400, response.get_json()
-    assert setting(client, "SITE_NAME")["value"] == "PRG32-Construction-Kit"
+    assert setting(client, "SITE_NAME")["value"] == "PRG32 Construction Kit"
 
 
 def test_the_environment_wins_and_locks_the_setting(client, monkeypatch):
@@ -159,7 +159,7 @@ def test_another_process_sees_a_change(tmp_path):
     with second.app_context():
         from prg32_construction_kit import settings
 
-        assert settings.get("SITE_NAME") == "PRG32-Construction-Kit"
+        assert settings.get("SITE_NAME") == "PRG32 Construction Kit"
     assert put(first.test_client(), SITE_NAME="Shared Lab").status_code == 200
     with second.app_context():
         assert settings.get("SITE_NAME") == "Shared Lab"

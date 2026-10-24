@@ -1,5 +1,6 @@
 /* Skin "contrast": black, white and yellow, for students who need strong contrast. */
 :root {
+  --kit-line: none;
   --kit-navy: #000000;
   --kit-blue: #0b3d91;
   --kit-gold: #ffd400;

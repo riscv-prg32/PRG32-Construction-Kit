@@ -14,6 +14,8 @@ Start here, then follow the links.
    `handwritten_assembly.md`. In Python: choose **Python (PRG32 Python)**; the language is in
    `python_language.md`, the first lesson in `tutorials/09_python.md`.
    The kit speaks English, Italiano, Español, Français and Deutsch (menu at the top): `i18n.md`.
+   The moon/sun button beside it switches between **Night** (dark) and **Day** (light) colours;
+   your choice stays in this browser, also for the offline pages and the IDE's code editors.
 7. **Playing your real cartridge in the browser:** `wasm_runtime.md`;
    stepping through it instruction by instruction: `tutorials/07_debugger.md`.
    Working without the server: `offline.md`.

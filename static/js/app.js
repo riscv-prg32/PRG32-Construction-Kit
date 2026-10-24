@@ -139,6 +139,43 @@ $(function () {
   try { localStorage.setItem('prg32-kit-last-project', projectId); } catch (_) { /* private window */ }
 });
 
+// The top menu of an open project (base.html): which of Editor, Sprite Lab, AudioStudio and
+// Player is shown now.
+Kit.projectMenu = {
+  mark(item) {
+    $('[data-ide-tool]').removeClass('active').removeAttr('aria-current');
+    $('[data-ide-tool="' + item + '"]').addClass('active').attr('aria-current', 'page');
+  },
+};
+$(function () {
+  if (!$('#navCloseProject').length) return;
+  const hash = window.location.hash.slice(1);
+  Kit.projectMenu.mark(window.location.pathname === '/player' ? 'player'
+    : hash === 'sprites' || hash === 'sound' ? hash : 'editor');
+});
+
+// The Day/Night switch (base.html): this reader's colours, kept in this browser; theme.js applies
+// them before the next page is drawn. Pages that draw their own colours listen for kit:color-scheme.
+$(function () {
+  const button = $('#schemeSwitch');
+  if (!button.length) return;
+  const root = document.documentElement;
+  function show() {
+    const night = root.getAttribute('data-bs-theme') === 'dark';
+    button.attr('aria-pressed', String(night))
+      .attr('title', night ? tr('base.day_light_colours', 'Day: light colours') : tr('base.night_dark_colours', 'Night: dark colours'));
+    button.find('i').attr('class', night ? 'bi bi-sun' : 'bi bi-moon-stars');
+  }
+  show();
+  button.on('click', () => {
+    const night = root.getAttribute('data-bs-theme') !== 'dark';
+    root.setAttribute('data-bs-theme', night ? 'dark' : 'light');
+    try { localStorage.setItem('prg32-kit-color-scheme', night ? 'night' : 'day'); } catch (_) { /* private window */ }
+    show();
+    $(document).trigger('kit:color-scheme', [night]);
+  });
+});
+
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     // Served from the root so it covers every page (it caches static files only).

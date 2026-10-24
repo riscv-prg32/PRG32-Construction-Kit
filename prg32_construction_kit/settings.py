@@ -77,7 +77,7 @@ GROUPS = (
     ("build", "Build limits"),
 )
 
-SKINS = ("classic", "ocean", "forest", "contrast")
+SKINS = ("prg32", "classic", "ocean", "forest", "contrast")
 COLOR_SCHEMES = ("light", "dark", "auto")
 
 REGISTRY: tuple[Setting, ...] = (
@@ -124,7 +124,8 @@ REGISTRY: tuple[Setting, ...] = (
     Setting("COLOR_SCHEME", "PRG32_KIT_COLOR_SCHEME", "appearance", "choice", "Colour scheme",
             "auto follows each computer's light or dark setting.", choices=COLOR_SCHEMES),
     Setting("SKIN", "PRG32_KIT_SKIN", "appearance", "choice", "Skin",
-            "classic: navy and gold; ocean: blue and teal; forest: green; contrast: high contrast.",
+            "prg32: the PRG32 logo's colours; classic: navy and gold; ocean: blue and teal; forest: green; "
+            "contrast: high contrast.",
             choices=SKINS),
     # --- classroom ----------------------------------------------------------------------
     Setting("PRG32_KIT_QUOTA_PROJECTS", "PRG32_KIT_QUOTA_PROJECTS", "classroom", "int", "Projects per user",
@@ -494,8 +495,8 @@ def init_app(app) -> None:
     @app.context_processor
     def inject_site() -> dict[str, Any]:
         scheme = get("COLOR_SCHEME")
-        skin = get("SKIN") if get("SKIN") in SKINS else "classic"
-        return {"site": {"name": get("SITE_NAME") or "PRG32-Construction-Kit", "welcome": get("WELCOME_TEXT") or "",
+        skin = get("SKIN") if get("SKIN") in SKINS else "prg32"
+        return {"site": {"name": get("SITE_NAME") or "PRG32 Construction Kit", "welcome": get("WELCOME_TEXT") or "",
                          "color_scheme": scheme if scheme in COLOR_SCHEMES else "light",
                          "skin": skin, "skin_css": f"css/themes/{skin}.css",
                          "maintenance": bool(get("MAINTENANCE_MODE"))}}

@@ -3,10 +3,14 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#14213d">
-  <title data-i18n="offline.title">Offline - PRG32-Construction-Kit</title>
+  <meta name="theme-color" content="#180c20">
+  <title data-i18n="offline.title">Offline - PRG32 Construction Kit</title>
   <link rel="manifest" href="/static/manifest.webmanifest">
-  <link rel="icon" href="/static/img/prg32-icon.svg" type="image/svg+xml">
+  <link rel="icon" href="/static/img/prg32-icon-32.png" sizes="32x32" type="image/png">
+  <link rel="icon" href="/static/img/prg32-icon-192.png" sizes="192x192" type="image/png">
+  <link rel="apple-touch-icon" href="/static/img/prg32-icon-180.png">
+  <!-- Day or Night, as chosen in the kit's menu bar (theme.js). -->
+  <script src="/static/js/theme.js"></script>
   <link href="/static/vendor/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
   <link href="/static/vendor/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
   <link href="/static/css/app.css" rel="stylesheet">
@@ -18,8 +22,8 @@
 <nav class="navbar navbar-dark kit-navbar shadow-sm">
   <div class="container-fluid">
     <span class="navbar-brand d-flex align-items-center gap-2">
-      <img src="/static/img/prg32-icon.svg" alt="" width="32" height="32">
-      <span>PRG32-Construction-Kit</span>
+      <img class="kit-logo" src="/static/img/prg32-logo.png" alt="PRG32" width="58" height="36">
+      <span>PRG32 Construction Kit</span>
     </span>
     <span class="d-flex align-items-center gap-2">
       <label class="visually-hidden" for="localeChoice" data-i18n="base.language">Language</label>

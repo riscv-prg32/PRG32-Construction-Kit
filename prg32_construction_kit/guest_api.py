@@ -73,6 +73,7 @@ def example(slug: str):
 @bp.post("/api/guest/convert")
 def convert():
     from .asm_generator import ir_to_asm
+    from .py_generator import from_blocks, ir_to_python
     from .routes import SOURCE_LANGUAGES, generate_sources
 
     payload = _payload()
@@ -100,6 +101,8 @@ def convert():
         body["c_source"] = c_source
     if language in ("asm", "both"):
         body["asm_source"] = game_ir["source_asm"] if handwritten else ir_to_asm(game_ir)
+    if from_blocks(game_ir):
+        body["python_source"] = ir_to_python(game_ir)   # to read beside game.c; never built
     return jsonify(body)
 
 

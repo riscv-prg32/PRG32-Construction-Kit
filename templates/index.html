@@ -17,13 +17,20 @@
   <div class="row align-items-center g-4">
     <div class="col-lg-8">
       <div class="badge text-bg-warning mb-3">{{ t("index.scratch_inspired_prg32_game_studio") }}</div>
-      <h1 class="display-5 fw-bold mb-3">{{ t("index.build_cartridges_with_blocks_sprites_sim") }}</h1>
+      <h1 class="fs-2 fw-bold lh-sm mb-3">{{ t("index.build_cartridges_with_blocks_sprites_sim") }}</h1>
       <p class="lead mb-4">{% if site.welcome %}{{ site.welcome }}{% else %}{{ t("index.students_assemble_game_logic_visually_pl") }}{% endif %}</p>
       <div class="d-flex flex-wrap gap-2">
         <button class="btn btn-primary btn-lg" data-bs-toggle="modal" data-bs-target="#newProjectModal"><i class="bi bi-plus-circle"></i> {{ t("index.new_project") }}</button>
         <button class="btn btn-outline-light btn-lg" data-bs-toggle="modal" data-bs-target="#examplesModal"><i class="bi bi-collection-play"></i> {{ t("index.examples") }}</button>
         <label class="btn btn-outline-light btn-lg mb-0"><i class="bi bi-file-earmark-arrow-up"></i> {{ t("index.import_project") }} <input class="d-none" type="file" id="importProjectFile" accept="application/json,.json,application/zip,.zip"></label>
         <a class="btn btn-outline-light btn-lg" href="/documentation"><i class="bi bi-journal-text"></i> {{ t("index.learn") }}</a>
+      </div>
+      {# Not tied to an open project: Sprite Lab and AudioStudio ask for the game first (they are
+         tabs of its IDE, ADR-0024); the Player opens any .prg32 file. #}
+      <div class="d-flex flex-wrap gap-2 mt-2" id="heroTools">
+        <a class="btn btn-outline-light btn-lg" href="/sprites"><i class="bi bi-brush" aria-hidden="true"></i> Sprite Lab</a>
+        <a class="btn btn-outline-light btn-lg" href="/audio-studio"><i class="bi bi-music-note-beamed" aria-hidden="true"></i> AudioStudio</a>
+        <a class="btn btn-outline-light btn-lg" href="/player"><i class="bi bi-cpu" aria-hidden="true"></i> {{ t("base.player") }}</a>
       </div>
     </div>
     <div class="col-lg-4">

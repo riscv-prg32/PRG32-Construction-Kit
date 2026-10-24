@@ -17,7 +17,11 @@
     return mode === 'c' || mode === 'asm' || mode === 'python' ? mode : 'blocks';
   }
 
+  // Open, Sprite Lab, AudioStudio and Player work on this project, like the top menu once it is open.
+  // The two tools' names are names, the same in every language.
+  const TOOL_NAMES = { sprites: 'Sprite Lab', sound: 'AudioStudio' };
   function card(project) {
+    const ide = '/ide/' + encodeURIComponent(project.id);
     return `<div class="col-md-6 col-xl-4">
       <div class="card project-card h-100">
         <div class="project-icon"></div>
@@ -26,9 +30,11 @@
             <span class="badge rounded-pill text-bg-secondary align-middle fs-6 fw-normal">${TYPE_NAMES[projectType(project)]}</span></h3>
           <p class="text-muted small mb-2">${Kit.escape(project.description || tr('js.dashboard.no_summary_yet', 'No summary yet.'))}</p>
           <div class="mb-3">${Kit.tags(project.tags)}</div>
-          <div class="d-flex gap-2">
-            <a class="btn btn-primary btn-sm" href="/ide/${encodeURIComponent(project.id)}"><i class="bi bi-pencil-square"></i> ${tr('js.dashboard.open', 'Open')}</a>
-            <a class="btn btn-outline-primary btn-sm" href="/audio-studio/${encodeURIComponent(project.id)}"><i class="bi bi-music-note-beamed"></i> ${tr('js.ide.sound', 'Sound')}</a>
+          <div class="d-flex flex-wrap gap-2">
+            <a class="btn btn-primary btn-sm" href="${ide}"><i class="bi bi-pencil-square"></i> ${tr('js.dashboard.open', 'Open')}</a>
+            <a class="btn btn-outline-primary btn-sm" href="${ide}#sprites"><i class="bi bi-brush" aria-hidden="true"></i> ${TOOL_NAMES.sprites}</a>
+            <a class="btn btn-outline-primary btn-sm" href="${ide}#sound"><i class="bi bi-music-note-beamed" aria-hidden="true"></i> ${TOOL_NAMES.sound}</a>
+            <a class="btn btn-outline-success btn-sm" href="/player?project=${encodeURIComponent(project.id)}" title="${Kit.escape(tr('js.dashboard.play_the_compiled_cartridge', 'Play the compiled cartridge'))}"><i class="bi bi-cpu" aria-hidden="true"></i> ${tr('base.player', 'Player')}</a>
             <button class="btn btn-outline-secondary btn-sm cloud-project cloud-only" data-id="${Kit.escape(project.id)}" data-title="${Kit.escape(project.title)}" aria-label="${Kit.escape(tr('js.dashboard.cloud_copy_of', 'Cloud copy of {title}', { title: project.title }))}"><i class="bi bi-cloud"></i></button>
             <button class="btn btn-outline-danger btn-sm delete-project" data-id="${Kit.escape(project.id)}" aria-label="${Kit.escape(tr('js.dashboard.delete_title', 'Delete {title}', { title: project.title }))}"><i class="bi bi-trash" aria-hidden="true"></i></button>
           </div>
