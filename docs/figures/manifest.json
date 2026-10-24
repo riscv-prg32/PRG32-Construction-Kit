@@ -973,7 +973,11 @@
     "static/js/ide/",
     "static/css/",
     "static/i18n/"
-   ]
+   ],
+   "acknowledged": {
+    "commit": "e60e95d",
+    "note": "the catalogs only gained server messages (sign-in, account, admin answers); nothing on the IDE screen changed"
+   }
   },
   "docs/figures/locales/ide.en.png": {
    "browser": "chromium 156.0.8078.47 (headless)",
@@ -995,7 +999,11 @@
     "static/js/ide/",
     "static/css/",
     "static/i18n/"
-   ]
+   ],
+   "acknowledged": {
+    "commit": "e60e95d",
+    "note": "the catalogs only gained server messages (sign-in, account, admin answers); nothing on the IDE screen changed"
+   }
   },
   "docs/figures/locales/ide.es.png": {
    "browser": "chromium 156.0.8078.47 (headless)",
@@ -1017,7 +1025,11 @@
     "static/js/ide/",
     "static/css/",
     "static/i18n/"
-   ]
+   ],
+   "acknowledged": {
+    "commit": "e60e95d",
+    "note": "the catalogs only gained server messages (sign-in, account, admin answers); nothing on the IDE screen changed"
+   }
   },
   "docs/figures/locales/ide.fr.png": {
    "browser": "chromium 156.0.8078.47 (headless)",
@@ -1039,7 +1051,11 @@
     "static/js/ide/",
     "static/css/",
     "static/i18n/"
-   ]
+   ],
+   "acknowledged": {
+    "commit": "e60e95d",
+    "note": "the catalogs only gained server messages (sign-in, account, admin answers); nothing on the IDE screen changed"
+   }
   },
   "docs/figures/locales/ide.it.png": {
    "browser": "chromium 156.0.8078.47 (headless)",
@@ -1061,7 +1077,11 @@
     "static/js/ide/",
     "static/css/",
     "static/i18n/"
-   ]
+   ],
+   "acknowledged": {
+    "commit": "e60e95d",
+    "note": "the catalogs only gained server messages (sign-in, account, admin answers); nothing on the IDE screen changed"
+   }
   },
   "docs/figures/locales/ide.zh-Hans.png": {
    "browser": "chromium 156.0.8078.47 (headless)",
@@ -1083,7 +1103,11 @@
     "static/js/ide/",
     "static/css/",
     "static/i18n/"
-   ]
+   ],
+   "acknowledged": {
+    "commit": "e60e95d",
+    "note": "the catalogs only gained server messages (sign-in, account, admin answers); nothing on the IDE screen changed"
+   }
   },
   "docs/figures/pipeline.svg": {
    "browser": "n/a",
