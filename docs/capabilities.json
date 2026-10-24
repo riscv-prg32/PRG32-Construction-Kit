@@ -891,11 +891,34 @@
     {
       "id": "DEP-04",
       "title": "Unified Deploy tool for a physical PRG32, QEMU and PRG32-QT",
-      "status": "missing",
+      "status": "partial",
       "audit_score": 0,
-      "source": [],
-      "tests": [],
-      "note": "Planned (audit of 7a700ba). No top-menu Deploy tool yet. Existing pieces it will build on: tools/delivery_check.py (physical console recording, stand-in device only), QEMU audio runs and the PRG32-QT web-API delivery of DEP-02. An emulator run is never physical-device evidence."
+      "source": [
+        "prg32_construction_kit/deploy.py::HttpTarget",
+        "prg32_construction_kit/deploy.py::QemuTarget",
+        "prg32_construction_kit/deploy.py::run_deployment",
+        "prg32_construction_kit/deploy.py::cartridge_for",
+        "prg32_construction_kit/deploy.py::abi_problems",
+        "static/js/deploy.js",
+        "templates/deploy.html",
+        "tools/build_qemu_firmware.py",
+        "tools/deploy_evidence.py"
+      ],
+      "tests": [
+        "tests/test_deploy.py::test_a_cartridge_runs_on_a_console_with_every_step_recorded",
+        "tests/test_deploy.py::test_prg32_qt_is_an_emulator_run_never_physical_evidence",
+        "tests/test_deploy.py::test_a_slot_must_be_named_and_confirmed",
+        "tests/test_deploy.py::test_a_slot_that_changed_since_the_student_looked_is_not_overwritten",
+        "tests/test_deploy.py::test_a_stale_build_is_refused",
+        "tests/test_deploy.py::test_a_cartridge_whose_bytes_changed_after_the_build_is_refused",
+        "tests/test_deploy.py::test_an_unsupported_abi_is_refused_before_anything_is_sent",
+        "tests/test_deploy.py::test_a_full_target_is_refused_before_and_while_sending",
+        "tests/test_deploy.py::test_a_dropped_connection_is_retried_then_reported",
+        "tests/test_deploy.py::test_a_launch_failure_is_reported_with_what_the_slot_holds",
+        "tests/test_deploy.py::test_a_deployment_can_be_cancelled",
+        "tests/test_deploy_evidence.py::test_the_recorded_deployments_passed_and_name_what_they_prove"
+      ],
+      "note": "ADR-0028: Deploy in the project menu, one adapter interface for a PRG32 console and PRG32-QT (the PRG32 web API) and QEMU on the server (a fresh copy of a firmware image from tools/build_qemu_firmware.py). Administrators register targets; identity, ABI, size/RAM, build hash and staleness, architecture and the slot the student saw are checked before sending; progress, log, cancel, retries, one deployment per target, interrupted runs, recovery notes and a screenshot. Negative tests (tests/fake_prg32.py): disconnects, stale builds, hash mismatch, full targets, unsupported ABI, launch failure. Recorded 2026-10-24 through the kit's own API (tools/deploy_evidence.py, docs/evidence/deploy/): QEMU with firmware from SDK 679dfb5, and canonical PRG32-QT f6d80ad; same cartridge SHA-256 on both. No console available: the physical-device path is tested only against the stand-in, and no physical-device evidence exists (DEP-01)."
     },
     {
       "id": "EVAL-01",

@@ -182,6 +182,13 @@ capability IDs.
   PRG32 firmware in QEMU over the whole recording (with the proposed SDK audio
   patch: one frame-clock scheduling boundary); no console recording yet (procedure, comparison
   tool and evidence check ready). [WASM-02] [AUD-02]
+- Deploy (ADR-0028): one tool in the project menu for a PRG32 console, PRG32-QT and QEMU,
+  behind one adapter interface. Targets are registered by an administrator. Before sending it
+  checks identity, ABI and limits, the build's hash and staleness, and that the named slot is
+  as the student saw it. Progress, log, retry, cancel and a screenshot follow, and every answer
+  says whether it is physical-device evidence. Recorded runs on QEMU (firmware from SDK
+  679dfb5) and canonical PRG32-QT f6d80ad; the console adapter is tested against a stand-in
+  only, so there is no physical-device record. [DEP-04]
 - Buzzer removal on the kit side: refused by the validators, obsolete-only in
   the editor, silent for old cartridges, guarded by a repository-wide test; the
   SDK's portable ABI still lists it (retirement delivered as a tested
@@ -191,7 +198,6 @@ capability IDs.
 
 - Verified hardware delivery (a recording tool exists, no run recorded) and
   PRG32-iOS handoff (deferred, ADR-0020). [DEP-01] [DEP-03]
-- A unified Deploy tool in the top menu for a physical PRG32, QEMU and PRG32-QT. [DEP-04]
 - A scientific Evaluate tool: one versioned performance protocol on the three targets,
   raw data and charts. [EVAL-01]
 
