@@ -195,6 +195,7 @@
      "height",
      "pixels",
      "data_url",
+     "palette",
      "created_at",
      "updated_at",
      "owner_id"

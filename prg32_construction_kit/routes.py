@@ -195,6 +195,16 @@ def checked_payload(resource: str, payload: dict[str, Any]) -> dict[str, Any]:
                 continue  # the database refuses links to missing items with a clear 409
             if not can_read(linked) or (target == "projects" and not can_write(linked)):
                 raise PermissionError(say("api", "You cannot link to {target} {payload}", target=target, payload=payload[column]))
+    if resource == "sprites" and "palette" in payload:
+        # An indexed sprite's indices are its truth: its pixels are made from them (sprite_palette.py).
+        from . import sprite_palette
+
+        width, height = payload.get("width"), payload.get("height")
+        if not isinstance(width, int) or not isinstance(height, int):
+            raise ValueError(say("sprite", "Send the width and height with the palette."))
+        payload["palette"] = sprite_palette.checked(payload["palette"], width, height)
+        if payload["palette"]:
+            payload["pixels"] = sprite_palette.pixels_of(payload["palette"])
     if resource == "projects" and isinstance(payload.get("game_json"), dict):
         payload["game_json"] = _checked_python(payload["game_json"])
     return payload

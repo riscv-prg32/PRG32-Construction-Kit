@@ -104,7 +104,7 @@ not decisions: see [decisions.md](decisions.md).
 | Transfers | only by the person's own choice (cloud, publishing) |
 | Review owner | the operator's privacy lead (name it in decisions.md) |
 | Next review | 2027-10-21 or on any change to the kit's data model |
-| Fields | `projects`: id, title, description, author, tags, blocks_json, game_json, deleted_at, version, created_at, updated_at, owner_id; `project_revisions`: id, project_id, owner_id, created_at, seq, reason, manifest, source, assets, digest, child_ids; `sprites`: id, project_id, name, width, height, pixels, data_url, created_at, updated_at, owner_id; `assets`: id, project_id, name, kind, content_type, data, version, created_at, updated_at, owner_id |
+| Fields | `projects`: id, title, description, author, tags, blocks_json, game_json, deleted_at, version, created_at, updated_at, owner_id; `project_revisions`: id, project_id, owner_id, created_at, seq, reason, manifest, source, assets, digest, child_ids; `sprites`: id, project_id, name, width, height, pixels, data_url, palette, created_at, updated_at, owner_id; `assets`: id, project_id, name, kind, content_type, data, version, created_at, updated_at, owner_id |
 
 ## builds
 

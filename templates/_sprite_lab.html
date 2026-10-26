@@ -31,8 +31,41 @@
         <div class="col"><label class="form-label small mb-1" for="spriteWidth">{{ t("sprite_lab.width") }}</label><input class="form-control form-control-sm" id="spriteWidth" type="number" min="4" max="64" value="16"></div>
         <div class="col"><label class="form-label small mb-1" for="spriteHeight">{{ t("sprite_lab.height") }}</label><input class="form-control form-control-sm" id="spriteHeight" type="number" min="4" max="64" value="16"></div>
       </div>
-      <label class="form-label small mb-1" for="paintColor">{{ t("sprite_lab.paint_colour") }}</label>
-      <input class="form-control form-control-color mb-2" type="color" id="paintColor" value="#ffd800">
+      <label class="form-label small mb-1" for="spriteColorMode">{{ t("sprite_lab.colours") }}</label>
+      <select class="form-select form-select-sm mb-2" id="spriteColorMode" aria-describedby="spriteColorModeHelp">
+        <option value="direct">{{ t("sprite_lab.direct_colours") }}</option>
+        <option value="indexed">{{ t("sprite_lab.indexed_colours") }}</option>
+      </select>
+      <div class="form-text mb-2" id="spriteColorModeHelp">{{ t("sprite_lab.colour_mode_help") }}</div>
+      {# Indexed colours: the palette, and which entry the brush paints (sprite_editor.js). #}
+      <div id="spritePalettePanel" hidden>
+        <div class="d-flex justify-content-between align-items-center">
+          <span class="small fw-semibold" id="spritePaletteLabel">{{ t("sprite_lab.palette") }}</span>
+          <span class="small text-muted" id="spritePaletteInfo" aria-live="polite"></span>
+        </div>
+        <div class="sprite-palette mb-2" id="spritePalette" role="radiogroup" aria-labelledby="spritePaletteLabel"></div>
+        <label class="form-label small mb-1" for="paletteEntryColor">{{ t("sprite_lab.entry_colour") }}</label>
+        <input class="form-control form-control-color mb-2" type="color" id="paletteEntryColor" value="#000000">
+        <div class="form-check mb-2">
+          <input class="form-check-input" type="checkbox" id="paletteTransparent">
+          <label class="form-check-label small" for="paletteTransparent">{{ t("sprite_lab.entry_transparent") }}</label>
+        </div>
+        <div class="d-flex flex-wrap gap-2 mb-2">
+          <button class="btn btn-outline-secondary btn-sm" type="button" id="paletteAdd"><i class="bi bi-plus" aria-hidden="true"></i> {{ t("sprite_lab.add_colour") }}</button>
+          <button class="btn btn-outline-secondary btn-sm" type="button" id="paletteRemove"><i class="bi bi-dash" aria-hidden="true"></i> {{ t("sprite_lab.remove_colour") }}</button>
+        </div>
+        <label class="form-label small mb-1" for="palettePreset">{{ t("sprite_lab.use_palette") }}</label>
+        <select class="form-select form-select-sm mb-3" id="palettePreset">
+          <option value="">{{ t("sprite_lab.choose_palette") }}</option>
+          <option value="prg32">{{ t("sprite_lab.palette_prg32") }}</option>
+          <option value="greys">{{ t("sprite_lab.palette_greys") }}</option>
+          <option value="mono">{{ t("sprite_lab.palette_mono") }}</option>
+        </select>
+      </div>
+      <div id="spriteDirectPanel">
+        <label class="form-label small mb-1" for="paintColor">{{ t("sprite_lab.paint_colour") }}</label>
+        <input class="form-control form-control-color mb-2" type="color" id="paintColor" value="#ffd800">
+      </div>
       <div class="d-flex flex-wrap gap-2 mb-3">
         <button class="btn btn-outline-secondary btn-sm" type="button" id="resizeSprite">{{ t("sprite_lab.resize_clear") }}</button>
         <button class="btn btn-outline-danger btn-sm" type="button" id="eraser" aria-pressed="false">{{ t("sprite_lab.eraser") }}</button>

@@ -155,6 +155,7 @@
   "player.select_start",
   "privacy.docs_privacy",
   "publish.https_store_your_school_example",
+  "sprite_lab.palette",
   "tools.rgb24",
   "tools.rgb565"
  ],
@@ -223,6 +224,7 @@
   "js.source_debugger.block_label",
   "js.source_debugger.in_function",
   "js.source_debugger.where_in_function",
+  "js.sprite_editor.transparent",
   "js.tools.channels_value",
   "offline.offline",
   "offline.title",
@@ -230,6 +232,7 @@
   "player.select_start",
   "privacy.docs_privacy",
   "publish.https_store_your_school_example",
+  "sprite_lab.palette",
   "tools.rgb24",
   "tools.rgb565"
  ],
