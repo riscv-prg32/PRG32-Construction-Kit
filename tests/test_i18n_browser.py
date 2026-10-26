@@ -70,7 +70,7 @@ def test_monaco_speaks_the_readers_language(browser, live_kit, locale):  # noqa:
     sign_in(page, live_kit)
     project = c_project(page, "Codice")
     page.goto(f"{live_kit}/ide/{project['id']}")
-    wait_until(page, READY)
+    wait_until(page, READY, timeout=60)                  # Monaco and its language pack load first; slow under a full run
     pack = i18n.MONACO_PACKS[locale]
     # The first Chinese page also fetches the font pieces for its characters: give it time.
     wait_until(page, f"!!window.monaco && globalThis._VSCODE_NLS_LANGUAGE === {json.dumps(pack)}", timeout=60)
