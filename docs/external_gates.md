@@ -20,7 +20,7 @@ gate, who closes it, what the kit already has ready, and what evidence closes it
 | --- | --- |
 | Who | the Cartridge Store maintainers |
 | Ready | [upstream/cartridge-store-shared-identity.patch](upstream/cartridge-store-shared-identity.patch); the kit's side of the contract and its tests |
-| Closes it | the patch (or an equivalent) merged into CartridgeStore, the kit pinned to that revision, and `tests/test_sso_with_cartridge_store.py` passing **unpatched** against it. Today it fails against the unpatched Store, which gives a `player-…` handle instead of the shared username |
+| Closes it | the patch (or an equivalent) merged into CartridgeStore, the kit pinned to that revision, and `tests/test_sso_with_cartridge_store.py` passing **unpatched** against it. Until then the kit's tests take the Store from [`tools/pinned_store.py`](../tools/pinned_store.py): a clean clone of the Store next to the kit at `4a3138b` with the patch applied to the clone (the Store itself is only read). Against the unpatched Store they fail: it gives a `player-…` handle instead of the shared username |
 
 ## 3. PRG32 SDK and PRG32-QT: the buzzer retirement, the audio clock, the firmware engine (AUD-02, AUD-04)
 

@@ -1,12 +1,13 @@
 """The kit and a real PRG32 Cartridge Store sharing users.
 
 Runs only when the CartridgeStore repository sits next to this one (or
-PRG32_CARTRIDGE_STORE_SOURCE points at it) and its requirements are installed.
+PRG32_CARTRIDGE_STORE_SOURCE points at it) and its requirements are installed. Until the
+shared-identity contract is merged upstream, the Store next to the kit is used through a
+patched clean clone (tools/pinned_store.py, docs/upstream/README.md §6.1).
 """
 
 from __future__ import annotations
 
-import os
 import sys
 from pathlib import Path
 from urllib.parse import urlsplit
@@ -16,7 +17,10 @@ import pytest
 from conftest import make_app
 from prg32_construction_kit import sso_protocol
 
-STORE_SOURCE = Path(os.environ.get("PRG32_CARTRIDGE_STORE_SOURCE", Path(__file__).resolve().parents[2] / "CartridgeStore"))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "tools"))
+# The Store with the shared-identity contract: a patched clean clone, never the Store itself (tools/pinned_store.py).
+from pinned_store import store_source  # noqa: E402
+STORE_SOURCE = store_source()
 SECRET = "a-shared-classroom-secret-that-is-long-enough"
 PASSWORD = "student-password-1"
 
