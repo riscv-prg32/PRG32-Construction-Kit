@@ -32,6 +32,26 @@
           <div id="deployProbe" aria-live="polite"></div>
         </div>
       </section>
+
+      <section class="card shadow-sm mb-4" aria-labelledby="usbDeployTitle" id="usbDeployCard">
+        <div class="card-header"><h2 class="h6 mb-0" id="usbDeployTitle"><i class="bi bi-usb-symbol" aria-hidden="true"></i> {{ t("deploy.usb_title") }}</h2></div>
+        <div class="card-body">
+          <p class="small text-muted">{{ t("deploy.usb_help") }}</p>
+          <div id="usbDeployUnsupported" class="alert alert-warning d-none" role="status">{{ t("deploy.usb_unsupported") }}</div>
+          <label class="form-label" for="usbDeploySlot">{{ t("deploy.slot") }}</label>
+          <select class="form-select mb-3" id="usbDeploySlot">
+            {% for number in range(8) %}<option value="cart{{ number }}">cart{{ number }}</option>{% endfor %}
+          </select>
+          <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" id="usbDeployConfirm">
+            <label class="form-check-label" for="usbDeployConfirm" id="usbDeployConfirmLabel">{{ t("deploy.usb_confirm") }}</label>
+          </div>
+          <button class="btn btn-outline-primary" type="button" id="usbDeployStart" disabled><i class="bi bi-usb-plug" aria-hidden="true"></i> {{ t("deploy.usb_start") }}</button>
+          <div class="progress mt-3 d-none" role="progressbar" aria-label="{{ t('deploy.usb_progress') }}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="usbDeployProgress"><div class="progress-bar"></div></div>
+          <div class="small mt-2" id="usbDeployStatus" aria-live="polite"></div>
+          <pre class="small bg-body-tertiary border rounded p-2 mt-2 d-none text-wrap" id="usbDeployLog" aria-label="{{ t('deploy.log') }}"></pre>
+        </div>
+      </section>
     </div>
 
     <div class="col-lg-6">
@@ -87,4 +107,5 @@
 {% endblock %}
 {% block scripts %}
 <script src="{{ url_for('static', filename='js/deploy.js') }}"></script>
+<script type="module" src="{{ url_for('static', filename='js/usb_deploy.js') }}"></script>
 {% endblock %}

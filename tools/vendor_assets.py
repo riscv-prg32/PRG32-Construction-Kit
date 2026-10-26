@@ -69,6 +69,12 @@ PACKAGES = [
         "LICENSE": "LICENSE",
         "ThirdPartyNotices.txt": "ThirdPartyNotices.txt",
     }),
+    # Direct cartridge deployment to an ESP32-C6 over Web Serial. The bundle
+    # includes its pako dependency and is served locally for the strict CSP.
+    ("esptool-js", "0.7.0", "Apache-2.0", {
+        "bundle.js": "bundle.js",
+        "LICENSE": "LICENSE",
+    }),
     # Simplified Chinese text (ADR-0027) on computers without a CJK font: regular weight only,
     # in the pieces a browser fetches one by one as the characters on a page need them
     # (unicode-range); only Chinese pages load it. SIL Open Font License 1.1.

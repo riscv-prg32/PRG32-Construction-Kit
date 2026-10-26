@@ -34,6 +34,32 @@ holds this cartridge, but it did not start" or "Nothing was sent: the target is 
 
 ## For teachers and administrators
 
+### Direct USB from the browser
+
+Chrome and Edge can deploy the selected `esp32c6` PRG32 cartridge directly to an ESP32-C6 over
+USB. On the Deploy page, choose the project and compiled cartridge, then use **USB device**:
+
+1. choose `cart0` through `cart7` and confirm that its current contents may be replaced;
+2. press **Connect and deploy over USB** and choose the PRG32 serial device in the browser prompt;
+3. the page verifies the artifact SHA-256 and `PRG2` header, identifies an ESP32-C6, writes and
+   verifies only that 128 KiB partition, and resets the board.
+
+Web Serial requires HTTPS, except that browsers also allow `localhost`. The USB path uses the chip's
+ROM bootloader, so it works with the resident PRG32 firmware and does not replace the firmware,
+settings, scores or other cartridges. Unlike the Wi-Fi path, ROM bootloader mode cannot inspect the
+old slot or change the saved default cartridge. After reset, if setup appears, choose the deployed
+slot (for example `cart0`) and save it as the default. A console with only one valid cartridge loads
+that cartridge automatically.
+
+On the fixed `prototype1` PCB, GPIO13 is both the Down button and native USB D+. Normal firmware
+therefore makes the serial device disappear after boot. Hold **BOOT**, tap **RESET**, then release
+**BOOT** before pressing **Connect and deploy over USB**. The onboard RGB LED also shares GPIO8
+with LCD D/C: its cyan boot flashes are intentional, while brief green or white flashes during display
+updates are an unavoidable electrical side effect and do not indicate a failed deployment. Do not
+move either canonical prototype1 pin to hide these effects.
+
+The browser library is pinned in `static/vendor/` and the page makes no CDN request.
+
 Register each target once, at the bottom of the Deploy page (administrators only):
 
 - **PRG32 console**: its Wi-Fi address, usually `http://192.168.4.1`. The computer that runs

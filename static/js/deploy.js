@@ -63,7 +63,7 @@
         .sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''));
       $('#deployCartridge').html(items.length ? items.map(item => {
         const meta = item.metadata;
-        return `<option value="${Kit.escape(item.id)}" data-architecture="${Kit.escape(meta.architecture)}">${Kit.escape(item.name)} · ${Kit.escape(meta.architecture)} · ${Kit.escape((item.created_at || '').replace('T', ' ').slice(0, 16))} · ${Kit.escape(meta.sha256.slice(0, 12))}</option>`;
+        return `<option value="${Kit.escape(item.id)}" data-architecture="${Kit.escape(meta.architecture)}" data-sha256="${Kit.escape(meta.sha256)}">${Kit.escape(item.name)} · ${Kit.escape(meta.architecture)} · ${Kit.escape((item.created_at || '').replace('T', ' ').slice(0, 16))} · ${Kit.escape(meta.sha256.slice(0, 12))}</option>`;
       }).join('') : `<option value="">${Kit.escape(tr('js.deploy.no_cartridges', 'No compiled cartridge yet: open the project and press Compile.'))}</option>`);
       reset();
       loadHistory();
