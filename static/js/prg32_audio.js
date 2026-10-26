@@ -14,13 +14,16 @@
   function loadScript() {
     if (window.createPrg32Core) return Promise.resolve();
     if (!scriptPromise) {
-      scriptPromise = new Promise((resolve, reject) => {
-        const script = document.createElement('script');
-        script.src = BASE + 'prg32-core.js';
-        script.onload = resolve;
-        script.onerror = () => reject(new Error('Could not load the PRG32 sound engine'));
-        document.head.appendChild(script);
-      });
+      // Through prg32_runtime.js where it is on the page: never as an AMD module next to Monaco.
+      scriptPromise = window.PRG32LoadPlainScript
+        ? window.PRG32LoadPlainScript(BASE + 'prg32-core.js').catch(() => { throw new Error('Could not load the PRG32 sound engine'); })
+        : new Promise((resolve, reject) => {
+          const script = document.createElement('script');
+          script.src = BASE + 'prg32-core.js';
+          script.onload = resolve;
+          script.onerror = () => reject(new Error('Could not load the PRG32 sound engine'));
+          document.head.appendChild(script);
+        });
     }
     return scriptPromise;
   }

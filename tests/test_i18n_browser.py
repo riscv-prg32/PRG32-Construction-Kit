@@ -80,6 +80,34 @@ def test_monaco_speaks_the_readers_language(browser, live_kit, locale):  # noqa:
     ctx.close()
 
 
+def test_the_prg32_core_never_takes_monacos_language_pack(browser, live_kit):  # noqa: F811
+    """prg32-core.js (Emscripten) calls an anonymous AMD define() when Monaco's loader is on the page.
+    Run while Monaco's language pack was on its way, the loader gave the pack the core's define and
+    Monaco stayed in English. Forced here: the pack is held until the core has been asked for
+    (no service worker, so the page's requests can be held)."""
+    ctx = browser.new_context(viewport={"width": 1440, "height": 800}, service_workers="block")
+    ctx.add_cookies([{"name": i18n.COOKIE, "value": "zh-Hans", "url": live_kit}])
+    page = ctx.new_page()
+    sign_in(page, live_kit)
+    project = c_project(page, "Race")
+    held = []
+    page.route("**/vs/nls.messages.zh-cn.js", lambda route: held.append(route))      # answered below, after the core
+    page.goto(f"{live_kit}/ide/{project['id']}", wait_until="domcontentloaded")
+    for _ in range(300):
+        if held:
+            break
+        page.wait_for_timeout(100)
+    assert held, "Monaco asked for its language pack"
+    page.evaluate("void window.PRG32LoadPlainScript('/static/wasm/prg32-core.js')")   # not waited for: it may wait for Monaco
+    page.wait_for_timeout(1500)                                    # the core would have run by now
+    held[0].continue_()
+    wait_until(page, READY, timeout=60)
+    wait_until(page, "typeof window.createPrg32Core === 'function' && !!window.monaco", timeout=60)
+    assert page.evaluate("globalThis._VSCODE_NLS_LANGUAGE") == "zh-cn"
+    assert page.evaluate("!!(window.define && window.define.amd)")       # given back to Monaco's loader
+    ctx.close()
+
+
 ROLES = {"student": "user", "teacher": "user", "admin": None}
 
 
