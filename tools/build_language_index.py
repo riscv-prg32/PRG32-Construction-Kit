@@ -503,9 +503,15 @@ def read_committed() -> dict:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--sdk", type=Path, default=Path(os.environ.get("PRG32_SDK_DIR") or ROOT.parent / "PRG32"))
+    parser.add_argument("--sdk", type=Path, help="a PRG32 SDK checkout (default: PRG32_SDK_DIR, else ../PRG32, "
+                        "at the revision the kit is pinned to: static/wasm/BUILD.json, tools/pinned_sdk.py)")
     parser.add_argument("--check", action="store_true", help="fail if the committed index differs")
     args = parser.parse_args()
+    if args.sdk is None:
+        from pinned_sdk import pinned_checkout
+
+        source = Path(os.environ.get("PRG32_SDK_DIR") or ROOT.parent / "PRG32")
+        args.sdk = (pinned_checkout(source) or source) if source.is_dir() else source
     if not (args.sdk / SDK_HEADERS[0]).is_file():
         print(f"no PRG32 SDK at {args.sdk} (use --sdk or PRG32_SDK_DIR)", file=sys.stderr)
         return 2

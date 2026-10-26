@@ -25,7 +25,7 @@ administrator or an auditor can repeat them.
 | File | Made by | Check |
 | --- | --- | --- |
 | `capabilities.md` | `python3 tools/render_capabilities.py` | `--check`; `tests/test_capabilities.py` |
-| `static/js/ide/prg32_language_index.js` (editor suggestions, ADR-0014) | `python3 tools/build_language_index.py` from the PRG32 SDK and the kit's validators | `--check`; `tests/test_language_services.py::test_index_is_up_to_date_with_the_sdk` (where the same SDK is checked out) |
+| `static/js/ide/prg32_language_index.js` (editor suggestions, ADR-0014) | `python3 tools/build_language_index.py` from the PRG32 SDK and the kit's validators | `--check`; `tests/test_language_services.py::test_index_is_up_to_date_with_the_sdk`, both against a clean checkout of the pinned SDK revision (`static/wasm/BUILD.json`; `tools/pinned_sdk.py` clones it from `../PRG32` when that checkout is elsewhere) |
 | `tests/fixtures/debug/*` (debugger fixtures, ADR-0015) | `python3 tools/build_debug_fixtures.py` with the real toolchain; `BUILD.json` records the SDK revision and compiler | `--check`; `tests/test_source_debugger.py::test_fixtures_are_what_the_toolchain_makes` (skips when the SDK or compiler differ from `BUILD.json`) |
 | `static/service-worker.lock.json` | `python3 tools/service_worker_lock.py` | `--check` fails when cached files change without a new cache name |
 | `static/wasm/*` (browser core) | `python3 tools/build_wasm.py` with Emscripten | `tests/test_wasm_runtime.py::test_committed_module_matches_its_build_record` |

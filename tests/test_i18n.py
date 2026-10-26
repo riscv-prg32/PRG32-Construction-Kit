@@ -74,6 +74,20 @@ def test_nothing_is_left_in_english_by_accident(locale):
     assert same == SAME_AS_ENGLISH[locale]
 
 
+NEW_TOOLS = ("tools.", "js.tools.", "deploy.", "js.deploy.", "evaluate.", "js.evaluate.", "sprite_lab.", "js.sprite_editor.",
+             "backgrounds.", "js.backgrounds.", "audio_studio.record", "js.audio_studio.record")
+
+
+def test_every_untranslated_term_of_the_new_tools_says_why():
+    """Deploy, Evaluate, the palettes, recording, Backgrounds and the Color Picker: a message left equal to
+    English needs its reason in the fixture (a format or product name, or the same word in that language)."""
+    reasons = SAME_AS_ENGLISH["_reasons"]
+    for locale in ("it", "es", "fr", "de", "zh-Hans"):
+        for key in SAME_AS_ENGLISH[locale]:
+            if key.startswith(NEW_TOOLS):
+                assert reasons.get(key), (locale, key)
+
+
 def test_the_browser_copies_of_the_catalogs_are_up_to_date():
     result = subprocess.run([sys.executable, str(ROOT / "tools" / "build_i18n.py"), "--check"],
                             capture_output=True, text=True)

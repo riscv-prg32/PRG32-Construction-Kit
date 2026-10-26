@@ -13,6 +13,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import sys
 import shutil
 import subprocess
 from pathlib import Path
@@ -26,8 +27,13 @@ ROOT = Path(__file__).resolve().parent.parent
 STATIC_WASM = ROOT / "static" / "wasm"
 MODULE = Path(os.environ.get("PRG32_WASM_MODULE") or STATIC_WASM / "prg32-core.js")
 PRG32QT = Path(os.environ.get("PRG32QT_DIR") or ROOT.parent / "PRG32-QT").resolve()
-# The browser core's audio engine is the PRG32 firmware's (ADR-0021): the build needs the SDK too.
-PRG32_SDK = Path(os.environ.get("PRG32_SOURCE") or ROOT.parent / "PRG32").resolve()
+# The browser core's audio engine is the PRG32 firmware's (ADR-0021): the build needs the SDK too, at the
+# revision the kit is pinned to (static/wasm/BUILD.json), whatever the local checkout holds (tools/pinned_sdk.py).
+sys.path.insert(0, str(ROOT / "tools"))
+from pinned_sdk import pinned_checkout  # noqa: E402
+
+PRG32_SDK_SOURCE = Path(os.environ.get("PRG32_SOURCE") or ROOT.parent / "PRG32").resolve()
+PRG32_SDK = (pinned_checkout(PRG32_SDK_SOURCE) or PRG32_SDK_SOURCE) if PRG32_SDK_SOURCE.is_dir() else PRG32_SDK_SOURCE
 GOLDEN = ("Asteroids", "Bach", "PerformanceTest")
 
 

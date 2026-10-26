@@ -37,7 +37,6 @@ from prg32_construction_kit.source_project import validate_asm_source, validate_
 ROOT = Path(__file__).resolve().parent.parent
 INDEX_FILE = ROOT / "static" / "js" / "ide" / "prg32_language_index.js"
 CASES = json.loads((ROOT / "tests" / "fixtures" / "language" / "cases.json").read_text())
-SDK = Path(os.environ.get("PRG32_SDK_DIR") or ROOT.parent / "PRG32")
 # The live checks that repeat a server rule; the others (registers, instructions, resident-only
 # calls) are extra help about what the compiler or linker would refuse later.
 SERVER_RULES = {"empty", "too-big", "trigraph", "comment", "c-include", "c-directive", "c-token-paste", "c-forbidden",
@@ -46,6 +45,12 @@ SERVER_RULES = {"empty", "too-big", "trigraph", "comment", "c-include", "c-direc
 needs_node = pytest.mark.skipif(shutil.which("node") is None, reason="Node.js is not installed")
 sys.path.insert(0, str(ROOT / "tools"))
 import build_language_index  # noqa: E402
+
+# The SDK at the revision the kit is pinned to (tools/pinned_sdk.py), whatever the local checkout holds.
+from pinned_sdk import pinned_checkout  # noqa: E402
+
+_SDK_SOURCE = Path(os.environ.get("PRG32_SDK_DIR") or ROOT.parent / "PRG32")
+SDK = (pinned_checkout(_SDK_SOURCE) or _SDK_SOURCE) if _SDK_SOURCE.is_dir() else _SDK_SOURCE
 
 INDEX = build_language_index.read_committed()
 C_LIFECYCLE = "void demo_init(void) {}\nvoid demo_update(void) {}\nvoid demo_draw(void) {}\n"

@@ -1,5 +1,5 @@
 {
- "_comment": "Messages that are the same word in English and in this language (cognates, names, code, numbers). Reviewed by hand; tests/test_i18n.py fails on any other message equal to English.",
+ "_comment": "Messages that are the same word in English and in this language (cognates, names, code, numbers). Reviewed by hand; tests/test_i18n.py fails on any other message equal to English. _reasons says why, for the terms of the newer tools (tests/test_i18n.py checks every one has a reason).",
  "it": [
   "admin_identity.client_id",
   "admin_identity.https_login_school_example_realms_studen",
@@ -257,5 +257,20 @@
   "publish.https_store_your_school_example",
   "tools.rgb24",
   "tools.rgb565"
- ]
+ ],
+ "_reasons": {
+  "tools.rgb24": "the name of a colour format, written the same in every language",
+  "tools.rgb565": "the name of a colour format (the PRG32 screen's), written the same in every language",
+  "js.tools.channels_value": "a line of format names and channel letters with numbers (RGB24 R=255 ...): the same in it/de/es",
+  "tools.hex": "Spanish 'Hexadecimal' is spelled as in English",
+  "tools.decimal": "Spanish 'Decimal' is spelled as in English",
+  "deploy.kind_prg32qt": "the product name PRG32-QT",
+  "deploy.address_example": "an example address, http://192.168.4.1",
+  "js.deploy.firmware": "'Firmware' is the word used in it, es, fr and de",
+  "js.deploy.slot": "Italian uses the English 'slot' for a cartridge slot",
+  "evaluate.median": "German 'Median' is spelled as in English",
+  "evaluate.sd": "German statistics writes SD (Standardabweichung) as in English",
+  "sprite_lab.palette": "French and German 'Palette' are spelled as in English",
+  "js.sprite_editor.transparent": "German 'transparent' is spelled as in English"
+ }
 }
