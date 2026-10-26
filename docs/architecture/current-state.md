@@ -1,8 +1,8 @@
 # Current state
 
-What the PRG32 repositories contain **now**: `development` at `7a700ba`
-(audited as 136/172, NO-GO: `../../audit/AUDIT_7A700BA.md`) and the changes
-after it listed under **Milestones**, read from source and from the test runs below. The per-requirement
+What the PRG32 repositories contain **now**: `ide/refine-after-e2d0cef` at `e3cf7ce`
+(audited as 140/172, NO-GO: `../../audit/AUDIT_E3CF7CE.md`), read from source
+and from the test runs below. The per-requirement
 status, with the source symbol and test behind every claim, is
 `../capabilities.md` (generated from `../capabilities.json`). The lists below
 are a summary of that file, and `tests/test_doc_consistency.py` fails when they

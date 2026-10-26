@@ -8,7 +8,7 @@ Scores: 0 missing, 1 prototype, 2 partial, 3 implemented/tested with an evidence
 | IDE-02 | 3 | Implemented/tested | Monaco shell, accessibility and responsive browser flows pass. |
 | IDE-03 | 4 | Reference-verified | Portable-ABI completion/navigation and validator ranges are backed by the real PRG32 compiler after every validated save. |
 | IDE-04 | 4 | Reference-verified | RV32IMC/Zicsr, ABI/labels/navigation and safe validation are backed by the real PRG32 assembler/compiler after every save. |
-| I18N-01 | 3 | Implemented/tested | Six complete catalogs include Simplified Chinese, stable server-message keys, vendored Blockly/Monaco packs, CJK font/input/layout behavior, lessons, offline fallback, visual records and locale-independent artifacts. Compiler logs and reference guides remain English, and no human screen-reader session has been recorded. |
+| I18N-01 | 2 | Partial; fresh regressions | Six-language infrastructure, Simplified Chinese, server-message keys, editor packs, CJK behavior, lessons and locale-independent artifacts are substantial. Fresh tests fail because the Color Picker added untranslated template/script keys and Italian wraps the top menu at 1400/1440/1600 px; screenshots are stale and no human screen-reader session exists. |
 | PY-01 | 3 | Implemented/tested | Restricted non-executing parse, typed/limited AST, shared IR, deterministic C/assembly, source maps, provenance and archive/package flows have meaningful tests; exact-revision real-toolchain, browser and canonical PRG32-QT scenario-L evidence is missing. |
 | PRJ-01 | 3 | Implemented/tested | Deterministic project model, revisions and archive/import are covered. |
 | BLD-01 | 4 | Reference-verified | Retained Docker evidence rebuilds Blocks-C, Blocks-assembly, Advanced C and handwritten assembly for both targets; hashes match macOS builds. |
@@ -45,9 +45,9 @@ Scores: 0 missing, 1 prototype, 2 partial, 3 implemented/tested with an evidence
 | GDPR-01 | 3 | Implemented/tested; operational gate open | Generated field-level ROPA, notices, complete export/erasure/restriction, backup re-erasure, processor/transfer templates and technical breach rehearsal pass meaningful tests. Actual controller/legal bases, Member-State rules, DPIA, DPO/counsel review, contracts/transfers and staffed exercise remain explicitly open release blockers. |
 | OPS-01 | 4 | Reference-verified | CI/deployment/migrations and a tested backup/restore drill are documented and exercised. |
 | DOC-01 | 4 | Reference-verified | Capability IDs, generated status, traceability and commit-named milestones pass consistency tests with no ambiguous “this change” rows. |
-| DOC-02 | 3 | Implemented/tested | Visual and link checks pass, but current-state documentation still describes only the older three build modes and incorrectly says CI lacks lint, coverage and performance budgets. |
-| QLT-01 | 3 | Implemented/tested with external integration failures | Broad coverage and quality gates remain strong, but the fresh feasible suite has three expected failures against unpatched canonical CartridgeStore; browser and Linux sandbox reruns were unavailable locally. |
+| DOC-02 | 2 | Partial; hard freshness gate failing | Architecture and guides describe the new tools, but `tools/check_docs.py` reports 12 stale IDE/locale screenshots after UI/i18n changes. The visual freshness hard gate fails at the audited revision. |
+| QLT-01 | 2 | Partial; regression gates failing | Fresh broad execution is 2,335 passed, 60 skipped, 10 failed and 4 errors. Failures include untranslated UI keys, multilingual menu wrapping, a new browser suite omitted from CI, stale documentation visuals and three canonical Store identity mismatches; the adjacent current SDK also makes four upstream-patch checks error. |
 
-Domain totals: IDE 14/16; Internationalization 3/4; Python 3/4; Project 3/4; Build 8/8; WASM 8/8; Audio 13/16; Debug 22/24; Accounts 8/8; SSO 15/16; Cloud 6/8; Store 7/8; Delivery 6/16; Evaluation 3/4; Security 7/8; GDPR 3/4; Operations 4/4; Documentation 7/8; Quality 3/4.
+Domain totals: IDE 14/16; Internationalization 2/4; Python 3/4; Project 3/4; Build 8/8; WASM 8/8; Audio 13/16; Debug 22/24; Accounts 8/8; SSO 15/16; Cloud 6/8; Store 7/8; Delivery 6/16; Evaluation 3/4; Security 7/8; GDPR 3/4; Operations 4/4; Documentation 6/8; Quality 2/4.
 
-**Total: 143/172 (83.1%).**
+**Total: 140/172 (81.4%).**

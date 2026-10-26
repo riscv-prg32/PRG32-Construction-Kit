@@ -79,9 +79,13 @@ Automated accessibility and keyboard scenarios pass, but AudioStudio tasks 10–
 
 ## Release conclusion
 
-After the 2026-10-24 requirements expansion, the assessment scores **136/172**.
-The new DEP-04 unified Deploy and EVAL-01 scientific Evaluate requirements are
-missing, and I18N-01 now also requires absent Simplified Chinese coverage. The
-release remains **NO-GO** because
+At revision `e3cf7ce`, after implementation of the 2026-10-24 requirements
+expansion, the assessment scores **140/172 (81.4%)**. DEP-04 and EVAL-01 now
+provide credible QEMU and PRG32-QT workflows and evidence, while Simplified
+Chinese is included in the six-locale infrastructure. The release remains
+**NO-GO** because physical-device deployment/evaluation evidence is absent,
+the evaluator does not retain raw frame samples for independent analysis,
+documentation visuals are stale, and the broad suite has reproducible failures.
+In addition,
 the actual-deployment GDPR decisions and qualified review are open. Documentation
 freshness is closed; shared-account identity and audio/hardware blockers remain.

@@ -782,7 +782,7 @@
    "id": "DOC-02",
    "title": "Truthful entry point, architecture and visual freshness",
    "status": "partial",
-   "audit_score": 3,
+   "audit_score": 2,
    "source": [
     "README.md",
     "docs/architecture.md",
@@ -804,7 +804,7 @@
    "id": "QLT-01",
    "title": "Quality gates: tests, lint, E2E, a11y, performance",
    "status": "partial",
-   "audit_score": 3,
+   "audit_score": 2,
    "source": [],
    "tests": [
     "tests/test_capabilities.py::test_rendered_table_is_up_to_date",
@@ -818,7 +818,7 @@
    "id": "I18N-01",
    "title": "Interface in English, Italian, Spanish, French, German and Simplified Chinese",
    "status": "partial",
-   "audit_score": 3,
+   "audit_score": 2,
    "source": [
     "prg32_construction_kit/i18n.py::choose",
     "prg32_construction_kit/i18n.py::locale_of",
