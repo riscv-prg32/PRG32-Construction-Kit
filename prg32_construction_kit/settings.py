@@ -142,6 +142,9 @@ REGISTRY: tuple[Setting, ...] = (
     Setting("PRG32_KIT_KEEP_BUILDS", "PRG32_KIT_KEEP_BUILDS", "classroom", "int", "Builds kept per project",
             minimum=1, maximum=1000),
     # --- privacy ------------------------------------------------------------------------
+    Setting("PRG32_AUDIO_RECORDING", "PRG32_AUDIO_RECORDING", "privacy", "bool", "Microphone recording in AudioStudio",
+            "On: AudioStudio can record a sample with the microphone (a student's voice), kept like an uploaded WAV "
+            "file. Off: the Record button is gone; WAV files can still be uploaded (docs/privacy/decisions.md, D-12)."),
     Setting("PRG32_PRIVACY_CONTROLLER", "PRG32_PRIVACY_CONTROLLER", "privacy", "str", "Who runs this kit",
             "The school or organisation responsible for the personal data (shown on /privacy)."),
     Setting("PRG32_PRIVACY_CONTACT", "PRG32_PRIVACY_CONTACT", "privacy", "str", "Privacy contact email"),
@@ -501,4 +504,5 @@ def init_app(app) -> None:
         return {"site": {"name": get("SITE_NAME") or "PRG32 Construction Kit", "welcome": get("WELCOME_TEXT") or "",
                          "color_scheme": scheme if scheme in COLOR_SCHEMES else "light",
                          "skin": skin, "skin_css": f"css/themes/{skin}.css",
-                         "maintenance": bool(get("MAINTENANCE_MODE"))}}
+                         "maintenance": bool(get("MAINTENANCE_MODE")),
+                         "audio_recording": bool(get("PRG32_AUDIO_RECORDING"))}}

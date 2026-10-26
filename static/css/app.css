@@ -592,3 +592,14 @@ body.dbg-mode-advanced .dbg-beginner { display: none !important; }
   background-size: 8px 8px;
   background-position: 0 0, 4px 4px;
 }
+
+/* AudioStudio, recording a sample (audio_studio.js): the level while recording, the take's waveform. */
+.voice-meter {
+  width: 8rem;
+}
+.voice-wave {
+  width: 100%;
+  max-width: 600px;
+  height: 80px;
+  background: var(--bs-body-bg);
+}

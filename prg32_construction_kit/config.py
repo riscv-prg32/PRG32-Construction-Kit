@@ -99,6 +99,7 @@ class Config:
     PRG32_BUILD_TIMEOUT = float(os.environ.get("PRG32_BUILD_TIMEOUT", "120"))
     # Debug information for the Player's source and block debugger (ADR-0015): "0" turns it off.
     PRG32_DEBUG_INFO = os.environ.get("PRG32_DEBUG_INFO", "1") != "0"
+    PRG32_AUDIO_RECORDING = os.environ.get("PRG32_AUDIO_RECORDING", "1") != "0"
     # How many saved versions (revisions) the History menu keeps per project.
     PRG32_KIT_MAX_REVISIONS = int(os.environ.get("PRG32_KIT_MAX_REVISIONS", "50"))
     # Storage policy (ADR-0017). 0 = no limit.

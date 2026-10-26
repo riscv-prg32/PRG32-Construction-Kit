@@ -1849,5 +1849,22 @@
  "sprite_lab.choose_palette": "Elige…",
  "sprite_lab.palette_prg32": "Colores con nombre de PRG32 (8)",
  "sprite_lab.palette_greys": "Grises (4)",
- "sprite_lab.palette_mono": "Blanco y negro (2)"
+ "sprite_lab.palette_mono": "Blanco y negro (2)",
+ "audio_studio.record_title": "Grabar una muestra",
+ "audio_studio.record_note": "Graba tu voz o un sonido con el micrófono (como máximo 10 segundos). Se guarda en este proyecto como muestra, igual que un archivo WAV subido, y puedes borrarlo. Graba solo tu voz, o la de personas que estén de acuerdo.",
+ "audio_studio.record": "Grabar",
+ "audio_studio.record_stop": "Parar",
+ "audio_studio.record_level": "Nivel del micrófono",
+ "audio_studio.record_wave": "La grabación: la parte que se queda está coloreada",
+ "audio_studio.record_from": "Desde (s)",
+ "audio_studio.record_to": "hasta (s)",
+ "audio_studio.record_name": "voz",
+ "audio_studio.record_listen": "Escuchar",
+ "audio_studio.record_add": "Añadir como muestra",
+ "js.audio_studio.record_took": "{seconds} s grabados",
+ "js.audio_studio.record_needs_account": "Las muestras grabadas necesitan una cuenta: inicia sesión para usarlas.",
+ "js.audio_studio.record_no_microphone": "Este navegador no puede grabar aquí (necesita https o este ordenador).",
+ "js.audio_studio.recording": "Grabando… (como máximo {seconds} s)",
+ "js.audio_studio.record_refused": "No se pudo usar el micrófono: permítelo en el navegador e inténtalo otra vez.",
+ "js.audio_studio.record_too_short": "Deja al menos 0,05 s de la grabación."
 }

@@ -110,7 +110,7 @@ not decisions: see [decisions.md](decisions.md).
 
 | | |
 |---|---|
-| Data | builds, compiler logs, generated C and assembly, cartridges, debug maps, uploaded files |
+| Data | builds, compiler logs, generated C and assembly, cartridges, debug maps, uploaded files; AudioStudio samples, which may be a student's own voice recorded with the microphone (kept as an audio_sample artifact like an uploaded WAV file; recorded only after the student presses Record, deleted with the sample or the account) |
 | People | students, teachers |
 | Purpose | compiling games; downloading cartridges |
 | Legal basis | as student work; PROPOSED - not decided: the controller confirms with its DPO (decisions.md) |

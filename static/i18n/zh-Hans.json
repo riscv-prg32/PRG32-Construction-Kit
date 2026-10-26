@@ -1849,5 +1849,22 @@
  "sprite_lab.choose_palette": "选择…",
  "sprite_lab.palette_prg32": "PRG32 命名颜色（8）",
  "sprite_lab.palette_greys": "灰度（4）",
- "sprite_lab.palette_mono": "黑白（2）"
+ "sprite_lab.palette_mono": "黑白（2）",
+ "audio_studio.record_title": "录制采样",
+ "audio_studio.record_note": "用麦克风录下你的声音或其他声音（最多 10 秒）。它会像上传的 WAV 文件一样，作为采样保存在这个项目里，你也可以删除它。只录你自己，或者已经同意的人。",
+ "audio_studio.record": "录音",
+ "audio_studio.record_stop": "停止",
+ "audio_studio.record_level": "麦克风音量",
+ "audio_studio.record_wave": "录音：保留的部分是彩色的",
+ "audio_studio.record_from": "从（秒）",
+ "audio_studio.record_to": "到（秒）",
+ "audio_studio.record_name": "人声",
+ "audio_studio.record_listen": "试听",
+ "audio_studio.record_add": "添加为采样",
+ "js.audio_studio.record_took": "已录制 {seconds} 秒",
+ "js.audio_studio.record_needs_account": "录制的采样需要账户：请登录后使用。",
+ "js.audio_studio.record_no_microphone": "这个浏览器在这里不能录音（需要 https 或者在本机上）。",
+ "js.audio_studio.recording": "正在录音…（最多 {seconds} 秒）",
+ "js.audio_studio.record_refused": "无法使用麦克风：请在浏览器中允许后再试。",
+ "js.audio_studio.record_too_short": "至少保留 0.05 秒的录音。"
 }

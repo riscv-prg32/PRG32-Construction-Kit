@@ -1849,5 +1849,22 @@
  "sprite_lab.choose_palette": "Choisis…",
  "sprite_lab.palette_prg32": "Couleurs nommées PRG32 (8)",
  "sprite_lab.palette_greys": "Gris (4)",
- "sprite_lab.palette_mono": "Noir et blanc (2)"
+ "sprite_lab.palette_mono": "Noir et blanc (2)",
+ "audio_studio.record_title": "Enregistrer un échantillon",
+ "audio_studio.record_note": "Enregistre ta voix ou un son avec le micro (10 secondes au plus). Il est gardé dans ce projet comme échantillon, comme un fichier WAV envoyé, et tu peux le supprimer. N'enregistre que toi, ou des personnes d'accord.",
+ "audio_studio.record": "Enregistrer",
+ "audio_studio.record_stop": "Arrêter",
+ "audio_studio.record_level": "Niveau du micro",
+ "audio_studio.record_wave": "L'enregistrement : la partie gardée est en couleur",
+ "audio_studio.record_from": "Garder depuis (s)",
+ "audio_studio.record_to": "jusqu'à (s)",
+ "audio_studio.record_name": "voix",
+ "audio_studio.record_listen": "Écouter",
+ "audio_studio.record_add": "Ajouter comme échantillon",
+ "js.audio_studio.record_took": "{seconds} s enregistrées",
+ "js.audio_studio.record_needs_account": "Les échantillons enregistrés demandent un compte : connecte-toi pour les utiliser.",
+ "js.audio_studio.record_no_microphone": "Ce navigateur ne peut pas enregistrer ici (il faut https ou cet ordinateur).",
+ "js.audio_studio.recording": "Enregistrement… ({seconds} s au plus)",
+ "js.audio_studio.record_refused": "Le micro n'a pas pu être utilisé : autorise-le dans le navigateur et réessaie.",
+ "js.audio_studio.record_too_short": "Garde au moins 0,05 s de l'enregistrement."
 }

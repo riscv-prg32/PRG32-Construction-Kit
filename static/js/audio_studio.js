@@ -445,24 +445,172 @@
     });
     box.append(table.append(body));
   }
+  // A WAV file, uploaded or recorded, becomes a sample: the server converts it (8-bit, 22050 Hz).
+  function addSample(file, name) {
+    const form = new FormData();
+    form.append('file', file, file.name || name + '.wav');
+    form.append('name', name);
+    status(tr('js.audio_studio.adding', 'Adding {name}…', { name: name }));
+    return Kit.api(api + '/samples', { method: 'POST', body: form }).then(sample => {
+      doc.samples.push({ name: sample.name, artifact_id: sample.artifact_id, base_note: 60, loop: false, loop_start: 0, loop_end: 0 });
+      renderAll();
+      changed();
+      status(tr('js.audio_studio.added', 'Added {name} (', { name: sample.name }) + sample.seconds.toFixed(2) + ' s).');
+      return sample;
+    }).catch(err => { status(tr('js.audio_studio.sample_not_added', 'Sample not added: {message}', { message: err.message })); Kit.toast(err.message, 'danger'); throw err; });
+  }
+
   $('#sampleForm').on('submit', event => {
     event.preventDefault();
     const file = $('#sampleFile')[0].files[0];
     if (!file) { Kit.toast(tr('js.audio_studio.choose_a_wav_file', 'Choose a WAV file.'), 'warning'); return; }
     const name = ($('#sampleName').val() || file.name.replace(/\.[^.]*$/, '')).trim().slice(0, 32);
     if (!nameOk(name, doc.samples.map(s => s.name))) return;
-    const form = new FormData();
-    form.append('file', file);
-    form.append('name', name);
-    status(tr('js.audio_studio.adding', 'Adding {name}…', { name: name }));
-    Kit.api(api + '/samples', { method: 'POST', body: form }).then(sample => {
-      doc.samples.push({ name: sample.name, artifact_id: sample.artifact_id, base_note: 60, loop: false, loop_start: 0, loop_end: 0 });
-      $('#sampleForm')[0].reset();
-      renderAll();
-      changed();
-      status(tr('js.audio_studio.added', 'Added {name} (', { name: sample.name }) + sample.seconds.toFixed(2) + ' s).');
-    }).catch(err => { status(tr('js.audio_studio.sample_not_added', 'Sample not added: {message}', { message: err.message })); Kit.toast(err.message, 'danger'); });
+    addSample(file, name).then(() => $('#sampleForm')[0].reset()).catch(() => {});
   });
+
+  // ---- recording a sample with the microphone ----------------------------------------------
+  // The browser records the microphone as numbers (an AudioContext, never a file format), keeps at
+  // most RECORD_SECONDS, then the student trims the take and listens. "Add" makes a 16-bit WAV at
+  // 22050 Hz (each output sample the average of the input samples it covers), its loudest point at
+  // 90 %, and adds it like an uploaded WAV file. Nothing leaves the page before "Add".
+  const RECORD_SECONDS = 10;
+  const RATE = 22050;
+  let take = null;               // {samples: Float32Array at RATE}
+  let recording = null;          // {context, stream, node, chunks, rate, started, timer}
+
+  function downsample(input, fromRate) {
+    const length = Math.floor(input.length * RATE / fromRate);
+    const out = new Float32Array(length);
+    for (let i = 0; i < length; i++) {
+      const start = Math.floor(i * fromRate / RATE), end = Math.max(start + 1, Math.floor((i + 1) * fromRate / RATE));
+      let sum = 0;
+      for (let j = start; j < end && j < input.length; j++) sum += input[j];
+      out[i] = sum / (end - start);
+    }
+    return out;
+  }
+
+  function wavOf(samples) {
+    let peak = 0;
+    for (const value of samples) peak = Math.max(peak, Math.abs(value));
+    const gain = peak > 0 ? 0.9 / peak : 1;
+    const data = new DataView(new ArrayBuffer(44 + samples.length * 2));
+    const text = (at, value) => [...value].forEach((ch, i) => data.setUint8(at + i, ch.charCodeAt(0)));
+    text(0, 'RIFF'); data.setUint32(4, 36 + samples.length * 2, true); text(8, 'WAVE');
+    text(12, 'fmt '); data.setUint32(16, 16, true); data.setUint16(20, 1, true); data.setUint16(22, 1, true);
+    data.setUint32(24, RATE, true); data.setUint32(28, RATE * 2, true); data.setUint16(32, 2, true); data.setUint16(34, 16, true);
+    text(36, 'data'); data.setUint32(40, samples.length * 2, true);
+    samples.forEach((value, i) => data.setInt16(44 + i * 2, Math.max(-32768, Math.min(32767, Math.round(value * gain * 32767))), true));
+    return new Blob([data.buffer], { type: 'audio/wav' });
+  }
+
+  function trimmed() {
+    const from = Math.max(0, Math.round(Number($('#recordFrom').val() || 0) * RATE));
+    const to = Math.min(take.samples.length, Math.round(Number($('#recordTo').val() || 0) * RATE));
+    return take.samples.subarray(from, Math.max(from, to));
+  }
+
+  function drawTake() {
+    const canvas = document.getElementById('recordWave');
+    const g = canvas.getContext('2d');
+    const css = getComputedStyle(canvas);
+    g.clearRect(0, 0, canvas.width, canvas.height);
+    const samples = take.samples, step = Math.max(1, Math.floor(samples.length / canvas.width));
+    const from = Number($('#recordFrom').val() || 0) * RATE, to = Number($('#recordTo').val() || 0) * RATE;
+    for (let x = 0; x < canvas.width; x++) {
+      let low = 0, high = 0;
+      for (let i = x * step; i < (x + 1) * step && i < samples.length; i++) { low = Math.min(low, samples[i]); high = Math.max(high, samples[i]); }
+      const kept = x * step >= from && x * step < to;
+      g.fillStyle = kept ? (css.getPropertyValue('--bs-primary') || '#0d6efd') : '#adb5bd';
+      g.fillRect(x, (1 - high) * canvas.height / 2, 1, Math.max(1, (high - low) * canvas.height / 2));
+    }
+  }
+
+  function stopRecording() {
+    if (!recording) return;
+    const { context, stream, node, chunks, rate, timer } = recording;
+    recording = null;
+    clearInterval(timer);
+    node.disconnect();
+    stream.getTracks().forEach(track => track.stop());
+    context.close();
+    const all = new Float32Array(chunks.reduce((sum, chunk) => sum + chunk.length, 0));
+    let at = 0;
+    chunks.forEach(chunk => { all.set(chunk, at); at += chunk.length; });
+    take = { samples: downsample(all, rate) };
+    const seconds = take.samples.length / RATE;
+    $('#recordFrom').val(0).attr('max', seconds.toFixed(2));
+    $('#recordTo').val(seconds.toFixed(2)).attr('max', seconds.toFixed(2));
+    $('#recordLevel').val(0);
+    $('#recordStart').prop('disabled', false);
+    $('#recordStop').prop('disabled', true);
+    $('#recordTake').prop('hidden', false);
+    $('#recordTime').text(tr('js.audio_studio.record_took', '{seconds} s recorded', { seconds: seconds.toFixed(1) }));
+    drawTake();
+  }
+
+  $('#recordStart').on('click', () => {
+    if (Kit.guest) { Kit.signInNeeded(tr('js.audio_studio.record_needs_account', 'Recorded samples need an account: sign in to use them.')); return; }
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      Kit.toast(tr('js.audio_studio.record_no_microphone', 'This browser cannot record here (it needs https or this computer).'), 'warning');
+      return;
+    }
+    navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false } }).then(stream => {
+      const context = new AudioContext();
+      const source = context.createMediaStreamSource(stream);
+      const node = context.createScriptProcessor(4096, 1, 1);
+      const chunks = [];
+      recording = { context, stream, node, chunks, rate: context.sampleRate, started: performance.now() };
+      node.onaudioprocess = event => {
+        if (!recording) return;
+        const input = event.inputBuffer.getChannelData(0);
+        chunks.push(new Float32Array(input));
+        let sum = 0;
+        for (const value of input) sum += value * value;
+        $('#recordLevel').val(Math.min(1, Math.sqrt(sum / input.length) * 4));
+      };
+      source.connect(node);
+      node.connect(context.destination);       // a ScriptProcessor only runs when connected; it outputs silence
+      recording.timer = setInterval(() => {
+        const seconds = (performance.now() - recording.started) / 1000;
+        $('#recordTime').text(seconds.toFixed(1) + ' s');
+        if (seconds >= RECORD_SECONDS) stopRecording();
+      }, 100);
+      $('#recordStart').prop('disabled', true);
+      $('#recordStop').prop('disabled', false);
+      status(tr('js.audio_studio.recording', 'Recording… (at most {seconds} s)', { seconds: RECORD_SECONDS }));
+    }).catch(() => Kit.toast(tr('js.audio_studio.record_refused', 'The microphone could not be used: allow it in the browser and try again.'), 'warning'));
+  });
+  $('#recordStop').on('click', stopRecording);
+  $('#recordFrom, #recordTo').on('input', () => take && drawTake());
+  $('#recordListen').on('click', () => {
+    if (!take) return;
+    const part = trimmed();
+    if (!part.length) return;
+    const context = new AudioContext();
+    const buffer = context.createBuffer(1, part.length, RATE);
+    buffer.copyToChannel(part, 0);
+    const player = context.createBufferSource();
+    player.buffer = buffer;
+    player.connect(context.destination);
+    player.onended = () => context.close();
+    player.start();
+  });
+  $('#recordAdd').on('click', () => {
+    if (!take) return;
+    const part = trimmed();
+    if (part.length < RATE / 20) { Kit.toast(tr('js.audio_studio.record_too_short', 'Keep at least 0.05 s of the recording.'), 'warning'); return; }
+    const name = ($('#recordName').val() || 'voice').trim().slice(0, 32);
+    if (!nameOk(name, doc.samples.map(s => s.name))) return;
+    addSample(new File([wavOf(part)], name + '.wav', { type: 'audio/wav' }), name).then(() => {
+      take = null;
+      $('#recordTake').prop('hidden', true);
+      $('#recordName').val('');
+      $('#recordTime').text('0.0 s');
+    }).catch(() => {});
+  });
+  window.PRG32VoiceRecorder = { downsample, wavOf, RATE };
 
   // ---- the numbers the code uses ---------------------------------------------------------
   function showIds() {

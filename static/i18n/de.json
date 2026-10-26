@@ -1849,5 +1849,22 @@
  "sprite_lab.choose_palette": "Wählen…",
  "sprite_lab.palette_prg32": "Benannte PRG32-Farben (8)",
  "sprite_lab.palette_greys": "Grautöne (4)",
- "sprite_lab.palette_mono": "Schwarz und Weiß (2)"
+ "sprite_lab.palette_mono": "Schwarz und Weiß (2)",
+ "audio_studio.record_title": "Ein Sample aufnehmen",
+ "audio_studio.record_note": "Nimm deine Stimme oder ein Geräusch mit dem Mikrofon auf (höchstens 10 Sekunden). Es wird in diesem Projekt als Sample gespeichert, wie eine hochgeladene WAV-Datei, und du kannst es löschen. Nimm nur dich selbst auf oder Menschen, die einverstanden sind.",
+ "audio_studio.record": "Aufnehmen",
+ "audio_studio.record_stop": "Stopp",
+ "audio_studio.record_level": "Mikrofonpegel",
+ "audio_studio.record_wave": "Die Aufnahme: der behaltene Teil ist farbig",
+ "audio_studio.record_from": "Behalten ab (s)",
+ "audio_studio.record_to": "bis (s)",
+ "audio_studio.record_name": "stimme",
+ "audio_studio.record_listen": "Anhören",
+ "audio_studio.record_add": "Als Sample hinzufügen",
+ "js.audio_studio.record_took": "{seconds} s aufgenommen",
+ "js.audio_studio.record_needs_account": "Aufgenommene Samples brauchen ein Konto: Melde dich an, um sie zu benutzen.",
+ "js.audio_studio.record_no_microphone": "Dieser Browser kann hier nicht aufnehmen (es braucht https oder diesen Computer).",
+ "js.audio_studio.recording": "Aufnahme… (höchstens {seconds} s)",
+ "js.audio_studio.record_refused": "Das Mikrofon konnte nicht benutzt werden: Erlaube es im Browser und versuche es noch einmal.",
+ "js.audio_studio.record_too_short": "Behalte mindestens 0,05 s der Aufnahme."
 }

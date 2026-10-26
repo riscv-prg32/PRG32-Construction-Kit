@@ -17,12 +17,21 @@ AudioStudio has four tabs.
 | **Voices** | the 8 instruments of your soundtracks: voice 0 plays instrument 0, voice 1 instrument 1, … | soundtracks |
 | **Sound effects** | short sounds with their own instrument, like *Jump* or *Coin* | the **play sound effect** block |
 | **Soundtracks** | music on a grid: one row per voice, one column per step | the **play soundtrack** block |
-| **Samples** | recorded sounds from WAV files (a drum, a voice) | instruments whose sound is *sample* |
+| **Samples** | recorded sounds: WAV files (a drum, a voice), or your own voice recorded with the microphone | instruments whose sound is *sample* |
 
 An instrument has a **sound** (triangle, saw, pulse, noise or a sample), a filter
 (**cutoff** and **resonance**), a **volume**, a **pan** (left or right) and an
 **envelope**: **A**ttack, **D**ecay, **S**ustain, **R**elease. The picture of the
 envelope changes while you move the sliders. **Try it** plays the instrument.
+
+**Record a sample** (on the Samples tab, with an account) records your voice or a sound with
+the microphone, for at most 10 seconds. While you record, the level meter shows how loud it
+is. Then the recording is drawn: choose which part to keep (**Keep from** … **to**, in
+seconds), **Listen**, give it a name and **Add as sample**. The page makes the recording
+louder (its loudest point at 90 %) and turns it into a WAV file at 22050 Hz. From then on it is
+a sample like any uploaded WAV file: give it to an instrument, set its base note, loop it.
+Nothing leaves your browser before **Add as sample**. Record only yourself, or people who
+agreed.
 
 In the soundtrack grid, type a note in a step: `C4` is middle C, `F#5` is higher, a number
 from 0 to 127 also works (60 is C4). Type `off` to end a note; leave a step empty to let the
@@ -66,6 +75,10 @@ the code generator warns you and leaves the block out; it never guesses another 
   copy owns its own sounds. Export/Import moves the sound alone between projects.
 - A teacher supervising a class can listen but not change a student's sound. A shared
   starter project's sound is read-only for students until they make their copy.
+- Recording with the microphone can be switched off (Settings → Privacy, `PRG32_AUDIO_RECORDING`):
+  the Record button is then gone, and WAV files can still be uploaded. A recorded voice is
+  personal data. It is kept like any sample, deleted with it or with the account, and whether a
+  school allows it is its own decision (`privacy/decisions.md`, D-12).
 - Uploaded sound is only read as numbers: WAV files are decoded (uncompressed 8- or 16-bit,
   mono or stereo, at most 8 MB and 30 s) and converted; nothing uploaded is ever run.
 
