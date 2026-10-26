@@ -34,9 +34,9 @@ def test_the_projects_page_has_no_open_project(client):
     assert "navCloseProject" not in html and "data-ide-tool" not in html
     assert "PRG32 Construction Kit" in brand(html) and "img/prg32-logo.png" in brand(html)
     assert 'href="/sprites"' in html and 'href="/audio-studio"' in html and 'href="/player"' in html
-    # The same three tools, not tied to a project, beside New Project in the welcome banner.
+    # The same tools, not tied to a project, beside New Project in the welcome banner.
     hero = re.search(r'<div class="d-flex flex-wrap gap-2 mt-2" id="heroTools">.*?</div>', html, re.S).group(0)
-    assert re.findall(r'href="([^"]+)"', hero) == ["/sprites", "/audio-studio", "/player"]
+    assert re.findall(r'href="([^"]+)"', hero) == ["/sprites", "/audio-studio", "/backgrounds", "/player"]
 
 
 def test_the_ide_menu_works_on_its_project(client):
