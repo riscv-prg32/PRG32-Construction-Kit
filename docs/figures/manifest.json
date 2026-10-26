@@ -1205,6 +1205,40 @@
    "theme": "dark",
    "viewport": "n/a",
    "watch": []
+  },
+  "docs/evidence/deploy/2026-10-24-qemu/screenshot.png": {
+   "browser": "n/a",
+   "captured": "2026-10-24",
+   "frozen": true,
+   "kind": "evidence",
+   "locale": "en-US",
+   "product_commit": "e5d06ed9e5eb3d61974c143573b29a9e7c0a1900",
+   "purpose": "release evidence: the target's own screen after Deploy started the Pong example (QEMU, firmware from SDK 679dfb5)",
+   "recipe": "python3 tools/deploy_evidence.py --qemu-firmware DIR --slot cart0",
+   "review_note": "evidence is kept as recorded, never refreshed",
+   "reviewed": "2026-10-24",
+   "reviewer": "kit maintainers (AI-assisted review: Claude)",
+   "seed": "the Pong example (no people)",
+   "theme": "light",
+   "viewport": "n/a",
+   "watch": []
+  },
+  "docs/evidence/deploy/2026-10-24-prg32qt/screenshot.png": {
+   "browser": "n/a",
+   "captured": "2026-10-24",
+   "frozen": true,
+   "kind": "evidence",
+   "locale": "en-US",
+   "product_commit": "e5d06ed9e5eb3d61974c143573b29a9e7c0a1900",
+   "purpose": "release evidence: the target's own screen after Deploy started the Pong example (canonical PRG32-QT f6d80ad)",
+   "recipe": "python3 tools/deploy_evidence.py --prg32qt http://127.0.0.1:8080 --slot cart3",
+   "review_note": "evidence is kept as recorded, never refreshed",
+   "reviewed": "2026-10-24",
+   "reviewer": "kit maintainers (AI-assisted review: Claude)",
+   "seed": "the Pong example (no people)",
+   "theme": "light",
+   "viewport": "n/a",
+   "watch": []
   }
  }
 }

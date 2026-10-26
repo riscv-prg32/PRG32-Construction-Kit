@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 460" width="760" height="460" role="img" aria-labelledby="chart-title chart-desc" font-family="Helvetica, Arial, sans-serif">
+<title id="chart-title">PRG32 evaluation: Frame time, longest</title>
+<desc id="chart-desc">PRG32 evaluation: Frame time, longest, in us, for the cases clear-fill, text-overlay, sprite-storm, scrolling, mixed-gameplay. QEMU (this server) (emulator (QEMU)): clear-fill mean 31852.0 (95% CI 30161.0 to 33543.0), n=5; text-overlay mean 30631.4 (95% CI 29293.5 to 31969.3), n=5; sprite-storm mean 31686.0 (95% CI 30811.7 to 32560.3), n=5; scrolling mean 31294.6 (95% CI 30208.6 to 32380.6), n=5; mixed-gameplay mean 31058.0 (95% CI 30407.8 to 31708.2), n=5.</desc>
+<metadata>{&quot;cartridge_sha256&quot;:&quot;3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66&quot;,&quot;evaluations&quot;:[{&quot;evaluation_id&quot;:&quot;eval_1ab811833807&quot;,&quot;evidence&quot;:&quot;emulator (QEMU)&quot;,&quot;finished_at&quot;:&quot;2026-10-26T09:50:55+00:00&quot;,&quot;firmware_version&quot;:&quot;679dfb5&quot;,&quot;kit_version&quot;:&quot;0.1.0&quot;,&quot;target_kind&quot;:&quot;qemu&quot;,&quot;target_name&quot;:&quot;QEMU (this server)&quot;}],&quot;left_out&quot;:[],&quot;made_by&quot;:&quot;prg32_construction_kit/charts.py&quot;,&quot;metric&quot;:&quot;frame_us_max&quot;,&quot;protocol&quot;:&quot;prg32-evaluation-protocol-1&quot;,&quot;unit&quot;:&quot;us&quot;}</metadata>
+<rect x="0" y="0" width="760" height="460" fill="#ffffff"/>
+<text x="80" y="24" font-size="15" text-anchor="start" font-weight="bold" fill="#000000">PRG32 evaluation: Frame time, longest</text>
+<text x="80" y="44" font-size="11" text-anchor="start" font-weight="normal" fill="#333333">Frame time, longest (us); bar: mean, line: 95% CI, dots: each measured run</text>
+<line x1="80" y1="340" x2="740" y2="340" stroke="#dddddd" stroke-width="1"/>
+<text x="74" y="344" font-size="10" text-anchor="end" font-weight="normal" fill="#000000">0</text>
+<line x1="80" y1="271" x2="740" y2="271" stroke="#dddddd" stroke-width="1" stroke-dasharray="3 3"/>
+<text x="74" y="275" font-size="10" text-anchor="end" font-weight="normal" fill="#000000">10000</text>
+<line x1="80" y1="202" x2="740" y2="202" stroke="#dddddd" stroke-width="1" stroke-dasharray="3 3"/>
+<text x="74" y="206" font-size="10" text-anchor="end" font-weight="normal" fill="#000000">20000</text>
+<line x1="80" y1="133" x2="740" y2="133" stroke="#dddddd" stroke-width="1" stroke-dasharray="3 3"/>
+<text x="74" y="137" font-size="10" text-anchor="end" font-weight="normal" fill="#000000">30000</text>
+<line x1="80" y1="64" x2="740" y2="64" stroke="#dddddd" stroke-width="1" stroke-dasharray="3 3"/>
+<text x="74" y="68" font-size="10" text-anchor="end" font-weight="normal" fill="#000000">40000</text>
+<line x1="80" y1="64" x2="80" y2="340" stroke="#000000" stroke-width="1"/>
+<line x1="80" y1="340" x2="740" y2="340" stroke="#000000" stroke-width="1"/>
+<text x="18" y="202" font-size="11" text-anchor="middle" font-weight="normal" fill="#000000" transform="rotate(-90 18 202)">Frame time, longest (us)</text>
+<text x="146" y="358" font-size="11" text-anchor="middle" font-weight="normal" fill="#000000">clear-fill</text>
+<rect x="126.8" y="120.22" width="38.4" height="219.78" fill="#7fb8d8" stroke="#0072B2"/>
+<line x1="146" y1="131.89" x2="146" y2="108.55" stroke="#000000" stroke-width="1.4"/>
+<line x1="141" y1="131.89" x2="151" y2="131.89" stroke="#000000" stroke-width="1.4"/>
+<line x1="141" y1="108.55" x2="151" y2="108.55" stroke="#000000" stroke-width="1.4"/>
+<circle cx="140.24" cy="124.42" r="3" fill="#0072B2" stroke="#000000"/>
+<circle cx="143.12" cy="125.72" r="3" fill="#0072B2" stroke="#000000"/>
+<circle cx="146" cy="129.34" r="3" fill="#0072B2" stroke="#000000"/>
+<circle cx="148.88" cy="115.56" r="3" fill="#0072B2" stroke="#000000"/>
+<circle cx="151.76" cy="106.06" r="3" fill="#0072B2" stroke="#000000"/>
+<text x="278" y="358" font-size="11" text-anchor="middle" font-weight="normal" fill="#000000">text-overlay</text>
+<rect x="258.8" y="128.64" width="38.4" height="211.36" fill="#7fb8d8" stroke="#0072B2"/>
+<line x1="278" y1="137.87" x2="278" y2="119.41" stroke="#000000" stroke-width="1.4"/>
+<line x1="273" y1="137.87" x2="283" y2="137.87" stroke="#000000" stroke-width="1.4"/>
+<line x1="273" y1="119.41" x2="283" y2="119.41" stroke="#000000" stroke-width="1.4"/>
+<circle cx="272.24" cy="133.95" r="3" fill="#0072B2" stroke="#000000"/>
+<circle cx="275.12" cy="138.02" r="3" fill="#0072B2" stroke="#000000"/>
+<circle cx="278" cy="124.89" r="3" fill="#0072B2" stroke="#000000"/>
+<circle cx="280.88" cy="119.21" r="3" fill="#0072B2" stroke="#000000"/>
+<circle cx="283.76" cy="127.15" r="3" fill="#0072B2" stroke="#000000"/>
+<text x="410" y="358" font-size="11" text-anchor="middle" font-weight="normal" fill="#000000">sprite-storm</text>
+<rect x="390.8" y="121.37" width="38.4" height="218.63" fill="#7fb8d8" stroke="#0072B2"/>
+<line x1="410" y1="127.4" x2="410" y2="115.33" stroke="#000000" stroke-width="1.4"/>
+<line x1="405" y1="127.4" x2="415" y2="127.4" stroke="#000000" stroke-width="1.4"/>
+<line x1="405" y1="115.33" x2="415" y2="115.33" stroke="#000000" stroke-width="1.4"/>
+<circle cx="404.24" cy="120.77" r="3" fill="#0072B2" stroke="#000000"/>
+<circle cx="407.12" cy="116.4" r="3" fill="#0072B2" stroke="#000000"/>
+<circle cx="410" cy="125.66" r="3" fill="#0072B2" stroke="#000000"/>
+<circle cx="412.88" cy="127.01" r="3" fill="#0072B2" stroke="#000000"/>
+<circle cx="415.76" cy="116.99" r="3" fill="#0072B2" stroke="#000000"/>
+<text x="542" y="358" font-size="11" text-anchor="middle" font-weight="normal" fill="#000000">scrolling</text>
+<rect x="522.8" y="124.07" width="38.4" height="215.93" fill="#7fb8d8" stroke="#0072B2"/>
+<line x1="542" y1="131.56" x2="542" y2="116.57" stroke="#000000" stroke-width="1.4"/>
+<line x1="537" y1="131.56" x2="547" y2="131.56" stroke="#000000" stroke-width="1.4"/>
+<line x1="537" y1="116.57" x2="547" y2="116.57" stroke="#000000" stroke-width="1.4"/>
+<circle cx="536.24" cy="126.88" r="3" fill="#0072B2" stroke="#000000"/>
+<circle cx="539.12" cy="119.9" r="3" fill="#0072B2" stroke="#000000"/>
+<circle cx="542" cy="119.59" r="3" fill="#0072B2" stroke="#000000"/>
+<circle cx="544.88" cy="120.52" r="3" fill="#0072B2" stroke="#000000"/>
+<circle cx="547.76" cy="133.44" r="3" fill="#0072B2" stroke="#000000"/>
+<text x="674" y="358" font-size="11" text-anchor="middle" font-weight="normal" fill="#000000">mixed-gameplay</text>
+<rect x="654.8" y="125.7" width="38.4" height="214.3" fill="#7fb8d8" stroke="#0072B2"/>
+<line x1="674" y1="130.19" x2="674" y2="121.21" stroke="#000000" stroke-width="1.4"/>
+<line x1="669" y1="130.19" x2="679" y2="130.19" stroke="#000000" stroke-width="1.4"/>
+<line x1="669" y1="121.21" x2="679" y2="121.21" stroke="#000000" stroke-width="1.4"/>
+<circle cx="668.24" cy="122.72" r="3" fill="#0072B2" stroke="#000000"/>
+<circle cx="671.12" cy="129.14" r="3" fill="#0072B2" stroke="#000000"/>
+<circle cx="674" cy="125.51" r="3" fill="#0072B2" stroke="#000000"/>
+<circle cx="676.88" cy="121.6" r="3" fill="#0072B2" stroke="#000000"/>
+<circle cx="679.76" cy="129.53" r="3" fill="#0072B2" stroke="#000000"/>
+<circle cx="85" cy="376" r="4" fill="#0072B2" stroke="#000000"/>
+<text x="94" y="380" font-size="10" text-anchor="start" font-weight="normal" fill="#000000">QEMU (this server) (emulator (QEMU))</text>
+<text x="80" y="411" font-size="9" text-anchor="start" font-weight="normal" fill="#333333">Protocol prg32-evaluation-protocol-1; cartridge SHA-256 3b1171638043276a.</text>
+<text x="80" y="424" font-size="9" text-anchor="start" font-weight="normal" fill="#333333">Measured runs per target: QEMU (this server): n=5; warm-up runs excluded.</text>
+<text x="80" y="437" font-size="9" text-anchor="start" font-weight="normal" fill="#333333">Error bars: two-sided 95% Student t interval of the mean of the runs. Every measured run is a point.</text>
+<text x="80" y="450" font-size="9" text-anchor="start" font-weight="normal" fill="#333333">Emulator times (PRG32-QT, QEMU) depend on the host computer: they are not PRG32 console times.</text>
+</svg>

@@ -45,6 +45,7 @@ administrator or an auditor can repeat them.
 | Run | What it proves | Record |
 | --- | --- | --- |
 | Deploy to QEMU and to canonical PRG32-QT (2026-10-24) | the Deploy tool's API, run against the real target with a real build: each refusal (no slot, slot changed, stale build, changed file, wrong architecture) sends nothing, then the cartridge is stored, started and reported running, with the same SHA-256 on both targets. Emulators only: not physical-device evidence | `tools/deploy_evidence.py`; `evidence/deploy/2026-10-24-qemu/`, `evidence/deploy/2026-10-24-prg32qt/`; kept honest by `tests/test_deploy_evidence.py` |
+| Evaluate on QEMU and on canonical PRG32-QT (2026-10-26) | the protocol run end to end with a real build: 1 warm-up and 5 measured runs on each, every run a result, the same cartridge SHA-256 on both, charts made again from the saved datasets byte for byte, and a comparison chart. Emulator times only: not console times | `tools/evaluation_evidence.py`; `evidence/evaluate/2026-10-26-qemu/`, `-prg32qt/`, `-comparison/`; kept honest by `tests/test_evaluation_evidence.py` |
 | PRG32-QT delivery (2026-10-21) | five kit cartridges stored, started and drawn through PRG32-QT's web API | `tools/delivery_check.py`; `evidence/delivery/` |
 
 ## Status documents

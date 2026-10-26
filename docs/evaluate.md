@@ -102,5 +102,7 @@ the dataset, the charts and a record (kit and SDK commits, the host computer for
 python3 tools/evaluation_evidence.py --prg32qt http://127.0.0.1:8080 --slot cart3 --out docs/evidence/evaluate/DATE-prg32qt
 ```
 
-See [evidence/evaluate/](evidence/evaluate/) for the recorded runs. No PRG32 console was
+Recorded on 2026-10-26: [QEMU](evidence/evaluate/2026-10-26-qemu/record.json),
+[PRG32-QT](evidence/evaluate/2026-10-26-prg32qt/record.json) and their
+[comparison](evidence/evaluate/2026-10-26-comparison/comparison.json). No PRG32 console was
 available, so there is no physical-device evaluation yet.

@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 460" width="760" height="460" role="img" aria-labelledby="chart-title chart-desc" font-family="Helvetica, Arial, sans-serif">
+<title id="chart-title">PRG32 evaluation: Frame time, 95th percentile</title>
+<desc id="chart-desc">PRG32 evaluation: Frame time, 95th percentile, in us, for the cases clear-fill, text-overlay, sprite-storm, scrolling, mixed-gameplay. PRG32-QT (emulator (PRG32-QT)): clear-fill mean 254.6 (95% CI 235.7 to 273.5), n=5; text-overlay mean 1989.2 (95% CI 1871.3 to 2107.1), n=5; sprite-storm mean 377.6 (95% CI 374.7 to 380.5), n=5; scrolling mean 534.2 (95% CI 442.8 to 625.6), n=5; mixed-gameplay mean 858.8 (95% CI 829.5 to 888.1), n=5.</desc>
+<metadata>{&quot;cartridge_sha256&quot;:&quot;3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66&quot;,&quot;evaluations&quot;:[{&quot;evaluation_id&quot;:&quot;eval_0e55a515739b&quot;,&quot;evidence&quot;:&quot;emulator (PRG32-QT)&quot;,&quot;finished_at&quot;:&quot;2026-10-26T09:52:12+00:00&quot;,&quot;firmware_version&quot;:&quot;qt-0.4.1-dev.3+gf6d80ad&quot;,&quot;kit_version&quot;:&quot;0.1.0&quot;,&quot;target_kind&quot;:&quot;prg32qt&quot;,&quot;target_name&quot;:&quot;PRG32-QT&quot;}],&quot;left_out&quot;:[],&quot;made_by&quot;:&quot;prg32_construction_kit/charts.py&quot;,&quot;metric&quot;:&quot;frame_us_p95&quot;,&quot;protocol&quot;:&quot;prg32-evaluation-protocol-1&quot;,&quot;unit&quot;:&quot;us&quot;}</metadata>
+<rect x="0" y="0" width="760" height="460" fill="#ffffff"/>
+<text x="80" y="24" font-size="15" text-anchor="start" font-weight="bold" fill="#000000">PRG32 evaluation: Frame time, 95th percentile</text>
+<text x="80" y="44" font-size="11" text-anchor="start" font-weight="normal" fill="#333333">Frame time, 95th percentile (us); bar: mean, line: 95% CI, dots: each measured run</text>
+<line x1="80" y1="340" x2="740" y2="340" stroke="#dddddd" stroke-width="1"/>
+<text x="74" y="344" font-size="10" text-anchor="end" font-weight="normal" fill="#000000">0</text>
+<line x1="80" y1="284.8" x2="740" y2="284.8" stroke="#dddddd" stroke-width="1" stroke-dasharray="3 3"/>
+<text x="74" y="288.8" font-size="10" text-anchor="end" font-weight="normal" fill="#000000">500</text>
+<line x1="80" y1="229.6" x2="740" y2="229.6" stroke="#dddddd" stroke-width="1" stroke-dasharray="3 3"/>
+<text x="74" y="233.6" font-size="10" text-anchor="end" font-weight="normal" fill="#000000">1000</text>
+<line x1="80" y1="174.4" x2="740" y2="174.4" stroke="#dddddd" stroke-width="1" stroke-dasharray="3 3"/>
+<text x="74" y="178.4" font-size="10" text-anchor="end" font-weight="normal" fill="#000000">1500</text>
+<line x1="80" y1="119.2" x2="740" y2="119.2" stroke="#dddddd" stroke-width="1" stroke-dasharray="3 3"/>
+<text x="74" y="123.2" font-size="10" text-anchor="end" font-weight="normal" fill="#000000">2000</text>
+<line x1="80" y1="64" x2="740" y2="64" stroke="#dddddd" stroke-width="1" stroke-dasharray="3 3"/>
+<text x="74" y="68" font-size="10" text-anchor="end" font-weight="normal" fill="#000000">2500</text>
+<line x1="80" y1="64" x2="80" y2="340" stroke="#000000" stroke-width="1"/>
+<line x1="80" y1="340" x2="740" y2="340" stroke="#000000" stroke-width="1"/>
+<text x="18" y="202" font-size="11" text-anchor="middle" font-weight="normal" fill="#000000" transform="rotate(-90 18 202)">Frame time, 95th percentile (us)</text>
+<text x="146" y="358" font-size="11" text-anchor="middle" font-weight="normal" fill="#000000">clear-fill</text>
+<rect x="126.8" y="311.89" width="38.4" height="28.11" fill="#7fb8d8" stroke="#0072B2"/>
+<line x1="146" y1="313.98" x2="146" y2="309.8" stroke="#000000" stroke-width="1.4"/>
+<line x1="141" y1="313.98" x2="151" y2="313.98" stroke="#000000" stroke-width="1.4"/>
+<line x1="141" y1="309.8" x2="151" y2="309.8" stroke="#000000" stroke-width="1.4"/>
+<circle cx="140.24" cy="309.09" r="3" fill="#0072B2" stroke="#000000"/>
+<circle cx="143.12" cy="313.06" r="3" fill="#0072B2" stroke="#000000"/>
+<circle cx="146" cy="313.17" r="3" fill="#0072B2" stroke="#000000"/>
+<circle cx="148.88" cy="311.63" r="3" fill="#0072B2" stroke="#000000"/>
+<circle cx="151.76" cy="312.51" r="3" fill="#0072B2" stroke="#000000"/>
+<text x="278" y="358" font-size="11" text-anchor="middle" font-weight="normal" fill="#000000">text-overlay</text>
+<rect x="258.8" y="120.39" width="38.4" height="219.61" fill="#7fb8d8" stroke="#0072B2"/>
+<line x1="278" y1="133.41" x2="278" y2="107.38" stroke="#000000" stroke-width="1.4"/>
+<line x1="273" y1="133.41" x2="283" y2="133.41" stroke="#000000" stroke-width="1.4"/>
+<line x1="273" y1="107.38" x2="283" y2="107.38" stroke="#000000" stroke-width="1.4"/>
+<circle cx="272.24" cy="109.93" r="3" fill="#0072B2" stroke="#000000"/>
+<circle cx="275.12" cy="113.02" r="3" fill="#0072B2" stroke="#000000"/>
+<circle cx="278" cy="129.36" r="3" fill="#0072B2" stroke="#000000"/>
+<circle cx="280.88" cy="133.66" r="3" fill="#0072B2" stroke="#000000"/>
+<circle cx="283.76" cy="116" r="3" fill="#0072B2" stroke="#000000"/>
+<text x="410" y="358" font-size="11" text-anchor="middle" font-weight="normal" fill="#000000">sprite-storm</text>
+<rect x="390.8" y="298.31" width="38.4" height="41.69" fill="#7fb8d8" stroke="#0072B2"/>
+<line x1="410" y1="298.63" x2="410" y2="298" stroke="#000000" stroke-width="1.4"/>
+<line x1="405" y1="298.63" x2="415" y2="298.63" stroke="#000000" stroke-width="1.4"/>
+<line x1="405" y1="298" x2="415" y2="298" stroke="#000000" stroke-width="1.4"/>
+<circle cx="404.24" cy="298.38" r="3" fill="#0072B2" stroke="#000000"/>
+<circle cx="407.12" cy="298.05" r="3" fill="#0072B2" stroke="#000000"/>
+<circle cx="410" cy="298.71" r="3" fill="#0072B2" stroke="#000000"/>
+<circle cx="412.88" cy="298.27" r="3" fill="#0072B2" stroke="#000000"/>
+<circle cx="415.76" cy="298.16" r="3" fill="#0072B2" stroke="#000000"/>
+<text x="542" y="358" font-size="11" text-anchor="middle" font-weight="normal" fill="#000000">scrolling</text>
+<rect x="522.8" y="281.02" width="38.4" height="58.98" fill="#7fb8d8" stroke="#0072B2"/>
+<line x1="542" y1="291.11" x2="542" y2="270.93" stroke="#000000" stroke-width="1.4"/>
+<line x1="537" y1="291.11" x2="547" y2="291.11" stroke="#000000" stroke-width="1.4"/>
+<line x1="537" y1="270.93" x2="547" y2="270.93" stroke="#000000" stroke-width="1.4"/>
+<circle cx="536.24" cy="276.96" r="3" fill="#0072B2" stroke="#000000"/>
+<circle cx="539.12" cy="285.68" r="3" fill="#0072B2" stroke="#000000"/>
+<circle cx="542" cy="271.33" r="3" fill="#0072B2" stroke="#000000"/>
+<circle cx="544.88" cy="292.31" r="3" fill="#0072B2" stroke="#000000"/>
+<circle cx="547.76" cy="278.84" r="3" fill="#0072B2" stroke="#000000"/>
+<text x="674" y="358" font-size="11" text-anchor="middle" font-weight="normal" fill="#000000">mixed-gameplay</text>
+<rect x="654.8" y="245.19" width="38.4" height="94.81" fill="#7fb8d8" stroke="#0072B2"/>
+<line x1="674" y1="248.43" x2="674" y2="241.95" stroke="#000000" stroke-width="1.4"/>
+<line x1="669" y1="248.43" x2="679" y2="248.43" stroke="#000000" stroke-width="1.4"/>
+<line x1="669" y1="241.95" x2="679" y2="241.95" stroke="#000000" stroke-width="1.4"/>
+<circle cx="668.24" cy="246.6" r="3" fill="#0072B2" stroke="#000000"/>
+<circle cx="671.12" cy="248.26" r="3" fill="#0072B2" stroke="#000000"/>
+<circle cx="674" cy="245.39" r="3" fill="#0072B2" stroke="#000000"/>
+<circle cx="676.88" cy="244.39" r="3" fill="#0072B2" stroke="#000000"/>
+<circle cx="679.76" cy="241.3" r="3" fill="#0072B2" stroke="#000000"/>
+<circle cx="85" cy="376" r="4" fill="#0072B2" stroke="#000000"/>
+<text x="94" y="380" font-size="10" text-anchor="start" font-weight="normal" fill="#000000">PRG32-QT (emulator (PRG32-QT))</text>
+<text x="80" y="411" font-size="9" text-anchor="start" font-weight="normal" fill="#333333">Protocol prg32-evaluation-protocol-1; cartridge SHA-256 3b1171638043276a.</text>
+<text x="80" y="424" font-size="9" text-anchor="start" font-weight="normal" fill="#333333">Measured runs per target: PRG32-QT: n=5; warm-up runs excluded.</text>
+<text x="80" y="437" font-size="9" text-anchor="start" font-weight="normal" fill="#333333">Error bars: two-sided 95% Student t interval of the mean of the runs. Every measured run is a point.</text>
+<text x="80" y="450" font-size="9" text-anchor="start" font-weight="normal" fill="#333333">Emulator times (PRG32-QT, QEMU) depend on the host computer: they are not PRG32 console times.</text>
+</svg>

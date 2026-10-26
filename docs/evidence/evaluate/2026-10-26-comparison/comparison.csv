@@ -1,0 +1,661 @@
+evaluation_id,target_kind,target_name,evidence,firmware_version,cartridge_sha256,repetition,role,run_id,case,metric,value,unit
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-1078614-1,clear-fill,frame_us_mean,19198.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-1078614-1,clear-fill,frame_us_p50,21695.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-1078614-1,clear-fill,frame_us_p95,29478.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-1078614-1,clear-fill,frame_us_p99,30835.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-1078614-1,clear-fill,frame_us_min,1295.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-1078614-1,clear-fill,frame_us_max,30835.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-1078614-1,clear-fill,update_us_mean,2.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-1078614-1,clear-fill,draw_us_mean,135.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-1078614-1,clear-fill,present_us_mean,19052.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-1078614-1,clear-fill,fps_mean,52.08,Hz
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-1078614-1,clear-fill,missed_deadlines,0.0,frames
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-1078614-1,text-overlay,frame_us_mean,17079.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-1078614-1,text-overlay,frame_us_p50,19620.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-1078614-1,text-overlay,frame_us_p95,29120.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-1078614-1,text-overlay,frame_us_p99,31915.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-1078614-1,text-overlay,frame_us_min,1283.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-1078614-1,text-overlay,frame_us_max,31915.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-1078614-1,text-overlay,update_us_mean,2.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-1078614-1,text-overlay,draw_us_mean,510.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-1078614-1,text-overlay,present_us_mean,16558.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-1078614-1,text-overlay,fps_mean,58.55,Hz
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-1078614-1,text-overlay,missed_deadlines,0.0,frames
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-1078614-1,sprite-storm,frame_us_mean,16555.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-1078614-1,sprite-storm,frame_us_p50,19091.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-1078614-1,sprite-storm,frame_us_p95,30538.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-1078614-1,sprite-storm,frame_us_p99,32082.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-1078614-1,sprite-storm,frame_us_min,1178.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-1078614-1,sprite-storm,frame_us_max,32082.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-1078614-1,sprite-storm,update_us_mean,2.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-1078614-1,sprite-storm,draw_us_mean,136.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-1078614-1,sprite-storm,present_us_mean,16408.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-1078614-1,sprite-storm,fps_mean,60.4,Hz
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-1078614-1,sprite-storm,missed_deadlines,0.0,frames
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-1078614-1,scrolling,frame_us_mean,15313.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-1078614-1,scrolling,frame_us_p50,14616.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-1078614-1,scrolling,frame_us_p95,29042.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-1078614-1,scrolling,frame_us_p99,30620.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-1078614-1,scrolling,frame_us_min,1297.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-1078614-1,scrolling,frame_us_max,30620.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-1078614-1,scrolling,update_us_mean,3.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-1078614-1,scrolling,draw_us_mean,148.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-1078614-1,scrolling,present_us_mean,15153.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-1078614-1,scrolling,fps_mean,65.3,Hz
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-1078614-1,scrolling,missed_deadlines,0.0,frames
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-1078614-1,mixed-gameplay,frame_us_mean,15246.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-1078614-1,mixed-gameplay,frame_us_p50,13224.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-1078614-1,mixed-gameplay,frame_us_p95,28617.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-1078614-1,mixed-gameplay,frame_us_p99,29832.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-1078614-1,mixed-gameplay,frame_us_min,1260.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-1078614-1,mixed-gameplay,frame_us_max,29832.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-1078614-1,mixed-gameplay,update_us_mean,2.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-1078614-1,mixed-gameplay,draw_us_mean,154.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-1078614-1,mixed-gameplay,present_us_mean,15081.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-1078614-1,mixed-gameplay,fps_mean,65.59,Hz
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-1078614-1,mixed-gameplay,missed_deadlines,0.0,frames
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1110371-1,clear-fill,frame_us_mean,19433.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1110371-1,clear-fill,frame_us_p50,21355.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1110371-1,clear-fill,frame_us_p95,29392.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1110371-1,clear-fill,frame_us_p99,31243.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1110371-1,clear-fill,frame_us_min,2353.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1110371-1,clear-fill,frame_us_max,31243.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1110371-1,clear-fill,update_us_mean,2.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1110371-1,clear-fill,draw_us_mean,142.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1110371-1,clear-fill,present_us_mean,19281.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1110371-1,clear-fill,fps_mean,51.45,Hz
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1110371-1,clear-fill,missed_deadlines,0.0,frames
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1110371-1,text-overlay,frame_us_mean,18734.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1110371-1,text-overlay,frame_us_p50,21060.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1110371-1,text-overlay,frame_us_p95,28667.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1110371-1,text-overlay,frame_us_p99,29863.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1110371-1,text-overlay,frame_us_min,1230.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1110371-1,text-overlay,frame_us_max,29863.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1110371-1,text-overlay,update_us_mean,2.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1110371-1,text-overlay,draw_us_mean,497.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1110371-1,text-overlay,present_us_mean,18226.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1110371-1,text-overlay,fps_mean,53.37,Hz
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1110371-1,text-overlay,missed_deadlines,0.0,frames
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1110371-1,sprite-storm,frame_us_mean,16053.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1110371-1,sprite-storm,frame_us_p50,18580.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1110371-1,sprite-storm,frame_us_p95,29738.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1110371-1,sprite-storm,frame_us_p99,31772.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1110371-1,sprite-storm,frame_us_min,1177.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1110371-1,sprite-storm,frame_us_max,31772.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1110371-1,sprite-storm,update_us_mean,2.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1110371-1,sprite-storm,draw_us_mean,143.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1110371-1,sprite-storm,present_us_mean,15899.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1110371-1,sprite-storm,fps_mean,62.29,Hz
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1110371-1,sprite-storm,missed_deadlines,0.0,frames
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1110371-1,scrolling,frame_us_mean,14590.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1110371-1,scrolling,frame_us_p50,12527.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1110371-1,scrolling,frame_us_p95,28410.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1110371-1,scrolling,frame_us_p99,30887.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1110371-1,scrolling,frame_us_min,2331.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1110371-1,scrolling,frame_us_max,30887.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1110371-1,scrolling,update_us_mean,2.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1110371-1,scrolling,draw_us_mean,165.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1110371-1,scrolling,present_us_mean,14413.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1110371-1,scrolling,fps_mean,68.54,Hz
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1110371-1,scrolling,missed_deadlines,0.0,frames
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1110371-1,mixed-gameplay,frame_us_mean,17525.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1110371-1,mixed-gameplay,frame_us_p50,19685.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1110371-1,mixed-gameplay,frame_us_p95,30455.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1110371-1,mixed-gameplay,frame_us_p99,31490.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1110371-1,mixed-gameplay,frame_us_min,3766.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1110371-1,mixed-gameplay,frame_us_max,31490.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1110371-1,mixed-gameplay,update_us_mean,2.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1110371-1,mixed-gameplay,draw_us_mean,139.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1110371-1,mixed-gameplay,present_us_mean,17375.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1110371-1,mixed-gameplay,fps_mean,57.06,Hz
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1110371-1,mixed-gameplay,missed_deadlines,0.0,frames
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-1102657-1,clear-fill,frame_us_mean,21025.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-1102657-1,clear-fill,frame_us_p50,22041.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-1102657-1,clear-fill,frame_us_p95,29071.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-1102657-1,clear-fill,frame_us_p99,31055.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-1102657-1,clear-fill,frame_us_min,3710.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-1102657-1,clear-fill,frame_us_max,31055.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-1102657-1,clear-fill,update_us_mean,2.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-1102657-1,clear-fill,draw_us_mean,134.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-1102657-1,clear-fill,present_us_mean,20880.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-1102657-1,clear-fill,fps_mean,47.56,Hz
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-1102657-1,clear-fill,missed_deadlines,0.0,frames
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-1102657-1,text-overlay,frame_us_mean,16017.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-1102657-1,text-overlay,frame_us_p50,17368.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-1102657-1,text-overlay,frame_us_p95,26459.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-1102657-1,text-overlay,frame_us_p99,29273.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-1102657-1,text-overlay,frame_us_min,1195.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-1102657-1,text-overlay,frame_us_max,29273.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-1102657-1,text-overlay,update_us_mean,2.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-1102657-1,text-overlay,draw_us_mean,531.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-1102657-1,text-overlay,present_us_mean,15475.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-1102657-1,text-overlay,fps_mean,62.43,Hz
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-1102657-1,text-overlay,missed_deadlines,0.0,frames
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-1102657-1,sprite-storm,frame_us_mean,17353.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-1102657-1,sprite-storm,frame_us_p50,19225.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-1102657-1,sprite-storm,frame_us_p95,29913.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-1102657-1,sprite-storm,frame_us_p99,32406.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-1102657-1,sprite-storm,frame_us_min,1221.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-1102657-1,sprite-storm,frame_us_max,32406.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-1102657-1,sprite-storm,update_us_mean,2.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-1102657-1,sprite-storm,draw_us_mean,134.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-1102657-1,sprite-storm,present_us_mean,17208.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-1102657-1,sprite-storm,fps_mean,57.62,Hz
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-1102657-1,sprite-storm,missed_deadlines,0.0,frames
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-1102657-1,scrolling,frame_us_mean,18658.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-1102657-1,scrolling,frame_us_p50,20664.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-1102657-1,scrolling,frame_us_p95,30147.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-1102657-1,scrolling,frame_us_p99,31898.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-1102657-1,scrolling,frame_us_min,2429.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-1102657-1,scrolling,frame_us_max,31898.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-1102657-1,scrolling,update_us_mean,2.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-1102657-1,scrolling,draw_us_mean,141.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-1102657-1,scrolling,present_us_mean,18507.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-1102657-1,scrolling,fps_mean,53.59,Hz
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-1102657-1,scrolling,missed_deadlines,0.0,frames
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-1102657-1,mixed-gameplay,frame_us_mean,19011.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-1102657-1,mixed-gameplay,frame_us_p50,20988.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-1102657-1,mixed-gameplay,frame_us_p95,29788.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-1102657-1,mixed-gameplay,frame_us_p99,30559.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-1102657-1,mixed-gameplay,frame_us_min,1222.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-1102657-1,mixed-gameplay,frame_us_max,30559.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-1102657-1,mixed-gameplay,update_us_mean,2.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-1102657-1,mixed-gameplay,draw_us_mean,138.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-1102657-1,mixed-gameplay,present_us_mean,18863.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-1102657-1,mixed-gameplay,fps_mean,52.6,Hz
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-1102657-1,mixed-gameplay,missed_deadlines,0.0,frames
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1106008-1,clear-fill,frame_us_mean,18074.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1106008-1,clear-fill,frame_us_p50,20173.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1106008-1,clear-fill,frame_us_p95,28589.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1106008-1,clear-fill,frame_us_p99,30530.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1106008-1,clear-fill,frame_us_min,1265.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1106008-1,clear-fill,frame_us_max,30530.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1106008-1,clear-fill,update_us_mean,3.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1106008-1,clear-fill,draw_us_mean,146.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1106008-1,clear-fill,present_us_mean,17916.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1106008-1,clear-fill,fps_mean,55.32,Hz
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1106008-1,clear-fill,missed_deadlines,0.0,frames
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1106008-1,text-overlay,frame_us_mean,17142.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1106008-1,text-overlay,frame_us_p50,18632.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1106008-1,text-overlay,frame_us_p95,29645.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1106008-1,text-overlay,frame_us_p99,31175.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1106008-1,text-overlay,frame_us_min,1249.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1106008-1,text-overlay,frame_us_max,31175.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1106008-1,text-overlay,update_us_mean,2.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1106008-1,text-overlay,draw_us_mean,539.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1106008-1,text-overlay,present_us_mean,16592.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1106008-1,text-overlay,fps_mean,58.33,Hz
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1106008-1,text-overlay,missed_deadlines,0.0,frames
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1106008-1,sprite-storm,frame_us_mean,18206.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1106008-1,sprite-storm,frame_us_p50,19869.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1106008-1,sprite-storm,frame_us_p95,28675.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1106008-1,sprite-storm,frame_us_p99,31064.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1106008-1,sprite-storm,frame_us_min,2492.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1106008-1,sprite-storm,frame_us_max,31064.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1106008-1,sprite-storm,update_us_mean,2.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1106008-1,sprite-storm,draw_us_mean,132.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1106008-1,sprite-storm,present_us_mean,18064.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1106008-1,sprite-storm,fps_mean,54.92,Hz
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1106008-1,sprite-storm,missed_deadlines,0.0,frames
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1106008-1,scrolling,frame_us_mean,16532.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1106008-1,scrolling,frame_us_p50,19008.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1106008-1,scrolling,frame_us_p95,28860.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1106008-1,scrolling,frame_us_p99,31943.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1106008-1,scrolling,frame_us_min,1262.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1106008-1,scrolling,frame_us_max,31943.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1106008-1,scrolling,update_us_mean,2.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1106008-1,scrolling,draw_us_mean,149.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1106008-1,scrolling,present_us_mean,16373.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1106008-1,scrolling,fps_mean,60.48,Hz
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1106008-1,scrolling,missed_deadlines,0.0,frames
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1106008-1,mixed-gameplay,frame_us_mean,17346.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1106008-1,mixed-gameplay,frame_us_p50,19620.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1106008-1,mixed-gameplay,frame_us_p95,30071.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1106008-1,mixed-gameplay,frame_us_p99,31086.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1106008-1,mixed-gameplay,frame_us_min,1074.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1106008-1,mixed-gameplay,frame_us_max,31086.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1106008-1,mixed-gameplay,update_us_mean,2.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1106008-1,mixed-gameplay,draw_us_mean,153.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1106008-1,mixed-gameplay,present_us_mean,17182.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1106008-1,mixed-gameplay,fps_mean,57.65,Hz
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1106008-1,mixed-gameplay,missed_deadlines,0.0,frames
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-1098812-1,clear-fill,frame_us_mean,17916.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-1098812-1,clear-fill,frame_us_p50,19942.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-1098812-1,clear-fill,frame_us_p95,27318.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-1098812-1,clear-fill,frame_us_p99,32528.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-1098812-1,clear-fill,frame_us_min,1195.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-1098812-1,clear-fill,frame_us_max,32528.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-1098812-1,clear-fill,update_us_mean,2.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-1098812-1,clear-fill,draw_us_mean,142.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-1098812-1,clear-fill,present_us_mean,17763.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-1098812-1,clear-fill,fps_mean,55.81,Hz
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-1098812-1,clear-fill,missed_deadlines,0.0,frames
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-1098812-1,text-overlay,frame_us_mean,16090.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-1098812-1,text-overlay,frame_us_p50,16368.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-1098812-1,text-overlay,frame_us_p95,28519.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-1098812-1,text-overlay,frame_us_p99,31998.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-1098812-1,text-overlay,frame_us_min,1122.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-1098812-1,text-overlay,frame_us_max,31998.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-1098812-1,text-overlay,update_us_mean,2.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-1098812-1,text-overlay,draw_us_mean,532.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-1098812-1,text-overlay,present_us_mean,15548.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-1098812-1,text-overlay,fps_mean,62.15,Hz
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-1098812-1,text-overlay,missed_deadlines,0.0,frames
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-1098812-1,sprite-storm,frame_us_mean,16298.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-1098812-1,sprite-storm,frame_us_p50,17967.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-1098812-1,sprite-storm,frame_us_p95,28637.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-1098812-1,sprite-storm,frame_us_p99,30868.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-1098812-1,sprite-storm,frame_us_min,1200.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-1098812-1,sprite-storm,frame_us_max,30868.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-1098812-1,sprite-storm,update_us_mean,2.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-1098812-1,sprite-storm,draw_us_mean,140.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-1098812-1,sprite-storm,present_us_mean,16147.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-1098812-1,sprite-storm,fps_mean,61.35,Hz
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-1098812-1,sprite-storm,missed_deadlines,0.0,frames
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-1098812-1,scrolling,frame_us_mean,16414.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-1098812-1,scrolling,frame_us_p50,16277.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-1098812-1,scrolling,frame_us_p95,29067.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-1098812-1,scrolling,frame_us_p99,31809.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-1098812-1,scrolling,frame_us_min,1247.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-1098812-1,scrolling,frame_us_max,31809.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-1098812-1,scrolling,update_us_mean,2.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-1098812-1,scrolling,draw_us_mean,150.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-1098812-1,scrolling,present_us_mean,16252.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-1098812-1,scrolling,fps_mean,60.92,Hz
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-1098812-1,scrolling,missed_deadlines,0.0,frames
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-1098812-1,mixed-gameplay,frame_us_mean,18099.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-1098812-1,mixed-gameplay,frame_us_p50,19767.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-1098812-1,mixed-gameplay,frame_us_p95,28907.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-1098812-1,mixed-gameplay,frame_us_p99,31652.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-1098812-1,mixed-gameplay,frame_us_min,7131.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-1098812-1,mixed-gameplay,frame_us_max,31652.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-1098812-1,mixed-gameplay,update_us_mean,2.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-1098812-1,mixed-gameplay,draw_us_mean,152.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-1098812-1,mixed-gameplay,present_us_mean,17936.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-1098812-1,mixed-gameplay,fps_mean,55.25,Hz
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-1098812-1,mixed-gameplay,missed_deadlines,0.0,frames
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-1091594-1,clear-fill,frame_us_mean,19257.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-1091594-1,clear-fill,frame_us_p50,19837.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-1091594-1,clear-fill,frame_us_p95,29676.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-1091594-1,clear-fill,frame_us_p99,33904.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-1091594-1,clear-fill,frame_us_min,1215.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-1091594-1,clear-fill,frame_us_max,33904.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-1091594-1,clear-fill,update_us_mean,2.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-1091594-1,clear-fill,draw_us_mean,136.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-1091594-1,clear-fill,present_us_mean,19111.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-1091594-1,clear-fill,fps_mean,51.92,Hz
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-1091594-1,clear-fill,missed_deadlines,1.0,frames
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-1091594-1,text-overlay,frame_us_mean,18512.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-1091594-1,text-overlay,frame_us_p50,20093.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-1091594-1,text-overlay,frame_us_p95,28743.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-1091594-1,text-overlay,frame_us_p99,30848.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-1091594-1,text-overlay,frame_us_min,1256.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-1091594-1,text-overlay,frame_us_max,30848.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-1091594-1,text-overlay,update_us_mean,2.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-1091594-1,text-overlay,draw_us_mean,492.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-1091594-1,text-overlay,present_us_mean,18010.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-1091594-1,text-overlay,fps_mean,54.01,Hz
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-1091594-1,text-overlay,missed_deadlines,0.0,frames
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-1091594-1,sprite-storm,frame_us_mean,15176.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-1091594-1,sprite-storm,frame_us_p50,13747.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-1091594-1,sprite-storm,frame_us_p95,28458.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-1091594-1,sprite-storm,frame_us_p99,32320.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-1091594-1,sprite-storm,frame_us_min,1178.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-1091594-1,sprite-storm,frame_us_max,32320.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-1091594-1,sprite-storm,update_us_mean,2.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-1091594-1,sprite-storm,draw_us_mean,141.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-1091594-1,sprite-storm,present_us_mean,15024.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-1091594-1,sprite-storm,fps_mean,65.89,Hz
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-1091594-1,sprite-storm,missed_deadlines,0.0,frames
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-1091594-1,scrolling,frame_us_mean,18388.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-1091594-1,scrolling,frame_us_p50,19583.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-1091594-1,scrolling,frame_us_p95,28878.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-1091594-1,scrolling,frame_us_p99,29936.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-1091594-1,scrolling,frame_us_min,2486.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-1091594-1,scrolling,frame_us_max,29936.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-1091594-1,scrolling,update_us_mean,2.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-1091594-1,scrolling,draw_us_mean,137.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-1091594-1,scrolling,present_us_mean,18242.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-1091594-1,scrolling,fps_mean,54.38,Hz
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-1091594-1,scrolling,missed_deadlines,0.0,frames
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-1091594-1,mixed-gameplay,frame_us_mean,18639.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-1091594-1,mixed-gameplay,frame_us_p50,19862.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-1091594-1,mixed-gameplay,frame_us_p95,29211.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-1091594-1,mixed-gameplay,frame_us_p99,30503.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-1091594-1,mixed-gameplay,frame_us_min,6983.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-1091594-1,mixed-gameplay,frame_us_max,30503.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-1091594-1,mixed-gameplay,update_us_mean,2.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-1091594-1,mixed-gameplay,draw_us_mean,144.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-1091594-1,mixed-gameplay,present_us_mean,18485.0,us
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-1091594-1,mixed-gameplay,fps_mean,53.65,Hz
+eval_1ab811833807,qemu,QEMU (this server),emulator (QEMU),679dfb5,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-1091594-1,mixed-gameplay,missed_deadlines,0.0,frames
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-2-1,clear-fill,frame_us_mean,140.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-2-1,clear-fill,frame_us_p50,119.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-2-1,clear-fill,frame_us_p95,252.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-2-1,clear-fill,frame_us_p99,540.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-2-1,clear-fill,frame_us_min,50.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-2-1,clear-fill,frame_us_max,540.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-2-1,clear-fill,update_us_mean,1.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-2-1,clear-fill,draw_us_mean,137.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-2-1,clear-fill,present_us_mean,0.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-2-1,clear-fill,fps_mean,7142.857142857143,Hz
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-2-1,clear-fill,missed_deadlines,0.0,frames
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-2-1,text-overlay,frame_us_mean,1203.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-2-1,text-overlay,frame_us_p50,994.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-2-1,text-overlay,frame_us_p95,2067.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-2-1,text-overlay,frame_us_p99,2139.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-2-1,text-overlay,frame_us_min,716.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-2-1,text-overlay,frame_us_max,2139.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-2-1,text-overlay,update_us_mean,1.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-2-1,text-overlay,draw_us_mean,1199.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-2-1,text-overlay,present_us_mean,0.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-2-1,text-overlay,fps_mean,831.255195344971,Hz
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-2-1,text-overlay,missed_deadlines,0.0,frames
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-2-1,sprite-storm,frame_us_mean,233.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-2-1,sprite-storm,frame_us_p50,205.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-2-1,sprite-storm,frame_us_p95,373.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-2-1,sprite-storm,frame_us_p99,434.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-2-1,sprite-storm,frame_us_min,138.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-2-1,sprite-storm,frame_us_max,434.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-2-1,sprite-storm,update_us_mean,1.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-2-1,sprite-storm,draw_us_mean,230.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-2-1,sprite-storm,present_us_mean,0.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-2-1,sprite-storm,fps_mean,4291.845493562232,Hz
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-2-1,sprite-storm,missed_deadlines,0.0,frames
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-2-1,scrolling,frame_us_mean,297.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-2-1,scrolling,frame_us_p50,214.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-2-1,scrolling,frame_us_p95,489.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-2-1,scrolling,frame_us_p99,660.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-2-1,scrolling,frame_us_min,161.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-2-1,scrolling,frame_us_max,660.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-2-1,scrolling,update_us_mean,1.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-2-1,scrolling,draw_us_mean,293.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-2-1,scrolling,present_us_mean,0.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-2-1,scrolling,fps_mean,3367.003367003367,Hz
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-2-1,scrolling,missed_deadlines,0.0,frames
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-2-1,mixed-gameplay,frame_us_mean,489.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-2-1,mixed-gameplay,frame_us_p50,400.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-2-1,mixed-gameplay,frame_us_p95,886.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-2-1,mixed-gameplay,frame_us_p99,1150.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-2-1,mixed-gameplay,frame_us_min,260.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-2-1,mixed-gameplay,frame_us_max,1150.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-2-1,mixed-gameplay,update_us_mean,1.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-2-1,mixed-gameplay,draw_us_mean,486.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-2-1,mixed-gameplay,present_us_mean,0.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-2-1,mixed-gameplay,fps_mean,2044.9897750511248,Hz
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,1,warm-up,perf-2-1,mixed-gameplay,missed_deadlines,0.0,frames
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1-1,clear-fill,frame_us_mean,154.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1-1,clear-fill,frame_us_p50,121.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1-1,clear-fill,frame_us_p95,280.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1-1,clear-fill,frame_us_p99,511.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1-1,clear-fill,frame_us_min,43.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1-1,clear-fill,frame_us_max,511.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1-1,clear-fill,update_us_mean,1.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1-1,clear-fill,draw_us_mean,151.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1-1,clear-fill,present_us_mean,0.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1-1,clear-fill,fps_mean,6493.506493506494,Hz
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1-1,clear-fill,missed_deadlines,0.0,frames
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1-1,text-overlay,frame_us_mean,1344.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1-1,text-overlay,frame_us_p50,1148.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1-1,text-overlay,frame_us_p95,2084.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1-1,text-overlay,frame_us_p99,2272.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1-1,text-overlay,frame_us_min,837.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1-1,text-overlay,frame_us_max,2272.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1-1,text-overlay,update_us_mean,1.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1-1,text-overlay,draw_us_mean,1340.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1-1,text-overlay,present_us_mean,0.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1-1,text-overlay,fps_mean,744.047619047619,Hz
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1-1,text-overlay,missed_deadlines,0.0,frames
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1-1,sprite-storm,frame_us_mean,207.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1-1,sprite-storm,frame_us_p50,171.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1-1,sprite-storm,frame_us_p95,377.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1-1,sprite-storm,frame_us_p99,457.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1-1,sprite-storm,frame_us_min,90.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1-1,sprite-storm,frame_us_max,457.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1-1,sprite-storm,update_us_mean,1.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1-1,sprite-storm,draw_us_mean,204.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1-1,sprite-storm,present_us_mean,0.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1-1,sprite-storm,fps_mean,4830.917874396136,Hz
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1-1,sprite-storm,missed_deadlines,0.0,frames
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1-1,scrolling,frame_us_mean,289.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1-1,scrolling,frame_us_p50,236.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1-1,scrolling,frame_us_p95,571.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1-1,scrolling,frame_us_p99,644.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1-1,scrolling,frame_us_min,179.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1-1,scrolling,frame_us_max,644.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1-1,scrolling,update_us_mean,1.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1-1,scrolling,draw_us_mean,286.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1-1,scrolling,present_us_mean,0.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1-1,scrolling,fps_mean,3460.2076124567475,Hz
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1-1,scrolling,missed_deadlines,0.0,frames
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1-1,mixed-gameplay,frame_us_mean,492.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1-1,mixed-gameplay,frame_us_p50,430.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1-1,mixed-gameplay,frame_us_p95,846.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1-1,mixed-gameplay,frame_us_p99,909.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1-1,mixed-gameplay,frame_us_min,159.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1-1,mixed-gameplay,frame_us_max,909.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1-1,mixed-gameplay,update_us_mean,0.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1-1,mixed-gameplay,draw_us_mean,489.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1-1,mixed-gameplay,present_us_mean,0.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1-1,mixed-gameplay,fps_mean,2032.520325203252,Hz
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,2,measured,perf-1-1,mixed-gameplay,missed_deadlines,0.0,frames
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-2-1,clear-fill,frame_us_mean,141.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-2-1,clear-fill,frame_us_p50,121.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-2-1,clear-fill,frame_us_p95,244.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-2-1,clear-fill,frame_us_p99,277.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-2-1,clear-fill,frame_us_min,92.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-2-1,clear-fill,frame_us_max,277.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-2-1,clear-fill,update_us_mean,1.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-2-1,clear-fill,draw_us_mean,138.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-2-1,clear-fill,present_us_mean,0.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-2-1,clear-fill,fps_mean,7092.198581560284,Hz
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-2-1,clear-fill,missed_deadlines,0.0,frames
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-2-1,text-overlay,frame_us_mean,1161.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-2-1,text-overlay,frame_us_p50,1033.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-2-1,text-overlay,frame_us_p95,2056.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-2-1,text-overlay,frame_us_p99,2084.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-2-1,text-overlay,frame_us_min,563.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-2-1,text-overlay,frame_us_max,2084.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-2-1,text-overlay,update_us_mean,1.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-2-1,text-overlay,draw_us_mean,1158.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-2-1,text-overlay,present_us_mean,0.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-2-1,text-overlay,fps_mean,861.3264427217915,Hz
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-2-1,text-overlay,missed_deadlines,0.0,frames
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-2-1,sprite-storm,frame_us_mean,246.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-2-1,sprite-storm,frame_us_p50,206.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-2-1,sprite-storm,frame_us_p95,380.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-2-1,sprite-storm,frame_us_p99,423.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-2-1,sprite-storm,frame_us_min,133.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-2-1,sprite-storm,frame_us_max,423.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-2-1,sprite-storm,update_us_mean,1.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-2-1,sprite-storm,draw_us_mean,242.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-2-1,sprite-storm,present_us_mean,0.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-2-1,sprite-storm,fps_mean,4065.040650406504,Hz
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-2-1,sprite-storm,missed_deadlines,0.0,frames
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-2-1,scrolling,frame_us_mean,303.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-2-1,scrolling,frame_us_p50,239.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-2-1,scrolling,frame_us_p95,492.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-2-1,scrolling,frame_us_p99,605.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-2-1,scrolling,frame_us_min,161.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-2-1,scrolling,frame_us_max,605.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-2-1,scrolling,update_us_mean,1.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-2-1,scrolling,draw_us_mean,300.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-2-1,scrolling,present_us_mean,0.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-2-1,scrolling,fps_mean,3300.3300330033003,Hz
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-2-1,scrolling,missed_deadlines,0.0,frames
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-2-1,mixed-gameplay,frame_us_mean,480.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-2-1,mixed-gameplay,frame_us_p50,434.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-2-1,mixed-gameplay,frame_us_p95,831.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-2-1,mixed-gameplay,frame_us_p99,850.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-2-1,mixed-gameplay,frame_us_min,355.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-2-1,mixed-gameplay,frame_us_max,850.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-2-1,mixed-gameplay,update_us_mean,0.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-2-1,mixed-gameplay,draw_us_mean,477.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-2-1,mixed-gameplay,present_us_mean,0.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-2-1,mixed-gameplay,fps_mean,2083.3333333333335,Hz
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,3,measured,perf-2-1,mixed-gameplay,missed_deadlines,0.0,frames
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1-1,clear-fill,frame_us_mean,143.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1-1,clear-fill,frame_us_p50,132.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1-1,clear-fill,frame_us_p95,243.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1-1,clear-fill,frame_us_p99,262.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1-1,clear-fill,frame_us_min,62.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1-1,clear-fill,frame_us_max,262.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1-1,clear-fill,update_us_mean,0.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1-1,clear-fill,draw_us_mean,140.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1-1,clear-fill,present_us_mean,0.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1-1,clear-fill,fps_mean,6993.006993006993,Hz
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1-1,clear-fill,missed_deadlines,0.0,frames
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1-1,text-overlay,frame_us_mean,1157.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1-1,text-overlay,frame_us_p50,996.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1-1,text-overlay,frame_us_p95,1908.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1-1,text-overlay,frame_us_p99,2062.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1-1,text-overlay,frame_us_min,472.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1-1,text-overlay,frame_us_max,2062.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1-1,text-overlay,update_us_mean,1.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1-1,text-overlay,draw_us_mean,1154.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1-1,text-overlay,present_us_mean,0.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1-1,text-overlay,fps_mean,864.304235090752,Hz
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1-1,text-overlay,missed_deadlines,0.0,frames
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1-1,sprite-storm,frame_us_mean,220.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1-1,sprite-storm,frame_us_p50,176.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1-1,sprite-storm,frame_us_p95,374.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1-1,sprite-storm,frame_us_p99,427.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1-1,sprite-storm,frame_us_min,95.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1-1,sprite-storm,frame_us_max,427.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1-1,sprite-storm,update_us_mean,1.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1-1,sprite-storm,draw_us_mean,216.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1-1,sprite-storm,present_us_mean,0.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1-1,sprite-storm,fps_mean,4545.454545454545,Hz
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1-1,sprite-storm,missed_deadlines,0.0,frames
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1-1,scrolling,frame_us_mean,310.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1-1,scrolling,frame_us_p50,241.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1-1,scrolling,frame_us_p95,622.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1-1,scrolling,frame_us_p99,657.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1-1,scrolling,frame_us_min,173.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1-1,scrolling,frame_us_max,657.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1-1,scrolling,update_us_mean,1.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1-1,scrolling,draw_us_mean,306.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1-1,scrolling,present_us_mean,0.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1-1,scrolling,fps_mean,3225.8064516129034,Hz
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1-1,scrolling,missed_deadlines,0.0,frames
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1-1,mixed-gameplay,frame_us_mean,537.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1-1,mixed-gameplay,frame_us_p50,427.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1-1,mixed-gameplay,frame_us_p95,857.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1-1,mixed-gameplay,frame_us_p99,1013.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1-1,mixed-gameplay,frame_us_min,315.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1-1,mixed-gameplay,frame_us_max,1013.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1-1,mixed-gameplay,update_us_mean,1.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1-1,mixed-gameplay,draw_us_mean,533.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1-1,mixed-gameplay,present_us_mean,0.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1-1,mixed-gameplay,fps_mean,1862.1973929236499,Hz
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,4,measured,perf-1-1,mixed-gameplay,missed_deadlines,0.0,frames
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-4-1,clear-fill,frame_us_mean,152.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-4-1,clear-fill,frame_us_p50,137.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-4-1,clear-fill,frame_us_p95,257.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-4-1,clear-fill,frame_us_p99,519.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-4-1,clear-fill,frame_us_min,45.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-4-1,clear-fill,frame_us_max,519.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-4-1,clear-fill,update_us_mean,1.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-4-1,clear-fill,draw_us_mean,148.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-4-1,clear-fill,present_us_mean,0.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-4-1,clear-fill,fps_mean,6578.9473684210525,Hz
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-4-1,clear-fill,missed_deadlines,0.0,frames
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-4-1,text-overlay,frame_us_mean,1104.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-4-1,text-overlay,frame_us_p50,975.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-4-1,text-overlay,frame_us_p95,1869.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-4-1,text-overlay,frame_us_p99,2912.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-4-1,text-overlay,frame_us_min,575.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-4-1,text-overlay,frame_us_max,2912.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-4-1,text-overlay,update_us_mean,1.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-4-1,text-overlay,draw_us_mean,1099.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-4-1,text-overlay,present_us_mean,0.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-4-1,text-overlay,fps_mean,905.7971014492754,Hz
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-4-1,text-overlay,missed_deadlines,0.0,frames
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-4-1,sprite-storm,frame_us_mean,185.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-4-1,sprite-storm,frame_us_p50,162.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-4-1,sprite-storm,frame_us_p95,378.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-4-1,sprite-storm,frame_us_p99,404.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-4-1,sprite-storm,frame_us_min,92.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-4-1,sprite-storm,frame_us_max,404.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-4-1,sprite-storm,update_us_mean,1.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-4-1,sprite-storm,draw_us_mean,182.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-4-1,sprite-storm,present_us_mean,0.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-4-1,sprite-storm,fps_mean,5405.405405405405,Hz
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-4-1,sprite-storm,missed_deadlines,0.0,frames
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-4-1,scrolling,frame_us_mean,244.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-4-1,scrolling,frame_us_p50,215.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-4-1,scrolling,frame_us_p95,432.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-4-1,scrolling,frame_us_p99,463.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-4-1,scrolling,frame_us_min,174.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-4-1,scrolling,frame_us_max,463.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-4-1,scrolling,update_us_mean,1.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-4-1,scrolling,draw_us_mean,241.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-4-1,scrolling,present_us_mean,0.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-4-1,scrolling,fps_mean,4098.360655737705,Hz
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-4-1,scrolling,missed_deadlines,0.0,frames
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-4-1,mixed-gameplay,frame_us_mean,519.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-4-1,mixed-gameplay,frame_us_p50,406.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-4-1,mixed-gameplay,frame_us_p95,866.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-4-1,mixed-gameplay,frame_us_p99,1099.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-4-1,mixed-gameplay,frame_us_min,325.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-4-1,mixed-gameplay,frame_us_max,1099.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-4-1,mixed-gameplay,update_us_mean,1.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-4-1,mixed-gameplay,draw_us_mean,516.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-4-1,mixed-gameplay,present_us_mean,0.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-4-1,mixed-gameplay,fps_mean,1926.7822736030828,Hz
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,5,measured,perf-4-1,mixed-gameplay,missed_deadlines,0.0,frames
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-3-1,clear-fill,frame_us_mean,138.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-3-1,clear-fill,frame_us_p50,118.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-3-1,clear-fill,frame_us_p95,249.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-3-1,clear-fill,frame_us_p99,258.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-3-1,clear-fill,frame_us_min,95.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-3-1,clear-fill,frame_us_max,258.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-3-1,clear-fill,update_us_mean,1.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-3-1,clear-fill,draw_us_mean,135.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-3-1,clear-fill,present_us_mean,0.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-3-1,clear-fill,fps_mean,7246.376811594203,Hz
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-3-1,clear-fill,missed_deadlines,0.0,frames
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-3-1,text-overlay,frame_us_mean,1204.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-3-1,text-overlay,frame_us_p50,1001.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-3-1,text-overlay,frame_us_p95,2029.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-3-1,text-overlay,frame_us_p99,2062.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-3-1,text-overlay,frame_us_min,515.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-3-1,text-overlay,frame_us_max,2062.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-3-1,text-overlay,update_us_mean,1.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-3-1,text-overlay,draw_us_mean,1201.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-3-1,text-overlay,present_us_mean,0.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-3-1,text-overlay,fps_mean,830.5647840531561,Hz
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-3-1,text-overlay,missed_deadlines,0.0,frames
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-3-1,sprite-storm,frame_us_mean,217.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-3-1,sprite-storm,frame_us_p50,181.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-3-1,sprite-storm,frame_us_p95,379.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-3-1,sprite-storm,frame_us_p99,496.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-3-1,sprite-storm,frame_us_min,127.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-3-1,sprite-storm,frame_us_max,496.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-3-1,sprite-storm,update_us_mean,1.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-3-1,sprite-storm,draw_us_mean,214.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-3-1,sprite-storm,present_us_mean,0.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-3-1,sprite-storm,fps_mean,4608.294930875576,Hz
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-3-1,sprite-storm,missed_deadlines,0.0,frames
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-3-1,scrolling,frame_us_mean,285.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-3-1,scrolling,frame_us_p50,223.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-3-1,scrolling,frame_us_p95,554.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-3-1,scrolling,frame_us_p99,677.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-3-1,scrolling,frame_us_min,146.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-3-1,scrolling,frame_us_max,677.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-3-1,scrolling,update_us_mean,1.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-3-1,scrolling,draw_us_mean,281.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-3-1,scrolling,present_us_mean,0.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-3-1,scrolling,fps_mean,3508.7719298245615,Hz
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-3-1,scrolling,missed_deadlines,0.0,frames
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-3-1,mixed-gameplay,frame_us_mean,562.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-3-1,mixed-gameplay,frame_us_p50,464.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-3-1,mixed-gameplay,frame_us_p95,894.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-3-1,mixed-gameplay,frame_us_p99,1097.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-3-1,mixed-gameplay,frame_us_min,337.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-3-1,mixed-gameplay,frame_us_max,1097.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-3-1,mixed-gameplay,update_us_mean,1.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-3-1,mixed-gameplay,draw_us_mean,559.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-3-1,mixed-gameplay,present_us_mean,0.0,us
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-3-1,mixed-gameplay,fps_mean,1779.3594306049822,Hz
+eval_0e55a515739b,prg32qt,PRG32-QT,emulator (PRG32-QT),qt-0.4.1-dev.3+gf6d80ad,3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66,6,measured,perf-3-1,mixed-gameplay,missed_deadlines,0.0,frames

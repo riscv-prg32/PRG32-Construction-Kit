@@ -923,11 +923,36 @@
     {
       "id": "EVAL-01",
       "title": "Scientific Evaluate tool: one performance protocol on three targets",
-      "status": "missing",
+      "status": "partial",
       "audit_score": 0,
-      "source": [],
-      "tests": [],
-      "note": "Planned (audit of 7a700ba). No top-menu Evaluate tool, versioned performance protocol, raw dataset or chart export yet. The browser performance budgets of QLT-01 are CI quality gates, not cartridge measurements."
+      "source": [
+        "contracts/prg32-evaluation-protocol-1.json",
+        "examples/evaluation/prg32_evaluation.c",
+        "prg32_construction_kit/evaluation.py::run_evaluation",
+        "prg32_construction_kit/evaluation.py::describe",
+        "prg32_construction_kit/evaluation.py::csv_of",
+        "prg32_construction_kit/evaluation.py::comparable",
+        "prg32_construction_kit/charts.py::bar_chart",
+        "prg32_construction_kit/deploy.py::QemuTarget",
+        "static/js/evaluate.js",
+        "templates/evaluate.html",
+        "tools/evaluation_charts.py",
+        "tools/evaluation_evidence.py"
+      ],
+      "tests": [
+        "tests/test_evaluation.py::test_the_protocol_names_its_cartridge_source_by_hash_and_its_cases_match_the_source",
+        "tests/test_evaluation.py::test_warm_up_and_measured_runs_become_rows_and_the_statistics_are_over_measured_runs",
+        "tests/test_evaluation.py::test_the_statistics_are_the_textbook_ones",
+        "tests/test_evaluation.py::test_the_csv_has_every_row_with_dots_in_any_language",
+        "tests/test_evaluation.py::test_a_run_without_a_result_is_kept_as_failed_and_left_out_of_the_statistics",
+        "tests/test_evaluation.py::test_a_chart_shows_every_measured_value_says_what_it_shows_and_is_deterministic",
+        "tests/test_evaluation.py::test_the_chart_is_made_again_from_the_downloaded_dataset_byte_for_byte",
+        "tests/test_evaluation.py::test_a_case_without_measurements_says_no_data_instead_of_zero",
+        "tests/test_evaluation.py::test_targets_are_compared_only_with_the_same_protocol_and_cartridge",
+        "tests/test_evaluation_evidence.py::test_the_charts_and_csv_are_made_again_from_the_dataset",
+        "tests/test_evaluation_evidence.py::test_the_comparison_holds_one_cartridge_on_several_targets"
+      ],
+      "note": "contracts/prg32-evaluation-protocol-1.json: one hashed workload cartridge (5 cases x 60 frames through the PRG32 performance broker), warm-up then 1-20 measured runs, each target's restart, retrieval and timing source, metrics with units, statistics. Evaluate in the project menu sends it with Deploy's checks; every broker number of every run is a dataset row (failed runs kept and excluded); n, mean, sd, sem, 95% Student t CI, median, range from the dataset only; CSV (locale-safe), JSON with provenance, deterministic SVG/PDF charts (Okabe-Ito, shapes, every run a point, 'no data' instead of zero, title/desc/metadata), offline redraw; comparison only with the same protocol and cartridge SHA-256. Recorded 2026-10-26 (docs/evidence/evaluate/): QEMU (firmware SDK 679dfb5) and canonical PRG32-QT f6d80ad, 1+5 runs each, same cartridge SHA-256, comparison chart. Limits: the broker (ABI 1) keeps per-case summaries, not every frame, so statistics are over runs; no console was available, so no physical-device timings; emulator times depend on the host. No human screen-reader check of the page or charts yet."
     }
   ]
 }

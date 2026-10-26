@@ -189,6 +189,14 @@ capability IDs.
   says whether it is physical-device evidence. Recorded runs on QEMU (firmware from SDK
   679dfb5) and canonical PRG32-QT f6d80ad; the console adapter is tested against a stand-in
   only, so there is no physical-device record. [DEP-04]
+- Evaluate (`docs/evaluate.md`): one versioned performance protocol
+  (`contracts/prg32-evaluation-protocol-1.json`) for a console, PRG32-QT and QEMU. The same
+  hashed cartridge is restarted for warm-up and measured runs, and every broker summary is a
+  dataset row with its unit. Statistics come from the dataset only (95% Student t interval),
+  with CSV, JSON and deterministic, accessible SVG and PDF charts, and comparison only with
+  the same cartridge and protocol. Recorded on QEMU and PRG32-QT; no console, so no
+  physical-device timings. The broker keeps per-case summaries, not every frame.
+  [EVAL-01]
 - Buzzer removal on the kit side: refused by the validators, obsolete-only in
   the editor, silent for old cartridges, guarded by a repository-wide test; the
   SDK's portable ABI still lists it (retirement delivered as a tested
@@ -198,8 +206,6 @@ capability IDs.
 
 - Verified hardware delivery (a recording tool exists, no run recorded) and
   PRG32-iOS handoff (deferred, ADR-0020). [DEP-01] [DEP-03]
-- A scientific Evaluate tool: one versioned performance protocol on the three targets,
-  raw data and charts. [EVAL-01]
 
 ## Risks
 

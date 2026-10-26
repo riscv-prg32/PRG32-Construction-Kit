@@ -23,6 +23,8 @@ PRG32-Construction-Kit is a classroom web application for making PRG32 games wit
 8. `cartridge_store_publish.md` - publishing bundles.
    - `audio_engine.md` - how PRG32 games sound: 8 voices, ADSR, stereo, and how the browser matches the console.
    - `deploy.md` - the Deploy tool: a compiled cartridge onto a PRG32 console, PRG32-QT or QEMU, checked step by step.
+   - `external_gates.md` - what only the school, other repositories, a real console or real accounts can close, and the evidence that closes each.
+   - `evaluate.md` - the Evaluate tool: one versioned performance protocol on the three targets, raw data, statistics and charts.
    - `delivery.md` - getting a game onto a PRG32 console or PRG32-QT, and recording that it worked.
    - `backup_restore.md` - backing up the kit, restoring it into a clean folder, and the restore drill.
    - `dependencies.md` - the dependency lock, the SBOM and how security updates are handled.

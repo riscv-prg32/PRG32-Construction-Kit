@@ -1,0 +1,69 @@
+{
+  "format": "prg32-qemu-firmware-1",
+  "sdk_commit": "679dfb58783bd007125de9ca0b75eaa077908739",
+  "firmware_version": "679dfb5",
+  "made_at": "2026-10-26T09:14:37+00:00",
+  "made_by": "tools/build_qemu_firmware.py --revision 679dfb5",
+  "boot": "the stored cartridge (CONFIG_PRG32_BOOT_SETUP_MODE=0)",
+  "idf_version": "5.4.0",
+  "abi": {
+    "major": 1,
+    "minor": 6,
+    "hash": 638542134,
+    "features": 511,
+    "compatible": [
+      6563778,
+      1810294992
+    ]
+  },
+  "cart_ram_size": 65536,
+  "cart_max_size": 65536,
+  "slots": [
+    {
+      "name": "cart0",
+      "offset": 2162688,
+      "size": 131072
+    },
+    {
+      "name": "cart1",
+      "offset": 2293760,
+      "size": 131072
+    },
+    {
+      "name": "cart2",
+      "offset": 2424832,
+      "size": 131072
+    },
+    {
+      "name": "cart3",
+      "offset": 2555904,
+      "size": 131072
+    },
+    {
+      "name": "cart4",
+      "offset": 2686976,
+      "size": 131072
+    },
+    {
+      "name": "cart5",
+      "offset": 2818048,
+      "size": 131072
+    },
+    {
+      "name": "cart6",
+      "offset": 2949120,
+      "size": 131072
+    },
+    {
+      "name": "cart7",
+      "offset": 3080192,
+      "size": 131072
+    }
+  ],
+  "audio_chunk_bytes": 882,
+  "flash_sha256": "f147175a37cb0e5bbd8db67bc59877b30ca41134fac07117f129defc826a4f37",
+  "symbols": {
+    "g_fb": 1070203020,
+    "prg32_gfx_present": 1107350558
+  }
+}
