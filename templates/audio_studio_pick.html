@@ -1,12 +1,13 @@
 {% extends "base.html" %}
-{% set tool_name = "Sprite Lab" if tool == "sprites" else "AudioStudio" %}
+{% set tool_name = "Sprite Lab" if tool == "sprites" else t("backgrounds.backgrounds") if tool == "backgrounds" else "AudioStudio" %}
 {% block title %}{{ tool_name }} - {{ site.name }}{% endblock %}
 {% block content %}
 {# The Sprite Lab and AudioStudio menu items: they are tabs of the IDE (ADR-0024), for one project. #}
 <div class="row justify-content-center" id="toolPicker" data-tool="{{ tool }}">
   <div class="col-lg-8">
-    <h1 class="h3 mb-1"><i class="bi {{ 'bi-brush' if tool == 'sprites' else 'bi-music-note-beamed' }}" aria-hidden="true"></i> {{ tool_name }}</h1>
+    <h1 class="h3 mb-1"><i class="bi {{ 'bi-brush' if tool == 'sprites' else 'bi-grid-3x3' if tool == 'backgrounds' else 'bi-music-note-beamed' }}" aria-hidden="true"></i> {{ tool_name }}</h1>
     <p class="text-muted">{% if tool == "sprites" %}{{ t("audio_studio_pick.sprites_belong_to_a_game_every") }}
+      {% elif tool == "backgrounds" %}{{ t("audio_studio_pick.backgrounds_belong_to_a_game") }}
       {% else %}{{ t("audio_studio_pick.sound_belongs_to_a_game_every") }}{% endif %}
       {{ t("audio_studio_pick.choose_the_game_opens_in_its", tool_name=(tool_name)) }}</p>
     <div id="audioContinue" class="alert alert-primary d-flex flex-wrap align-items-center gap-2" hidden>

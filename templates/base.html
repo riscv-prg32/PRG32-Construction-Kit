@@ -57,10 +57,12 @@
         <li class="nav-item"><a class="nav-link" href="{{ ide_url }}" data-ide-tool="editor"><i class="bi bi-pencil-square"></i> {{ t("base.editor") }}</a></li>
         <li class="nav-item"><a class="nav-link" href="{{ ide_url }}#sprites" data-ide-tool="sprites"><i class="bi bi-brush"></i> Sprite Lab</a></li>
         <li class="nav-item"><a class="nav-link" href="{{ ide_url }}#sound" data-ide-tool="sound"><i class="bi bi-music-note-beamed"></i> AudioStudio</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ ide_url }}#backgrounds" data-ide-tool="backgrounds"><i class="bi bi-grid-3x3"></i> {{ t("backgrounds.backgrounds") }}</a></li>
         {% else %}
         <li class="nav-item"><a class="nav-link" href="/"><i class="bi bi-grid-3x3-gap"></i> {{ t("common.projects") }}</a></li>
         <li class="nav-item"><a class="nav-link" href="/sprites"><i class="bi bi-brush"></i> Sprite Lab</a></li>
         <li class="nav-item"><a class="nav-link" href="/audio-studio"><i class="bi bi-music-note-beamed"></i> AudioStudio</a></li>
+        <li class="nav-item"><a class="nav-link" href="/backgrounds"><i class="bi bi-grid-3x3"></i> {{ t("backgrounds.backgrounds") }}</a></li>
         {% endif %}
         {% if nav_project %}
         {# Debug: the Player page with its debugger, on this project's newest compiled cartridge (player.js). #}
@@ -71,22 +73,24 @@
         {% if current_user.authenticated %}
         {# Deploy: this project's compiled cartridge onto a console, PRG32-QT or QEMU (deploy.js, ADR-0028). #}
         <li class="nav-item"><a class="nav-link" href="/deploy{{ '?project=' ~ (nav_project.id | urlencode) if nav_project else '' }}"{% if nav_project %} data-ide-tool="deploy"{% endif %}><i class="bi bi-cpu"></i> {{ t("deploy.deploy") }}</a></li>
-        {# Evaluate: the PRG32 performance protocol on a target, raw data and charts (evaluate.js, EVAL-01). #}
-        <li class="nav-item"><a class="nav-link" href="/evaluate{{ '?project=' ~ (nav_project.id | urlencode) if nav_project else '' }}"{% if nav_project %} data-ide-tool="evaluate"{% endif %}><i class="bi bi-speedometer2"></i> {{ t("evaluate.evaluate") }}</a></li>
         <li class="nav-item"><a class="nav-link" href="/publish"><i class="bi bi-cloud-upload"></i> {{ t("common.publish") }}</a></li>
         {% endif %}
         {# Tools: small helpers that work in the browser, for every reader (color_picker.js). #}
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" id="toolsMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-tools"></i> {{ t("tools.tools") }}</a>
           <ul class="dropdown-menu" aria-labelledby="toolsMenu">
+            {% if current_user.authenticated %}
+            {# Evaluate: the PRG32 performance protocol on a target, raw data and charts (evaluate.js, EVAL-01). #}
+            <li><a class="dropdown-item" href="/evaluate{{ '?project=' ~ (nav_project.id | urlencode) if nav_project else '' }}"{% if nav_project %} data-ide-tool="evaluate"{% endif %}><i class="bi bi-speedometer2"></i> {{ t("evaluate.evaluate") }}</a></li>
+            {% endif %}
             <li><a class="dropdown-item" href="/tools/color"><i class="bi bi-eyedropper"></i> {{ t("tools.color_picker") }}</a></li>
           </ul>
         </li>
-        {# Docs: on the wide bar only its icon shows (the word stays for screen readers and as a tooltip). #}
-        <li class="nav-item"><a class="nav-link nav-docs" href="/documentation" title="{{ t('base.docs') }}"><i class="bi bi-book" aria-hidden="true"></i> <span class="nav-docs-label">{{ t("base.docs") }}</span></a></li>
+        {# Docs (and Admin below): on the wide bar only the icon shows; the word stays for screen readers and as a tooltip. #}
+        <li class="nav-item"><a class="nav-link nav-icon-only" href="/documentation" title="{{ t('base.docs') }}"><i class="bi bi-book" aria-hidden="true"></i> <span class="nav-icon-label">{{ t("base.docs") }}</span></a></li>
         {% if current_user.is_admin %}
         <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" id="adminMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-shield-check"></i> {{ t("base.admin") }}</a>
+          <a class="nav-link dropdown-toggle nav-icon-only" href="#" id="adminMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false" title="{{ t('base.admin') }}"><i class="bi bi-shield-check" aria-hidden="true"></i> <span class="nav-icon-label">{{ t("base.admin") }}</span></a>
           <ul class="dropdown-menu" aria-labelledby="adminMenu">
             <li><a class="dropdown-item" href="/admin/settings"><i class="bi bi-gear"></i> {{ t("common.settings") }}</a></li>
             <li><a class="dropdown-item" href="/admin/users"><i class="bi bi-people"></i> {{ t("common.users") }}</a></li>

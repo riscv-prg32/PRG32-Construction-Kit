@@ -195,6 +195,11 @@ def checked_payload(resource: str, payload: dict[str, Any]) -> dict[str, Any]:
                 continue  # the database refuses links to missing items with a clear 409
             if not can_read(linked) or (target == "projects" and not can_write(linked)):
                 raise PermissionError(say("api", "You cannot link to {target} {payload}", target=target, payload=payload[column]))
+    if resource == "assets" and payload.get("kind") == "background":
+        # A background is checked the way the PRG32 will read it (backgrounds.py).
+        from . import backgrounds
+
+        payload["data"] = backgrounds.checked(payload.get("data"))
     if resource == "sprites" and "palette" in payload:
         # An indexed sprite's indices are its truth: its pixels are made from them (sprite_palette.py).
         from . import sprite_palette
@@ -338,6 +343,12 @@ def project_ide(project_id: str):
 def sprite_editor():
     """The Sprite Lab menu item: choose a project, then Sprite Lab opens in its IDE (ADR-0024)."""
     return render_template("audio_studio_pick.html", tool="sprites")
+
+
+@bp.get("/backgrounds")
+def backgrounds_picker():
+    """The Backgrounds menu item: choose a project, then Backgrounds opens in its IDE (like Sprite Lab)."""
+    return render_template("audio_studio_pick.html", tool="backgrounds")
 
 
 @bp.get("/tools/color")
@@ -1463,6 +1474,23 @@ def _sha256_text(text: str) -> str:
     import hashlib
 
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
+@bp.post("/api/assets/<asset_id>/convert")
+def api_convert_background(asset_id: str):
+    """A background (an asset of kind "background") as C: its tiles, maps and <name>_load() (backgrounds.py)."""
+    from . import backgrounds
+
+    asset = readable("assets", asset_id)
+    if asset is None or asset.get("kind") != "background":
+        return json_error(say("background", "Background not found"), 404)
+    c_source = backgrounds.to_c(asset["name"], asset.get("data"))
+    linked_project = readable("projects", asset.get("project_id"))
+    artifact = create_resource("artifacts", owned({
+        "project_id": asset.get("project_id") if can_write(linked_project) else None,
+        "kind": "background_c_source", "name": f"{asset['name']} background C", "content_type": "text/x-csrc",
+        "text_content": c_source, "metadata": {"asset_id": asset_id}}))
+    return jsonify({"c_source": c_source, "artifact": public("artifacts", artifact)})
 
 
 @bp.post("/api/sprites/<sprite_id>/convert")

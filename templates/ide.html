@@ -154,10 +154,11 @@
       <kbd>Z</kbd> {{ t("ide.is_a") }} <kbd>X</kbd> {{ t("ide.is_b") }} <kbd>Enter</kbd> {{ t("ide.is_start") }}</p>
   </aside>
 
-  {# Sprite Lab and AudioStudio wait here, hidden, until the IDE opens them in a tab (ide.js moves them). #}
+  {# Sprite Lab, AudioStudio and Backgrounds wait here, hidden, until the IDE opens them in a tab (ide.js moves them). #}
   <div id="ideToolHolder" hidden>
     {% include "_sprite_lab.html" %}
     {% include "_audio_studio.html" %}
+    {% include "_backgrounds.html" %}
   </div>
 
   <footer class="ide-status" role="status" aria-live="polite" data-region="status">
@@ -261,6 +262,7 @@
 <script src="{{ url_for('static', filename='js/kit_tool.js') }}"></script>
 <script src="{{ url_for('static', filename='js/sprite_editor.js') }}"></script>
 <script src="{{ url_for('static', filename='js/audio_studio.js') }}"></script>
+<script src="{{ url_for('static', filename='js/backgrounds.js') }}"></script>
 <script src="{{ url_for('static', filename='vendor/monaco-editor/0.52.2/min/vs/loader.js') }}"></script>
 <script src="{{ url_for('static', filename='js/ide/prg32_language_index.js') }}"></script>
 <script src="{{ url_for('static', filename='js/ide/language.js') }}"></script>

@@ -1,0 +1,65 @@
+{#
+  Backgrounds (docs/backgrounds.md), as an IDE tab for the open project (ADR-0024), laid out like Sprite
+  Lab and AudioStudio: the toolbar on top; the list on the left, the map in the centre with the tiles
+  under it, the tile editor and the properties on the right. backgrounds.js finds these ids.
+#}
+<section class="kit-tool" id="backgroundsTool" aria-labelledby="backgroundsTitle">
+  <div class="kit-tool-bar" role="toolbar" aria-label="{{ t('backgrounds.backgrounds') }}">
+    <h2 class="h6 mb-0" id="backgroundsTitle"><i class="bi bi-grid-3x3" aria-hidden="true"></i> {{ t("backgrounds.backgrounds") }}</h2>
+    <button class="btn btn-outline-primary btn-sm" type="button" id="newBackground"><i class="bi bi-plus-circle" aria-hidden="true"></i> {{ t("common.new") }}</button>
+    <button class="btn btn-success btn-sm" type="button" id="saveBackground"><i class="bi bi-save" aria-hidden="true"></i> {{ t("common.save") }}</button>
+    <button class="btn btn-outline-danger btn-sm" type="button" id="deleteBackground"><i class="bi bi-trash" aria-hidden="true"></i> {{ t("common.delete") }}</button>
+    <button class="btn btn-primary btn-sm ms-auto" type="button" id="convertBackground"><i class="bi bi-braces" aria-hidden="true"></i> {{ t("sprite_lab.convert_to_c") }}</button>
+  </div>
+  <div class="kit-tool-body">
+    <nav class="kit-tool-list" aria-label="{{ t('backgrounds.backgrounds') }}">
+      <div class="kit-tool-heading">{{ t("backgrounds.backgrounds") }}</div>
+      <div class="list-group list-group-flush" id="backgroundList"></div>
+    </nav>
+    <div class="kit-tool-main kit-tool-main-form">
+      <div class="d-flex flex-wrap gap-2 align-items-center mb-2">
+        <label class="small" for="backgroundLayer">{{ t("backgrounds.layer") }}</label>
+        <select class="form-select form-select-sm w-auto" id="backgroundLayer">
+          <option value="0">{{ t("backgrounds.layer_back") }}</option>
+          <option value="1">{{ t("backgrounds.layer_front") }}</option>
+        </select>
+        <div class="form-check form-check-inline small mb-0">
+          <input class="form-check-input" type="checkbox" id="backgroundShowOther" checked>
+          <label class="form-check-label" for="backgroundShowOther">{{ t("backgrounds.show_other_layer") }}</label>
+        </div>
+      </div>
+      <canvas id="backgroundCanvas" width="640" height="400" class="background-canvas" aria-label="{{ t('backgrounds.map_canvas') }}"></canvas>
+      <div class="kit-tool-heading mt-2" id="tilePaletteLabel">{{ t("backgrounds.tiles") }}</div>
+      <div class="tile-palette" id="tilePalette" role="radiogroup" aria-labelledby="tilePaletteLabel"></div>
+    </div>
+    <aside class="kit-tool-side" tabindex="0" aria-label="{{ t('backgrounds.properties') }}">
+      <div class="kit-tool-heading">{{ t("sprite_lab.properties") }}</div>
+      <input type="hidden" id="backgroundId">
+      <div class="mb-2"><label class="form-label small mb-1" for="backgroundName">{{ t("common.name") }}</label><input class="form-control form-control-sm" id="backgroundName" value="level"></div>
+      <div class="row g-2 mb-2">
+        <div class="col"><label class="form-label small mb-1" for="backgroundWidth">{{ t("backgrounds.width_tiles") }}</label><input class="form-control form-control-sm" id="backgroundWidth" type="number" min="1" max="64" value="40"></div>
+        <div class="col"><label class="form-label small mb-1" for="backgroundHeight">{{ t("backgrounds.height_tiles") }}</label><input class="form-control form-control-sm" id="backgroundHeight" type="number" min="1" max="32" value="25"></div>
+      </div>
+      <button class="btn btn-secondary btn-sm mb-3" type="button" id="resizeBackground">{{ t("backgrounds.resize") }}</button>
+      <div class="kit-tool-heading">{{ t("backgrounds.tile") }} <span id="tileNumber"></span></div>
+      <canvas id="tileCanvas" width="160" height="160" class="tile-canvas mb-2" aria-label="{{ t('backgrounds.tile_canvas') }}"></canvas>
+      <div class="mb-2"><label class="form-label small mb-1" for="tileName">{{ t("common.name") }}</label><input class="form-control form-control-sm" id="tileName" maxlength="32"></div>
+      <div class="row g-2 mb-2">
+        <div class="col"><label class="form-label small mb-1" for="tileFg">{{ t("backgrounds.foreground") }}</label><input class="form-control form-control-color w-100" type="color" id="tileFg" value="#ffffff"></div>
+        <div class="col"><label class="form-label small mb-1" for="tileBg">{{ t("backgrounds.background") }}</label><input class="form-control form-control-color w-100" type="color" id="tileBg" value="#000000"></div>
+      </div>
+      <fieldset class="mb-2"><legend class="small fw-semibold mb-1">{{ t("backgrounds.flags") }}</legend>
+        <div class="form-check form-check-inline"><input class="form-check-input tile-flag" type="checkbox" id="flagSolid" value="solid"><label class="form-check-label small" for="flagSolid">{{ t("backgrounds.flag_solid") }}</label></div>
+        <div class="form-check form-check-inline"><input class="form-check-input tile-flag" type="checkbox" id="flagPlatform" value="platform"><label class="form-check-label small" for="flagPlatform">{{ t("backgrounds.flag_platform") }}</label></div>
+        <div class="form-check form-check-inline"><input class="form-check-input tile-flag" type="checkbox" id="flagHazard" value="hazard"><label class="form-check-label small" for="flagHazard">{{ t("backgrounds.flag_hazard") }}</label></div>
+        <div class="form-check form-check-inline"><input class="form-check-input tile-flag" type="checkbox" id="flagCollect" value="collect"><label class="form-check-label small" for="flagCollect">{{ t("backgrounds.flag_collect") }}</label></div>
+      </fieldset>
+      <div class="d-flex flex-wrap gap-2 mb-3">
+        <button class="btn btn-secondary btn-sm" type="button" id="addTile"><i class="bi bi-plus" aria-hidden="true"></i> {{ t("backgrounds.add_tile") }}</button>
+        <button class="btn btn-secondary btn-sm" type="button" id="removeTile"><i class="bi bi-dash" aria-hidden="true"></i> {{ t("backgrounds.remove_tile") }}</button>
+      </div>
+      <div class="kit-tool-heading">{{ t("sprite_lab.generated_c") }}</div>
+      <pre class="code-panel small mb-0" tabindex="0"><code id="backgroundC">{{ t("backgrounds.press_convert") }}</code></pre>
+    </aside>
+  </div>
+</section>

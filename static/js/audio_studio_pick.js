@@ -7,7 +7,7 @@ $(function () {
   try { last = localStorage.getItem(LAST); } catch (_) { /* private window */ }
 
   // Sprite Lab or AudioStudio: both open as a tab of the project's IDE.
-  const tab = $('#toolPicker').data('tool') === 'sprites' ? 'sprites' : 'sound';
+  const tab = { sprites: 'sprites', backgrounds: 'backgrounds' }[$('#toolPicker').data('tool')] || 'sound';
   function studioUrl(id) { return '/ide/' + encodeURIComponent(id) + '#' + tab; }
 
   Kit.api('/api/projects').then(data => {

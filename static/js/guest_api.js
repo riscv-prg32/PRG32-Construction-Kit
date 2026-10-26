@@ -207,7 +207,7 @@ window.PRG32GuestApi = (function () {
 
   // --- sprites (Sprite Lab) ------------------------------------------------------------------
 
-  const SPRITE_FIELDS = ['project_id', 'name', 'width', 'height', 'pixels', 'data_url'];
+  const SPRITE_FIELDS = ['project_id', 'name', 'width', 'height', 'pixels', 'data_url', 'palette'];
 
   function listSprites(query) {
     const projectId = query.get('project_id');
@@ -221,6 +221,49 @@ window.PRG32GuestApi = (function () {
   function convertSprite(id) {
     return store.getSprite(id).then(sprite => sprite ? server('/api/guest/sprites/convert', { sprite })
       .then(result => Object.assign({ sprite, artifact: null }, result)) : notFound());
+  }
+
+  // --- backgrounds (Backgrounds tab): kept in their guest project's "backgrounds" -----------------
+  function allBackgrounds() {
+    return store.list().then(rows => rows.flatMap(row => (row.backgrounds || []).map(item => ({ row, item }))));
+  }
+  function backgroundOut(row, item) {
+    return Object.assign({ kind: 'background', content_type: 'application/json', project_id: row.id, owner_id: null }, item);
+  }
+  function listBackgrounds(q) {
+    const projectId = q.get('project_id');
+    return allBackgrounds().then(found => ({ assets: found.filter(({ row }) => !projectId || row.id === projectId)
+      .map(({ row, item }) => backgroundOut(row, item)) }));
+  }
+  function findBackground(id) {
+    return allBackgrounds().then(found => found.find(({ item }) => item.id === id) || null);
+  }
+  function saveBackground(id, body) {
+    const now = new Date().toISOString();
+    const write = (row, item) => {
+      const backgrounds = (row.backgrounds || []).filter(other => other.id !== item.id).concat([item]);
+      return store.save(Object.assign({}, row, { backgrounds })).then(() => backgroundOut(row, item));
+    };
+    if (!id) {
+      return store.get(body.project_id).then(row => row ? write(row, { id: 'guest-bg-' + Math.random().toString(36).slice(2, 10),
+        name: String(body.name || 'level').slice(0, 64), data: body.data, version: 1, created_at: now, updated_at: now }) : notFound());
+    }
+    return findBackground(id).then(found => {
+      if (!found) return notFound();
+      if (body.expected_version !== undefined && body.expected_version !== found.item.version) {
+        return fail(tr('js.guest_api.saved_elsewhere', 'saved elsewhere'), 409, 'version_conflict');
+      }
+      return write(found.row, Object.assign({}, found.item, { name: String(body.name || found.item.name).slice(0, 64),
+        data: body.data, version: found.item.version + 1, updated_at: now }));
+    });
+  }
+  function deleteBackground(id) {
+    return findBackground(id).then(found => found ? store.save(Object.assign({}, found.row, {
+      backgrounds: found.row.backgrounds.filter(item => item.id !== id) })).then(() => ({ deleted: true })) : notFound());
+  }
+  function convertBackground(id) {
+    return findBackground(id).then(found => found ? server('/api/guest/backgrounds/convert', { background: found.item })
+      .then(result => Object.assign({ artifact: null }, result)) : notFound());
   }
 
   // --- the route table -------------------------------------------------------------------------
@@ -251,6 +294,13 @@ window.PRG32GuestApi = (function () {
     ['PUT', new RegExp('^/api/sprites/' + ID + '$'), (m, q, body) => saveSprite(m[1], body || {})],
     ['DELETE', new RegExp('^/api/sprites/' + ID + '$'), m => store.removeSprite(m[1]).then(() => ({ deleted: true }))],
     ['POST', new RegExp('^/api/sprites/' + ID + '/convert$'), m => convertSprite(m[1])],
+    ['GET', /^\/api\/assets$/, (m, q) => listBackgrounds(q)],
+    ['POST', /^\/api\/assets$/, (m, q, body) => (body || {}).kind === 'background' ? saveBackground(null, body)
+      : needsAccount(tr('js.guest_api.saving_files', 'Saving files'))],
+    ['GET', new RegExp('^/api/assets/' + ID + '$'), m => findBackground(m[1]).then(found => found ? backgroundOut(found.row, found.item) : notFound())],
+    ['PUT', new RegExp('^/api/assets/' + ID + '$'), (m, q, body) => saveBackground(m[1], body || {})],
+    ['DELETE', new RegExp('^/api/assets/' + ID + '$'), m => deleteBackground(m[1])],
+    ['POST', new RegExp('^/api/assets/' + ID + '/convert$'), m => convertBackground(m[1])],
     ['GET', /^\/api\/artifacts$/, () => Promise.resolve({ artifacts: [] })],
     ['GET', /^\/api\/builds$/, () => Promise.resolve({ builds: [] })],
     ['GET', /^\/api\/cloud$/, () => Promise.resolve({ providers: [] })],

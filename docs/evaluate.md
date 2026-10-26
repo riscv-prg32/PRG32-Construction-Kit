@@ -1,6 +1,6 @@
 # Evaluate: how fast is a PRG32?
 
-**Evaluate** (in the menu of an open project) measures how fast a target runs the **PRG32
+**Evaluate** (**Tools → Evaluate** in the menu bar, for the open project) measures how fast a target runs the **PRG32
 Evaluation** cartridge. The target can be the class's PRG32 console, PRG32-QT or QEMU on the
 kit's server. Every target gets the same cartridge, built from the same source and with the
 same bytes, and the same steps, repeated. Every number is kept: you can download it, check it

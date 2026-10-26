@@ -10,6 +10,7 @@ nothing of the request is kept or logged.
     POST /api/guest/audio             {document?} -> the checked AudioStudio document and its sound ids
     POST /api/guest/audio/preview     {document, muted?} -> the AUD0 block to listen to
     POST /api/guest/sprites/convert   {sprite} -> the sprite as C
+    POST /api/guest/backgrounds/convert {background} -> the background as C
     POST /api/guest/convert_to        {project, language, audio_studio?} -> the game as C or assembly (one way)
     POST /api/guest/run               {project, audio_studio?} -> a cartridge for the simulator (run_build.py)
 
@@ -181,6 +182,19 @@ def run():
                         **({"problems": refused.details["problems"]} if refused.details.get("problems") else {}))
     except (ValueError, AudioStudioError) as error:
         return _refused(str(error), **message_fields(error))
+
+
+@bp.post("/api/guest/backgrounds/convert")
+def background_convert():
+    from . import backgrounds
+
+    background = _payload().get("background")
+    if not isinstance(background, dict):
+        return _refused(say("api", "send {\"background\": {name, data}}"))
+    try:
+        return jsonify({"c_source": backgrounds.to_c(str(background.get("name") or "background"), background.get("data"))})
+    except backgrounds.BackgroundError as error:
+        return _refused(error.args[0])
 
 
 @bp.post("/api/guest/sprites/convert")

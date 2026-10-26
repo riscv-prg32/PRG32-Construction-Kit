@@ -178,12 +178,14 @@
           body: { document: row.audio.document, expected_version: 0 } })
         : Promise.resolve())
         .then(() => Promise.all(sprites.map(sprite => moveSprite(Object.assign({}, sprite, { project_id: created.id })))))
+        .then(() => Promise.all((row.backgrounds || []).map(item => Kit.api('/api/assets', { method: 'POST', body: {
+          project_id: created.id, kind: 'background', name: item.name, content_type: 'application/json', data: item.data } }))))
         .then(() => created));
   }
 
   function moveSprite(sprite) {
     return Kit.api('/api/sprites', { method: 'POST', body: { project_id: sprite.project_id, name: sprite.name,
-      width: sprite.width, height: sprite.height, pixels: sprite.pixels, data_url: sprite.data_url } });
+      width: sprite.width, height: sprite.height, pixels: sprite.pixels, data_url: sprite.data_url, palette: sprite.palette || {} } });
   }
 
   $('#moveGuestProjects').on('click', function () {

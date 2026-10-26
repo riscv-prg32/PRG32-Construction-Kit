@@ -23,6 +23,7 @@ PRG32-Construction-Kit is a classroom web application for making PRG32 games wit
 8. `cartridge_store_publish.md` - publishing bundles.
    - `audio_engine.md` - how PRG32 games sound: 8 voices, ADSR, stereo, and how the browser matches the console.
    - `deploy.md` - the Deploy tool: a compiled cartridge onto a PRG32 console, PRG32-QT or QEMU, checked step by step.
+   - `backgrounds.md` - Backgrounds: PRG32 tiles and the two-layer maps made of them, as C.
    - `color_picker.md` - Tools → Color Picker: a colour as RGB24 and as the PRG32's RGB565, in hex, decimal and binary.
    - `external_gates.md` - what only the school, other repositories, a real console or real accounts can close, and the evidence that closes each.
    - `evaluate.md` - the Evaluate tool: one versioned performance protocol on the three targets, raw data, statistics and charts.

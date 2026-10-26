@@ -88,6 +88,7 @@
   // --- tree -----------------------------------------------------------------------------------
   function sourceFile() { return { c: 'game.c', asm: 'game.S', python: 'game.py' }[mode]; }
 
+  let backgroundList = [];
   function renderTree(sprites) {
     const source = mode === 'blocks'
       ? [{ id: 'blocks', label: tr('js.ide.blocks_program', 'Blocks program'), icon: 'bi-puzzle' }]
@@ -111,6 +112,9 @@
       { id: 'sound-effects', label: tr('js.ide.sound_effects', 'Sound effects'), icon: 'bi-music-note' },
       { id: 'sound-tracks', label: tr('js.ide.soundtracks', 'Soundtracks'), icon: 'bi-music-note-list' },
       { id: 'sound-samples', label: tr('js.ide.samples', 'Samples'), icon: 'bi-mic' }] });
+    items.push({ id: 'folder-backgrounds', label: tr('backgrounds.backgrounds', 'Backgrounds'), children: backgroundList
+      .map(item => ({ id: 'background-' + item.id, label: item.name, icon: 'bi-grid-3x3' }))
+      .concat([{ id: 'background-new', label: tr('js.ide.new_background', 'New background…'), icon: 'bi-plus-circle' }]) });
     IdeShell.renderTree(items, openFile);
   }
 
@@ -121,6 +125,8 @@
     if (id === 'sprite-new') { openTool('sprites'); return PRG32SpriteLab.create(); }
     if (id.startsWith('sprite-')) { openTool('sprites'); return PRG32SpriteLab.open(id.slice(7)); }
     if (id.startsWith('sound-')) return openTool('sound', id.slice(6));
+    if (id === 'background-new') { openTool('backgrounds'); return PRG32Backgrounds.create(); }
+    if (id.startsWith('background-')) { openTool('backgrounds'); return PRG32Backgrounds.open(id.slice(11)); }
   }
 
   // --- editors ---------------------------------------------------------------------------------
@@ -253,7 +259,8 @@
 
   // Sprite Lab and AudioStudio are on the page once, hidden (#ideToolHolder); a tab borrows the
   // tool while it is open and gives it back when closed (moving keeps every event handler).
-  const TOOLS = { sprites: { element: 'spriteLab', title: 'Sprite Lab' }, sound: { element: 'audioStudio', title: 'AudioStudio' } };
+  const TOOLS = { sprites: { element: 'spriteLab', title: 'Sprite Lab' }, sound: { element: 'audioStudio', title: 'AudioStudio' },
+    backgrounds: { element: 'backgroundsTool', title: tr('backgrounds.backgrounds', 'Backgrounds') } };
   function openTool(name, section) {
     const tool = TOOLS[name];
     if (IdeShell.tabs.has('tool-' + name)) IdeShell.activateTab('tool-' + name);
@@ -269,13 +276,13 @@
 
   function openToolFromHash() {
     const wanted = window.location.hash.slice(1);
-    if (wanted === 'sprites' || wanted === 'sound') openTool(wanted);
+    if (wanted === 'sprites' || wanted === 'sound' || wanted === 'backgrounds') openTool(wanted);
   }
   window.addEventListener('hashchange', () => { if (project) openToolFromHash(); });
 
   // The top menu's Editor, Sprite Lab and AudioStudio (base.html) switch tab here, without
   // loading the page again; the address keeps the tool, so reloading opens it again.
-  $('[data-ide-tool="editor"], [data-ide-tool="sprites"], [data-ide-tool="sound"]').on('click', function (event) {
+  $('[data-ide-tool="editor"], [data-ide-tool="sprites"], [data-ide-tool="sound"], [data-ide-tool="backgrounds"]').on('click', function (event) {
     event.preventDefault();
     const item = $(this).attr('data-ide-tool');
     // The folded menu of a small screen closes.
@@ -285,7 +292,7 @@
     if (item === 'editor') openFile(mode === 'blocks' ? 'blocks' : 'src');
     else openTool(item);
   });
-  $(document).on('ide:tab', (event, id) => Kit.projectMenu.mark(id === 'tool-sprites' ? 'sprites' : id === 'tool-sound' ? 'sound' : 'editor'));
+  $(document).on('ide:tab', (event, id) => Kit.projectMenu.mark({ 'tool-sprites': 'sprites', 'tool-sound': 'sound', 'tool-backgrounds': 'backgrounds' }[id] || 'editor'));
 
   // A tool changed the project: the tree and the blocks follow.
   $(document).on('prg32:sprites-changed', () => {
@@ -293,6 +300,9 @@
       .then(data => { spriteList = data.sprites || []; renderTree(spriteList); }).catch(() => {});
   });
   $(document).on('prg32:audio-saved', () => { loadAudio(); });
+  $(document).on('prg32:backgrounds-changed', () => {
+    PRG32Backgrounds.list().then(items => { backgroundList = items; renderTree(spriteList); }).catch(() => {});
+  });
 
   // --- preview (Blocks) -------------------------------------------------------------------------
   function refreshPreview() {
@@ -648,6 +658,7 @@
     command('properties', tr('js.ide.project_properties', 'Project properties'), '', () => showProperties());
     command('sprite-lab', tr('js.ide.open_sprite_lab', 'Open Sprite Lab'), '', () => openTool('sprites'));
     command('audio-studio', tr('js.ide.open_audiostudio', 'Open AudioStudio'), '', () => openTool('sound'));
+    command('backgrounds', tr('js.ide.open_backgrounds', 'Open Backgrounds'), '', () => openTool('backgrounds'));
     command('history', tr('js.ide.history_earlier_versions', 'History: earlier versions'), '', () => showHistory());
     command('export-archive', tr('js.ide.export_project_zip', 'Export project (.zip)'), '', () => exportSaved('/archive'));
     command('export-json', tr('js.ide.export_project_as_json', 'Export project as JSON'), '', () => exportSaved('/export'));
@@ -816,8 +827,9 @@
   }
 
   Promise.all([Kit.api(api), Kit.api('/api/sprites?project_id=' + encodeURIComponent(projectId)), PRG32Monaco.load(),
-               loadAudio()])
-    .then(([data, sprites, loadedMonaco]) => {
+               loadAudio(), PRG32Backgrounds.list().catch(() => [])])
+    .then(([data, sprites, loadedMonaco, _audio, backgrounds]) => {
+      backgroundList = backgrounds || [];
       project = data;
       monaco = loadedMonaco;
       PRG32MonacoLanguage.register(monaco, { openSdk: openSdkHeader });

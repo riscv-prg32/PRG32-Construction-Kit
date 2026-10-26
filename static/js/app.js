@@ -161,7 +161,7 @@ $(function () {
   if (!$('#navCloseProject').length) return;
   const hash = window.location.hash.slice(1);
   const page = { '/player': 'player', '/deploy': 'deploy', '/evaluate': 'evaluate' }[window.location.pathname];
-  Kit.projectMenu.mark(page || (hash === 'sprites' || hash === 'sound' ? hash : 'editor'));
+  Kit.projectMenu.mark(page || (['sprites', 'sound', 'backgrounds'].includes(hash) ? hash : 'editor'));
 });
 
 // The Day/Night switch (base.html): this reader's colours, kept in this browser; theme.js applies
