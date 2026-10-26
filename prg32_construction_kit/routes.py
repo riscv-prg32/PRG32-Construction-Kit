@@ -330,6 +330,12 @@ def sprite_editor():
     return render_template("audio_studio_pick.html", tool="sprites")
 
 
+@bp.get("/tools/color")
+def color_picker():
+    """Tools > Color Picker: everything happens in the browser (color_picker.js); open to guests too."""
+    return render_template("tools_color.html")
+
+
 @bp.get("/artifacts")
 def artifacts_page():
     return render_template("artifacts.html")

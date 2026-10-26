@@ -726,7 +726,7 @@ def required_scope(method: str, path: str) -> str:
 # The guest workspace (ADR-0023): without an account, these pages open and keep the games in the
 # browser; only these APIs answer, and they store nothing (guest_api.py). Everything else, such as
 # building a cartridge, publishing, classes and every saved resource, still asks for a sign-in.
-GUEST_PAGES = re.compile(r"^/(|sprites|player|audio-studio|(ide|projects|audio-studio)/[A-Za-z0-9_-]{1,64})$")
+GUEST_PAGES = re.compile(r"^/(|sprites|player|audio-studio|tools/color|(ide|projects|audio-studio)/[A-Za-z0-9_-]{1,64})$")
 GUEST_APIS = re.compile(r"^/api/(guest/.+|examples|starters/[a-z]+)$")
 
 

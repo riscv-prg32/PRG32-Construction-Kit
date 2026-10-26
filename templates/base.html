@@ -75,7 +75,15 @@
         <li class="nav-item"><a class="nav-link" href="/evaluate{{ '?project=' ~ (nav_project.id | urlencode) if nav_project else '' }}"{% if nav_project %} data-ide-tool="evaluate"{% endif %}><i class="bi bi-speedometer2"></i> {{ t("evaluate.evaluate") }}</a></li>
         <li class="nav-item"><a class="nav-link" href="/publish"><i class="bi bi-cloud-upload"></i> {{ t("common.publish") }}</a></li>
         {% endif %}
-        <li class="nav-item"><a class="nav-link" href="/documentation"><i class="bi bi-book"></i> {{ t("base.docs") }}</a></li>
+        {# Tools: small helpers that work in the browser, for every reader (color_picker.js). #}
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="toolsMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-tools"></i> {{ t("tools.tools") }}</a>
+          <ul class="dropdown-menu" aria-labelledby="toolsMenu">
+            <li><a class="dropdown-item" href="/tools/color"><i class="bi bi-eyedropper"></i> {{ t("tools.color_picker") }}</a></li>
+          </ul>
+        </li>
+        {# Docs: on the wide bar only its icon shows (the word stays for screen readers and as a tooltip). #}
+        <li class="nav-item"><a class="nav-link nav-docs" href="/documentation" title="{{ t('base.docs') }}"><i class="bi bi-book" aria-hidden="true"></i> <span class="nav-docs-label">{{ t("base.docs") }}</span></a></li>
         {% if current_user.is_admin %}
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" id="adminMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-shield-check"></i> {{ t("base.admin") }}</a>

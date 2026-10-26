@@ -50,12 +50,15 @@
   "js.publish.store",
   "js.source_debugger.in_function",
   "js.source_debugger.where_in_function",
+  "js.tools.channels_value",
   "offline.offline",
   "offline.title",
   "player.1_30_fps",
   "player.select_start",
   "privacy.docs_privacy",
-  "publish.https_store_your_school_example"
+  "publish.https_store_your_school_example",
+  "tools.rgb24",
+  "tools.rgb565"
  ],
  "es": [
   "admin_identity.client_id",
@@ -89,10 +92,15 @@
   "js.ide.error",
   "js.ide.ide_prg32_construction_kit",
   "js.ide.python_prg32_python",
+  "js.tools.channels_value",
   "player.1_30_fps",
   "player.select_start",
   "privacy.docs_privacy",
-  "publish.https_store_your_school_example"
+  "publish.https_store_your_school_example",
+  "tools.decimal",
+  "tools.hex",
+  "tools.rgb24",
+  "tools.rgb565"
  ],
  "fr": [
   "account.sessions",
@@ -146,7 +154,9 @@
   "maintenance.maintenance",
   "player.select_start",
   "privacy.docs_privacy",
-  "publish.https_store_your_school_example"
+  "publish.https_store_your_school_example",
+  "tools.rgb24",
+  "tools.rgb565"
  ],
  "de": [
   "admin_identity.https_login_school_example_realms_studen",
@@ -213,12 +223,15 @@
   "js.source_debugger.block_label",
   "js.source_debugger.in_function",
   "js.source_debugger.where_in_function",
+  "js.tools.channels_value",
   "offline.offline",
   "offline.title",
   "player.1_30_fps",
   "player.select_start",
   "privacy.docs_privacy",
-  "publish.https_store_your_school_example"
+  "publish.https_store_your_school_example",
+  "tools.rgb24",
+  "tools.rgb565"
  ],
  "zh-Hans": [
   "admin_identity.https_login_school_example_realms_studen",
@@ -238,6 +251,8 @@
   "js.ide.ide_prg32_construction_kit",
   "player.select_start",
   "privacy.docs_privacy",
-  "publish.https_store_your_school_example"
+  "publish.https_store_your_school_example",
+  "tools.rgb24",
+  "tools.rgb565"
  ]
 }
