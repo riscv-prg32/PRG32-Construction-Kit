@@ -818,7 +818,7 @@
       "id": "I18N-01",
       "title": "Interface in English, Italian, Spanish, French, German and Simplified Chinese",
       "status": "partial",
-      "audit_score": 2,
+      "audit_score": 3,
       "source": [
         "prg32_construction_kit/i18n.py::choose",
         "prg32_construction_kit/i18n.py::locale_of",
@@ -892,7 +892,7 @@
       "id": "DEP-04",
       "title": "Unified Deploy tool for a physical PRG32, QEMU and PRG32-QT",
       "status": "partial",
-      "audit_score": 0,
+      "audit_score": 3,
       "source": [
         "prg32_construction_kit/deploy.py::HttpTarget",
         "prg32_construction_kit/deploy.py::QemuTarget",
@@ -924,7 +924,7 @@
       "id": "EVAL-01",
       "title": "Scientific Evaluate tool: one performance protocol on three targets",
       "status": "partial",
-      "audit_score": 0,
+      "audit_score": 3,
       "source": [
         "contracts/prg32-evaluation-protocol-1.json",
         "examples/evaluation/prg32_evaluation.c",
