@@ -70,6 +70,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--repetitions", type=int, default=5)
     parser.add_argument("--warm-up", type=int, default=1)
     parser.add_argument("--notes", default="")
+    parser.add_argument("--keep-data", type=Path, help="keep the kit's data folder here (logs of each run) instead of a temporary one")
     parser.add_argument("--out", type=Path, required=True)
     args = parser.parse_args(argv)
     if args.compare:
@@ -90,7 +91,11 @@ def main(argv: list[str] | None = None) -> int:
     kind = "prg32" if args.console else "prg32qt" if args.prg32qt else "qemu"
     item, dataset = {}, None
     with tempfile.TemporaryDirectory() as temp:
-        app, client = make_kit(Path(temp), args.qemu_firmware.resolve() if args.qemu_firmware else None)
+        data = Path(temp)
+        if args.keep_data:
+            args.keep_data.mkdir(parents=True, exist_ok=True)
+            data = args.keep_data
+        app, client = make_kit(data, args.qemu_firmware.resolve() if args.qemu_firmware else None)
         if kind == "qemu":
             target = next((entry for entry in client.get("/api/deploy/targets").get_json() if entry["id"] == "qemu"), None)
         else:

@@ -28,7 +28,7 @@
   "retrieval": {
     "prg32": "GET /api/performance.json, every 2 seconds, until a result with a new run_id",
     "prg32qt": "GET /api/performance.json, every 2 seconds, until a result with a new run_id",
-    "qemu": "QEMU's GDB stub: a hardware breakpoint at prg32_perf_end, then the firmware's prg32_performance_json_alloc(); the program is stopped only after the suite"
+    "qemu": "QEMU's GDB stub, once, 30 seconds after the cartridge starts (the suite takes about 10): the broker's state, and for a finished suite the firmware's own prg32_performance_json_alloc(). The firmware is never stopped during the suite; a suite still running at that moment was disturbed, so that run is refused and the next waits twice as long. The QEMU firmware boots the stored cartridge (tools/qemu/sdkconfig.deploy), with SDL's offscreen display"
   },
   "timing_source": {
     "prg32": "the console's microsecond timer (esp_timer), read by the cartridge with prg32_perf_now_us()",

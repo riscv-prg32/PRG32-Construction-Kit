@@ -77,6 +77,7 @@ JOB_LIMIT_SECONDS = 300     # a deployment still "running" after this was interr
 MAX_JSON_BYTES = 64 * 1024
 MAX_SCREENSHOT_BYTES = 512 * 1024
 POLL_SECONDS = 2.0          # how often a running evaluation asks for its result (EVAL-01)
+QEMU_SUITE_SETTLE = 30.0    # seconds after the cartridge starts before QEMU is read (the suite takes about 10)
 
 # The PRG2 header (PRG32 SDK prg32/utilities/env_variables.py: CART_HEADER, CART_HEADER_V2).
 HEADER_V1 = struct.Struct("<4sHHHHIIIIIII32s")
@@ -333,7 +334,12 @@ class QemuTarget:
     folder, so nothing another deployment did is overwritten. The firmware boots ``cart0`` (no
     default slot is stored in a fresh image), so that is the one slot. It has no network: it is
     seen running from its serial console, and the screen is read from the framebuffer through
-    QEMU's GDB stub (Espressif's QEMU has no screendump)."""
+    QEMU's GDB stub (Espressif's QEMU has no screendump).
+
+    The display is SDL's "offscreen" driver. After every frame the firmware waits until QEMU's
+    display has taken it (esp_lcd_qemu_rgb busy-waits), and QEMU takes it on its display refresh.
+    With SDL's "dummy" driver that refresh sometimes stopped for good (about one boot in six on the
+    reference Mac, 2026-10-26); with "offscreen" it did not (12 boots of 12)."""
 
     kind = "qemu"
 
@@ -385,40 +391,38 @@ class QemuTarget:
              "-serial", f"tcp:127.0.0.1:{audio},server,nowait",
              "-gdb", f"tcp:127.0.0.1:{self.gdb_port}"],
             cwd=self.work, stdout=self.log_file, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
-            env={**os.environ, "SDL_VIDEODRIVER": "dummy"})
+            env={**os.environ, "SDL_VIDEODRIVER": "offscreen"})
         self.console = _connect(console)
         self.audio = _connect(audio)
-        threading.Thread(target=self._read_console, daemon=True).start()
-        threading.Thread(target=self._acknowledge_audio, daemon=True).start()
+        # Each thread keeps its own socket and stop flag: after a restart they must not read the next boot's.
+        threading.Thread(target=self._read_console, args=(self.console, self._stop), daemon=True).start()
+        threading.Thread(target=self._acknowledge_audio, args=(self.audio, self._stop), daemon=True).start()
         return {"qemu": "started", "pid": self.process.pid}
 
-    def _read_console(self) -> None:
-        self.console.settimeout(0.5)
-        pressed = 0.0
-        while not self._stop.is_set():
+    def _read_console(self, console: socket.socket, stop: threading.Event) -> None:
+        console.settimeout(0.5)
+        serial = self.serial              # this boot's log: restart() gives the next boot a new one
+        while not stop.is_set():
             try:
-                data = self.console.recv(4096)
+                data = console.recv(4096)
             except socket.timeout:
-                data = b""
+                data = None
             except OSError:
                 return
+            if data == b"":                # QEMU closed the port: this boot is over
+                return
             if data:
-                self.serial.extend(data[: max(0, 2_000_000 - len(self.serial))])
-            # A firmware that waits in its setup menu: Enter on RUN CARTRIDGE (the first entry).
-            if QEMU_MENU in self.serial and not any(mark in self.serial for mark in QEMU_STARTED) \
-                    and time.monotonic() - pressed > 2:
-                self.console.sendall(b"\r")
-                pressed = time.monotonic()
+                serial.extend(data[: max(0, 2_000_000 - len(serial))])
 
-    def _acknowledge_audio(self) -> None:
+    def _acknowledge_audio(self, audio: socket.socket, stop: threading.Event) -> None:
         """The firmware streams 20 ms of audio at a time and waits for one byte back for each."""
-        self.audio.settimeout(0.5)
+        audio.settimeout(0.5)
         pending = 0
         try:
-            self.audio.sendall(b"K" * 10)
-            while not self._stop.is_set():
+            audio.sendall(b"K" * 10)
+            while not stop.is_set():
                 try:
-                    data = self.audio.recv(65536)
+                    data = audio.recv(65536)
                 except socket.timeout:
                     continue
                 if not data:
@@ -427,13 +431,20 @@ class QemuTarget:
                 chunk = int(self.manifest.get("audio_chunk_bytes", 882))   # 441 frames, mono or stereo
                 while pending >= chunk:
                     pending -= chunk
-                    self.audio.sendall(b"K")
+                    audio.sendall(b"K")
         except OSError:
             return
+
+    def menu_refusal(self) -> DeployProblem:
+        return DeployProblem("launch_failed", say("deploy", "The QEMU firmware waits in its setup menu: build it with "
+                                                  "tools/build_qemu_firmware.py, which boots the stored cartridge."),
+                             final="failed", left=say("deploy", "QEMU was stopped; nothing else was changed."))
 
     def verify(self, header: dict[str, Any], slot: str, wait: Callable[[float], None]) -> dict[str, Any]:
         deadline = time.monotonic() + 90
         while time.monotonic() < deadline:
+            if QEMU_MENU in self.serial:
+                raise self.menu_refusal()
             if any(mark in self.serial for mark in QEMU_CRASHED):
                 break
             if any(mark in self.serial for mark in QEMU_STARTED):
@@ -469,21 +480,41 @@ class QemuTarget:
         return None                       # each run boots afresh: there is no earlier result
 
     def collect_performance(self, previous_run: str | None, wait: Callable[[float], None], timeout: float) -> dict[str, Any]:
-        """The run's result, read through QEMU's GDB stub: stop at the end of the suite (a hardware
-        breakpoint at prg32_perf_end costs nothing until it is reached), let it finish, and ask the
-        firmware itself for its JSON (prg32_performance_json_alloc)."""
-        commands = ["set pagination off", "set confirm off", f"target remote 127.0.0.1:{self.gdb_port}",
-                    "hbreak prg32_perf_end", "continue", "finish", "set $json = (char *) prg32_performance_json_alloc()",
-                    'printf "PRG32-PERFORMANCE:%s\\n", $json', "detach"]
+        """The run's result, read through QEMU's GDB stub without ever stopping the firmware during the suite.
+
+        Stopping QEMU in the middle of a frame can leave the firmware waiting for a screen refresh that
+        never comes, so GDB attaches only after the suite should be over (``self.settle`` seconds after the
+        cartridge started), once. It reads the broker's state (prg32_performance.c's ``g.state``: 2 complete,
+        3 aborted) and, for a complete suite, asks the firmware for its JSON (prg32_performance_json_alloc).
+        A suite still running at that moment was disturbed by the stop: that run is refused, never used,
+        and the next one waits twice as long."""
         if not self.settings.get("gdb"):
             raise DeployProblem("no_result", say("deploy", "QEMU's GDB is not set up on this server (PRG32_QEMU_GDB)."), final="failed")
-        process = subprocess.Popen([self.settings["gdb"], "-nx", "-batch", "-ex", f"file {self.settings['firmware'] / 'PRG32.elf'}",
-                                    *[part for command in commands for part in ("-ex", command)]],
-                                   stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)
         deadline = time.monotonic() + timeout
+        while not any(mark in self.serial for mark in QEMU_STARTED):
+            if QEMU_MENU in self.serial:
+                raise self.menu_refusal()
+            if time.monotonic() > deadline or self.process.poll() is not None:
+                raise DeployProblem("no_result", say("deploy", "The firmware in QEMU did not start the cartridge."), final="failed")
+            wait(0.2)
+        self.settle = getattr(self, "settle", QEMU_SUITE_SETTLE)
+        settle_until = time.monotonic() + self.settle
+        while time.monotonic() < settle_until:
+            wait(0.5)
+        self.boots = getattr(self, "boots", 0) + 1
+        script = self.work / f"gdb-run{self.boots}.gdb"
+        state = "'prg32_performance.c'::g.state"
+        script.write_text("\n".join([
+            "set pagination off", "set confirm off", f"target remote 127.0.0.1:{self.gdb_port}",
+            f"if {state} == 2", "  set $json = (char *) prg32_performance_json_alloc()",
+            '  printf "PRG32-PERFORMANCE:%s\\n", $json', "else", f'  printf "PRG32-STATE:%d\\n", {state}', "end",
+            "detach", ""]))
+        gdb_log = (self.work / f"gdb-run{self.boots}.log").open("w")
+        process = subprocess.Popen([self.settings["gdb"], "-nx", "-batch", "-ex", f"file {self.settings['firmware'] / 'PRG32.elf'}",
+                                    "-x", str(script)], stdout=subprocess.PIPE, stderr=gdb_log, text=True)
         try:
             while process.poll() is None:
-                if time.monotonic() > deadline:
+                if time.monotonic() > deadline + 60:
                     raise DeployProblem("no_result", say("deploy", "The target gave no result within {seconds} seconds.",
                                                          seconds=int(timeout)), final="failed")
                 wait(0.5)
@@ -492,6 +523,16 @@ class QemuTarget:
             if process.poll() is None:
                 process.kill()
                 process.wait()
+            gdb_log.close()
+        (self.work / f"gdb-run{self.boots}.out").write_text(output[-20000:])
+        found = re.search(r"PRG32-STATE:(\d+)", output)
+        if found and found.group(1) == "3":
+            raise DeployProblem("no_result", say("deploy", "The cartridge gave up its measurement (prg32_perf_abort)."), final="failed")
+        if found:
+            self.settle *= 2
+            raise DeployProblem("no_result", say("deploy", "The suite was still running when QEMU was read; that run is not "
+                                                 "used, and the next one waits {seconds} seconds.", seconds=int(self.settle)),
+                                final="failed")
         line = next((item for item in output.splitlines() if item.startswith("PRG32-PERFORMANCE:")), None)
         try:
             answer = json.loads(line.split(":", 1)[1]) if line else None
@@ -503,6 +544,7 @@ class QemuTarget:
 
     def restart(self) -> None:
         """Stop QEMU (the staged flash image stays) so that launch boots it again."""
+        (self.work / f"serial-run{getattr(self, 'boots', 0)}.log").write_bytes(bytes(self.serial))
         self._stop.set()
         if self.process is not None:
             self.process.terminate()
@@ -515,11 +557,17 @@ class QemuTarget:
         if getattr(self, "_locked", False):
             _qemu_lock.release()
             self._locked = False
+        for port in (getattr(self, "console", None), getattr(self, "audio", None)):
+            if port is not None:
+                port.close()
         self._stop = threading.Event()
         self.serial = bytearray()
 
     def close(self) -> None:
         self._stop.set()
+        for port in (getattr(self, "console", None), getattr(self, "audio", None)):
+            if port is not None:
+                port.close()
         if self.process is not None:
             self.process.terminate()
             try:

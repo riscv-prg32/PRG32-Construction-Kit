@@ -6,7 +6,8 @@
     python3 tools/build_qemu_firmware.py --sdk ../PRG32 --from-build ../PRG32/build-qemu --out DIR
 
 The first form builds the firmware with ESP-IDF from a clean clone of --sdk at --revision (the SDK
-checkout itself is never changed), with the SDK's own QEMU profile. The second takes a folder an
+checkout itself is never changed), with the SDK's own QEMU profile and the kit's overlay
+tools/qemu/sdkconfig.deploy (boot the stored cartridge, not the setup menu). The second takes a folder an
 ``idf.py`` QEMU build already made (it must hold qemu_flash.bin) and only describes it; --sdk is
 then the checkout that build came from, at the revision it was built from.
 
@@ -32,6 +33,7 @@ import tempfile
 from pathlib import Path
 
 CART_MAX_SIZE = 64 * 1024        # the PRG32 hardware limit (SDK runtime_handler.ensure_cart_max_size)
+OVERLAY = Path(__file__).resolve().parent / "qemu" / "sdkconfig.deploy"
 
 
 def run(command: list[str], cwd: Path) -> str:
@@ -42,7 +44,7 @@ def build(sdk: Path, revision: str, work: Path) -> Path:
     source = work / "prg32"
     run(["git", "clone", "-q", "--no-hardlinks", str(sdk.resolve()), str(source)], work)
     run(["git", "checkout", "-q", revision], source)
-    defaults = "profiles/sdkconfig.defaults;profiles/sdkconfig.defaults.qemu"
+    defaults = f"profiles/sdkconfig.defaults;profiles/sdkconfig.defaults.qemu;{OVERLAY}"
     for action in (["set-target", "esp32c3"], ["build"]):
         run(["idf.py", "-B", "build-qemu", "-D", "SDKCONFIG=build-qemu/sdkconfig", "-D", f"SDKCONFIG_DEFAULTS={defaults}",
              *action], source)
@@ -142,12 +144,16 @@ def main(argv: list[str] | None = None) -> int:
         if ram_kib is None:
             raise SystemExit("sdkconfig has no CONFIG_PRG32_CART_RAM_KIB")
         stereo = sdkconfig_value(folder / "sdkconfig", "CONFIG_PRG32_AUDIO_MODE_STEREO") == "y"
+        if sdkconfig_value(folder / "sdkconfig", "CONFIG_PRG32_BOOT_SETUP_MODE") != "0":
+            raise SystemExit("this firmware boots into its setup menu (CONFIG_PRG32_BOOT_SETUP_MODE); build it with "
+                             "--revision, which adds tools/qemu/sdkconfig.deploy")
         manifest = {
             "format": "prg32-qemu-firmware-1",
             "sdk_commit": commit,
             "firmware_version": commit[:7],
             "made_at": datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0).isoformat(),
             "made_by": "tools/build_qemu_firmware.py " + ("--revision " + args.revision if args.revision else "--from-build"),
+            "boot": "the stored cartridge (CONFIG_PRG32_BOOT_SETUP_MODE=0)",
             "idf_version": sdkconfig_value(folder / "sdkconfig", "CONFIG_IDF_INIT_VERSION") or "",
             "abi": abi_of(sdk),
             "cart_ram_size": int(ram_kib) * 1024,

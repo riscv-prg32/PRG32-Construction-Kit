@@ -1,0 +1,5 @@
+# The PRG32 QEMU firmware for Deploy and Evaluate (tools/build_qemu_firmware.py, docs/deploy.md):
+# the SDK's QEMU profile, but booting the stored cartridge instead of the setup menu
+# (PRG32_BOOT_SETUP_MODE, components/prg32/Kconfig). Each deployment stages exactly one
+# cartridge, so the firmware starts it by itself: no key presses, nothing timing-dependent.
+CONFIG_PRG32_BOOT_SETUP_MODE=0

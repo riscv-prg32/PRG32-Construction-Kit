@@ -1791,5 +1791,8 @@
  "server.deploy.qemu_s_gdb_is_not_set_d2a4": "El GDB de QEMU no está configurado en este servidor (PRG32_QEMU_GDB).",
  "server.deploy.the_firmware_in_qemu_gave_no_f1d0": "El firmware en QEMU no dio resultados para esta ejecución.",
  "server.evaluate.run_of_warm_up_ed24": "Ejecución {number} de {total} (calentamiento)",
- "server.evaluate.run_of_measured_c4b8": "Ejecución {number} de {total} (medida)"
+ "server.evaluate.run_of_measured_c4b8": "Ejecución {number} de {total} (medida)",
+ "server.deploy.the_qemu_firmware_waits_in_its_9792": "El firmware de QEMU espera en su menú de configuración: compílalo con tools/build_qemu_firmware.py, que arranca el cartucho guardado.",
+ "server.deploy.the_cartridge_gave_up_its_measurement_40f3": "El cartucho abandonó la medición (prg32_perf_abort).",
+ "server.deploy.the_suite_was_still_running_when_873a": "La serie seguía en marcha cuando se leyó QEMU; esa ejecución no se usa y la siguiente espera {seconds} segundos."
 }

@@ -44,6 +44,8 @@ The kit talks only to these addresses, never to one a student types. Only consol
 PRG32-QT computers can be registered.
 
 **QEMU on the server** (operators): build the firmware folder once, then point the kit at it.
+The tool uses the SDK's QEMU profile with one change, `tools/qemu/sdkconfig.deploy`: the firmware
+boots the stored cartridge instead of its setup menu, so no key needs pressing.
 
 ```bash
 . $HOME/esp-idf/export.sh

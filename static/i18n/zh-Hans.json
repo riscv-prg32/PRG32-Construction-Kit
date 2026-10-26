@@ -1791,5 +1791,8 @@
  "server.deploy.qemu_s_gdb_is_not_set_d2a4": "这台服务器上没有设置 QEMU 的 GDB（PRG32_QEMU_GDB）。",
  "server.deploy.the_firmware_in_qemu_gave_no_f1d0": "QEMU 中的固件没有给出这次运行的结果。",
  "server.evaluate.run_of_warm_up_ed24": "第 {number} 次运行，共 {total} 次（预热）",
- "server.evaluate.run_of_measured_c4b8": "第 {number} 次运行，共 {total} 次（测量）"
+ "server.evaluate.run_of_measured_c4b8": "第 {number} 次运行，共 {total} 次（测量）",
+ "server.deploy.the_qemu_firmware_waits_in_its_9792": "QEMU 固件停在它的设置菜单里：请用 tools/build_qemu_firmware.py 构建它，这样会直接启动保存的卡带。",
+ "server.deploy.the_cartridge_gave_up_its_measurement_40f3": "卡带放弃了这次测量（prg32_perf_abort）。",
+ "server.deploy.the_suite_was_still_running_when_873a": "读取 QEMU 时这组测试还在运行；这次运行不会被使用，下一次将等待 {seconds} 秒。"
 }
