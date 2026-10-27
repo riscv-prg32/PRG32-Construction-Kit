@@ -21,7 +21,7 @@ def test_vendored_files_match_their_recorded_hashes():
     assert vendor_assets.check() == 0
     record = json.loads((ROOT / "static" / "vendor" / "VENDOR.json").read_text())
     names = {package["name"]: package for package in record["packages"]}
-    assert set(names) == {"bootstrap", "bootstrap-icons", "jquery", "blockly", "monaco-editor", "@fontsource/noto-sans-sc"}
+    assert set(names) == {"bootstrap", "bootstrap-icons", "jquery", "blockly", "monaco-editor", "@fontsource/noto-sans-sc", "esptool-js"}
     for package in record["packages"]:
         assert package["license"] in {"MIT", "Apache-2.0", "OFL-1.1"} and package["integrity"].startswith("sha512-")
         assert any(Path(path).name.startswith("LICENSE") for path in package["files"]), package["name"]

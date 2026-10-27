@@ -39,24 +39,36 @@ holds this cartridge, but it did not start" or "Nothing was sent: the target is 
 Chrome and Edge can deploy the selected `esp32c6` PRG32 cartridge directly to an ESP32-C6 over
 USB. On the Deploy page, choose the project and compiled cartridge, then use **USB device**:
 
-1. choose `cart0` through `cart7` and confirm that its current contents may be replaced;
+1. choose `cart0` through `cart7`, select **store**, **run**, **performance**, or **debug**, and
+   confirm that the slot may be replaced;
 2. press **Connect and deploy over USB** and choose the PRG32 serial device in the browser prompt;
-3. the page verifies the artifact SHA-256 and `PRG2` header, identifies an ESP32-C6, writes and
-   verifies only that 128 KiB partition, and resets the board.
+3. the page verifies the artifact SHA-256 and `PRG2` header, negotiates device capabilities, and
+   sends the cartridge metadata and CRC-protected payload;
+4. the firmware detects the first `prg32-io-1.0` frame automatically, shows the cartridge name,
+   slot and progress bar, verifies the slot, reports success or failure, and returns to setup after
+   **store**. **run** and **performance** start the cartridge.
 
-Web Serial requires HTTPS, except that browsers also allow `localhost`. The USB path uses the chip's
-ROM bootloader, so it works with the resident PRG32 firmware and does not replace the firmware,
-settings, scores or other cartridges. Unlike the Wi-Fi path, ROM bootloader mode cannot inspect the
-old slot or change the saved default cartridge. After reset, if setup appears, choose the deployed
-slot (for example `cart0`) and save it as the default. A console with only one valid cartridge loads
-that cartridge automatically.
+Use **Retrieve performance results** to read the latest performance JSON through the same USB
+connection. **debug** starts the cartridge under PRG32-QT's debugger. Physical PRG32 firmware
+advertises that instruction debugging is unavailable, so the page refuses the operation before it
+erases the chosen slot and explains that PRG32-QT is required.
 
-On the fixed `prototype1` PCB, GPIO13 is both the Down button and native USB D+. Normal firmware
-therefore makes the serial device disappear after boot. Hold **BOOT**, tap **RESET**, then release
-**BOOT** before pressing **Connect and deploy over USB**. The onboard RGB LED also shares GPIO8
+Web Serial requires HTTPS, except that browsers also allow `localhost`. The normal USB path uses a
+small receiver in the resident PRG32 firmware and does not replace the firmware, settings, scores or
+other cartridges. `prg32-io-1.0` uses self-synchronising 24-byte binary headers, request IDs and
+CRC-32 on every payload. The firmware accepts only `cart0` through `cart7`, bounds the payload to the
+partition, requires ordered chunks, and launches it only after the normal cartridge validator succeeds.
+
+On the current `prototype1` profile, the Down button uses GPIO0 so GPIO12/GPIO13 remain available to
+native USB Serial/JTAG. The ESP32-C6 ROM bootloader remains a firmware-recovery path, but it cannot
+draw cartridge upload progress. The onboard RGB LED also shares GPIO8
 with LCD D/C: its cyan boot flashes are intentional, while brief green or white flashes during display
 updates are an unavoidable electrical side effect and do not indicate a failed deployment. Do not
-move either canonical prototype1 pin to hide these effects.
+move the canonical prototype1 pins to hide these effects.
+
+The framing and message definitions are maintained in the PRG32 SDK's
+[`docs/software/usb_protocol.md`](../../PRG32/docs/software/usb_protocol.md). The Construction Kit
+copies the wire contract, but delegates cartridge validation and execution policy to the device.
 
 The browser library is pinned in `static/vendor/` and the page makes no CDN request.
 

@@ -223,8 +223,10 @@ capability IDs.
    (`tests/test_identity_live.py`) and a throwaway CartridgeStore on loopback with
    temporary data (`tests/test_store_live.py`). No production or institutional
    identity provider, no production Store, no real Google or Microsoft account, no
-   PRG32 hardware and no iOS device has been used; claims about them are absent on
-   purpose. Cloud storage is proven against in-process fakes of both providers.
+   production PRG32 deployment and no iOS device has been used. A development
+   ESP32-C6 was exercised through the shared USB protocol on 2026-10-27; the
+   browser permission flow itself was not part of that physical run. Cloud storage
+   is proven against in-process fakes of both providers.
 
 ---
 
