@@ -16,18 +16,22 @@ def test_usb_deploy_uses_the_eight_canonical_cartridge_slots_only():
     partitions = (ROOT.parent / "PRG32/profiles/partitions_prg32.csv").read_text(encoding="utf-8")
     for slot, offset in expected.items():
         assert f"{slot}," in partitions and offset in partitions
-        assert f'"{slot}"' in SCRIPT or f"'{slot}'" in SCRIPT
-    assert "SLOT_SIZE = 128 * 1024" in SCRIPT
+        assert f"'{slot}'" in PROTOCOL
+    assert "SLOT_SIZE = 128 * 1024" in PROTOCOL
     assert "SLOT_NAMES.includes(slot)" in SCRIPT
+    assert "SLOT_NAMES.includes(metadata.slot)" in PROTOCOL
 
 
 def test_usb_deploy_validates_before_writing_through_resident_firmware():
     assert "crypto.subtle.digest('SHA-256', data)" in SCRIPT
     assert "String.fromCharCode(...data.slice(0, 4)) !== 'PRG2'" in SCRIPT
     assert "cartridge.architecture !== 'esp32c6'" in SCRIPT
-    assert "prg32-io-1.0" in SCRIPT
+    assert "PROTOCOL = 'prg32-io-1.0'" in PROTOCOL
+    assert "cartridgeProblems(prepared.info, capabilities, command)" in SCRIPT
     assert "port.open({ baudRate: 115200" in PROTOCOL
-    assert "navigator.serial.getPorts()" in SCRIPT
+    assert "serial.getPorts()" in PROTOCOL
+    assert "requestPort({ filters: USB_FILTERS })" in PROTOCOL
+    assert "usbVendorId: 0x303a, usbProductId: 0x1001" in PROTOCOL
     assert "MESSAGE.UPLOAD_BEGIN" in PROTOCOL
     assert "MESSAGE.UPLOAD_DATA" in PROTOCOL
     assert "MESSAGE.UPLOAD_END" in PROTOCOL
@@ -38,7 +42,7 @@ def test_usb_deploy_exposes_run_performance_and_capability_checked_debugging():
     template = (ROOT / "templates/deploy.html").read_text(encoding="utf-8")
     for command in ("store", "run", "performance", "debug"):
         assert f'value="{command}"' in template
-    assert "capabilities.debug_supported" in SCRIPT
+    assert "command === 'debug' && !hello.debug_supported" in PROTOCOL
     assert "before it\nerases" in (ROOT / "docs/deploy.md").read_text(encoding="utf-8")
     assert "MESSAGE.PERFORMANCE_GET" in PROTOCOL
     assert 'id="usbPerformanceGet"' in template
@@ -60,3 +64,16 @@ def test_usb_deploy_docs_preserve_the_fixed_prototype1_pinout():
     assert "Do not\nmove the canonical prototype1 pins" in documentation
     assert "detects the first `prg32-io-1.0` frame automatically" in documentation
     assert "ROM bootloader remains a firmware-recovery path" in documentation
+
+
+def test_the_browser_never_changes_the_reset_lines():
+    """DTR/RTS changed one at a time reset an ESP32-C6 (PRG32 usb_protocol.md)."""
+    assert "setSignals" not in PROTOCOL.replace("// ", "").split("export class ProtocolSession")[1]
+    assert "setSignals" not in SCRIPT
+
+
+def test_the_protocol_module_is_the_shared_store_copy():
+    """CartridgeStore serves a byte-identical copy (PRG32 web_usb_deployment.md)."""
+    store_copy = ROOT.parent / "CartridgeStore/static/js/prg32_usb_protocol.js"
+    if store_copy.exists():
+        assert store_copy.read_text(encoding="utf-8") == PROTOCOL

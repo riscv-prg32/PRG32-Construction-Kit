@@ -1642,7 +1642,7 @@
  "deploy.usb_title": "USB 设备",
  "deploy.usb_help": "使用 Chrome 或 Edge 将所选 PRG32 卡带直接写入一个插槽。固件和其他插槽不会改变。",
  "deploy.usb_unsupported": "此浏览器不支持 Web Serial。请通过 HTTPS 在 Chrome 或 Edge 中打开本页（localhost 也可以）。",
- "deploy.usb_confirm": "替换所选插槽。设备处于 USB 引导加载模式时无法检查其中现有的卡带。",
+ "deploy.usb_confirm": "替换所选插槽中的内容。传输开始时 PRG32 会擦除该插槽。",
  "deploy.usb_start": "通过 USB 连接并部署",
  "deploy.usb_progress": "USB 部署进度",
  "deploy.usb_auto_help": "连接正在运行的 PRG32。设备会自动检测请求并显示卡带名称、插槽和进度；无需上传模式或网络。",
@@ -1657,7 +1657,6 @@
  "js.deploy.usb_choose": "请选择 PRG32 USB 串行设备。",
  "js.deploy.usb_connecting": "正在协商 PRG32 USB 功能…",
  "js.deploy.usb_writing": "正在写入并验证 {slot}…",
- "js.deploy.usb_finished": "USB 操作完成。设备已验证卡带。",
  "js.deploy.usb_cancelled": "未选择 USB 设备；未写入任何内容。",
  "js.deploy.evidence_physical": "实体设备",
  "js.deploy.evidence_qt": "模拟器（PRG32-QT），不是实体设备上的证据",
@@ -1932,5 +1931,9 @@
  "backgrounds.add_tile": "添加图块",
  "backgrounds.remove_tile": "删除图块",
  "backgrounds.press_convert": "点击“转换为 C”。",
- "audio_studio_pick.backgrounds_belong_to_a_game": "背景属于某个游戏：每个项目都有自己的图块和地图。"
+ "audio_studio_pick.backgrounds_belong_to_a_game": "背景属于某个游戏：每个项目都有自己的图块和地图。",
+ "js.deploy.usb_nothing_written": "未写入任何内容。",
+ "js.deploy.usb_running": "{slot} 中已有该卡带，并正在运行。",
+ "js.deploy.usb_stored": "{slot} 中已有该卡带。PRG32 已返回设置界面。",
+ "js.deploy.usb_performance_done": "已通过 USB 读取性能结果。"
 }

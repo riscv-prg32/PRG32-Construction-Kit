@@ -1,10 +1,10 @@
 // Direct USB deployment of one validated PRG32 cartridge (ADR-0020).
 // The resident firmware receives the cartridge, displays transfer progress,
 // verifies the slot, and launches it without resetting prototype1.
-import { ProtocolSession } from './prg32_usb_protocol.js';
-
-const SLOT_SIZE = 128 * 1024;
-const SLOT_NAMES = Object.freeze(['cart0', 'cart1', 'cart2', 'cart3', 'cart4', 'cart5', 'cart6', 'cart7']);
+// Contract: PRG32 docs/software/web_usb_deployment.md.
+import {
+  ProtocolSession, SLOT_NAMES, SLOT_SIZE, cartridgeInfo, cartridgeProblems, choosePort, describeSerialError
+} from './prg32_usb_protocol.js';
 
 const $start = $('#usbDeployStart');
 const $performance = $('#usbPerformanceGet');
@@ -22,9 +22,13 @@ function selectedCartridge() {
   return option && option.value ? { id: option.value, architecture: option.dataset.architecture || '', sha256: option.dataset.sha256 || '' } : null;
 }
 
+function webSerialAvailable() {
+  return Boolean(window.isSecureContext && navigator.serial);
+}
+
 function ready() {
   const cartridge = selectedCartridge();
-  const supported = Boolean(window.isSecureContext && navigator.serial);
+  const supported = webSerialAvailable();
   $('#usbDeployUnsupported').toggleClass('d-none', supported);
   $start.prop('disabled', busy || !supported || !$confirm.is(':checked') || !cartridge || cartridge.architecture !== 'esp32c6');
   $performance.prop('disabled', busy || !supported);
@@ -37,6 +41,14 @@ function appendLog(text) {
 function setProgress(percent) {
   const value = Math.max(0, Math.min(100, Math.round(percent)));
   $progress.removeClass('d-none').attr('aria-valuenow', value).find('.progress-bar').css('width', value + '%');
+}
+
+function showError(error) {
+  const message = error && error.name === 'NotFoundError'
+    ? tr('js.deploy.usb_cancelled', 'No USB device was selected; nothing was written.')
+    : describeSerialError(error);
+  $status.html('<span class="text-danger"></span>').find('span').text(message);
+  appendLog(message);
 }
 
 function requestHeaders() {
@@ -59,18 +71,22 @@ async function cartridgeBytes(cartridge) {
   if (!cartridge.sha256 || digest !== cartridge.sha256) {
     throw new Error('The compiled cartridge no longer matches its build record. Compile the project again.');
   }
-  const nameBytes = data.slice(40, 72);
-  const terminator = nameBytes.indexOf(0);
-  const name = new TextDecoder().decode(terminator < 0 ? nameBytes : nameBytes.slice(0, terminator)).trim();
-  return { data, bytes: data.length, name: name || 'PRG32 cartridge' };
+  return { data, info: cartridgeInfo(data) };
 }
 
 async function openSession() {
-  const authorized = await navigator.serial.getPorts();
-  const port = authorized.length === 1 ? authorized[0] : await navigator.serial.requestPort();
+  // choosePort() runs before any other await so the click still counts as
+  // the user gesture that Web Serial requires. It reuses the one authorized
+  // PRG32 (navigator.serial.getPorts()) or shows the chooser.
+  const port = await choosePort(navigator.serial);
   const session = new ProtocolSession(port);
   await session.open();
   return session;
+}
+
+function logDevice(capabilities) {
+  appendLog('Protocol: ' + capabilities.protocol);
+  appendLog('Device firmware: ' + (capabilities.firmware || 'unknown') + ' (' + (capabilities.target || 'unknown target') + ')');
 }
 
 async function deployUsb() {
@@ -83,28 +99,31 @@ async function deployUsb() {
   $log.text('').addClass('d-none');
   setProgress(0);
   $result.text('').addClass('d-none');
-  $status.text(tr('js.deploy.usb_preparing', 'Preparing the cartridge…'));
   let session = null;
   try {
-    const prepared = await cartridgeBytes(cartridge);
     $status.text(tr('js.deploy.usb_choose', 'Choose the PRG32 USB serial device.'));
     session = await openSession();
+    $status.text(tr('js.deploy.usb_preparing', 'Preparing the cartridge…'));
+    const prepared = await cartridgeBytes(cartridge);
     $status.text(tr('js.deploy.usb_connecting', 'Negotiating PRG32 USB capabilities…'));
     const capabilities = await session.hello();
-    if (capabilities.protocol !== 'prg32-io-1.0') throw new Error('The device does not support PRG32 USB protocol 1.0.');
-    if (command === 'debug' && !capabilities.debug_supported) throw new Error('This physical PRG32 cannot instruction-debug cartridges. Choose PRG32-QT for USB debugging.');
-    appendLog('Protocol: ' + capabilities.protocol);
-    appendLog('PRG32 cartridge: ' + prepared.name + ' (' + prepared.bytes + ' bytes)');
-    appendLog('Destination: ' + slot + '; command: ' + command);
+    logDevice(capabilities);
+    // ABI, size, prg32-io-1.0 and capabilities.debug_supported are checked
+    // here, before UPLOAD_BEGIN, so a refusal never erases the slot.
+    const problems = cartridgeProblems(prepared.info, capabilities, command);
+    if (problems.length) throw new Error(problems.join(' ') + ' ' + tr('js.deploy.usb_nothing_written', 'Nothing was written.'));
+    appendLog('PRG32 cartridge: ' + prepared.info.name + ' (' + prepared.info.size + ' bytes, ABI ' + prepared.info.abiMajor + '.' + prepared.info.abiMinor + ')');
+    appendLog('Destination: ' + slot + '; command: ' + command + '; chunk: ' + session.chunkSize() + ' bytes');
     $status.text(tr('js.deploy.usb_writing', 'Writing and verifying {slot}…', { slot }));
-    await session.upload(prepared.data, { name: prepared.name, slot, command }, (received, total) => setProgress(received * 100 / total));
+    const result = await session.upload(prepared.data, { name: prepared.info.name, slot, command }, (received, total) => setProgress(received * 100 / total));
     setProgress(100);
-    $status.empty().append($('<span class="text-success">').text(tr('js.deploy.usb_finished', 'USB operation finished. The device verified the cartridge.')));
+    appendLog('Device: ' + JSON.stringify(result));
+    const finished = result.running
+      ? tr('js.deploy.usb_running', '{slot} holds the cartridge and it is running.', { slot })
+      : tr('js.deploy.usb_stored', '{slot} holds the cartridge. The PRG32 is back in setup.', { slot });
+    $status.empty().append($('<span class="text-success">').text(finished));
   } catch (error) {
-    const message = error && error.name === 'NotFoundError' ? tr('js.deploy.usb_cancelled', 'No USB device was selected; nothing was written.')
-      : (error && error.message ? error.message : String(error));
-    $status.html('<span class="text-danger"></span>').find('span').text(message);
-    appendLog(message);
+    showError(error);
   } finally {
     if (session) await session.close();
     busy = false;
@@ -115,19 +134,19 @@ async function deployUsb() {
 async function retrievePerformance() {
   busy = true;
   ready();
+  $result.text('').addClass('d-none');
   let session = null;
   try {
-    $status.text('Choose the PRG32 USB serial device to retrieve performance results.');
+    $status.text(tr('js.deploy.usb_choose', 'Choose the PRG32 USB serial device.'));
     session = await openSession();
     const capabilities = await session.hello();
+    logDevice(capabilities);
     if (!(capabilities.capabilities || []).includes('performance')) throw new Error('This device does not offer performance results over USB.');
     const text = await session.performance();
     $result.removeClass('d-none').text(JSON.stringify(JSON.parse(text), null, 2));
-    $status.empty().append($('<span class="text-success">').text('Performance results retrieved over USB.'));
+    $status.empty().append($('<span class="text-success">').text(tr('js.deploy.usb_performance_done', 'Performance results retrieved over USB.')));
   } catch (error) {
-    const message = error && error.name === 'NotFoundError' ? 'No USB device was selected.' : (error.message || String(error));
-    $status.html('<span class="text-danger"></span>').find('span').text(message);
-    appendLog(message);
+    showError(error);
   } finally {
     if (session) await session.close();
     busy = false;

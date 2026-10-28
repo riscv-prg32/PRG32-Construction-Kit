@@ -1642,7 +1642,7 @@
  "deploy.usb_title": "USB device",
  "deploy.usb_help": "Use Chrome or Edge to put the selected PRG32 cartridge directly into one cartridge slot. The firmware and the other slots are not changed.",
  "deploy.usb_unsupported": "This browser does not support Web Serial. Open this page in Chrome or Edge over HTTPS (localhost also works).",
- "deploy.usb_confirm": "Replace the selected slot. Its current cartridge cannot be inspected while the device is in USB bootloader mode.",
+ "deploy.usb_confirm": "Replace what is in the selected slot. The PRG32 erases that slot when the transfer starts.",
  "deploy.usb_start": "Connect and deploy over USB",
  "deploy.usb_progress": "USB deployment progress",
  "deploy.usb_auto_help": "Connect a running PRG32. It detects the request automatically, shows the cartridge name, slot and progress, then reports success or failure. No upload mode or network is needed.",
@@ -1657,7 +1657,6 @@
  "js.deploy.usb_choose": "Choose the PRG32 USB serial device.",
  "js.deploy.usb_connecting": "Negotiating PRG32 USB capabilities…",
  "js.deploy.usb_writing": "Writing and verifying {slot}…",
- "js.deploy.usb_finished": "USB operation finished. The device verified the cartridge.",
  "js.deploy.usb_cancelled": "No USB device was selected; nothing was written.",
  "js.deploy.evidence_physical": "physical device",
  "js.deploy.evidence_qt": "emulator (PRG32-QT), not physical-device evidence",
@@ -1932,5 +1931,9 @@
  "backgrounds.add_tile": "Add tile",
  "backgrounds.remove_tile": "Remove tile",
  "backgrounds.press_convert": "Press Convert to C.",
- "audio_studio_pick.backgrounds_belong_to_a_game": "Backgrounds belong to a game: every project has its own tiles and maps."
+ "audio_studio_pick.backgrounds_belong_to_a_game": "Backgrounds belong to a game: every project has its own tiles and maps.",
+ "js.deploy.usb_nothing_written": "Nothing was written.",
+ "js.deploy.usb_running": "{slot} holds the cartridge and it is running.",
+ "js.deploy.usb_stored": "{slot} holds the cartridge. The PRG32 is back in setup.",
+ "js.deploy.usb_performance_done": "Performance results retrieved over USB."
 }

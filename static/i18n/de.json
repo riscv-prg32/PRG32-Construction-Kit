@@ -1642,7 +1642,7 @@
  "deploy.usb_title": "USB-Gerät",
  "deploy.usb_help": "Verwende Chrome oder Edge, um die ausgewählte PRG32-Cartridge direkt in einen Steckplatz zu schreiben. Firmware und andere Steckplätze bleiben unverändert.",
  "deploy.usb_unsupported": "Dieser Browser unterstützt Web Serial nicht. Öffne die Seite in Chrome oder Edge über HTTPS (localhost funktioniert ebenfalls).",
- "deploy.usb_confirm": "Ersetze den ausgewählten Steckplatz. Seine aktuelle Cartridge kann im USB-Bootloader-Modus nicht geprüft werden.",
+ "deploy.usb_confirm": "Ersetze den Inhalt des ausgewählten Steckplatzes. Der PRG32 löscht ihn, sobald die Übertragung beginnt.",
  "deploy.usb_start": "Über USB verbinden und bereitstellen",
  "deploy.usb_progress": "Fortschritt der USB-Bereitstellung",
  "deploy.usb_auto_help": "Verbinde ein laufendes PRG32. Es erkennt die Anfrage automatisch und zeigt Name, Steckplatz und Fortschritt. Upload-Modus und Netzwerk sind nicht nötig.",
@@ -1657,7 +1657,6 @@
  "js.deploy.usb_choose": "Wähle das serielle PRG32-USB-Gerät.",
  "js.deploy.usb_connecting": "PRG32-USB-Funktionen werden ausgehandelt…",
  "js.deploy.usb_writing": "{slot} wird geschrieben und geprüft…",
- "js.deploy.usb_finished": "USB-Vorgang abgeschlossen. Das Gerät hat die Cartridge geprüft.",
  "js.deploy.usb_cancelled": "Kein USB-Gerät ausgewählt; es wurde nichts geschrieben.",
  "js.deploy.evidence_physical": "echtes Gerät",
  "js.deploy.evidence_qt": "Emulator (PRG32-QT), kein Nachweis auf dem echten Gerät",
@@ -1932,5 +1931,9 @@
  "backgrounds.add_tile": "Kachel hinzufügen",
  "backgrounds.remove_tile": "Kachel entfernen",
  "backgrounds.press_convert": "Drücke auf In C umwandeln.",
- "audio_studio_pick.backgrounds_belong_to_a_game": "Hintergründe gehören zu einem Spiel: Jedes Projekt hat seine eigenen Kacheln und Karten."
+ "audio_studio_pick.backgrounds_belong_to_a_game": "Hintergründe gehören zu einem Spiel: Jedes Projekt hat seine eigenen Kacheln und Karten.",
+ "js.deploy.usb_nothing_written": "Es wurde nichts geschrieben.",
+ "js.deploy.usb_running": "{slot} enthält die Cartridge, und sie läuft.",
+ "js.deploy.usb_stored": "{slot} enthält die Cartridge. Der PRG32 ist wieder im Setup.",
+ "js.deploy.usb_performance_done": "Leistungsergebnisse über USB gelesen."
 }

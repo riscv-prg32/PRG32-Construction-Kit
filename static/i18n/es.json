@@ -1642,7 +1642,7 @@
  "deploy.usb_title": "Dispositivo USB",
  "deploy.usb_help": "Usa Chrome o Edge para colocar el cartucho PRG32 seleccionado directamente en una ranura. El firmware y las demás ranuras no cambian.",
  "deploy.usb_unsupported": "Este navegador no admite Web Serial. Abre la página en Chrome o Edge mediante HTTPS (localhost también funciona).",
- "deploy.usb_confirm": "Reemplaza la ranura seleccionada. Su cartucho actual no puede inspeccionarse mientras el dispositivo está en modo de cargador USB.",
+ "deploy.usb_confirm": "Reemplaza el contenido de la ranura seleccionada. El PRG32 borra esa ranura cuando empieza la transferencia.",
  "deploy.usb_start": "Conectar y desplegar por USB",
  "deploy.usb_progress": "Progreso del despliegue USB",
  "deploy.usb_auto_help": "Conecta un PRG32 encendido. Detecta la solicitud automáticamente y muestra el nombre, la ranura y el progreso. No hace falta modo de carga ni red.",
@@ -1657,7 +1657,6 @@
  "js.deploy.usb_choose": "Elige el dispositivo serie USB PRG32.",
  "js.deploy.usb_connecting": "Negociando capacidades USB de PRG32…",
  "js.deploy.usb_writing": "Escribiendo y verificando {slot}…",
- "js.deploy.usb_finished": "Operación USB terminada. El dispositivo verificó el cartucho.",
  "js.deploy.usb_cancelled": "No se seleccionó ningún dispositivo USB; no se escribió nada.",
  "js.deploy.evidence_physical": "dispositivo físico",
  "js.deploy.evidence_qt": "emulador (PRG32-QT), no es una prueba en el dispositivo físico",
@@ -1932,5 +1931,9 @@
  "backgrounds.add_tile": "Añadir baldosa",
  "backgrounds.remove_tile": "Quitar baldosa",
  "backgrounds.press_convert": "Pulsa Convertir a C.",
- "audio_studio_pick.backgrounds_belong_to_a_game": "Los fondos pertenecen a un juego: cada proyecto tiene sus propias baldosas y mapas."
+ "audio_studio_pick.backgrounds_belong_to_a_game": "Los fondos pertenecen a un juego: cada proyecto tiene sus propias baldosas y mapas.",
+ "js.deploy.usb_nothing_written": "No se escribió nada.",
+ "js.deploy.usb_running": "{slot} contiene el cartucho y se está ejecutando.",
+ "js.deploy.usb_stored": "{slot} contiene el cartucho. El PRG32 volvió a la configuración.",
+ "js.deploy.usb_performance_done": "Resultados de rendimiento leídos por USB."
 }

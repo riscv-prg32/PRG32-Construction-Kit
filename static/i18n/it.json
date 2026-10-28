@@ -1642,7 +1642,7 @@
  "deploy.usb_title": "Dispositivo USB",
  "deploy.usb_help": "Usa Chrome o Edge per inserire la cartuccia PRG32 selezionata direttamente in uno slot. Il firmware e gli altri slot non vengono modificati.",
  "deploy.usb_unsupported": "Questo browser non supporta Web Serial. Apri la pagina in Chrome o Edge tramite HTTPS (funziona anche localhost).",
- "deploy.usb_confirm": "Sostituisci lo slot selezionato. La cartuccia attuale non può essere ispezionata mentre il dispositivo è in modalità bootloader USB.",
+ "deploy.usb_confirm": "Sostituisci il contenuto dello slot selezionato. Il PRG32 cancella lo slot quando inizia il trasferimento.",
  "deploy.usb_start": "Connetti e distribuisci tramite USB",
  "deploy.usb_progress": "Avanzamento distribuzione USB",
  "deploy.usb_auto_help": "Connetti un PRG32 acceso. Rileva automaticamente la richiesta e mostra nome, slot e avanzamento. Non servono modalità di caricamento o rete.",
@@ -1657,7 +1657,6 @@
  "js.deploy.usb_choose": "Scegli il dispositivo seriale USB PRG32.",
  "js.deploy.usb_connecting": "Negoziazione delle funzionalità USB PRG32…",
  "js.deploy.usb_writing": "Scrittura e verifica di {slot}…",
- "js.deploy.usb_finished": "Operazione USB completata. Il dispositivo ha verificato la cartuccia.",
  "js.deploy.usb_cancelled": "Nessun dispositivo USB selezionato; non è stato scritto nulla.",
  "js.deploy.evidence_physical": "dispositivo fisico",
  "js.deploy.evidence_qt": "emulatore (PRG32-QT), non una prova sul dispositivo fisico",
@@ -1932,5 +1931,9 @@
  "backgrounds.add_tile": "Aggiungi piastrella",
  "backgrounds.remove_tile": "Togli piastrella",
  "backgrounds.press_convert": "Premi Converti in C.",
- "audio_studio_pick.backgrounds_belong_to_a_game": "Gli sfondi appartengono a un gioco: ogni progetto ha le sue piastrelle e le sue mappe."
+ "audio_studio_pick.backgrounds_belong_to_a_game": "Gli sfondi appartengono a un gioco: ogni progetto ha le sue piastrelle e le sue mappe.",
+ "js.deploy.usb_nothing_written": "Non è stato scritto nulla.",
+ "js.deploy.usb_running": "{slot} contiene la cartuccia, che è in esecuzione.",
+ "js.deploy.usb_stored": "{slot} contiene la cartuccia. Il PRG32 è tornato al setup.",
+ "js.deploy.usb_performance_done": "Risultati delle prestazioni letti via USB."
 }
