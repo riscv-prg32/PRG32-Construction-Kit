@@ -91,6 +91,11 @@ cartridge validation and execution policy stay on the device.
 
 The browser library is pinned in `static/vendor/` and the page makes no CDN request.
 
+Recorded 2026-10-29 in desktop Chrome on macOS, with a person picking the port: a DeviceDemo build
+deployed to `cart5` with **run**; the page reported it running and the console did not restart.
+Chrome closes its port chooser at once when the button is pressed by browser automation, so this
+step needs a person.
+
 To check the client on a real console without a browser (a person must otherwise pick the port),
 run the same module under Node. It writes the slot you name:
 
