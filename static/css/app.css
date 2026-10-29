@@ -37,6 +37,18 @@
    (d-flex is !important too and would win: a "0 games" banner showed). */
 [hidden][hidden] { display: none !important; }
 
+/* Simplified Chinese (ADR-0027): the computer's own CJK font first, then Noto Sans SC from the kit
+   (static/vendor/@fontsource). Lines break between characters, never inside Latin words or code,
+   and not before closing punctuation (line-break: strict). */
+:lang(zh-Hans) {
+  font-family: system-ui, -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC",
+    "Source Han Sans SC", "Noto Sans SC", "WenQuanYi Micro Hei", sans-serif;
+  line-break: strict;
+  word-break: normal;
+  overflow-wrap: anywhere;
+}
+:lang(zh-Hans) code, :lang(zh-Hans) kbd, :lang(zh-Hans) pre { overflow-wrap: normal; }
+
 body {
   background: linear-gradient(180deg, var(--kit-page-top) 0%, var(--kit-page-bottom) 45%);
   color: var(--kit-ink);
@@ -495,6 +507,44 @@ body.dbg-mode-advanced .dbg-beginner { display: none !important; }
 
 /* --- footer and the storage note (base.html, storage_notice.js) ------------------------- */
 .kit-navbar .nav-link { white-space: nowrap; }
+/* One row in every interface language (French and German labels are long) and with every
+   computer's fonts (Linux draws them about a tenth wider than macOS): compact links once the
+   menu is unfolded (from 1400 px); below that it folds behind the menu button.
+   tests/test_i18n_browser.py checks one row with room to spare, in CI on Linux too. */
+@media (min-width: 1400px) {
+  .kit-navbar .navbar-nav .nav-link { padding-left: .25rem; padding-right: .25rem; }
+  .kit-navbar .navbar-brand { margin-right: .5rem; }
+  .kit-navbar .navbar-brand span { font-size: 1rem; }
+}
+/* Below 1920 px the labels need the room of their icons, and a slightly smaller size (smallest
+   just above the fold, where German is tightest): the words stay. */
+@media (min-width: 1400px) and (max-width: 1919.98px) {
+  .kit-navbar .navbar-nav .nav-link { font-size: .95rem; }
+  .kit-navbar .navbar-nav .nav-link > .bi { display: none; }
+  .kit-navbar .navbar-nav .nav-icon-only > .bi { display: inline-block; }
+}
+@media (min-width: 1400px) and (max-width: 1599.98px) {
+  .kit-navbar .navbar-nav .nav-link { font-size: .9rem; }
+}
+/* A phone: the kit's name, the logo and the menu button on one row; on the narrowest
+   screens the logo alone, the name kept for screen readers. */
+@media (max-width: 575.98px) {
+  .kit-navbar .navbar-brand { margin-right: .5rem; }
+  .kit-navbar .navbar-brand span { font-size: 1rem; }
+}
+@media (max-width: 359.98px) {
+  .kit-navbar .navbar-brand span {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden;
+    clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+  }
+}
+/* On the unfolded bar, Docs and Admin are their icons; the words are kept for screen readers (visually hidden). */
+@media (min-width: 1400px) {
+  .kit-navbar .nav-icon-label {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden;
+    clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+  }
+}
 /* When the menu does not fit on one line (wider fonts, an admin's longer menu), the account
    links wrap onto a second row inside the bar instead of running off the page. */
 .kit-navbar .navbar-collapse { flex-wrap: wrap; row-gap: .25rem; }
@@ -513,3 +563,94 @@ body.dbg-mode-advanced .dbg-beginner { display: none !important; }
 @media (max-width: 575.98px) {
   .kit-storage-notice { left: .5rem; right: .5rem; bottom: .5rem; max-width: none; }
 }
+
+/* Deploy (deploy.js): the target's screen at twice its 320x240 size, pixels kept sharp. */
+.deploy-screen {
+  width: 640px;
+  max-width: 100%;
+  image-rendering: pixelated;
+}
+
+/* Evaluate (evaluate.js): the chart at its own size, never wider than the card. */
+.evaluation-chart {
+  width: 760px;
+  max-width: 100%;
+  background: #ffffff;
+}
+
+/* Tools > Color Picker (color_picker.js): the colour as chosen and as the PRG32 screen shows it. */
+.color-swatch {
+  width: 7rem;
+  height: 4.5rem;
+  border-radius: .375rem;
+}
+
+/* Sprite Lab, indexed colours (sprite_editor.js): one button per palette entry. */
+.sprite-palette {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .25rem;
+}
+.sprite-palette .palette-entry {
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  border: 1px solid var(--bs-border-color);
+  border-radius: .25rem;
+  font-size: .6rem;
+  line-height: 1;
+}
+.sprite-palette .palette-entry[aria-checked="true"] {
+  outline: 3px solid var(--bs-primary);
+  outline-offset: 1px;
+}
+.sprite-palette .palette-entry.is-transparent {
+  background-image: linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%),
+    linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%);
+  background-size: 8px 8px;
+  background-position: 0 0, 4px 4px;
+}
+
+/* AudioStudio, recording a sample (audio_studio.js): the level while recording, the take's waveform. */
+.voice-meter {
+  width: 8rem;
+}
+.voice-wave {
+  width: 100%;
+  max-width: 600px;
+  height: 80px;
+  background: var(--bs-body-bg);
+}
+
+/* Backgrounds (backgrounds.js): the map, the tile picker under it, the 8x8 tile editor. */
+.background-canvas {
+  display: block;
+  width: 100%;
+  max-width: 640px;
+  height: auto;
+  image-rendering: pixelated;
+  border: 1px solid var(--bs-border-color);
+  touch-action: none;
+}
+.tile-canvas {
+  width: 160px;
+  height: 160px;
+  image-rendering: pixelated;
+  border: 1px solid var(--bs-border-color);
+}
+.tile-palette {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .25rem;
+}
+.tile-palette .tile-entry {
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: 1px solid var(--bs-border-color);
+  border-radius: .25rem;
+  background: var(--bs-body-bg);
+  font-size: .7rem;
+}
+.tile-palette .tile-entry img { width: 100%; height: 100%; image-rendering: pixelated; }
+.tile-palette .tile-entry[aria-checked="true"] { outline: 3px solid var(--bs-primary); outline-offset: 1px; }

@@ -1,10 +1,10 @@
 # Quick start (English)
 
 Other languages: [Italiano](quickstart.it.md) · [Español](quickstart.es.md) ·
-[Français](quickstart.fr.md) · [Deutsch](quickstart.de.md)
+[Français](quickstart.fr.md) · [Deutsch](quickstart.de.md) · [简体中文](quickstart.zh-Hans.md)
 
 1. **Open the kit** in a browser. Choose your language with the menu at the top
-   (English, Italiano, Español, Français, Deutsch).
+   (English, Italiano, Español, Français, Deutsch, 简体中文).
 2. **No account?** Press *Try without an account*: your games stay in this browser only.
 3. **New Project.** Choose how to write it: **Blocks**, **C**, **Assembly (RISC-V)** or
    **Python (PRG32 Python)**. Give it a title and press *Create*.

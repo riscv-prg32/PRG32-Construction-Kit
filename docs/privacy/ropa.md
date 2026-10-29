@@ -104,13 +104,13 @@ not decisions: see [decisions.md](decisions.md).
 | Transfers | only by the person's own choice (cloud, publishing) |
 | Review owner | the operator's privacy lead (name it in decisions.md) |
 | Next review | 2027-10-21 or on any change to the kit's data model |
-| Fields | `projects`: id, title, description, author, tags, blocks_json, game_json, deleted_at, version, created_at, updated_at, owner_id; `project_revisions`: id, project_id, owner_id, created_at, seq, reason, manifest, source, assets, digest, child_ids; `sprites`: id, project_id, name, width, height, pixels, data_url, created_at, updated_at, owner_id; `assets`: id, project_id, name, kind, content_type, data, version, created_at, updated_at, owner_id |
+| Fields | `projects`: id, title, description, author, tags, blocks_json, game_json, deleted_at, version, created_at, updated_at, owner_id; `project_revisions`: id, project_id, owner_id, created_at, seq, reason, manifest, source, assets, digest, child_ids; `sprites`: id, project_id, name, width, height, pixels, data_url, palette, created_at, updated_at, owner_id; `assets`: id, project_id, name, kind, content_type, data, version, created_at, updated_at, owner_id |
 
 ## builds
 
 | | |
 |---|---|
-| Data | builds, compiler logs, generated C and assembly, cartridges, debug maps, uploaded files |
+| Data | builds, compiler logs, generated C and assembly, cartridges, debug maps, uploaded files; AudioStudio samples, which may be a student's own voice recorded with the microphone (kept as an audio_sample artifact like an uploaded WAV file; recorded only after the student presses Record, deleted with the sample or the account) |
 | People | students, teachers |
 | Purpose | compiling games; downloading cartridges |
 | Legal basis | as student work; PROPOSED - not decided: the controller confirms with its DPO (decisions.md) |
@@ -162,6 +162,25 @@ not decisions: see [decisions.md](decisions.md).
 | Review owner | the operator's privacy lead (name it in decisions.md) |
 | Next review | 2027-10-21 or on any change to the kit's data model |
 | Fields | `publish_profiles`: id, name, store_url, bearer_token, token_set_at, created_at, updated_at, owner_id; `publish_attempts`: id, digest, user_id, profile_id, artifact_id, state, result, store_host, cartridge_id, cartridge_version, bundle_sha256, created_at, updated_at |
+
+## deployment
+
+| | |
+|---|---|
+| Data | which cartridge was put on which console, PRG32-QT or QEMU, in which slot, each step's log, the target's answers and a screenshot; the consoles and PRG32-QT addresses an administrator registered; performance evaluations of the PRG32 Evaluation cartridge on those targets (each run's numbers) |
+| People | students, teachers |
+| Purpose | running a student's game on a classroom PRG32 console or emulator, and showing them whether it worked |
+| Legal basis | Art. 6(1)(e) (part of the course); PROPOSED - not decided: the controller confirms with its DPO (decisions.md) |
+| Special categories | none |
+| Who can see it | the person; administrators |
+| Recipients | none: the console, PRG32-QT or QEMU receives the cartridge only, never a name |
+| Where | the server chosen by the operator (configure in the EU/EEA, see processors_and_transfers.md) |
+| Kept for | while the account exists |
+| Deleted by | erasure deletes the deployments, the evaluations and their folders; a registered console stays, without who registered it |
+| Transfers | none |
+| Review owner | the operator's privacy lead (name it in decisions.md) |
+| Next review | 2027-10-21 or on any change to the kit's data model |
+| Fields | `deployments`: id, owner_id, project_id, artifact_id, target, target_kind, target_name, slot, status, progress, cancel_requested, log, result, created_at, updated_at; `deploy_targets`: id, name, kind, url, notes, created_by, created_at; `evaluations`: id, owner_id, project_id, artifact_id, target, target_kind, target_name, slot, repetitions, warm_up, status, progress, cancel_requested, log, result, created_at, updated_at |
 
 ## security_log
 
@@ -239,6 +258,44 @@ not decisions: see [decisions.md](decisions.md).
 | Next review | 2027-10-21 or on any change to the kit's data model |
 | Fields | `identity_providers`: id, slug, name, issuer, client_id, client_secret_ref, scopes, role_claim, role_map, new_account_role, allowed_domains, enabled, created_at, updated_at; `groups`: id, name, created_at; `site_settings`: key, value, updated_at, revision |
 
+## activity_log
+
+| | |
+|---|---|
+| Data | activity log: who (account id, or a one-day visitor pseudonym), which kind of action and route pattern, outcome, time taken, network (IPv4 /24, IPv6 /48), browser family; never content, query strings or full addresses; and today's random salt for the pseudonyms |
+| People | students, teachers and facilitators, administrators, visitors without an account |
+| Purpose | running the service for the school: support, spotting errors and misuse, capacity planning, and the aggregate usage statistics on the admin Statistics page |
+| Legal basis | Art. 6(1)(e) public task of the school (or 6(1)(f) legitimate interest for a private operator), with a balancing test for children; PROPOSED - not decided: the controller confirms with its DPO (decisions.md) |
+| Special categories | none |
+| Who can see it | administrators only; opening one person's activity, showing usernames in statistics and every CSV download are written to the audit log |
+| Recipients | none |
+| Where | the server chosen by the operator (configure in the EU/EEA, see processors_and_transfers.md) |
+| Kept for | PRG32_KIT_ACTIVITY_DAYS (90); the visitor salt one day (unlinkable afterwards); PRG32_KIT_ACTIVITY_LOG turns logging off |
+| Deleted by | daily expiry and retention.py; erasure deletes the person's rows; part of the access/portability export |
+| Transfers | none |
+| Review owner | the operator's privacy lead (name it in decisions.md) |
+| Next review | 2027-10-21 or on any change to the kit's data model |
+| Fields | `activity_events`: id, created_at, day, actor, user_id, visitor, category, method, route, object_id, status, duration_ms, network, agent; `activity_salts`: day, salt |
+
+## email_queue
+
+| | |
+|---|---|
+| Data | email sending queue: recipient address, subject, kind, state, attempts, last error and times; the message text sealed (encrypted) and wiped once sent |
+| People | people signing up, account holders receiving sign-in notices, administrators (test mail) |
+| Purpose | delivering the kit's own mail (sign-up links, new sign-in notices, test mail) without overloading the school's SMTP server |
+| Legal basis | Art. 6(1)(b)/(e) as for the account itself; security notices Art. 32; PROPOSED - not decided: the controller confirms with its DPO (decisions.md) |
+| Special categories | none |
+| Who can see it | administrators see the address shortened (ma***@school.example), never the text |
+| Recipients | the school's SMTP server (configured on the Settings page; a processor or the school itself) |
+| Where | the server chosen by the operator (configure in the EU/EEA, see processors_and_transfers.md) |
+| Kept for | PRG32_KIT_MAIL_DAYS (30) after queuing; the text is wiped as soon as the message is sent |
+| Deleted by | retention.py; erasure deletes the person's rows |
+| Transfers | only where the operator's SMTP provider is outside the EEA |
+| Review owner | the operator's privacy lead (name it in decisions.md) |
+| Next review | 2027-10-21 or on any change to the kit's data model |
+| Fields | `mail_outbox`: id, kind, recipient, subject, body, status, attempts, last_error, created_at, next_attempt_at, started_at, finished_at |
+
 ## Outside the database
 
 | Store | Data | Where | Kept for | Deleted by | Personal |
@@ -253,4 +310,5 @@ not decisions: see [decisions.md](decisions.md).
 | email | sign-up and password emails | the operator's SMTP provider and the person's mailbox | the provider's | the provider's | yes |
 | tickets_in_transit | single sign-on tickets and OAuth codes and tokens, in transit | between the browser, the kit, the Store and the providers (HTTPS) | minutes; refresh tokens encrypted at rest (cloud) | expiry | yes |
 | support_evidence | screenshots, logs and recordings kept as release evidence (docs/evidence) | the kit's repository | kept with the release | never contains real people: synthetic users only (visual manifest checks) | no |
-| guest_requests | a guest's blocks, code, sound or sprite, sent to generate code, preview sound or build the game to run it (ADR-0023, ADR-0024) | server memory, and for a run build a private build folder removed as soon as the cartridge is read | none: not written, not logged | automatic at the end of the request | no |
+| guest_requests | a guest's blocks, code, sound or sprite, sent to generate code, preview sound or build the game to run it (ADR-0023, ADR-0024) | server memory, and for a run build a private build folder removed as soon as the cartridge is read | none: the content is not written or logged (the activity log notes only that the request happened, under a one-day pseudonym: record activity_log) | automatic at the end of the request | no |
+| deployment_folders | each deployment's screenshot, QEMU flash copy and serial log (DATA_DIR/deployments/<id>/); each evaluation's dataset (DATA_DIR/evaluations/<id>/dataset.json) | the server's data folder | while the account exists | erasure deletes the folders with the deployments | yes |

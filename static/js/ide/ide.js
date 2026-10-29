@@ -88,6 +88,7 @@
   // --- tree -----------------------------------------------------------------------------------
   function sourceFile() { return { c: 'game.c', asm: 'game.S', python: 'game.py' }[mode]; }
 
+  let backgroundList = [];
   function renderTree(sprites) {
     const source = mode === 'blocks'
       ? [{ id: 'blocks', label: tr('js.ide.blocks_program', 'Blocks program'), icon: 'bi-puzzle' }]
@@ -111,6 +112,14 @@
       { id: 'sound-effects', label: tr('js.ide.sound_effects', 'Sound effects'), icon: 'bi-music-note' },
       { id: 'sound-tracks', label: tr('js.ide.soundtracks', 'Soundtracks'), icon: 'bi-music-note-list' },
       { id: 'sound-samples', label: tr('js.ide.samples', 'Samples'), icon: 'bi-mic' }] });
+    // A C or assembly game reaches its art with #include "prg32_assets.h" / ".S" (docs/project_art.md).
+    if (mode === 'c' || mode === 'asm') {
+      items.push({ id: 'folder-art', label: tr('js.ide.project_art_read_only', 'Project art (read-only)'), children: [
+        { id: 'art-file', label: mode === 'c' ? 'prg32_assets.h' : 'prg32_assets.S', icon: 'bi-file-earmark-lock', readonly: true }] });
+    }
+    items.push({ id: 'folder-backgrounds', label: tr('backgrounds.backgrounds', 'Backgrounds'), children: backgroundList
+      .map(item => ({ id: 'background-' + item.id, label: item.name, icon: 'bi-grid-3x3' }))
+      .concat([{ id: 'background-new', label: tr('js.ide.new_background', 'New background…'), icon: 'bi-plus-circle' }]) });
     IdeShell.renderTree(items, openFile);
   }
 
@@ -118,9 +127,12 @@
     if (id === 'blocks') return openBlocks(true);
     if (id === 'src') return openSource(true);
     if (id === 'gen-c' || id === 'gen-asm' || id === 'gen-py' || id === 'gen-ir') return openGenerated(id.slice(4), true);
+    if (id === 'art-file') return openArtFile(true);
     if (id === 'sprite-new') { openTool('sprites'); return PRG32SpriteLab.create(); }
     if (id.startsWith('sprite-')) { openTool('sprites'); return PRG32SpriteLab.open(id.slice(7)); }
     if (id.startsWith('sound-')) return openTool('sound', id.slice(6));
+    if (id === 'background-new') { openTool('backgrounds'); return PRG32Backgrounds.create(); }
+    if (id.startsWith('background-')) { openTool('backgrounds'); return PRG32Backgrounds.open(id.slice(11)); }
   }
 
   // --- editors ---------------------------------------------------------------------------------
@@ -220,6 +232,37 @@
     if (generated[kind] === null) generate();
   }
 
+  // prg32_assets.h / .S: what the include line becomes when the game is built (project_assets.py).
+  function artText() {
+    if (!artInfo) return '/* Loading… */';
+    return mode === 'asm' ? artInfo.asm_include : artInfo.c_header;
+  }
+  function openArtFile(focus) {
+    const file = mode === 'asm' ? 'prg32_assets.S' : 'prg32_assets.h';
+    if (IdeShell.tabs.has('art-file') && editors['art-file']) IdeShell.activateTab('art-file');
+    else {
+      monacoTab('art-file', file, mode === 'asm' ? 'prg32-asm' : 'c', artText(), {
+        readOnly: true, closable: true, ariaLabel: file + tr('js.ide.read_only', ', read-only'), download: file,
+        note: tr('js.ide.read_only_your_project_art', 'Read-only: your sprites, backgrounds and sounds as code. Write #include "{file}" in your game to use them.', { file }) });
+    }
+    if (focus) editors['art-file'].focus();
+  }
+
+  // The project's art (GET /api/projects/<id>/art): names for the blocks, pictures for the
+  // simulator, the read-only include file, and the "Use it in your game" lines of the tools.
+  let artInfo = null;
+  function loadArt() {
+    return Kit.api(api + '/art').then(info => {
+      artInfo = info;
+      PRG32Blocks.setArtNames({ sprites: info.catalog.sprites.map(entry => entry.title),
+                                backgrounds: info.catalog.backgrounds.map(entry => entry.title) });
+      PRG32Simulator.setArt(info.catalog);
+      if (editors['art-file']) editors['art-file'].setValue(artText());
+      $(document).trigger('prg32:art', [info]);
+      refreshPreview();
+    }).catch(() => { /* the art is shown again after the next change */ });
+  }
+
   function updateGenerated() {
     for (const kind of ['c', 'asm', 'py', 'ir']) {
       const editor = editors['gen-' + kind];
@@ -253,7 +296,8 @@
 
   // Sprite Lab and AudioStudio are on the page once, hidden (#ideToolHolder); a tab borrows the
   // tool while it is open and gives it back when closed (moving keeps every event handler).
-  const TOOLS = { sprites: { element: 'spriteLab', title: 'Sprite Lab' }, sound: { element: 'audioStudio', title: 'AudioStudio' } };
+  const TOOLS = { sprites: { element: 'spriteLab', title: 'Sprite Lab' }, sound: { element: 'audioStudio', title: 'AudioStudio' },
+    backgrounds: { element: 'backgroundsTool', title: tr('backgrounds.backgrounds', 'Backgrounds') } };
   function openTool(name, section) {
     const tool = TOOLS[name];
     if (IdeShell.tabs.has('tool-' + name)) IdeShell.activateTab('tool-' + name);
@@ -269,13 +313,13 @@
 
   function openToolFromHash() {
     const wanted = window.location.hash.slice(1);
-    if (wanted === 'sprites' || wanted === 'sound') openTool(wanted);
+    if (wanted === 'sprites' || wanted === 'sound' || wanted === 'backgrounds') openTool(wanted);
   }
   window.addEventListener('hashchange', () => { if (project) openToolFromHash(); });
 
   // The top menu's Editor, Sprite Lab and AudioStudio (base.html) switch tab here, without
   // loading the page again; the address keeps the tool, so reloading opens it again.
-  $('[data-ide-tool="editor"], [data-ide-tool="sprites"], [data-ide-tool="sound"]').on('click', function (event) {
+  $('[data-ide-tool="editor"], [data-ide-tool="sprites"], [data-ide-tool="sound"], [data-ide-tool="backgrounds"]').on('click', function (event) {
     event.preventDefault();
     const item = $(this).attr('data-ide-tool');
     // The folded menu of a small screen closes.
@@ -285,14 +329,19 @@
     if (item === 'editor') openFile(mode === 'blocks' ? 'blocks' : 'src');
     else openTool(item);
   });
-  $(document).on('ide:tab', (event, id) => Kit.projectMenu.mark(id === 'tool-sprites' ? 'sprites' : id === 'tool-sound' ? 'sound' : 'editor'));
+  $(document).on('ide:tab', (event, id) => Kit.projectMenu.mark({ 'tool-sprites': 'sprites', 'tool-sound': 'sound', 'tool-backgrounds': 'backgrounds' }[id] || 'editor'));
 
   // A tool changed the project: the tree and the blocks follow.
   $(document).on('prg32:sprites-changed', () => {
     Kit.api('/api/sprites?project_id=' + encodeURIComponent(projectId))
       .then(data => { spriteList = data.sprites || []; renderTree(spriteList); }).catch(() => {});
+    loadArt();
   });
-  $(document).on('prg32:audio-saved', () => { loadAudio(); });
+  $(document).on('prg32:audio-saved', () => { loadAudio(); loadArt(); });
+  $(document).on('prg32:backgrounds-changed', () => {
+    PRG32Backgrounds.list().then(items => { backgroundList = items; renderTree(spriteList); }).catch(() => {});
+    loadArt();
+  });
 
   // --- preview (Blocks) -------------------------------------------------------------------------
   function refreshPreview() {
@@ -311,6 +360,19 @@
         message: PRG32Language.withoutPaths(String(text)), explanation: '' });
     }
     return problems;
+  }
+
+  // A refusal that names its problem (code and exact range, routes.Refusal) is used as it is;
+  // other errors are read from their text.
+  function problemsOf(err) {
+    const given = err && err.data && Array.isArray(err.data.problems) ? err.data.problems : null;
+    if (!given) return parseProblems(err && err.message);
+    return given.map(problem => ({ line: problem.line || 0, column: problem.column || 0,
+      endLine: problem.end_line || problem.line || 0, endColumn: problem.end_column || problem.column || 0,
+      severity: problem.severity || 'error', code: problem.code || 'server',
+      // In the reader's language when the server sent the message's key (messages.py).
+      message: problem.message_key ? tr(problem.message_key, String(problem.message || ''), problem.params || {})
+        : String(problem.message || err.message), explanation: '' }));
   }
 
   // The same problem found by the live check and by the server is listed once. In another
@@ -376,8 +438,8 @@
       showProblems(problems, options.quiet);
       setBuildStatus(result.ok ? tr('js.ide.compiler_no_problems', 'Compiler: no problems') : tr('js.ide.compiler_problems', 'Compiler: {count} problems', { count: problems.length }));
     }).catch(err => {
-      if (mode === 'python' && project.version === version && /^Line \d+: /.test(err.message)) {
-        const problems = parseProblems(err.message);
+      if (mode === 'python' && project.version === version && (err.data && err.data.problems || /^Line \d+: /.test(err.message))) {
+        const problems = problemsOf(err);
         showProblems(problems, options.quiet);
         setBuildStatus(tr('js.ide.python_problems', 'PRG32 Python: {count} problems', { count: problems.length }));
         return;
@@ -488,7 +550,7 @@
         $('#ideOutput').text(mode === 'blocks' ? tr('js.ide.generated_c_assembly_and_ir_from', 'Generated C, assembly and IR from the blocks.')
           : mode === 'python' ? tr('js.ide.generated_c_assembly_and_ir_from_2', 'Generated C, assembly and IR from game.py.') : tr('js.ide.the_source_passed_the_kit_s', 'The source passed the kit\'s checks.'));
       })
-      .catch(err => { showProblems(parseProblems(err.message)); setBuildStatus(tr('js.ide.problems_found', 'Problems found')); });
+      .catch(err => { showProblems(problemsOf(err)); setBuildStatus(tr('js.ide.problems_found', 'Problems found')); });
   }
 
   function compile() {
@@ -512,7 +574,7 @@
             cartridges.length ? 'ok' : 'error');
       })
       .catch(err => {
-        $('#ideOutput').text(err.message); showProblems(parseProblems(err.message)); setBuildStatus(tr('js.ide.build_failed', 'Build failed'));
+        $('#ideOutput').text(err.message); showProblems(problemsOf(err)); setBuildStatus(tr('js.ide.build_failed', 'Build failed'));
         log(tr('js.ide.compile', 'Compile: {message}', { message: err.message }), 'error');
       });
   }
@@ -576,6 +638,7 @@
           return;
         }
         setBuildStatus(tr('js.ide.not_running', 'Not running'));
+        if (err.data && err.data.problems) showProblems(problemsOf(err));
         log(tr('js.ide.run', 'Run: {message}', { message: err.message }), 'error');
         if (err.code !== 'sign_in_required') Kit.toast(err.message, 'danger');
       })
@@ -634,6 +697,7 @@
     command('properties', tr('js.ide.project_properties', 'Project properties'), '', () => showProperties());
     command('sprite-lab', tr('js.ide.open_sprite_lab', 'Open Sprite Lab'), '', () => openTool('sprites'));
     command('audio-studio', tr('js.ide.open_audiostudio', 'Open AudioStudio'), '', () => openTool('sound'));
+    command('backgrounds', tr('js.ide.open_backgrounds', 'Open Backgrounds'), '', () => openTool('backgrounds'));
     command('history', tr('js.ide.history_earlier_versions', 'History: earlier versions'), '', () => showHistory());
     command('export-archive', tr('js.ide.export_project_zip', 'Export project (.zip)'), '', () => exportSaved('/archive'));
     command('export-json', tr('js.ide.export_project_as_json', 'Export project as JSON'), '', () => exportSaved('/export'));
@@ -802,8 +866,9 @@
   }
 
   Promise.all([Kit.api(api), Kit.api('/api/sprites?project_id=' + encodeURIComponent(projectId)), PRG32Monaco.load(),
-               loadAudio()])
-    .then(([data, sprites, loadedMonaco]) => {
+               loadAudio(), PRG32Backgrounds.list().catch(() => []), loadArt()])
+    .then(([data, sprites, loadedMonaco, _audio, backgrounds]) => {
+      backgroundList = backgrounds || [];
       project = data;
       monaco = loadedMonaco;
       PRG32MonacoLanguage.register(monaco, { openSdk: openSdkHeader });
@@ -824,5 +889,5 @@
   window.PRG32Ide = { save, generate, compile, run, restart, log, editors, openSdkHeader, get mode() { return mode; },
     get version() { return project && project.version; }, get autosavePaused() { return autosavePaused; },
     get dirty() { return dirty; }, get problems() { return $('#ideProblems').data('problems') || []; },
-    get serverProblems() { return serverProblems; } };
+    get serverProblems() { return serverProblems; }, get art() { return artInfo; } };
 })();

@@ -213,7 +213,7 @@ jobs:
           PRG32_BROWSER_EVIDENCE: ${{ github.workspace }}/browser-evidence
         run: >-
           python -m pytest -q -rs --junitxml=browser-test-results.xml -o junit_suite_name=browser-${{ github.sha }}
-          tests/test_browser_offline.py tests/test_ide_browser.py tests/test_debugger_browser.py tests/test_accounts_browser.py tests/test_storage_browser.py tests/test_cloud_browser.py tests/test_performance_browser.py tests/test_audio_browser.py tests/test_guest_ide_browser.py tests/test_ide_layout_browser.py tests/test_github_browser.py tests/test_project_menu_browser.py tests/test_frontend_offline.py
+          tests/test_browser_offline.py tests/test_ide_browser.py tests/test_debugger_browser.py tests/test_accounts_browser.py tests/test_storage_browser.py tests/test_cloud_browser.py tests/test_performance_browser.py tests/test_audio_browser.py tests/test_guest_ide_browser.py tests/test_ide_layout_browser.py tests/test_github_browser.py tests/test_project_menu_browser.py tests/test_i18n_browser.py tests/test_color_picker_browser.py tests/test_sprite_palette_browser.py tests/test_voice_recording_browser.py tests/test_backgrounds_browser.py tests/test_deploy_evaluate_browser.py tests/test_usb_deploy_browser.py tests/test_frontend_offline.py
 
       - name: Upload the browser test results
         if: always()
@@ -308,6 +308,60 @@ jobs:
           path: live-identity-results.xml
           retention-days: 90
 
+  python-reference:
+    name: "Scenario L: the PRG32 Python cartridge on the browser core and canonical PRG32-QT"
+    needs: container-smoke-test
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v7
+
+      - name: Read the PRG32-QT and SDK revisions of the browser core
+        id: rev
+        run: |
+          echo "core=$(python3 -c 'import json; print(json.load(open("static/wasm/BUILD.json"))["core"]["revision"])')" >> "$GITHUB_OUTPUT"
+          echo "sdk=$(python3 -c 'import json; print(json.load(open("static/wasm/BUILD.json"))["audio"]["revision"])')" >> "$GITHUB_OUTPUT"
+
+      - name: Check out canonical PRG32-QT at that revision
+        uses: actions/checkout@v7
+        with:
+          repository: riscv-prg32/PRG32-QT
+          ref: ${{ steps.rev.outputs.core }}
+          path: PRG32-QT
+
+      - name: Check out the PRG32 SDK at that revision
+        uses: actions/checkout@v7
+        with:
+          repository: riscv-prg32/PRG32
+          ref: ${{ steps.rev.outputs.sdk }}
+          path: PRG32
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: "20"
+
+      - name: Download the cartridge and evidence the container built
+        uses: actions/download-artifact@v7
+        with:
+          name: container-evidence-${{ github.sha }}
+          path: container-evidence
+
+      - name: Run that cartridge, compare the cores, debug a game.py line
+        run: >-
+          python3 tools/python_reference.py run --evidence container-evidence/python-reference
+          --prg32qt PRG32-QT --sdk PRG32
+          --prg32qt-revision ${{ steps.rev.outputs.core }} --sdk-revision ${{ steps.rev.outputs.sdk }}
+
+      - name: Keep the scenario L evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: python-reference-${{ github.sha }}
+          path: container-evidence/python-reference/
+          retention-days: 90
+
   dependency-review:
     name: Dependency review
     if: github.event_name == 'pull_request'
@@ -317,10 +371,35 @@ jobs:
     steps:
       - name: Check out the repository
         uses: actions/checkout@v7
+      # Dependency review needs the repository's Dependency graph (Settings > Code security).
+      # When it is off, GitHub refuses the comparison; audit the whole lock instead, so a pull
+      # request is never merged without a vulnerability check.
+      - name: Is the Dependency graph on?
+        id: graph
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh api "repos/${{ github.repository }}/dependency-graph/compare/${{ github.event.pull_request.base.sha }}...${{ github.event.pull_request.head.sha }}" > /dev/null 2>&1; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::The Dependency graph is off, so GitHub cannot review new dependencies; auditing requirements.lock with pip-audit instead"
+          fi
       - name: Reject newly introduced vulnerable dependencies
+        if: steps.graph.outputs.available == 'true'
         uses: actions/dependency-review-action@v5
         with:
           fail-on-severity: high
+      - name: Set up Python (Dependency graph off)
+        if: steps.graph.outputs.available != 'true'
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Audit requirements.lock (Dependency graph off)
+        if: steps.graph.outputs.available != 'true'
+        run: |
+          python -m pip install --disable-pip-version-check "pip-audit==2.9.0"
+          pip-audit --require-hashes --disable-pip -r requirements.lock
 
   # Lint (real mistakes only), a coverage floor, and the dependency lock and SBOM kept in step.
   quality:
@@ -505,6 +584,16 @@ jobs:
           docker run --rm ${{ env.SANDBOX_OPTS }} -v "$PWD/ci-evidence:/evidence" --entrypoint sh ${{ env.CI_IMAGE }} -c
           "python tools/build_hardware_audio_check.py --check-if-comparable --out /evidence/hardware-audio-check
           > /evidence/hardware-audio-check.log 2>&1; status=$?; cat /evidence/hardware-audio-check.log; exit $status"
+
+      # Scenario L (audit of 7a700ba): one PRG32 Python game through the real API and toolchain,
+      # deterministic in fresh processes and in every interface language, hostile programs refused
+      # without running. The python-reference job then runs this exact cartridge.
+      - name: "Scenario L: a PRG32 Python game from source to cartridge"
+        run: >-
+          docker run --rm ${{ env.SANDBOX_OPTS }} -e PRG32_BUILD_SANDBOX=bwrap -e PRG32_KIT_REVISION=${{ github.sha }}
+          -v "$PWD/ci-evidence:/evidence" --entrypoint sh ${{ env.CI_IMAGE }} -c
+          "python tools/python_reference.py build --out /evidence/python-reference
+          > /evidence/python-reference.log 2>&1; status=$?; cat /evidence/python-reference.log; exit $status"
 
       - name: Keep this commit's container evidence
         if: always()

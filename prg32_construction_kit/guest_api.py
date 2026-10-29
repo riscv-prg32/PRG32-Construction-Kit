@@ -10,8 +10,13 @@ nothing of the request is kept or logged.
     POST /api/guest/audio             {document?} -> the checked AudioStudio document and its sound ids
     POST /api/guest/audio/preview     {document, muted?} -> the AUD0 block to listen to
     POST /api/guest/sprites/convert   {sprite} -> the sprite as C
+    POST /api/guest/backgrounds/convert {background} -> the background as C
     POST /api/guest/convert_to        {project, language, audio_studio?} -> the game as C or assembly (one way)
     POST /api/guest/run               {project, audio_studio?} -> a cartridge for the simulator (run_build.py)
+    POST /api/guest/art               {title?, sprites, backgrounds, audio_studio?} -> the art as code (project_assets.py)
+
+convert, convert_to and run also take the guest's ``sprites`` and ``backgrounds`` (the art that
+sprite and background blocks, prg32.sprite(...) and #include "prg32_assets.h" use).
 
 The generated code comes from the same validators and generators as for an account
 (routes.generate_sources), so it is identical for the same blocks. Building a cartridge,
@@ -27,6 +32,7 @@ from flask import Blueprint, Response, jsonify, request
 
 from . import audio_studio, security
 from .audio_studio import AudioStudioError
+from .messages import fields as message_fields, text as say
 
 bp = Blueprint("guest_api", __name__)
 
@@ -43,7 +49,7 @@ def _throttle():
     try:
         security.check_and_hit("guest_api", security.client_address())
     except security.Throttled as error:
-        return _refused("Too many requests: wait a little and try again.", 429, retry_after=error.retry_after)
+        return _refused(say("api", "Too many requests: wait a little and try again."), 429, retry_after=error.retry_after)
     return None
 
 
@@ -52,11 +58,26 @@ def _payload() -> dict[str, Any]:
     return payload if isinstance(payload, dict) else {}
 
 
+def _art(payload: dict[str, Any], title: str, document: dict[str, Any] | None) -> dict[str, Any]:
+    """A guest project's art (project_assets.catalog) from the sprites and backgrounds the browser sent."""
+    from . import project_assets
+
+    sprites = payload.get("sprites") if isinstance(payload.get("sprites"), list) else []
+    backgrounds = payload.get("backgrounds") if isinstance(payload.get("backgrounds"), list) else []
+    if len(sprites) > MAX_ART or len(backgrounds) > MAX_ART:
+        raise ValueError(say("api", "A game sent here has at most {max_art} sprites and {max_art} backgrounds", max_art=MAX_ART))
+    rows = [{**row, "kind": "background"} for row in backgrounds if isinstance(row, dict)]
+    return project_assets.catalog(sprites, rows, document, title)
+
+
+MAX_ART = 64
+
+
 def _document(value: Any) -> dict[str, Any]:
     """A guest's AudioStudio document, checked; samples need an account (their sound is a server file)."""
     document = audio_studio.validate_document(value) if value is not None else audio_studio.default_document()
     if document.get("samples"):
-        raise AudioStudioError("Recorded samples need an account: sign in to use them.")
+        raise AudioStudioError(say("api", "Recorded samples need an account: sign in to use them."))
     return document
 
 
@@ -66,41 +87,45 @@ def example(slug: str):
 
     for item in example_catalog():
         if item["slug"] == slug:
-            return jsonify({"project": item["project"]})
-    return _refused("Example not found", 404)
+            return jsonify({"project": item["project"], "sprites": item.get("sprites") or [],
+                            "assets": item.get("assets") or [], "audio_studio": item.get("audio_studio")})
+    return _refused(say("api", "Example not found"), 404)
 
 
 @bp.post("/api/guest/convert")
 def convert():
-    from .asm_generator import ir_to_asm
     from .py_generator import from_blocks, ir_to_python
-    from .routes import SOURCE_LANGUAGES, generate_sources
+    from .routes import SOURCE_LANGUAGES, _generated_sources, generate_sources
 
     payload = _payload()
     given = payload.get("project")
     if not isinstance(given, dict):
-        return _refused("send {\"project\": {title, blocks_json, game_json}}")
+        return _refused(say("api", "send {\"project\": {title, blocks_json, game_json}}"))
     project = {"title": str(given.get("title") or "Untitled game")[:200],
                "blocks_json": given.get("blocks_json") or {}, "game_json": given.get("game_json") or {}}
     try:
         project["audio_studio"] = _document(payload["audio_studio"]) if payload.get("audio_studio") else None
+        project["assets"] = _art(payload, project["title"], project["audio_studio"])
     except (ValueError, AudioStudioError) as error:
-        return _refused(str(error))
+        return _refused(str(error), **message_fields(error))
     game_ir, c_source, message = generate_sources(project)
     if message is not None:
-        return _refused(message)
+        from .routes import problem_fields
+
+        return _refused(message, **problem_fields(message))
     assert game_ir is not None and c_source is not None
     handwritten = game_ir.get("source_mode") == "asm"
     language = "asm" if handwritten else payload.get("source_language", "c")
     if language not in SOURCE_LANGUAGES:
         return _refused("source_language must be one of: " + ", ".join(SOURCE_LANGUAGES))
     if language != "c" and game_ir.get("source_mode") == "c":
-        return _refused("Assembly is generated from Blocks. An Advanced C project compiles the C you wrote.")
+        return _refused(say("api", "Assembly is generated from Blocks. An Advanced C project compiles the C you wrote."))
     body: dict[str, Any] = {"game_ir": game_ir, "source_language": language}
+    sources = _generated_sources(language, game_ir, c_source)
     if language in ("c", "both"):
-        body["c_source"] = c_source
+        body["c_source"] = sources["c"]
     if language in ("asm", "both"):
-        body["asm_source"] = game_ir["source_asm"] if handwritten else ir_to_asm(game_ir)
+        body["asm_source"] = sources["asm"]
     if from_blocks(game_ir):
         body["python_source"] = ir_to_python(game_ir)   # to read beside game.c; never built
     return jsonify(body)
@@ -111,7 +136,7 @@ def audio():
     try:
         document = _document(_payload().get("document"))
     except (ValueError, AudioStudioError) as error:
-        return _refused(str(error))
+        return _refused(str(error), **message_fields(error))
     return jsonify({"document": document, "missing_samples": [],
                     "ids": {"effects": {effect["name"]: {"instrument": audio_studio.FIRST_EFFECT_INSTRUMENT + index,
                                                          "voice": effect["voice"], "note": effect["note"]}
@@ -124,11 +149,11 @@ def audio_preview():
     payload = _payload()
     muted = payload.get("muted") or []
     if not isinstance(muted, list) or any(not isinstance(v, int) or not 0 <= v < 8 for v in muted):
-        return _refused("muted must be a list of voices 0..7")
+        return _refused(say("api", "muted must be a list of voices 0..7"))
     try:
         document = _document(payload.get("document"))
     except (ValueError, AudioStudioError) as error:
-        return _refused(str(error))
+        return _refused(str(error), **message_fields(error))
     block = audio_studio.pack_document(document, {}, set(muted))
     return Response(block, mimetype="application/octet-stream", headers={"Cache-Control": "no-store"})
 
@@ -141,15 +166,16 @@ def convert_to():
     payload = _payload()
     given = payload.get("project")
     if not isinstance(given, dict) or payload.get("language") not in ("c", "asm"):
-        return _refused("send {\"project\": {title, blocks_json}, \"language\": \"c\" | \"asm\"}")
+        return _refused(say("api", "send {\"project\": {title, blocks_json}, \"language\": \"c\" | \"asm\"}"))
     project = {"title": str(given.get("title") or "Untitled game")[:200], "blocks_json": given.get("blocks_json") or {}}
     try:
         project["audio_studio"] = _document(payload["audio_studio"]) if payload.get("audio_studio") else None
+        project["assets"] = _art(payload, project["title"], project["audio_studio"])
         return jsonify({"game_json": blocks_as_code(project, payload["language"])})
     except (ValueError, AudioStudioError) as error:
-        return _refused(str(error))
+        return _refused(str(error), **message_fields(error))
     except Exception as error:  # noqa: BLE001 - blocks that do not generate cannot be converted
-        return _refused(f"These blocks cannot be converted yet: {error}")
+        return _refused(say("api", "These blocks cannot be converted yet: {error}", error=error))
 
 
 @bp.post("/api/guest/run")
@@ -160,23 +186,51 @@ def run():
     try:
         security.check_and_hit("guest_run", security.client_address())
     except security.Throttled as error:
-        return _refused("You have run many games in the last hour: wait a little, or sign in.", 429,
+        return _refused(say("api", "You have run many games in the last hour: wait a little, or sign in."), 429,
                         retry_after=error.retry_after)
     payload = _payload()
     given = payload.get("project")
     if not isinstance(given, dict):
-        return _refused("send {\"project\": {title, blocks_json, game_json}}")
+        return _refused(say("api", "send {\"project\": {title, blocks_json, game_json}}"))
     project = {"id": None, "title": str(given.get("title") or "Untitled game")[:200],
                "blocks_json": given.get("blocks_json") or {}, "game_json": given.get("game_json") or {}}
     try:
         document = _document(payload["audio_studio"]) if payload.get("audio_studio") else None
         project["audio_studio"] = document
+        project["assets"] = _art(payload, project["title"], document)
         audio = (audio_studio.pack_document(document, {}), document) if document else None
         return jsonify(run_build.run(project, audio))
     except run_build.RunRefused as refused:
-        return _refused(str(refused), refused.status, code=refused.code)
+        return _refused(str(refused), refused.status, code=refused.code,
+                        **({"problems": refused.details["problems"]} if refused.details.get("problems") else {}))
     except (ValueError, AudioStudioError) as error:
-        return _refused(str(error))
+        return _refused(str(error), **message_fields(error))
+
+
+@bp.post("/api/guest/art")
+def art():
+    """A guest project's art as code: what Sprite Lab, Backgrounds and the IDE show (project_assets.public)."""
+    from . import project_assets
+
+    payload = _payload()
+    try:
+        document = _document(payload["audio_studio"]) if payload.get("audio_studio") else None
+        return jsonify(project_assets.public(_art(payload, str(payload.get("title") or "Untitled game")[:200], document)))
+    except (ValueError, AudioStudioError) as error:
+        return _refused(str(error), **message_fields(error))
+
+
+@bp.post("/api/guest/backgrounds/convert")
+def background_convert():
+    from . import backgrounds
+
+    background = _payload().get("background")
+    if not isinstance(background, dict):
+        return _refused(say("api", "send {\"background\": {name, data}}"))
+    try:
+        return jsonify({"c_source": backgrounds.to_c(str(background.get("name") or "background"), background.get("data"))})
+    except backgrounds.BackgroundError as error:
+        return _refused(error.args[0])
 
 
 @bp.post("/api/guest/sprites/convert")
@@ -185,8 +239,8 @@ def sprite_convert():
 
     sprite = _payload().get("sprite")
     if not isinstance(sprite, dict):
-        return _refused("send {\"sprite\": {name, width, height, pixels}}")
+        return _refused(say("api", "send {\"sprite\": {name, width, height, pixels}}"))
     try:
         return jsonify({"c_source": sprite_to_c(sprite)})
     except (ValueError, TypeError, KeyError) as error:
-        return _refused(f"This sprite cannot be converted: {error}")
+        return _refused(say("api", "This sprite cannot be converted: {error}", error=error))

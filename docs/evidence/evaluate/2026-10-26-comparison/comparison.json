@@ -1,0 +1,25 @@
+{
+  "compared": [
+    {
+      "evaluation_id": "eval_1ab811833807",
+      "target_kind": "qemu",
+      "target_name": "QEMU (this server)",
+      "evidence": "emulator (QEMU)",
+      "cartridge_sha256": "3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66",
+      "firmware_version": "679dfb5"
+    },
+    {
+      "evaluation_id": "eval_0e55a515739b",
+      "target_kind": "prg32qt",
+      "target_name": "PRG32-QT",
+      "evidence": "emulator (PRG32-QT)",
+      "cartridge_sha256": "3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66",
+      "firmware_version": "qt-0.4.1-dev.3+gf6d80ad"
+    }
+  ],
+  "left_out": [],
+  "sources": [
+    "docs/evidence/evaluate/2026-10-26-qemu",
+    "docs/evidence/evaluate/2026-10-26-prg32qt"
+  ]
+}

@@ -2,11 +2,11 @@ window.PRG32Blocks = (function () {
   let workspace = null;
 
   const COLORS = [
-    ['black', 'BLACK'], ['white', 'WHITE'], ['red', 'RED'], ['green', 'GREEN'], ['blue', 'BLUE'],
-    ['yellow', 'YELLOW'], ['cyan', 'CYAN'], ['magenta', 'MAGENTA'], ['orange', 'ORANGE'], ['pink', 'PINK'],
-    ['gray', 'GRAY'], [tr('js.blockly_blocks.dark_gray', 'dark gray'), 'DARK_GRAY'], ['brown', 'BROWN'], ['purple', 'PURPLE'], ['navy', 'NAVY'], ['lime', 'LIME']
+    [tr('js.blockly_blocks.color_black', 'black'), 'BLACK'], [tr('js.blockly_blocks.color_white', 'white'), 'WHITE'], [tr('js.blockly_blocks.color_red', 'red'), 'RED'], [tr('js.blockly_blocks.color_green', 'green'), 'GREEN'], [tr('js.blockly_blocks.color_blue', 'blue'), 'BLUE'],
+    [tr('js.blockly_blocks.color_yellow', 'yellow'), 'YELLOW'], [tr('js.blockly_blocks.color_cyan', 'cyan'), 'CYAN'], [tr('js.blockly_blocks.color_magenta', 'magenta'), 'MAGENTA'], [tr('js.blockly_blocks.color_orange', 'orange'), 'ORANGE'], [tr('js.blockly_blocks.color_pink', 'pink'), 'PINK'],
+    [tr('js.blockly_blocks.color_gray', 'gray'), 'GRAY'], [tr('js.blockly_blocks.dark_gray', 'dark gray'), 'DARK_GRAY'], [tr('js.blockly_blocks.color_brown', 'brown'), 'BROWN'], [tr('js.blockly_blocks.color_purple', 'purple'), 'PURPLE'], [tr('js.blockly_blocks.color_navy', 'navy'), 'NAVY'], [tr('js.blockly_blocks.color_lime', 'lime'), 'LIME']
   ];
-  const BUTTONS = [['left', 'LEFT'], ['right', 'RIGHT'], ['up', 'UP'], ['down', 'DOWN'], ['A', 'A'], ['B', 'B'], ['start', 'START'], ['select', 'SELECT'],
+  const BUTTONS = [[tr('js.blockly_blocks.button_left', 'left'), 'LEFT'], [tr('js.blockly_blocks.button_right', 'right'), 'RIGHT'], [tr('js.blockly_blocks.button_up', 'up'), 'UP'], [tr('js.blockly_blocks.button_down', 'down'), 'DOWN'], ['A', 'A'], ['B', 'B'], [tr('js.blockly_blocks.button_start', 'start'), 'START'], [tr('js.blockly_blocks.button_select', 'select'), 'SELECT'],
     [tr('js.blockly_blocks.player_2_left', 'player 2 left'), 'P2_LEFT'], [tr('js.blockly_blocks.player_2_right', 'player 2 right'), 'P2_RIGHT'], [tr('js.blockly_blocks.player_2_up', 'player 2 up'), 'P2_UP'], [tr('js.blockly_blocks.player_2_down', 'player 2 down'), 'P2_DOWN'], ['player 2 A', 'P2_A'], ['player 2 B', 'P2_B']];
 
   const text = (name, value) => ({ type: 'field_input', name, text: String(value) });
@@ -44,7 +44,7 @@ window.PRG32Blocks = (function () {
       { type: 'prg32_on_start', message0: tr('js.blockly_blocks.when_game_starts_1_2', 'when game starts %1 %2'), args0: [{ type: 'input_dummy' }, { type: 'input_statement', name: 'DO' }], colour: 40, tooltip: tr('js.blockly_blocks.runs_once_when_starts', 'Runs once when the cartridge starts (C: <prefix>_init).') },
       { type: 'prg32_update', message0: tr('js.blockly_blocks.every_frame_update_1_2', 'every frame update %1 %2'), args0: [{ type: 'input_dummy' }, { type: 'input_statement', name: 'DO' }], colour: 210, tooltip: tr('js.blockly_blocks.runs_game_logic', 'Runs game logic once per frame (C: <prefix>_update).') },
       { type: 'prg32_draw', message0: tr('js.blockly_blocks.every_frame_draw_1_2', 'every frame draw %1 %2'), args0: [{ type: 'input_dummy' }, { type: 'input_statement', name: 'DO' }], colour: 160, tooltip: tr('js.blockly_blocks.draws_the_frame', 'Draws the frame once per frame (C: <prefix>_draw).') },
-      stmt({ type: 'prg32_comment', message0: 'comment %1', args0: [text('TEXT', tr('js.blockly_blocks.explain_this_idea', 'explain this idea'))], colour: 90, tooltip: tr('js.blockly_blocks.a_note_for_students_it_becomes', 'A note for students; it becomes a C comment.') }),
+      stmt({ type: 'prg32_comment', message0: tr('js.blockly_blocks.comment_1', 'comment %1'), args0: [text('TEXT', tr('js.blockly_blocks.explain_this_idea', 'explain this idea'))], colour: 90, tooltip: tr('js.blockly_blocks.a_note_for_students_it_becomes', 'A note for students; it becomes a C comment.') }),
       stmt({ type: 'prg32_splash', message0: tr('js.blockly_blocks.show_splash_title_1_subtitle_2', 'show splash title %1 subtitle %2 for %3 ms background %4 text %5 accent %6'), args0: [text('TITLE', 'MY GAME'), text('SUBTITLE', 'PRESS START'), text('MS', 1500), color('BG'), color('FG'), color('ACCENT')], colour: 40, tooltip: tr('js.blockly_blocks.prg32_splash_screen_prg32_splash_show', 'PRG32 splash screen (prg32_splash_show_game). Use it in "when game starts".') }),
 
       // Variables
@@ -60,7 +60,7 @@ window.PRG32Blocks = (function () {
       stmt({ type: 'prg32_list_change', message0: tr('js.blockly_blocks.change_item_1_of_2_by', 'change item %1 of %2 by %3'), args0: [text('INDEX', 0), text('LIST', 'bricks'), text('DELTA', 1)], colour: 290, tooltip: tr('js.blockly_blocks.add_a_number_to_one_item', 'Add a number to one item.') }),
 
       // Logic
-      stmt({ type: 'prg32_if', message0: 'if %1 %2 %3', args0: [text('COND', 'score > 9'), { type: 'input_dummy' }, { type: 'input_statement', name: 'DO' }], colour: 15, tooltip: tr('js.blockly_blocks.runs_the_blocks_inside_when_the', 'Runs the blocks inside when the condition is not 0.') }),
+      stmt({ type: 'prg32_if', message0: tr('js.blockly_blocks.if_1_2_3', 'if %1 %2 %3'), args0: [text('COND', 'score > 9'), { type: 'input_dummy' }, { type: 'input_statement', name: 'DO' }], colour: 15, tooltip: tr('js.blockly_blocks.runs_the_blocks_inside_when_the', 'Runs the blocks inside when the condition is not 0.') }),
       stmt({ type: 'prg32_if_else', message0: tr('js.blockly_blocks.if_1_2_3_else_4', 'if %1 %2 %3 else %4'), args0: [text('COND', 'lives > 0'), { type: 'input_dummy' }, { type: 'input_statement', name: 'DO' }, { type: 'input_statement', name: 'ELSE' }], colour: 15, tooltip: tr('js.blockly_blocks.choose_between_two_groups_of_blocks', 'Choose between two groups of blocks.') }),
       stmt({ type: 'prg32_repeat', message0: tr('js.blockly_blocks.repeat_with_1_from_2_to', 'repeat with %1 from %2 to %3 %4 %5'), args0: [text('VAR', 'i'), text('FROM', 0), text('TO', 9), { type: 'input_dummy' }, { type: 'input_statement', name: 'DO' }], colour: 15, tooltip: tr('js.blockly_blocks.counts_from_the_first_number_to', 'Counts from the first number to the last (at most 1024 times).') }),
       stmt({ type: 'prg32_if_touching', message0: tr('js.blockly_blocks.if_rect_1_2_3_4', 'if rect %1 %2 %3 %4 touches rect %5 %6 %7 %8 %9 %10'), args0: [
@@ -80,7 +80,7 @@ window.PRG32Blocks = (function () {
       stmt({ type: 'prg32_draw_rect_rgb', message0: tr('js.blockly_blocks.draw_rectangle_x_1_y_2_2', 'draw rectangle x %1 y %2 w %3 h %4 color value %5'), args0: [text('X', 0), text('Y', 0), text('W', 16), text('H', 16), text('RGB', 'rgb(255, 128, 0)')], colour: 160, tooltip: tr('js.blockly_blocks.colour_from_an_expression_rgb_r', 'Colour from an expression: rgb(r, g, b) or an RGB565 number.') }),
       stmt({ type: 'prg32_draw_pixel', message0: tr('js.blockly_blocks.draw_pixel_x_1_y_2', 'draw pixel x %1 y %2 color %3'), args0: [text('X', 0), text('Y', 0), color('COLOR')], colour: 160, tooltip: tr('js.blockly_blocks.one_pixel', 'One pixel.') }),
       stmt({ type: 'prg32_draw_line', message0: tr('js.blockly_blocks.draw_line_from_x_1_y', 'draw line from x %1 y %2 to x %3 y %4 color %5'), args0: [text('X1', 0), text('Y1', 0), text('X2', 16), text('Y2', 16), color('COLOR')], colour: 160, tooltip: "Bresenham's line algorithm." }),
-      stmt({ type: 'prg32_draw_circle', message0: tr('js.blockly_blocks.draw_1_circle_x_2_y', 'draw %1 circle x %2 y %3 radius %4 color %5'), args0: [{ type: 'field_dropdown', name: 'FILL', options: [['outline', 'OUTLINE'], ['filled', 'FILLED']] }, text('X', 160), text('Y', 100), text('R', 8), color('COLOR')], colour: 160, tooltip: tr('js.blockly_blocks.midpoint_circle_algorithm', 'Midpoint circle algorithm.') }),
+      stmt({ type: 'prg32_draw_circle', message0: tr('js.blockly_blocks.draw_1_circle_x_2_y', 'draw %1 circle x %2 y %3 radius %4 color %5'), args0: [{ type: 'field_dropdown', name: 'FILL', options: [[tr('js.blockly_blocks.outline', 'outline'), 'OUTLINE'], [tr('js.blockly_blocks.filled', 'filled'), 'FILLED']] }, text('X', 160), text('Y', 100), text('R', 8), color('COLOR')], colour: 160, tooltip: tr('js.blockly_blocks.midpoint_circle_algorithm', 'Midpoint circle algorithm.') }),
       stmt({ type: 'prg32_draw_text', message0: tr('js.blockly_blocks.draw_text_1_at_x_2', 'draw text %1 at x %2 y %3 fg %4 bg %5'), args0: [text('TEXT', 'HELLO'), text('X', 8), text('Y', 8), color('FG'), color('BG')], colour: 160, tooltip: tr('js.blockly_blocks.prg32_8x8_font_text', 'PRG32 8x8 font text.') }),
       stmt({ type: 'prg32_draw_number', message0: tr('js.blockly_blocks.draw_number_1_at_x_2', 'draw number %1 at x %2 y %3 fg %4 bg %5'), args0: [text('VALUE', 'score'), text('X', 8), text('Y', 8), color('FG'), color('BG')], colour: 160, tooltip: tr('js.blockly_blocks.show_a_whole_number_score_lives', 'Show a whole number (score, lives, ...).') }),
       pictureBlock('prg32_draw_bitmap', tr('js.blockly_blocks.draw_picture_x_1_y_2', 'draw picture x %1 y %2 color %3 size %4'), [text('X', 0), text('Y', 0), color('COLOR'), text('SCALE', 2)], 160, tr('js.blockly_blocks.an_8x8_picture_is_lit_is', 'An 8x8 picture: # is lit, . is see-through. Size 2 makes it 16x16.'), SHIP),
@@ -92,7 +92,7 @@ window.PRG32Blocks = (function () {
       stmt({ type: 'prg32_playfield_put', message0: tr('js.blockly_blocks.put_tile_1_on_layer_2', 'put tile %1 on layer %2 at column %3 row %4'), args0: [text('ID', 1), text('LAYER', 0), text('TX', 0), text('TY', 0)], colour: 330, tooltip: tr('js.blockly_blocks.read_it_back_in_any_field', 'Read it back in any field with tile(layer, column, row).') }),
       stmt({ type: 'prg32_playfield_scroll', message0: tr('js.blockly_blocks.scroll_playfield_layer_1_to_x', 'scroll playfield layer %1 to x %2 y %3'), args0: [text('LAYER', 0), text('X', 0), text('Y', 0)], colour: 330, tooltip: tr('js.blockly_blocks.pixel_scroll_position_of_one_layer', 'Pixel scroll position of one layer.') }),
       stmt({ type: 'prg32_playfield_camera', message0: tr('js.blockly_blocks.move_playfield_camera_to_x_1', 'move playfield camera to x %1 y %2'), args0: [text('X', 0), text('Y', 0)], colour: 330, tooltip: tr('js.blockly_blocks.camera_position_shared_by_both_layers', 'Camera position shared by both layers.') }),
-      stmt({ type: 'prg32_playfield_draw', message0: tr('js.blockly_blocks.draw_playfield_layer_1_2', 'draw playfield layer %1 %2'), args0: [text('LAYER', 0), { type: 'field_dropdown', name: 'TRANSPARENT', options: [['opaque', 'OPAQUE'], ['tile 0 see-through', 'TRANSPARENT']] }], colour: 330, tooltip: tr('js.blockly_blocks.draw_the_visible_40_x_25', 'Draw the visible 40 x 25 tiles of a playfield layer.') }),
+      stmt({ type: 'prg32_playfield_draw', message0: tr('js.blockly_blocks.draw_playfield_layer_1_2', 'draw playfield layer %1 %2'), args0: [text('LAYER', 0), { type: 'field_dropdown', name: 'TRANSPARENT', options: [[tr('js.blockly_blocks.opaque', 'opaque'), 'OPAQUE'], [tr('js.blockly_blocks.tile_0_see_through', 'tile 0 see-through'), 'TRANSPARENT']] }], colour: 330, tooltip: tr('js.blockly_blocks.draw_the_visible_40_x_25', 'Draw the visible 40 x 25 tiles of a playfield layer.') }),
 
       // Palette
       stmt({ type: 'prg32_palette_set', message0: tr('js.blockly_blocks.palette_index_1_color_2', 'palette index %1 color %2'), args0: [text('INDEX', 1), color('COLOR')], colour: 180, tooltip: tr('js.blockly_blocks.assign_an_rgb565_colour_to_a', 'Assign an RGB565 colour to a palette entry.') }),
@@ -123,36 +123,51 @@ window.PRG32Blocks = (function () {
     defineAudioStudioBlocks();
   }
 
-  // The names of this project's AudioStudio sound effects and soundtracks (the editor sets them).
-  let audioNames = { effects: [], soundtracks: [] };
+  // The names of this project's AudioStudio sound effects and soundtracks, Sprite Lab sprites and
+  // backgrounds (the editor sets them).
+  const projectNames = { effects: [], soundtracks: [], sprites: [], backgrounds: [] };
 
   function setAudioNames(names) {
-    audioNames = { effects: (names && names.effects) || [], soundtracks: (names && names.soundtracks) || [] };
+    projectNames.effects = (names && names.effects) || [];
+    projectNames.soundtracks = (names && names.soundtracks) || [];
   }
 
-  // A dropdown of AudioStudio names that keeps a saved name even when it is not (or not yet)
-  // in the list, so loading a project never changes what a block plays.
-  function audioNameField(kind) {
-    class AudioNameField extends Blockly.FieldDropdown {
+  // docs/project_art.md: the sprite and background blocks name a picture of this project.
+  function setArtNames(names) {
+    projectNames.sprites = (names && names.sprites) || [];
+    projectNames.backgrounds = (names && names.backgrounds) || [];
+  }
+
+  const EMPTY_NAMES = {
+    effects: () => tr('js.blockly_blocks.make_one_in_audiostudio', '(make one in AudioStudio)'),
+    soundtracks: () => tr('js.blockly_blocks.make_one_in_audiostudio', '(make one in AudioStudio)'),
+    sprites: () => tr('js.blockly_blocks.draw_one_in_sprite_lab', '(draw one in Sprite Lab)'),
+    backgrounds: () => tr('js.blockly_blocks.make_one_in_backgrounds', '(make one in Backgrounds)'),
+  };
+
+  // A dropdown of the project's names that keeps a saved name even when it is not (or not yet)
+  // in the list, so loading a project never changes what a block plays or draws.
+  function projectNameField(kind) {
+    class ProjectNameField extends Blockly.FieldDropdown {
       constructor() {
         super(function () {
-          const names = audioNames[kind].slice();
+          const names = projectNames[kind].slice();
           const current = this.getValue ? this.getValue() : '';
           if (current && !names.includes(current)) names.push(current);
-          return names.length ? names.map(name => [name, name]) : [[tr('js.blockly_blocks.make_one_in_audiostudio', '(make one in AudioStudio)'), '']];
+          return names.length ? names.map(name => [name, name]) : [[EMPTY_NAMES[kind](), '']];
         });
       }
       doClassValidation_(value) { return typeof value === 'string' ? value : null; }
-      getText_() { return this.getValue() || tr('js.blockly_blocks.make_one_in_audiostudio', '(make one in AudioStudio)'); }
+      getText_() { return this.getValue() || EMPTY_NAMES[kind](); }
     }
-    return new AudioNameField();
+    return new ProjectNameField();
   }
 
   function defineAudioStudioBlocks() {
     if (Blockly.Blocks.prg32_sound_effect) return;
     Blockly.Blocks.prg32_sound_effect = {
       init() {
-        this.appendDummyInput().appendField(tr('js.blockly_blocks.play_sound_effect', 'play sound effect')).appendField(audioNameField('effects'), 'EFFECT');
+        this.appendDummyInput().appendField(tr('js.blockly_blocks.play_sound_effect', 'play sound effect')).appendField(projectNameField('effects'), 'EFFECT');
         this.setPreviousStatement(true);
         this.setNextStatement(true);
         this.setColour(300);
@@ -161,49 +176,81 @@ window.PRG32Blocks = (function () {
     };
     Blockly.Blocks.prg32_soundtrack_play = {
       init() {
-        this.appendDummyInput().appendField(tr('js.blockly_blocks.play_soundtrack', 'play soundtrack')).appendField(audioNameField('soundtracks'), 'TRACK');
+        this.appendDummyInput().appendField(tr('js.blockly_blocks.play_soundtrack', 'play soundtrack')).appendField(projectNameField('soundtracks'), 'TRACK');
         this.setPreviousStatement(true);
         this.setNextStatement(true);
         this.setColour(300);
         this.setTooltip(tr('js.blockly_blocks.a_soundtrack_made_in_audiostudio_voice', 'A soundtrack made in AudioStudio: voice N plays instrument N.'));
       }
     };
+    // Sprite Lab and Backgrounds (docs/project_art.md): pictures made for this project.
+    Blockly.Blocks.prg32_draw_project_sprite = {
+      init() {
+        this.appendDummyInput().appendField(tr('js.blockly_blocks.draw_sprite', 'draw sprite')).appendField(projectNameField('sprites'), 'SPRITE')
+          .appendField('x').appendField(new Blockly.FieldTextInput('10'), 'X')
+          .appendField('y').appendField(new Blockly.FieldTextInput('20'), 'Y');
+        this.setPreviousStatement(true);
+        this.setNextStatement(true);
+        this.setColour(330);
+        this.setTooltip(tr('js.blockly_blocks.a_sprite_drawn_in_sprite_lab', 'A sprite drawn in Sprite Lab, with its top-left corner at x, y. See-through pixels are not drawn.'));
+      }
+    };
+    Blockly.Blocks.prg32_background_load = {
+      init() {
+        this.appendDummyInput().appendField(tr('js.blockly_blocks.load_background', 'load background')).appendField(projectNameField('backgrounds'), 'BACKGROUND');
+        this.setPreviousStatement(true);
+        this.setNextStatement(true);
+        this.setColour(330);
+        this.setTooltip(tr('js.blockly_blocks.load_background_tooltip', 'Defines the tiles of a background made in Backgrounds and puts its map in the playfield. Use it once, when the game starts.'));
+      }
+    };
+    Blockly.Blocks.prg32_background_draw = {
+      init() {
+        this.appendDummyInput().appendField(tr('js.blockly_blocks.draw_background', 'draw background')).appendField(projectNameField('backgrounds'), 'BACKGROUND');
+        this.setPreviousStatement(true);
+        this.setNextStatement(true);
+        this.setColour(330);
+        this.setTooltip(tr('js.blockly_blocks.draw_background_tooltip', 'Draws the background\'s playfield: layer 0, then layer 1 in front of it.'));
+      }
+    };
   }
 
+  // Text put into the toolbox XML (category names, hints): escaped for an XML attribute.
+  const xml = value => String(value).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
   const toolbox = `
   <xml xmlns="https://developers.google.com/blockly/xml">
-    <category name="Game" colour="40">
+    <category name="${xml(tr('js.blockly_blocks.category_game', 'Game'))}" colour="40">
       <block type="prg32_on_start"></block>
       <block type="prg32_update"></block>
       <block type="prg32_draw"></block>
       <block type="prg32_comment"></block>
       <block type="prg32_splash"></block>
     </category>
-    <category name="Variables" colour="260">
-      <label text="Fields accept: 3, x + 1, abs(x), min(a, b), sin(angle), random(1, 6), frame()"></label>
+    <category name="${xml(tr('js.blockly_blocks.category_variables', 'Variables'))}" colour="260">
+      <label text="${xml(tr('js.blockly_blocks.label_fields_accept_3_x_1_abs', 'Fields accept: 3, x + 1, abs(x), min(a, b), sin(angle), random(1, 6), frame()'))}"></label>
       <block type="prg32_set_state"></block>
       <block type="prg32_change_state"></block>
       <block type="prg32_clamp_state"></block>
       <block type="prg32_wrap_state"></block>
       <block type="prg32_random_state"></block>
     </category>
-    <category name="Lists" colour="290">
-      <label text="Read an item with name[position]; the first position is 0"></label>
+    <category name="${xml(tr('js.blockly_blocks.category_lists', 'Lists'))}" colour="290">
+      <label text="${xml(tr('js.blockly_blocks.label_read_an_item_with_name_position', 'Read an item with name[position]; the first position is 0'))}"></label>
       <block type="prg32_list_create"></block>
       <block type="prg32_list_set"></block>
       <block type="prg32_list_change"></block>
     </category>
-    <category name="Logic" colour="15">
+    <category name="${xml(tr('js.blockly_blocks.category_logic', 'Logic'))}" colour="15">
       <block type="prg32_if"></block>
       <block type="prg32_if_else"></block>
       <block type="prg32_repeat"></block>
       <block type="prg32_if_touching"></block>
     </category>
-    <category name="Input" colour="20">
+    <category name="${xml(tr('js.blockly_blocks.category_input', 'Input'))}" colour="20">
       <block type="prg32_if_button"></block>
       <block type="prg32_if_button_once"></block>
     </category>
-    <category name="Drawing" colour="160">
+    <category name="${xml(tr('js.blockly_blocks.category_drawing', 'Drawing'))}" colour="160">
       <block type="prg32_clear_screen"></block>
       <block type="prg32_draw_rect"></block>
       <block type="prg32_draw_frame"></block>
@@ -215,7 +262,10 @@ window.PRG32Blocks = (function () {
       <block type="prg32_draw_number"></block>
       <block type="prg32_draw_bitmap"></block>
     </category>
-    <category name="Sprites &amp; Tiles" colour="330">
+    <category name="${xml(tr('js.blockly_blocks.category_sprites_tiles', 'Sprites & Tiles'))}" colour="330">
+      <block type="prg32_draw_project_sprite"></block>
+      <block type="prg32_background_load"></block>
+      <block type="prg32_background_draw"></block>
       <block type="prg32_draw_sprite8"></block>
       <block type="prg32_tile_define"></block>
       <block type="prg32_playfield_clear"></block>
@@ -224,13 +274,13 @@ window.PRG32Blocks = (function () {
       <block type="prg32_playfield_camera"></block>
       <block type="prg32_playfield_draw"></block>
     </category>
-    <category name="Palette" colour="180">
+    <category name="${xml(tr('js.blockly_blocks.category_palette', 'Palette'))}" colour="180">
       <block type="prg32_palette_set"></block>
       <block type="prg32_clear_indexed"></block>
       <block type="prg32_draw_rect_indexed"></block>
       <block type="prg32_draw_pixel_indexed"></block>
     </category>
-    <category name="Sound" colour="300">
+    <category name="${xml(tr('js.blockly_blocks.category_sound', 'Sound'))}" colour="300">
       <block type="prg32_play_beep"></block>
       <block type="prg32_audio_note"></block>
       <block type="prg32_audio_stop"></block>
@@ -240,14 +290,14 @@ window.PRG32Blocks = (function () {
       <block type="prg32_soundtrack_stop"></block>
       <block type="prg32_sound_stop_all"></block>
     </category>
-    <category name="Scores &amp; Status" colour="60">
+    <category name="${xml(tr('js.blockly_blocks.category_scores_status', 'Scores & Status'))}" colour="60">
       <block type="prg32_band_text"></block>
       <block type="prg32_score_submit"></block>
       <block type="prg32_scoreboard_show"></block>
       <block type="prg32_player_name"></block>
     </category>
-    <category name="Multiplayer" colour="230">
-      <label text="Other players: peers(), peer_x(i), peer_y(i), peer_look(i)"></label>
+    <category name="${xml(tr('js.blockly_blocks.category_multiplayer', 'Multiplayer'))}" colour="230">
+      <label text="${xml(tr('js.blockly_blocks.label_other_players_peers_peer_x_i', 'Other players: peers(), peer_x(i), peer_y(i), peer_look(i)'))}"></label>
       <block type="prg32_mp_join"></block>
       <block type="prg32_mp_share"></block>
     </category>
@@ -283,5 +333,5 @@ window.PRG32Blocks = (function () {
 
   function getWorkspace() { return workspace; }
 
-  return { init, save, load, getWorkspace, defineBlocks, setAudioNames };
+  return { init, save, load, getWorkspace, defineBlocks, setAudioNames, setArtNames };
 })();

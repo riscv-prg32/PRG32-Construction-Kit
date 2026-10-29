@@ -8,6 +8,8 @@
   <meta name="prg32-user" content="{{ current_user.id if current_user.authenticated else '' }}">
   {# "1": no account, so projects, sprites and sounds are kept in this browser (guest_api.js, ADR-0023). #}
   <meta name="prg32-guest" content="{{ '1' if guest_workspace else '' }}">
+  {# Monaco's own menus in the reader's language (static/js/ide/monaco_setup.js). #}
+  <meta name="prg32-monaco-pack" content="{{ monaco_pack or '' }}">
   {# Read once by static/js/csp_nonce.js; the same nonce is in this page's CSP header. #}
   <meta name="csp-nonce" content="{{ csp_nonce }}">
   <script src="{{ url_for('static', filename='js/csp_nonce.js') }}"></script>
@@ -25,10 +27,15 @@
   <link href="{{ url_for('static', filename='css/app.css') }}" rel="stylesheet">
   {# The skin chosen on the Settings page: it only changes the --kit-* colours of app.css. #}
   <link href="{{ url_for('static', filename=site.skin_css) }}" rel="stylesheet">
+  {% if locale == 'zh-Hans' %}
+  {# Chinese characters on computers without a CJK font (ADR-0027): Noto Sans SC from the kit itself,
+     fetched piece by piece only for the characters a page shows. #}
+  <link href="{{ url_for('static', filename='vendor/@fontsource/noto-sans-sc/5.3.1/400.css') }}" rel="stylesheet">
+  {% endif %}
   {% block head %}{% endblock %}
 </head>
 <body class="{% block body_class %}{% endblock %}" data-admin="{{ '1' if current_user and current_user.is_admin else '0' }}">
-<nav class="navbar navbar-expand-xl navbar-dark kit-navbar sticky-top shadow-sm">
+<nav class="navbar navbar-expand-xxl navbar-dark kit-navbar sticky-top shadow-sm">
   <div class="container-fluid">
     {# The official PRG32 logo and the kit's name. The top menu works on the open project
        (nav_project: the IDE and /player?project=<id>); then the logo closes the project and goes
@@ -50,13 +57,12 @@
         <li class="nav-item"><a class="nav-link" href="{{ ide_url }}" data-ide-tool="editor"><i class="bi bi-pencil-square"></i> {{ t("base.editor") }}</a></li>
         <li class="nav-item"><a class="nav-link" href="{{ ide_url }}#sprites" data-ide-tool="sprites"><i class="bi bi-brush"></i> Sprite Lab</a></li>
         <li class="nav-item"><a class="nav-link" href="{{ ide_url }}#sound" data-ide-tool="sound"><i class="bi bi-music-note-beamed"></i> AudioStudio</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ ide_url }}#backgrounds" data-ide-tool="backgrounds"><i class="bi bi-grid-3x3"></i> {{ t("backgrounds.backgrounds") }}</a></li>
         {% else %}
         <li class="nav-item"><a class="nav-link" href="/"><i class="bi bi-grid-3x3-gap"></i> {{ t("common.projects") }}</a></li>
         <li class="nav-item"><a class="nav-link" href="/sprites"><i class="bi bi-brush"></i> Sprite Lab</a></li>
         <li class="nav-item"><a class="nav-link" href="/audio-studio"><i class="bi bi-music-note-beamed"></i> AudioStudio</a></li>
-        {% endif %}
-        {% if current_user.authenticated %}
-        <li class="nav-item"><a class="nav-link" href="/artifacts"><i class="bi bi-box-seam"></i> {{ t("common.artifacts") }}</a></li>
+        <li class="nav-item"><a class="nav-link" href="/backgrounds"><i class="bi bi-grid-3x3"></i> {{ t("backgrounds.backgrounds") }}</a></li>
         {% endif %}
         {% if nav_project %}
         {# Debug: the Player page with its debugger, on this project's newest compiled cartridge (player.js). #}
@@ -65,26 +71,39 @@
         <li class="nav-item"><a class="nav-link" href="/player"><i class="bi bi-bug"></i> {{ t("ide.debug") }}</a></li>
         {% endif %}
         {% if current_user.authenticated %}
+        {# Deploy: this project's compiled cartridge onto a console, PRG32-QT or QEMU (deploy.js, ADR-0028). #}
+        <li class="nav-item"><a class="nav-link" href="/deploy{{ '?project=' ~ (nav_project.id | urlencode) if nav_project else '' }}"{% if nav_project %} data-ide-tool="deploy"{% endif %}><i class="bi bi-cpu"></i> {{ t("deploy.deploy") }}</a></li>
         <li class="nav-item"><a class="nav-link" href="/publish"><i class="bi bi-cloud-upload"></i> {{ t("common.publish") }}</a></li>
         {% endif %}
-        {% if current_user.authenticated %}
-        <li class="nav-item"><a class="nav-link" href="/classes"><i class="bi bi-mortarboard"></i> {{ t("common.classes") }}</a></li>
-        {% endif %}
-        <li class="nav-item"><a class="nav-link" href="/documentation"><i class="bi bi-book"></i> {{ t("base.docs") }}</a></li>
+        {# Tools: small helpers that work in the browser, for every reader (color_picker.js). #}
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="toolsMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-tools"></i> {{ t("tools.tools") }}</a>
+          <ul class="dropdown-menu" aria-labelledby="toolsMenu">
+            {% if current_user.authenticated %}
+            {# Evaluate: the PRG32 performance protocol on a target, raw data and charts (evaluate.js, EVAL-01). #}
+            <li><a class="dropdown-item" href="/evaluate{{ '?project=' ~ (nav_project.id | urlencode) if nav_project else '' }}"{% if nav_project %} data-ide-tool="evaluate"{% endif %}><i class="bi bi-speedometer2"></i> {{ t("evaluate.evaluate") }}</a></li>
+            {% endif %}
+            <li><a class="dropdown-item" href="/tools/color"><i class="bi bi-eyedropper"></i> {{ t("tools.color_picker") }}</a></li>
+          </ul>
+        </li>
+        {# Docs (and Admin below): on the wide bar only the icon shows; the word stays for screen readers and as a tooltip. #}
+        <li class="nav-item"><a class="nav-link nav-icon-only" href="/documentation" title="{{ t('base.docs') }}"><i class="bi bi-book" aria-hidden="true"></i> <span class="nav-icon-label">{{ t("base.docs") }}</span></a></li>
         {% if current_user.is_admin %}
         <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" id="adminMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-shield-check"></i> {{ t("base.admin") }}</a>
+          <a class="nav-link dropdown-toggle nav-icon-only" href="#" id="adminMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false" title="{{ t('base.admin') }}"><i class="bi bi-shield-check" aria-hidden="true"></i> <span class="nav-icon-label">{{ t("base.admin") }}</span></a>
           <ul class="dropdown-menu" aria-labelledby="adminMenu">
             <li><a class="dropdown-item" href="/admin/settings"><i class="bi bi-gear"></i> {{ t("common.settings") }}</a></li>
             <li><a class="dropdown-item" href="/admin/users"><i class="bi bi-people"></i> {{ t("common.users") }}</a></li>
             <li><a class="dropdown-item" href="/admin/identity"><i class="bi bi-mortarboard"></i> {{ t("base.school_sign_in") }}</a></li>
+            <li><a class="dropdown-item" href="/admin/activity"><i class="bi bi-activity"></i> {{ t("base.activity") }}</a></li>
+            <li><a class="dropdown-item" href="/admin/statistics"><i class="bi bi-bar-chart"></i> {{ t("base.statistics") }}</a></li>
           </ul>
         </li>
         {% endif %}
       </ul>
       {# The interface language: a choice of this reader, kept in the prg32_locale cookie (i18n.js).
          Day or Night colours: this reader's choice too, kept in this browser (theme.js, app.js). #}
-      <div class="d-flex align-items-center gap-2 ms-xl-auto me-xl-2 mb-2 mb-xl-0">
+      <div class="d-flex align-items-center gap-2 ms-xxl-auto me-xxl-2 mb-2 mb-xxl-0">
         <button type="button" class="btn btn-outline-light btn-sm" id="schemeSwitch" aria-pressed="false"
                 title="{{ t('base.night_dark_colours') }}">
           <i class="bi bi-moon-stars" aria-hidden="true"></i><span class="visually-hidden">{{ t("base.night_colours") }}</span>
@@ -100,12 +119,15 @@
         {% if sso_enabled %}
         <a class="btn btn-outline-light btn-sm text-nowrap" href="/auth/sso/peer" title="{{ t('base.open_the_cartridge_store_already_signed') }}"><i class="bi bi-shop"></i> Cartridge Store</a>
         {% endif %}
-        {# The account menu: My account and Sign out, so the menu bar stays one line. #}
+        {# The account menu: the reader's own things (account, artifacts, classes, data) and Sign out,
+           so the menu bar keeps to the tools and stays one line. #}
         <div class="dropdown">
           <button class="btn btn-outline-light btn-sm dropdown-toggle text-nowrap" type="button" id="accountMenu" data-bs-toggle="dropdown" aria-expanded="false">
             <i class="bi bi-person-circle" aria-hidden="true"></i> {{ current_user.username }}</button>
           <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="accountMenu">
             <li><a class="dropdown-item" href="/account"><i class="bi bi-person-gear"></i> {{ t("common.my_account") }}</a></li>
+            <li><a class="dropdown-item" href="/artifacts"><i class="bi bi-box-seam"></i> {{ t("common.artifacts") }}</a></li>
+            <li><a class="dropdown-item" href="/classes"><i class="bi bi-mortarboard"></i> {{ t("common.classes") }}</a></li>
             <li><a class="dropdown-item" href="/privacy"><i class="bi bi-shield-lock"></i> {{ t("base.privacy_your_data") }}</a></li>
             <li><hr class="dropdown-divider"></li>
             <li><form method="post" action="/auth/logout" class="m-0"><button class="dropdown-item" type="submit"><i class="bi bi-box-arrow-right"></i> {{ t("base.sign_out") }}</button></form></li>
@@ -154,10 +176,7 @@
 
 {# The interface language (ADR-0027): English always (the fallback), then the reader's own. #}
 <script src="{{ url_for('static', filename='i18n/en.js') }}"></script>
-{% if locale == 'it' %}<script src="{{ url_for('static', filename='i18n/it.js') }}"></script>
-{% elif locale == 'es' %}<script src="{{ url_for('static', filename='i18n/es.js') }}"></script>
-{% elif locale == 'fr' %}<script src="{{ url_for('static', filename='i18n/fr.js') }}"></script>
-{% elif locale == 'de' %}<script src="{{ url_for('static', filename='i18n/de.js') }}"></script>{% endif %}
+{% if locale != 'en' %}<script src="{{ url_for('static', filename='i18n/' ~ locale ~ '.js') }}"></script>{% endif %}
 <script src="{{ url_for('static', filename='js/i18n.js') }}"></script>
 <script src="{{ url_for('static', filename='vendor/jquery/3.7.1/jquery.min.js') }}"></script>
 <script src="{{ url_for('static', filename='vendor/bootstrap/5.3.3/js/bootstrap.bundle.min.js') }}"></script>

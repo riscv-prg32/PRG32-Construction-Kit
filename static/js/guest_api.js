@@ -40,7 +40,11 @@ window.PRG32GuestApi = (function () {
     return fetch(path, options).then(async response => {
       const binary = (response.headers.get('content-type') || '').includes('application/octet-stream');
       const data = binary && response.ok ? await response.arrayBuffer() : await response.json().catch(() => ({}));
-      if (!response.ok) return fail((data && data.error) || response.statusText, response.status, data && data.code, data);
+      if (!response.ok) {
+        const english = (data && data.error) || response.statusText;
+        // A message the server wrote with its catalog key is shown in the reader's language.
+        return fail(data && data.message_key ? Kit.serverMessage(data, english) : english, response.status, data && data.code, data);
+      }
       return data;
     });
   }
@@ -103,11 +107,26 @@ window.PRG32GuestApi = (function () {
   function duplicate(id, body) {
     return store.get(id).then(row => {
       if (!row) return notFound();
-      const copy = Object.assign(pick(row, PROJECT_FIELDS), { audio: row.audio, title: (body && body.title) || row.title + ' (copy)' });
+      const copy = Object.assign(pick(row, PROJECT_FIELDS), { audio: row.audio, backgrounds: row.backgrounds || [],
+        title: (body && body.title) || row.title + ' (copy)' });
       return store.save(copy).then(created => store.listSprites(id)
         .then(sprites => Promise.all(sprites.map(sprite => store.saveSprite(Object.assign({}, sprite, { id: undefined, project_id: created.id })))))
         .then(() => project(created)));
     });
+  }
+
+  // The game's art (docs/project_art.md): its sprites and backgrounds, sent with every request
+  // that turns the game into code, so sprite and background blocks find their pictures.
+  function withArt(row, body) {
+    return store.listSprites(row.id).then(sprites => Object.assign(body, {
+      sprites: sprites.map(sprite => pick(sprite, ['id', 'name', 'width', 'height', 'pixels', 'palette'])),
+      backgrounds: (row.backgrounds || []).map(item => pick(item, ['id', 'name', 'data'])),
+    }));
+  }
+
+  function art(id) {
+    return store.get(id).then(row => row ? withArt(row, { title: row.title, audio_studio: row.audio ? row.audio.document : null })
+      .then(body => server('/api/guest/art', body)) : notFound());
   }
 
   // One way: the server writes the Blocks game as code (and keeps nothing); it is stored here.
@@ -116,8 +135,9 @@ window.PRG32GuestApi = (function () {
       if (!row) return notFound();
       if (projectType(row.game_json) !== 'blocks') return typeLocked(row);
       const language = body && body.language;
-      return server('/api/guest/convert_to', { project: pick(row, ['title', 'blocks_json']), language,
+      return withArt(row, { project: pick(row, ['title', 'blocks_json']), language,
         audio_studio: row.audio ? row.audio.document : null })
+        .then(request => server('/api/guest/convert_to', request))
         .then(answer => store.save({ id, game_json: answer.game_json })).then(project);
     });
   }
@@ -125,11 +145,11 @@ window.PRG32GuestApi = (function () {
   function convert(id, body) {
     return store.get(id).then(row => {
       if (!row) return notFound();
-      return server('/api/guest/convert', {
+      return withArt(row, {
         project: pick(row, ['title', 'blocks_json', 'game_json']),
         audio_studio: row.audio ? row.audio.document : null,
         source_language: (body && body.source_language) || 'c',
-      }).then(result => {
+      }).then(request => server('/api/guest/convert', request)).then(result => {
         const kept = { id: 'in this browser', name: tr('js.guest_api.not_saved_on_the_server', 'not saved on the server') };
         return Object.assign({ project: project(row), artifact: kept, artifacts: [kept], asm_artifact: kept }, result);
       });
@@ -138,10 +158,10 @@ window.PRG32GuestApi = (function () {
 
   // Run: the server builds the game for the simulator and keeps nothing (/api/guest/run).
   function runGame(id) {
-    return store.get(id).then(row => row ? server('/api/guest/run', {
+    return store.get(id).then(row => row ? withArt(row, {
       project: pick(row, ['title', 'blocks_json', 'game_json']),
       audio_studio: row.audio ? row.audio.document : null,
-    }).then(answer => {
+    }).then(request => server('/api/guest/run', request)).then(answer => {
       if (answer.debug && answer.debug.cartridge) answer.debug.cartridge.project_id = id;   // breakpoints per game
       return answer;
     }) : notFound());
@@ -156,9 +176,18 @@ window.PRG32GuestApi = (function () {
     return file.text().then(text => store.save(store.importText(text))).then(project);
   }
 
+  // An example comes with its art and sound (sprites, backgrounds, an AudioStudio document).
   function importExample(slug) {
-    return server('/api/guest/examples/' + encodeURIComponent(slug))
-      .then(data => store.save(pick(data.project, PROJECT_FIELDS))).then(project);
+    return server('/api/guest/examples/' + encodeURIComponent(slug)).then(data => {
+      const now = new Date().toISOString();
+      const backgrounds = (data.assets || []).filter(item => item.kind === 'background').map(item => ({
+        id: 'guest-bg-' + Math.random().toString(36).slice(2, 10), name: item.name, data: item.data, version: 1,
+        created_at: now, updated_at: now }));
+      const row = Object.assign(pick(data.project, PROJECT_FIELDS), { backgrounds },
+        data.audio_studio ? { audio: { document: data.audio_studio, version: 1 } } : {});
+      return store.save(row).then(created => Promise.all((data.sprites || []).map(sprite =>
+        store.saveSprite(Object.assign(pick(sprite, SPRITE_FIELDS), { project_id: created.id })))).then(() => created));
+    }).then(project);
   }
 
   // --- sound (AudioStudio) -------------------------------------------------------------------
@@ -203,7 +232,7 @@ window.PRG32GuestApi = (function () {
 
   // --- sprites (Sprite Lab) ------------------------------------------------------------------
 
-  const SPRITE_FIELDS = ['project_id', 'name', 'width', 'height', 'pixels', 'data_url'];
+  const SPRITE_FIELDS = ['project_id', 'name', 'width', 'height', 'pixels', 'data_url', 'palette'];
 
   function listSprites(query) {
     const projectId = query.get('project_id');
@@ -217,6 +246,49 @@ window.PRG32GuestApi = (function () {
   function convertSprite(id) {
     return store.getSprite(id).then(sprite => sprite ? server('/api/guest/sprites/convert', { sprite })
       .then(result => Object.assign({ sprite, artifact: null }, result)) : notFound());
+  }
+
+  // --- backgrounds (Backgrounds tab): kept in their guest project's "backgrounds" -----------------
+  function allBackgrounds() {
+    return store.list().then(rows => rows.flatMap(row => (row.backgrounds || []).map(item => ({ row, item }))));
+  }
+  function backgroundOut(row, item) {
+    return Object.assign({ kind: 'background', content_type: 'application/json', project_id: row.id, owner_id: null }, item);
+  }
+  function listBackgrounds(q) {
+    const projectId = q.get('project_id');
+    return allBackgrounds().then(found => ({ assets: found.filter(({ row }) => !projectId || row.id === projectId)
+      .map(({ row, item }) => backgroundOut(row, item)) }));
+  }
+  function findBackground(id) {
+    return allBackgrounds().then(found => found.find(({ item }) => item.id === id) || null);
+  }
+  function saveBackground(id, body) {
+    const now = new Date().toISOString();
+    const write = (row, item) => {
+      const backgrounds = (row.backgrounds || []).filter(other => other.id !== item.id).concat([item]);
+      return store.save(Object.assign({}, row, { backgrounds })).then(() => backgroundOut(row, item));
+    };
+    if (!id) {
+      return store.get(body.project_id).then(row => row ? write(row, { id: 'guest-bg-' + Math.random().toString(36).slice(2, 10),
+        name: String(body.name || 'level').slice(0, 64), data: body.data, version: 1, created_at: now, updated_at: now }) : notFound());
+    }
+    return findBackground(id).then(found => {
+      if (!found) return notFound();
+      if (body.expected_version !== undefined && body.expected_version !== found.item.version) {
+        return fail(tr('js.guest_api.saved_elsewhere', 'saved elsewhere'), 409, 'version_conflict');
+      }
+      return write(found.row, Object.assign({}, found.item, { name: String(body.name || found.item.name).slice(0, 64),
+        data: body.data, version: found.item.version + 1, updated_at: now }));
+    });
+  }
+  function deleteBackground(id) {
+    return findBackground(id).then(found => found ? store.save(Object.assign({}, found.row, {
+      backgrounds: found.row.backgrounds.filter(item => item.id !== id) })).then(() => ({ deleted: true })) : notFound());
+  }
+  function convertBackground(id) {
+    return findBackground(id).then(found => found ? server('/api/guest/backgrounds/convert', { background: found.item })
+      .then(result => Object.assign({ artifact: null }, result)) : notFound());
   }
 
   // --- the route table -------------------------------------------------------------------------
@@ -235,6 +307,7 @@ window.PRG32GuestApi = (function () {
     ['POST', new RegExp('^/api/projects/' + ID + '/check$'), () => Promise.resolve({ available: false, guest: true })],
     ['POST', new RegExp('^/api/projects/' + ID + '/package$'), () => needsAccount(tr('js.guest_api.making_a_cartridge_to_download', 'Making a cartridge to download'))],
     ['POST', new RegExp('^/api/projects/' + ID + '/run$'), m => runGame(m[1])],
+    ['GET', new RegExp('^/api/projects/' + ID + '/art$'), m => art(m[1])],
     ['GET', new RegExp('^/api/projects/' + ID + '/revisions$'), () => Promise.resolve({ revisions: [] })],
     ['GET', new RegExp('^/api/projects/' + ID + '/audio$'), m => getAudio(m[1])],
     ['PUT', new RegExp('^/api/projects/' + ID + '/audio$'), (m, q, body) => putAudio(m[1], body || {})],
@@ -247,6 +320,13 @@ window.PRG32GuestApi = (function () {
     ['PUT', new RegExp('^/api/sprites/' + ID + '$'), (m, q, body) => saveSprite(m[1], body || {})],
     ['DELETE', new RegExp('^/api/sprites/' + ID + '$'), m => store.removeSprite(m[1]).then(() => ({ deleted: true }))],
     ['POST', new RegExp('^/api/sprites/' + ID + '/convert$'), m => convertSprite(m[1])],
+    ['GET', /^\/api\/assets$/, (m, q) => listBackgrounds(q)],
+    ['POST', /^\/api\/assets$/, (m, q, body) => (body || {}).kind === 'background' ? saveBackground(null, body)
+      : needsAccount(tr('js.guest_api.saving_files', 'Saving files'))],
+    ['GET', new RegExp('^/api/assets/' + ID + '$'), m => findBackground(m[1]).then(found => found ? backgroundOut(found.row, found.item) : notFound())],
+    ['PUT', new RegExp('^/api/assets/' + ID + '$'), (m, q, body) => saveBackground(m[1], body || {})],
+    ['DELETE', new RegExp('^/api/assets/' + ID + '$'), m => deleteBackground(m[1])],
+    ['POST', new RegExp('^/api/assets/' + ID + '/convert$'), m => convertBackground(m[1])],
     ['GET', /^\/api\/artifacts$/, () => Promise.resolve({ artifacts: [] })],
     ['GET', /^\/api\/builds$/, () => Promise.resolve({ builds: [] })],
     ['GET', /^\/api\/cloud$/, () => Promise.resolve({ providers: [] })],

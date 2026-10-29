@@ -65,6 +65,8 @@
 {% endblock %}
 {% block scripts %}
 <script src="{{ url_for('static', filename='vendor/blockly/11.2.1/blockly.min.js') }}"></script>
+{# Blockly's own menus in the reader's language (ADR-0027), before Monaco's AMD loader exists. #}
+{% if blockly_pack %}<script src="{{ url_for('static', filename='vendor/blockly/11.2.1/msg/' ~ blockly_pack ~ '.js') }}"></script>{% endif %}
 <script src="{{ url_for('static', filename='js/blockly_blocks.js') }}"></script>
 <script src="{{ url_for('static', filename='js/prg32_runtime.js') }}"></script>
 <script src="{{ url_for('static', filename='js/player.js') }}"></script>

@@ -42,6 +42,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 from . import security
 from .db import db, utcnow
 from . import settings as site_settings
+from .messages import body as message_body, fields as message_fields, text as say
 
 FLOW_SECONDS = 600          # a sign-in must come back within 10 minutes
 MAX_FLOWS = 5               # sign-ins started in parallel (several tabs) per browser
@@ -128,7 +129,7 @@ def resolve_secret(reference: str) -> str:
                 return handle.read().strip()
         except OSError:
             return ""
-    raise ValueError("client secret must be a reference: env:NAME or file:/path")
+    raise ValueError(say("identity", "client secret must be a reference: env:NAME or file:/path"))
 
 
 def check_endpoint(url: str) -> str:
@@ -143,7 +144,7 @@ def check_endpoint(url: str) -> str:
         except ValueError:
             if parts.hostname == "localhost":
                 return url
-    raise ValueError(f"identity provider addresses must use https: {url!r}")
+    raise ValueError(say("identity", "identity provider addresses must use https: {url}", url=repr(url)))
 
 
 def _environment_provider() -> Provider | None:
@@ -196,11 +197,11 @@ def _http(method: str, url: str, data: dict[str, str] | None = None,
                                 stream=True, headers={"Accept": "application/json"})
     body = response.raw.read(MAX_RESPONSE_BYTES + 1, decode_content=True)
     if len(body) > MAX_RESPONSE_BYTES:
-        raise OidcError("the identity provider sent too much data")
+        raise OidcError(say("identity", "the identity provider sent too much data"))
     try:
         return response.status_code, json.loads(body or b"null")
     except ValueError as error:
-        raise OidcError("the identity provider did not answer with JSON") from error
+        raise OidcError(say("identity", "the identity provider did not answer with JSON")) from error
 
 
 http: Callable[..., tuple[int, Any]] = _http
@@ -224,9 +225,9 @@ def discovery(item: Provider) -> dict[str, Any]:
         return cached[1]
     status, document = http("GET", item.issuer.rstrip("/") + "/.well-known/openid-configuration")
     if status != 200 or not isinstance(document, dict):
-        raise OidcError("the school's sign-in service could not be reached")
+        raise OidcError(say("identity", "the school's sign-in service could not be reached"))
     if document.get("issuer") != item.issuer:
-        raise OidcError("the school's sign-in service names a different issuer")
+        raise OidcError(say("identity", "the school's sign-in service names a different issuer"))
     for key in ("authorization_endpoint", "token_endpoint", "jwks_uri"):
         check_endpoint(document.get(key, ""))
     _discovery[item.issuer] = (now_seconds(), document)
@@ -243,7 +244,7 @@ def signing_keys(jwks_uri: str, refresh: bool = False) -> list[dict[str, Any]]:
     status, document = http("GET", jwks_uri)
     keys = document.get("keys") if status == 200 and isinstance(document, dict) else None
     if not isinstance(keys, list):
-        raise OidcError("the school's sign-in keys could not be read")
+        raise OidcError(say("identity", "the school's sign-in keys could not be read"))
     _keys[jwks_uri] = (now_seconds(), keys)
     return keys
 
@@ -268,7 +269,7 @@ def _public_key(jwk: dict[str, Any]):
     if jwk.get("kty") == "EC" and jwk.get("crv") == "P-256":
         return ec.EllipticCurvePublicNumbers(int.from_bytes(_b64(jwk["x"]), "big"),
                                              int.from_bytes(_b64(jwk["y"]), "big"), ec.SECP256R1()).public_key()
-    raise OidcError("the school's sign-in key has an unsupported type")
+    raise OidcError(say("identity", "the school's sign-in key has an unsupported type"))
 
 
 def _verify_signature(algorithm: str, jwk: dict[str, Any], signed: bytes, signature: bytes) -> None:
@@ -285,31 +286,31 @@ def _verify_signature(algorithm: str, jwk: dict[str, Any], signed: bytes, signat
                        hashes.SHA256())
         elif algorithm == "ES256":
             if len(signature) != 64:
-                raise OidcError("the sign-in token's signature is not valid")
+                raise OidcError(say("identity", "the sign-in token's signature is not valid"))
             der = utils.encode_dss_signature(int.from_bytes(signature[:32], "big"), int.from_bytes(signature[32:], "big"))
             key.verify(der, signed, ec.ECDSA(hashes.SHA256()))
         else:
-            raise OidcError("the sign-in token uses an algorithm the kit does not accept")
+            raise OidcError(say("identity", "the sign-in token uses an algorithm the kit does not accept"))
     except (InvalidSignature, TypeError, ValueError) as error:
-        raise OidcError("the sign-in token's signature is not valid") from error
+        raise OidcError(say("identity", "the sign-in token's signature is not valid")) from error
 
 
 def verify_id_token(token: str, item: Provider, jwks_uri: str, nonce: str, now: float | None = None) -> dict[str, Any]:
     """The verified claims of an ID token, or OidcError."""
     parts = str(token or "").split(".")
     if len(parts) != 3:
-        raise OidcError("the school did not send a valid sign-in token")
+        raise OidcError(say("identity", "the school did not send a valid sign-in token"))
     try:
         header = json.loads(_b64(parts[0]))
         claims = json.loads(_b64(parts[1]))
         signature = _b64(parts[2])
     except (ValueError, TypeError) as error:
-        raise OidcError("the school did not send a valid sign-in token") from error
+        raise OidcError(say("identity", "the school did not send a valid sign-in token")) from error
     if not isinstance(header, dict) or not isinstance(claims, dict):
-        raise OidcError("the school did not send a valid sign-in token")
+        raise OidcError(say("identity", "the school did not send a valid sign-in token"))
     algorithm = header.get("alg")
     if algorithm not in ALLOWED_ALGORITHMS:  # never "none", never a shared-secret (HMAC) algorithm
-        raise OidcError("the sign-in token uses an algorithm the kit does not accept")
+        raise OidcError(say("identity", "the sign-in token uses an algorithm the kit does not accept"))
     kid = header.get("kid")
 
     def matching(keys: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -319,25 +320,25 @@ def verify_id_token(token: str, item: Provider, jwks_uri: str, nonce: str, now: 
     if not candidates:
         candidates = matching(signing_keys(jwks_uri, refresh=True))  # the provider rotated its keys
     if not candidates:
-        raise OidcError("the sign-in token was signed with an unknown key")
+        raise OidcError(say("identity", "the sign-in token was signed with an unknown key"))
     _verify_signature(algorithm, candidates[0], (parts[0] + "." + parts[1]).encode("ascii"), signature)
     now = now_seconds() if now is None else now
     if claims.get("iss") != item.issuer:
-        raise OidcError("the sign-in token comes from another issuer")
+        raise OidcError(say("identity", "the sign-in token comes from another issuer"))
     audience = claims.get("aud")
     audiences = audience if isinstance(audience, list) else [audience]
     if item.client_id not in audiences:
-        raise OidcError("the sign-in token is meant for another application")
+        raise OidcError(say("identity", "the sign-in token is meant for another application"))
     if len(audiences) > 1 and claims.get("azp") != item.client_id:
-        raise OidcError("the sign-in token is meant for another application")
+        raise OidcError(say("identity", "the sign-in token is meant for another application"))
     if not isinstance(claims.get("exp"), (int, float)) or claims["exp"] < now - CLOCK_SKEW:
-        raise OidcError("the sign-in token has expired: sign in again")
+        raise OidcError(say("identity", "the sign-in token has expired: sign in again"))
     if isinstance(claims.get("iat"), (int, float)) and claims["iat"] > now + CLOCK_SKEW:
-        raise OidcError("the sign-in token is dated in the future")
+        raise OidcError(say("identity", "the sign-in token is dated in the future"))
     if not hmac.compare_digest(str(claims.get("nonce", "")), nonce):
-        raise OidcError("the sign-in token does not belong to this sign-in")
+        raise OidcError(say("identity", "the sign-in token does not belong to this sign-in"))
     if not isinstance(claims.get("sub"), str) or not claims["sub"]:
-        raise OidcError("the sign-in token has no subject")
+        raise OidcError(say("identity", "the sign-in token has no subject"))
     return claims
 
 
@@ -394,20 +395,19 @@ def complete_external_sign_in(*, provider_slug: str, issuer: str, subject: str, 
     if row is not None:
         user = db.session.get(User, row.user_id)
         if user is None or user.disabled_at:
-            raise SignInRefused("This account is switched off. Ask your teacher.", "account_disabled")
+            raise SignInRefused(say("identity", "This account is switched off. Ask your teacher."), "account_disabled")
         row.last_login = utcnow()
         if email:
             row.email = email
         db.session.commit()
         return user, False
     if not email:
-        raise SignInRefused("The school sign-in did not send an email address, so no account can be made.",
+        raise SignInRefused(say("identity", "The school sign-in did not send an email address, so no account can be made."),
                             "no_email")
     if allowed_domains and email.rsplit("@", 1)[-1] not in allowed_domains:
-        raise SignInRefused("This school sign-in is not for your email address.", "domain_not_allowed")
+        raise SignInRefused(say("identity", "This school sign-in is not for your email address."), "domain_not_allowed")
     if find_user_by_email(email) is not None:
-        raise SignInRefused("An account with this email already exists. Sign in to it the usual way, then link "
-                            "your school account on the Account page.", "email_in_use")
+        raise SignInRefused(say("identity", "An account with this email already exists. Sign in to it the usual way, then link your school account on the Account page."), "email_in_use")
     user = create_user(unique_username(username or email, email), email, None,
                        role=site_settings.get("DEFAULT_ROLE"))
     user.kit_role = kit_role if kit_role in ACADEMIC_ROLES else "student"
@@ -457,7 +457,7 @@ def _refuse(message: str, reason: str, slug: str, status: int = 401):
                     metadata={"reason": reason}, actor=None)
     if request.accept_mimetypes.best == "application/json":
         return jsonify({"error": message, "code": reason}), status
-    return render_template("auth_message.html", title="School sign-in did not work", message=message), status
+    return render_template("auth_message.html", title=say("identity", "School sign-in did not work"), message=message), status
 
 
 @bp.get("/auth/oidc/<slug>/login")
@@ -481,12 +481,12 @@ def link(slug: str):
 
     principal = current_principal()
     if principal.token_scopes is not None:
-        return jsonify({"error": "linking a school account needs a browser sign-in"}), 403
+        return jsonify({**message_body(say("identity", "linking a school account needs a browser sign-in"))}), 403
     item = provider(slug)
     if item is None:
         return _refuse("This school sign-in is not set up.", "unknown_provider", slug, 404)
     if not principal.authenticated:
-        return jsonify({"error": "Please sign in first"}), 401
+        return jsonify({**message_body(say("identity", "Please sign in first"))}), 401
     try:
         return jsonify({"redirect": _start(item, "link", principal.id)})
     except (OidcError, ValueError, requests.RequestException):
@@ -506,7 +506,7 @@ def _token_request(item: Provider, document: dict[str, Any], code: str, verifier
             data["client_secret"] = secret
     status, answer = http("POST", document["token_endpoint"], data=data, auth=auth)
     if status != 200 or not isinstance(answer, dict) or not answer.get("id_token"):
-        raise OidcError("the school's sign-in service did not accept the sign-in")
+        raise OidcError(say("identity", "the school's sign-in service did not accept the sign-in"))
     return answer
 
 
@@ -583,7 +583,7 @@ def list_identities():
 
     principal = current_principal()
     if not principal.authenticated:
-        return jsonify({"error": "Please sign in first"}), 401
+        return jsonify({**message_body(say("identity", "Please sign in first"))}), 401
     return jsonify({"identities": identities_of(principal.id),
                     "providers": [{"slug": item.slug, "name": item.name} for item in providers()]})
 
@@ -594,16 +594,16 @@ def unlink(identity_id: int):
 
     principal = current_principal()
     if not principal.authenticated:
-        return jsonify({"error": "Please sign in first"}), 401
+        return jsonify({**message_body(say("identity", "Please sign in first"))}), 401
     row = db.session.scalar(select(ExternalIdentity).where(ExternalIdentity.id == identity_id,
                                                            ExternalIdentity.user_id == principal.id))
     if row is None:
-        return jsonify({"error": "not found"}), 404
+        return jsonify({**message_body(say("identity", "not found"))}), 404
     user = db.session.get(User, principal.id)
     others = db.session.scalar(select(db.func.count()).select_from(ExternalIdentity)
                                .where(ExternalIdentity.user_id == principal.id, ExternalIdentity.id != identity_id))
     if not user.password_hash and not others:
-        return jsonify({"error": "This is your only way to sign in: set a password first."}), 400
+        return jsonify({**message_body(say("identity", "This is your only way to sign in: set a password first."))}), 400
     db.session.delete(row)
     db.session.commit()
     security.record("identity_unlink", target_type="user", target_id=principal.id,
@@ -618,15 +618,15 @@ def _validated(data: dict[str, Any], existing: IdentityProvider | None) -> dict[
     if existing is None:
         slug = str(data.get("slug") or "").strip().lower()
         if not SLUG_RE.fullmatch(slug):
-            raise ValueError("slug must be 2-32 lowercase letters, digits or dashes, starting with a letter")
+            raise ValueError(say("identity", "slug must be 2-32 lowercase letters, digits or dashes, starting with a letter"))
         if slug == "oidc" and _environment_provider() is not None:
-            raise ValueError("the slug oidc is used by the PRG32_OIDC_* provider")
+            raise ValueError(say("identity", "the slug oidc is used by the PRG32_OIDC_* provider"))
         out["slug"] = slug
     for key in ("name", "issuer", "client_id"):
         if key in data or existing is None:
             value = str(data.get(key) or "").strip()
             if not value:
-                raise ValueError(f"{key} is required")
+                raise ValueError(say("identity", "{key} is required", key=key))
             out[key] = value
     if "issuer" in out:
         check_endpoint(out["issuer"])
@@ -637,7 +637,7 @@ def _validated(data: dict[str, Any], existing: IdentityProvider | None) -> dict[
     if "scopes" in data:
         scopes = str(data.get("scopes") or "").split()
         if "openid" not in scopes:
-            raise ValueError("scopes must include openid")
+            raise ValueError(say("identity", "scopes must include openid"))
         out["scopes"] = " ".join(scopes)
     if "role_claim" in data:
         out["role_claim"] = str(data.get("role_claim") or "").strip()
@@ -665,14 +665,14 @@ def admin_providers():
     from .auth import current_principal
 
     if not current_principal().is_admin:
-        return jsonify({"error": "Only teachers with the admin role can do this"}), 403
+        return jsonify({**message_body(say("identity", "Only teachers with the admin role can do this"))}), 403
     if request.method == "GET":
         rows = {row.slug: row.enabled for row in db.session.scalars(select(IdentityProvider))}
         return jsonify({"providers": [{**item.public(), "enabled": bool(rows.get(item.slug, 1))}
                                       for item in providers(enabled_only=False)]})
     values = _validated(request.get_json(silent=True) or {}, None)
     if db.session.scalar(select(IdentityProvider.id).where(IdentityProvider.slug == values["slug"])):
-        raise ValueError("a provider with this slug already exists")
+        raise ValueError(say("identity", "a provider with this slug already exists"))
     row = IdentityProvider(**values)
     db.session.add(row)
     db.session.commit()
@@ -687,10 +687,10 @@ def admin_provider(slug: str):
     from .auth import current_principal
 
     if not current_principal().is_admin:
-        return jsonify({"error": "Only teachers with the admin role can do this"}), 403
+        return jsonify({**message_body(say("identity", "Only teachers with the admin role can do this"))}), 403
     row = db.session.scalar(select(IdentityProvider).where(IdentityProvider.slug == slug))
     if row is None:
-        return jsonify({"error": "provider not found (providers from PRG32_OIDC_* are changed there)"}), 404
+        return jsonify({**message_body(say("identity", "provider not found (providers from PRG32_OIDC_* are changed there)"))}), 404
     if request.method == "DELETE":
         db.session.delete(row)
         db.session.commit()
@@ -719,7 +719,7 @@ def admin_identity_page():
 
 @bp.errorhandler(ValueError)
 def bad_value(error: ValueError):
-    return jsonify({"error": str(error)}), 400
+    return jsonify({"error": str(error), **message_fields(error)}), 400
 
 
 def init_app(app) -> None:

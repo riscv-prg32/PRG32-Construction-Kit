@@ -339,6 +339,10 @@ class _Writer:
             return call("sound_effect", json.dumps(str(stmt.get("name", ""))))
         if op == "track_play":
             return call("soundtrack_play", json.dumps(str(stmt.get("name", ""))))
+        if op == "sprite_draw":
+            return call("sprite", json.dumps(str(stmt.get("name", ""))), i(stmt.get("x")), i(stmt.get("y")))
+        if op in ("background_load", "background_draw"):
+            return call(op, json.dumps(str(stmt.get("name", ""))))
         if op in ("track_stop", "sound_stop_all", "player_name", "mp_join"):
             return call({"track_stop": "soundtrack_stop"}.get(op, op))
         if op == "band":

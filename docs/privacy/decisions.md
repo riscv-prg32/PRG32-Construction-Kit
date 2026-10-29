@@ -20,6 +20,7 @@ a blocker is open fails.
 | D-8 | DPO or counsel review of this whole folder | needed before go-live | DPO | yes | open: no review yet | | [children_dpia_dpo.md](children_dpia_dpo.md) |
 | D-9 | Processors: hosting and email agreements (Art. 28 checklist) | EU/EEA hosting | controller | yes | open | | [processors_and_transfers.md](processors_and_transfers.md) |
 | D-10 | Breach contacts and the supervisory authority; a staffed exercise | fill in the playbook; a tabletop with the named people | controller | yes | open: a technical rehearsal only, 2026-10-21 | | [breach_playbook.md](breach_playbook.md) |
+| D-12 | AudioStudio can record a sample with the microphone (a student's voice): allow it for this school or switch it off | allowed for the student's own voice, kept as a sample of their project, never sent anywhere else; the page tells students to record only themselves or people who agreed | controller + DPO | no | open | | [ropa.md](ropa.md) |
 | D-11 | Store bearer tokens are stored in clear (S-1): accept the risk or require encryption | encrypt them, as cloud tokens are | controller + maintainers | no | closed: encrypted by the kit | 2026-10-21 | [security_article32.md](security_article32.md) |
 
 When a decision is made:

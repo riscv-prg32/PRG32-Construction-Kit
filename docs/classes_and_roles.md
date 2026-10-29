@@ -9,7 +9,7 @@ publish them: your work stays yours. Other students cannot see your projects.
 ## For teachers
 
 1. Ask the administrator to set your **role in class** to `teacher` (Users page).
-2. Open **Classes**, type a name (for example `3B`) and press **Make class**.
+2. Open the menu with your name (top right), choose **Classes**, type a name (for example `3B`) and press **Make class**.
 3. Add each student by username or email. Only accounts whose role in class is
    `student` can be added as students.
 4. **Students' projects** lists their projects. Open one to look at it; it is

@@ -42,6 +42,9 @@
     'endif', 'include', 'include_next', 'import', 'embed', 'line', 'pragma', 'error', 'warning', 'ident', 'sccs',
     'assert', 'unassert']);
   const ASM_FILE_WORDS = /incbin|include|__has_include|_Pragma/i;
+  // The one include an assembly game may write, exactly on a line of its own: the kit puts the
+  // project's art in its place (project_assets.py, docs/project_art.md). It reads no file.
+  const ASM_ASSETS_INCLUDE = /^[ \t]*(?:#|%:)[ \t]*include[ \t]*["<]prg32_assets\.S[">][ \t]*$/;
   const STRING = /"(?:\\.|[^"\\\n])*"|'(?:\\.|[^'\\\n])*'/g;
 
   // Student-readable explanations for every problem code. They never contain server details.
@@ -62,7 +65,7 @@
     'too-big': tr('js.language.a_cartridge_source_can_be_at', 'A cartridge source can be at most 256 KiB, without NUL bytes.'),
     'trigraph': tr('js.language.trigraphs_and_are_an_old_c', 'Trigraphs (??= and ??/) are an old C feature the kit does not accept.'),
     'comment': tr('js.language.a_comment_needs_a_matching_to', 'A /* comment needs a matching */ to end it.'),
-    'c-include': tr('js.language.a_prg32_cartridge_can_include_only', 'A PRG32 cartridge can include only prg32.h, prg32_audio.h, stdint.h, stddef.h and stdbool.h. Other headers would need a C library or files on the server.'),
+    'c-include': tr('js.language.a_prg32_cartridge_can_include_only_art', 'A PRG32 cartridge can include only prg32.h, prg32_audio.h, prg32_assets.h (your project\'s art), stdint.h, stddef.h and stdbool.h. Other headers would need a C library or files on the server.'),
     'c-directive': tr('js.language.allowed_preprocessor_lines_include_appro', 'Allowed preprocessor lines: #include (approved headers), #define, #undef, #if, #ifdef, #ifndef, #elif, #else and #endif.'),
     'c-token-paste': tr('js.language.the_operator_can_build_hidden_words', 'The ## operator can build hidden words, so the kit does not accept it.'),
     'c-forbidden': tr('js.language.inline_assembly_and_pragma_could_read', 'Inline assembly and _Pragma could read files on the server while compiling. Write assembly in an Assembly project instead.'),
@@ -375,7 +378,11 @@
       return problems;
     }
     const bare = withoutStrings(noComments);
-    const lines = splitLines(bare.text);
+    const sourceLines = source.split('\n');
+    const lines = splitLines(bare.text).filter(line => {
+      const number = positionAt(source, bare.origin[line.start] ?? source.length).line;
+      return !ASM_ASSETS_INCLUDE.test((sourceLines[number - 1] || '').replace(/\r$/, ''));
+    });
     // Words that read files: in preprocessor lines anywhere, elsewhere before a '#' comment.
     for (const line of lines) {
       const code = DIRECTIVE_START.test(line.text) ? line.text : line.text.split('#', 1)[0];
@@ -687,7 +694,8 @@
       const close = include[1] === '<' ? '>' : '"';
       return result(position, include[2], INDEX.c.headers.filter(h => startsWith(h, include[2])).map(h => ({
         label: h, kind: 'file', detail: 'header', insertText: h + close,
-        documentation: h.startsWith('prg32') ? tr('js.language.prg32_sdk_header', 'PRG32 SDK header') : tr('js.language.freestanding_c_header', 'freestanding C header') })));
+        documentation: h === 'prg32_assets.h' ? tr('js.language.your_project_art_as_c', 'your project\'s sprites, backgrounds and sounds as C')
+          : h.startsWith('prg32') ? tr('js.language.prg32_sdk_header', 'PRG32 SDK header') : tr('js.language.freestanding_c_header', 'freestanding C header') })));
     }
     const hash = before.match(/^\s*#\s*(\w*)$/);
     if (hash) {

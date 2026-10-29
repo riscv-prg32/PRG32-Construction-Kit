@@ -11,6 +11,7 @@ from __future__ import annotations
 import hashlib
 import json
 import math
+import os
 import random
 import shutil
 import struct
@@ -144,8 +145,23 @@ def test_the_check_rebuilds_byte_for_byte_with_the_toolchain():
 
     if not toolchain_present(Config.PRG32_BUILD_COMMAND):
         pytest.skip("the PRG32 toolchain is not installed")
+    # Built against the SDK revision the kit is pinned to (tools/pinned_sdk.py), whatever the
+    # local checkout holds: BUILD.json records that revision.
+    import importlib.util
+
+    from pinned_sdk import pinned_checkout
+
+    spec = importlib.util.find_spec("prg32")
+    env = dict(os.environ)
+    if spec is not None and spec.origin:
+        local = Path(spec.origin).resolve().parent.parent
+        sdk = pinned_checkout(local)
+        if sdk is None:
+            pytest.skip("the PRG32 SDK here does not have the pinned revision")
+        others = [item for item in env.get("PYTHONPATH", "").split(os.pathsep) if item and Path(item).resolve() != local]
+        env["PYTHONPATH"] = os.pathsep.join([str(sdk), *others])
     result = subprocess.run([sys.executable, str(ROOT / "tools" / "build_hardware_audio_check.py"), "--check"],
-                            capture_output=True, text=True, timeout=900)
+                            capture_output=True, text=True, timeout=900, env=env)
     assert result.returncode == 0, result.stderr + result.stdout
 
 

@@ -93,6 +93,9 @@ gray, dark gray, brown, purple, navy, lime.
 
 | Block | C behaviour |
 | --- | --- |
+| `draw sprite rocket x 10 y 20` | `rocket_draw(10, 20)`: the Sprite Lab sprite, see-through pixels skipped (`prg32_sprite_draw_frame` or `prg32_sprite_draw_indexed`) |
+| `load background sky` | `sky_load()`: its tiles (`prg32_tile_define`, tile flags) and its map (`prg32_playfield_put`) |
+| `draw background sky` | `sky_draw()`: `prg32_playfield_draw` for layer 0, then layer 1 with tile 0 see-through |
 | `draw 8x8 sprite x y fg bg` | `prg32_sprite_draw_8x8` (PRG32 sprite API, opaque background) |
 | `define tile 1 fg bg` + eight rows | `prg32_tile_define` |
 | `fill playfield layer 0 with tile 0` | `prg32_playfield_clear` |
@@ -101,7 +104,9 @@ gray, dark gray, brown, purple, navy, lime.
 | `move playfield camera to x y` | `prg32_playfield_camera` |
 | `draw playfield layer 0 opaque / tile 0 see-through` | `prg32_playfield_draw` |
 
-Read a tile back with `tile(layer, column, row)`. Playfields are 64 x 32
+The first three blocks name a sprite or a background made for this project; their lists follow
+Sprite Lab and Backgrounds, and the generated C and assembly contain only the art the game uses
+([project_art.md](project_art.md)). Read a tile back with `tile(layer, column, row)`. Playfields are 64 x 32
 tiles; 40 x 25 are visible. Define tile 0 explicitly: the ESP32 firmware
 paints an undefined tile with black, PRG32-QT skips it.
 

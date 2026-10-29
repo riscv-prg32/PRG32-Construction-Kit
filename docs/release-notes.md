@@ -2,6 +2,51 @@
 
 ## Unreleased
 
+### Project art in every kind of project
+
+- **Sprites, backgrounds and sounds by name, in Blocks, Python, C and assembly** (ADR-0029). New
+  blocks **draw sprite**, **load background** and **draw background**; PRG32 Python gets
+  `prg32.sprite`, `prg32.background_load` and `prg32.background_draw`; C and assembly games write
+  `#include "prg32_assets.h"` (or `"prg32_assets.S"`) and call `rocket_draw(x, y)`, `sky_load()`,
+  `sfx_coin()`, `TRACK_THEME`. The kit writes the art in place of that line, on that same line, so
+  line numbers and the debugger stay on the student's lines. ([project_art.md](project_art.md))
+- Sprite Lab, Backgrounds and AudioStudio show **Use it in your game**: the line for the art being
+  edited, in each language. C and assembly projects show **Project art** (`prg32_assets.h`/`.S`,
+  read-only) in the project files. Converting a Blocks game to code keeps the include line.
+- New examples: **Star Catcher** in Blocks, PRG32 Python, C and assembly, with the same sprites,
+  background and sound; the four cartridges draw identical frames. Lesson 10 walks through them.
+  ([tutorials/10_project_art.md](tutorials/10_project_art.md))
+
+### Deploy, Evaluate, and four new tools (after the audit of 7a700ba)
+
+- **Deploy** (project menu, ADR-0028) puts a compiled cartridge on a PRG32 console, PRG32-QT
+  or QEMU on the server. The student looks at the target (identity, ABI, what each slot
+  holds), names and confirms the slot, and follows every step. Stale builds, changed files,
+  other ABIs, full targets and slots that changed since the student looked are refused before
+  anything is sent. Recorded on QEMU and canonical PRG32-QT; no console was available.
+  ([deploy.md](deploy.md))
+- **Tools → Evaluate** runs one versioned performance protocol
+  (`contracts/prg32-evaluation-protocol-1.json`) on those targets. It gives raw CSV and JSON,
+  statistics with 95% intervals, and deterministic SVG and PDF charts. Emulator times are
+  labelled as not console times. ([evaluate.md](evaluate.md))
+- **Sprite Lab: indexed colours and palettes.** Up to 256 colours at 1, 2, 4 or 8 bits per
+  pixel; changing a palette entry recolours the sprite. Convert to C gives what
+  `prg32_sprite_draw_indexed` draws. ([sprite_editor.md](sprite_editor.md))
+- **AudioStudio: record a voice sample** with the microphone (at most 10 s, trimmed in the
+  page), kept like an uploaded WAV file. Settings → Privacy can switch it off.
+  ([audio_studio.md](audio_studio.md))
+- **Backgrounds**, a new tool like Sprite Lab: PRG32 tiles (8×8, two colours, platform flags)
+  and maps of up to 64×32 tiles in two layers, converted to C that defines the tiles and fills
+  the playfields. ([backgrounds.md](backgrounds.md))
+- **Tools → Color Picker**: a colour as RGB24 and as the PRG32's RGB565, in hexadecimal,
+  decimal and binary. ([color_picker.md](color_picker.md))
+- Every server message (account, admin, sign-in, privacy and settings answers too) is now in
+  all six languages. Artifacts and Classes are in the account menu; Docs and Admin show their
+  icons on the wide bar, so the menu stays one row in every language.
+- Not done: physical-console evidence for Deploy and Evaluate, and the controller's privacy
+  decisions, including the new D-12 on microphone recording
+  ([external_gates.md](external_gates.md)).
+
 ### The PRG32 look: logo, colours, Day and Night
 
 - The Projects page's title says what the kit does: cartridges in RISC-V assembly, C, Python

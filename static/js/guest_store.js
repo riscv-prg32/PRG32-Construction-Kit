@@ -3,7 +3,8 @@
 // - IndexedDB database "prg32-kit-guest" (version 2):
 //   store "projects": {id, title, description, author, tags, blocks_json, game_json, version,
 //                      audio: {document, version} or null, created_at, updated_at};
-//   store "sprites":  {id, project_id, name, width, height, pixels, data_url, created_at, updated_at}.
+//                      backgrounds: [{id, name, kind: "background", data, version, ...}] (Backgrounds);
+//   store "sprites":  {id, project_id, name, width, height, pixels, data_url, palette, created_at, updated_at}.
 //   Version 1 had projects with a title and blocks only; they open with the other fields empty.
 // - Nothing is stored on the server unless the student, signed in, moves the projects into
 //   their account (moveToAccount): each project is created on the server first and deleted
@@ -80,6 +81,7 @@ window.PRG32GuestStore = (function () {
       game_json: object(row.game_json),
       version: Number.isInteger(row.version) ? row.version : 0,
       audio: row.audio && typeof row.audio === 'object' ? row.audio : null,
+      backgrounds: Array.isArray(row.backgrounds) ? row.backgrounds : [],
       created_at: row.created_at,
       updated_at: row.updated_at,
       deleted_at: null,
@@ -144,6 +146,7 @@ window.PRG32GuestStore = (function () {
       id: row.id, project_id: row.project_id || null, name: String(row.name || 'sprite').slice(0, 64),
       width: parseInt(row.width, 10) || 16, height: parseInt(row.height, 10) || 16,
       pixels: Array.isArray(row.pixels) ? row.pixels : [], data_url: String(row.data_url || ''),
+      palette: row.palette && row.palette.mode === 'indexed' ? row.palette : {},
       created_at: row.created_at, updated_at: row.updated_at, owner_id: null,
     };
   }

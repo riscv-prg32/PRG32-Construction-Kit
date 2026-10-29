@@ -42,6 +42,11 @@ class Config:
     BUILD_ROOT = Path(os.environ.get("PRG32_KIT_BUILD_ROOT", DATA_DIR / "builds")).resolve()
     ARTIFACT_ROOT = Path(os.environ.get("PRG32_KIT_ARTIFACT_ROOT", DATA_DIR / "artifacts")).resolve()
     DEFAULT_STORE_URL = os.environ.get("PRG32_STORE_URL", "http://127.0.0.1:5080")
+    # Deploy to QEMU on this server (deploy.py, docs/deploy.md): a firmware folder made by
+    # tools/build_qemu_firmware.py, Espressif's qemu-system-riscv32 and (for screenshots) its GDB.
+    QEMU_FIRMWARE = os.environ.get("PRG32_QEMU_FIRMWARE") or None
+    QEMU_BINARY = os.environ.get("PRG32_QEMU") or None
+    QEMU_GDB = os.environ.get("PRG32_QEMU_GDB") or None
     # Store egress policy (docs/adr/0008-store-egress-policy.md). Origins bundles may be
     # sent to; unset = the origins of PRG32_STORE_URL and PRG32_SSO_PEER_URL.
     STORE_ALLOWED_ORIGINS = ([item.strip() for item in os.environ["PRG32_STORE_ALLOWED_ORIGINS"].split(",") if item.strip()]
@@ -94,6 +99,7 @@ class Config:
     PRG32_BUILD_TIMEOUT = float(os.environ.get("PRG32_BUILD_TIMEOUT", "120"))
     # Debug information for the Player's source and block debugger (ADR-0015): "0" turns it off.
     PRG32_DEBUG_INFO = os.environ.get("PRG32_DEBUG_INFO", "1") != "0"
+    PRG32_AUDIO_RECORDING = os.environ.get("PRG32_AUDIO_RECORDING", "1") != "0"
     # How many saved versions (revisions) the History menu keeps per project.
     PRG32_KIT_MAX_REVISIONS = int(os.environ.get("PRG32_KIT_MAX_REVISIONS", "50"))
     # Storage policy (ADR-0017). 0 = no limit.
@@ -105,6 +111,10 @@ class Config:
     # ADR-0022: how long the audit log and backups are kept (docs/privacy/retention.md).
     PRG32_KIT_AUDIT_DAYS = int(os.environ.get("PRG32_KIT_AUDIT_DAYS", "365"))
     PRG32_KIT_BACKUP_DAYS = int(os.environ.get("PRG32_KIT_BACKUP_DAYS", "35"))
+    # The activity log (activity.py, docs/activity_and_statistics.md): on or off, and how many days
+    # its rows (and the statistics made from them) are kept.
+    PRG32_KIT_ACTIVITY_LOG = os.environ.get("PRG32_KIT_ACTIVITY_LOG", "1") != "0"
+    PRG32_KIT_ACTIVITY_DAYS = int(os.environ.get("PRG32_KIT_ACTIVITY_DAYS", "90"))
     # Closed rights requests are removed this many days after they were answered; 0 keeps them.
     # The period is the controller's decision (docs/privacy/decisions.md D-5).
     PRG32_KIT_PRIVACY_REQUEST_DAYS = int(os.environ.get("PRG32_KIT_PRIVACY_REQUEST_DAYS", "0"))
@@ -160,6 +170,12 @@ class Config:
     SMTP_USER = os.environ.get("PRG32_SMTP_USER", "")
     SMTP_PASSWORD = os.environ.get("PRG32_SMTP_PASSWORD", "")
     SMTP_TLS = _flag("PRG32_SMTP_TLS", True)
+    # The mail queue (mail_queue.py): at most this many messages are being handed to the SMTP
+    # server at the same time, across every worker process; the rest wait their turn.
+    SMTP_MAX_PARALLEL = int(os.environ.get("PRG32_SMTP_MAX_PARALLEL", "5"))
+    # Sent and failed messages stay listed on the Email tab this many days (their text is wiped
+    # as soon as they leave the queue).
+    PRG32_KIT_MAIL_DAYS = int(os.environ.get("PRG32_KIT_MAIL_DAYS", "30"))
 
     # Single sign-on and user sync with one Cartridge Store (see docs/accounts_and_sso.md).
     SSO_SECRET = os.environ.get("PRG32_SSO_SECRET", "")

@@ -61,15 +61,27 @@
   }
   let corePromise = null;
 
-  function loadScript(url) {
-    return new Promise((resolve, reject) => {
+  // prg32-core.js is Emscripten output: when an AMD loader is on the page (Monaco's, in the IDE)
+  // it calls an anonymous define(), which that loader hands to whatever module it loads next
+  // (Monaco's language pack, so Monaco stayed in English). So it waits until Monaco has loaded,
+  // and runs with define.amd hidden, making its plain global createPrg32Core as everywhere else.
+  function loadPlainScript(url) {
+    const monaco = window.PRG32Monaco ? window.PRG32Monaco.idle() : Promise.resolve();
+    const loading = monaco.then(() => new Promise((resolve, reject) => {
+      const amd = window.define && window.define.amd;
+      if (amd) delete window.define.amd;
+      const done = () => { if (amd) window.define.amd = amd; };
       const script = document.createElement('script');
       script.src = url;
-      script.onload = resolve;
-      script.onerror = () => reject(new Error('Could not load ' + url));
+      script.onload = () => { done(); resolve(); };
+      script.onerror = () => { done(); reject(new Error('Could not load ' + url)); };
       document.head.appendChild(script);
-    });
+    }));
+    window.PRG32PlainScriptLoading = loading.catch(() => {});   // Monaco waits for it (monaco_setup.js)
+    return loading;
   }
+  window.PRG32LoadPlainScript = loadPlainScript;
+  const loadScript = loadPlainScript;
 
   // One WebAssembly instance is shared by the page; it runs one cartridge at a time.
   function loadCore(base) {

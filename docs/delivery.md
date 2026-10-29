@@ -4,6 +4,11 @@ Everything here works on the classroom network, with no internet connection.
 
 ## For students
 
+The easiest way: press **Compile**, then **Deploy** in the menu. The kit puts the cartridge on
+the class's console, in PRG32-QT or in QEMU, and shows you it started ([deploy.md](deploy.md)).
+
+Without Deploy:
+
 1. In the IDE, press **Compile**, then a **Download .prg32** link in the **Build** tab. You get a **PRG32 cartridge**.
 2. Give it to your teacher, or put it on the PRG32 yourself as below.
 

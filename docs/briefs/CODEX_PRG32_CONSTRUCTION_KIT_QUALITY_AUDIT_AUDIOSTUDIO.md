@@ -59,7 +59,7 @@ Score each row 0–4: **0 missing; 1 prototype/stub; 2 partial; 3 implemented wi
 | IDE-02 | Blockly remains editable; canonical block project, stable generation and block-to-source mapping |
 | IDE-03 | C editing: Monaco syntax, completion, diagnostics, navigation and SDK awareness |
 | IDE-04 | RISC-V Assembly editing: syntax, instruction/register/ABI completion, diagnostics |
-| I18N-01 | Complete, accessible internationalization for English, Italian, Spanish, French and German across the IDE, guest/auth flows, validation/build/debug messages, help and classroom documentation; locale selection and fallback work offline and never change saved project semantics or deterministic artifacts |
+| I18N-01 | Complete, accessible internationalization for English, Italian, Spanish, French, German and Simplified Chinese (`zh-Hans`) across the IDE, guest/auth flows, validation/build/debug/evaluation messages, help and classroom documentation; locale selection and fallback work offline, Chinese typography and input work correctly, and locale never changes saved project semantics, measurements or deterministic artifacts |
 | PY-01 | Python project mode with an explicit, versioned project schema; safe validation and deterministic translation/build to a real ABI-compatible **PRG32 cartridge**; inspectable generated C and RISC-V assembly; editor intelligence, run/debug, import/export and packaging parity; no arbitrary unvalidated Python executes on the server |
 | PRJ-01 | Versioned project schema, CRUD, assets, templates, imports/exports, autosave, migrations, history |
 | BLD-01 | All 3 modes compile/link to **real** ABI-compatible `.prg32` artifacts |
@@ -89,6 +89,8 @@ Score each row 0–4: **0 missing; 1 prototype/stub; 2 partial; 3 implemented wi
 | DEP-01 | Verified physical-device transfer and launch workflow with integrity checks |
 | DEP-02 | Verified PRG32-QT delivery/import workflow |
 | DEP-03 | Verified PRG32-iOS handoff/import workflow, no invented app interface |
+| DEP-04 | A unified **Deploy** tool in the top menu deploys the selected, validated **PRG32 cartridge** to a physical PRG32 device, QEMU or PRG32-QT; target discovery/configuration, explicit confirmation, integrity/version checks, progress, cancellation, launch, logs, retries and safe failure recovery are tested without confusing simulation with physical-device proof |
+| EVAL-01 | A science-oriented **Evaluate** tool in the top menu runs a versioned performance-test protocol for the same **PRG32 cartridge** on a physical device, QEMU and PRG32-QT; records target/build/toolchain/protocol provenance, warm-up, repeated trials, timing sources, sample sizes, units and uncertainty; compares targets without misleading equivalence claims; and produces accessible publication-quality downloadable charts plus raw machine-readable data |
 | SEC-01 | Threat model: untrusted builds, uploads, OAuth, SSRF, XSS, CSRF, IDOR, tenant isolation |
 | SEC-02 | Secrets management, rate limiting, audit logs, retention/deprovisioning, dependency security |
 | GDPR-01 | Current, demonstrable GDPR compliance for the complete processing lifecycle: roles, inventory/ROPA, purposes and legal bases, minimisation, transparency, children's safeguards, consent where used, data-subject rights, retention/erasure/export, processors/subprocessors, international transfers, privacy by design/default, security and breach response, DPIA/DPO decisions and accountable operational evidence; unresolved legal applicability requires qualified counsel/DPO review |
@@ -213,14 +215,17 @@ that architecture schemas include current auth, privacy, cloud, Store, build,
 WASM, AudioStudio and retention flows. Run automated link/image/reference checks
 and retain a visual review checklist.
 
-K. **Multi-language:** exercise English, Italian, Spanish, French and German as
+K. **Multi-language:** exercise English, Italian, Spanish, French, German and
+Simplified Chinese (`zh-Hans`) as
 guest, student, teacher and administrator. Change locale before and during an
 editing session; reload and work offline; cover the IDE, Blockly, Sprite Lab,
-AudioStudio, debugger, sign-in, settings, validation/build errors, publishing,
-privacy notices and classroom help. Verify keyboard and screen-reader behavior,
-pluralization, interpolation, long-text layouts, fallback for missing keys and
-that no untranslated user-facing strings remain. Build the same saved project
-in every locale and prove byte-identical generated source and cartridge output.
+AudioStudio, debugger, Deploy, Evaluate, sign-in, settings, validation/build
+errors, publishing, privacy notices and classroom help. Verify keyboard and
+screen-reader behavior, pluralization, interpolation, long-text layouts, CJK
+font fallback/line breaking/input, fallback for missing keys and that no
+untranslated user-facing strings remain. Build and evaluate the same saved
+project in every locale and prove byte-identical generated source and cartridge
+output and locale-neutral raw measurement data.
 
 L. **Python projects:** create, save, reload, import/export, run, debug and package
 a Python project containing arithmetic, control flow, functions, graphics,
@@ -234,12 +239,34 @@ Confirm a project's type is fixed and can change only through the documented,
 explicit conversion workflow.
 
 For determinism, build identical Python fixtures repeatedly, in clean processes
-and under all five UI locales. Compare normalized AST/IR, generated C, generated
+and under all six UI locales. Compare normalized AST/IR, generated C, generated
 assembly, debug-map and PRG32 cartridge hashes. For semantic parity, compare
 Python and equivalent Blocks fixtures through the same IR and compare C and
 assembly execution traces using the existing RV32 harness. Verify that errors
 report stable codes and accurate Python ranges without leaking source or secrets
 into logs.
+
+M. **Unified deployment:** from the top-menu **Deploy** command, deploy one
+validated cartridge in turn to a disposable physical PRG32 device, QEMU and
+canonical PRG32-QT. Verify target discovery/configuration, explicit target and
+cartridge identity, SHA-256 before/after transfer where supported, ABI/version
+refusal, slot selection, progress, cancellation, timeout, retry, disconnect,
+full target, failed launch and recovery. Capture target-native evidence that the
+expected cartridge launched. A QEMU or PRG32-QT run must never be reported as a
+physical-device result, and tests must never overwrite an unnamed device slot.
+
+N. **Scientific performance evaluation:** from the top-menu **Evaluate** command,
+run the same versioned performance cartridge and protocol on a physical PRG32
+device, QEMU and canonical PRG32-QT. Record cartridge hash, target identity and
+configuration, SDK/ABI/tool versions, host details for simulated targets, clock
+source, units, warm-up, repetitions, individual samples, exclusions and failure
+states. Report descriptive statistics and uncertainty appropriate to the sample;
+do not imply hardware equivalence from emulator timings. Download raw CSV and
+JSON plus publication-quality SVG and PDF/PNG charts with titles, labelled axes,
+units, legends, captions, accessible descriptions, colour-blind-safe styling and
+reproducible chart metadata. Verify deterministic chart construction from a fixed
+dataset, locale-safe numeric export, keyboard/screen-reader use, bounded data,
+offline operation and clear handling of missing or incomparable measurements.
 
 ## Cross-repository consistency checks
 
@@ -270,7 +297,8 @@ into logs.
 - Verify every README/docs visual and architecture schema against the same
   audited revision. Treat a polished but stale screenshot or diagram as failed
   evidence, not cosmetic debt.
-- Compare locale catalogs for English, Italian, Spanish, French and German;
+- Compare locale catalogs for English, Italian, Spanish, French, German and
+  Simplified Chinese (`zh-Hans`);
   require identical key sets, safe interpolation, documented fallback behavior,
   accessibility review and tests that catch untranslated or stale UI strings.
 - Trace Python end to end: versioned source project -> restricted parser and
@@ -306,15 +334,19 @@ status and explicit unresolved legal questions. The evidence index must include
 privacy notices, policies, processor/subprocessor records, rights-request test
 artifacts and the documentation/visual freshness manifest.
 
-The deliverables must give `AUD-01` through `AUD-04`, `I18N-01` and `PY-01` their own scores and evidence,
+The deliverables must give `AUD-01` through `AUD-04`, `I18N-01`, `PY-01`, `DEP-04` and `EVAL-01` their own scores and evidence,
 not fold them into `WASM-02`. Recalculate the denominator after adding these four
-audio rows and the mandatory `GDPR-01`, `DOC-02`, `I18N-01` and `PY-01` rows. Include stereo PCM
+audio rows and the mandatory `GDPR-01`, `DOC-02`, `I18N-01`, `PY-01`, `DEP-04`
+and `EVAL-01` rows. Include stereo PCM
 hashes or comparison reports, per-voice ADSR traces, an
 eight-active-voice fixture, AudioStudio browser evidence, generated source and
 packaged asset evidence, the repository-wide buzzer-removal search result,
-five-locale catalog/visual/accessibility evidence, locale-independent artifact
+six-locale catalog/visual/accessibility evidence, locale-independent artifact
 hashes and Python grammar/semantics, parser and validator limits, typed IR,
-source-map, provenance, malicious-input and real-toolchain evidence.
+source-map, provenance, malicious-input and real-toolchain evidence. Include a
+three-target deployment record and a three-target evaluation bundle containing
+raw samples, protocol/provenance, statistics, uncertainty and downloadable
+publication-quality chart artifacts.
 
 ## Release gate
 
@@ -329,7 +361,10 @@ processing operation, missing required DPIA/DPO/counsel determination, or
 documentation/visuals that materially misrepresent security, privacy,
 installation, APIs, architecture or supported behavior. Also recommend
 **NO-GO** for a claimed multi-language release with incomplete English, Italian,
-Spanish, French or German coverage or locale-dependent build output, and for a
+Spanish, French, German or Simplified Chinese coverage or locale-dependent build
+output, for a Deploy tool that can silently target or overwrite the wrong device,
+for an Evaluate tool that loses raw data/provenance or presents incomparable
+emulator and hardware timings as equivalent, and for a
 claimed Python project mode that executes unvalidated code, bypasses the game IR,
 hides generated teaching source, produces non-deterministic artifacts or lacks
 real PRG32 cartridge evidence. **CONDITIONAL** is
@@ -342,15 +377,18 @@ legal release gate.
 Report: (1) inspected SHAs; (2) what was actually executed; (3) release
 recommendation; (4) top 10 findings with path:line and reproduction; (5) scored
 requirements coverage, including separate `AUD-01`–`AUD-04`, `GDPR-01` and
-`DOC-02`, `I18N-01` and `PY-01` scores; (6) exact missing evidence; (7) next implementation PRs;
+`DOC-02`, `I18N-01`, `PY-01`, `DEP-04` and `EVAL-01` scores; (6) exact missing evidence; (7) next implementation PRs;
 (8) an explicit audio verdict covering eight voices, ADSR, stereo parity,
 AudioStudio and buzzer removal; (9) an explicit GDPR verdict that distinguishes
 technical evidence from legal counsel/DPO determinations; and (10) a
 documentation/visual freshness verdict covering the main README, screenshots,
 images and architecture schemas; (11) a multi-language verdict for English,
-Italian, Spanish, French and German; and (12) a Python-project verdict covering
+Italian, Spanish, French, German and Simplified Chinese; (12) a Python-project verdict covering
 validation, deterministic generation, inspectable C/assembly, debugging,
-packaging and sandbox boundaries. Clearly distinguish source inspection from
+packaging and sandbox boundaries; (13) a Deploy verdict for physical PRG32,
+QEMU and PRG32-QT; and (14) an Evaluate verdict covering scientific protocol,
+provenance, raw data, uncertainty and downloadable publication-quality charts.
+Clearly distinguish source inspection from
 executed validation. Do not claim PRG32 hardware, stereo hardware output,
 real-provider behavior, iOS validation or legal certification unless actually
 performed and appropriately approved.

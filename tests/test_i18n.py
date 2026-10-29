@@ -1,4 +1,5 @@
-"""The interface in English, Italian, Spanish, French and German (ADR-0027, docs/i18n.md).
+"""The interface in English, Italian, Spanish, French, German and Simplified Chinese (ADR-0027,
+docs/i18n.md).
 
 Catalogs: the same keys and placeholders everywhere, nothing left in English by accident.
 Pages and scripts: every visible text goes through a catalog. Locale: chosen by the reader,
@@ -33,8 +34,8 @@ def messages(locale: str) -> dict[str, str]:
 
 # --- the catalogs ------------------------------------------------------------------------------
 
-def test_the_five_languages_are_offered():
-    assert i18n.LOCALES == ("en", "it", "es", "fr", "de")
+def test_the_six_languages_are_offered():
+    assert i18n.LOCALES == ("en", "it", "es", "fr", "de", "zh-Hans")
     assert set(i18n.NAMES) == set(i18n.LOCALES)
 
 
@@ -73,6 +74,20 @@ def test_nothing_is_left_in_english_by_accident(locale):
     assert same == SAME_AS_ENGLISH[locale]
 
 
+NEW_TOOLS = ("tools.", "js.tools.", "deploy.", "js.deploy.", "evaluate.", "js.evaluate.", "sprite_lab.", "js.sprite_editor.",
+             "backgrounds.", "js.backgrounds.", "audio_studio.record", "js.audio_studio.record")
+
+
+def test_every_untranslated_term_of_the_new_tools_says_why():
+    """Deploy, Evaluate, the palettes, recording, Backgrounds and the Color Picker: a message left equal to
+    English needs its reason in the fixture (a format or product name, or the same word in that language)."""
+    reasons = SAME_AS_ENGLISH["_reasons"]
+    for locale in ("it", "es", "fr", "de", "zh-Hans"):
+        for key in SAME_AS_ENGLISH[locale]:
+            if key.startswith(NEW_TOOLS):
+                assert reasons.get(key), (locale, key)
+
+
 def test_the_browser_copies_of_the_catalogs_are_up_to_date():
     result = subprocess.run([sys.executable, str(ROOT / "tools" / "build_i18n.py"), "--check"],
                             capture_output=True, text=True)
@@ -108,6 +123,10 @@ def test_every_catalog_key_is_used():
     for page in ("offline.html", "offline-player.html"):
         used |= set(re.findall(r'data-i18n(?:-attr)?="(?:[\w-]+:)?([\w.]+)"', (ROOT / "static" / page).read_text()))
         used |= set(re.findall(r':([\w.]+)"', (ROOT / "static" / page).read_text()))
+    from test_messages import CALLS
+    from prg32_construction_kit.messages import key_for
+
+    used |= {key_for(area, template) for _file, _line, area, template, _names in CALLS}   # server messages
     base = {key.rsplit(".", 1)[0] if key.endswith((".one", ".other")) else key for key in EN}
     assert sorted(key for key in base if key not in used and key != "base.language") == []
 
@@ -150,6 +169,12 @@ def test_scripts_build_no_untranslated_html_text():
             leftovers.append((path.name, match.group(1).strip()))
         for match in re.finditer(r'\s(?:title|aria-label|placeholder)="([A-Z][a-z]+ [^"${}]*)"', source):
             leftovers.append((path.name, match.group(1)))
+        # Blockly's toolbox XML: category names and hint labels are shown too.
+        for match in re.finditer(r'<(?:category name|label text)="([^"$]*[A-Za-z]{2,}[^"$]*)"', source):
+            leftovers.append((path.name, match.group(1)))
+        # A block's text is written as  message0: '...'  (a literal one is never translated).
+        for match in re.finditer(r"message0: '([^']*[A-Za-z]{2,}[^']*)'", source):
+            leftovers.append((path.name, match.group(1)))
     assert leftovers == []
 
 
@@ -175,7 +200,16 @@ def test_the_service_worker_caches_the_catalogs_for_offline_use():
     (None, "fr-CH, fr;q=0.9, en;q=0.8", "fr"),
     (None, "pt-BR,pt;q=0.9,es;q=0.5", "es"),        # first supported language asked for
     (None, "de;q=0.2,it;q=0.8", "it"),              # quality decides, not order
-    (None, "ja,zh", "en"),                          # nothing supported: English
+    (None, "ja,ko", "en"),                          # nothing supported: English
+    (None, "ja,zh", "zh-Hans"),                     # Chinese: Simplified characters
+    (None, "zh-CN,zh;q=0.9,en;q=0.5", "zh-Hans"),
+    (None, "zh-Hans-SG", "zh-Hans"),
+    (None, "zh_CN", "zh-Hans"),
+    (None, "zh-TW,en;q=0.5", "en"),                 # Traditional characters are another script:
+    (None, "zh-Hant-HK", "en"),                     # not the wrong characters, English
+    (None, "zh-HK,zh;q=0.8", "zh-Hans"),            # unless the reader also accepts plain zh
+    ("zh-Hans", "en", "zh-Hans"),
+    ("zh", "", "en"),                               # the cookie names a locale exactly
     ("xx", "", "en"),                               # an unknown cookie is ignored
     (None, "es;q=0", "en"),
 ])
@@ -190,10 +224,13 @@ def test_messages_fall_back_and_fill_in_values():
     assert i18n.translate("fr", "js.ide.compiler_problems", count=0) == "Compilateur : 0 problème"
     assert i18n.translate("fr", "js.ide.compiler_problems", count=2) == "Compilateur : 2 problèmes"
     assert i18n.translate("en", "js.ide.compiler_problems", count=1) == "Compiler: 1 problem"
+    # Chinese has no plural forms: one text for every count.
+    assert i18n.translate("zh-Hans", "js.ide.compiler_problems", count=1) == "编译器：1 个问题"
+    assert i18n.translate("zh-Hans", "js.ide.compiler_problems", count=2) == "编译器：2 个问题"
 
 
 @pytest.mark.parametrize("locale,word", [("en", "Projects"), ("it", "Progetti"), ("es", "Proyectos"),
-                                         ("fr", "Projets"), ("de", "Projekte")])
+                                         ("fr", "Projets"), ("de", "Projekte"), ("zh-Hans", "项目")])
 def test_pages_are_drawn_in_the_chosen_language(anon, locale, word):
     anon.set_cookie(i18n.COOKIE, locale)
     page = anon.get("/auth/login")

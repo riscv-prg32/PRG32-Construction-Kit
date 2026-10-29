@@ -59,6 +59,17 @@ typedef struct {
     uint32_t last_seen_ms;
 } prg32_player_state_t;
 
+typedef struct {
+    const uint8_t *pixels;
+    const uint16_t *palette;
+    uint16_t width;
+    uint16_t height;
+    uint16_t frame_count;
+    uint16_t palette_count;
+    uint8_t bits_per_pixel;
+    int16_t transparent_index;
+} prg32_indexed_sprite_t;
+
 uint32_t prg32_input_read(void);
 uint32_t prg32_random_number(uint32_t min, uint32_t max);
 void prg32_gfx_clear(uint16_t color);
@@ -75,6 +86,9 @@ void prg32_band_set_game_info(const char *text);
 int prg32_sprite_hitbox(int ax, int ay, int aw, int ah, int bx, int by, int bw, int bh);
 void prg32_sprite_draw_8x8(int x, int y, const uint8_t *bits, uint16_t fg, uint16_t bg);
 void prg32_tile_define(uint8_t id, const uint8_t *bitmap8x8, uint16_t fg, uint16_t bg);
+void prg32_platform_tile_flags(uint8_t tile_id, uint8_t flags);
+void prg32_sprite_draw_frame(int x, int y, int w, int h, const uint16_t *frames, uint32_t frame, uint16_t transparent);
+void prg32_sprite_draw_indexed(int x, int y, const prg32_indexed_sprite_t *sprite, uint32_t frame);
 void prg32_playfield_clear(uint8_t layer, uint8_t tile_id);
 void prg32_playfield_put(uint8_t layer, uint8_t tx, uint8_t ty, uint8_t id);
 uint8_t prg32_playfield_get(uint8_t layer, uint8_t tx, uint8_t ty);

@@ -123,6 +123,7 @@ ASM_GLOSSARY = {
     "remu": "remu rd, rs1, rs2: unsigned remainder",
     "ret": "ret: return to the caller (pseudo: jalr zero, 0(ra))",
     "sb": "sb rs, off(rb): store the low byte of rs at address rb + off",
+    "sh": "sh rs, off(rb): store the low 16 bits (a halfword) of rs at address rb + off",
     "seqz": "seqz rd, rs: rd = 1 if rs == 0, else 0 (pseudo: sltiu rd, rs, 1)",
     "sgtz": "sgtz rd, rs: rd = 1 if rs > 0, else 0 (pseudo: slt rd, zero, rs)",
     "sll": "sll rd, rs1, rs2: shift left by rs2 (only its low 5 bits count)",
@@ -1285,6 +1286,14 @@ class _AsmEmitter:
             self.needs.add("bitmap")
             self.call("prg32_kit_draw_bitmap", [t("x"), t("y"), ("addr", self.c.bitmap(stmt.get("rows")), None),
                                                 colour(stmt.get("color")), t("scale")], slot, "draw it")
+        elif op == "sprite_draw":
+            name = c_identifier(stmt.get("sprite"), "sprite")
+            self.call(f"{name}_draw", [t("x"), t("y")], slot, f"draw the sprite {stmt.get('name')}")
+        elif op in ("background_load", "background_draw"):
+            name = c_identifier(stmt.get("background"), "background")
+            self.call(f"{name}_{op.split('_')[1]}", [], slot,
+                      ("define the tiles, fill the map" if op == "background_load" else "draw the layers")
+                      + f" of {stmt.get('name')}")
         elif op == "sprite8":
             self.call("prg32_sprite_draw_8x8", [t("x"), t("y"), ("addr", self.c.bitmap(stmt.get("rows")), None),
                                                 colour(stmt.get("fg")), colour(stmt.get("bg"), "BLACK")], slot, "draw it")
@@ -1464,11 +1473,13 @@ def _mnemonics(lines: list[str]) -> set[str]:
     return found
 
 
-def ir_to_asm(game_ir: dict[str, Any], trace: dict[int, str] | None = None) -> str:
+def ir_to_asm(game_ir: dict[str, Any], trace: dict[int, str] | None = None, art_include: bool = False) -> str:
     """Write the game IR as RISC-V assembly, explained line by line for students.
 
-    ``trace`` adds source-map marker lines, as in generator.ir_to_c.
+    ``trace`` adds source-map marker lines, as in generator.ir_to_c. ``art_include`` writes
+    ``#include "prg32_assets.S"`` instead of the sprites and backgrounds themselves.
     """
+    from .project_assets import ASM_INCLUDE, asm_lines as art_lines
     prefix = c_identifier(game_ir.get("entry_prefix"), "prg32_game")
     emitter = _AsmEmitter(game_ir)
     state = [(state_name(item.get("name")), int32(c_int(item.get("initial"), 0)))
@@ -1518,6 +1529,14 @@ def ir_to_asm(game_ir: dict[str, Any], trace: dict[int, str] | None = None) -> s
     helpers: list[str] = []
     for name in _needed(needs):
         helpers.extend(ASM_HELPERS[name])
+    # Sprites and backgrounds (Sprite Lab, Backgrounds): the same functions as in the C file.
+    art = game_ir.get("assets") if isinstance(game_ir.get("assets"), dict) else None
+    art_data, art_code = art_lines(art, sounds=False) if art and not art_include else ([], [])
+    if art and art_include:
+        art_code = [*comment_block(["This project's sprites and backgrounds: the kit writes them in place of the "
+                                    "next line when the game is built (Sprite Lab, Backgrounds)."]),
+                    f'#include "{ASM_INCLUDE}"', ""]
+    helpers.extend(art_code)
 
     # ---- data ------------------------------------------------------------
     rodata: list[str] = []
@@ -1528,6 +1547,7 @@ def ir_to_asm(game_ir: dict[str, Any], trace: dict[int, str] | None = None) -> s
         rodata.extend(["/* " + label + ":", *(f" *   {row}" for row in bitmap_picture(rows)), " */"])
         rodata.append(asm_line(f"{label}:", ""))
         rodata.append(asm_line(".byte " + ", ".join(f"0x{row:02X}" for row in rows), "8 rows, top to bottom"))
+    rodata.extend(art_data)
     wanted = set(_needed(needs))
     if "sin" in wanted:
         rodata.append(asm_line(".balign 2", "halfwords start at even addresses"))

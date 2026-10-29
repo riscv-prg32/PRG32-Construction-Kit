@@ -87,6 +87,7 @@
       const badge = example => example.kind === 'game'
         ? `<span class="badge text-bg-success ms-2">${tr('js.dashboard.complete_game', 'complete game')}</span>`
         : example.kind === 'python' ? '<span class="badge text-bg-info ms-2">Python</span>'
+        : example.kind === 'art' ? `<span class="badge text-bg-warning ms-2">${tr('js.dashboard.sprites_and_sound', 'sprites & sound')}</span>`
           : `<span class="badge text-bg-secondary ms-2">${tr('js.dashboard.sketch', 'sketch')}</span>`;
       $('#exampleList').html(data.examples.map(example => `<div class="list-group-item d-flex gap-3 align-items-center justify-content-between"><div><strong>${Kit.escape(example.title)}</strong>${badge(example)}<div class="small text-muted">${Kit.escape(example.description)}</div></div><button class="btn btn-primary btn-sm import-example" data-slug="${Kit.escape(example.slug)}">${tr('js.dashboard.add', 'Add')}</button></div>`).join(''));
     }).catch(err => $('#exampleList').html(`<div class="alert alert-danger">${Kit.escape(err.message)}</div>`));
@@ -178,12 +179,14 @@
           body: { document: row.audio.document, expected_version: 0 } })
         : Promise.resolve())
         .then(() => Promise.all(sprites.map(sprite => moveSprite(Object.assign({}, sprite, { project_id: created.id })))))
+        .then(() => Promise.all((row.backgrounds || []).map(item => Kit.api('/api/assets', { method: 'POST', body: {
+          project_id: created.id, kind: 'background', name: item.name, content_type: 'application/json', data: item.data } }))))
         .then(() => created));
   }
 
   function moveSprite(sprite) {
     return Kit.api('/api/sprites', { method: 'POST', body: { project_id: sprite.project_id, name: sprite.name,
-      width: sprite.width, height: sprite.height, pixels: sprite.pixels, data_url: sprite.data_url } });
+      width: sprite.width, height: sprite.height, pixels: sprite.pixels, data_url: sprite.data_url, palette: sprite.palette || {} } });
   }
 
   $('#moveGuestProjects').on('click', function () {

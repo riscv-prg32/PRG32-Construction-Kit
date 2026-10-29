@@ -47,6 +47,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 from . import project_format, security
 from .db import db, utcnow
 from . import settings as site_settings
+from .messages import fields as message_fields, text as say
 
 FLOW_SECONDS = 600
 HTTP_TIMEOUT = 20
@@ -818,7 +819,7 @@ def _redirect_uri(name: str) -> str:
 
 @bp.errorhandler(CloudError)
 def cloud_error(error: CloudError):
-    return jsonify({"error": str(error), "code": error.code, "retryable": error.retryable, **error.details}), error.status
+    return jsonify({"error": str(error), **message_fields(error), "code": error.code, "retryable": error.retryable, **error.details}), error.status
 
 
 @bp.get("/api/cloud")
@@ -865,7 +866,7 @@ def api_connect(name: str):
 
 
 def _callback_page(message: str, status: int):
-    return render_template("auth_message.html", title="Cloud storage", message=message), status
+    return render_template("auth_message.html", title=say("cloud", "Cloud storage"), message=message), status
 
 
 @bp.get("/cloud/<name>/callback")

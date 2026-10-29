@@ -87,6 +87,8 @@ class Sprite(TimestampedModel):
     height: Mapped[int] = mapped_column(nullable=False, default=16)
     pixels: Mapped[str] = mapped_column(db.Text, nullable=False, default="[]")
     data_url: Mapped[str] = mapped_column(db.Text, nullable=False, default="")
+    # {} for a direct-colour sprite; an indexed sprite's palette and indices (sprite_palette.py).
+    palette: Mapped[str] = mapped_column(db.Text, nullable=False, default="{}")
 
 
 class Asset(TimestampedModel):
@@ -133,17 +135,18 @@ class PublishProfile(TimestampedModel):
 
 RESOURCE_COLUMNS: dict[str, list[str]] = {
     "projects": ["title", "description", "author", "tags", "blocks_json", "game_json", "owner_id"],
-    "sprites": ["project_id", "name", "width", "height", "pixels", "data_url", "owner_id"],
+    "sprites": ["project_id", "name", "width", "height", "pixels", "data_url", "palette", "owner_id"],
     "assets": ["project_id", "name", "kind", "content_type", "data", "owner_id"],
     "artifacts": ["project_id", "sprite_id", "kind", "name", "content_type", "path", "text_content", "metadata", "owner_id"],
     "builds": ["project_id", "status", "log", "c_artifact_id", "bundle_artifact_id", "metadata", "owner_id"],
     "publish_profiles": ["name", "store_url", "bearer_token", "token_set_at", "owner_id"],
 }
 RESOURCE_MODELS = {"projects": Project, "sprites": Sprite, "assets": Asset, "artifacts": Artifact, "builds": Build, "publish_profiles": PublishProfile}
-JSON_COLUMNS = {"projects": {"tags", "blocks_json", "game_json"}, "sprites": {"pixels"}, "assets": {"data"}, "artifacts": {"metadata"}, "builds": {"metadata"}, "publish_profiles": set()}
+JSON_COLUMNS = {"projects": {"tags", "blocks_json", "game_json"}, "sprites": {"pixels", "palette"}, "assets": {"data"}, "artifacts": {"metadata"}, "builds": {"metadata"}, "publish_profiles": set()}
 DEFAULTS: dict[str, dict[str, Any]] = {
     "projects": {"title": "Untitled PRG32 Game", "description": "", "author": "Student", "tags": [], "blocks_json": {}, "game_json": {}, "owner_id": None},
-    "sprites": {"project_id": None, "name": "sprite", "width": 16, "height": 16, "pixels": [], "data_url": "", "owner_id": None},
+    "sprites": {"project_id": None, "name": "sprite", "width": 16, "height": 16, "pixels": [], "data_url": "", "palette": {},
+                "owner_id": None},
     "assets": {"project_id": None, "name": "asset", "kind": "text", "content_type": "text/plain", "data": {}, "owner_id": None},
     "artifacts": {"project_id": None, "sprite_id": None, "kind": "note", "name": "artifact", "content_type": "text/plain", "path": "", "text_content": "", "metadata": {}, "owner_id": None},
     "builds": {"project_id": None, "status": "created", "log": "", "c_artifact_id": None, "bundle_artifact_id": None, "metadata": {}, "owner_id": None},
@@ -234,6 +237,15 @@ def init_db() -> None:
     _add_missing_version_column()
     _add_missing_publishing_columns()
     _add_missing_asset_version()
+    _add_missing_sprite_palette()
+
+
+def _add_missing_sprite_palette() -> None:
+    """Databases made before indexed sprites have no sprites.palette; add it (every sprite direct)."""
+    columns = {column["name"] for column in inspect(db.engine).get_columns("sprites")}
+    if "palette" not in columns:
+        with db.engine.begin() as connection:
+            connection.execute(text("ALTER TABLE sprites ADD COLUMN palette TEXT NOT NULL DEFAULT '{}'"))
 
 
 def _add_missing_asset_version() -> None:

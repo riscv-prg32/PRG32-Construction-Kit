@@ -1,8 +1,8 @@
 # Executive summary
 
-Audit date: 2026-10-23 (Europe/Rome)
+Audit date: 2026-10-26 (Europe/Rome)
 
-Audited revision: `ide/refine-after-e2d0cef` at `f5b3a0ff3f261f424172e57b30602026bd1ffaca`. The tracked tree was clean; pre-existing untracked local helper/refinement files are recorded in `audit/EVIDENCE_INDEX.md`.
+Latest audited revision: `ide/refine-after-e2d0cef` at `e3cf7cecf8361bc188e2e7ef227b1778731d55cc`. See `audit/AUDIT_E3CF7CE.md` for the current findings and test evidence.
 
 Recommendation: **NO-GO**
 
@@ -75,8 +75,14 @@ Earlier retained execution at `951f782`:
 - broad feasible suite: **1,009 passed, 85 skipped, 1 deselected**, with only the five sandbox-denied delivery setups;
 - syntax and locally feasible reproducibility checks passed; toolchain fixture rebuilds were verified from retained Docker evidence but could not run locally.
 
-The expanded matrix score is **132/156 (84.6%)**. The recommendation remains
-**NO-GO** because deployment-specific GDPR decisions/sign-off are open. Other
+After implementation of the 2026-10-24 requirements expansion (Simplified
+Chinese in I18N-01 plus DEP-04 unified deployment and EVAL-01 scientific
+evaluation), the current matrix score is **140/172 (81.4%)**. The recommendation
+remains **NO-GO** because physical-device deployment/evaluation evidence is absent,
+the scientific evaluator retains summaries rather than raw frame samples, the
+documentation visual gate is stale, and the broad suite is not green.
+deployment-specific GDPR decisions/sign-off are open. The new Deploy and Evaluate
+requirements are missing, and Chinese coverage is absent. Other
 blockers are the unmerged shared-account Store patch, canonical upstream audio
 patch adoption, physical PRG32 stereo/delivery evidence, complete QEMU/frame-event
 alignment, human screen-reader evidence and unsupported iOS handoff.

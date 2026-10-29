@@ -7,7 +7,9 @@ and pull request before it can become a classroom build. It has four stages:
    RISC-V assembler so the generated `.S` teaching files are assembled and
    compared with generated C. Python and JavaScript syntax are checked first.
 2. Pull requests receive a dependency review. A newly introduced dependency
-   with a high or critical known vulnerability fails the check.
+   with a high or critical known vulnerability fails the check. If the
+   repository's Dependency graph is off, the job audits `requirements.lock`
+   with `pip-audit` instead.
 3. Docker builds the same full toolchain image used in class. Several pretend
    students compile real ESP32-C6 and QEMU PRG32 cartridges concurrently, then
    CI starts the web service and checks its discovery document.

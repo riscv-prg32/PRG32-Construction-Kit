@@ -49,7 +49,7 @@ HTML_IMG = re.compile(r"<img\b[^>]*>", re.IGNORECASE)
 SETTING = re.compile(r"\bPRG32_[A-Z0-9_]*[A-Z0-9]\b")
 ROUTE = re.compile(r"`(?:(?:GET|POST|PUT|PATCH|DELETE) )?(/api/[A-Za-z0-9_./<>{}:-]*)")
 ABI = re.compile(r"\bABI (\d+)\.(\d+)\b")
-CAPABILITY = re.compile(r"\b(?:IDE|PRJ|BLD|WASM|AUD|DBG|ACC|SSO|CLD|STR|DEP|SEC|GDPR|OPS|DOC|QLT)-\d{2}\b")
+CAPABILITY = re.compile(r"\b(?:IDE|PRJ|BLD|WASM|AUD|DBG|ACC|SSO|CLD|STR|DEP|SEC|GDPR|OPS|DOC|QLT|I18N|PY|EVAL)-\d{2}\b")
 ADR = re.compile(r"\bADR-(\d{4})\b")
 
 

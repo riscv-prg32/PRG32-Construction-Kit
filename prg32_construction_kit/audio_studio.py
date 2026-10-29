@@ -32,6 +32,7 @@ import wave
 from typing import Any
 
 from . import audio_block
+from .messages import text as say
 
 SCHEMA = "prg32-kit-audio-1"
 EXPORT_SCHEMA = "prg32-kit-audio-export-1"
@@ -66,22 +67,22 @@ def default_document() -> dict[str, Any]:
 
 def _int(value: Any, where: str, low: int, high: int) -> int:
     if isinstance(value, bool) or not isinstance(value, int) or not low <= value <= high:
-        raise AudioStudioError(f"{where} must be a whole number from {low} to {high}")
+        raise AudioStudioError(say("audio", "{where} must be a whole number from {low} to {high}", where=where, low=low, high=high))
     return value
 
 
 def _name(value: Any, where: str) -> str:
     if not isinstance(value, str) or not NAME.match(value):
-        raise AudioStudioError(f"{where} needs a name of 1 to 32 letters, digits, spaces, '.', '_' or '-'")
+        raise AudioStudioError(say("audio", "{where} needs a name of 1 to 32 letters, digits, spaces, '.', '_' or '-'", where=where))
     return value
 
 
 def _instrument(value: Any, where: str, sample_names: set[str]) -> dict[str, Any]:
     if not isinstance(value, dict):
-        raise AudioStudioError(f"{where} must be an instrument")
+        raise AudioStudioError(say("audio", "{where} must be an instrument", where=where))
     sound = value.get("sound", "triangle")
     if sound not in SOUNDS:
-        raise AudioStudioError(f"{where}: the sound must be one of {', '.join(SOUNDS)}")
+        raise AudioStudioError(say("audio", "{where}: the sound must be one of {value}", where=where, value=', '.join(SOUNDS)))
     clean = {"name": _name(value.get("name", "Instrument"), where), "sound": sound,
              "pulse_width": _int(value.get("pulse_width", 8), f"{where} pulse width", 0, 15),
              "cutoff": _int(value.get("cutoff", 15), f"{where} cutoff", 0, 15),
@@ -93,7 +94,7 @@ def _instrument(value: Any, where: str, sample_names: set[str]) -> dict[str, Any
     if sound == "sample":
         sample = value.get("sample")
         if sample not in sample_names:
-            raise AudioStudioError(f"{where} plays the sample {sample!r}, which is not in this project")
+            raise AudioStudioError(say("audio", "{where} plays the sample {sample}, which is not in this project", where=where, sample=repr(sample)))
         clean["sample"] = sample
     return clean
 
@@ -101,24 +102,24 @@ def _instrument(value: Any, where: str, sample_names: set[str]) -> dict[str, Any
 def validate_document(document: Any) -> dict[str, Any]:
     """A clean copy of the document, or AudioStudioError with a student-readable message."""
     if not isinstance(document, dict) or document.get("schema") != SCHEMA:
-        raise AudioStudioError(f"not an AudioStudio document ({SCHEMA})")
+        raise AudioStudioError(say("audio", "not an AudioStudio document ({schema})", schema=SCHEMA))
     samples, voices = document.get("samples", []), document.get("voices")
     effects, soundtracks = document.get("effects", []), document.get("soundtracks", [])
     if not isinstance(samples, list) or len(samples) > MAX_SAMPLES:
-        raise AudioStudioError(f"a project can have at most {MAX_SAMPLES} samples")
+        raise AudioStudioError(say("audio", "a project can have at most {max_samples} samples", max_samples=MAX_SAMPLES))
     clean: dict[str, Any] = {"schema": SCHEMA, "voices": [], "effects": [], "soundtracks": [], "samples": []}
     names: set[str] = set()
     for index, sample in enumerate(samples):
         where = f"sample {index + 1}"
         if not isinstance(sample, dict):
-            raise AudioStudioError(f"{where} must be an object")
+            raise AudioStudioError(say("audio", "{where} must be an object", where=where))
         name = _name(sample.get("name"), where)
         if name in names:
-            raise AudioStudioError(f"two samples are called {name!r}")
+            raise AudioStudioError(say("audio", "two samples are called {name}", name=repr(name)))
         names.add(name)
         artifact_id = sample.get("artifact_id")
         if not isinstance(artifact_id, str) or not re.fullmatch(r"[A-Za-z0-9_\-]{1,64}", artifact_id):
-            raise AudioStudioError(f"{where} has no saved sound")
+            raise AudioStudioError(say("audio", "{where} has no saved sound", where=where))
         clean["samples"].append({"name": name, "artifact_id": artifact_id,
                                  "base_note": _int(sample.get("base_note", 60), f"{where} base note", 0, 127),
                                  "loop": bool(sample.get("loop", False)),
@@ -127,18 +128,18 @@ def validate_document(document: Any) -> dict[str, Any]:
                                  "loop_end": _int(sample.get("loop_end", 0), f"{where} loop end", 0,
                                                   audio_block.MAX_SAMPLE_BYTES)})
     if not isinstance(voices, list) or len(voices) != VOICES:
-        raise AudioStudioError("an AudioStudio document has exactly 8 voices")
+        raise AudioStudioError(say("audio", "an AudioStudio document has exactly 8 voices"))
     clean["voices"] = [_instrument(item, f"voice {number}", names) for number, item in enumerate(voices)]
     if not isinstance(effects, list) or len(effects) > MAX_EFFECTS:
-        raise AudioStudioError(f"a project can have at most {MAX_EFFECTS} sound effects")
+        raise AudioStudioError(say("audio", "a project can have at most {max_effects} sound effects", max_effects=MAX_EFFECTS))
     effect_names: set[str] = set()
     for index, effect in enumerate(effects):
         where = f"sound effect {index + 1}"
         if not isinstance(effect, dict):
-            raise AudioStudioError(f"{where} must be an object")
+            raise AudioStudioError(say("audio", "{where} must be an object", where=where))
         name = _name(effect.get("name"), where)
         if name in effect_names:
-            raise AudioStudioError(f"two sound effects are called {name!r}")
+            raise AudioStudioError(say("audio", "two sound effects are called {name}", name=repr(name)))
         effect_names.add(name)
         clean["effects"].append({"name": name, "instrument": _instrument(effect.get("instrument"), f"{where}", names),
                                  "note": _int(effect.get("note", 72), f"{where} note", 0, 127),
@@ -146,24 +147,24 @@ def validate_document(document: Any) -> dict[str, Any]:
                                  "volume": _int(effect.get("volume", 255), f"{where} volume", 0, 255),
                                  "voice": _int(effect.get("voice", 7), f"{where} voice", 0, VOICES - 1)})
     if not isinstance(soundtracks, list) or len(soundtracks) > MAX_SOUNDTRACKS:
-        raise AudioStudioError(f"a project can have at most {MAX_SOUNDTRACKS} soundtracks")
+        raise AudioStudioError(say("audio", "a project can have at most {max_soundtracks} soundtracks", max_soundtracks=MAX_SOUNDTRACKS))
     track_names: set[str] = set()
     for index, track in enumerate(soundtracks):
         where = f"soundtrack {index + 1}"
         if not isinstance(track, dict):
-            raise AudioStudioError(f"{where} must be an object")
+            raise AudioStudioError(say("audio", "{where} must be an object", where=where))
         name = _name(track.get("name"), where)
         if name in track_names:
-            raise AudioStudioError(f"two soundtracks are called {name!r}")
+            raise AudioStudioError(say("audio", "two soundtracks are called {name}", name=repr(name)))
         track_names.add(name)
         steps = _int(track.get("steps", 16), f"{where} steps", 1, MAX_STEPS)
         rows = track.get("rows")
         if not isinstance(rows, list) or len(rows) != VOICES:
-            raise AudioStudioError(f"{where} needs one row per voice (8)")
+            raise AudioStudioError(say("audio", "{where} needs one row per voice (8)", where=where))
         clean_rows = []
         for voice, row in enumerate(rows):
             if not isinstance(row, list) or len(row) != steps:
-                raise AudioStudioError(f"{where}, voice {voice}: the row must have {steps} steps")
+                raise AudioStudioError(say("audio", "{where}, voice {voice}: the row must have {steps} steps", where=where, voice=voice, steps=steps))
             clean_row = []
             for step, cell in enumerate(row):
                 if cell is None or cell == "off":
@@ -239,7 +240,7 @@ def compile_document(document: dict[str, Any], samples: dict[str, bytes], muted:
     for sample in document["samples"]:
         pcm = samples.get(sample["artifact_id"])
         if pcm is None:
-            raise AudioStudioError(f"the sound of the sample {sample['name']!r} is missing")
+            raise AudioStudioError(say("audio", "the sound of the sample {sample} is missing", sample=repr(sample['name'])))
         spec["samples"].append({"pcm": pcm, "base_note": sample["base_note"], "loop": sample["loop"],
                                 "loop_start": sample["loop_start"],
                                 "loop_end": sample["loop_end"] or (len(pcm) if sample["loop"] else 0)})
@@ -268,16 +269,16 @@ MAX_WAV_BYTES = 8 * 1024 * 1024
 def wav_to_sample(data: bytes) -> bytes:
     """A WAV file (8- or 16-bit PCM, mono or stereo, any rate) as 8-bit unsigned 22050 Hz mono."""
     if len(data) > MAX_WAV_BYTES:
-        raise AudioStudioError("the sound file is too big (8 MB at most)")
+        raise AudioStudioError(say("audio", "the sound file is too big (8 MB at most)"))
     try:
         with wave.open(io.BytesIO(data)) as source:
             channels, width, rate = source.getnchannels(), source.getsampwidth(), source.getframerate()
             if source.getcomptype() != "NONE" or width not in (1, 2) or channels not in (1, 2) \
                     or not 4000 <= rate <= 96000:
-                raise AudioStudioError("use an uncompressed 8- or 16-bit WAV file (mono or stereo)")
+                raise AudioStudioError(say("audio", "use an uncompressed 8- or 16-bit WAV file (mono or stereo)"))
             frames = source.readframes(min(source.getnframes(), rate * 30))
     except (wave.Error, EOFError, struct.error) as error:
-        raise AudioStudioError("this is not a WAV file the kit can read") from error
+        raise AudioStudioError(say("audio", "this is not a WAV file the kit can read")) from error
     count = len(frames) // (width * channels)
     values = []
     for index in range(count):
@@ -292,7 +293,7 @@ def wav_to_sample(data: bytes) -> bytes:
         value = values[min(count - 1, index * rate // 22050)] if count else 0
         out.append(max(0, min(255, 128 + (value >> 8))))
     if not out:
-        raise AudioStudioError("the sound file has no sound in it")
+        raise AudioStudioError(say("audio", "the sound file has no sound in it"))
     return bytes(out)
 
 
@@ -307,11 +308,11 @@ def export_document(document: dict[str, Any], samples: dict[str, bytes]) -> dict
 def read_export(export: Any) -> tuple[dict[str, Any], dict[str, bytes]]:
     """(document, artifact id -> sound) from an export, checked; or AudioStudioError."""
     if not isinstance(export, dict) or export.get("schema") != EXPORT_SCHEMA:
-        raise AudioStudioError(f"not an AudioStudio export ({EXPORT_SCHEMA})")
+        raise AudioStudioError(say("audio", "not an AudioStudio export ({export_schema})", export_schema=EXPORT_SCHEMA))
     document = validate_document(copy.deepcopy(export.get("document")))
     sounds = export.get("sounds") or {}
     if not isinstance(sounds, dict):
-        raise AudioStudioError("the export's sounds are damaged")
+        raise AudioStudioError(say("audio", "the export's sounds are damaged"))
     out = {}
     for sample in document["samples"]:
         text = sounds.get(sample["artifact_id"])
@@ -320,6 +321,6 @@ def read_export(export: Any) -> tuple[dict[str, Any], dict[str, bytes]]:
         except ValueError:
             pcm = b""
         if not 1 <= len(pcm) <= audio_block.MAX_SAMPLE_BYTES:
-            raise AudioStudioError(f"the export has no usable sound for the sample {sample['name']!r}")
+            raise AudioStudioError(say("audio", "the export has no usable sound for the sample {sample}", sample=repr(sample['name'])))
         out[sample["artifact_id"]] = pcm
     return document, out

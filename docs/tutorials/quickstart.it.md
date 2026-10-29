@@ -1,10 +1,10 @@
 # Guida rapida (Italiano)
 
 Altre lingue: [English](quickstart.en.md) · [Español](quickstart.es.md) ·
-[Français](quickstart.fr.md) · [Deutsch](quickstart.de.md)
+[Français](quickstart.fr.md) · [Deutsch](quickstart.de.md) · [简体中文](quickstart.zh-Hans.md)
 
 1. **Apri il kit** in un browser. Scegli la lingua con il menu in alto
-   (English, Italiano, Español, Français, Deutsch).
+   (English, Italiano, Español, Français, Deutsch, 简体中文).
 2. **Nessun account?** Premi *Prova senza account*: i tuoi giochi restano solo in questo browser.
 3. **Nuovo progetto.** Scegli come scriverlo: **Blocchi**, **C**, **Assembly (RISC-V)** o
    **Python (PRG32 Python)**. Dagli un titolo e premi *Crea*.

@@ -35,7 +35,9 @@ python3 -m pytest -q
 ## Known vulnerabilities
 
 - **Pull requests:** GitHub's dependency review refuses newly added packages with
-  high-severity advisories.
+  high-severity advisories. It needs the repository's Dependency graph (Settings >
+  Code security); while that is off, the same CI job audits the whole
+  `requirements.lock` with `pip-audit` instead and warns that the review was skipped.
 - **Any time:** run the manual CI job *Known vulnerabilities in the locked packages*
   (`pip-audit` against `requirements.lock`), or locally:
 

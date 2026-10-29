@@ -245,6 +245,21 @@ class ParseContext:
     origins: dict[int, str] = field(default_factory=dict)
     # The project's AudioStudio document (audio_studio.py): sound effects and soundtracks by name.
     audio: dict[str, Any] | None = None
+    # The project's art (project_assets.catalog): sprites and backgrounds by name, and the ones used.
+    art: dict[str, Any] | None = None
+    used_art: dict[str, set[str]] = field(default_factory=lambda: {"sprites": set(), "backgrounds": set()})
+
+    def art_entry(self, kind: str, wanted: Any) -> dict[str, Any] | None:
+        """The sprite or background a block names; a warning when the project has none of that name."""
+        from .project_assets import find
+
+        entry = find((self.art or {}).get(kind) or [], wanted)
+        if entry is None:
+            what = "sprite" if kind == "sprites" else "background"
+            self.warnings.append(f"The {what} {str(wanted)[:64]!r} is not in this project")
+            return None
+        self.used_art[kind].add(entry["name"])
+        return entry
 
     def remember(self, stmt: dict[str, Any], block: dict[str, Any]) -> None:
         if isinstance(block.get("id"), str) and block["id"]:
@@ -439,6 +454,23 @@ def parse_statement(block: dict[str, Any], ctx: ParseContext) -> dict[str, Any] 
     if btype == "prg32_sound_stop_all":
         ctx.features.add("audio")
         return {"op": "sound_stop_all"}
+    if btype == "prg32_draw_project_sprite":
+        # Sprite Lab (docs/project_art.md): the picture travels in the IR, drawn by <name>_draw(x, y).
+        ctx.features.add("sprites")
+        entry = ctx.art_entry("sprites", field_value(block, "SPRITE", ""))
+        if entry is None:
+            return {"op": "comment", "text": f"skipped: no sprite named {str(field_value(block, 'SPRITE', ''))[:64]}"}
+        return {"op": "sprite_draw", "sprite": entry["name"], "name": entry["title"], "x": f("X", 0), "y": f("Y", 0)}
+    if btype in ("prg32_background_load", "prg32_background_draw"):
+        # Backgrounds (docs/backgrounds.md): <name>_load() defines its tiles and map, <name>_draw() draws it.
+        ctx.features.add("tilemap")
+        entry = ctx.art_entry("backgrounds", field_value(block, "BACKGROUND", ""))
+        if entry is None:
+            return {"op": "comment", "text": f"skipped: no background named {str(field_value(block, 'BACKGROUND', ''))[:64]}"}
+        if btype == "prg32_background_load" and any(tile["flags"] for tile in entry["tiles"]):
+            ctx.features.add("platformer")
+        op = "background_load" if btype == "prg32_background_load" else "background_draw"
+        return {"op": op, "background": entry["name"], "name": entry["title"]}
     if btype == "prg32_band_text":
         value = field_value(block, "VALUE", "")
         stmt = {"op": "band", "text": _text(block, "TEXT", "SCORE", 24)}
@@ -484,7 +516,7 @@ def blocks_to_ir(blocks_json: Any, project: dict[str, Any] | None = None) -> dic
 def blocks_to_ir_traced(blocks_json: Any, project: dict[str, Any] | None = None) -> tuple[dict[str, Any], dict[int, str]]:
     """blocks_to_ir, plus which block made each IR statement (keyed by id() of the statement)."""
     project = project or {}
-    ctx = ParseContext(audio=project.get("audio_studio") or None)
+    ctx = ParseContext(audio=project.get("audio_studio") or None, art=project.get("assets") or None)
     init: list[dict[str, Any]] = []
     update: list[dict[str, Any]] = []
     draw: list[dict[str, Any]] = []
@@ -527,7 +559,7 @@ def blocks_to_ir_traced(blocks_json: Any, project: dict[str, Any] | None = None)
 
     title = project.get("title") or "PRG32 Game"
     prefix = c_identifier(project.get("entry_prefix") or title, "prg32_game")
-    return {
+    game_ir = {
         "abi": IR_ABI,
         "title": title,
         "description": project.get("description", ""),
@@ -540,7 +572,17 @@ def blocks_to_ir_traced(blocks_json: Any, project: dict[str, Any] | None = None)
         "update": update,
         "draw": draw,
         "warnings": ctx.warnings,
-    }, ctx.origins
+    }
+    return with_art(game_ir, ctx.art, ctx.used_art), ctx.origins
+
+
+def with_art(game_ir: dict[str, Any], art: dict[str, Any] | None, used: dict[str, set[str]]) -> dict[str, Any]:
+    """The IR with the sprites and backgrounds it uses (catalog order); unchanged when it uses none."""
+    if not any(used.values()):
+        return game_ir
+    chosen = {kind: [entry for entry in (art or {}).get(kind) or [] if entry["name"] in used[kind]]
+              for kind in ("sprites", "backgrounds")}
+    return {**game_ir, "assets": chosen}
 
 
 # ---------------------------------------------------------------------------
@@ -695,6 +737,15 @@ def describe_statement(stmt: dict[str, Any], show: Callable[[Any], str] | None =
         return 'Block "stop soundtrack": the soundtrack stops (notes already playing fade out).'
     if op == "sound_stop_all":
         return 'Block "stop all sounds": every voice goes silent at once.'
+    if op == "sprite_draw":
+        return (f'Block "draw sprite {stmt.get("name")}": the firmware copies the Sprite Lab picture with its '
+                f'top-left corner at ({v("x")}, {v("y")}); see-through pixels are skipped.')
+    if op == "background_load":
+        return (f'Block "load background {stmt.get("name")}": define its tiles and fill the playfield layers with '
+                'its map (do this once, when the game starts).')
+    if op == "background_draw":
+        return (f'Block "draw background {stmt.get("name")}": copy its playfield layers to the screen, layer 0 first, '
+                'then layer 1 with tile 0 see-through.')
     if op == "band":
         shown = f' followed by the value of {v("value")}' if "value" in stmt else ""
         return f'Block "status band": show "{stmt.get("text", "")}"{shown} in the firmware status band.'
@@ -745,6 +796,8 @@ C_SYNTAX_NOTES = {
     "number": "kit helper: turns the number into text, then draws it",
     "bitmap": "the picture is passed by its address: the name of an array is its address",
     "sprite8": "the picture is passed by its address: the name of an array is its address",
+    "sprite_draw": "a function written in part 3 from the Sprite Lab picture",
+    "background_load": "a function written in part 3 from the Backgrounds map",
     "beep": "the inner call runs first; its result becomes the third input of the outer call",
     "band": "1 says 'a number follows'; 0 would show the text alone",
 }
@@ -1294,6 +1347,10 @@ class _Emitter:
         if op == "bitmap":
             self.needs.add("bitmap")
             return [f"{indent}prg32_kit_draw_bitmap({x(stmt.get('x'))}, {x(stmt.get('y'))}, {self.bitmap(stmt.get('rows'))}, {color_macro(stmt.get('color'))}, {x(stmt.get('scale'))});"]
+        if op == "sprite_draw":
+            return [f"{indent}{c_identifier(stmt.get('sprite'), 'sprite')}_draw({x(stmt.get('x'))}, {x(stmt.get('y'))});"]
+        if op in ("background_load", "background_draw"):
+            return [f"{indent}{c_identifier(stmt.get('background'), 'background')}_{op.split('_')[1]}();"]
         if op == "sprite8":
             return [f"{indent}prg32_sprite_draw_8x8({x(stmt.get('x'))}, {x(stmt.get('y'))}, {self.bitmap(stmt.get('rows'))}, {color_macro(stmt.get('fg'))}, {color_macro(stmt.get('bg'))});"]
         if op == "palette_set":
@@ -1382,13 +1439,18 @@ def _section(title: str, *text: str) -> list[str]:
     return ["/* " + rule, f" * {title}", *(f" * {line}".rstrip() for line in text), " * " + rule + " */"]
 
 
-def ir_to_c(game_ir: dict[str, Any], explain: bool = True, trace: dict[int, str] | None = None) -> str:
+def ir_to_c(game_ir: dict[str, Any], explain: bool = True, trace: dict[int, str] | None = None,
+            art_include: bool = False) -> str:
     """Write the game IR as freestanding C, explained line by line for students.
 
     ``explain=False`` leaves out the explanations (the slide decks show short excerpts).
     ``trace`` (from blocks_to_ir_traced) adds source-map marker lines; source_maps.py
     removes them again, leaving exactly the normal output.
+    ``art_include`` writes ``#include "prg32_assets.h"`` instead of the sprites and backgrounds
+    themselves (a Blocks project converted to C keeps following Sprite Lab and Backgrounds).
     """
+    from .project_assets import C_INCLUDE, c_lines as art_lines, c_parts as art_parts
+
     prefix = c_identifier(game_ir.get("entry_prefix"), "prg32_game")
     emitter = _Emitter(game_ir, explain)
     emitter.trace = trace
@@ -1449,10 +1511,13 @@ def ir_to_c(game_ir: dict[str, Any], explain: bool = True, trace: dict[int, str]
     ]
     if explain:
         lines.extend(guide)
+    art = game_ir.get("assets") if isinstance(game_ir.get("assets"), dict) else None
     lines += [
         " */",
         ("#include <stdint.h>", "exact-size types: uint8_t, int16_t, uint32_t, ..."),
         ("#include \"prg32.h\"", "the PRG32 firmware functions and constants"),
+        *(["/* This project's sprites and backgrounds (Sprite Lab, Backgrounds), written in place of the next line: */",
+           f"#include \"{C_INCLUDE}\""] if art and art_include else []),
         "",
         *section("1. CONSTANTS",
                   "#define gives a name to a number. #ifndef ... #endif defines the name only when",
@@ -1491,6 +1556,14 @@ def ir_to_c(game_ir: dict[str, Any], explain: bool = True, trace: dict[int, str]
                 lines.append("/* " + "  ".join(row[:8] for row in bitmap_picture(rows)) + " */")
             lines.append(f"static const uint8_t {name}[8] = {{{', '.join(f'0x{row:02X}' for row in rows)}}};")
         lines.append("")
+    if art and not art_include:
+        lines.extend(section("3. PICTURES: SPRITES AND BACKGROUNDS",
+                              "Made from Sprite Lab and Backgrounds. Each sprite gets a <name>_draw(x, y)",
+                              "function, each background <name>_load() and <name>_draw()."))
+        if explain:
+            lines.extend(art_lines(art, sounds=False))
+        else:
+            lines.extend([line for _comment, code in art_parts(art, sounds=False) for line in code] + [""])
     lines.extend(section("4. GAME STATE",
                           "Variables declared outside any function keep their values from one frame",
                           "to the next. Every variable is a whole number (int); a list is an array."))
@@ -1551,9 +1624,10 @@ def ir_to_c(game_ir: dict[str, Any], explain: bool = True, trace: dict[int, str]
     return "\n".join(lines)
 
 
-def blocks_to_c(blocks_json: Any, project: dict[str, Any] | None = None, explain: bool = True) -> tuple[dict[str, Any], str]:
+def blocks_to_c(blocks_json: Any, project: dict[str, Any] | None = None, explain: bool = True,
+                art_include: bool = False) -> tuple[dict[str, Any], str]:
     game_ir = blocks_to_ir(blocks_json, project)
-    return game_ir, ir_to_c(game_ir, explain)
+    return game_ir, ir_to_c(game_ir, explain, art_include=art_include)
 
 
 # Source-map marker lines (ADR-0015): only ever present while source_maps.py builds a map.
@@ -1583,6 +1657,8 @@ def sprite_to_c(sprite: dict[str, Any]) -> str:
     name = c_identifier(sprite.get("name"), "sprite")
     width = max(1, min(MAX_SPRITE_SIDE, c_int(sprite.get("width"), 16) or 16))
     height = max(1, min(MAX_SPRITE_SIDE, c_int(sprite.get("height"), 16) or 16))
+    if sprite.get("palette"):
+        return indexed_sprite_to_c(name, width, height, sprite["palette"])
     pixels = sprite.get("pixels") if isinstance(sprite.get("pixels"), list) else []
     flat: list[int] = []
     for y in range(height):
@@ -1601,4 +1677,42 @@ def sprite_to_c(sprite: dict[str, Any]) -> str:
         lines.append("    " + ", ".join(f"0x{value:04X}" for value in part) + ("," if y < height - 1 else ""))
     lines.append("};")
     lines.append("")
+    return "\n".join(lines)
+
+
+def indexed_sprite_to_c(name: str, width: int, height: int, palette: Any) -> str:
+    """An indexed sprite as the PRG32 draws it: its RGB565 palette, its packed indices and the
+    prg32_indexed_sprite_t that ties them together (prg32.h; sprite_palette.py)."""
+    from .sprite_palette import bits_per_pixel, checked, packed
+
+    palette = checked(palette, width, height)
+    colors, bits = palette["colors"], bits_per_pixel(len(palette["colors"]))
+    data = packed(palette)
+    transparent = palette["transparent_index"]
+    lines = [
+        f"/* Sprite generated by PRG32-Construction-Kit: {width}x{height}, {len(colors)} colours, {bits} bit(s) per pixel. */",
+        "#include <stdint.h>",
+        '#include "prg32.h"',
+        f"#define {name.upper()}_WIDTH {width}",
+        f"#define {name.upper()}_HEIGHT {height}",
+        "/* The palette: one RGB565 colour per entry"
+        + (f"; entry {transparent} is transparent (not drawn). */" if transparent >= 0 else ". */"),
+        f"static const uint16_t {name}_palette[{len(colors)}] = {{",
+    ]
+    for start in range(0, len(colors), 8):
+        part = colors[start:start + 8]
+        lines.append("    " + ", ".join(f"0x{_rgb565(color):04X}" for color in part)
+                     + ("," if start + 8 < len(colors) else "") + f"  /* {', '.join(part)} */")
+    lines += ["};",
+              f"/* The pixels: one palette entry each, {bits} bit(s), packed most significant first, row after row"
+              f" ({width * height} pixels in {len(data)} bytes instead of {width * height * 2}). */",
+              f"static const uint8_t {name}_indices[{len(data)}] = {{"]
+    for start in range(0, len(data), 16):
+        lines.append("    " + ", ".join(f"0x{value:02X}" for value in data[start:start + 16])
+                     + ("," if start + 16 < len(data) else ""))
+    lines += ["};",
+              f"/* Draw it with prg32_sprite_draw_indexed(x, y, &{name}_sprite, 0); */",
+              f"static const prg32_indexed_sprite_t {name}_sprite = {{",
+              f"    {name}_indices, {name}_palette, {width}, {height}, 1, {len(colors)}, PRG32_SPRITE_BPP_{bits}, {transparent}",
+              "};", ""]
     return "\n".join(lines)

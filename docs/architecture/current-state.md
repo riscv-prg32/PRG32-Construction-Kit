@@ -1,8 +1,8 @@
 # Current state
 
-What the PRG32 repositories contain **now**: `development` at `7c83e71`
-(audited as 127/156 in the GDPR and documentation audit, NO-GO) and the changes
-after it listed under **Milestones**, read from source and from the test runs below. The per-requirement
+What the PRG32 repositories contain **now**: `ide/refine-after-e2d0cef` at `e3cf7ce`
+(audited as 140/172, NO-GO: `../../audit/AUDIT_E3CF7CE.md`), read from source
+and from the test runs below. The per-requirement
 status, with the source symbol and test behind every claim, is
 `../capabilities.md` (generated from `../capabilities.json`). The lists below
 are a summary of that file, and `tests/test_doc_consistency.py` fails when they
@@ -12,7 +12,7 @@ disagree with it. Audit scores belong to the auditor (`../../audit/`).
 
 | Repository | Branch | Commit | Role |
 | --- | --- | --- | --- |
-| PRG32-Construction-Kit | `development` | `7c83e71` (audited); later work under Milestones | This repository. Flask + SQLAlchemy + Bootstrap + jQuery + Blockly + Monaco PWA, all served from `static/vendor/`. MIT. |
+| PRG32-Construction-Kit | `development` | `7a700ba` (audited); later work under Milestones | This repository. Flask + SQLAlchemy + Bootstrap + jQuery + Blockly + Monaco PWA, all served from `static/vendor/`. MIT. |
 | PRG32 | `main` | `679dfb5` | SDK, firmware, `prg32` CLI, portable cartridge builder, ABI 1.6 (`prg32/abi/abi_generated.py`). Open, unmerged proposals from the kit: riscv-prg32/PRG32#45 (buzzer retired, ABI 1.7), #46 (audio frame clock, fresh mixer). |
 | PRG32-QT | `main` | `f6d80ad` (0.4.1) | Qt host; its Qt-free `src/core` is compiled into the kit's browser runtime (`static/wasm/BUILD.json`). Open, unmerged proposal: riscv-prg32/PRG32-QT#1 (firmware audio engine). |
 | CartridgeStore | `main` | `4a3138b` (GDPR remediation); the kit's CI pins `820f74b` | Store, accounts, `/api/publish/bundle` (pending review). `sso_protocol.py` identical to the kit's. From `4a3138b` the shared username needs the kit's proposal `docs/upstream/cartridge-store-shared-identity.patch` (not merged). |
@@ -43,8 +43,14 @@ commit; a milestone is recorded once its commit exists.
 | Audio on one frame clock; whole QEMU recordings equal; upstream PRs | `dc0222fa0e3fe93758c13931b7e266fa28a8446a` | ADR-0021, `tests/test_audio_conformance.py`, `../evidence/qemu-audio/2026-10-21-frame-clock/` |
 | Live suites in one step | `7c83e716796ae8b2a5771173d885d5f20a390209` | `../live_testing.md`, `../evidence/live/2026-10-21/` (audited: 127/156) |
 | Personal data: inventory, notices, rights, breach playbook | `d68a0e74ebe456102953b81f714211f2e68f9b96` | ADR-0022, `../privacy/`, `tests/test_privacy_rights.py`, `tests/test_privacy_records.py` |
+| PRG32 Python projects; the interface in five languages | `9241464` | ADR-0026, ADR-0027, `tests/test_python_project.py`, `tests/test_i18n.py` |
+| Project-aware top menu, `game.py` for Blocks, PRG32 look with Day/Night | `615b0ba`, `d06938f`, `7a700ba` | `tests/test_project_menu*.py`, `tests/test_py_generator.py` (audited: 136/172) |
 
 How each kind of evidence is produced and checked: `../evidence.md`.
+
+The test runs below are **retained** results, each at the commit and date it names; they are not
+re-run for this page. Fresh runs are the CI run of each pushed commit and the auditor's own runs
+(`../../audit/AUDIT_7A700BA.md`, *Verification performed*).
 
 ## Test runs (2026-10-21, macOS, at `ea005c9` plus the documentation work)
 
@@ -101,8 +107,10 @@ capability IDs.
   allow-list with static types and limits, translated into the Blocks' game IR and by the same
   generators into commented C and RV32IM assembly, then into a cartridge; schema v2 archives,
   editor services, debugger on Python lines, provenance with language and IR hashes. [PY-01]
-- Real `.prg32` builds from Blocks, C and assembly; every compile isolated by
-  bubblewrap + seccomp + limits, with provenance and SHA-256. [BLD-01] [BLD-02]
+- Real `.prg32` builds from Blocks, C, assembly and Python (Blocks and Python as their
+  generated C or assembly; `build_check.source_modes_check`, run by the CI toolchain job);
+  every compile isolated by bubblewrap + seccomp + limits, with provenance and SHA-256.
+  [BLD-01] [BLD-02]
 - Browser runtime: the PRG32-QT core as WebAssembly, equal to the native core
   and `prg32qt-headless`. [WASM-01]
 - Eight-voice audio in the browser: the PRG32 firmware's own engine (8 voices,
@@ -113,6 +121,10 @@ capability IDs.
   same engine; one versioned asset per project; named blocks become fixed
   numbers in the generated C and assembly; the audio block is packed
   deterministically into the cartridge build. [AUD-03]
+- Project art in code (ADR-0029): Sprite Lab sprites, Backgrounds and AudioStudio sounds used by
+  name from Blocks, PRG32 Python, C and assembly; C and assembly through `#include
+  "prg32_assets.h"`/`".S"`, written on that same line at build time; Star Catcher in all four
+  languages draws identical frames in `prg32qt-headless`. [ART-01]
 - Player debugger: pause, continue, restart, speeds, instruction/over/out
   stepping, address breakpoints, browser state equal to PRG32-QT's. [DBG-01] [DBG-02] [DBG-03] [DBG-06]
 - Source and block debugging for kit-compiled cartridges (ADR-0015): a saved
@@ -135,29 +147,40 @@ capability IDs.
   builds and their folders. [ACC-01] [ACC-02]
 - Threat model, SSRF controls, build isolation; CI, Docker, migrations,
   health; documentation and traceability. [SEC-01] [OPS-01] [DOC-01]
+- Email sending queue: at most the admin-set number of messages (default 5) with the
+  SMTP server at once, with a to send / sending / sent / failed list on the Email tab. [OPS-02]
+- Activity log and usage statistics for admins: per-person log without content, daily
+  visitor pseudonyms for people without an account, charts, tables and CSV downloads,
+  pseudonymised by default and audited (docs/activity_and_statistics.md). [OPS-03]
 - Self-contained frontend: every library from `static/vendor/`, strict CSP,
   static-only service worker at `/` (ADR-0012).
 
 ### Partly implemented
 
-- Five interface languages (ADR-0027): pages, scripts, blocks, the offline pages and the
-  privacy notice summaries in English, Italian, Spanish, French and German, chosen per reader
-  and cached offline; builds byte-identical in every language. Server-written messages,
-  Blockly's and Monaco's own menus and the long-form docs are still English. [I18N-01]
+- Interface languages (ADR-0027): English, Italian, Spanish, French, German and Simplified
+  Chinese for pages, scripts, blocks, the offline pages, privacy notice summaries and 361
+  server messages (stable keys; build, project, account, admin, sign-in, privacy and settings
+  answers and the server-drawn pages), Blockly's and Monaco's own menus, a CJK font, the quick
+  start and the nine lessons; builds byte-identical in every language. Compiler logs and the
+  reference guides are still English, and
+  no human screen-reader session has been run. [I18N-01]
 - Store bundles against a shared versioned contract (ADR-0018), checked with the
   Store's own code and a throwaway live Store; Store gaps (repeated id/version,
   tokens without expiry) recorded. PRG32-QT delivery recorded through its web API
   (five kit cartridges stored, started and drawn on canonical PRG32-QT); the
   desktop Import menu was not used by a person. [STR-01] [DEP-02]
-- Credentials, throttling and audit log; quality gates without lint, type,
-  coverage or performance budgets. [SEC-02] [QLT-01]
+- Credentials, throttling and audit log; CI quality gates: Ruff lint, an 88% coverage
+  floor, real-browser keyboard, axe-core and performance budgets; no type gate (decided)
+  and no human screen-reader session. [SEC-02] [QLT-01]
 - Personal data (ADR-0022, `docs/privacy/`): field-level record of processing,
   notices with recorded versions, rights workflows (export, request register,
   restriction, erasure across every table, folder, file and cloud token, backups
   re-apply), breach playbook and a technical rehearsal. The controller's legal
   decisions, DPO review, DPIA and a staffed exercise are open: NO-GO. [GDPR-01]
-- Entry point and architecture documents being refreshed after the audit of
-  7c83e71. [DOC-02]
+- Entry point, architecture and pictures: README, generated diagrams, every picture in
+  `../figures/manifest.json` with its recipe and review, screenshots taken again at
+  `d06938f`; `tests/test_doc_consistency.py` checks this page against the capability record,
+  the CI workflow and the supported project types. [DOC-02]
 
 - Google Drive and OneDrive behind one provider interface (ADR-0019), proven
   against in-process fakes and a real browser; no live tenant run yet.
@@ -168,6 +191,21 @@ capability IDs.
   PRG32 firmware in QEMU over the whole recording (with the proposed SDK audio
   patch: one frame-clock scheduling boundary); no console recording yet (procedure, comparison
   tool and evidence check ready). [WASM-02] [AUD-02]
+- Deploy (ADR-0028): one tool in the project menu for a PRG32 console, PRG32-QT and QEMU,
+  behind one adapter interface. Targets are registered by an administrator. Before sending it
+  checks identity, ABI and limits, the build's hash and staleness, and that the named slot is
+  as the student saw it. Progress, log, retry, cancel and a screenshot follow, and every answer
+  says whether it is physical-device evidence. Recorded runs on QEMU (firmware from SDK
+  679dfb5) and canonical PRG32-QT f6d80ad; the console adapter is tested against a stand-in
+  only, so there is no physical-device record. [DEP-04]
+- Evaluate (`docs/evaluate.md`): one versioned performance protocol
+  (`contracts/prg32-evaluation-protocol-1.json`) for a console, PRG32-QT and QEMU. The same
+  hashed cartridge is restarted for warm-up and measured runs, and every broker summary is a
+  dataset row with its unit. Statistics come from the dataset only (95% Student t interval),
+  with CSV, JSON and deterministic, accessible SVG and PDF charts, and comparison only with
+  the same cartridge and protocol. Recorded on QEMU and PRG32-QT; no console, so no
+  physical-device timings. The broker keeps per-case summaries, not every frame.
+  [EVAL-01]
 - Buzzer removal on the kit side: refused by the validators, obsolete-only in
   the editor, silent for old cartridges, guarded by a repository-wide test; the
   SDK's portable ABI still lists it (retirement delivered as a tested
@@ -194,8 +232,10 @@ capability IDs.
    (`tests/test_identity_live.py`) and a throwaway CartridgeStore on loopback with
    temporary data (`tests/test_store_live.py`). No production or institutional
    identity provider, no production Store, no real Google or Microsoft account, no
-   PRG32 hardware and no iOS device has been used; claims about them are absent on
-   purpose. Cloud storage is proven against in-process fakes of both providers.
+   production PRG32 deployment and no iOS device has been used. A development
+   ESP32-C6 was exercised through the shared USB protocol on 2026-10-27; the
+   browser permission flow itself was not part of that physical run. Cloud storage
+   is proven against in-process fakes of both providers.
 
 ---
 

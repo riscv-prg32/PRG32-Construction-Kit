@@ -57,6 +57,8 @@ PYTHON_LANGUAGE_VERSION = 1
 # The portable PRG32 cartridge ABI the kit builds for. These copy
 # prg32/abi/abi_generated.py in the PRG32 SDK (tests check they still match).
 SDK_ABI = {"name": "prg32-portable-abi", "major": 1, "minor": 6, "hash": "0x260f6136"}
+# Older ABI hashes a firmware with SDK_ABI still runs (COMPATIBLE_ABI_HASHES there).
+SDK_COMPATIBLE_ABI_HASHES = (6563778, 1810294992)
 
 # Limits for archives coming from outside. They are far above any classroom
 # project and stop a "zip bomb" from filling the server's memory.
@@ -75,7 +77,7 @@ _SAMPLE_PATH = re.compile(r"^audio/samples/[0-9]{2,3}-[A-Za-z0-9._-]{1,80}\.u8$"
 _SAMPLE_ID = re.compile(r"^[A-Za-z0-9_\-]{1,64}$")
 MAX_SAMPLE_BYTES = audio_block.MAX_SAMPLE_BYTES
 
-SPRITE_FIELDS = ("name", "width", "height", "pixels", "data_url")
+SPRITE_FIELDS = ("name", "width", "height", "pixels", "data_url", "palette")
 ASSET_FIELDS = ("name", "kind", "content_type", "data")
 
 
@@ -433,8 +435,15 @@ def _sprite_row(row: dict[str, Any], path: str) -> dict[str, Any]:
     pixels = row.get("pixels", [])
     if not isinstance(pixels, list):
         raise ProjectFormatError(f"{path}: pixels must be a list")
+    from . import sprite_palette
+
+    try:
+        palette = sprite_palette.checked(row.get("palette", {}), width, height)
+    except sprite_palette.PaletteError as error:
+        raise ProjectFormatError(f"{path}: {error}") from error
     return {"name": _text(row.get("name"), f"{path} name", 120) or "sprite", "width": width, "height": height,
-            "pixels": pixels, "data_url": _text(row.get("data_url"), f"{path} data_url", MAX_ENTRY_BYTES)}
+            "pixels": sprite_palette.pixels_of(palette) if palette else pixels,
+            "data_url": _text(row.get("data_url"), f"{path} data_url", MAX_ENTRY_BYTES), "palette": palette}
 
 
 def _asset_row(row: dict[str, Any], path: str) -> dict[str, Any]:

@@ -34,6 +34,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Mapped, mapped_column
 
 from .db import db, utcnow
+from .messages import body as message_body, fields as message_fields, text as say
 
 
 class SiteSetting(db.Model):
@@ -116,6 +117,12 @@ REGISTRY: tuple[Setting, ...] = (
     Setting("SMTP_USER", "PRG32_SMTP_USER", "email", "str", "SMTP user name", "Empty: no login."),
     Setting("SMTP_PASSWORD", "PRG32_SMTP_PASSWORD", "email", "secret", "SMTP password"),
     Setting("SMTP_TLS", "PRG32_SMTP_TLS", "email", "bool", "Use STARTTLS"),
+    Setting("SMTP_MAX_PARALLEL", "PRG32_SMTP_MAX_PARALLEL", "email", "int", "Email sending queue size",
+            "How many messages are handed to the SMTP server at the same time; the others wait in the queue.",
+            minimum=1, maximum=100),
+    Setting("PRG32_KIT_MAIL_DAYS", "PRG32_KIT_MAIL_DAYS", "email", "int", "Days sent mail stays listed",
+            "Only who it went to, the subject and the outcome: a message's text is wiped once it is sent.",
+            minimum=1, maximum=3650),
     # --- appearance ---------------------------------------------------------------------
     Setting("SITE_NAME", "PRG32_KIT_SITE_NAME", "appearance", "str", "Site name",
             "Shown in the menu bar and the browser tab."),
@@ -141,11 +148,20 @@ REGISTRY: tuple[Setting, ...] = (
     Setting("PRG32_KIT_KEEP_BUILDS", "PRG32_KIT_KEEP_BUILDS", "classroom", "int", "Builds kept per project",
             minimum=1, maximum=1000),
     # --- privacy ------------------------------------------------------------------------
+    Setting("PRG32_AUDIO_RECORDING", "PRG32_AUDIO_RECORDING", "privacy", "bool", "Microphone recording in AudioStudio",
+            "On: AudioStudio can record a sample with the microphone (a student's voice), kept like an uploaded WAV "
+            "file. Off: the Record button is gone; WAV files can still be uploaded (docs/privacy/decisions.md, D-12)."),
     Setting("PRG32_PRIVACY_CONTROLLER", "PRG32_PRIVACY_CONTROLLER", "privacy", "str", "Who runs this kit",
             "The school or organisation responsible for the personal data (shown on /privacy)."),
     Setting("PRG32_PRIVACY_CONTACT", "PRG32_PRIVACY_CONTACT", "privacy", "str", "Privacy contact email"),
     Setting("PRG32_KIT_AUDIT_DAYS", "PRG32_KIT_AUDIT_DAYS", "privacy", "int", "Days the audit log is kept",
             minimum=1, maximum=3650),
+    Setting("PRG32_KIT_ACTIVITY_LOG", "PRG32_KIT_ACTIVITY_LOG", "privacy", "bool", "Activity log and statistics",
+            "On: every page and API request is logged without its content (Activity and Statistics pages). "
+            "Visitors without an account get a pseudonym that changes every day; browsers sending "
+            "Global Privacy Control or Do Not Track are counted without one."),
+    Setting("PRG32_KIT_ACTIVITY_DAYS", "PRG32_KIT_ACTIVITY_DAYS", "privacy", "int", "Days the activity log is kept",
+            minimum=1, maximum=730),
     Setting("PRG32_KIT_BACKUP_DAYS", "PRG32_KIT_BACKUP_DAYS", "privacy", "int", "Days backups are kept",
             minimum=1, maximum=3650),
     Setting("PRG32_KIT_PRIVACY_REQUEST_DAYS", "PRG32_KIT_PRIVACY_REQUEST_DAYS", "privacy", "int",
@@ -198,6 +214,7 @@ ENVIRONMENT_ONLY = (
     ("PRG32_KIT_THROTTLE_*", "sign-in attempt limits"),
     ("PRG32_SAML_*", "SAML sign-in (its routes are made at start-up)"),
     ("PRG32_CLOUD_*_CLIENT_ID / _SECRET", "cloud storage and GitHub app credentials"),
+    ("PRG32_QEMU_FIRMWARE / PRG32_QEMU / PRG32_QEMU_GDB", "Deploy to QEMU on this server (a firmware folder and the programs to run it)"),
 )
 
 _SECRET_PURPOSE = b"site-settings"
@@ -299,15 +316,15 @@ def _clean(setting: Setting, value: Any) -> Any:
     kind = setting.kind
     if kind == "bool":
         if not isinstance(value, bool):
-            raise SettingRefused(f"{setting.label}: must be on or off")
+            raise SettingRefused(say("settings", "{label}: must be on or off", label=setting.label))
         return value
     if kind in ("int", "float"):
         try:
             number = int(value) if kind == "int" else float(value)
         except (TypeError, ValueError):
-            raise SettingRefused(f"{setting.label}: must be a number") from None
+            raise SettingRefused(say("settings", "{label}: must be a number", label=setting.label)) from None
         if isinstance(value, bool):
-            raise SettingRefused(f"{setting.label}: must be a number")
+            raise SettingRefused(say("settings", "{label}: must be a number", label=setting.label))
         if setting.minimum is not None and number < setting.minimum:
             raise SettingRefused(f"{setting.label}: at least {setting.minimum:g}")
         if setting.maximum is not None and number > setting.maximum:
@@ -315,28 +332,28 @@ def _clean(setting: Setting, value: Any) -> Any:
         return number
     if kind == "choice":
         if value not in setting.choices:
-            raise SettingRefused(f"{setting.label}: one of {', '.join(setting.choices)}")
+            raise SettingRefused(say("settings", "{label}: one of {value}", label=setting.label, value=', '.join(setting.choices)))
         return value
     if kind == "list":
         items = value if isinstance(value, list) else str(value or "").split(",")
         cleaned = [str(item).strip() for item in items if str(item).strip()]
         for item in cleaned:
             if not item.startswith(("https://", "http://")) or any(ch.isspace() for ch in item):
-                raise SettingRefused(f"{setting.label}: {item!r} is not a web address")
+                raise SettingRefused(say("settings", "{label}: {item} is not a web address", label=setting.label, item=repr(item)))
         return cleaned or None
     if not isinstance(value, str):
-        raise SettingRefused(f"{setting.label}: must be text")
+        raise SettingRefused(say("settings", "{label}: must be text", label=setting.label))
     limit = 2000 if kind == "text" else 300
     if len(value) > limit:
-        raise SettingRefused(f"{setting.label}: at most {limit} characters")
+        raise SettingRefused(say("settings", "{label}: at most {limit} characters", label=setting.label, limit=limit))
     if kind != "text" and any(ch in value for ch in "\r\n"):
-        raise SettingRefused(f"{setting.label}: one line only")
+        raise SettingRefused(say("settings", "{label}: one line only", label=setting.label))
     value = value.strip()
     if kind == "url" and value and (not value.startswith(("https://", "http://")) or " " in value):
-        raise SettingRefused(f"{setting.label}: must start with https:// or http://")
+        raise SettingRefused(say("settings", "{label}: must start with https:// or http://", label=setting.label))
     if kind == "secret":
         if setting.key == "SSO_SECRET" and value and len(value) < 32:
-            raise SettingRefused(f"{setting.label}: at least 32 characters")
+            raise SettingRefused(say("settings", "{label}: at least 32 characters", label=setting.label))
         from .secrets_at_rest import seal
 
         return seal(value, purpose=_SECRET_PURPOSE)
@@ -352,9 +369,9 @@ def update(changes: dict[str, Any]) -> list[str]:
     for key, value in changes.items():
         setting = BY_KEY.get(key)
         if setting is None:
-            raise SettingRefused(f"unknown setting {key!r}")
+            raise SettingRefused(say("settings", "unknown setting {key}", key=repr(key)))
         if locked(key):
-            raise SettingRefused(f"{setting.label} is set by {setting.env} on the server")
+            raise SettingRefused(say("settings", "{label} is set by {env} on the server", label=setting.label, env=setting.env))
         cleaned[key] = None if value is None else _clean(setting, value)
     now = utcnow()
     revision = (db.session.scalar(select(func.max(SiteSetting.revision))) or 0) + 1
@@ -377,8 +394,6 @@ def update(changes: dict[str, Any]) -> list[str]:
 
 
 # --- the Settings page and its API (admins only) -------------------------------------------
-
-from email.message import EmailMessage  # noqa: E402 - the page's own imports, after the model
 
 from flask import Blueprint, jsonify, render_template, request  # noqa: E402
 
@@ -423,11 +438,11 @@ def api_update_settings():
     payload = request.get_json(silent=True) or {}
     changes = payload.get("settings")
     if not isinstance(changes, dict) or not changes:
-        return jsonify({"error": "send {\"settings\": {NAME: value, ...}}"}), 400
+        return jsonify({**message_body(say("settings", "send {\"settings\": {NAME: value, ...}}"))}), 400
     try:
         keys = update(changes)
     except SettingRefused as error:
-        return jsonify({"error": str(error)}), 400
+        return jsonify({"error": str(error), **message_fields(error)}), 400
     # Names only: values may be secrets or personal (a contact address).
     security.record("settings_update", target_type="settings", metadata={"keys": ",".join(keys)})
     return jsonify({"changed": keys, "settings": describe()})
@@ -435,11 +450,9 @@ def api_update_settings():
 
 @bp.post("/api/admin/settings/smtp_test")
 def api_smtp_test():
-    """Send a test mail to the signed-in admin with the current Email settings."""
-    import smtplib
-
-    from . import security
-    from .auth import User, _smtp_send
+    """Send a test mail to the signed-in admin with the current Email settings, through the queue."""
+    from . import mail_queue, security
+    from .auth import User
 
     principal, refused = _admin_or_refusal()
     if refused:
@@ -447,24 +460,55 @@ def api_smtp_test():
     user = db.session.get(User, principal.id)
     address = (user.email if user else "") or ""
     if not address:
-        return jsonify({"error": "Your account has no email address to send the test to"}), 400
+        return jsonify({**message_body(say("settings", "Your account has no email address to send the test to"))}), 400
     if not str(get("SMTP_HOST") or "").strip():
-        return jsonify({"error": "No SMTP server is set"}), 400
-    message = EmailMessage()
-    message["From"] = get("SMTP_FROM")
-    message["To"] = address
-    message["Subject"] = "PRG32-Construction-Kit test mail"
-    message.set_content("This test mail shows that the kit can send email (sign-up links, sign-in notices).\n")
+        return jsonify({**message_body(say("settings", "No SMTP server is set"))}), 400
     if current_app.config.get("TESTING"):
         current_app.extensions["prg32_last_smtp_test"] = {"email": address}
-    else:
-        try:
-            _smtp_send(message)
-        except (OSError, smtplib.SMTPException) as error:
-            security.record("settings_smtp_test", target_type="settings", outcome="failure")
-            return jsonify({"error": f"The mail could not be sent: {error}"}), 502
+    item = mail_queue.enqueue("smtp_test", address, "PRG32-Construction-Kit test mail",
+                              "This test mail shows that the kit can send email (sign-up links, sign-in notices).\n")
+    # Wait a little for the queue, so the admin hears at once whether the server took it.
+    deadline = time.monotonic() + (0 if current_app.config.get("TESTING") else 20)
+    while item.status in ("queued", "sending") and time.monotonic() < deadline:
+        time.sleep(0.25)
+        db.session.refresh(item)
+    if item.status in ("queued", "sending"):
+        security.record("settings_smtp_test", target_type="settings", outcome="queued")
+        return jsonify({"sent_to": address, "status": item.status, "message_id": item.id}), 202
+    if item.status == "failed" or item.last_error:
+        security.record("settings_smtp_test", target_type="settings", outcome="failure")
+        return jsonify({**message_body(say("settings", "The mail could not be sent: {error}", error=item.last_error)),
+                        "message_id": item.id}), 502
     security.record("settings_smtp_test", target_type="settings")
-    return jsonify({"sent_to": address})
+    return jsonify({"sent_to": address, "status": item.status, "message_id": item.id})
+
+
+@bp.get("/api/admin/mail")
+def api_mail_status():
+    """The email sending queue: its size, how many messages are queued, sending, sent or failed, and the latest."""
+    from . import mail_queue
+
+    _principal, refused = _admin_or_refusal()
+    if refused:
+        return refused
+    try:
+        count = int(request.args.get("limit", "100"))
+    except ValueError:
+        count = 100
+    return jsonify(mail_queue.status(request.args.get("status") or None, count))
+
+
+@bp.post("/api/admin/mail/<int:message_id>/retry")
+def api_mail_retry(message_id: int):
+    from . import mail_queue, security
+
+    _principal, refused = _admin_or_refusal()
+    if refused:
+        return refused
+    if not mail_queue.retry(message_id):
+        return jsonify({**message_body(say("settings", "Only a failed message can be sent again"))}), 409
+    security.record("mail_retry", target_type="mail_outbox", target_id=message_id)
+    return jsonify({"ok": True})
 
 
 # --- maintenance mode and what every page shows ----------------------------------------------
@@ -499,4 +543,5 @@ def init_app(app) -> None:
         return {"site": {"name": get("SITE_NAME") or "PRG32 Construction Kit", "welcome": get("WELCOME_TEXT") or "",
                          "color_scheme": scheme if scheme in COLOR_SCHEMES else "light",
                          "skin": skin, "skin_css": f"css/themes/{skin}.css",
-                         "maintenance": bool(get("MAINTENANCE_MODE"))}}
+                         "maintenance": bool(get("MAINTENANCE_MODE")),
+                         "audio_recording": bool(get("PRG32_AUDIO_RECORDING"))}}

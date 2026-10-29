@@ -1,0 +1,112 @@
+{
+  "address": "http://127.0.0.1:8080",
+  "cartridge_sha256": "3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66",
+  "checks": [
+    {
+      "check": "the target is there",
+      "detail": "",
+      "ok": true
+    },
+    {
+      "check": "the toolchain built the protocol's cartridge",
+      "detail": "",
+      "ok": true
+    },
+    {
+      "check": "the target has cart3 and accepts the cartridge",
+      "detail": "",
+      "ok": true
+    },
+    {
+      "check": "the evaluation completed",
+      "detail": "",
+      "ok": true
+    },
+    {
+      "check": "every run gave a result",
+      "detail": "",
+      "ok": true
+    },
+    {
+      "check": "each measured run has a value for each case and metric",
+      "detail": "",
+      "ok": true
+    },
+    {
+      "check": "the dataset names the cartridge that ran",
+      "detail": "",
+      "ok": true
+    },
+    {
+      "check": "the chart is made again from the saved dataset, byte for byte",
+      "detail": "",
+      "ok": true
+    }
+  ],
+  "date": "2026-10-26T09:52:12+00:00",
+  "evidence": "emulator (PRG32-QT)",
+  "files": {
+    "dataset.csv": "0c3e9270b579f0fb8f07026a666a398858a1c5c5d97e0919325e7b4d5c8729b3",
+    "dataset.json": "19baf9bf06ea3d399d3a9d16cdea488a2182f256df90cea59815ac0ccb539453",
+    "draw_us_mean.pdf": "499fcc8d13c5b2b3a74e44453f9e18b24c0c441cbb47b2021a71e4da59cc8584",
+    "draw_us_mean.svg": "456c89dcd6e93a9a161170a8e0d3eec0c2fa91f80672af1867eb5afa9e1a15dc",
+    "fps_mean.pdf": "09a257550ca34719e4f9e1693965ea072535dfa194753577e8c894f7a18fa2c5",
+    "fps_mean.svg": "f658e8536dbbd98da7efa41fc745191d3dedf0570adf12e21e73a931e5c08fcd",
+    "frame_us_max.pdf": "9a738b86ec32bf69acb75a282258a9166fd17a784913ea2fe866ac0c2ce7dd95",
+    "frame_us_max.svg": "3a2c9e841d8713a1d8caafe623c1cc09afafd1b86882c6bea9ded2717995436b",
+    "frame_us_mean.pdf": "02962676c2d87b0e8b9edad61450dac46cb41fdbeae7045d32aad2056ae1de31",
+    "frame_us_mean.svg": "be9e2f242ed35a934334c4b85b9637468f1fd6a80420b76072a842ce1454cb93",
+    "frame_us_min.pdf": "9c67bc13e3f6996ca52b7fb29968eb3254fba6000c4aa8d26e0d8c0d4cb46295",
+    "frame_us_min.svg": "cd1671bc814a9b1006bc0c0eaaa4790d661cac648625015be4cc64f4aca3f7d3",
+    "frame_us_p50.pdf": "74d43eeccb39a937239e1b76087b6cffd588690a711280bec0e04a7a48ca2ab8",
+    "frame_us_p50.svg": "6c081c5749a0b8f9b2a4fd0179672207131b93553d996cbbed100e3881f18673",
+    "frame_us_p95.pdf": "b806c1ed15604d749cb1fbdaa12ba0c66e3ddb0f964ed176d157ce81d1db2499",
+    "frame_us_p95.svg": "a025167c65f2f3f51e1cfc61f14f06d3b6ba2d58855b1f68aa581298aee09617",
+    "frame_us_p99.pdf": "f9c8ba7e2c13e19fd13b8817a032b2ac72b2099a911a6f8ed01528f8aa681666",
+    "frame_us_p99.svg": "82641fe39820ce781ecb057361e423d433c0625d25d15790eb8b5f9ffc90a899",
+    "missed_deadlines.pdf": "382e4ce3a94a867b6f073623a1f1dac67585d753e128f9b9ec0e26ee8619ad8f",
+    "missed_deadlines.svg": "61414c6324ee2cbaa15d371496f419aba1e1cd33708882c3c468a310a18e4d87",
+    "present_us_mean.pdf": "63dbf79fbd023395278692efcf9a0bbdd808e2f6ea2445023180842b7f0d093b",
+    "present_us_mean.svg": "fd3ef7520b6b447cbf52febb6a33374ab36e01bbd241b379a0cab84815c91812",
+    "update_us_mean.pdf": "b422ecbdb82f41677972262648c6b86a104da19d718a67be5501ce28af207b19",
+    "update_us_mean.svg": "5aeba57f76f6313bfe00187ae9290bbfa8c27b0832bdd9060ff0eb93beae47c3"
+  },
+  "host": {
+    "cpus": 16,
+    "machine": "arm64",
+    "processor": "arm",
+    "python": "3.12.10",
+    "release": "25.6.0",
+    "system": "Darwin"
+  },
+  "kit_commit": "bbb2107a0b837d82561e08158b7f126ce4f04f41",
+  "notes": "Canonical PRG32-QT f6d80ad from a clean clone (cmake, Homebrew Qt 6), run offscreen on the reference Mac with an isolated HOME; its web API on port 8080. Cartridge built by PRG32 SDK 679dfb5. Nothing else heavy ran on the host.",
+  "passed": true,
+  "physical_device": false,
+  "prg32_sdk_commit": "679dfb58783bd007125de9ca0b75eaa077908739",
+  "protocol": "prg32-evaluation-protocol-1",
+  "repetitions": 5,
+  "slot": "cart3",
+  "target": {
+    "abi": {
+      "features": 477,
+      "hash": 638542134,
+      "major": 1,
+      "minor": 6
+    },
+    "fingerprint": "90562685fd783a26",
+    "identity": {
+      "firmware_version": "qt-0.4.1-dev.3+gf6d80ad",
+      "host": "qt",
+      "name": "PRG32",
+      "qemu": false
+    },
+    "limits": {
+      "cart_max_size": 67108864,
+      "cart_ram_size": 67108864
+    }
+  },
+  "target_kind": "prg32qt",
+  "tool": "tools/evaluation_evidence.py",
+  "warm_up": 1
+}

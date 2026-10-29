@@ -138,8 +138,11 @@ def test_a_test_mail_goes_to_the_admin(app, client):
     assert client.post("/api/admin/settings/smtp_test", json={}).status_code == 400     # no SMTP server yet
     assert put(client, SMTP_HOST="smtp.school.example").status_code == 200
     answer = client.post("/api/admin/settings/smtp_test", json={})
-    assert answer.status_code == 200
+    assert answer.status_code == 202 and answer.get_json()["status"] == "queued"     # through the mail queue
     assert app.extensions["prg32_last_smtp_test"]["email"] == answer.get_json()["sent_to"]
+    outbox = client.get("/api/admin/mail").get_json()
+    assert outbox["limit"] == 5 and outbox["counts"]["queued"] == 1
+    assert outbox["messages"][0]["kind"] == "smtp_test"
 
 
 def test_cloud_providers_can_be_switched_off(app, client):

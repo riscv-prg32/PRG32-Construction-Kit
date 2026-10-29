@@ -18,6 +18,7 @@ import io
 import json
 import random
 import struct
+import threading
 import time
 from pathlib import Path
 
@@ -85,12 +86,16 @@ def no_folders(value) -> None:
 
 @pytest.fixture()
 def opened(monkeypatch):
-    """Every path opened through open() while a reader runs."""
+    """Every path the test's own thread opens through open() while a reader runs.
+
+    Background threads left by other tests (the mail queue's slot locks) are not the reader's."""
     seen: list[str] = []
     real_open = builtins.open
+    reader = threading.get_ident()
 
     def watching_open(file, *args, **kwargs):
-        seen.append(str(file))
+        if threading.get_ident() == reader:
+            seen.append(str(file))
         return real_open(file, *args, **kwargs)
 
     monkeypatch.setattr(builtins, "open", watching_open)

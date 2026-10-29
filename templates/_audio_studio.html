@@ -55,6 +55,36 @@
           <div class="col-sm-5"><label class="form-label" for="sampleFile">{{ t("audio_studio.wav_file") }}</label><input class="form-control" type="file" id="sampleFile" accept=".wav,audio/wav,audio/x-wav"></div>
           <div class="col-sm-3"><button class="btn btn-primary w-100" type="submit"><i class="bi bi-upload"></i> {{ t("audio_studio.add_sample") }}</button></div>
         </form>
+        {% if site.audio_recording %}
+        {# Record a sample with the microphone (audio_studio.js, "recording"): kept like an uploaded WAV file. #}
+        <section class="card mb-3 edit-only" id="voiceRecorder" aria-labelledby="voiceRecorderTitle">
+          <div class="card-body">
+            <h3 class="h6" id="voiceRecorderTitle"><i class="bi bi-mic" aria-hidden="true"></i> {{ t("audio_studio.record_title") }}</h3>
+            <p class="small text-muted mb-2">{{ t("audio_studio.record_note") }}</p>
+            <div class="d-flex flex-wrap gap-2 align-items-center mb-2">
+              <button class="btn btn-danger btn-sm" type="button" id="recordStart"><i class="bi bi-record-circle" aria-hidden="true"></i> {{ t("audio_studio.record") }}</button>
+              <button class="btn btn-outline-secondary btn-sm" type="button" id="recordStop" disabled><i class="bi bi-stop-fill" aria-hidden="true"></i> {{ t("audio_studio.record_stop") }}</button>
+              <meter class="voice-meter" id="recordLevel" min="0" max="1" value="0" aria-label="{{ t('audio_studio.record_level') }}"></meter>
+              <span class="small font-monospace" id="recordTime" aria-live="polite">0.0 s</span>
+            </div>
+            <div id="recordTake" hidden>
+              <canvas class="voice-wave border mb-2" id="recordWave" width="600" height="80" role="img" aria-label="{{ t('audio_studio.record_wave') }}"></canvas>
+              <div class="row g-2 align-items-end">
+                <div class="col-6 col-sm-3"><label class="form-label small" for="recordFrom">{{ t("audio_studio.record_from") }}</label>
+                  <input class="form-control form-control-sm" type="number" id="recordFrom" min="0" step="0.05" value="0"></div>
+                <div class="col-6 col-sm-3"><label class="form-label small" for="recordTo">{{ t("audio_studio.record_to") }}</label>
+                  <input class="form-control form-control-sm" type="number" id="recordTo" min="0" step="0.05" value="0"></div>
+                <div class="col-sm-3"><label class="form-label small" for="recordName">{{ t("common.name") }}</label>
+                  <input class="form-control form-control-sm" id="recordName" maxlength="32" placeholder="{{ t('audio_studio.record_name') }}"></div>
+                <div class="col-sm-3 d-flex gap-2">
+                  <button class="btn btn-outline-primary btn-sm" type="button" id="recordListen"><i class="bi bi-play-fill" aria-hidden="true"></i> {{ t("audio_studio.record_listen") }}</button>
+                  <button class="btn btn-primary btn-sm" type="button" id="recordAdd"><i class="bi bi-plus-circle" aria-hidden="true"></i> {{ t("audio_studio.record_add") }}</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+        {% endif %}
         <div id="sampleEditor"></div>
       </div>
     </div>
@@ -62,6 +92,16 @@
       <div class="kit-tool-heading">{{ t("audio_studio.what_the_code_says") }}</div>
       <p class="small mb-2">{{ t("audio_studio.the_generated_c_and_assembly_use") }}</p>
       <pre class="code-panel small mb-0" tabindex="0"><code id="audioIds">Loading…</code></pre>
+      <div class="kit-tool-heading mt-3" id="artUsageSoundLabel">{{ t("art_usage.use_it_in_your_game") }}</div>
+      <div data-art-usage="sound">
+        <select class="form-select form-select-sm mb-1 art-usage-language" aria-labelledby="artUsageSoundLabel">
+          <option value="blocks">{{ t("art_usage.blocks") }}</option>
+          <option value="python">{{ t("art_usage.python") }}</option>
+          <option value="c">C</option>
+          <option value="asm">{{ t("art_usage.assembly") }}</option>
+        </select>
+        <pre class="code-panel small mb-0" tabindex="0"><code class="art-usage-code">{{ t("art_usage.loading") }}</code></pre>
+      </div>
     </aside>
   </div>
 </section>

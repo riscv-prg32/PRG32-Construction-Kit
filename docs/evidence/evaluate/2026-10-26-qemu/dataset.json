@@ -1,0 +1,3166 @@
+{
+ "about": {
+  "cartridge_bytes": 4468,
+  "cartridge_sha256": "3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66",
+  "evaluation_id": "eval_1ab811833807",
+  "evidence": "emulator (QEMU)",
+  "finished_at": "2026-10-26T09:50:55+00:00",
+  "firmware_version": "679dfb5",
+  "host": "qemu",
+  "kit_version": "0.1.0",
+  "physical_device": false,
+  "protocol_version": 1,
+  "repetitions": 5,
+  "runs": [
+   {
+    "cases": 5,
+    "display_backend": "qemu_rgb",
+    "duration_us": 9848159,
+    "memory": {
+     "after_free_bytes": 74124,
+     "after_largest_block": 55296,
+     "baseline_free_bytes": 74124,
+     "baseline_largest_block": 55296,
+     "peak_free_bytes": 73880,
+     "peak_largest_block": 55296
+    },
+    "repetition": 1,
+    "role": "warm-up",
+    "run_id": "perf-1078614-1",
+    "status": "ok",
+    "target": "qemu-esp32c3"
+   },
+   {
+    "cases": 5,
+    "display_backend": "qemu_rgb",
+    "duration_us": 9860899,
+    "memory": {
+     "after_free_bytes": 74128,
+     "after_largest_block": 55296,
+     "baseline_free_bytes": 74128,
+     "baseline_largest_block": 55296,
+     "peak_free_bytes": 73884,
+     "peak_largest_block": 55296
+    },
+    "repetition": 2,
+    "role": "measured",
+    "run_id": "perf-1110371-1",
+    "status": "ok",
+    "target": "qemu-esp32c3"
+   },
+   {
+    "cases": 5,
+    "display_backend": "qemu_rgb",
+    "duration_us": 9862343,
+    "memory": {
+     "after_free_bytes": 74128,
+     "after_largest_block": 55296,
+     "baseline_free_bytes": 74128,
+     "baseline_largest_block": 55296,
+     "peak_free_bytes": 73884,
+     "peak_largest_block": 55296
+    },
+    "repetition": 3,
+    "role": "measured",
+    "run_id": "perf-1102657-1",
+    "status": "ok",
+    "target": "qemu-esp32c3"
+   },
+   {
+    "cases": 5,
+    "display_backend": "qemu_rgb",
+    "duration_us": 9840468,
+    "memory": {
+     "after_free_bytes": 74128,
+     "after_largest_block": 55296,
+     "baseline_free_bytes": 74128,
+     "baseline_largest_block": 55296,
+     "peak_free_bytes": 73884,
+     "peak_largest_block": 55296
+    },
+    "repetition": 4,
+    "role": "measured",
+    "run_id": "perf-1106008-1",
+    "status": "ok",
+    "target": "qemu-esp32c3"
+   },
+   {
+    "cases": 5,
+    "display_backend": "qemu_rgb",
+    "duration_us": 9854504,
+    "memory": {
+     "after_free_bytes": 74128,
+     "after_largest_block": 55296,
+     "baseline_free_bytes": 74128,
+     "baseline_largest_block": 55296,
+     "peak_free_bytes": 73884,
+     "peak_largest_block": 55296
+    },
+    "repetition": 5,
+    "role": "measured",
+    "run_id": "perf-1098812-1",
+    "status": "ok",
+    "target": "qemu-esp32c3"
+   },
+   {
+    "cases": 5,
+    "display_backend": "qemu_rgb",
+    "duration_us": 9866784,
+    "memory": {
+     "after_free_bytes": 74128,
+     "after_largest_block": 55296,
+     "baseline_free_bytes": 74128,
+     "baseline_largest_block": 55296,
+     "peak_free_bytes": 73884,
+     "peak_largest_block": 55296
+    },
+    "repetition": 6,
+    "role": "measured",
+    "run_id": "perf-1091594-1",
+    "status": "ok",
+    "target": "qemu-esp32c3"
+   }
+  ],
+  "started_at": "2026-10-26T09:47:44+00:00",
+  "target": {
+   "abi": {
+    "features": 511,
+    "hash": 638542134,
+    "major": 1,
+    "minor": 6
+   },
+   "fingerprint": "4d36a30a2632a52b",
+   "identity": {
+    "firmware_version": "679dfb5",
+    "host": "qemu",
+    "name": "PRG32",
+    "qemu": true,
+    "sdk_commit": "679dfb58783bd007125de9ca0b75eaa077908739"
+   },
+   "limits": {
+    "cart_max_size": 65536,
+    "cart_ram_size": 65536
+   }
+  },
+  "target_kind": "qemu",
+  "target_name": "QEMU (this server)",
+  "warm_up": 1
+ },
+ "format": "prg32-evaluation-dataset-1",
+ "protocol": {
+  "cases": [
+   {
+    "frames": 60,
+    "goal": "clearing the screen and filling large rectangles",
+    "name": "clear-fill"
+   },
+   {
+    "frames": 60,
+    "goal": "drawing lines of 8x8 text",
+    "name": "text-overlay"
+   },
+   {
+    "frames": 60,
+    "goal": "many moving sprite-sized rectangles",
+    "name": "sprite-storm"
+   },
+   {
+    "frames": 60,
+    "goal": "scrolling pixels and stripes",
+    "name": "scrolling"
+   },
+   {
+    "frames": 60,
+    "goal": "text, sprites and scrolling together",
+    "name": "mixed-gameplay"
+   }
+  ],
+  "caveat": "Times measured on an emulator (PRG32-QT, QEMU) depend on the host computer and on the emulator; they are not the times of a PRG32 console, and a faster or slower emulator run says nothing about the console. Only a prg32 target is a physical device.",
+  "granularity": "PRG32 performance broker ABI 1 keeps one summary per case (mean, percentiles over its frames), not every frame: one run gives one value per case and metric. The statistics are over runs.",
+  "repetition": "the firmware boots again from the same staged flash image and runs the suite once",
+  "required_features": [
+   "metrics"
+  ],
+  "retrieval": "QEMU's GDB stub, once, 30 seconds after the cartridge starts (the suite takes about 10): the broker's state, and for a finished suite the firmware's own prg32_performance_json_alloc(). The firmware is never stopped during the suite; a suite still running at that moment was disturbed, so that run is refused and the next waits twice as long. The QEMU firmware boots the stored cartridge (tools/qemu/sdkconfig.deploy), with SDL's offscreen display",
+  "same_bytes": "The kit builds this source; the cartridge's SHA-256 is recorded with every run. Runs are compared only when their cartridges have the same SHA-256.",
+  "source": "examples/evaluation/prg32_evaluation.c",
+  "source_mode": "c",
+  "source_sha256": "180a81bc68e4c35863dcf94b27a37eb7254495424311889991abd8d7c98afb17",
+  "suite": "prg32-evaluation-1",
+  "timing_source": "the emulated ESP32-C3 timer, read with prg32_perf_now_us(): it follows the host computer's clock",
+  "title": "PRG32 Evaluation",
+  "version": 1
+ },
+ "rows": [
+  {
+   "case": "clear-fill",
+   "metric": "frame_us_mean",
+   "repetition": 1,
+   "role": "warm-up",
+   "run_id": "perf-1078614-1",
+   "unit": "us",
+   "value": 19198.0
+  },
+  {
+   "case": "clear-fill",
+   "metric": "frame_us_p50",
+   "repetition": 1,
+   "role": "warm-up",
+   "run_id": "perf-1078614-1",
+   "unit": "us",
+   "value": 21695.0
+  },
+  {
+   "case": "clear-fill",
+   "metric": "frame_us_p95",
+   "repetition": 1,
+   "role": "warm-up",
+   "run_id": "perf-1078614-1",
+   "unit": "us",
+   "value": 29478.0
+  },
+  {
+   "case": "clear-fill",
+   "metric": "frame_us_p99",
+   "repetition": 1,
+   "role": "warm-up",
+   "run_id": "perf-1078614-1",
+   "unit": "us",
+   "value": 30835.0
+  },
+  {
+   "case": "clear-fill",
+   "metric": "frame_us_min",
+   "repetition": 1,
+   "role": "warm-up",
+   "run_id": "perf-1078614-1",
+   "unit": "us",
+   "value": 1295.0
+  },
+  {
+   "case": "clear-fill",
+   "metric": "frame_us_max",
+   "repetition": 1,
+   "role": "warm-up",
+   "run_id": "perf-1078614-1",
+   "unit": "us",
+   "value": 30835.0
+  },
+  {
+   "case": "clear-fill",
+   "metric": "update_us_mean",
+   "repetition": 1,
+   "role": "warm-up",
+   "run_id": "perf-1078614-1",
+   "unit": "us",
+   "value": 2.0
+  },
+  {
+   "case": "clear-fill",
+   "metric": "draw_us_mean",
+   "repetition": 1,
+   "role": "warm-up",
+   "run_id": "perf-1078614-1",
+   "unit": "us",
+   "value": 135.0
+  },
+  {
+   "case": "clear-fill",
+   "metric": "present_us_mean",
+   "repetition": 1,
+   "role": "warm-up",
+   "run_id": "perf-1078614-1",
+   "unit": "us",
+   "value": 19052.0
+  },
+  {
+   "case": "clear-fill",
+   "metric": "fps_mean",
+   "repetition": 1,
+   "role": "warm-up",
+   "run_id": "perf-1078614-1",
+   "unit": "Hz",
+   "value": 52.08
+  },
+  {
+   "case": "clear-fill",
+   "metric": "missed_deadlines",
+   "repetition": 1,
+   "role": "warm-up",
+   "run_id": "perf-1078614-1",
+   "unit": "frames",
+   "value": 0.0
+  },
+  {
+   "case": "text-overlay",
+   "metric": "frame_us_mean",
+   "repetition": 1,
+   "role": "warm-up",
+   "run_id": "perf-1078614-1",
+   "unit": "us",
+   "value": 17079.0
+  },
+  {
+   "case": "text-overlay",
+   "metric": "frame_us_p50",
+   "repetition": 1,
+   "role": "warm-up",
+   "run_id": "perf-1078614-1",
+   "unit": "us",
+   "value": 19620.0
+  },
+  {
+   "case": "text-overlay",
+   "metric": "frame_us_p95",
+   "repetition": 1,
+   "role": "warm-up",
+   "run_id": "perf-1078614-1",
+   "unit": "us",
+   "value": 29120.0
+  },
+  {
+   "case": "text-overlay",
+   "metric": "frame_us_p99",
+   "repetition": 1,
+   "role": "warm-up",
+   "run_id": "perf-1078614-1",
+   "unit": "us",
+   "value": 31915.0
+  },
+  {
+   "case": "text-overlay",
+   "metric": "frame_us_min",
+   "repetition": 1,
+   "role": "warm-up",
+   "run_id": "perf-1078614-1",
+   "unit": "us",
+   "value": 1283.0
+  },
+  {
+   "case": "text-overlay",
+   "metric": "frame_us_max",
+   "repetition": 1,
+   "role": "warm-up",
+   "run_id": "perf-1078614-1",
+   "unit": "us",
+   "value": 31915.0
+  },
+  {
+   "case": "text-overlay",
+   "metric": "update_us_mean",
+   "repetition": 1,
+   "role": "warm-up",
+   "run_id": "perf-1078614-1",
+   "unit": "us",
+   "value": 2.0
+  },
+  {
+   "case": "text-overlay",
+   "metric": "draw_us_mean",
+   "repetition": 1,
+   "role": "warm-up",
+   "run_id": "perf-1078614-1",
+   "unit": "us",
+   "value": 510.0
+  },
+  {
+   "case": "text-overlay",
+   "metric": "present_us_mean",
+   "repetition": 1,
+   "role": "warm-up",
+   "run_id": "perf-1078614-1",
+   "unit": "us",
+   "value": 16558.0
+  },
+  {
+   "case": "text-overlay",
+   "metric": "fps_mean",
+   "repetition": 1,
+   "role": "warm-up",
+   "run_id": "perf-1078614-1",
+   "unit": "Hz",
+   "value": 58.55
+  },
+  {
+   "case": "text-overlay",
+   "metric": "missed_deadlines",
+   "repetition": 1,
+   "role": "warm-up",
+   "run_id": "perf-1078614-1",
+   "unit": "frames",
+   "value": 0.0
+  },
+  {
+   "case": "sprite-storm",
+   "metric": "frame_us_mean",
+   "repetition": 1,
+   "role": "warm-up",
+   "run_id": "perf-1078614-1",
+   "unit": "us",
+   "value": 16555.0
+  },
+  {
+   "case": "sprite-storm",
+   "metric": "frame_us_p50",
+   "repetition": 1,
+   "role": "warm-up",
+   "run_id": "perf-1078614-1",
+   "unit": "us",
+   "value": 19091.0
+  },
+  {
+   "case": "sprite-storm",
+   "metric": "frame_us_p95",
+   "repetition": 1,
+   "role": "warm-up",
+   "run_id": "perf-1078614-1",
+   "unit": "us",
+   "value": 30538.0
+  },
+  {
+   "case": "sprite-storm",
+   "metric": "frame_us_p99",
+   "repetition": 1,
+   "role": "warm-up",
+   "run_id": "perf-1078614-1",
+   "unit": "us",
+   "value": 32082.0
+  },
+  {
+   "case": "sprite-storm",
+   "metric": "frame_us_min",
+   "repetition": 1,
+   "role": "warm-up",
+   "run_id": "perf-1078614-1",
+   "unit": "us",
+   "value": 1178.0
+  },
+  {
+   "case": "sprite-storm",
+   "metric": "frame_us_max",
+   "repetition": 1,
+   "role": "warm-up",
+   "run_id": "perf-1078614-1",
+   "unit": "us",
+   "value": 32082.0
+  },
+  {
+   "case": "sprite-storm",
+   "metric": "update_us_mean",
+   "repetition": 1,
+   "role": "warm-up",
+   "run_id": "perf-1078614-1",
+   "unit": "us",
+   "value": 2.0
+  },
+  {
+   "case": "sprite-storm",
+   "metric": "draw_us_mean",
+   "repetition": 1,
+   "role": "warm-up",
+   "run_id": "perf-1078614-1",
+   "unit": "us",
+   "value": 136.0
+  },
+  {
+   "case": "sprite-storm",
+   "metric": "present_us_mean",
+   "repetition": 1,
+   "role": "warm-up",
+   "run_id": "perf-1078614-1",
+   "unit": "us",
+   "value": 16408.0
+  },
+  {
+   "case": "sprite-storm",
+   "metric": "fps_mean",
+   "repetition": 1,
+   "role": "warm-up",
+   "run_id": "perf-1078614-1",
+   "unit": "Hz",
+   "value": 60.4
+  },
+  {
+   "case": "sprite-storm",
+   "metric": "missed_deadlines",
+   "repetition": 1,
+   "role": "warm-up",
+   "run_id": "perf-1078614-1",
+   "unit": "frames",
+   "value": 0.0
+  },
+  {
+   "case": "scrolling",
+   "metric": "frame_us_mean",
+   "repetition": 1,
+   "role": "warm-up",
+   "run_id": "perf-1078614-1",
+   "unit": "us",
+   "value": 15313.0
+  },
+  {
+   "case": "scrolling",
+   "metric": "frame_us_p50",
+   "repetition": 1,
+   "role": "warm-up",
+   "run_id": "perf-1078614-1",
+   "unit": "us",
+   "value": 14616.0
+  },
+  {
+   "case": "scrolling",
+   "metric": "frame_us_p95",
+   "repetition": 1,
+   "role": "warm-up",
+   "run_id": "perf-1078614-1",
+   "unit": "us",
+   "value": 29042.0
+  },
+  {
+   "case": "scrolling",
+   "metric": "frame_us_p99",
+   "repetition": 1,
+   "role": "warm-up",
+   "run_id": "perf-1078614-1",
+   "unit": "us",
+   "value": 30620.0
+  },
+  {
+   "case": "scrolling",
+   "metric": "frame_us_min",
+   "repetition": 1,
+   "role": "warm-up",
+   "run_id": "perf-1078614-1",
+   "unit": "us",
+   "value": 1297.0
+  },
+  {
+   "case": "scrolling",
+   "metric": "frame_us_max",
+   "repetition": 1,
+   "role": "warm-up",
+   "run_id": "perf-1078614-1",
+   "unit": "us",
+   "value": 30620.0
+  },
+  {
+   "case": "scrolling",
+   "metric": "update_us_mean",
+   "repetition": 1,
+   "role": "warm-up",
+   "run_id": "perf-1078614-1",
+   "unit": "us",
+   "value": 3.0
+  },
+  {
+   "case": "scrolling",
+   "metric": "draw_us_mean",
+   "repetition": 1,
+   "role": "warm-up",
+   "run_id": "perf-1078614-1",
+   "unit": "us",
+   "value": 148.0
+  },
+  {
+   "case": "scrolling",
+   "metric": "present_us_mean",
+   "repetition": 1,
+   "role": "warm-up",
+   "run_id": "perf-1078614-1",
+   "unit": "us",
+   "value": 15153.0
+  },
+  {
+   "case": "scrolling",
+   "metric": "fps_mean",
+   "repetition": 1,
+   "role": "warm-up",
+   "run_id": "perf-1078614-1",
+   "unit": "Hz",
+   "value": 65.3
+  },
+  {
+   "case": "scrolling",
+   "metric": "missed_deadlines",
+   "repetition": 1,
+   "role": "warm-up",
+   "run_id": "perf-1078614-1",
+   "unit": "frames",
+   "value": 0.0
+  },
+  {
+   "case": "mixed-gameplay",
+   "metric": "frame_us_mean",
+   "repetition": 1,
+   "role": "warm-up",
+   "run_id": "perf-1078614-1",
+   "unit": "us",
+   "value": 15246.0
+  },
+  {
+   "case": "mixed-gameplay",
+   "metric": "frame_us_p50",
+   "repetition": 1,
+   "role": "warm-up",
+   "run_id": "perf-1078614-1",
+   "unit": "us",
+   "value": 13224.0
+  },
+  {
+   "case": "mixed-gameplay",
+   "metric": "frame_us_p95",
+   "repetition": 1,
+   "role": "warm-up",
+   "run_id": "perf-1078614-1",
+   "unit": "us",
+   "value": 28617.0
+  },
+  {
+   "case": "mixed-gameplay",
+   "metric": "frame_us_p99",
+   "repetition": 1,
+   "role": "warm-up",
+   "run_id": "perf-1078614-1",
+   "unit": "us",
+   "value": 29832.0
+  },
+  {
+   "case": "mixed-gameplay",
+   "metric": "frame_us_min",
+   "repetition": 1,
+   "role": "warm-up",
+   "run_id": "perf-1078614-1",
+   "unit": "us",
+   "value": 1260.0
+  },
+  {
+   "case": "mixed-gameplay",
+   "metric": "frame_us_max",
+   "repetition": 1,
+   "role": "warm-up",
+   "run_id": "perf-1078614-1",
+   "unit": "us",
+   "value": 29832.0
+  },
+  {
+   "case": "mixed-gameplay",
+   "metric": "update_us_mean",
+   "repetition": 1,
+   "role": "warm-up",
+   "run_id": "perf-1078614-1",
+   "unit": "us",
+   "value": 2.0
+  },
+  {
+   "case": "mixed-gameplay",
+   "metric": "draw_us_mean",
+   "repetition": 1,
+   "role": "warm-up",
+   "run_id": "perf-1078614-1",
+   "unit": "us",
+   "value": 154.0
+  },
+  {
+   "case": "mixed-gameplay",
+   "metric": "present_us_mean",
+   "repetition": 1,
+   "role": "warm-up",
+   "run_id": "perf-1078614-1",
+   "unit": "us",
+   "value": 15081.0
+  },
+  {
+   "case": "mixed-gameplay",
+   "metric": "fps_mean",
+   "repetition": 1,
+   "role": "warm-up",
+   "run_id": "perf-1078614-1",
+   "unit": "Hz",
+   "value": 65.59
+  },
+  {
+   "case": "mixed-gameplay",
+   "metric": "missed_deadlines",
+   "repetition": 1,
+   "role": "warm-up",
+   "run_id": "perf-1078614-1",
+   "unit": "frames",
+   "value": 0.0
+  },
+  {
+   "case": "clear-fill",
+   "metric": "frame_us_mean",
+   "repetition": 2,
+   "role": "measured",
+   "run_id": "perf-1110371-1",
+   "unit": "us",
+   "value": 19433.0
+  },
+  {
+   "case": "clear-fill",
+   "metric": "frame_us_p50",
+   "repetition": 2,
+   "role": "measured",
+   "run_id": "perf-1110371-1",
+   "unit": "us",
+   "value": 21355.0
+  },
+  {
+   "case": "clear-fill",
+   "metric": "frame_us_p95",
+   "repetition": 2,
+   "role": "measured",
+   "run_id": "perf-1110371-1",
+   "unit": "us",
+   "value": 29392.0
+  },
+  {
+   "case": "clear-fill",
+   "metric": "frame_us_p99",
+   "repetition": 2,
+   "role": "measured",
+   "run_id": "perf-1110371-1",
+   "unit": "us",
+   "value": 31243.0
+  },
+  {
+   "case": "clear-fill",
+   "metric": "frame_us_min",
+   "repetition": 2,
+   "role": "measured",
+   "run_id": "perf-1110371-1",
+   "unit": "us",
+   "value": 2353.0
+  },
+  {
+   "case": "clear-fill",
+   "metric": "frame_us_max",
+   "repetition": 2,
+   "role": "measured",
+   "run_id": "perf-1110371-1",
+   "unit": "us",
+   "value": 31243.0
+  },
+  {
+   "case": "clear-fill",
+   "metric": "update_us_mean",
+   "repetition": 2,
+   "role": "measured",
+   "run_id": "perf-1110371-1",
+   "unit": "us",
+   "value": 2.0
+  },
+  {
+   "case": "clear-fill",
+   "metric": "draw_us_mean",
+   "repetition": 2,
+   "role": "measured",
+   "run_id": "perf-1110371-1",
+   "unit": "us",
+   "value": 142.0
+  },
+  {
+   "case": "clear-fill",
+   "metric": "present_us_mean",
+   "repetition": 2,
+   "role": "measured",
+   "run_id": "perf-1110371-1",
+   "unit": "us",
+   "value": 19281.0
+  },
+  {
+   "case": "clear-fill",
+   "metric": "fps_mean",
+   "repetition": 2,
+   "role": "measured",
+   "run_id": "perf-1110371-1",
+   "unit": "Hz",
+   "value": 51.45
+  },
+  {
+   "case": "clear-fill",
+   "metric": "missed_deadlines",
+   "repetition": 2,
+   "role": "measured",
+   "run_id": "perf-1110371-1",
+   "unit": "frames",
+   "value": 0.0
+  },
+  {
+   "case": "text-overlay",
+   "metric": "frame_us_mean",
+   "repetition": 2,
+   "role": "measured",
+   "run_id": "perf-1110371-1",
+   "unit": "us",
+   "value": 18734.0
+  },
+  {
+   "case": "text-overlay",
+   "metric": "frame_us_p50",
+   "repetition": 2,
+   "role": "measured",
+   "run_id": "perf-1110371-1",
+   "unit": "us",
+   "value": 21060.0
+  },
+  {
+   "case": "text-overlay",
+   "metric": "frame_us_p95",
+   "repetition": 2,
+   "role": "measured",
+   "run_id": "perf-1110371-1",
+   "unit": "us",
+   "value": 28667.0
+  },
+  {
+   "case": "text-overlay",
+   "metric": "frame_us_p99",
+   "repetition": 2,
+   "role": "measured",
+   "run_id": "perf-1110371-1",
+   "unit": "us",
+   "value": 29863.0
+  },
+  {
+   "case": "text-overlay",
+   "metric": "frame_us_min",
+   "repetition": 2,
+   "role": "measured",
+   "run_id": "perf-1110371-1",
+   "unit": "us",
+   "value": 1230.0
+  },
+  {
+   "case": "text-overlay",
+   "metric": "frame_us_max",
+   "repetition": 2,
+   "role": "measured",
+   "run_id": "perf-1110371-1",
+   "unit": "us",
+   "value": 29863.0
+  },
+  {
+   "case": "text-overlay",
+   "metric": "update_us_mean",
+   "repetition": 2,
+   "role": "measured",
+   "run_id": "perf-1110371-1",
+   "unit": "us",
+   "value": 2.0
+  },
+  {
+   "case": "text-overlay",
+   "metric": "draw_us_mean",
+   "repetition": 2,
+   "role": "measured",
+   "run_id": "perf-1110371-1",
+   "unit": "us",
+   "value": 497.0
+  },
+  {
+   "case": "text-overlay",
+   "metric": "present_us_mean",
+   "repetition": 2,
+   "role": "measured",
+   "run_id": "perf-1110371-1",
+   "unit": "us",
+   "value": 18226.0
+  },
+  {
+   "case": "text-overlay",
+   "metric": "fps_mean",
+   "repetition": 2,
+   "role": "measured",
+   "run_id": "perf-1110371-1",
+   "unit": "Hz",
+   "value": 53.37
+  },
+  {
+   "case": "text-overlay",
+   "metric": "missed_deadlines",
+   "repetition": 2,
+   "role": "measured",
+   "run_id": "perf-1110371-1",
+   "unit": "frames",
+   "value": 0.0
+  },
+  {
+   "case": "sprite-storm",
+   "metric": "frame_us_mean",
+   "repetition": 2,
+   "role": "measured",
+   "run_id": "perf-1110371-1",
+   "unit": "us",
+   "value": 16053.0
+  },
+  {
+   "case": "sprite-storm",
+   "metric": "frame_us_p50",
+   "repetition": 2,
+   "role": "measured",
+   "run_id": "perf-1110371-1",
+   "unit": "us",
+   "value": 18580.0
+  },
+  {
+   "case": "sprite-storm",
+   "metric": "frame_us_p95",
+   "repetition": 2,
+   "role": "measured",
+   "run_id": "perf-1110371-1",
+   "unit": "us",
+   "value": 29738.0
+  },
+  {
+   "case": "sprite-storm",
+   "metric": "frame_us_p99",
+   "repetition": 2,
+   "role": "measured",
+   "run_id": "perf-1110371-1",
+   "unit": "us",
+   "value": 31772.0
+  },
+  {
+   "case": "sprite-storm",
+   "metric": "frame_us_min",
+   "repetition": 2,
+   "role": "measured",
+   "run_id": "perf-1110371-1",
+   "unit": "us",
+   "value": 1177.0
+  },
+  {
+   "case": "sprite-storm",
+   "metric": "frame_us_max",
+   "repetition": 2,
+   "role": "measured",
+   "run_id": "perf-1110371-1",
+   "unit": "us",
+   "value": 31772.0
+  },
+  {
+   "case": "sprite-storm",
+   "metric": "update_us_mean",
+   "repetition": 2,
+   "role": "measured",
+   "run_id": "perf-1110371-1",
+   "unit": "us",
+   "value": 2.0
+  },
+  {
+   "case": "sprite-storm",
+   "metric": "draw_us_mean",
+   "repetition": 2,
+   "role": "measured",
+   "run_id": "perf-1110371-1",
+   "unit": "us",
+   "value": 143.0
+  },
+  {
+   "case": "sprite-storm",
+   "metric": "present_us_mean",
+   "repetition": 2,
+   "role": "measured",
+   "run_id": "perf-1110371-1",
+   "unit": "us",
+   "value": 15899.0
+  },
+  {
+   "case": "sprite-storm",
+   "metric": "fps_mean",
+   "repetition": 2,
+   "role": "measured",
+   "run_id": "perf-1110371-1",
+   "unit": "Hz",
+   "value": 62.29
+  },
+  {
+   "case": "sprite-storm",
+   "metric": "missed_deadlines",
+   "repetition": 2,
+   "role": "measured",
+   "run_id": "perf-1110371-1",
+   "unit": "frames",
+   "value": 0.0
+  },
+  {
+   "case": "scrolling",
+   "metric": "frame_us_mean",
+   "repetition": 2,
+   "role": "measured",
+   "run_id": "perf-1110371-1",
+   "unit": "us",
+   "value": 14590.0
+  },
+  {
+   "case": "scrolling",
+   "metric": "frame_us_p50",
+   "repetition": 2,
+   "role": "measured",
+   "run_id": "perf-1110371-1",
+   "unit": "us",
+   "value": 12527.0
+  },
+  {
+   "case": "scrolling",
+   "metric": "frame_us_p95",
+   "repetition": 2,
+   "role": "measured",
+   "run_id": "perf-1110371-1",
+   "unit": "us",
+   "value": 28410.0
+  },
+  {
+   "case": "scrolling",
+   "metric": "frame_us_p99",
+   "repetition": 2,
+   "role": "measured",
+   "run_id": "perf-1110371-1",
+   "unit": "us",
+   "value": 30887.0
+  },
+  {
+   "case": "scrolling",
+   "metric": "frame_us_min",
+   "repetition": 2,
+   "role": "measured",
+   "run_id": "perf-1110371-1",
+   "unit": "us",
+   "value": 2331.0
+  },
+  {
+   "case": "scrolling",
+   "metric": "frame_us_max",
+   "repetition": 2,
+   "role": "measured",
+   "run_id": "perf-1110371-1",
+   "unit": "us",
+   "value": 30887.0
+  },
+  {
+   "case": "scrolling",
+   "metric": "update_us_mean",
+   "repetition": 2,
+   "role": "measured",
+   "run_id": "perf-1110371-1",
+   "unit": "us",
+   "value": 2.0
+  },
+  {
+   "case": "scrolling",
+   "metric": "draw_us_mean",
+   "repetition": 2,
+   "role": "measured",
+   "run_id": "perf-1110371-1",
+   "unit": "us",
+   "value": 165.0
+  },
+  {
+   "case": "scrolling",
+   "metric": "present_us_mean",
+   "repetition": 2,
+   "role": "measured",
+   "run_id": "perf-1110371-1",
+   "unit": "us",
+   "value": 14413.0
+  },
+  {
+   "case": "scrolling",
+   "metric": "fps_mean",
+   "repetition": 2,
+   "role": "measured",
+   "run_id": "perf-1110371-1",
+   "unit": "Hz",
+   "value": 68.54
+  },
+  {
+   "case": "scrolling",
+   "metric": "missed_deadlines",
+   "repetition": 2,
+   "role": "measured",
+   "run_id": "perf-1110371-1",
+   "unit": "frames",
+   "value": 0.0
+  },
+  {
+   "case": "mixed-gameplay",
+   "metric": "frame_us_mean",
+   "repetition": 2,
+   "role": "measured",
+   "run_id": "perf-1110371-1",
+   "unit": "us",
+   "value": 17525.0
+  },
+  {
+   "case": "mixed-gameplay",
+   "metric": "frame_us_p50",
+   "repetition": 2,
+   "role": "measured",
+   "run_id": "perf-1110371-1",
+   "unit": "us",
+   "value": 19685.0
+  },
+  {
+   "case": "mixed-gameplay",
+   "metric": "frame_us_p95",
+   "repetition": 2,
+   "role": "measured",
+   "run_id": "perf-1110371-1",
+   "unit": "us",
+   "value": 30455.0
+  },
+  {
+   "case": "mixed-gameplay",
+   "metric": "frame_us_p99",
+   "repetition": 2,
+   "role": "measured",
+   "run_id": "perf-1110371-1",
+   "unit": "us",
+   "value": 31490.0
+  },
+  {
+   "case": "mixed-gameplay",
+   "metric": "frame_us_min",
+   "repetition": 2,
+   "role": "measured",
+   "run_id": "perf-1110371-1",
+   "unit": "us",
+   "value": 3766.0
+  },
+  {
+   "case": "mixed-gameplay",
+   "metric": "frame_us_max",
+   "repetition": 2,
+   "role": "measured",
+   "run_id": "perf-1110371-1",
+   "unit": "us",
+   "value": 31490.0
+  },
+  {
+   "case": "mixed-gameplay",
+   "metric": "update_us_mean",
+   "repetition": 2,
+   "role": "measured",
+   "run_id": "perf-1110371-1",
+   "unit": "us",
+   "value": 2.0
+  },
+  {
+   "case": "mixed-gameplay",
+   "metric": "draw_us_mean",
+   "repetition": 2,
+   "role": "measured",
+   "run_id": "perf-1110371-1",
+   "unit": "us",
+   "value": 139.0
+  },
+  {
+   "case": "mixed-gameplay",
+   "metric": "present_us_mean",
+   "repetition": 2,
+   "role": "measured",
+   "run_id": "perf-1110371-1",
+   "unit": "us",
+   "value": 17375.0
+  },
+  {
+   "case": "mixed-gameplay",
+   "metric": "fps_mean",
+   "repetition": 2,
+   "role": "measured",
+   "run_id": "perf-1110371-1",
+   "unit": "Hz",
+   "value": 57.06
+  },
+  {
+   "case": "mixed-gameplay",
+   "metric": "missed_deadlines",
+   "repetition": 2,
+   "role": "measured",
+   "run_id": "perf-1110371-1",
+   "unit": "frames",
+   "value": 0.0
+  },
+  {
+   "case": "clear-fill",
+   "metric": "frame_us_mean",
+   "repetition": 3,
+   "role": "measured",
+   "run_id": "perf-1102657-1",
+   "unit": "us",
+   "value": 21025.0
+  },
+  {
+   "case": "clear-fill",
+   "metric": "frame_us_p50",
+   "repetition": 3,
+   "role": "measured",
+   "run_id": "perf-1102657-1",
+   "unit": "us",
+   "value": 22041.0
+  },
+  {
+   "case": "clear-fill",
+   "metric": "frame_us_p95",
+   "repetition": 3,
+   "role": "measured",
+   "run_id": "perf-1102657-1",
+   "unit": "us",
+   "value": 29071.0
+  },
+  {
+   "case": "clear-fill",
+   "metric": "frame_us_p99",
+   "repetition": 3,
+   "role": "measured",
+   "run_id": "perf-1102657-1",
+   "unit": "us",
+   "value": 31055.0
+  },
+  {
+   "case": "clear-fill",
+   "metric": "frame_us_min",
+   "repetition": 3,
+   "role": "measured",
+   "run_id": "perf-1102657-1",
+   "unit": "us",
+   "value": 3710.0
+  },
+  {
+   "case": "clear-fill",
+   "metric": "frame_us_max",
+   "repetition": 3,
+   "role": "measured",
+   "run_id": "perf-1102657-1",
+   "unit": "us",
+   "value": 31055.0
+  },
+  {
+   "case": "clear-fill",
+   "metric": "update_us_mean",
+   "repetition": 3,
+   "role": "measured",
+   "run_id": "perf-1102657-1",
+   "unit": "us",
+   "value": 2.0
+  },
+  {
+   "case": "clear-fill",
+   "metric": "draw_us_mean",
+   "repetition": 3,
+   "role": "measured",
+   "run_id": "perf-1102657-1",
+   "unit": "us",
+   "value": 134.0
+  },
+  {
+   "case": "clear-fill",
+   "metric": "present_us_mean",
+   "repetition": 3,
+   "role": "measured",
+   "run_id": "perf-1102657-1",
+   "unit": "us",
+   "value": 20880.0
+  },
+  {
+   "case": "clear-fill",
+   "metric": "fps_mean",
+   "repetition": 3,
+   "role": "measured",
+   "run_id": "perf-1102657-1",
+   "unit": "Hz",
+   "value": 47.56
+  },
+  {
+   "case": "clear-fill",
+   "metric": "missed_deadlines",
+   "repetition": 3,
+   "role": "measured",
+   "run_id": "perf-1102657-1",
+   "unit": "frames",
+   "value": 0.0
+  },
+  {
+   "case": "text-overlay",
+   "metric": "frame_us_mean",
+   "repetition": 3,
+   "role": "measured",
+   "run_id": "perf-1102657-1",
+   "unit": "us",
+   "value": 16017.0
+  },
+  {
+   "case": "text-overlay",
+   "metric": "frame_us_p50",
+   "repetition": 3,
+   "role": "measured",
+   "run_id": "perf-1102657-1",
+   "unit": "us",
+   "value": 17368.0
+  },
+  {
+   "case": "text-overlay",
+   "metric": "frame_us_p95",
+   "repetition": 3,
+   "role": "measured",
+   "run_id": "perf-1102657-1",
+   "unit": "us",
+   "value": 26459.0
+  },
+  {
+   "case": "text-overlay",
+   "metric": "frame_us_p99",
+   "repetition": 3,
+   "role": "measured",
+   "run_id": "perf-1102657-1",
+   "unit": "us",
+   "value": 29273.0
+  },
+  {
+   "case": "text-overlay",
+   "metric": "frame_us_min",
+   "repetition": 3,
+   "role": "measured",
+   "run_id": "perf-1102657-1",
+   "unit": "us",
+   "value": 1195.0
+  },
+  {
+   "case": "text-overlay",
+   "metric": "frame_us_max",
+   "repetition": 3,
+   "role": "measured",
+   "run_id": "perf-1102657-1",
+   "unit": "us",
+   "value": 29273.0
+  },
+  {
+   "case": "text-overlay",
+   "metric": "update_us_mean",
+   "repetition": 3,
+   "role": "measured",
+   "run_id": "perf-1102657-1",
+   "unit": "us",
+   "value": 2.0
+  },
+  {
+   "case": "text-overlay",
+   "metric": "draw_us_mean",
+   "repetition": 3,
+   "role": "measured",
+   "run_id": "perf-1102657-1",
+   "unit": "us",
+   "value": 531.0
+  },
+  {
+   "case": "text-overlay",
+   "metric": "present_us_mean",
+   "repetition": 3,
+   "role": "measured",
+   "run_id": "perf-1102657-1",
+   "unit": "us",
+   "value": 15475.0
+  },
+  {
+   "case": "text-overlay",
+   "metric": "fps_mean",
+   "repetition": 3,
+   "role": "measured",
+   "run_id": "perf-1102657-1",
+   "unit": "Hz",
+   "value": 62.43
+  },
+  {
+   "case": "text-overlay",
+   "metric": "missed_deadlines",
+   "repetition": 3,
+   "role": "measured",
+   "run_id": "perf-1102657-1",
+   "unit": "frames",
+   "value": 0.0
+  },
+  {
+   "case": "sprite-storm",
+   "metric": "frame_us_mean",
+   "repetition": 3,
+   "role": "measured",
+   "run_id": "perf-1102657-1",
+   "unit": "us",
+   "value": 17353.0
+  },
+  {
+   "case": "sprite-storm",
+   "metric": "frame_us_p50",
+   "repetition": 3,
+   "role": "measured",
+   "run_id": "perf-1102657-1",
+   "unit": "us",
+   "value": 19225.0
+  },
+  {
+   "case": "sprite-storm",
+   "metric": "frame_us_p95",
+   "repetition": 3,
+   "role": "measured",
+   "run_id": "perf-1102657-1",
+   "unit": "us",
+   "value": 29913.0
+  },
+  {
+   "case": "sprite-storm",
+   "metric": "frame_us_p99",
+   "repetition": 3,
+   "role": "measured",
+   "run_id": "perf-1102657-1",
+   "unit": "us",
+   "value": 32406.0
+  },
+  {
+   "case": "sprite-storm",
+   "metric": "frame_us_min",
+   "repetition": 3,
+   "role": "measured",
+   "run_id": "perf-1102657-1",
+   "unit": "us",
+   "value": 1221.0
+  },
+  {
+   "case": "sprite-storm",
+   "metric": "frame_us_max",
+   "repetition": 3,
+   "role": "measured",
+   "run_id": "perf-1102657-1",
+   "unit": "us",
+   "value": 32406.0
+  },
+  {
+   "case": "sprite-storm",
+   "metric": "update_us_mean",
+   "repetition": 3,
+   "role": "measured",
+   "run_id": "perf-1102657-1",
+   "unit": "us",
+   "value": 2.0
+  },
+  {
+   "case": "sprite-storm",
+   "metric": "draw_us_mean",
+   "repetition": 3,
+   "role": "measured",
+   "run_id": "perf-1102657-1",
+   "unit": "us",
+   "value": 134.0
+  },
+  {
+   "case": "sprite-storm",
+   "metric": "present_us_mean",
+   "repetition": 3,
+   "role": "measured",
+   "run_id": "perf-1102657-1",
+   "unit": "us",
+   "value": 17208.0
+  },
+  {
+   "case": "sprite-storm",
+   "metric": "fps_mean",
+   "repetition": 3,
+   "role": "measured",
+   "run_id": "perf-1102657-1",
+   "unit": "Hz",
+   "value": 57.62
+  },
+  {
+   "case": "sprite-storm",
+   "metric": "missed_deadlines",
+   "repetition": 3,
+   "role": "measured",
+   "run_id": "perf-1102657-1",
+   "unit": "frames",
+   "value": 0.0
+  },
+  {
+   "case": "scrolling",
+   "metric": "frame_us_mean",
+   "repetition": 3,
+   "role": "measured",
+   "run_id": "perf-1102657-1",
+   "unit": "us",
+   "value": 18658.0
+  },
+  {
+   "case": "scrolling",
+   "metric": "frame_us_p50",
+   "repetition": 3,
+   "role": "measured",
+   "run_id": "perf-1102657-1",
+   "unit": "us",
+   "value": 20664.0
+  },
+  {
+   "case": "scrolling",
+   "metric": "frame_us_p95",
+   "repetition": 3,
+   "role": "measured",
+   "run_id": "perf-1102657-1",
+   "unit": "us",
+   "value": 30147.0
+  },
+  {
+   "case": "scrolling",
+   "metric": "frame_us_p99",
+   "repetition": 3,
+   "role": "measured",
+   "run_id": "perf-1102657-1",
+   "unit": "us",
+   "value": 31898.0
+  },
+  {
+   "case": "scrolling",
+   "metric": "frame_us_min",
+   "repetition": 3,
+   "role": "measured",
+   "run_id": "perf-1102657-1",
+   "unit": "us",
+   "value": 2429.0
+  },
+  {
+   "case": "scrolling",
+   "metric": "frame_us_max",
+   "repetition": 3,
+   "role": "measured",
+   "run_id": "perf-1102657-1",
+   "unit": "us",
+   "value": 31898.0
+  },
+  {
+   "case": "scrolling",
+   "metric": "update_us_mean",
+   "repetition": 3,
+   "role": "measured",
+   "run_id": "perf-1102657-1",
+   "unit": "us",
+   "value": 2.0
+  },
+  {
+   "case": "scrolling",
+   "metric": "draw_us_mean",
+   "repetition": 3,
+   "role": "measured",
+   "run_id": "perf-1102657-1",
+   "unit": "us",
+   "value": 141.0
+  },
+  {
+   "case": "scrolling",
+   "metric": "present_us_mean",
+   "repetition": 3,
+   "role": "measured",
+   "run_id": "perf-1102657-1",
+   "unit": "us",
+   "value": 18507.0
+  },
+  {
+   "case": "scrolling",
+   "metric": "fps_mean",
+   "repetition": 3,
+   "role": "measured",
+   "run_id": "perf-1102657-1",
+   "unit": "Hz",
+   "value": 53.59
+  },
+  {
+   "case": "scrolling",
+   "metric": "missed_deadlines",
+   "repetition": 3,
+   "role": "measured",
+   "run_id": "perf-1102657-1",
+   "unit": "frames",
+   "value": 0.0
+  },
+  {
+   "case": "mixed-gameplay",
+   "metric": "frame_us_mean",
+   "repetition": 3,
+   "role": "measured",
+   "run_id": "perf-1102657-1",
+   "unit": "us",
+   "value": 19011.0
+  },
+  {
+   "case": "mixed-gameplay",
+   "metric": "frame_us_p50",
+   "repetition": 3,
+   "role": "measured",
+   "run_id": "perf-1102657-1",
+   "unit": "us",
+   "value": 20988.0
+  },
+  {
+   "case": "mixed-gameplay",
+   "metric": "frame_us_p95",
+   "repetition": 3,
+   "role": "measured",
+   "run_id": "perf-1102657-1",
+   "unit": "us",
+   "value": 29788.0
+  },
+  {
+   "case": "mixed-gameplay",
+   "metric": "frame_us_p99",
+   "repetition": 3,
+   "role": "measured",
+   "run_id": "perf-1102657-1",
+   "unit": "us",
+   "value": 30559.0
+  },
+  {
+   "case": "mixed-gameplay",
+   "metric": "frame_us_min",
+   "repetition": 3,
+   "role": "measured",
+   "run_id": "perf-1102657-1",
+   "unit": "us",
+   "value": 1222.0
+  },
+  {
+   "case": "mixed-gameplay",
+   "metric": "frame_us_max",
+   "repetition": 3,
+   "role": "measured",
+   "run_id": "perf-1102657-1",
+   "unit": "us",
+   "value": 30559.0
+  },
+  {
+   "case": "mixed-gameplay",
+   "metric": "update_us_mean",
+   "repetition": 3,
+   "role": "measured",
+   "run_id": "perf-1102657-1",
+   "unit": "us",
+   "value": 2.0
+  },
+  {
+   "case": "mixed-gameplay",
+   "metric": "draw_us_mean",
+   "repetition": 3,
+   "role": "measured",
+   "run_id": "perf-1102657-1",
+   "unit": "us",
+   "value": 138.0
+  },
+  {
+   "case": "mixed-gameplay",
+   "metric": "present_us_mean",
+   "repetition": 3,
+   "role": "measured",
+   "run_id": "perf-1102657-1",
+   "unit": "us",
+   "value": 18863.0
+  },
+  {
+   "case": "mixed-gameplay",
+   "metric": "fps_mean",
+   "repetition": 3,
+   "role": "measured",
+   "run_id": "perf-1102657-1",
+   "unit": "Hz",
+   "value": 52.6
+  },
+  {
+   "case": "mixed-gameplay",
+   "metric": "missed_deadlines",
+   "repetition": 3,
+   "role": "measured",
+   "run_id": "perf-1102657-1",
+   "unit": "frames",
+   "value": 0.0
+  },
+  {
+   "case": "clear-fill",
+   "metric": "frame_us_mean",
+   "repetition": 4,
+   "role": "measured",
+   "run_id": "perf-1106008-1",
+   "unit": "us",
+   "value": 18074.0
+  },
+  {
+   "case": "clear-fill",
+   "metric": "frame_us_p50",
+   "repetition": 4,
+   "role": "measured",
+   "run_id": "perf-1106008-1",
+   "unit": "us",
+   "value": 20173.0
+  },
+  {
+   "case": "clear-fill",
+   "metric": "frame_us_p95",
+   "repetition": 4,
+   "role": "measured",
+   "run_id": "perf-1106008-1",
+   "unit": "us",
+   "value": 28589.0
+  },
+  {
+   "case": "clear-fill",
+   "metric": "frame_us_p99",
+   "repetition": 4,
+   "role": "measured",
+   "run_id": "perf-1106008-1",
+   "unit": "us",
+   "value": 30530.0
+  },
+  {
+   "case": "clear-fill",
+   "metric": "frame_us_min",
+   "repetition": 4,
+   "role": "measured",
+   "run_id": "perf-1106008-1",
+   "unit": "us",
+   "value": 1265.0
+  },
+  {
+   "case": "clear-fill",
+   "metric": "frame_us_max",
+   "repetition": 4,
+   "role": "measured",
+   "run_id": "perf-1106008-1",
+   "unit": "us",
+   "value": 30530.0
+  },
+  {
+   "case": "clear-fill",
+   "metric": "update_us_mean",
+   "repetition": 4,
+   "role": "measured",
+   "run_id": "perf-1106008-1",
+   "unit": "us",
+   "value": 3.0
+  },
+  {
+   "case": "clear-fill",
+   "metric": "draw_us_mean",
+   "repetition": 4,
+   "role": "measured",
+   "run_id": "perf-1106008-1",
+   "unit": "us",
+   "value": 146.0
+  },
+  {
+   "case": "clear-fill",
+   "metric": "present_us_mean",
+   "repetition": 4,
+   "role": "measured",
+   "run_id": "perf-1106008-1",
+   "unit": "us",
+   "value": 17916.0
+  },
+  {
+   "case": "clear-fill",
+   "metric": "fps_mean",
+   "repetition": 4,
+   "role": "measured",
+   "run_id": "perf-1106008-1",
+   "unit": "Hz",
+   "value": 55.32
+  },
+  {
+   "case": "clear-fill",
+   "metric": "missed_deadlines",
+   "repetition": 4,
+   "role": "measured",
+   "run_id": "perf-1106008-1",
+   "unit": "frames",
+   "value": 0.0
+  },
+  {
+   "case": "text-overlay",
+   "metric": "frame_us_mean",
+   "repetition": 4,
+   "role": "measured",
+   "run_id": "perf-1106008-1",
+   "unit": "us",
+   "value": 17142.0
+  },
+  {
+   "case": "text-overlay",
+   "metric": "frame_us_p50",
+   "repetition": 4,
+   "role": "measured",
+   "run_id": "perf-1106008-1",
+   "unit": "us",
+   "value": 18632.0
+  },
+  {
+   "case": "text-overlay",
+   "metric": "frame_us_p95",
+   "repetition": 4,
+   "role": "measured",
+   "run_id": "perf-1106008-1",
+   "unit": "us",
+   "value": 29645.0
+  },
+  {
+   "case": "text-overlay",
+   "metric": "frame_us_p99",
+   "repetition": 4,
+   "role": "measured",
+   "run_id": "perf-1106008-1",
+   "unit": "us",
+   "value": 31175.0
+  },
+  {
+   "case": "text-overlay",
+   "metric": "frame_us_min",
+   "repetition": 4,
+   "role": "measured",
+   "run_id": "perf-1106008-1",
+   "unit": "us",
+   "value": 1249.0
+  },
+  {
+   "case": "text-overlay",
+   "metric": "frame_us_max",
+   "repetition": 4,
+   "role": "measured",
+   "run_id": "perf-1106008-1",
+   "unit": "us",
+   "value": 31175.0
+  },
+  {
+   "case": "text-overlay",
+   "metric": "update_us_mean",
+   "repetition": 4,
+   "role": "measured",
+   "run_id": "perf-1106008-1",
+   "unit": "us",
+   "value": 2.0
+  },
+  {
+   "case": "text-overlay",
+   "metric": "draw_us_mean",
+   "repetition": 4,
+   "role": "measured",
+   "run_id": "perf-1106008-1",
+   "unit": "us",
+   "value": 539.0
+  },
+  {
+   "case": "text-overlay",
+   "metric": "present_us_mean",
+   "repetition": 4,
+   "role": "measured",
+   "run_id": "perf-1106008-1",
+   "unit": "us",
+   "value": 16592.0
+  },
+  {
+   "case": "text-overlay",
+   "metric": "fps_mean",
+   "repetition": 4,
+   "role": "measured",
+   "run_id": "perf-1106008-1",
+   "unit": "Hz",
+   "value": 58.33
+  },
+  {
+   "case": "text-overlay",
+   "metric": "missed_deadlines",
+   "repetition": 4,
+   "role": "measured",
+   "run_id": "perf-1106008-1",
+   "unit": "frames",
+   "value": 0.0
+  },
+  {
+   "case": "sprite-storm",
+   "metric": "frame_us_mean",
+   "repetition": 4,
+   "role": "measured",
+   "run_id": "perf-1106008-1",
+   "unit": "us",
+   "value": 18206.0
+  },
+  {
+   "case": "sprite-storm",
+   "metric": "frame_us_p50",
+   "repetition": 4,
+   "role": "measured",
+   "run_id": "perf-1106008-1",
+   "unit": "us",
+   "value": 19869.0
+  },
+  {
+   "case": "sprite-storm",
+   "metric": "frame_us_p95",
+   "repetition": 4,
+   "role": "measured",
+   "run_id": "perf-1106008-1",
+   "unit": "us",
+   "value": 28675.0
+  },
+  {
+   "case": "sprite-storm",
+   "metric": "frame_us_p99",
+   "repetition": 4,
+   "role": "measured",
+   "run_id": "perf-1106008-1",
+   "unit": "us",
+   "value": 31064.0
+  },
+  {
+   "case": "sprite-storm",
+   "metric": "frame_us_min",
+   "repetition": 4,
+   "role": "measured",
+   "run_id": "perf-1106008-1",
+   "unit": "us",
+   "value": 2492.0
+  },
+  {
+   "case": "sprite-storm",
+   "metric": "frame_us_max",
+   "repetition": 4,
+   "role": "measured",
+   "run_id": "perf-1106008-1",
+   "unit": "us",
+   "value": 31064.0
+  },
+  {
+   "case": "sprite-storm",
+   "metric": "update_us_mean",
+   "repetition": 4,
+   "role": "measured",
+   "run_id": "perf-1106008-1",
+   "unit": "us",
+   "value": 2.0
+  },
+  {
+   "case": "sprite-storm",
+   "metric": "draw_us_mean",
+   "repetition": 4,
+   "role": "measured",
+   "run_id": "perf-1106008-1",
+   "unit": "us",
+   "value": 132.0
+  },
+  {
+   "case": "sprite-storm",
+   "metric": "present_us_mean",
+   "repetition": 4,
+   "role": "measured",
+   "run_id": "perf-1106008-1",
+   "unit": "us",
+   "value": 18064.0
+  },
+  {
+   "case": "sprite-storm",
+   "metric": "fps_mean",
+   "repetition": 4,
+   "role": "measured",
+   "run_id": "perf-1106008-1",
+   "unit": "Hz",
+   "value": 54.92
+  },
+  {
+   "case": "sprite-storm",
+   "metric": "missed_deadlines",
+   "repetition": 4,
+   "role": "measured",
+   "run_id": "perf-1106008-1",
+   "unit": "frames",
+   "value": 0.0
+  },
+  {
+   "case": "scrolling",
+   "metric": "frame_us_mean",
+   "repetition": 4,
+   "role": "measured",
+   "run_id": "perf-1106008-1",
+   "unit": "us",
+   "value": 16532.0
+  },
+  {
+   "case": "scrolling",
+   "metric": "frame_us_p50",
+   "repetition": 4,
+   "role": "measured",
+   "run_id": "perf-1106008-1",
+   "unit": "us",
+   "value": 19008.0
+  },
+  {
+   "case": "scrolling",
+   "metric": "frame_us_p95",
+   "repetition": 4,
+   "role": "measured",
+   "run_id": "perf-1106008-1",
+   "unit": "us",
+   "value": 28860.0
+  },
+  {
+   "case": "scrolling",
+   "metric": "frame_us_p99",
+   "repetition": 4,
+   "role": "measured",
+   "run_id": "perf-1106008-1",
+   "unit": "us",
+   "value": 31943.0
+  },
+  {
+   "case": "scrolling",
+   "metric": "frame_us_min",
+   "repetition": 4,
+   "role": "measured",
+   "run_id": "perf-1106008-1",
+   "unit": "us",
+   "value": 1262.0
+  },
+  {
+   "case": "scrolling",
+   "metric": "frame_us_max",
+   "repetition": 4,
+   "role": "measured",
+   "run_id": "perf-1106008-1",
+   "unit": "us",
+   "value": 31943.0
+  },
+  {
+   "case": "scrolling",
+   "metric": "update_us_mean",
+   "repetition": 4,
+   "role": "measured",
+   "run_id": "perf-1106008-1",
+   "unit": "us",
+   "value": 2.0
+  },
+  {
+   "case": "scrolling",
+   "metric": "draw_us_mean",
+   "repetition": 4,
+   "role": "measured",
+   "run_id": "perf-1106008-1",
+   "unit": "us",
+   "value": 149.0
+  },
+  {
+   "case": "scrolling",
+   "metric": "present_us_mean",
+   "repetition": 4,
+   "role": "measured",
+   "run_id": "perf-1106008-1",
+   "unit": "us",
+   "value": 16373.0
+  },
+  {
+   "case": "scrolling",
+   "metric": "fps_mean",
+   "repetition": 4,
+   "role": "measured",
+   "run_id": "perf-1106008-1",
+   "unit": "Hz",
+   "value": 60.48
+  },
+  {
+   "case": "scrolling",
+   "metric": "missed_deadlines",
+   "repetition": 4,
+   "role": "measured",
+   "run_id": "perf-1106008-1",
+   "unit": "frames",
+   "value": 0.0
+  },
+  {
+   "case": "mixed-gameplay",
+   "metric": "frame_us_mean",
+   "repetition": 4,
+   "role": "measured",
+   "run_id": "perf-1106008-1",
+   "unit": "us",
+   "value": 17346.0
+  },
+  {
+   "case": "mixed-gameplay",
+   "metric": "frame_us_p50",
+   "repetition": 4,
+   "role": "measured",
+   "run_id": "perf-1106008-1",
+   "unit": "us",
+   "value": 19620.0
+  },
+  {
+   "case": "mixed-gameplay",
+   "metric": "frame_us_p95",
+   "repetition": 4,
+   "role": "measured",
+   "run_id": "perf-1106008-1",
+   "unit": "us",
+   "value": 30071.0
+  },
+  {
+   "case": "mixed-gameplay",
+   "metric": "frame_us_p99",
+   "repetition": 4,
+   "role": "measured",
+   "run_id": "perf-1106008-1",
+   "unit": "us",
+   "value": 31086.0
+  },
+  {
+   "case": "mixed-gameplay",
+   "metric": "frame_us_min",
+   "repetition": 4,
+   "role": "measured",
+   "run_id": "perf-1106008-1",
+   "unit": "us",
+   "value": 1074.0
+  },
+  {
+   "case": "mixed-gameplay",
+   "metric": "frame_us_max",
+   "repetition": 4,
+   "role": "measured",
+   "run_id": "perf-1106008-1",
+   "unit": "us",
+   "value": 31086.0
+  },
+  {
+   "case": "mixed-gameplay",
+   "metric": "update_us_mean",
+   "repetition": 4,
+   "role": "measured",
+   "run_id": "perf-1106008-1",
+   "unit": "us",
+   "value": 2.0
+  },
+  {
+   "case": "mixed-gameplay",
+   "metric": "draw_us_mean",
+   "repetition": 4,
+   "role": "measured",
+   "run_id": "perf-1106008-1",
+   "unit": "us",
+   "value": 153.0
+  },
+  {
+   "case": "mixed-gameplay",
+   "metric": "present_us_mean",
+   "repetition": 4,
+   "role": "measured",
+   "run_id": "perf-1106008-1",
+   "unit": "us",
+   "value": 17182.0
+  },
+  {
+   "case": "mixed-gameplay",
+   "metric": "fps_mean",
+   "repetition": 4,
+   "role": "measured",
+   "run_id": "perf-1106008-1",
+   "unit": "Hz",
+   "value": 57.65
+  },
+  {
+   "case": "mixed-gameplay",
+   "metric": "missed_deadlines",
+   "repetition": 4,
+   "role": "measured",
+   "run_id": "perf-1106008-1",
+   "unit": "frames",
+   "value": 0.0
+  },
+  {
+   "case": "clear-fill",
+   "metric": "frame_us_mean",
+   "repetition": 5,
+   "role": "measured",
+   "run_id": "perf-1098812-1",
+   "unit": "us",
+   "value": 17916.0
+  },
+  {
+   "case": "clear-fill",
+   "metric": "frame_us_p50",
+   "repetition": 5,
+   "role": "measured",
+   "run_id": "perf-1098812-1",
+   "unit": "us",
+   "value": 19942.0
+  },
+  {
+   "case": "clear-fill",
+   "metric": "frame_us_p95",
+   "repetition": 5,
+   "role": "measured",
+   "run_id": "perf-1098812-1",
+   "unit": "us",
+   "value": 27318.0
+  },
+  {
+   "case": "clear-fill",
+   "metric": "frame_us_p99",
+   "repetition": 5,
+   "role": "measured",
+   "run_id": "perf-1098812-1",
+   "unit": "us",
+   "value": 32528.0
+  },
+  {
+   "case": "clear-fill",
+   "metric": "frame_us_min",
+   "repetition": 5,
+   "role": "measured",
+   "run_id": "perf-1098812-1",
+   "unit": "us",
+   "value": 1195.0
+  },
+  {
+   "case": "clear-fill",
+   "metric": "frame_us_max",
+   "repetition": 5,
+   "role": "measured",
+   "run_id": "perf-1098812-1",
+   "unit": "us",
+   "value": 32528.0
+  },
+  {
+   "case": "clear-fill",
+   "metric": "update_us_mean",
+   "repetition": 5,
+   "role": "measured",
+   "run_id": "perf-1098812-1",
+   "unit": "us",
+   "value": 2.0
+  },
+  {
+   "case": "clear-fill",
+   "metric": "draw_us_mean",
+   "repetition": 5,
+   "role": "measured",
+   "run_id": "perf-1098812-1",
+   "unit": "us",
+   "value": 142.0
+  },
+  {
+   "case": "clear-fill",
+   "metric": "present_us_mean",
+   "repetition": 5,
+   "role": "measured",
+   "run_id": "perf-1098812-1",
+   "unit": "us",
+   "value": 17763.0
+  },
+  {
+   "case": "clear-fill",
+   "metric": "fps_mean",
+   "repetition": 5,
+   "role": "measured",
+   "run_id": "perf-1098812-1",
+   "unit": "Hz",
+   "value": 55.81
+  },
+  {
+   "case": "clear-fill",
+   "metric": "missed_deadlines",
+   "repetition": 5,
+   "role": "measured",
+   "run_id": "perf-1098812-1",
+   "unit": "frames",
+   "value": 0.0
+  },
+  {
+   "case": "text-overlay",
+   "metric": "frame_us_mean",
+   "repetition": 5,
+   "role": "measured",
+   "run_id": "perf-1098812-1",
+   "unit": "us",
+   "value": 16090.0
+  },
+  {
+   "case": "text-overlay",
+   "metric": "frame_us_p50",
+   "repetition": 5,
+   "role": "measured",
+   "run_id": "perf-1098812-1",
+   "unit": "us",
+   "value": 16368.0
+  },
+  {
+   "case": "text-overlay",
+   "metric": "frame_us_p95",
+   "repetition": 5,
+   "role": "measured",
+   "run_id": "perf-1098812-1",
+   "unit": "us",
+   "value": 28519.0
+  },
+  {
+   "case": "text-overlay",
+   "metric": "frame_us_p99",
+   "repetition": 5,
+   "role": "measured",
+   "run_id": "perf-1098812-1",
+   "unit": "us",
+   "value": 31998.0
+  },
+  {
+   "case": "text-overlay",
+   "metric": "frame_us_min",
+   "repetition": 5,
+   "role": "measured",
+   "run_id": "perf-1098812-1",
+   "unit": "us",
+   "value": 1122.0
+  },
+  {
+   "case": "text-overlay",
+   "metric": "frame_us_max",
+   "repetition": 5,
+   "role": "measured",
+   "run_id": "perf-1098812-1",
+   "unit": "us",
+   "value": 31998.0
+  },
+  {
+   "case": "text-overlay",
+   "metric": "update_us_mean",
+   "repetition": 5,
+   "role": "measured",
+   "run_id": "perf-1098812-1",
+   "unit": "us",
+   "value": 2.0
+  },
+  {
+   "case": "text-overlay",
+   "metric": "draw_us_mean",
+   "repetition": 5,
+   "role": "measured",
+   "run_id": "perf-1098812-1",
+   "unit": "us",
+   "value": 532.0
+  },
+  {
+   "case": "text-overlay",
+   "metric": "present_us_mean",
+   "repetition": 5,
+   "role": "measured",
+   "run_id": "perf-1098812-1",
+   "unit": "us",
+   "value": 15548.0
+  },
+  {
+   "case": "text-overlay",
+   "metric": "fps_mean",
+   "repetition": 5,
+   "role": "measured",
+   "run_id": "perf-1098812-1",
+   "unit": "Hz",
+   "value": 62.15
+  },
+  {
+   "case": "text-overlay",
+   "metric": "missed_deadlines",
+   "repetition": 5,
+   "role": "measured",
+   "run_id": "perf-1098812-1",
+   "unit": "frames",
+   "value": 0.0
+  },
+  {
+   "case": "sprite-storm",
+   "metric": "frame_us_mean",
+   "repetition": 5,
+   "role": "measured",
+   "run_id": "perf-1098812-1",
+   "unit": "us",
+   "value": 16298.0
+  },
+  {
+   "case": "sprite-storm",
+   "metric": "frame_us_p50",
+   "repetition": 5,
+   "role": "measured",
+   "run_id": "perf-1098812-1",
+   "unit": "us",
+   "value": 17967.0
+  },
+  {
+   "case": "sprite-storm",
+   "metric": "frame_us_p95",
+   "repetition": 5,
+   "role": "measured",
+   "run_id": "perf-1098812-1",
+   "unit": "us",
+   "value": 28637.0
+  },
+  {
+   "case": "sprite-storm",
+   "metric": "frame_us_p99",
+   "repetition": 5,
+   "role": "measured",
+   "run_id": "perf-1098812-1",
+   "unit": "us",
+   "value": 30868.0
+  },
+  {
+   "case": "sprite-storm",
+   "metric": "frame_us_min",
+   "repetition": 5,
+   "role": "measured",
+   "run_id": "perf-1098812-1",
+   "unit": "us",
+   "value": 1200.0
+  },
+  {
+   "case": "sprite-storm",
+   "metric": "frame_us_max",
+   "repetition": 5,
+   "role": "measured",
+   "run_id": "perf-1098812-1",
+   "unit": "us",
+   "value": 30868.0
+  },
+  {
+   "case": "sprite-storm",
+   "metric": "update_us_mean",
+   "repetition": 5,
+   "role": "measured",
+   "run_id": "perf-1098812-1",
+   "unit": "us",
+   "value": 2.0
+  },
+  {
+   "case": "sprite-storm",
+   "metric": "draw_us_mean",
+   "repetition": 5,
+   "role": "measured",
+   "run_id": "perf-1098812-1",
+   "unit": "us",
+   "value": 140.0
+  },
+  {
+   "case": "sprite-storm",
+   "metric": "present_us_mean",
+   "repetition": 5,
+   "role": "measured",
+   "run_id": "perf-1098812-1",
+   "unit": "us",
+   "value": 16147.0
+  },
+  {
+   "case": "sprite-storm",
+   "metric": "fps_mean",
+   "repetition": 5,
+   "role": "measured",
+   "run_id": "perf-1098812-1",
+   "unit": "Hz",
+   "value": 61.35
+  },
+  {
+   "case": "sprite-storm",
+   "metric": "missed_deadlines",
+   "repetition": 5,
+   "role": "measured",
+   "run_id": "perf-1098812-1",
+   "unit": "frames",
+   "value": 0.0
+  },
+  {
+   "case": "scrolling",
+   "metric": "frame_us_mean",
+   "repetition": 5,
+   "role": "measured",
+   "run_id": "perf-1098812-1",
+   "unit": "us",
+   "value": 16414.0
+  },
+  {
+   "case": "scrolling",
+   "metric": "frame_us_p50",
+   "repetition": 5,
+   "role": "measured",
+   "run_id": "perf-1098812-1",
+   "unit": "us",
+   "value": 16277.0
+  },
+  {
+   "case": "scrolling",
+   "metric": "frame_us_p95",
+   "repetition": 5,
+   "role": "measured",
+   "run_id": "perf-1098812-1",
+   "unit": "us",
+   "value": 29067.0
+  },
+  {
+   "case": "scrolling",
+   "metric": "frame_us_p99",
+   "repetition": 5,
+   "role": "measured",
+   "run_id": "perf-1098812-1",
+   "unit": "us",
+   "value": 31809.0
+  },
+  {
+   "case": "scrolling",
+   "metric": "frame_us_min",
+   "repetition": 5,
+   "role": "measured",
+   "run_id": "perf-1098812-1",
+   "unit": "us",
+   "value": 1247.0
+  },
+  {
+   "case": "scrolling",
+   "metric": "frame_us_max",
+   "repetition": 5,
+   "role": "measured",
+   "run_id": "perf-1098812-1",
+   "unit": "us",
+   "value": 31809.0
+  },
+  {
+   "case": "scrolling",
+   "metric": "update_us_mean",
+   "repetition": 5,
+   "role": "measured",
+   "run_id": "perf-1098812-1",
+   "unit": "us",
+   "value": 2.0
+  },
+  {
+   "case": "scrolling",
+   "metric": "draw_us_mean",
+   "repetition": 5,
+   "role": "measured",
+   "run_id": "perf-1098812-1",
+   "unit": "us",
+   "value": 150.0
+  },
+  {
+   "case": "scrolling",
+   "metric": "present_us_mean",
+   "repetition": 5,
+   "role": "measured",
+   "run_id": "perf-1098812-1",
+   "unit": "us",
+   "value": 16252.0
+  },
+  {
+   "case": "scrolling",
+   "metric": "fps_mean",
+   "repetition": 5,
+   "role": "measured",
+   "run_id": "perf-1098812-1",
+   "unit": "Hz",
+   "value": 60.92
+  },
+  {
+   "case": "scrolling",
+   "metric": "missed_deadlines",
+   "repetition": 5,
+   "role": "measured",
+   "run_id": "perf-1098812-1",
+   "unit": "frames",
+   "value": 0.0
+  },
+  {
+   "case": "mixed-gameplay",
+   "metric": "frame_us_mean",
+   "repetition": 5,
+   "role": "measured",
+   "run_id": "perf-1098812-1",
+   "unit": "us",
+   "value": 18099.0
+  },
+  {
+   "case": "mixed-gameplay",
+   "metric": "frame_us_p50",
+   "repetition": 5,
+   "role": "measured",
+   "run_id": "perf-1098812-1",
+   "unit": "us",
+   "value": 19767.0
+  },
+  {
+   "case": "mixed-gameplay",
+   "metric": "frame_us_p95",
+   "repetition": 5,
+   "role": "measured",
+   "run_id": "perf-1098812-1",
+   "unit": "us",
+   "value": 28907.0
+  },
+  {
+   "case": "mixed-gameplay",
+   "metric": "frame_us_p99",
+   "repetition": 5,
+   "role": "measured",
+   "run_id": "perf-1098812-1",
+   "unit": "us",
+   "value": 31652.0
+  },
+  {
+   "case": "mixed-gameplay",
+   "metric": "frame_us_min",
+   "repetition": 5,
+   "role": "measured",
+   "run_id": "perf-1098812-1",
+   "unit": "us",
+   "value": 7131.0
+  },
+  {
+   "case": "mixed-gameplay",
+   "metric": "frame_us_max",
+   "repetition": 5,
+   "role": "measured",
+   "run_id": "perf-1098812-1",
+   "unit": "us",
+   "value": 31652.0
+  },
+  {
+   "case": "mixed-gameplay",
+   "metric": "update_us_mean",
+   "repetition": 5,
+   "role": "measured",
+   "run_id": "perf-1098812-1",
+   "unit": "us",
+   "value": 2.0
+  },
+  {
+   "case": "mixed-gameplay",
+   "metric": "draw_us_mean",
+   "repetition": 5,
+   "role": "measured",
+   "run_id": "perf-1098812-1",
+   "unit": "us",
+   "value": 152.0
+  },
+  {
+   "case": "mixed-gameplay",
+   "metric": "present_us_mean",
+   "repetition": 5,
+   "role": "measured",
+   "run_id": "perf-1098812-1",
+   "unit": "us",
+   "value": 17936.0
+  },
+  {
+   "case": "mixed-gameplay",
+   "metric": "fps_mean",
+   "repetition": 5,
+   "role": "measured",
+   "run_id": "perf-1098812-1",
+   "unit": "Hz",
+   "value": 55.25
+  },
+  {
+   "case": "mixed-gameplay",
+   "metric": "missed_deadlines",
+   "repetition": 5,
+   "role": "measured",
+   "run_id": "perf-1098812-1",
+   "unit": "frames",
+   "value": 0.0
+  },
+  {
+   "case": "clear-fill",
+   "metric": "frame_us_mean",
+   "repetition": 6,
+   "role": "measured",
+   "run_id": "perf-1091594-1",
+   "unit": "us",
+   "value": 19257.0
+  },
+  {
+   "case": "clear-fill",
+   "metric": "frame_us_p50",
+   "repetition": 6,
+   "role": "measured",
+   "run_id": "perf-1091594-1",
+   "unit": "us",
+   "value": 19837.0
+  },
+  {
+   "case": "clear-fill",
+   "metric": "frame_us_p95",
+   "repetition": 6,
+   "role": "measured",
+   "run_id": "perf-1091594-1",
+   "unit": "us",
+   "value": 29676.0
+  },
+  {
+   "case": "clear-fill",
+   "metric": "frame_us_p99",
+   "repetition": 6,
+   "role": "measured",
+   "run_id": "perf-1091594-1",
+   "unit": "us",
+   "value": 33904.0
+  },
+  {
+   "case": "clear-fill",
+   "metric": "frame_us_min",
+   "repetition": 6,
+   "role": "measured",
+   "run_id": "perf-1091594-1",
+   "unit": "us",
+   "value": 1215.0
+  },
+  {
+   "case": "clear-fill",
+   "metric": "frame_us_max",
+   "repetition": 6,
+   "role": "measured",
+   "run_id": "perf-1091594-1",
+   "unit": "us",
+   "value": 33904.0
+  },
+  {
+   "case": "clear-fill",
+   "metric": "update_us_mean",
+   "repetition": 6,
+   "role": "measured",
+   "run_id": "perf-1091594-1",
+   "unit": "us",
+   "value": 2.0
+  },
+  {
+   "case": "clear-fill",
+   "metric": "draw_us_mean",
+   "repetition": 6,
+   "role": "measured",
+   "run_id": "perf-1091594-1",
+   "unit": "us",
+   "value": 136.0
+  },
+  {
+   "case": "clear-fill",
+   "metric": "present_us_mean",
+   "repetition": 6,
+   "role": "measured",
+   "run_id": "perf-1091594-1",
+   "unit": "us",
+   "value": 19111.0
+  },
+  {
+   "case": "clear-fill",
+   "metric": "fps_mean",
+   "repetition": 6,
+   "role": "measured",
+   "run_id": "perf-1091594-1",
+   "unit": "Hz",
+   "value": 51.92
+  },
+  {
+   "case": "clear-fill",
+   "metric": "missed_deadlines",
+   "repetition": 6,
+   "role": "measured",
+   "run_id": "perf-1091594-1",
+   "unit": "frames",
+   "value": 1.0
+  },
+  {
+   "case": "text-overlay",
+   "metric": "frame_us_mean",
+   "repetition": 6,
+   "role": "measured",
+   "run_id": "perf-1091594-1",
+   "unit": "us",
+   "value": 18512.0
+  },
+  {
+   "case": "text-overlay",
+   "metric": "frame_us_p50",
+   "repetition": 6,
+   "role": "measured",
+   "run_id": "perf-1091594-1",
+   "unit": "us",
+   "value": 20093.0
+  },
+  {
+   "case": "text-overlay",
+   "metric": "frame_us_p95",
+   "repetition": 6,
+   "role": "measured",
+   "run_id": "perf-1091594-1",
+   "unit": "us",
+   "value": 28743.0
+  },
+  {
+   "case": "text-overlay",
+   "metric": "frame_us_p99",
+   "repetition": 6,
+   "role": "measured",
+   "run_id": "perf-1091594-1",
+   "unit": "us",
+   "value": 30848.0
+  },
+  {
+   "case": "text-overlay",
+   "metric": "frame_us_min",
+   "repetition": 6,
+   "role": "measured",
+   "run_id": "perf-1091594-1",
+   "unit": "us",
+   "value": 1256.0
+  },
+  {
+   "case": "text-overlay",
+   "metric": "frame_us_max",
+   "repetition": 6,
+   "role": "measured",
+   "run_id": "perf-1091594-1",
+   "unit": "us",
+   "value": 30848.0
+  },
+  {
+   "case": "text-overlay",
+   "metric": "update_us_mean",
+   "repetition": 6,
+   "role": "measured",
+   "run_id": "perf-1091594-1",
+   "unit": "us",
+   "value": 2.0
+  },
+  {
+   "case": "text-overlay",
+   "metric": "draw_us_mean",
+   "repetition": 6,
+   "role": "measured",
+   "run_id": "perf-1091594-1",
+   "unit": "us",
+   "value": 492.0
+  },
+  {
+   "case": "text-overlay",
+   "metric": "present_us_mean",
+   "repetition": 6,
+   "role": "measured",
+   "run_id": "perf-1091594-1",
+   "unit": "us",
+   "value": 18010.0
+  },
+  {
+   "case": "text-overlay",
+   "metric": "fps_mean",
+   "repetition": 6,
+   "role": "measured",
+   "run_id": "perf-1091594-1",
+   "unit": "Hz",
+   "value": 54.01
+  },
+  {
+   "case": "text-overlay",
+   "metric": "missed_deadlines",
+   "repetition": 6,
+   "role": "measured",
+   "run_id": "perf-1091594-1",
+   "unit": "frames",
+   "value": 0.0
+  },
+  {
+   "case": "sprite-storm",
+   "metric": "frame_us_mean",
+   "repetition": 6,
+   "role": "measured",
+   "run_id": "perf-1091594-1",
+   "unit": "us",
+   "value": 15176.0
+  },
+  {
+   "case": "sprite-storm",
+   "metric": "frame_us_p50",
+   "repetition": 6,
+   "role": "measured",
+   "run_id": "perf-1091594-1",
+   "unit": "us",
+   "value": 13747.0
+  },
+  {
+   "case": "sprite-storm",
+   "metric": "frame_us_p95",
+   "repetition": 6,
+   "role": "measured",
+   "run_id": "perf-1091594-1",
+   "unit": "us",
+   "value": 28458.0
+  },
+  {
+   "case": "sprite-storm",
+   "metric": "frame_us_p99",
+   "repetition": 6,
+   "role": "measured",
+   "run_id": "perf-1091594-1",
+   "unit": "us",
+   "value": 32320.0
+  },
+  {
+   "case": "sprite-storm",
+   "metric": "frame_us_min",
+   "repetition": 6,
+   "role": "measured",
+   "run_id": "perf-1091594-1",
+   "unit": "us",
+   "value": 1178.0
+  },
+  {
+   "case": "sprite-storm",
+   "metric": "frame_us_max",
+   "repetition": 6,
+   "role": "measured",
+   "run_id": "perf-1091594-1",
+   "unit": "us",
+   "value": 32320.0
+  },
+  {
+   "case": "sprite-storm",
+   "metric": "update_us_mean",
+   "repetition": 6,
+   "role": "measured",
+   "run_id": "perf-1091594-1",
+   "unit": "us",
+   "value": 2.0
+  },
+  {
+   "case": "sprite-storm",
+   "metric": "draw_us_mean",
+   "repetition": 6,
+   "role": "measured",
+   "run_id": "perf-1091594-1",
+   "unit": "us",
+   "value": 141.0
+  },
+  {
+   "case": "sprite-storm",
+   "metric": "present_us_mean",
+   "repetition": 6,
+   "role": "measured",
+   "run_id": "perf-1091594-1",
+   "unit": "us",
+   "value": 15024.0
+  },
+  {
+   "case": "sprite-storm",
+   "metric": "fps_mean",
+   "repetition": 6,
+   "role": "measured",
+   "run_id": "perf-1091594-1",
+   "unit": "Hz",
+   "value": 65.89
+  },
+  {
+   "case": "sprite-storm",
+   "metric": "missed_deadlines",
+   "repetition": 6,
+   "role": "measured",
+   "run_id": "perf-1091594-1",
+   "unit": "frames",
+   "value": 0.0
+  },
+  {
+   "case": "scrolling",
+   "metric": "frame_us_mean",
+   "repetition": 6,
+   "role": "measured",
+   "run_id": "perf-1091594-1",
+   "unit": "us",
+   "value": 18388.0
+  },
+  {
+   "case": "scrolling",
+   "metric": "frame_us_p50",
+   "repetition": 6,
+   "role": "measured",
+   "run_id": "perf-1091594-1",
+   "unit": "us",
+   "value": 19583.0
+  },
+  {
+   "case": "scrolling",
+   "metric": "frame_us_p95",
+   "repetition": 6,
+   "role": "measured",
+   "run_id": "perf-1091594-1",
+   "unit": "us",
+   "value": 28878.0
+  },
+  {
+   "case": "scrolling",
+   "metric": "frame_us_p99",
+   "repetition": 6,
+   "role": "measured",
+   "run_id": "perf-1091594-1",
+   "unit": "us",
+   "value": 29936.0
+  },
+  {
+   "case": "scrolling",
+   "metric": "frame_us_min",
+   "repetition": 6,
+   "role": "measured",
+   "run_id": "perf-1091594-1",
+   "unit": "us",
+   "value": 2486.0
+  },
+  {
+   "case": "scrolling",
+   "metric": "frame_us_max",
+   "repetition": 6,
+   "role": "measured",
+   "run_id": "perf-1091594-1",
+   "unit": "us",
+   "value": 29936.0
+  },
+  {
+   "case": "scrolling",
+   "metric": "update_us_mean",
+   "repetition": 6,
+   "role": "measured",
+   "run_id": "perf-1091594-1",
+   "unit": "us",
+   "value": 2.0
+  },
+  {
+   "case": "scrolling",
+   "metric": "draw_us_mean",
+   "repetition": 6,
+   "role": "measured",
+   "run_id": "perf-1091594-1",
+   "unit": "us",
+   "value": 137.0
+  },
+  {
+   "case": "scrolling",
+   "metric": "present_us_mean",
+   "repetition": 6,
+   "role": "measured",
+   "run_id": "perf-1091594-1",
+   "unit": "us",
+   "value": 18242.0
+  },
+  {
+   "case": "scrolling",
+   "metric": "fps_mean",
+   "repetition": 6,
+   "role": "measured",
+   "run_id": "perf-1091594-1",
+   "unit": "Hz",
+   "value": 54.38
+  },
+  {
+   "case": "scrolling",
+   "metric": "missed_deadlines",
+   "repetition": 6,
+   "role": "measured",
+   "run_id": "perf-1091594-1",
+   "unit": "frames",
+   "value": 0.0
+  },
+  {
+   "case": "mixed-gameplay",
+   "metric": "frame_us_mean",
+   "repetition": 6,
+   "role": "measured",
+   "run_id": "perf-1091594-1",
+   "unit": "us",
+   "value": 18639.0
+  },
+  {
+   "case": "mixed-gameplay",
+   "metric": "frame_us_p50",
+   "repetition": 6,
+   "role": "measured",
+   "run_id": "perf-1091594-1",
+   "unit": "us",
+   "value": 19862.0
+  },
+  {
+   "case": "mixed-gameplay",
+   "metric": "frame_us_p95",
+   "repetition": 6,
+   "role": "measured",
+   "run_id": "perf-1091594-1",
+   "unit": "us",
+   "value": 29211.0
+  },
+  {
+   "case": "mixed-gameplay",
+   "metric": "frame_us_p99",
+   "repetition": 6,
+   "role": "measured",
+   "run_id": "perf-1091594-1",
+   "unit": "us",
+   "value": 30503.0
+  },
+  {
+   "case": "mixed-gameplay",
+   "metric": "frame_us_min",
+   "repetition": 6,
+   "role": "measured",
+   "run_id": "perf-1091594-1",
+   "unit": "us",
+   "value": 6983.0
+  },
+  {
+   "case": "mixed-gameplay",
+   "metric": "frame_us_max",
+   "repetition": 6,
+   "role": "measured",
+   "run_id": "perf-1091594-1",
+   "unit": "us",
+   "value": 30503.0
+  },
+  {
+   "case": "mixed-gameplay",
+   "metric": "update_us_mean",
+   "repetition": 6,
+   "role": "measured",
+   "run_id": "perf-1091594-1",
+   "unit": "us",
+   "value": 2.0
+  },
+  {
+   "case": "mixed-gameplay",
+   "metric": "draw_us_mean",
+   "repetition": 6,
+   "role": "measured",
+   "run_id": "perf-1091594-1",
+   "unit": "us",
+   "value": 144.0
+  },
+  {
+   "case": "mixed-gameplay",
+   "metric": "present_us_mean",
+   "repetition": 6,
+   "role": "measured",
+   "run_id": "perf-1091594-1",
+   "unit": "us",
+   "value": 18485.0
+  },
+  {
+   "case": "mixed-gameplay",
+   "metric": "fps_mean",
+   "repetition": 6,
+   "role": "measured",
+   "run_id": "perf-1091594-1",
+   "unit": "Hz",
+   "value": 53.65
+  },
+  {
+   "case": "mixed-gameplay",
+   "metric": "missed_deadlines",
+   "repetition": 6,
+   "role": "measured",
+   "run_id": "perf-1091594-1",
+   "unit": "frames",
+   "value": 0.0
+  }
+ ]
+}

@@ -32,8 +32,8 @@ from .db import (
     update_if_unchanged,
     update_resource,
 )
-from . import (audio_studio, audio_studio_api, build_budget, project_format, publishing, retention, secrets_at_rest,
-               security, sso, storage_policy, store_contract)
+from . import (audio_studio, audio_studio_api, build_budget, project_assets, project_format, publishing, retention,
+               secrets_at_rest, security, sso, storage_policy, store_contract)
 from .auth import Principal, current_principal, role_at_least
 from .build_check import builds_available, toolchain_present
 from .db import utcnow
@@ -54,27 +54,56 @@ from .sample_data import example_catalog
 from .source_project import validate_asm_source, validate_c_source, validate_features
 from . import settings as site_settings
 from .auth import guest_workspace_open as auth_guest_workspace_open
+from . import messages
+from .messages import body as message_body, fields as message_fields, text as say
 
 bp = Blueprint("kit", __name__)
 
 
-def json_error(message: str, status: int = 400) -> tuple[Response, int]:
-    return jsonify({"error": message}), status
+class Refusal(messages.Message):
+    """A refusal's message, carrying its problem when there is one: a stable code and the exact
+    place in the source ({"code", "line", "column", "end_line", "end_column", ...}), so the IDE can
+    underline it and show it in the reader's language."""
+
+    problem: dict[str, Any] | None = None
+
+    @classmethod
+    def of(cls, message: str, problem: dict[str, Any] | None) -> "Refusal":
+        refusal = cls(message)
+        refusal.problem = problem
+        found = messages.of(message)
+        if found is not None:   # keep the translatable key and values of the message
+            refusal.key, refusal.params = found.key, found.params
+        elif problem and problem.get("message_key"):   # "Line N: ..." from a problem that knows its place
+            refusal.key, refusal.params = problem["message_key"], problem.get("params", {})
+        return refusal
+
+
+def problem_fields(message: Any) -> dict[str, Any]:
+    """{"code", "problems"} for a Refusal that names its problem, and the message's catalog key and
+    values (messages.py) so the browser can show it in the reader's language; {} for plain text."""
+    problem = getattr(message, "problem", None)
+    return {**({"code": problem["code"], "problems": [problem]} if problem else {}), **message_fields(message)}
+
+
+def json_error(message: Any, status: int = 400) -> tuple[Response, int]:
+    """{"error": the English message, ...problem_fields}: ``message`` is text, a Message or an exception."""
+    return jsonify({"error": str(message), **message_fields(message), **problem_fields(message)}), status
 
 
 @bp.errorhandler(audio_studio.AudioStudioError)
 def handle_audio_invalid(exc: audio_studio.AudioStudioError):
-    return jsonify({"error": str(exc), "code": "audio_invalid"}), 400
+    return jsonify({"error": str(exc), **message_fields(exc), "code": "audio_invalid"}), 400
 
 
 @bp.errorhandler(ValueError)
 def handle_bad_value(exc: ValueError):
-    return json_error(str(exc), 400)
+    return json_error(exc, 400)
 
 
 @bp.errorhandler(IntegrityError)
 def handle_integrity_error(_exc: IntegrityError):
-    return json_error("That id already exists, or a linked project/sprite/artifact id does not exist", 409)
+    return json_error(say("api", "That id already exists, or a linked project/sprite/artifact id does not exist"), 409)
 
 
 def request_json() -> dict[str, Any]:
@@ -82,10 +111,10 @@ def request_json() -> dict[str, Any]:
         data = request.get_json(silent=True)
         if data is None:
             if request.get_data():
-                raise ValueError("Request body is not valid JSON")
+                raise ValueError(say("api", "Request body is not valid JSON"))
             return {}
         if not isinstance(data, dict):
-            raise ValueError("Request body must be a JSON object")
+            raise ValueError(say("api", "Request body must be a JSON object"))
         return data
     if request.form:
         return dict(request.form)
@@ -161,11 +190,26 @@ def checked_payload(resource: str, payload: dict[str, Any]) -> dict[str, Any]:
         if payload.get(column) and column in RESOURCE_COLUMNS[resource]:
             linked = get_resource(target, str(payload[column]))
             if linked is None and target == "projects" and get_resource(target, str(payload[column]), include_deleted=True):
-                raise PermissionError(f"Project {payload[column]} is in Recently deleted: restore it first")
+                raise PermissionError(say("api", "Project {payload} is in Recently deleted: restore it first", payload=payload[column]))
             if linked is None:
                 continue  # the database refuses links to missing items with a clear 409
             if not can_read(linked) or (target == "projects" and not can_write(linked)):
-                raise PermissionError(f"You cannot link to {target} {payload[column]}")
+                raise PermissionError(say("api", "You cannot link to {target} {payload}", target=target, payload=payload[column]))
+    if resource == "assets" and payload.get("kind") == "background":
+        # A background is checked the way the PRG32 will read it (backgrounds.py).
+        from . import backgrounds
+
+        payload["data"] = backgrounds.checked(payload.get("data"))
+    if resource == "sprites" and "palette" in payload:
+        # An indexed sprite's indices are its truth: its pixels are made from them (sprite_palette.py).
+        from . import sprite_palette
+
+        width, height = payload.get("width"), payload.get("height")
+        if not isinstance(width, int) or not isinstance(height, int):
+            raise ValueError(say("sprite", "Send the width and height with the palette."))
+        payload["palette"] = sprite_palette.checked(payload["palette"], width, height)
+        if payload["palette"]:
+            payload["pixels"] = sprite_palette.pixels_of(payload["palette"])
     if resource == "projects" and isinstance(payload.get("game_json"), dict):
         payload["game_json"] = _checked_python(payload["game_json"])
     return payload
@@ -180,11 +224,10 @@ def _checked_python(game_json: dict[str, Any]) -> dict[str, Any]:
     if game_json.get("source_mode") != "python":
         return game_json
     if not isinstance(game_json.get("source_python", ""), str):
-        raise ValueError("source_python must be text")
+        raise ValueError(say("api", "source_python must be text"))
     version = game_json.get("python_language_version", python_project.LANGUAGE_VERSION)
     if version != python_project.LANGUAGE_VERSION or isinstance(version, bool):
-        raise ValueError(f"This project is written in PRG32 Python version {version}; this kit knows version "
-                         f"{python_project.LANGUAGE_VERSION}")
+        raise ValueError(say("api", "This project is written in PRG32 Python version {version}; this kit knows version {language_version}", version=version, language_version=python_project.LANGUAGE_VERSION))
     return {**game_json, "python_language_version": python_project.LANGUAGE_VERSION}
 
 
@@ -302,6 +345,18 @@ def sprite_editor():
     return render_template("audio_studio_pick.html", tool="sprites")
 
 
+@bp.get("/backgrounds")
+def backgrounds_picker():
+    """The Backgrounds menu item: choose a project, then Backgrounds opens in its IDE (like Sprite Lab)."""
+    return render_template("audio_studio_pick.html", tool="backgrounds")
+
+
+@bp.get("/tools/color")
+def color_picker():
+    """Tools > Color Picker: everything happens in the browser (color_picker.js); open to guests too."""
+    return render_template("tools_color.html")
+
+
 @bp.get("/artifacts")
 def artifacts_page():
     return render_template("artifacts.html")
@@ -377,7 +432,7 @@ def discovery():
 @bp.route("/api/<resource>", methods=["GET"])
 def api_list(resource: str):
     if resource not in RESOURCE_COLUMNS:
-        return json_error(f"Unknown resource: {resource}", 404)
+        return json_error(say("api", "Unknown resource: {resource}", resource=resource), 404)
     filters = {key: value for key, value in request.args.items() if key in {"project_id", "sprite_id", "kind", "status"}}
     # GET /api/projects?deleted=1 lists the user's "Recently deleted" projects instead.
     deleted = resource == "projects" and request.args.get("deleted") in ("1", "true")
@@ -399,7 +454,7 @@ def quota(adding_bytes: int = 0, adding_projects: int = 0) -> None:
 def quota_exceeded(error: storage_policy.QuotaExceeded):
     security.record("quota_exceeded", target_type="user", target_id=current_principal().id, outcome="denied",
                     metadata={"bytes": error.usage["bytes"], "projects": error.usage["projects"]})
-    return jsonify({"error": str(error), "code": "quota_exceeded", "usage": error.usage}), 413
+    return jsonify({"error": str(error), **message_fields(error), "code": "quota_exceeded", "usage": error.usage}), 413
 
 
 @bp.get("/api/storage")
@@ -415,7 +470,7 @@ def api_storage():
 @bp.route("/api/<resource>", methods=["POST"])
 def api_create(resource: str):
     if resource not in RESOURCE_COLUMNS:
-        return json_error(f"Unknown resource: {resource}", 404)
+        return json_error(say("api", "Unknown resource: {resource}", resource=resource), 404)
     payload = checked_payload(resource, request_json())
     if "owner_id" not in payload or payload["owner_id"] in (None, ""):
         payload = owned(payload)
@@ -429,16 +484,16 @@ def api_create(resource: str):
 @bp.route("/api/<resource>/<item_id>", methods=["GET", "PUT", "DELETE"])
 def api_item(resource: str, item_id: str):
     if resource not in RESOURCE_COLUMNS:
-        return json_error(f"Unknown resource: {resource}", 404)
+        return json_error(say("api", "Unknown resource: {resource}", resource=resource), 404)
     if resource == "projects" and request.method == "DELETE" and request.args.get("purge") in ("1", "true"):
         return _purge_project(item_id)
     existing = readable(resource, item_id)
     if existing is None:
-        return json_error("Not found", 404)
+        return json_error(say("api", "Not found"), 404)
     if request.method == "GET":
         return jsonify(public(resource, existing))
     if not can_write(existing):
-        return json_error("This is a shared classroom item: make your own copy to change it", 403)
+        return json_error(say("api", "This is a shared classroom item: make your own copy to change it"), 403)
     if request.method == "DELETE":
         if resource == "projects":
             # Projects go to "Recently deleted" first, so a wrong click can be undone.
@@ -447,9 +502,9 @@ def api_item(resource: str, item_id: str):
             from .retention import delete_artifact
 
             if not delete_artifact(item_id):   # the uploaded file goes with it (ADR-0022)
-                return json_error("Not found", 404)
+                return json_error(say("api", "Not found"), 404)
         elif not delete_resource(resource, item_id):
-            return json_error("Not found", 404)
+            return json_error(say("api", "Not found"), 404)
         return jsonify({"deleted": True, "id": item_id})
     payload = checked_payload(resource, request_json())
     expected = payload.pop("expected_version", None) if resource in ("projects", "assets") else None
@@ -457,10 +512,10 @@ def api_item(resource: str, item_id: str):
         payload["data"] = audio_studio.validate_document(payload["data"])   # the same rules as AudioStudio
     autosave = bool(payload.pop("autosave", False)) if resource == "projects" else False
     if expected is not None and (not isinstance(expected, int) or isinstance(expected, bool)):
-        return json_error("expected_version must be a whole number")
+        return json_error(say("api", "expected_version must be a whole number"))
     if expected is not None and expected != existing.get("version", 0):
         if resource == "assets":
-            return jsonify({"error": "This item was saved elsewhere after you opened it. Nothing was overwritten.",
+            return jsonify({**message_body(say("api", "This item was saved elsewhere after you opened it. Nothing was overwritten.")),
                             "code": "version_conflict", "current": public("assets", existing)}), 409
         return _version_conflict(existing)
     if resource == "projects" and "game_json" in payload and project_type(payload["game_json"]) != project_type(existing.get("game_json")):
@@ -475,11 +530,11 @@ def api_item(resource: str, item_id: str):
         item = update_resource(resource, item_id, payload, expected_version=expected)
     except VersionConflict:
         if resource == "assets":
-            return jsonify({"error": "This item was saved elsewhere after you opened it. Nothing was overwritten.",
+            return jsonify({**message_body(say("api", "This item was saved elsewhere after you opened it. Nothing was overwritten.")),
                             "code": "version_conflict"}), 409
         return _version_conflict(get_resource("projects", item_id))
     if item is None:
-        return json_error("Not found", 404)
+        return json_error(say("api", "Not found"), 404)
     return jsonify(public(resource, item))
 
 
@@ -499,7 +554,7 @@ def _type_locked(project: dict[str, Any]):
     kind = project_type(project.get("game_json"))
     hint = (" A Blocks project can be converted to C or assembly once (Convert), and never back."
             if kind == "blocks" else "")
-    return jsonify({"error": f"This project is written in {PROJECT_TYPES[kind]}; its type cannot change.{hint}",
+    return jsonify({**message_body(say("api", "This project is written in {project_types}; its type cannot change.{hint}", project_types=PROJECT_TYPES[kind], hint=hint)),
                     "code": "type_locked", "project_type": kind}), 409
 
 
@@ -514,21 +569,21 @@ def api_convert_project_type(project_id: str):
     payload = request_json()
     language = payload.get("language")
     if language not in ("c", "asm"):
-        return json_error("language must be c or asm")
+        return json_error(say("api", "language must be c or asm"))
     project = readable("projects", project_id)
     if project is None:
-        return json_error("Project not found", 404)
+        return json_error(say("api", "Project not found"), 404)
     if not can_write(project):
-        return json_error("This is a shared classroom project: make your own copy to convert it", 403)
+        return json_error(say("api", "This is a shared classroom project: make your own copy to convert it"), 403)
     if project_type(project.get("game_json")) != "blocks":
         return _type_locked(project)
     expected = payload.get("expected_version")
     if expected is not None and expected != project.get("version", 0):
         return _version_conflict(project)
     try:
-        game_json = blocks_as_code({**project, "audio_studio": audio_studio_api.document_of(project_id)[0]}, language)
+        game_json = blocks_as_code(with_media(project), language)
     except Exception as exc:  # noqa: BLE001 - blocks that do not generate cannot be converted
-        return json_error(f"These blocks cannot be converted yet: {exc}")
+        return json_error(say("api", "These blocks cannot be converted yet: {exc}", exc=exc))
     save_revision(project, "convert")
     try:
         item = update_resource("projects", project_id, {"game_json": game_json}, expected_version=project.get("version", 0))
@@ -540,8 +595,7 @@ def api_convert_project_type(project_id: str):
 
 def _version_conflict(current: dict[str, Any] | None):
     """409: somebody saved this project after the version this save started from. Nothing was changed."""
-    return jsonify({"error": "This project was saved in another window (or by someone else) after you opened it. "
-                             "Nothing was overwritten: keep your version as a copy, or load the saved one.",
+    return jsonify({**message_body(say("api", "This project was saved in another window (or by someone else) after you opened it. Nothing was overwritten: keep your version as a copy, or load the saved one.")),
                     "code": "version_conflict", "current": public("projects", current)}), 409
 
 
@@ -553,6 +607,18 @@ def _history_is_old(project_id: str) -> bool:
     minutes = int(site_settings.get("PRG32_KIT_AUTOSAVE_SNAPSHOT_MINUTES"))
     age = datetime.now(timezone.utc) - datetime.fromisoformat(newest)
     return age.total_seconds() >= minutes * 60
+
+
+def with_media(project: dict[str, Any]) -> dict[str, Any]:
+    """A stored project with its AudioStudio document and its art (project_assets.catalog).
+
+    Sound-effect and soundtrack blocks become fixed numbers from the document; sprite and
+    background blocks, prg32.sprite(...) and #include "prg32_assets.h" take their pictures
+    from the art. Every sprite and background of the project counts, whoever drew it."""
+    document = audio_studio_api.document_of(project["id"])[0]
+    sprites, assets = _project_children(project["id"], everyone=True)
+    return {**project, "audio_studio": document,
+            "assets": project_assets.catalog(sprites, assets, document, project.get("title"))}
 
 
 def _project_children(project_id: str, everyone: bool = False) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
@@ -609,7 +675,7 @@ def api_project_manifest(project_id: str):
     """The project's prg32.project.json, as it would be written into the archive."""
     project = readable("projects", project_id)
     if project is None:
-        return json_error("Project not found", 404)
+        return json_error(say("api", "Project not found"), 404)
     sprites, assets = _project_children(project_id)
     return jsonify(project_format.build_manifest(project, sprites, assets))
 
@@ -619,7 +685,7 @@ def api_project_archive(project_id: str):
     """Download the portable project archive (.prg32project.zip)."""
     project = readable("projects", project_id)
     if project is None:
-        return json_error("Project not found", 404)
+        return json_error(say("api", "Project not found"), 404)
     sprites, assets = _project_children(project_id)
     data = project_format.export_archive(project, sprites, assets, audio_studio_api.archive_samples(project))
     return send_file(io.BytesIO(data), mimetype=project_format.ARCHIVE_CONTENT_TYPE, as_attachment=True,
@@ -631,11 +697,11 @@ def api_duplicate_project(project_id: str):
     """Make the current user's own copy of a project, including its sprites and assets."""
     project = readable("projects", project_id)
     if project is None:
-        return json_error("Project not found", 404)
+        return json_error(say("api", "Project not found"), 404)
     payload = request_json()
     title = payload.get("title")
     if title is not None and (not isinstance(title, str) or not title.strip() or len(title) > 200):
-        return json_error("title must be text of at most 200 characters")
+        return json_error(say("api", "title must be text of at most 200 characters"))
     sprites, assets = _project_children(project_id)
     contents = project_format.contents_from_files(project_format.project_files(
         project, sprites, assets, audio_studio_api.archive_samples(project)))
@@ -650,9 +716,9 @@ def api_restore_deleted_project(project_id: str):
     """Bring a project back from "Recently deleted"."""
     project = get_resource("projects", project_id, include_deleted=True)
     if not can_read(project):
-        return json_error("Project not found", 404)
+        return json_error(say("api", "Project not found"), 404)
     if not can_write(project):
-        return json_error("This is a shared classroom item: only a teacher can restore it", 403)
+        return json_error(say("api", "This is a shared classroom item: only a teacher can restore it"), 403)
     if project.get("deleted_at"):
         project = set_project_deleted(project_id, False)
     return jsonify(public("projects", project))
@@ -666,9 +732,9 @@ def _purge_project(project_id: str):
     """
     project = get_resource("projects", project_id, include_deleted=True)
     if not can_read(project):
-        return json_error("Not found", 404)
+        return json_error(say("api", "Not found"), 404)
     if not current_principal().is_admin:
-        return json_error("Only a teacher (admin) can delete a project for good", 403)
+        return json_error(say("api", "Only a teacher (admin) can delete a project for good"), 403)
     retention.purge_project(project_id, current_app.config["BUILD_ROOT"])  # with its builds, artifacts and folders
     return jsonify({"deleted": True, "id": project_id, "purged": True})
 
@@ -677,7 +743,7 @@ def _purge_project(project_id: str):
 def api_retention():
     """Apply the retention policy (ADR-0017). {"dry_run": true} (the default) only reports."""
     if not current_principal().is_admin:
-        return json_error("Only teachers with the admin role can do this", 403)
+        return json_error(say("api", "Only teachers with the admin role can do this"), 403)
     dry_run = request_json().get("dry_run", True) is not False
     report = retention.apply(site_settings.view(), dry_run=dry_run)
     if not dry_run:
@@ -756,9 +822,9 @@ def _own_project(project_id: str) -> tuple[dict[str, Any] | None, tuple[Response
     """The project if the current user owns it (or is an admin); else an error response."""
     project = readable("projects", project_id)
     if project is None:
-        return None, json_error("Project not found", 404)
+        return None, json_error(say("api", "Project not found"), 404)
     if not can_write(project):
-        return None, json_error("Only the owner of a project (or a teacher) can see its history", 403)
+        return None, json_error(say("api", "Only the owner of a project (or a teacher) can see its history"), 403)
     return project, None
 
 
@@ -778,7 +844,7 @@ def api_revision_archive(project_id: str, revision_id: str):
         return error
     revision = get_revision(project_id, revision_id)
     if revision is None:
-        return json_error("Revision not found", 404)
+        return json_error(say("api", "Revision not found"), 404)
     name = project_format.archive_filename({"title": revision["title"]}).replace(
         project_format.ARCHIVE_SUFFIX, f"-revision-{revision['number']}{project_format.ARCHIVE_SUFFIX}")
     return send_file(io.BytesIO(project_format.write_archive(revision["files"])),
@@ -793,11 +859,11 @@ def api_restore_revision(project_id: str, revision_id: str):
         return error
     revision = get_revision(project_id, revision_id)
     if revision is None:
-        return json_error("Revision not found", 404)
+        return json_error(say("api", "Revision not found"), 404)
     try:
         contents = project_format.contents_from_files(revision["files"])
     except project_format.ProjectFormatError as exc:
-        return json_error(f"This saved version cannot be restored: {exc}", 422)
+        return json_error(say("api", "This saved version cannot be restored: {exc}", exc=exc), 422)
     if project_type(contents["project"].get("game_json")) != project_type(project.get("game_json")):
         # A Blocks version of a converted project: it can be downloaded, never restored over it.
         return _type_locked(project)
@@ -825,7 +891,7 @@ def api_import_project():
         try:
             payload = json.loads(data.decode("utf-8"))
         except Exception as exc:
-            return json_error(f"Could not parse JSON import: {exc}")
+            return json_error(say("api", "Could not parse JSON import: {exc}", exc=exc))
     else:
         payload = request_json()
     if isinstance(payload, dict) and payload.get("abi") == project_format.LEGACY_EXPORT_ABI:
@@ -834,7 +900,7 @@ def api_import_project():
     if isinstance(payload, dict) and "project" in payload:
         payload = payload["project"]
     if not isinstance(payload, dict):
-        return json_error("Import file must contain a JSON object with a project")
+        return json_error(say("api", "Import file must contain a JSON object with a project"))
     item = create_resource(
         "projects",
         owned({
@@ -855,7 +921,8 @@ def api_list_examples():
     return jsonify(
         {
             "examples": [
-                {"slug": item["slug"], "title": item["title"], "description": item["description"], "kind": item["kind"]}
+                {"slug": item["slug"], "title": item["title"], "description": item["description"], "kind": item["kind"],
+                 **({"language": item["language"]} if "language" in item else {})}
                 for item in example_catalog()
             ]
         }
@@ -871,23 +938,32 @@ def api_starter(kind: str):
     try:
         return jsonify(starter_project(kind, title))
     except ValueError as error:
-        return json_error(str(error), 404)
+        return json_error(error, 404)
 
 
 @bp.post("/api/examples/<slug>/import")
 def api_import_example(slug: str):
     for item in example_catalog():
         if item["slug"] == slug:
-            quota(adding_bytes=_size(item["project"]), adding_projects=1)
-            return jsonify(public("projects", create_resource("projects", owned(item["project"])))), 201
-    return json_error("Example not found", 404)
+            art = {key: item.get(key) or [] for key in ("sprites", "assets")}
+            quota(adding_bytes=_size(item["project"]) + _size(art), adding_projects=1)
+            project = create_resource("projects", owned(item["project"]))
+            # An example with art (docs/project_art.md) brings its sprites, backgrounds and sound.
+            for sprite in art["sprites"]:
+                create_resource("sprites", owned(checked_payload("sprites", {**sprite, "project_id": project["id"]})))
+            for asset in art["assets"]:
+                create_resource("assets", owned(checked_payload("assets", {**asset, "project_id": project["id"]})))
+            if item.get("audio_studio"):
+                audio_studio_api._save(project, item["audio_studio"], 0)
+            return jsonify(public("projects", get_resource("projects", project["id"]))), 201
+    return json_error(say("api", "Example not found"), 404)
 
 
 @bp.get("/api/projects/<project_id>/export")
 def api_export_project(project_id: str):
     project = readable("projects", project_id)
     if project is None:
-        return json_error("Project not found", 404)
+        return json_error(say("api", "Project not found"), 404)
     body = json.dumps({"abi": "prg32-construction-kit-project-1.0", "project": project}, indent=2)
     return Response(
         body,
@@ -899,11 +975,11 @@ def api_export_project(project_id: str):
 def _generate_project(project_id: str) -> tuple[dict[str, Any] | None, dict[str, Any] | None, str | None, tuple[Response, int] | None]:
     project = readable("projects", project_id)
     if project is None:
-        return None, None, None, json_error("Project not found", 404)
+        return None, None, None, json_error(say("api", "Project not found"), 404)
     if not can_write(project):
-        return project, None, None, json_error("This is a shared classroom project: make your own copy to build it", 403)
-    # Its AudioStudio document: sound-effect and soundtrack blocks become fixed numbers from it.
-    project = {**project, "audio_studio": audio_studio_api.document_of(project_id)[0]}
+        return project, None, None, json_error(say("api", "This is a shared classroom project: make your own copy to build it"), 403)
+    # Its AudioStudio document and its art: sound and picture names become numbers and code.
+    project = with_media(project)
     game_ir, c_source, message = generate_sources(project)
     if message is not None:
         return project, None, None, json_error(message)
@@ -921,7 +997,8 @@ def generate_sources(project: dict[str, Any]) -> tuple[dict[str, Any] | None, st
     """Validated game IR and C for a project (stored or a guest's): (game_ir, c_source, refusal).
 
     Pure: it reads nothing and stores nothing, so the guest workspace uses it too (guest_api.py).
-    ``project["audio_studio"]`` is the project's AudioStudio document, or None.
+    ``project["audio_studio"]`` is the project's AudioStudio document, or None, and
+    ``project["assets"]`` its art (project_assets.catalog), or None.
     """
     saved = project.get("game_json") or {}
     if isinstance(saved, dict) and saved.get("source_mode") == "c":
@@ -929,34 +1006,46 @@ def generate_sources(project: dict[str, Any]) -> tuple[dict[str, Any] | None, st
         try:
             prefix = validate_c_source(source, project.get("title") or "")
             required_features = validate_features(saved.get("required_features", []))
+            art = project_assets.check_include(source, "c")
         except ValueError as exc:
-            return None, None, str(exc)
-        return {"abi": "prg32-construction-kit-c-1.0", "entry_prefix": prefix,
-                "source_mode": "c", "source_c": source,
-                "required_features": required_features, "warnings": []}, source, None
+            return None, None, messages.of(exc) or str(exc)
+        return _code_ir({"abi": "prg32-construction-kit-c-1.0", "entry_prefix": prefix,
+                         "source_mode": "c", "source_c": source,
+                         "required_features": required_features, "warnings": []}, project, art), source, None
     if isinstance(saved, dict) and saved.get("source_mode") == "asm":
         # Handwritten assembly: checked (docs/adr/0004-handwritten-assembly-mode.md), then built as written.
         source = saved.get("source_asm", "")
         try:
             prefix = validate_asm_source(source, project.get("title") or "")
             required_features = validate_features(saved.get("required_features", []))
+            art = project_assets.check_include(source, "asm")
         except ValueError as exc:
-            return None, None, str(exc)
-        return {"abi": "prg32-construction-kit-asm-1.0", "entry_prefix": prefix,
-                "source_mode": "asm", "source_asm": source,
-                "required_features": required_features, "warnings": []}, "", None
+            return None, None, messages.of(exc) or str(exc)
+        return _code_ir({"abi": "prg32-construction-kit-asm-1.0", "entry_prefix": prefix,
+                         "source_mode": "asm", "source_asm": source,
+                         "required_features": required_features, "warnings": []}, project, art), "", None
     if isinstance(saved, dict) and saved.get("source_mode") == "python":
         # PRG32 Python (ADR-0026): parsed and checked, never run, then the same IR as the Blocks.
         try:
             game_ir = python_project.python_to_ir(saved.get("source_python", ""), project)
         except python_project.PythonError as exc:
-            return None, None, str(exc)
+            return None, None, Refusal.of(str(exc), exc.as_problem())
         return game_ir, ir_to_c(game_ir), None
     try:
         game_ir, c_source = blocks_to_c(project.get("blocks_json") or {}, project)
     except Exception as exc:
         return None, None, f"Conversion failed: {exc}"
     return game_ir, c_source, None
+
+
+def _code_ir(game_ir: dict[str, Any], project: dict[str, Any], art: bool) -> dict[str, Any]:
+    """A C or assembly project's IR; with #include "prg32_assets.h"/".S" it also carries the
+    project's art (written in place of that line when the game is built) and the features it needs."""
+    if not art:
+        return game_ir
+    assets = project.get("assets") or project_assets.catalog([], [], project.get("audio_studio"), project.get("title"))
+    features = sorted(set(game_ir["required_features"]) | project_assets.features(assets))
+    return {**game_ir, "assets": assets, "required_features": features}
 
 
 def _changed_elsewhere(project: dict[str, Any], payload: dict[str, Any]) -> bool:
@@ -997,13 +1086,13 @@ def _source_language(payload: dict[str, Any], game_ir: dict[str, Any]) -> tuple[
     if game_ir.get("source_mode") == "asm":
         # An assembly project has no C: it always builds the assembly the student wrote.
         if payload.get("source_language", "asm") != "asm":
-            return "asm", json_error("An assembly project builds the assembly you wrote; it has no C to generate.")
+            return "asm", json_error(say("api", "An assembly project builds the assembly you wrote; it has no C to generate."))
         return "asm", None
     language = payload.get("source_language", "c")
     if language not in SOURCE_LANGUAGES:
         return "c", json_error("source_language must be one of: " + ", ".join(SOURCE_LANGUAGES))
     if language != "c" and game_ir.get("source_mode") == "c":
-        return "c", json_error("Assembly is generated from Blocks. An Advanced C project compiles the C you wrote.")
+        return "c", json_error(say("api", "Assembly is generated from Blocks. An Advanced C project compiles the C you wrote."))
     return language, None
 
 
@@ -1011,10 +1100,13 @@ def _generated_sources(language: str, game_ir: dict[str, Any], c_source: str) ->
     """The source files for one request, C first: {"c": ..., "asm": ...}."""
     sources: dict[str, str] = {}
     if language in ("c", "both"):
-        sources["c"] = c_source
+        # A C project's #include "prg32_assets.h" line becomes the project's art, on that line.
+        sources["c"] = project_assets.expand_c(c_source, game_ir.get("assets")) \
+            if game_ir.get("source_mode") == "c" else c_source
     if language in ("asm", "both"):
         handwritten = game_ir.get("source_mode") == "asm"
-        sources["asm"] = game_ir["source_asm"] if handwritten else ir_to_asm(game_ir)
+        sources["asm"] = project_assets.expand_asm(game_ir["source_asm"], game_ir.get("assets")) if handwritten \
+            else ir_to_asm(game_ir)
     return sources
 
 
@@ -1080,15 +1172,14 @@ def api_package_project(project_id: str):
     if error:
         return error
     if _changed_elsewhere(project, payload):
-        return json_error("This project was changed in another browser window after you saved it. "
-                          "Reload the project to see the newest version, then compile again.", 409)
+        return json_error(say("api", "This project was changed in another browser window after you saved it. Reload the project to see the newest version, then compile again."), 409)
     quota(adding_bytes=1)  # a full account cannot add cartridges and bundles
     try:
         audio = audio_studio_api.project_audio(project)   # the AudioStudio sound for every cartridge
     except audio_studio_api.AudioRefused as refused:
-        return jsonify({"error": str(refused), **refused.details}), refused.status
+        return jsonify({"error": str(refused), **message_fields(refused), **refused.details}), refused.status
     except audio_studio.AudioStudioError as invalid:
-        return json_error(f"The project's AudioStudio sound cannot be packed: {invalid}")
+        return json_error(say("api", "The project's AudioStudio sound cannot be packed: {invalid}", invalid=invalid))
     # Every build gets its own id and its own folder, so many students (or one
     # student in several browser windows) can build at the same time without
     # touching each other's files. Build slots keep the number of compilers
@@ -1105,12 +1196,12 @@ def api_package_project(project_id: str):
             return _run_package_build(project_id, project, game_ir, _generated_sources(language, game_ir, c_source),
                                       requested, audio)
     except BuildServerBusy as exc:
-        response, status = json_error(str(exc), 503)
+        response, status = json_error(exc, 503)
         response.headers["Retry-After"] = "10"
         return response, status
     except build_budget.BuildDiskFull as exc:
         security.record("build_disk_full", target_type="project", target_id=project_id, outcome="refused")
-        return jsonify({"error": str(exc), "code": "build_disk_full"}), 507
+        return jsonify({"error": str(exc), **message_fields(exc), "code": "build_disk_full"}), 507
 
 
 def _cartridge_fingerprint(result: dict[str, Any], architecture: str) -> dict[str, Any]:
@@ -1130,17 +1221,18 @@ def api_run_project(project_id: str):
 
     project = readable("projects", project_id)
     if project is None:
-        return json_error("Project not found", 404)
-    project = {**project, "audio_studio": audio_studio_api.document_of(project_id)[0]}
+        return json_error(say("api", "Project not found"), 404)
+    project = with_media(project)
     try:
         audio = audio_studio_api.project_audio(project)
         return jsonify(run_build.run(project, audio))
     except audio_studio_api.AudioRefused as refused:
-        return jsonify({"error": str(refused), **refused.details}), refused.status
+        return jsonify({"error": str(refused), **message_fields(refused), **refused.details}), refused.status
     except audio_studio.AudioStudioError as invalid:
-        return json_error(f"The project's AudioStudio sound cannot be packed: {invalid}")
+        return json_error(say("api", "The project's AudioStudio sound cannot be packed: {invalid}", invalid=invalid))
     except run_build.RunRefused as refused:
-        response = jsonify({"error": str(refused), "code": refused.code})
+        response = jsonify({"error": str(refused), **message_fields(refused), "code": refused.code,
+                            **({"problems": refused.details["problems"]} if refused.details.get("problems") else {})})
         if refused.details.get("retry_after"):
             response.headers["Retry-After"] = str(refused.details["retry_after"])
         return response, refused.status
@@ -1163,7 +1255,7 @@ def api_check_project(project_id: str):
     if error:
         return error
     if language == "both":
-        return json_error("Check one language at a time: c or asm")
+        return json_error(say("api", "Check one language at a time: c or asm"))
     build_command = current_app.config["PRG32_BUILD_COMMAND"]
     if not toolchain_present(build_command):
         return jsonify({"available": False, "source_language": language})
@@ -1183,11 +1275,11 @@ def api_check_project(project_id: str):
                                    timeout=site_settings.get("PRG32_BUILD_TIMEOUT"),
                                    sandbox=settings_from_config(site_settings.view()))
     except BuildServerBusy as exc:
-        response, status = json_error(str(exc), 503)
+        response, status = json_error(exc, 503)
         response.headers["Retry-After"] = "10"
         return response, status
     except build_budget.BuildDiskFull as exc:
-        return jsonify({"error": str(exc), "code": "build_disk_full"}), 507
+        return jsonify({"error": str(exc), **message_fields(exc), "code": "build_disk_full"}), 507
     return jsonify({"available": True, "ok": ok, "source_language": language, "log": log,
                     "project_version": project.get("version")})
 
@@ -1201,7 +1293,8 @@ def _run_package_build(project_id: str, project: dict[str, Any], game_ir: dict[s
     c_artifact, asm_artifact = artifacts.get("c"), artifacts.get("asm")
     build = create_resource("builds", owned({
         "project_id": project_id, "status": "running", "c_artifact_id": c_artifact["id"] if c_artifact else None,
-        "metadata": {"project_updated_at": project.get("updated_at"), "built_from": built_from,
+        "metadata": {"project_updated_at": project.get("updated_at"), "project_version": project.get("version"),
+                     "built_from": built_from,
                      "asm_artifact_id": asm_artifact["id"] if asm_artifact else None}}))
     release_connection()
     build_command = current_app.config["PRG32_BUILD_COMMAND"]
@@ -1242,7 +1335,7 @@ def _run_package_build(project_id: str, project: dict[str, Any], game_ir: dict[s
         update_resource("builds", build["id"], {"status": "failed", "log": f"Packaging failed: {exc}",
                                                 "metadata": {**build["metadata"],
                                                              "provenance": provenance("failed", None)}})
-        return json_error(f"Packaging failed: {exc}", 500)
+        return json_error(say("api", "Packaging failed: {exc}", exc=exc), 500)
     # "ready": at least one cartridge. With working build tools but no cartridge, the
     # compiler refused the source: that is "failed", not a harmless "source-only" bundle.
     if result["status"] != "ready" and toolchain_present(build_command):
@@ -1296,6 +1389,7 @@ def _run_package_build(project_id: str, project: dict[str, Any], game_ir: dict[s
                 "cart_ram_kib": result["cart_ram_kib"],
                 "publishable": result["publishable"],
                 "project_updated_at": project.get("updated_at"),
+                "project_version": project.get("version"),
                 "built_from": built_from,
                 "asm_artifact_id": asm_artifact["id"] if asm_artifact else None,
                 "audio_block_sha256": hashlib.sha256(audio[0]).hexdigest() if audio else None,
@@ -1373,7 +1467,7 @@ def api_artifact_debug(artifact_id: str):
     """
     artifact = readable("artifacts", artifact_id)
     if artifact is None or artifact.get("kind") != "prg32_cartridge":
-        return json_error("Cartridge not found", 404)
+        return json_error(say("api", "Cartridge not found"), 404)
     metadata = artifact.get("metadata") or {}
     debug_map = _json_artifact(metadata.get("debug_map_artifact_id")) or debug_unavailable(
         "this cartridge was built without debug information")
@@ -1420,11 +1514,38 @@ def _sha256_text(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
 
+@bp.get("/api/projects/<project_id>/art")
+def api_project_art(project_id: str):
+    """The project's art as code (project_assets.py): its catalog, the read-only prg32_assets.h and
+    prg32_assets.S, and the line that uses each sprite, background and sound in every language."""
+    project = readable("projects", project_id)
+    if project is None:
+        return json_error(say("api", "Project not found"), 404)
+    return jsonify(project_assets.public(with_media(project)["assets"]))
+
+
+@bp.post("/api/assets/<asset_id>/convert")
+def api_convert_background(asset_id: str):
+    """A background (an asset of kind "background") as C: its tiles, maps and <name>_load() (backgrounds.py)."""
+    from . import backgrounds
+
+    asset = readable("assets", asset_id)
+    if asset is None or asset.get("kind") != "background":
+        return json_error(say("background", "Background not found"), 404)
+    c_source = backgrounds.to_c(asset["name"], asset.get("data"))
+    linked_project = readable("projects", asset.get("project_id"))
+    artifact = create_resource("artifacts", owned({
+        "project_id": asset.get("project_id") if can_write(linked_project) else None,
+        "kind": "background_c_source", "name": f"{asset['name']} background C", "content_type": "text/x-csrc",
+        "text_content": c_source, "metadata": {"asset_id": asset_id}}))
+    return jsonify({"c_source": c_source, "artifact": public("artifacts", artifact)})
+
+
 @bp.post("/api/sprites/<sprite_id>/convert")
 def api_convert_sprite(sprite_id: str):
     sprite = readable("sprites", sprite_id)
     if sprite is None:
-        return json_error("Sprite not found", 404)
+        return json_error(say("api", "Sprite not found"), 404)
     c_source = sprite_to_c(sprite)
     linked_project = readable("projects", sprite.get("project_id"))
     artifact = create_resource(
@@ -1446,10 +1567,10 @@ def api_convert_sprite(sprite_id: str):
 @bp.post("/api/artifacts/upload")
 def api_upload_artifact():
     if "file" not in request.files:
-        return json_error("Missing file field")
+        return json_error(say("api", "Missing file field"))
     uploaded = request.files["file"]
     if not uploaded.filename:
-        return json_error("Missing filename")
+        return json_error(say("api", "Missing filename"))
     safe_name = "".join(ch if ch.isalnum() or ch in ".-_" else "_" for ch in uploaded.filename)[-120:].lstrip(".") or "upload"
     artifact_dir = current_app.config["ARTIFACT_ROOT"] / "uploads"
     artifact_dir.mkdir(parents=True, exist_ok=True)
@@ -1457,7 +1578,7 @@ def api_upload_artifact():
     path = artifact_dir / f"{uuid.uuid4().hex[:8]}-{safe_name}"
     project_id = request.form.get("project_id") or None
     if project_id and not can_write(readable("projects", project_id)):
-        return json_error("You can only add files to your own projects", 403)
+        return json_error(say("api", "You can only add files to your own projects"), 403)
     quota(adding_bytes=request.content_length or 1)
     uploaded.save(path)
     artifact = create_resource(
@@ -1478,13 +1599,13 @@ def api_upload_artifact():
 def api_download_artifact(artifact_id: str):
     artifact = readable("artifacts", artifact_id)
     if artifact is None:
-        return json_error("Artifact not found", 404)
+        return json_error(say("api", "Artifact not found"), 404)
     name = artifact.get("name") or artifact_id
     path = stored_file(artifact.get("path"))
     if path is not None:
         return send_file(path, mimetype=artifact.get("content_type") or None, as_attachment=True, download_name=name)
     if artifact.get("path") and not artifact.get("text_content"):
-        return json_error("Artifact file is missing or outside the kit data folder", 404)
+        return json_error(say("api", "Artifact file is missing or outside the kit data folder"), 404)
     text = artifact.get("text_content") or ""
     return send_file(io.BytesIO(text.encode("utf-8")), mimetype=artifact.get("content_type") or "text/plain",
                      as_attachment=True, download_name=name)
@@ -1609,7 +1730,7 @@ def api_publish():
         return error
     if not payload.get("review_token") or payload.get("confirm") is not True:
         _audit_publish("refused", payload, profile, stage="refused", reason="not_confirmed")
-        return jsonify({"error": "Review the bundle first (POST /api/publish/review), then confirm.",
+        return jsonify({**message_body(say("api", "Review the bundle first (POST /api/publish/review), then confirm.")),
                         "reason": "not_confirmed"}), 428
     user_id = current_principal().id
     problem = publishing.check_review_token(current_app.config["SECRET_KEY"], payload["review_token"], summary, user_id)
@@ -1627,15 +1748,14 @@ def api_publish():
         _audit_publish("success", payload, profile, stage="duplicate")
         return jsonify({"state": "submitted", "duplicate": True, "summary": summary, "result": previous})
     if state == "busy":
-        return jsonify({"error": "This bundle is being sent right now. Wait a moment.", "reason": "in_progress",
+        return jsonify({**message_body(say("api", "This bundle is being sent right now. Wait a moment.")), "reason": "in_progress",
                         "state": "uploading"}), 409
     _audit_publish("success", payload, profile, stage="upload", cartridge=summary["cartridge"]["id"],
                    version=summary["cartridge"]["version"])
     token = secrets_at_rest.unseal(profile.get("bearer_token", ""))
     if token is None:
         publishing.finish_attempt(digest, "failed", {"ok": False, "reason": "token_unreadable"})
-        return jsonify({"error": "The Store token of this profile cannot be read any more (the kit's secret key "
-                                 "changed). Enter the token again in the profile.", "reason": "token_unreadable",
+        return jsonify({**message_body(say("api", "The Store token of this profile cannot be read any more (the kit's secret key changed). Enter the token again in the profile.")), "reason": "token_unreadable",
                         "state": "failed"}), 400
     if not token and summary["store"]["authentication"] == "single_sign_on":
         # Single sign-on: publish as the signed-in student with a one-time ticket.
@@ -1646,16 +1766,16 @@ def api_publish():
         # Address checks (private network, DNS) and redirects: refused, nothing more sent.
         publishing.finish_attempt(digest, "failed", {"ok": False, "reason": refused.reason})
         _audit_publish("refused", payload, profile, stage="failed", reason=refused.reason)
-        return jsonify({"error": str(refused), "reason": refused.reason, "state": "failed"}), 400
+        return jsonify({"error": str(refused), **message_fields(refused), "reason": refused.reason, "state": "failed"}), 400
     except StorePublishFailed as failed:
         publishing.finish_attempt(digest, "failed", {"ok": False, "reason": failed.reason})
         _audit_publish("failed", payload, profile, stage="failed", reason=failed.reason)
-        return jsonify({"error": str(failed), "reason": failed.reason, "state": "failed"}), 502
+        return jsonify({"error": str(failed), **message_fields(failed), "reason": failed.reason, "state": "failed"}), 502
     except Exception as exc:  # never echo the exception: it may name internal addresses
         current_app.logger.warning("Publishing failed: %s", type(exc).__name__)
         publishing.finish_attempt(digest, "failed", {"ok": False, "reason": "error"})
         _audit_publish("failed", payload, profile, stage="failed", reason=type(exc).__name__)
-        return jsonify({"error": "Publishing failed. Try again later or ask your teacher.", "reason": "error",
+        return jsonify({**message_body(say("api", "Publishing failed. Try again later or ask your teacher.")), "reason": "error",
                         "state": "failed"}), 502
     state = "submitted" if result.get("ok") else "failed"
     publishing.finish_attempt(digest, state, result)

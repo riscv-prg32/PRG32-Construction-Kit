@@ -21,6 +21,7 @@ from typing import Any
 from sqlalchemy import func, select
 
 from .db import Artifact, Asset, Project, ProjectRevision, Sprite, db
+from .messages import text as say
 
 
 class QuotaExceeded(Exception):
@@ -67,9 +68,7 @@ def check(principal, config: dict[str, Any], *, adding_bytes: int = 0, adding_pr
         return
     now = usage(principal.id, config)
     if adding_projects and now["quota_projects"] and now["projects"] + adding_projects > now["quota_projects"]:
-        raise QuotaExceeded(f"You already have {now['projects']} projects, the most this kit allows "
-                            f"({now['quota_projects']}). Delete one you no longer need.", now)
+        raise QuotaExceeded(say("storage", "You already have {now} projects, the most this kit allows ({now2}). Delete one you no longer need.", now=now['projects'], now2=now['quota_projects']), now)
     if now["quota_bytes"] and (adding_bytes > 0 or adding_projects) and now["bytes"] + max(0, adding_bytes) > now["quota_bytes"]:
         megabytes = now["quota_bytes"] // (1024 * 1024)
-        raise QuotaExceeded(f"Your space is full ({megabytes} MB). Delete old projects or builds, or ask your "
-                            "teacher.", now)
+        raise QuotaExceeded(say("storage", "Your space is full ({megabytes} MB). Delete old projects or builds, or ask your teacher.", megabytes=megabytes), now)

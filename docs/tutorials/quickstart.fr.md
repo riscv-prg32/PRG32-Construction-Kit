@@ -1,10 +1,10 @@
 # Démarrage rapide (Français)
 
 Autres langues : [English](quickstart.en.md) · [Italiano](quickstart.it.md) ·
-[Español](quickstart.es.md) · [Deutsch](quickstart.de.md)
+[Español](quickstart.es.md) · [Deutsch](quickstart.de.md) · [简体中文](quickstart.zh-Hans.md)
 
 1. **Ouvre le kit** dans un navigateur. Choisis ta langue avec le menu en haut
-   (English, Italiano, Español, Français, Deutsch).
+   (English, Italiano, Español, Français, Deutsch, 简体中文).
 2. **Pas de compte ?** Appuie sur *Essayer sans compte* : tes jeux restent seulement dans ce
    navigateur.
 3. **Nouveau projet.** Choisis comment l'écrire : **Blocs**, **C**, **Assembleur (RISC-V)** ou

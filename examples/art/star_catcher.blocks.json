@@ -1,0 +1,286 @@
+{
+ "blocks": {
+  "blocks": [
+   {
+    "id": "star-catcher-25",
+    "inputs": {
+     "DO": {
+      "block": {
+       "fields": {
+        "VALUE": "152",
+        "VAR": "rocket_x"
+       },
+       "id": "star-catcher-3",
+       "next": {
+        "block": {
+         "fields": {
+          "VALUE": "100",
+          "VAR": "star_x"
+         },
+         "id": "star-catcher-4",
+         "next": {
+          "block": {
+           "fields": {
+            "VALUE": "0",
+            "VAR": "star_y"
+           },
+           "id": "star-catcher-5",
+           "next": {
+            "block": {
+             "fields": {
+              "VALUE": "0",
+              "VAR": "score"
+             },
+             "id": "star-catcher-6",
+             "next": {
+              "block": {
+               "fields": {
+                "BACKGROUND": "sky"
+               },
+               "id": "star-catcher-7",
+               "next": {
+                "block": {
+                 "fields": {
+                  "TRACK": "Theme"
+                 },
+                 "id": "star-catcher-8",
+                 "type": "prg32_soundtrack_play"
+                }
+               },
+               "type": "prg32_background_load"
+              }
+             },
+             "type": "prg32_set_state"
+            }
+           },
+           "type": "prg32_set_state"
+          }
+         },
+         "type": "prg32_set_state"
+        }
+       },
+       "type": "prg32_set_state"
+      }
+     }
+    },
+    "type": "prg32_on_start",
+    "x": 20,
+    "y": 20
+   },
+   {
+    "id": "star-catcher-26",
+    "inputs": {
+     "DO": {
+      "block": {
+       "fields": {
+        "BUTTON": "LEFT"
+       },
+       "id": "star-catcher-10",
+       "inputs": {
+        "DO": {
+         "block": {
+          "fields": {
+           "DELTA": "-3",
+           "VAR": "rocket_x"
+          },
+          "id": "star-catcher-9",
+          "type": "prg32_change_state"
+         }
+        }
+       },
+       "next": {
+        "block": {
+         "fields": {
+          "BUTTON": "RIGHT"
+         },
+         "id": "star-catcher-12",
+         "inputs": {
+          "DO": {
+           "block": {
+            "fields": {
+             "DELTA": "3",
+             "VAR": "rocket_x"
+            },
+            "id": "star-catcher-11",
+            "type": "prg32_change_state"
+           }
+          }
+         },
+         "next": {
+          "block": {
+           "fields": {
+            "HIGH": "304",
+            "LOW": "0",
+            "VAR": "rocket_x"
+           },
+           "id": "star-catcher-13",
+           "next": {
+            "block": {
+             "fields": {
+              "DELTA": "2",
+              "VAR": "star_y"
+             },
+             "id": "star-catcher-14",
+             "next": {
+              "block": {
+               "fields": {
+                "AH": "16",
+                "AW": "16",
+                "AX": "rocket_x",
+                "AY": "160",
+                "BH": "8",
+                "BW": "8",
+                "BX": "star_x",
+                "BY": "star_y"
+               },
+               "id": "star-catcher-17",
+               "inputs": {
+                "DO": {
+                 "block": {
+                  "fields": {
+                   "DELTA": "1",
+                   "VAR": "score"
+                  },
+                  "id": "star-catcher-15",
+                  "next": {
+                   "block": {
+                    "fields": {
+                     "EFFECT": "Coin"
+                    },
+                    "id": "star-catcher-16",
+                    "next": {
+                     "block": {
+                      "fields": {
+                       "VALUE": "0",
+                       "VAR": "star_y"
+                      },
+                      "id": "star-catcher-1",
+                      "next": {
+                       "block": {
+                        "fields": {
+                         "HIGH": "304",
+                         "LOW": "8",
+                         "VAR": "star_x"
+                        },
+                        "id": "star-catcher-2",
+                        "type": "prg32_random_state"
+                       }
+                      },
+                      "type": "prg32_set_state"
+                     }
+                    },
+                    "type": "prg32_sound_effect"
+                   }
+                  },
+                  "type": "prg32_change_state"
+                 }
+                }
+               },
+               "next": {
+                "block": {
+                 "fields": {
+                  "COND": "star_y > 176"
+                 },
+                 "id": "star-catcher-20",
+                 "inputs": {
+                  "DO": {
+                   "block": {
+                    "fields": {
+                     "VALUE": "0",
+                     "VAR": "star_y"
+                    },
+                    "id": "star-catcher-18",
+                    "next": {
+                     "block": {
+                      "fields": {
+                       "HIGH": "304",
+                       "LOW": "8",
+                       "VAR": "star_x"
+                      },
+                      "id": "star-catcher-19",
+                      "type": "prg32_random_state"
+                     }
+                    },
+                    "type": "prg32_set_state"
+                   }
+                  }
+                 },
+                 "type": "prg32_if"
+                }
+               },
+               "type": "prg32_if_touching"
+              }
+             },
+             "type": "prg32_change_state"
+            }
+           },
+           "type": "prg32_clamp_state"
+          }
+         },
+         "type": "prg32_if_button"
+        }
+       },
+       "type": "prg32_if_button"
+      }
+     }
+    },
+    "type": "prg32_update",
+    "x": 360,
+    "y": 20
+   },
+   {
+    "id": "star-catcher-27",
+    "inputs": {
+     "DO": {
+      "block": {
+       "fields": {
+        "BACKGROUND": "sky"
+       },
+       "id": "star-catcher-21",
+       "next": {
+        "block": {
+         "fields": {
+          "SPRITE": "rocket",
+          "X": "rocket_x",
+          "Y": "160"
+         },
+         "id": "star-catcher-22",
+         "next": {
+          "block": {
+           "fields": {
+            "SPRITE": "star",
+            "X": "star_x",
+            "Y": "star_y"
+           },
+           "id": "star-catcher-23",
+           "next": {
+            "block": {
+             "fields": {
+              "BG": "NAVY",
+              "FG": "YELLOW",
+              "VALUE": "score",
+              "X": "8",
+              "Y": "8"
+             },
+             "id": "star-catcher-24",
+             "type": "prg32_draw_number"
+            }
+           },
+           "type": "prg32_draw_project_sprite"
+          }
+         },
+         "type": "prg32_draw_project_sprite"
+        }
+       },
+       "type": "prg32_background_draw"
+      }
+     }
+    },
+    "type": "prg32_draw",
+    "x": 760,
+    "y": 20
+   }
+  ],
+  "languageVersion": 0
+ }
+}

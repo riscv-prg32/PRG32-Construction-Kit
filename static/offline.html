@@ -14,6 +14,8 @@
   <link href="/static/vendor/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
   <link href="/static/vendor/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
   <link href="/static/css/app.css" rel="stylesheet">
+  <!-- Chinese characters without a CJK font on the computer: fetched only for characters a page shows. -->
+  <link href="/static/vendor/@fontsource/noto-sans-sc/5.3.1/400.css" rel="stylesheet">
 </head>
 <body>
 <!-- The page the service worker shows when the server cannot be reached.
@@ -30,7 +32,7 @@
       <select class="form-select form-select-sm w-auto" id="localeChoice" data-locale-choice>
         <option value="en" lang="en">English</option><option value="it" lang="it">Italiano</option>
         <option value="es" lang="es">Español</option><option value="fr" lang="fr">Français</option>
-        <option value="de" lang="de">Deutsch</option>
+        <option value="de" lang="de">Deutsch</option><option value="zh-Hans" lang="zh-Hans">简体中文</option>
       </select>
       <span class="badge text-bg-warning" id="offlineBadge"><i class="bi bi-wifi-off"></i> <span data-i18n="offline.offline">Offline</span></span>
     </span>

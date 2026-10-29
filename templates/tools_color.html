@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}{{ t("tools.color_picker_title", name=(site.name)) }}{% endblock %}
+{% block content %}
+{# Tools > Color Picker: a colour as RGB24 and as the PRG32's RGB565, in hex, decimal and binary (color_picker.js). #}
+<div id="colorPicker">
+  <h1 class="h3 mb-2"><i class="bi bi-eyedropper" aria-hidden="true"></i> {{ t("tools.color_picker") }}</h1>
+  <p class="text-muted">{{ t("tools.color_intro") }}</p>
+  <div class="row g-4">
+    <div class="col-lg-4">
+      <section class="card shadow-sm" aria-labelledby="pickTitle">
+        <div class="card-header"><h2 class="h6 mb-0" id="pickTitle">{{ t("tools.choose_colour") }}</h2></div>
+        <div class="card-body">
+          <label class="form-label" for="colorInput">{{ t("tools.colour") }}</label>
+          <input class="form-control form-control-color w-100 mb-3" type="color" id="colorInput" value="#ffcc00">
+          <label class="form-label" for="hexInput">{{ t("tools.hex_rgb24") }}</label>
+          <input class="form-control font-monospace mb-3" id="hexInput" value="#FFCC00" maxlength="7" spellcheck="false" aria-describedby="hexHelp">
+          <div class="form-text mb-3" id="hexHelp">{{ t("tools.hex_help") }}</div>
+          <label class="form-label" for="rNumber">{{ t("tools.red") }}</label>
+          <div class="d-flex gap-2 align-items-center mb-2">
+            <input class="form-range" type="range" min="0" max="255" id="rRange" aria-label="{{ t("tools.red") }}">
+            <input class="form-control form-control-sm w-auto" type="number" min="0" max="255" id="rNumber">
+          </div>
+          <label class="form-label" for="gNumber">{{ t("tools.green") }}</label>
+          <div class="d-flex gap-2 align-items-center mb-2">
+            <input class="form-range" type="range" min="0" max="255" id="gRange" aria-label="{{ t("tools.green") }}">
+            <input class="form-control form-control-sm w-auto" type="number" min="0" max="255" id="gNumber">
+          </div>
+          <label class="form-label" for="bNumber">{{ t("tools.blue") }}</label>
+          <div class="d-flex gap-2 align-items-center mb-2">
+            <input class="form-range" type="range" min="0" max="255" id="bRange" aria-label="{{ t("tools.blue") }}">
+            <input class="form-control form-control-sm w-auto" type="number" min="0" max="255" id="bNumber">
+          </div>
+        </div>
+      </section>
+    </div>
+    <div class="col-lg-8">
+      <section class="card shadow-sm mb-4" aria-labelledby="valuesTitle">
+        <div class="card-header"><h2 class="h6 mb-0" id="valuesTitle">{{ t("tools.values") }}</h2></div>
+        <div class="card-body">
+          <div class="d-flex gap-3 mb-3 flex-wrap">
+            <figure class="m-0 text-center">
+              <div class="color-swatch border" id="swatch24"></div>
+              <figcaption class="small">{{ t("tools.rgb24_swatch") }}</figcaption>
+            </figure>
+            <figure class="m-0 text-center">
+              <div class="color-swatch border" id="swatch565"></div>
+              <figcaption class="small">{{ t("tools.rgb565_swatch") }}</figcaption>
+            </figure>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-sm align-middle" id="colorTable">
+              <caption class="small">{{ t("tools.table_caption") }}</caption>
+              <thead><tr><th scope="col"></th><th scope="col">{{ t("tools.hex") }}</th><th scope="col">{{ t("tools.decimal") }}</th><th scope="col">{{ t("tools.binary") }}</th></tr></thead>
+              <tbody>
+                <tr><th scope="row">{{ t("tools.rgb24") }}</th><td class="font-monospace" data-out="rgb24-hex"></td><td class="font-monospace" data-out="rgb24-dec"></td><td class="font-monospace" data-out="rgb24-bin"></td></tr>
+                <tr><th scope="row">{{ t("tools.rgb565") }}</th><td class="font-monospace" data-out="rgb565-hex"></td><td class="font-monospace" data-out="rgb565-dec"></td><td class="font-monospace" data-out="rgb565-bin"></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="small mb-1">{{ t("tools.channels") }} <span class="font-monospace" data-out="channels"></span></p>
+          <p class="small mb-1">{{ t("tools.in_c") }} <code data-out="c"></code> <button class="btn btn-outline-secondary btn-sm" type="button" id="copyC"><i class="bi bi-clipboard" aria-hidden="true"></i> {{ t("tools.copy") }}</button></p>
+          <p class="small mb-0">{{ t("tools.nearest") }} <code data-out="nearest"></code></p>
+        </div>
+      </section>
+      <section class="card shadow-sm" aria-labelledby="howTitle">
+        <div class="card-header"><h2 class="h6 mb-0" id="howTitle">{{ t("tools.how") }}</h2></div>
+        <div class="card-body small">
+          <p>{{ t("tools.how_rgb24") }}</p>
+          <p class="mb-0">{{ t("tools.how_rgb565") }}</p>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/color_picker.js') }}"></script>
+{% endblock %}

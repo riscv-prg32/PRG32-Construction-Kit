@@ -27,7 +27,10 @@ from prg32_construction_kit.packager import project_manifest
 ROOT = Path(__file__).resolve().parent.parent
 FIXTURES = ROOT / "tests" / "fixtures" / "contract"
 EXPECTED = json.loads((FIXTURES / "expected.json").read_text())
-STORE = Path(os.environ.get("PRG32_CARTRIDGE_STORE_SOURCE") or ROOT.parent / "CartridgeStore")
+sys.path.insert(0, str(ROOT / "tools"))
+from pinned_store import store_source  # noqa: E402  (tools/pinned_store.py)
+
+STORE = store_source()
 REQUIRE_STORE = os.environ.get("PRG32_REQUIRE_STORE") == "1"
 
 # Runs in a separate interpreter with the Store on its path: the Store's code decides.

@@ -99,6 +99,23 @@ What was checked in a clean clone:
 `tests/test_upstream_sdk_patches.py` (in CI) applies both SDK patches to a copy of the
 checkout and repeats the ABI, header and example checks.
 
+**How the kit's tests reach it, until it lands.** The Store tests (`test_store_contract.py`,
+`test_store_live.py`, `test_sso_with_cartridge_store.py`, `tools/run_live_suites.py`) take the
+Store from [`tools/pinned_store.py`](../../tools/pinned_store.py):
+`PRG32_CARTRIDGE_STORE_SOURCE` when it is set (CI's own pin), else the Store next to the kit
+when it already has the contract (`tests/test_shared_identity.py`), else a clean clone of it at
+`4a3138b` with this patch applied by `git am`, in `build/pinned-store/4a3138be6784-shared-identity`.
+The Store next to the kit is only cloned, never changed.
+
+Rerun 2026-10-26 (macOS, Python 3.12.10), adjacent Store at `4a3138b`, clean, unchanged after
+the run; the clone at `8426331` (`4a3138b` + this patch):
+
+| Suite | Result |
+|---|---|
+| Store's own tests in the clone (`python3 -m pytest -q tests`) | 91 passed |
+| Kit cross-repository suite* (no `PRG32_CARTRIDGE_STORE_SOURCE`) | 89 passed |
+| of which `tests/test_sso_with_cartridge_store.py` (username shared, handle public only, same-username Store account never joined, registration, admin changes and deletes, both-way sign-on, publish, sync) | 9 passed |
+
 **When it lands upstream:**
 
 1. Set `project_format.SDK_ABI` to 1.7 and the new hash.

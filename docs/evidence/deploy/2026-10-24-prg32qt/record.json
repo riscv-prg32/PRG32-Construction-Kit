@@ -1,0 +1,209 @@
+{
+  "address": "http://127.0.0.1:8080",
+  "cartridge": {
+    "architecture": "qemu",
+    "bytes": 4744,
+    "file": "deploy-check-qemu.prg32",
+    "sha256": "fc21ac7e2a6e246f65de668763fa3454187a5200468929d48c57541995b77e44"
+  },
+  "checks": [
+    {
+      "check": "an administrator registers the target",
+      "detail": "",
+      "ok": true
+    },
+    {
+      "check": "the target answers who it is",
+      "detail": "",
+      "ok": true
+    },
+    {
+      "check": "the cartridge's ABI is the target's",
+      "detail": "",
+      "ok": true
+    },
+    {
+      "check": "the target has cart3 and the cartridge fits in it",
+      "detail": "",
+      "ok": true
+    },
+    {
+      "check": "refused: no slot named",
+      "detail": "",
+      "ok": true
+    },
+    {
+      "check": "refused: the slot holds something else than what was seen",
+      "detail": "",
+      "ok": true
+    },
+    {
+      "check": "refused: the cartridge file changed after its build",
+      "detail": "",
+      "ok": true
+    },
+    {
+      "check": "refused: a stale build",
+      "detail": "",
+      "ok": true
+    },
+    {
+      "check": "after the refusals the slot is as it was",
+      "detail": "",
+      "ok": true
+    },
+    {
+      "check": "the deployment ran to the end",
+      "detail": "",
+      "ok": true
+    },
+    {
+      "check": "the target received the kit's cartridge (same SHA-256)",
+      "detail": "",
+      "ok": true
+    },
+    {
+      "check": "a screenshot came back from the target",
+      "detail": "",
+      "ok": true
+    },
+    {
+      "check": "cart3 now holds the cartridge",
+      "detail": "",
+      "ok": true
+    }
+  ],
+  "date": "2026-10-24T07:53:37+00:00",
+  "deployment": {
+    "log": [
+      {
+        "at": "2026-10-24T07:53:36+00:00",
+        "message_key": "server.deploy.asking_who_it_is_dc33",
+        "params": {
+          "target": "PRG32-QT"
+        },
+        "text": "Asking PRG32-QT who it is"
+      },
+      {
+        "at": "2026-10-24T07:53:36+00:00",
+        "message_key": "server.deploy.sending_bytes_to_509f",
+        "params": {
+          "bytes": 4744,
+          "slot": "cart3"
+        },
+        "text": "Sending 4744 bytes to cart3"
+      },
+      {
+        "at": "2026-10-24T07:53:36+00:00",
+        "message_key": "server.deploy.starting_0e40",
+        "params": {
+          "slot": "cart3"
+        },
+        "text": "Starting cart3"
+      },
+      {
+        "at": "2026-10-24T07:53:36+00:00",
+        "message_key": "server.deploy.waiting_for_the_target_to_show_b88e",
+        "params": {},
+        "text": "Waiting for the target to show the cartridge running"
+      },
+      {
+        "at": "2026-10-24T07:53:37+00:00",
+        "message_key": "server.deploy.taking_a_screenshot_0707",
+        "params": {},
+        "text": "Taking a screenshot"
+      },
+      {
+        "at": "2026-10-24T07:53:37+00:00",
+        "message_key": "server.deploy.running_on_d999",
+        "params": {
+          "evidence": "emulator (PRG32-QT)",
+          "target": "PRG32-QT"
+        },
+        "text": "Running on PRG32-QT (emulator (PRG32-QT))"
+      }
+    ],
+    "result": {
+      "cartridge": {
+        "abi_hash": 638542134,
+        "abi_major": 1,
+        "abi_minor": 0,
+        "bytes": 4744,
+        "code_size": 4644,
+        "header_size": 100,
+        "import_model": 1,
+        "mem_size": 4776,
+        "name": "deploy-check",
+        "required_features": 257,
+        "sha256": "fc21ac7e2a6e246f65de668763fa3454187a5200468929d48c57541995b77e44"
+      },
+      "evidence": "emulator (PRG32-QT)",
+      "launch": {
+        "answer": "{\"ok\":true,\"slot\":\"cart3\"}",
+        "status": 200
+      },
+      "physical_device": false,
+      "running": {
+        "frames": 31,
+        "running": true
+      },
+      "screenshot": {
+        "bytes": 707,
+        "sha256": "82c9e0df09e448dcbaaef795d40ab3a73931fc434cb82837bc3a1a7dac7efdce"
+      },
+      "target": {
+        "abi": {
+          "features": 477,
+          "hash": 638542134,
+          "major": 1,
+          "minor": 6
+        },
+        "fingerprint": "90562685fd783a26",
+        "identity": {
+          "firmware_version": "qt-0.4.1-dev.3+gf6d80ad",
+          "host": "qt",
+          "name": "PRG32",
+          "qemu": false
+        },
+        "limits": {
+          "cart_max_size": 67108864,
+          "cart_ram_size": 67108864
+        }
+      },
+      "upload": {
+        "answer": "{\"loaded\":false,\"ok\":true,\"slot\":\"cart3\",\"stored\":true}",
+        "status": 200
+      }
+    },
+    "status": "launched"
+  },
+  "evidence": "emulator (PRG32-QT)",
+  "kit_commit": "e5d06ed9e5eb3d61974c143573b29a9e7c0a1900",
+  "notes": "Canonical PRG32-QT f6d80ad from a clean clone (cmake, Homebrew Qt 6), run offscreen on macOS with an isolated HOME; its web API on port 8080. Cartridges built by PRG32 SDK 679dfb5.",
+  "passed": true,
+  "physical_device": false,
+  "prg32_sdk_commit": "679dfb58783bd007125de9ca0b75eaa077908739",
+  "screenshot_sha256": "82c9e0df09e448dcbaaef795d40ab3a73931fc434cb82837bc3a1a7dac7efdce",
+  "slot": "cart3",
+  "target": {
+    "abi": {
+      "features": 477,
+      "hash": 638542134,
+      "major": 1,
+      "minor": 6
+    },
+    "fingerprint": "90562685fd783a26",
+    "identity": {
+      "firmware_version": "qt-0.4.1-dev.3+gf6d80ad",
+      "host": "qt",
+      "name": "PRG32",
+      "qemu": false
+    },
+    "limits": {
+      "cart_max_size": 67108864,
+      "cart_ram_size": 67108864
+    }
+  },
+  "target_kind": "prg32qt",
+  "tool": "tools/deploy_evidence.py"
+}

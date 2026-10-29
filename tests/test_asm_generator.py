@@ -120,6 +120,9 @@ def projects() -> dict[str, dict]:
     found["every_block"] = {"title": "Every Block", "blocks_json": every_block_project()}
     found["edge_values"] = {"title": "Edge", "blocks_json": EDGE_PROJECT}
     found["stress"] = {"title": "Stress */ Test", "blocks_json": STRESS_PROJECT}
+    # Sprite Lab sprites and a background (project_assets.py): the art functions make the same calls.
+    from test_project_assets import ART_BLOCKS, CATALOG
+    found["art"] = {"title": "Art Test", "blocks_json": ART_BLOCKS, "assets": CATALOG}
     return found
 
 

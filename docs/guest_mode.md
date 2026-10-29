@@ -9,7 +9,9 @@ Open the kit and start: you do not need an account to make games. The badge
 - **IDE and editor:** Blocks, C or assembly. **Generate** shows the C and the RISC-V assembly
   your blocks make, line by line, just as with an account. **Play** runs a Blocks game in the
   simulator.
-- **Sprite Lab** and **AudioStudio:** draw sprites and compose sounds for your game.
+- **Sprite Lab**, **Backgrounds** and **AudioStudio:** draw sprites and maps and compose sounds
+  for your game, then use them by name in Blocks, Python, C or assembly (`project_art.md`). An
+  example with art, such as Star Catcher, comes with its sprites, background and sound.
 - **Player:** play any `.prg32` cartridge file from your computer.
 
 Everything is kept **in this browser, on this computer**. Nobody else sees it, and it can be
@@ -23,7 +25,7 @@ Some things need an account, because the server has to keep them or build them:
 
 When you try one, the kit says **Sign in to keep going**. Nothing is lost: after you sign in on
 this browser, the Projects page offers to **move your games into your account**, with their
-sprites and sounds.
+sprites, backgrounds and sounds.
 
 ## For teachers and administrators
 

@@ -1,0 +1,211 @@
+{
+  "address": "qemu",
+  "cartridge": {
+    "architecture": "qemu",
+    "bytes": 4744,
+    "file": "deploy-check-qemu.prg32",
+    "sha256": "fc21ac7e2a6e246f65de668763fa3454187a5200468929d48c57541995b77e44"
+  },
+  "checks": [
+    {
+      "check": "QEMU is offered (firmware folder and qemu-system-riscv32 found)",
+      "detail": "",
+      "ok": true
+    },
+    {
+      "check": "the target answers who it is",
+      "detail": "",
+      "ok": true
+    },
+    {
+      "check": "the cartridge's ABI is the target's",
+      "detail": "",
+      "ok": true
+    },
+    {
+      "check": "the target has cart0 and the cartridge fits in it",
+      "detail": "",
+      "ok": true
+    },
+    {
+      "check": "refused: no slot named",
+      "detail": "",
+      "ok": true
+    },
+    {
+      "check": "refused: the slot holds something else than what was seen",
+      "detail": "",
+      "ok": true
+    },
+    {
+      "check": "refused: a cartridge for another architecture",
+      "detail": "",
+      "ok": true
+    },
+    {
+      "check": "refused: the cartridge file changed after its build",
+      "detail": "",
+      "ok": true
+    },
+    {
+      "check": "refused: a stale build",
+      "detail": "",
+      "ok": true
+    },
+    {
+      "check": "after the refusals the slot is as it was",
+      "detail": "",
+      "ok": true
+    },
+    {
+      "check": "the deployment ran to the end",
+      "detail": "",
+      "ok": true
+    },
+    {
+      "check": "the target received the kit's cartridge (same SHA-256)",
+      "detail": "",
+      "ok": true
+    },
+    {
+      "check": "a screenshot came back from the target",
+      "detail": "",
+      "ok": true
+    }
+  ],
+  "date": "2026-10-24T07:53:59+00:00",
+  "deployment": {
+    "log": [
+      {
+        "at": "2026-10-24T07:53:49+00:00",
+        "message_key": "server.deploy.asking_who_it_is_dc33",
+        "params": {
+          "target": "QEMU (this server)"
+        },
+        "text": "Asking QEMU (this server) who it is"
+      },
+      {
+        "at": "2026-10-24T07:53:49+00:00",
+        "message_key": "server.deploy.sending_bytes_to_509f",
+        "params": {
+          "bytes": 4744,
+          "slot": "cart0"
+        },
+        "text": "Sending 4744 bytes to cart0"
+      },
+      {
+        "at": "2026-10-24T07:53:49+00:00",
+        "message_key": "server.deploy.starting_0e40",
+        "params": {
+          "slot": "cart0"
+        },
+        "text": "Starting cart0"
+      },
+      {
+        "at": "2026-10-24T07:53:49+00:00",
+        "message_key": "server.deploy.waiting_for_the_target_to_show_b88e",
+        "params": {},
+        "text": "Waiting for the target to show the cartridge running"
+      },
+      {
+        "at": "2026-10-24T07:53:58+00:00",
+        "message_key": "server.deploy.taking_a_screenshot_0707",
+        "params": {},
+        "text": "Taking a screenshot"
+      },
+      {
+        "at": "2026-10-24T07:53:59+00:00",
+        "message_key": "server.deploy.running_on_d999",
+        "params": {
+          "evidence": "emulator (QEMU)",
+          "target": "QEMU (this server)"
+        },
+        "text": "Running on QEMU (this server) (emulator (QEMU))"
+      }
+    ],
+    "result": {
+      "cartridge": {
+        "abi_hash": 638542134,
+        "abi_major": 1,
+        "abi_minor": 0,
+        "bytes": 4744,
+        "code_size": 4644,
+        "header_size": 100,
+        "import_model": 1,
+        "mem_size": 4776,
+        "name": "deploy-check",
+        "required_features": 257,
+        "sha256": "fc21ac7e2a6e246f65de668763fa3454187a5200468929d48c57541995b77e44"
+      },
+      "evidence": "emulator (QEMU)",
+      "launch": {
+        "pid": 15943,
+        "qemu": "started"
+      },
+      "physical_device": false,
+      "running": {
+        "running": true,
+        "serial_bytes": 6149
+      },
+      "screenshot": {
+        "bytes": 757,
+        "sha256": "c70278cbbfd2893425a27b9265c811ad25d90eb746c514a9f5559e3cef1188c3"
+      },
+      "target": {
+        "abi": {
+          "features": 511,
+          "hash": 638542134,
+          "major": 1,
+          "minor": 6
+        },
+        "fingerprint": "4d36a30a2632a52b",
+        "identity": {
+          "firmware_version": "679dfb5",
+          "host": "qemu",
+          "name": "PRG32",
+          "qemu": true,
+          "sdk_commit": "679dfb58783bd007125de9ca0b75eaa077908739"
+        },
+        "limits": {
+          "cart_max_size": 65536,
+          "cart_ram_size": 65536
+        }
+      },
+      "upload": {
+        "offset": 2162688,
+        "staged": "cart0"
+      }
+    },
+    "status": "launched"
+  },
+  "evidence": "emulator (QEMU)",
+  "kit_commit": "e5d06ed9e5eb3d61974c143573b29a9e7c0a1900",
+  "notes": "Espressif QEMU esp_develop_9.0.0_20240606 (ESP32-C3 machine) on macOS; firmware built by tools/build_qemu_firmware.py --revision 679dfb5 with ESP-IDF 5.4; cartridges built by the same SDK revision. Pong drew its field and READY.",
+  "passed": true,
+  "physical_device": false,
+  "prg32_sdk_commit": "679dfb58783bd007125de9ca0b75eaa077908739",
+  "screenshot_sha256": "c70278cbbfd2893425a27b9265c811ad25d90eb746c514a9f5559e3cef1188c3",
+  "slot": "cart0",
+  "target": {
+    "abi": {
+      "features": 511,
+      "hash": 638542134,
+      "major": 1,
+      "minor": 6
+    },
+    "fingerprint": "4d36a30a2632a52b",
+    "identity": {
+      "firmware_version": "679dfb5",
+      "host": "qemu",
+      "name": "PRG32",
+      "qemu": true,
+      "sdk_commit": "679dfb58783bd007125de9ca0b75eaa077908739"
+    },
+    "limits": {
+      "cart_max_size": 65536,
+      "cart_ram_size": 65536
+    }
+  },
+  "target_kind": "qemu",
+  "tool": "tools/deploy_evidence.py"
+}

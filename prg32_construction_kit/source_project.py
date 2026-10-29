@@ -5,9 +5,11 @@ from __future__ import annotations
 import re
 
 from .generator import c_identifier
+from .messages import text as say
 
 _INCLUDE = re.compile(r'^\s*#\s*include\s*[<"]([^>"]+)[>"]\s*$')
-_ALLOWED_HEADERS = {"prg32.h", "prg32_audio.h", "stdint.h", "stddef.h", "stdbool.h"}
+# prg32_assets.h is not a file: the kit writes the project's art in its place (project_assets.py).
+_ALLOWED_HEADERS = {"prg32.h", "prg32_audio.h", "prg32_assets.h", "stdint.h", "stddef.h", "stdbool.h"}
 FEATURES = {"audio", "wifi", "multiplayer", "metrics", "audio_plus", "keyboard", "tilemap", "platformer", "sprites"}
 _LIFECYCLE = r'\bvoid\s+({prefix}_(?:init|update|draw))\s*\(\s*void\s*\)\s*\{{'
 _DIRECTIVE_START = re.compile(r"^\s*(?:#|%:)")
@@ -31,8 +33,7 @@ def _refuse_obsolete(code: str, where=lambda _offset: "") -> None:
     if found:
         name = found.group(1)
         instead = OBSOLETE_FUNCTIONS.get(name) or OBSOLETE_TYPES.get(name) or "the PRG32 audio engine (prg32_audio_*)"
-        raise ValueError(f"{where(found.start())}{name} belongs to the old PRG32 buzzer, which is no longer "
-                         f"supported. Use {instead}.")
+        raise ValueError(say("source", "{value}{name} belongs to the old PRG32 buzzer, which is no longer supported. Use {instead}.", value=where(found.start()), name=name, instead=instead))
 
 
 def _without_comments(source: str) -> str:
@@ -88,7 +89,7 @@ def _without_comments_mapped(source: str) -> tuple[str, list[int]]:
         elif text.startswith("/*", i):
             end = text.find("*/", i + 2)
             if end < 0:
-                raise ValueError("C source has a comment that never ends")
+                raise ValueError(say("source", "C source has a comment that never ends"))
             out.append(" ")
             origin.append(text_origin[i])
             i = end + 2
@@ -143,11 +144,11 @@ def validate_c_source(source: str, title: str) -> str:
     entry names.
     """
     if not isinstance(source, str) or not source.strip():
-        raise ValueError("C source is empty")
+        raise ValueError(say("source", "C source is empty"))
     if len(source.encode("utf-8")) > 256 * 1024 or "\x00" in source:
-        raise ValueError("C source exceeds 256 KiB or contains NUL bytes")
+        raise ValueError(say("source", "C source exceeds 256 KiB or contains NUL bytes"))
     if "??=" in source or "??/" in source:
-        raise ValueError("C trigraphs (??= and ??/) are not supported")
+        raise ValueError(say("source", "C trigraphs (??= and ??/) are not supported"))
     code = _without_comments(source)
     for line in code.splitlines():
         if _DIRECTIVE_START.match(line):
@@ -157,25 +158,25 @@ def validate_c_source(source: str, title: str) -> str:
                 continue
             if re.match(r'^\s*#\s*(?:define|ifndef|ifdef|if|elif|else|endif|undef)\b', directive):
                 continue
-            raise ValueError("Only approved PRG32/standard headers and basic conditional or define directives are supported")
+            raise ValueError(say("source", "Only approved PRG32/standard headers and basic conditional or define directives are supported"))
     bare = _without_strings(code)
     if "##" in bare or "%:%:" in bare:
-        raise ValueError("The ## token-pasting operator is not supported")
+        raise ValueError(say("source", "The ## token-pasting operator is not supported"))
     forbidden = _FORBIDDEN_WORDS.search(bare)
     if forbidden:
-        raise ValueError(f"'{forbidden.group(0)}' is not supported in PRG32 cartridge C")
+        raise ValueError(say("source", "'{value}' is not supported in PRG32 cartridge C", value=forbidden.group(0)))
     _refuse_obsolete(bare)
     prefix = c_identifier(title, "prg32_game")
     found = set(re.findall(_LIFECYCLE.format(prefix=re.escape(prefix)), bare))
     required = {f"{prefix}_{phase}" for phase in ("init", "update", "draw")}
     if found != required:
-        raise ValueError(f"C source must define void {prefix}_init/update/draw(void)")
+        raise ValueError(say("source", "C source must define void {prefix}_init/update/draw(void)", prefix=prefix))
     return prefix
 
 
 def validate_features(value: object) -> list[str]:
     if not isinstance(value, list) or any(not isinstance(item, str) or item not in FEATURES for item in value):
-        raise ValueError("Features must be a list of current PRG32 feature names")
+        raise ValueError(say("source", "Features must be a list of current PRG32 feature names"))
     return list(dict.fromkeys(value))
 
 
@@ -220,18 +221,23 @@ def validate_asm_source(source: str, title: str) -> str:
     against wrong entry names; it is not an OS sandbox.
     """
     if not isinstance(source, str) or not source.strip():
-        raise ValueError("Assembly source is empty")
+        raise ValueError(say("source", "Assembly source is empty"))
     if len(source.encode("utf-8")) > 256 * 1024 or "\x00" in source:
-        raise ValueError("Assembly source exceeds 256 KiB or contains NUL bytes")
+        raise ValueError(say("source", "Assembly source exceeds 256 KiB or contains NUL bytes"))
     if "??=" in source or "??/" in source:
-        raise ValueError("Trigraphs (??= and ??/) are not supported")
+        raise ValueError(say("source", "Trigraphs (??= and ??/) are not supported"))
+    # The one include allowed: #include "prg32_assets.S" on a line of its own. It names no file:
+    # the kit writes the project's art in its place before the assembler runs (project_assets.py),
+    # so it is blanked here and every other include is still refused below.
+    from .project_assets import blank_include
+    source = blank_include(source)
     bare, origin = _without_strings_mapped(*_without_comments_mapped(source))
     source_line = _source_lines(source, bare, origin)  # the line the student sees, for each line of bare
     # After an instruction '#' starts a comment; a line that starts with '#' is a preprocessor line.
     code = "\n".join(line if _DIRECTIVE_START.match(line) else line.split("#", 1)[0] for line in bare.splitlines())
     found = _ASM_FILE_WORDS.search(code)
     if found:
-        raise ValueError(f"'{found.group(0)}' is not allowed in PRG32 cartridge assembly: it could read files on the server")
+        raise ValueError(say("source", "'{value}' is not allowed in PRG32 cartridge assembly: it could read files on the server", value=found.group(0)))
     lines = bare.splitlines()
     _refuse_obsolete("\n".join(lines), lambda offset: f"Line {source_line[bare[:offset].count(chr(10))]}: ")
     for index, line in enumerate(bare.splitlines()):
@@ -245,8 +251,7 @@ def validate_asm_source(source: str, title: str) -> str:
                 continue  # only "#define NAME number-expression": no macros with arguments
             if word not in _CPP_DIRECTIVES:
                 continue  # "# move the ball": a comment line, the preprocessor leaves it alone
-            raise ValueError(f"Line {number}: only '#define NAME value' and #if/#ifdef/#else/#endif are allowed "
-                             "as preprocessor lines")
+            raise ValueError(say("source", "Line {number}: only '#define NAME value' and #if/#ifdef/#else/#endif are allowed as preprocessor lines", number=number))
         for statement in _asm_statements(line):
             while _ASM_LABEL.match(statement):
                 statement = _ASM_LABEL.sub("", statement, count=1).strip()
@@ -260,12 +265,12 @@ def validate_asm_source(source: str, title: str) -> str:
             if name == ".section":
                 section = rest.split(",")[0].strip()
                 if not _ASM_SECTION.match(section):
-                    raise ValueError(f"Line {number}: use .text, .rodata, .data or .bss sections, not {section!r}")
+                    raise ValueError(say("source", "Line {number}: use .text, .rodata, .data or .bss sections, not {section}", number=number, section=repr(section)))
     prefix = c_identifier(title, "prg32_game")
     for phase in ("init", "update", "draw"):
         name = re.escape(f"{prefix}_{phase}")
         if not re.search(rf"^\s*{name}\s*:", bare, re.MULTILINE):
-            raise ValueError(f"Assembly source must define the label {prefix}_{phase}:")
+            raise ValueError(say("source", "Assembly source must define the label {prefix}_{phase}:", prefix=prefix, phase=phase))
         if not re.search(rf"^\s*\.glob(?:a)?l\s+{name}\s*(?:[#;]|$)", bare, re.MULTILINE | re.IGNORECASE):
-            raise ValueError(f"Assembly source must make {prefix}_{phase} visible with .globl {prefix}_{phase}")
+            raise ValueError(say("source", "Assembly source must make {prefix}_{phase} visible with .globl {prefix}_{phase}", prefix=prefix, phase=phase))
     return prefix

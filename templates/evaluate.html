@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% block title %}{{ t("evaluate.title", name=(site.name)) }}{% endblock %}
+{% block content %}
+{# Evaluate (EVAL-01, docs/evaluate.md): the PRG32 performance protocol on a target; raw data and charts. evaluate.js. #}
+<div id="evaluatePage" data-project="{{ nav_project.id if nav_project else '' }}"
+     data-protocol-version="{{ protocol.version }}" data-cartridge-title="{{ protocol.cartridge.title }}">
+  <h1 class="h3 mb-2"><i class="bi bi-speedometer2" aria-hidden="true"></i> {{ t("evaluate.evaluate") }}</h1>
+  <p class="text-muted">{{ t("evaluate.intro") }}</p>
+  <div class="alert alert-warning" role="note"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i> {{ t("evaluate.caveat") }}</div>
+
+  <div class="row g-4">
+    <div class="col-lg-6">
+      <section class="card shadow-sm mb-4" aria-labelledby="evalCartridgeTitle">
+        <div class="card-header"><h2 class="h6 mb-0" id="evalCartridgeTitle">{{ t("evaluate.step_cartridge") }}</h2></div>
+        <div class="card-body">
+          <p class="small">{{ t("evaluate.cartridge_help", cases=protocol.cartridge.cases|length, frames=protocol.cartridge.cases[0].frames) }}</p>
+          <label class="form-label" for="evalCartridge">{{ t("evaluate.cartridge") }}</label>
+          <select class="form-select mb-2" id="evalCartridge"></select>
+          <button class="btn btn-outline-primary btn-sm" type="button" id="evalMake"><i class="bi bi-hammer" aria-hidden="true"></i> {{ t("evaluate.make") }}</button>
+        </div>
+      </section>
+
+      <section class="card shadow-sm mb-4" aria-labelledby="evalTargetTitle">
+        <div class="card-header"><h2 class="h6 mb-0" id="evalTargetTitle">{{ t("evaluate.step_target") }}</h2></div>
+        <div class="card-body">
+          <label class="form-label" for="evalTarget">{{ t("deploy.target") }}</label>
+          <div class="input-group mb-2">
+            <select class="form-select" id="evalTarget"></select>
+            <button class="btn btn-outline-primary" type="button" id="evalLook"><i class="bi bi-search" aria-hidden="true"></i> {{ t("deploy.look") }}</button>
+          </div>
+          <div id="evalNoTargets" class="alert alert-warning d-none">{{ t("deploy.no_targets") }}</div>
+          <div id="evalProbe" aria-live="polite"></div>
+        </div>
+      </section>
+    </div>
+
+    <div class="col-lg-6">
+      <section class="card shadow-sm mb-4" aria-labelledby="evalRunTitle">
+        <div class="card-header"><h2 class="h6 mb-0" id="evalRunTitle">{{ t("evaluate.step_run") }}</h2></div>
+        <div class="card-body">
+          <div class="row g-2 mb-3">
+            <div class="col-6">
+              <label class="form-label" for="evalRepetitions">{{ t("evaluate.measured_runs") }}</label>
+              <input class="form-control" type="number" id="evalRepetitions" min="{{ protocol.repetitions.min }}" max="{{ protocol.repetitions.max }}" value="{{ protocol.repetitions.default }}" required>
+            </div>
+            <div class="col-6">
+              <label class="form-label" for="evalWarmUp">{{ t("evaluate.warm_up_runs") }}</label>
+              <input class="form-control" type="number" id="evalWarmUp" min="{{ protocol.warm_up.min }}" max="{{ protocol.warm_up.max }}" value="{{ protocol.warm_up.default }}" required aria-describedby="evalWarmUpHelp">
+              <div class="form-text" id="evalWarmUpHelp">{{ t("evaluate.warm_up_help") }}</div>
+            </div>
+          </div>
+          <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" id="evalConfirm" disabled>
+            <label class="form-check-label" for="evalConfirm" id="evalConfirmLabel">{{ t("deploy.confirm_first") }}</label>
+          </div>
+          <div class="d-flex gap-2 mb-3">
+            <button class="btn btn-primary" type="button" id="evalStart" disabled><i class="bi bi-play-fill" aria-hidden="true"></i> {{ t("evaluate.run") }}</button>
+            <button class="btn btn-outline-danger" type="button" id="evalCancel" disabled><i class="bi bi-x-circle" aria-hidden="true"></i> {{ t("common.cancel") }}</button>
+          </div>
+          <div class="progress mb-2" role="progressbar" aria-labelledby="evalStatus" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="evalProgress">
+            <div class="progress-bar"></div>
+          </div>
+          <p class="small mb-2" id="evalStatus" aria-live="polite">{{ t("deploy.not_started") }}</p>
+          <ol class="small text-muted mb-0" id="evalLog" aria-label="{{ t('deploy.log') }}"></ol>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <section class="card shadow-sm mb-4" aria-labelledby="evalResultsTitle">
+    <div class="card-header d-flex flex-wrap gap-2 justify-content-between align-items-center">
+      <h2 class="h6 mb-0" id="evalResultsTitle">{{ t("evaluate.results") }}</h2>
+      <div class="d-flex gap-2 align-items-center">
+        <label class="small" for="evalMetric">{{ t("evaluate.metric") }}</label>
+        <select class="form-select form-select-sm w-auto" id="evalMetric">
+          {# One option per metric of the protocol, in its order (tests/test_evaluation.py checks). #}
+          <option value="frame_us_mean">{{ t("evaluate.metric_frame_us_mean") }} ({{ units.frame_us_mean }})</option>
+          <option value="frame_us_p50">{{ t("evaluate.metric_frame_us_p50") }} ({{ units.frame_us_p50 }})</option>
+          <option value="frame_us_p95">{{ t("evaluate.metric_frame_us_p95") }} ({{ units.frame_us_p95 }})</option>
+          <option value="frame_us_p99">{{ t("evaluate.metric_frame_us_p99") }} ({{ units.frame_us_p99 }})</option>
+          <option value="frame_us_min">{{ t("evaluate.metric_frame_us_min") }} ({{ units.frame_us_min }})</option>
+          <option value="frame_us_max">{{ t("evaluate.metric_frame_us_max") }} ({{ units.frame_us_max }})</option>
+          <option value="update_us_mean">{{ t("evaluate.metric_update_us_mean") }} ({{ units.update_us_mean }})</option>
+          <option value="draw_us_mean">{{ t("evaluate.metric_draw_us_mean") }} ({{ units.draw_us_mean }})</option>
+          <option value="present_us_mean">{{ t("evaluate.metric_present_us_mean") }} ({{ units.present_us_mean }})</option>
+          <option value="fps_mean">{{ t("evaluate.metric_fps_mean") }} ({{ units.fps_mean }})</option>
+          <option value="missed_deadlines">{{ t("evaluate.metric_missed_deadlines") }} ({{ units.missed_deadlines }})</option>
+        </select>
+      </div>
+    </div>
+    <div class="card-body">
+      <p class="small text-muted">{{ t("evaluate.results_help") }}</p>
+      <div class="table-responsive mb-3">
+        <table class="table table-sm align-middle" id="evalTable">
+          <caption class="small" id="evalTableCaption"></caption>
+          <thead><tr>
+            <th scope="col">{{ t("evaluate.target_and_case") }}</th><th scope="col" class="text-end">n</th>
+            <th scope="col" class="text-end">{{ t("evaluate.mean") }}</th><th scope="col" class="text-end">{{ t("evaluate.sd") }}</th>
+            <th scope="col" class="text-end">{{ t("evaluate.ci95") }}</th><th scope="col" class="text-end">{{ t("evaluate.median") }}</th>
+            <th scope="col" class="text-end">{{ t("evaluate.range") }}</th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <figure class="figure w-100 mb-3" id="evalFigure" hidden>
+        <img class="figure-img img-fluid border evaluation-chart" id="evalChart" alt="">
+        <figcaption class="figure-caption" id="evalChartCaption"></figcaption>
+      </figure>
+      <div class="d-flex flex-wrap gap-2" id="evalDownloads"></div>
+      <div id="evalLeftOut" class="mt-2"></div>
+    </div>
+  </section>
+
+  <section class="card shadow-sm" aria-labelledby="evalHistoryTitle">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h2 class="h6 mb-0" id="evalHistoryTitle">{{ t("evaluate.history") }}</h2>
+      <button class="btn btn-outline-primary btn-sm" type="button" id="evalCompare" disabled>{{ t("evaluate.compare") }}</button>
+    </div>
+    <div class="card-body">
+      <p class="small text-muted">{{ t("evaluate.compare_help") }}</p>
+      <ul class="list-group" id="evalHistory"></ul>
+    </div>
+  </section>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/evaluate.js') }}"></script>
+{% endblock %}

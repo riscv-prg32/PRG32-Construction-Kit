@@ -35,6 +35,7 @@ from typing import Any
 from .expressions import CONSTANTS, FUNCTION_FEATURES, FUNCTIONS, MAX_INT, ExpressionError, c_identifier, \
     parse_expr, render, state_name
 from .generator import BUTTON_MAP, BUTTON_NAMES, COLOR_NAMES, IR_ABI, MAX_LIST_SIZE, MAX_REPEAT, _ON_PIXEL
+from .messages import fields as message_fields, text as say
 
 LANGUAGE_VERSION = 1
 LANGUAGE = f"prg32-python-{LANGUAGE_VERSION}"
@@ -88,7 +89,8 @@ class PythonError(ValueError):
 
     def as_problem(self) -> dict[str, Any]:
         return {"code": self.code, "severity": "error", "message": self.message, "line": self.line,
-                "column": self.column, "end_line": self.end_line, "end_column": self.end_column}
+                "column": self.column, "end_line": self.end_line, "end_column": self.end_column,
+                **message_fields(self.message)}
 
 
 # ---------------------------------------------------------------------------
@@ -98,7 +100,8 @@ class PythonError(ValueError):
 # (python name, IR key, kind, default); a default of None means "must be given".
 # Kinds: "int" a whole-number expression; "color" a fixed prg32 colour such as prg32.RED;
 # "text" a short text in quotes; "rows" eight picture rows such as ["..XX....", ...];
-# "flag" True or False; "effect"/"track" the name of an AudioStudio sound effect/soundtrack.
+# "flag" True or False; "effect"/"track" the name of an AudioStudio sound effect/soundtrack;
+# "sprite"/"background" the name of a Sprite Lab sprite / a background (docs/project_art.md).
 _P = tuple[str, str, str, Any]
 STATEMENTS: dict[str, tuple[str, list[_P], str | None, str]] = {
     "clear": ("clear", [("color", "color", "color", "BLACK")], None,
@@ -164,6 +167,12 @@ STATEMENTS: dict[str, tuple[str, list[_P], str | None, str]] = {
              "audio", "Play MIDI note number note (60 is middle C) on voice 0-7."),
     "note_off": ("note_off", [("voice", "channel", "int", 0)], "audio", "Release the note on voice 0-7."),
     "volume": ("volume", [("volume", "volume", "int", None)], "audio", "Set the master volume, 0-255."),
+    "sprite": ("sprite_draw", [("name", "name", "sprite", None), ("x", "x", "int", None), ("y", "y", "int", None)],
+               "sprites", "Draw a sprite made in Sprite Lab, by its name, with its top-left corner at x, y."),
+    "background_load": ("background_load", [("name", "name", "background", None)], "tilemap",
+                        "Define the tiles of a background made in Backgrounds and fill the playfield with its map."),
+    "background_draw": ("background_draw", [("name", "name", "background", None)], "tilemap",
+                        "Draw a background's playfield layers (layer 1 in front, its tile 0 see-through)."),
     "sound_effect": ("sfx", [("name", "name", "effect", None)], "audio",
                      "Play a sound effect made in AudioStudio, by its name."),
     "soundtrack_play": ("track_play", [("name", "name", "track", None)], "audio",
@@ -337,6 +346,8 @@ class _Compiler:
         self.source = source
         self.project = project
         self.audio = project.get("audio_studio") or None
+        self.art = project.get("assets") or None
+        self.used_art: dict[str, set[str]] = {"sprites": set(), "backgrounds": set()}
         self.globals: dict[str, Symbol] = {}
         self.c_names: dict[str, ast.AST] = {}     # every C name in use -> where it was declared
         self.state: dict[str, int] = {}           # C name -> initial value, in declaration order
@@ -358,33 +369,30 @@ class _Compiler:
     def stmt(self, node: ast.AST, ir: dict[str, Any]) -> dict[str, Any]:
         self.statements += 1
         if self.statements > MAX_IR_STATEMENTS:
-            raise self.fail("too_big", f"The game is too big: more than {MAX_IR_STATEMENTS} statements "
-                                       "after helper functions are copied in", node)
+            raise self.fail("too_big", say("py", "The game is too big: more than {max_ir_statements} statements after helper functions are copied in", max_ir_statements=MAX_IR_STATEMENTS), node)
         self.origins[id(ir)] = (node.lineno, node.col_offset + 1, node.end_lineno or node.lineno,
                                 (node.end_col_offset or node.col_offset) + 1)
         return ir
 
     def claim(self, c_name: str, node: ast.AST, python_name: str) -> None:
         if c_name in self.c_names:
-            raise self.fail("name_taken", f"The name {python_name!r} is already used (as {c_name} in the "
-                                          "generated C); choose another name", node)
+            raise self.fail("name_taken", say("py", "The name {python_name} is already used (as {c_name} in the generated C); choose another name", python_name=repr(python_name), c_name=c_name), node)
         if len(self.c_names) >= MAX_SYMBOLS:
-            raise self.fail("too_many_names", f"More than {MAX_SYMBOLS} variables", node)
+            raise self.fail("too_many_names", say("py", "More than {max_symbols} variables", max_symbols=MAX_SYMBOLS), node)
         self.c_names[c_name] = node
 
     def check_name(self, name: str, node: ast.AST) -> str:
         """The C name of a student name, which must be the same word in lower case."""
         if not name.isascii():
-            raise self.fail("name_ascii", f"Use only English letters, digits and _ in names: {name!r}", node)
+            raise self.fail("name_ascii", say("py", "Use only English letters, digits and _ in names: {name}", name=repr(name)), node)
         if name in _BUILTIN_NAMES or name in LIFECYCLE and not isinstance(node, ast.FunctionDef):
-            raise self.fail("name_reserved", f"{name!r} already means something in PRG32 Python; choose another name",
+            raise self.fail("name_reserved", say("py", "{name} already means something in PRG32 Python; choose another name", name=repr(name)),
                             node)
         c_name = state_name(name)
         if c_name != name.lower() or c_name.startswith("prg32"):
-            raise self.fail("name_reserved", f"{name!r} cannot be a name: the generated C uses it. "
-                                             "Choose another name", node)
+            raise self.fail("name_reserved", say("py", "{name} cannot be a name: the generated C uses it. Choose another name", name=repr(name)), node)
         if name.startswith("_"):
-            raise self.fail("name_underscore", f"Names start with a letter: {name!r}", node)
+            raise self.fail("name_underscore", say("py", "Names start with a letter: {name}", name=repr(name)), node)
         return c_name
 
     def annotation(self, node: ast.expr | None, allow_list: bool = False) -> str:
@@ -394,14 +402,14 @@ class _Compiler:
                 and node.value.id == "list" and isinstance(node.slice, ast.Name) and node.slice.id == "int":
             return "list"
         what = "int, bool or list[int]" if allow_list else "int or bool"
-        raise self.fail("type_annotation", f"Give a type here: {what}", node)
+        raise self.fail("type_annotation", say("py", "Give a type here: {what}", what=what), node)
 
     # --- the whole program ------------------------------------------------------------------------
     def program(self, tree: ast.Module) -> dict[str, Any]:
         docstring = self.declare(tree)
         for name in LIFECYCLE:
             if name not in self.functions:
-                raise PythonError("lifecycle_missing", f"Define the function  def {name}() -> None:",
+                raise PythonError("lifecycle_missing", say("py", "Define the function  def {name}() -> None:", name=name),
                                   line=1, column=1, end_line=1, end_column=1)
         phases = {name: self.lifecycle(self.functions[name]) for name in LIFECYCLE}
         # A helper nobody calls yet is still checked, in a separate compiler so the game is unchanged.
@@ -415,7 +423,9 @@ class _Compiler:
         description = self.project.get("description") or ""
         if not description and docstring.strip():
             description = docstring.strip().splitlines()[0][:200]
-        return {
+        from .generator import with_art
+
+        return with_art({
             "abi": IR_ABI,
             "title": title,
             "description": description,
@@ -430,7 +440,7 @@ class _Compiler:
             "warnings": [],
             "source_mode": "python",
             "python_language_version": LANGUAGE_VERSION,
-        }
+        }, self.art, self.used_art)
 
     def declare(self, tree: ast.Module) -> str:
         """Read the top level: the import, the typed variables and the functions. Returns the docstring."""
@@ -447,15 +457,13 @@ class _Compiler:
             elif isinstance(node, ast.FunctionDef):
                 self.declare_function(node)
             elif isinstance(node, ast.ImportFrom):
-                raise self.fail("import", "Write 'import prg32' and then prg32.name(...): 'from ... import' "
-                                          "is not part of PRG32 Python", node)
+                raise self.fail("import", say("py", "Write 'import prg32' and then prg32.name(...): 'from ... import' is not part of PRG32 Python"), node)
             elif isinstance(node, ast.Assign):
-                raise self.fail("type_annotation", "Give the variable a type, for example  score: int = 0", node)
+                raise self.fail("type_annotation", say("py", "Give the variable a type, for example  score: int = 0"), node)
             elif isinstance(node, ast.Expr) and isinstance(node.value, ast.Constant) and isinstance(node.value.value, str):
                 continue  # a text used as a comment between functions
             else:
-                raise self.fail("module_statement", "Outside functions, PRG32 Python has only 'import prg32', "
-                                                    "typed variables and 'def'", node)
+                raise self.fail("module_statement", say("py", "Outside functions, PRG32 Python has only 'import prg32', typed variables and 'def'"), node)
         return docstring
 
     def check_unused(self, function: Function) -> None:
@@ -474,12 +482,12 @@ class _Compiler:
 
     def module_import(self, node: ast.Import) -> None:
         if len(node.names) != 1 or node.names[0].name != "prg32" or node.names[0].asname:
-            raise self.fail("import", "PRG32 Python imports only one module:  import prg32", node)
+            raise self.fail("import", say("py", "PRG32 Python imports only one module:  import prg32"), node)
         self.imported = True
 
     def module_variable(self, node: ast.AnnAssign) -> None:
         if not isinstance(node.target, ast.Name):
-            raise self.fail("assign_target", "Declare one variable by name, for example  score: int = 0", node)
+            raise self.fail("assign_target", say("py", "Declare one variable by name, for example  score: int = 0"), node)
         kind = self.annotation(node.annotation, allow_list=True)
         name = node.target.id
         c_name = self.check_name(name, node.target)
@@ -488,7 +496,7 @@ class _Compiler:
                             if kind != "list" else f"Give {name} a size, for example  {name}: list[int] = [0] * 10",
                             node)
         if name in self.globals or name in self.functions:
-            raise self.fail("name_taken", f"{name} is declared twice", node.target)
+            raise self.fail("name_taken", say("py", "{name} is declared twice", name=name), node.target)
         self.claim(c_name, node.target, name)
         if kind == "list":
             size, values = self.list_value(node.value)
@@ -505,7 +513,7 @@ class _Compiler:
         else:
             value, value_type = self.constant(node.value)
             if value_type != kind:
-                raise self.fail("type_mismatch", f"{name} is {kind} but its starting value is {value_type}", node.value)
+                raise self.fail("type_mismatch", say("py", "{name} is {kind} but its starting value is {value_type}", name=name, kind=kind, value_type=value_type), node.value)
             symbol = Symbol(c_name, kind, node, initial=value)
             self.state[c_name] = value
         self.globals[name] = symbol
@@ -517,21 +525,21 @@ class _Compiler:
             fill, fill_type = self.constant(node.left.elts[0])
             size, size_type = self.constant(node.right)
             if fill_type != "int" or size_type != "int":
-                raise self.fail("list_value", "A list holds whole numbers: [0] * 10", node)
+                raise self.fail("list_value", say("py", "A list holds whole numbers: [0] * 10"), node)
             if not 1 <= size <= MAX_LIST_SIZE:
-                raise self.fail("list_size", f"A list has 1 to {MAX_LIST_SIZE} items", node.right)
+                raise self.fail("list_size", say("py", "A list has 1 to {max_list_size} items", max_list_size=MAX_LIST_SIZE), node.right)
             return size, fill
         if isinstance(node, ast.List):
             if not 1 <= len(node.elts) <= MAX_LIST_LITERAL:
-                raise self.fail("list_size", f"Write 1 to {MAX_LIST_LITERAL} items in brackets, or use [0] * n", node)
+                raise self.fail("list_size", say("py", "Write 1 to {max_list_literal} items in brackets, or use [0] * n", max_list_literal=MAX_LIST_LITERAL), node)
             values = []
             for item in node.elts:
                 value, value_type = self.constant(item)
                 if value_type != "int":
-                    raise self.fail("list_value", "A list holds whole numbers", item)
+                    raise self.fail("list_value", say("py", "A list holds whole numbers"), item)
                 values.append(value)
             return len(values), values
-        raise self.fail("list_value", "Make a list with [0] * size or [1, 2, 3]", node)
+        raise self.fail("list_value", say("py", "Make a list with [0] * size or [1, 2, 3]"), node)
 
     def constant(self, node: ast.expr) -> tuple[int, str]:
         """A starting value: numbers, True/False, prg32 constants and earlier variables' starting values."""
@@ -539,7 +547,7 @@ class _Compiler:
             return int(node.value), "bool"
         if isinstance(node, ast.Constant) and isinstance(node.value, int):
             if node.value > MAX_INT:
-                raise self.fail("number_range", f"{node.value} is larger than {MAX_INT}, the largest int", node)
+                raise self.fail("number_range", say("py", "{value} is larger than {max_int}, the largest int", value=node.value, max_int=MAX_INT), node)
             return node.value, "int"
         if isinstance(node, ast.Attribute):
             return CONSTANTS[self.prg32_constant(node)], "int"
@@ -549,19 +557,19 @@ class _Compiler:
         if isinstance(node, ast.UnaryOp) and isinstance(node.op, (ast.USub, ast.UAdd, ast.Invert)):
             value, value_type = self.constant(node.operand)
             if value_type != "int":
-                raise self.fail("type_mismatch", "This needs a whole number", node.operand)
+                raise self.fail("type_mismatch", say("py", "This needs a whole number"), node.operand)
             return _int32(-value if isinstance(node.op, ast.USub) else ~value if isinstance(node.op, ast.Invert)
                           else value), "int"
         if isinstance(node, ast.UnaryOp) and isinstance(node.op, ast.Not):
             value, value_type = self.constant(node.operand)
             if value_type != "bool":
-                raise self.fail("type_mismatch", "'not' needs True or False", node.operand)
+                raise self.fail("type_mismatch", say("py", "'not' needs True or False"), node.operand)
             return int(not value), "bool"
         if isinstance(node, ast.BinOp) and type(node.op) in _BINOPS:
             a, a_type = self.constant(node.left)
             b, b_type = self.constant(node.right)
             if a_type != "int" or b_type != "int":
-                raise self.fail("type_mismatch", "Arithmetic needs whole numbers", node)
+                raise self.fail("type_mismatch", say("py", "Arithmetic needs whole numbers"), node)
             op = _BINOPS[type(node.op)]
             result = {"+": lambda: a + b, "-": lambda: a - b, "*": lambda: a * b, "/": lambda: _c_div(a, b),
                       "%": lambda: _c_mod(a, b), "<<": lambda: a << (b & 31), ">>": lambda: a >> (b & 31),
@@ -569,35 +577,34 @@ class _Compiler:
             return _int32(result), "int"
         if isinstance(node, ast.BinOp) and type(node.op) in _REFUSED_BINOPS:
             raise self.fail("operator", _REFUSED_BINOPS[type(node.op)], node)
-        raise self.fail("constant", "A starting value must be a fixed number, True/False, a prg32 constant "
-                                    "or an earlier variable", node)
+        raise self.fail("constant", say("py", "A starting value must be a fixed number, True/False, a prg32 constant or an earlier variable"), node)
 
     def declare_function(self, node: ast.FunctionDef) -> None:
         name = node.name
         if len(self.functions) >= MAX_FUNCTIONS:
-            raise self.fail("too_many_functions", f"More than {MAX_FUNCTIONS} functions", node)
+            raise self.fail("too_many_functions", say("py", "More than {max_functions} functions", max_functions=MAX_FUNCTIONS), node)
         if name in self.functions or name in self.globals:
-            raise self.fail("name_taken", f"{name} is defined twice", node)
+            raise self.fail("name_taken", say("py", "{name} is defined twice", name=name), node)
         if name not in LIFECYCLE:
             if name in VALUE_FUNCTIONS or name in STATEMENTS:
-                raise self.fail("name_reserved", f"{name!r} is a prg32 function name; choose another name", node)
+                raise self.fail("name_reserved", say("py", "{name} is a prg32 function name; choose another name", name=repr(name)), node)
             self.claim_function(name, node)
         if node.decorator_list:
-            raise self.fail("decorator", "Decorators (@...) are not part of PRG32 Python", node.decorator_list[0])
+            raise self.fail("decorator", say("py", "Decorators (@...) are not part of PRG32 Python"), node.decorator_list[0])
         if getattr(node, "type_params", None):
-            raise self.fail("generic", "Type parameters are not part of PRG32 Python", node)
+            raise self.fail("generic", say("py", "Type parameters are not part of PRG32 Python"), node)
         args = node.args
         if args.vararg or args.kwarg or args.kwonlyargs or args.posonlyargs or args.defaults or args.kw_defaults:
-            raise self.fail("parameters", "Parameters are plain names with a type: def move(dx: int, dy: int) -> None:",
+            raise self.fail("parameters", say("py", "Parameters are plain names with a type: def move(dx: int, dy: int) -> None:"),
                             node)
         params = []
         for arg in args.args:
             params.append((arg.arg, self.annotation(arg.annotation)))
             self.check_name(arg.arg, arg)
         if len({p for p, _ in params}) != len(params):
-            raise self.fail("parameters", "Two parameters have the same name", node)
+            raise self.fail("parameters", say("py", "Two parameters have the same name"), node)
         if node.returns is None:
-            raise self.fail("return_type", f"Say what {name} gives back:  -> None  (nothing), -> int or -> bool",
+            raise self.fail("return_type", say("py", "Say what {name} gives back:  -> None  (nothing), -> int or -> bool", name=name),
                             node)
         if isinstance(node.returns, ast.Constant) and node.returns.value is None:
             returns = "None"
@@ -605,22 +612,20 @@ class _Compiler:
             returns = self.annotation(node.returns)
         function = Function(name, node, params, returns)
         if name in LIFECYCLE and (params or returns != "None"):
-            raise self.fail("lifecycle_signature", f"Write it as  def {name}() -> None:", node)
+            raise self.fail("lifecycle_signature", say("py", "Write it as  def {name}() -> None:", name=name), node)
         if returns != "None":
             body = [stmt for stmt in node.body if not _is_docstring(stmt)]
             if len(body) != 1 or not isinstance(body[0], ast.Return) or body[0].value is None:
-                raise self.fail("value_function", f"A function that gives back {returns} has one line:  "
-                                                  "return <expression>", node)
+                raise self.fail("value_function", say("py", "A function that gives back {returns} has one line:  return <expression>", returns=returns), node)
             function.value = body[0].value
         self.functions[name] = function
 
     def claim_function(self, name: str, node: ast.FunctionDef) -> None:
         """Helper functions are copied where they are called, so their names never reach the C."""
         if not name.isascii() or name.startswith("_"):
-            raise self.fail("name_ascii", f"Function names use English letters, digits and _, "
-                                          f"and start with a letter: {name!r}", node)
+            raise self.fail("name_ascii", say("py", "Function names use English letters, digits and _, and start with a letter: {name}", name=repr(name)), node)
         if name in _BUILTIN_NAMES:
-            raise self.fail("name_reserved", f"{name!r} already means something in PRG32 Python; choose another name",
+            raise self.fail("name_reserved", say("py", "{name} already means something in PRG32 Python; choose another name", name=repr(name)),
                             node)
 
     # --- statements -----------------------------------------------------------------------------
@@ -630,24 +635,23 @@ class _Compiler:
 
     def body(self, statements: list[ast.stmt], scope: _Scope, depth: int, top: bool = False) -> list[dict[str, Any]]:
         if depth > MAX_BLOCK_DEPTH:
-            raise self.fail("too_deep", f"More than {MAX_BLOCK_DEPTH} blocks inside each other", statements[0])
+            raise self.fail("too_deep", say("py", "More than {max_block_depth} blocks inside each other", max_block_depth=MAX_BLOCK_DEPTH), statements[0])
         out: list[dict[str, Any]] = []
         for index, node in enumerate(statements):
             if isinstance(node, ast.Global):
                 if not top:
-                    raise self.fail("global", "Write 'global' at the start of the function", node)
+                    raise self.fail("global", say("py", "Write 'global' at the start of the function"), node)
                 for name in node.names:
                     if name not in self.globals:
-                        raise self.fail("unknown_name", f"There is no variable {name} outside the functions", node)
+                        raise self.fail("unknown_name", say("py", "There is no variable {name} outside the functions", name=name), node)
                     if name in scope.locals:
-                        raise self.fail("global", f"{name} is already a local variable here", node)
+                        raise self.fail("global", say("py", "{name} is already a local variable here", name=name), node)
                     scope.declared_global.add(name)
                 continue
             if isinstance(node, ast.Return):
                 last = top and index == len(statements) - 1
                 if node.value is not None or not last:
-                    raise self.fail("return", "'return' can only be the last line of a function that gives "
-                                              "back nothing (-> None)", node)
+                    raise self.fail("return", say("py", "'return' can only be the last line of a function that gives back nothing (-> None)"), node)
                 continue
             out.extend(self.statement(node, scope, depth))
         return out
@@ -662,12 +666,12 @@ class _Compiler:
                 return self.call_statement(node.value, node, scope, depth)
             if isinstance(node.value, (ast.Yield, ast.YieldFrom, ast.Await)):
                 self.expression(node.value, scope)
-            raise self.fail("useless_expression", "This line computes a value but does nothing with it", node)
+            raise self.fail("useless_expression", say("py", "This line computes a value but does nothing with it"), node)
         if isinstance(node, ast.AnnAssign):
             return self.local_declaration(node, scope)
         if isinstance(node, ast.Assign):
             if len(node.targets) != 1:
-                raise self.fail("assign_target", "Assign to one variable at a time", node)
+                raise self.fail("assign_target", say("py", "Assign to one variable at a time"), node)
             return self.assign(node.targets[0], node.value, node, scope)
         if isinstance(node, ast.AugAssign):
             return self.augmented(node, scope)
@@ -697,21 +701,20 @@ class _Compiler:
         for kind, hint in hints.items():
             if isinstance(node, kind):
                 raise self.fail("statement", hint, node)
-        raise self.fail("statement", f"{type(node).__name__} is not part of PRG32 Python", node)
+        raise self.fail("statement", say("py", "{name} is not part of PRG32 Python", name=type(node).__name__), node)
 
     def local_declaration(self, node: ast.AnnAssign, scope: _Scope) -> list[dict[str, Any]]:
         if not isinstance(node.target, ast.Name):
-            raise self.fail("assign_target", "Declare one variable by name, for example  n: int = 0", node)
+            raise self.fail("assign_target", say("py", "Declare one variable by name, for example  n: int = 0"), node)
         kind = self.annotation(node.annotation)
         name = node.target.id
         self.check_name(name, node.target)
         if node.value is None:
-            raise self.fail("initial_value", f"Give {name} a starting value:  {name}: {kind} = 0", node)
+            raise self.fail("initial_value", say("py", "Give {name} a starting value:  {name}: {kind} = 0", name=name, kind=kind), node)
         if name in scope.locals or name in scope.declared_global or name in dict(scope.function.params):
-            raise self.fail("name_taken", f"{name} is already declared in {scope.function.name}", node.target)
+            raise self.fail("name_taken", say("py", "{name} is already declared in {name2}", name=name, name2=scope.function.name), node.target)
         if name in self.globals:
-            raise self.fail("name_taken", f"{name} is also a variable outside the functions: choose another name "
-                                          f"(or write  global {name}  and leave out the type)", node.target)
+            raise self.fail("name_taken", say("py", "{name} is also a variable outside the functions: choose another name (or write  global {name}  and leave out the type)", name=name), node.target)
         symbol = self.new_local(scope, name, kind, node.target)
         return self.assign(node.target, node.value, node, scope, symbol)
 
@@ -734,12 +737,11 @@ class _Compiler:
             return scope.locals[name]
         if name in self.globals:
             if writing and self.globals[name].type in TYPES and name not in scope.declared_global:
-                raise self.fail("global", f"To change {name} inside {scope.function.name}, write  global {name}  "
-                                          "at the start of the function", node)
+                raise self.fail("global", say("py", "To change {name} inside {name2}, write  global {name}  at the start of the function", name=name, name2=scope.function.name), node)
             return self.globals[name]
         if name in scope.values or name in dict(scope.function.params):
-            raise self.fail("parameter", f"{name} is a parameter: it cannot be changed", node)
-        raise self.fail("unknown_name", f"{name} is not defined. Declare it first, for example  {name}: int = 0",
+            raise self.fail("parameter", say("py", "{name} is a parameter: it cannot be changed", name=name), node)
+        raise self.fail("unknown_name", say("py", "{name} is not defined. Declare it first, for example  {name}: int = 0", name=name),
                         node)
 
     def assign(self, target: ast.expr, value: ast.expr, node: ast.stmt, scope: _Scope,
@@ -747,7 +749,7 @@ class _Compiler:
         if isinstance(target, ast.Name):
             symbol = symbol or self.variable(target.id, target, scope, writing=True)
             if symbol.type == "list":
-                raise self.fail("list_assign", f"{target.id} is a list: change one item, {target.id}[i] = ...", target)
+                raise self.fail("list_assign", say("py", "{id} is a list: change one item, {id}[i] = ...", id=target.id), target)
             expr = self.expression(value, scope)
             self.expect(expr, symbol.type, value)
             return [self.stmt(node, {"op": "set", "var": symbol.c_name, "value": self.ir_text(expr, value)})]
@@ -758,17 +760,17 @@ class _Compiler:
             return [self.stmt(node, {"op": "list_set", "list": symbol.c_name, "index": index,
                                      "value": self.ir_text(expr, value)})]
         if isinstance(target, (ast.Tuple, ast.List)):
-            raise self.fail("assign_target", "Assign one variable at a time (no a, b = ...)", target)
-        raise self.fail("assign_target", "You can assign to a variable or to a list item", target)
+            raise self.fail("assign_target", say("py", "Assign one variable at a time (no a, b = ...)"), target)
+        raise self.fail("assign_target", say("py", "You can assign to a variable or to a list item"), target)
 
     def list_item(self, target: ast.Subscript, scope: _Scope) -> tuple[Symbol, str]:
         if not isinstance(target.value, ast.Name):
-            raise self.fail("list_item", "Write list[position]", target)
+            raise self.fail("list_item", say("py", "Write list[position]"), target)
         symbol = self.variable(target.value.id, target.value, scope, writing=False)
         if symbol.type != "list":
-            raise self.fail("not_a_list", f"{target.value.id} is not a list", target.value)
+            raise self.fail("not_a_list", say("py", "{id} is not a list", id=target.value.id), target.value)
         if isinstance(target.slice, ast.Slice):
-            raise self.fail("slice", "Slices (a[1:3]) are not part of PRG32 Python", target.slice)
+            raise self.fail("slice", say("py", "Slices (a[1:3]) are not part of PRG32 Python"), target.slice)
         index = self.expression(target.slice, scope)
         self.expect(index, "int", target.slice)
         return symbol, self.ir_text(index, target.slice)
@@ -782,7 +784,7 @@ class _Compiler:
         if isinstance(node.target, ast.Name):
             symbol = self.variable(node.target.id, node.target, scope, writing=True)
             if symbol.type != "int":
-                raise self.fail("type_mismatch", f"{node.target.id} is {symbol.type}: '{op}=' needs an int", node.target)
+                raise self.fail("type_mismatch", say("py", "{id} is {type}: '{op}=' needs an int", id=node.target.id, type=symbol.type, op=op), node.target)
             if op in "+-":
                 delta = value if op == "+" else Expr(f"-{_wrap(value, _UNARY_PREC)}", "int", _UNARY_PREC, value.impure)
                 return [self.stmt(node, {"op": "change", "var": symbol.c_name, "delta": self.ir_text(delta, node)})]
@@ -798,7 +800,7 @@ class _Compiler:
             current = Expr(f"{symbol.c_name}[{index}]", "int", _ATOM)
             return [self.stmt(node, {"op": "list_set", "list": symbol.c_name, "index": index,
                                      "value": self.ir_text(self.binary(op, current, value), node)})]
-        raise self.fail("assign_target", "You can change a variable or a list item", node.target)
+        raise self.fail("assign_target", say("py", "You can change a variable or a list item"), node.target)
 
     def if_statement(self, node: ast.If, scope: _Scope, depth: int) -> list[dict[str, Any]]:
         parts = node.test.values if isinstance(node.test, ast.BoolOp) and isinstance(node.test.op, ast.And) \
@@ -812,8 +814,7 @@ class _Compiler:
                 result["else"] = self.body(node.orelse, scope, depth + 1)
             return [self.stmt(node, result)]
         if node.orelse:
-            raise self.fail("condition_else", "An if that tests prg32.held, prg32.pressed or prg32.touching cannot "
-                                              "have elif/else yet: write a second if", node.orelse[0])
+            raise self.fail("condition_else", say("py", "An if that tests prg32.held, prg32.pressed or prg32.touching cannot have elif/else yet: write a second if"), node.orelse[0])
         # "if held(A) and x > 0:" becomes nested ifs, tested left to right like Python's 'and'.
         body = self.body(node.body, scope, depth + 1)
         plain: list[ast.expr] = []
@@ -852,14 +853,14 @@ class _Compiler:
 
     def for_statement(self, node: ast.For, scope: _Scope, depth: int) -> list[dict[str, Any]]:
         if node.orelse:
-            raise self.fail("for_else", "'for ... else' is not part of PRG32 Python", node.orelse[0])
+            raise self.fail("for_else", say("py", "'for ... else' is not part of PRG32 Python"), node.orelse[0])
         if not isinstance(node.target, ast.Name):
-            raise self.fail("for_target", "Count with one name:  for i in range(10):", node.target)
+            raise self.fail("for_target", say("py", "Count with one name:  for i in range(10):"), node.target)
         call = node.iter
         if not (isinstance(call, ast.Call) and isinstance(call.func, ast.Name) and call.func.id == "range"):
-            raise self.fail("for_range", "Loop with range:  for i in range(10):  or  for i in range(2, 8):", node.iter)
+            raise self.fail("for_range", say("py", "Loop with range:  for i in range(10):  or  for i in range(2, 8):"), node.iter)
         if call.keywords or not 1 <= len(call.args) <= 2:
-            raise self.fail("for_range", "range takes one or two numbers (no step yet): range(stop) or range(start, stop)",
+            raise self.fail("for_range", say("py", "range takes one or two numbers (no step yet): range(stop) or range(start, stop)"),
                             call)
         start = self.expression(call.args[0], scope) if len(call.args) == 2 else Expr("0", "int", _ATOM)
         stop = self.expression(call.args[-1], scope)
@@ -868,20 +869,19 @@ class _Compiler:
         if not start.text.lstrip("-").isdigit() or not stop.text.lstrip("-").isdigit():
             pass  # bounds known only while the game runs: the generated loop stops after MAX_REPEAT rounds
         elif int(stop.text) - int(start.text) > MAX_REPEAT:
-            raise self.fail("loop_bound", f"A loop runs at most {MAX_REPEAT} rounds", call)
+            raise self.fail("loop_bound", say("py", "A loop runs at most {max_repeat} rounds", max_repeat=MAX_REPEAT), call)
         name = node.target.id
         self.check_name(name, node.target)
         if name in scope.locals or name in scope.declared_global:
             symbol = self.variable(name, node.target, scope, writing=True)
         elif name in self.globals:
-            raise self.fail("global", f"{name} is a variable outside the functions: write  global {name}  first, "
-                                      "or count with another name", node.target)
+            raise self.fail("global", say("py", "{name} is a variable outside the functions: write  global {name}  first, or count with another name", name=name), node.target)
         elif name in dict(scope.function.params) or name in scope.values:
-            raise self.fail("parameter", f"{name} is a parameter: count with another name", node.target)
+            raise self.fail("parameter", say("py", "{name} is a parameter: count with another name", name=name), node.target)
         else:
             symbol = self.new_local(scope, name, "int", node.target)
         if symbol.type != "int":
-            raise self.fail("type_mismatch", f"{name} must be an int to count", node.target)
+            raise self.fail("type_mismatch", say("py", "{name} must be an int to count", name=name), node.target)
         last = Expr(str(int(stop.text) - 1), "int", _ATOM) if stop.text.lstrip("-").isdigit() \
             else self.binary("-", stop, Expr("1", "int", _ATOM))
         ir = {"op": "repeat", "var": symbol.c_name, "from": self.ir_text(start, call), "to": self.ir_text(last, call),
@@ -899,29 +899,29 @@ class _Compiler:
                     self.features.add(feature)
                 if op in ("sfx", "track_play"):
                     ir = self.audio_statement(ir, call)
+                if op in ("sprite_draw", "background_load", "background_draw"):
+                    ir = self.art_statement(ir, call)
                 if op == "band" and ir.get("value") == "":
                     del ir["value"]
                 return [self.stmt(node, ir)]
             if name in CONDITIONS:
-                raise self.fail("condition_use", f"prg32.{name}(...) is a test: use it in an if", call)
+                raise self.fail("condition_use", say("py", "prg32.{name}(...) is a test: use it in an if", name=name), call)
             if name not in VALUE_FUNCTIONS:
-                raise self.fail("unknown_function", f"prg32 has no function {name}", call.func)
-            raise self.fail("value_unused", f"prg32.{name}(...) gives a value: store it, for example  x = prg32.{name}(...)",
+                raise self.fail("unknown_function", say("py", "prg32 has no function {name}", name=name), call.func)
+            raise self.fail("value_unused", say("py", "prg32.{name}(...) gives a value: store it, for example  x = prg32.{name}(...)", name=name),
                             call)
         if isinstance(call.func, ast.Name):
             if call.func.id == "print":
-                raise self.fail("print", "PRG32 has no console: show text with prg32.text(x, y, \"HI\") "
-                                         "or numbers with prg32.number(value, x, y)", call)
+                raise self.fail("print", say("py", "PRG32 has no console: show text with prg32.text(x, y, \"HI\") or numbers with prg32.number(value, x, y)"), call)
             function = self.functions.get(call.func.id)
             if function is None:
-                raise self.fail("unknown_function", f"There is no function {call.func.id}", call.func)
+                raise self.fail("unknown_function", say("py", "There is no function {id}", id=call.func.id), call.func)
             if function.name in LIFECYCLE:
-                raise self.fail("lifecycle_call", f"The PRG32 calls {function.name}() itself: do not call it", call)
+                raise self.fail("lifecycle_call", say("py", "The PRG32 calls {name}() itself: do not call it", name=function.name), call)
             if function.returns != "None":
-                raise self.fail("value_unused", f"{function.name} gives back a value: use it, for example  "
-                                                f"x = {function.name}(...)", call)
+                raise self.fail("value_unused", say("py", "{name} gives back a value: use it, for example  x = {name}(...)", name=function.name), call)
             return self.inline_procedure(function, call, node, scope, depth)
-        raise self.fail("call", "Call prg32.name(...) or one of your own functions", call)
+        raise self.fail("call", say("py", "Call prg32.name(...) or one of your own functions"), call)
 
     def inline_procedure(self, function: Function, call: ast.Call, node: ast.stmt, scope: _Scope,
                          depth: int) -> list[dict[str, Any]]:
@@ -950,19 +950,17 @@ class _Compiler:
 
     def enter(self, function: Function, call: ast.Call) -> None:
         if function.name in self.inlining:
-            raise self.fail("recursion", f"{function.name} calls itself (through {' -> '.join(self.inlining)}): "
-                                         "PRG32 Python has no recursion", call)
+            raise self.fail("recursion", say("py", "{name} calls itself (through {value}): PRG32 Python has no recursion", name=function.name, value=' -> '.join(self.inlining)), call)
         if len(self.inlining) >= MAX_INLINE_DEPTH:
-            raise self.fail("too_deep", f"Functions call each other more than {MAX_INLINE_DEPTH} deep", call)
+            raise self.fail("too_deep", say("py", "Functions call each other more than {max_inline_depth} deep", max_inline_depth=MAX_INLINE_DEPTH), call)
         self.inlining.append(function.name)
         self.called.add(function.name)
 
     def call_args(self, function: Function, call: ast.Call, scope: _Scope) -> list[tuple[ast.expr, Expr]]:
         if call.keywords or any(isinstance(arg, ast.Starred) for arg in call.args):
-            raise self.fail("call_arguments", f"Give {function.name} its values in order, without names", call)
+            raise self.fail("call_arguments", say("py", "Give {name} its values in order, without names", name=function.name), call)
         if len(call.args) != len(function.params):
-            raise self.fail("call_arguments", f"{function.name} needs {len(function.params)} value(s), "
-                                              f"not {len(call.args)}", call)
+            raise self.fail("call_arguments", say("py", "{name} needs {count} value(s), not {count2}", name=function.name, count=len(function.params), count2=len(call.args)), call)
         out = []
         for arg, (pname, ptype) in zip(call.args, function.params):
             expr = self.expression(arg, scope)
@@ -977,34 +975,50 @@ class _Compiler:
         if ir["op"] == "sfx":
             index = next((i for i, item in enumerate(audio.get("effects", [])) if item.get("name") == name), None)
             if index is None:
-                raise self.fail("missing_sound", f"This project's AudioStudio has no sound effect named {name!r}", call)
+                raise self.fail("missing_sound", say("py", "This project's AudioStudio has no sound effect named {name}", name=repr(name)), call)
             effect = audio["effects"][index]
             return {"op": "sfx", "name": name, "voice": effect["voice"], "instrument": 8 + index,
                     "note": effect["note"], "volume": effect["volume"], "ms": effect["duration_ms"]}
         index = next((i for i, item in enumerate(audio.get("soundtracks", [])) if item.get("name") == name), None)
         if index is None:
-            raise self.fail("missing_sound", f"This project's AudioStudio has no soundtrack named {name!r}", call)
+            raise self.fail("missing_sound", say("py", "This project's AudioStudio has no soundtrack named {name}", name=repr(name)), call)
         return {"op": "track_play", "name": name, "track": index}
+
+    def art_statement(self, ir: dict[str, Any], call: ast.Call) -> dict[str, Any]:
+        """Sprite and background names become the art itself, carried in the IR, as for the Blocks."""
+        from .project_assets import find
+
+        kind = "sprites" if ir["op"] == "sprite_draw" else "backgrounds"
+        entry = find((self.art or {}).get(kind) or [], ir["name"])
+        if entry is None:
+            if kind == "sprites":
+                raise self.fail("missing_art", say("py", "This project has no sprite named {name}: draw it in Sprite Lab first", name=repr(ir["name"])), call)
+            raise self.fail("missing_art", say("py", "This project has no background named {name}: make it in Backgrounds first", name=repr(ir["name"])), call)
+        self.used_art[kind].add(entry["name"])
+        if ir["op"] == "background_load" and any(tile["flags"] for tile in entry["tiles"]):
+            self.features.add("platformer")
+        key = "sprite" if kind == "sprites" else "background"
+        return {**{k: v for k, v in ir.items() if k != "name"}, key: entry["name"], "name": entry["title"]}
 
     def arguments(self, name: str, params: list[_P], call: ast.Call, scope: _Scope) -> dict[str, Any]:
         """Match a prg32 call's values to its parameters (in order or by name) and check each one."""
         if any(isinstance(arg, ast.Starred) for arg in call.args) or any(k.arg is None for k in call.keywords):
-            raise self.fail("call_arguments", "Give each value on its own (no * or **)", call)
+            raise self.fail("call_arguments", say("py", "Give each value on its own (no * or **)"), call)
         if len(call.args) > len(params):
-            raise self.fail("call_arguments", f"prg32.{name} takes at most {len(params)} values", call)
+            raise self.fail("call_arguments", say("py", "prg32.{name} takes at most {count} values", name=name, count=len(params)), call)
         given: dict[str, ast.expr] = {params[i][0]: arg for i, arg in enumerate(call.args)}
         for keyword in call.keywords:
             if keyword.arg not in {p[0] for p in params}:
-                raise self.fail("call_arguments", f"prg32.{name} has no value called {keyword.arg}", keyword)
+                raise self.fail("call_arguments", say("py", "prg32.{name} has no value called {arg}", name=name, arg=keyword.arg), keyword)
             if keyword.arg in given:
-                raise self.fail("call_arguments", f"{keyword.arg} is given twice", keyword)
+                raise self.fail("call_arguments", say("py", "{arg} is given twice", arg=keyword.arg), keyword)
             given[keyword.arg] = keyword.value
         out: dict[str, Any] = {}
         for pname, key, kind, default in params:
             node = given.get(pname)
             if node is None:
                 if default is None:
-                    raise self.fail("call_arguments", f"prg32.{name} needs {pname}", call)
+                    raise self.fail("call_arguments", say("py", "prg32.{name} needs {pname}", name=name, pname=pname), call)
                 if kind == "flag":
                     out[key] = bool(default)
                 elif kind == "int":
@@ -1034,23 +1048,23 @@ class _Compiler:
             return constant
         if kind == "flag":
             if not (isinstance(node, ast.Constant) and isinstance(node.value, bool)):
-                raise self.fail("flag", f"{pname} is True or False", node)
+                raise self.fail("flag", say("py", "{pname} is True or False", pname=pname), node)
             return node.value
-        if kind in ("text", "effect", "track"):
-            limit = _TEXT_LIMITS.get(name, MAX_TEXT) if kind == "text" else 32
+        if kind in ("text", "effect", "track", "sprite", "background"):
+            limit = _TEXT_LIMITS.get(name, MAX_TEXT) if kind == "text" else 64 if kind in ("sprite", "background") else 32
             if not (isinstance(node, ast.Constant) and isinstance(node.value, str)):
-                raise self.fail("text", f"{pname} is a text in quotes, for example \"SCORE\"", node)
+                raise self.fail("text", say("py", "{pname} is a text in quotes, for example \"SCORE\"", pname=pname), node)
             text = node.value
             if len(text) > limit:
-                raise self.fail("text", f"{pname} has at most {limit} characters", node)
+                raise self.fail("text", say("py", "{pname} has at most {limit} characters", pname=pname, limit=limit), node)
             if kind == "text" and any(not 32 <= ord(ch) <= 126 for ch in text):
-                raise self.fail("text", "The PRG32 font has only English letters, digits and the usual signs", node)
+                raise self.fail("text", say("py", "The PRG32 font has only English letters, digits and the usual signs"), node)
             return text
         if kind == "rows":
             if not isinstance(node, ast.List) or len(node.elts) != 8 or any(
                     not (isinstance(row, ast.Constant) and isinstance(row.value, str) and len(row.value) <= 8)
                     for row in node.elts):
-                raise self.fail("rows", "A picture is 8 texts of up to 8 characters: [\"..XX....\", ...]", node)
+                raise self.fail("rows", say("py", "A picture is 8 texts of up to 8 characters: [\"..XX....\", ...]"), node)
             rows = []
             for row in node.elts:
                 value = 0
@@ -1076,10 +1090,8 @@ class _Compiler:
             parsed = parse_expr(expr.text, self.lists)
         except (ExpressionError, RecursionError) as exc:
             if len(expr.text) > 200:
-                raise self.fail("expression_too_long", "This expression is too long (more than 200 characters "
-                                                       "after helper functions are copied in): split it with a "
-                                                       "variable", node) from None
-            raise self.fail("expression", f"This expression cannot be translated: {exc}", node) from None
+                raise self.fail("expression_too_long", say("py", "This expression is too long (more than 200 characters after helper functions are copied in): split it with a variable"), node) from None
+            raise self.fail("expression", say("py", "This expression cannot be translated: {exc}", exc=exc), node) from None
         self.features |= parsed.features
         return render(parsed.tree)
 
@@ -1093,11 +1105,11 @@ class _Compiler:
                 return Expr("1" if node.value else "0", "bool", _ATOM)
             if isinstance(node.value, int):
                 if node.value > MAX_INT:
-                    raise self.fail("number_range", f"{node.value} is larger than {MAX_INT}, the largest int", node)
+                    raise self.fail("number_range", say("py", "{value} is larger than {max_int}, the largest int", value=node.value, max_int=MAX_INT), node)
                 return Expr(str(node.value), "int", _ATOM)
             if isinstance(node.value, str):
-                raise self.fail("text_value", "Texts can only be given to prg32.text, prg32.band and the like", node)
-            raise self.fail("number_kind", "PRG32 numbers are whole numbers (no 1.5, no None)", node)
+                raise self.fail("text_value", say("py", "Texts can only be given to prg32.text, prg32.band and the like"), node)
+            raise self.fail("number_kind", say("py", "PRG32 numbers are whole numbers (no 1.5, no None)"), node)
         if isinstance(node, ast.Name):
             if node.id in scope.values:
                 return scope.values[node.id]
@@ -1105,7 +1117,7 @@ class _Compiler:
                 return Expr("1" if node.id == "True" else "0", "bool", _ATOM)
             symbol = self.variable(node.id, node, scope, writing=False)
             if symbol.type == "list":
-                raise self.fail("list_value", f"{node.id} is a list: read one item, {node.id}[i]", node)
+                raise self.fail("list_value", say("py", "{id} is a list: read one item, {id}[i]", id=node.id), node)
             return Expr(symbol.c_name, symbol.type, _ATOM)
         if isinstance(node, ast.Attribute):
             return Expr(self.prg32_constant(node), "int", _ATOM)
@@ -1139,21 +1151,20 @@ class _Compiler:
             parts = [self.expression(value, scope) for value in node.values]
             for part, value in zip(parts, node.values):
                 if self.is_condition(value):
-                    raise self.fail("condition_use", f"prg32.{self.prg32_name(value.func)}(...) can only be "
-                                                     "joined with 'and' directly in an if", value)
+                    raise self.fail("condition_use", say("py", "prg32.{value}(...) can only be joined with 'and' directly in an if", value=self.prg32_name(value.func)), value)
                 self.expect(part, "bool", value, f"'{word}'")
             prec = _PREC[op]
             text = f" {op} ".join(_wrap(part, prec + 1) for part in parts)
             return Expr(text, "bool", prec, any(part.impure for part in parts))
         if isinstance(node, ast.Compare):
             if len(node.ops) != 1:
-                raise self.fail("compare_chain", "Compare two values at a time:  a < b and b < c", node)
+                raise self.fail("compare_chain", say("py", "Compare two values at a time:  a < b and b < c"), node)
             if type(node.ops[0]) not in _COMPARE:
-                raise self.fail("operator", "Compare with ==, !=, <, <=, > or >=", node)
+                raise self.fail("operator", say("py", "Compare with ==, !=, <, <=, > or >="), node)
             left, right = self.expression(node.left, scope), self.expression(node.comparators[0], scope)
             op = _COMPARE[type(node.ops[0])]
             if left.type != right.type or (left.type == "bool" and op not in ("==", "!=")):
-                raise self.fail("type_mismatch", f"Cannot compare {left.type} with {right.type} using {op}", node)
+                raise self.fail("type_mismatch", say("py", "Cannot compare {type} with {type2} using {op}", type=left.type, type2=right.type, op=op), node)
             prec = _PREC[op]
             return Expr(f"{_wrap(left, prec)} {op} {_wrap(right, prec + 1)}", "bool", prec,
                         left.impure or right.impure)
@@ -1170,7 +1181,7 @@ class _Compiler:
         for kind, hint in hints.items():
             if isinstance(node, kind):
                 raise self.fail("expression", hint, node)
-        raise self.fail("expression", f"{type(node).__name__} is not part of PRG32 Python", node)
+        raise self.fail("expression", say("py", "{name} is not part of PRG32 Python", name=type(node).__name__), node)
 
     def call_value(self, call: ast.Call, scope: _Scope) -> Expr:
         name = self.prg32_name(call.func)
@@ -1178,15 +1189,15 @@ class _Compiler:
             builtin = name is None
             name = name if name is not None else call.func.id  # type: ignore[union-attr]
             if not builtin and name in CONDITIONS:
-                raise self.fail("condition_use", f"prg32.{name}(...) is a test: use it directly in an if", call)
+                raise self.fail("condition_use", say("py", "prg32.{name}(...) is a test: use it directly in an if", name=name), call)
             # prg32.frame is both: frame(x, y, w, h) draws an outline, frame() is the frame count.
             if not builtin and name in STATEMENTS and not (name in VALUE_FUNCTIONS and not call.args and not call.keywords):
-                raise self.fail("value_expected", f"prg32.{name}(...) does something but gives no value", call)
+                raise self.fail("value_expected", say("py", "prg32.{name}(...) does something but gives no value", name=name), call)
             if not builtin and name not in VALUE_FUNCTIONS:
-                raise self.fail("unknown_function", f"prg32 has no function {name}", call.func)
+                raise self.fail("unknown_function", say("py", "prg32 has no function {name}", name=name), call.func)
             arity = BUILTIN_VALUES[name] if builtin else VALUE_FUNCTIONS[name]
             if call.keywords or len(call.args) != arity:
-                raise self.fail("call_arguments", f"{name} needs {arity} value(s), in order", call)
+                raise self.fail("call_arguments", say("py", "{name} needs {arity} value(s), in order", name=name, arity=arity), call)
             args = [self.expression(arg, scope) for arg in call.args]
             for arg, arg_node in zip(args, call.args):
                 self.expect(arg, "int", arg_node)
@@ -1196,14 +1207,14 @@ class _Compiler:
             return Expr(text, "int", _ATOM, name in _IMPURE or any(arg.impure for arg in args))
         if isinstance(call.func, ast.Name):
             if call.func.id == "range":
-                raise self.fail("range_use", "range(...) is only used in  for i in range(...):", call)
+                raise self.fail("range_use", say("py", "range(...) is only used in  for i in range(...):"), call)
             function = self.functions.get(call.func.id)
             if function is None:
-                raise self.fail("unknown_function", f"There is no function {call.func.id}", call.func)
+                raise self.fail("unknown_function", say("py", "There is no function {id}", id=call.func.id), call.func)
             if function.returns == "None":
-                raise self.fail("value_expected", f"{function.name} gives back nothing (-> None)", call)
+                raise self.fail("value_expected", say("py", "{name} gives back nothing (-> None)", name=function.name), call)
             return self.inline_value(function, call, scope)
-        raise self.fail("call", "Call prg32.name(...), abs/min/max or one of your own functions", call)
+        raise self.fail("call", say("py", "Call prg32.name(...), abs/min/max or one of your own functions"), call)
 
     def inline_value(self, function: Function, call: ast.Call, scope: _Scope) -> Expr:
         """A value function is copied into the expression, its parameters replaced by the values given."""
@@ -1214,10 +1225,7 @@ class _Compiler:
             inner = _Scope(function, function.name)
             for (pname, _ptype), (arg_node, expr) in zip(function.params, args):
                 if expr.impure and uses.get(pname, 0) != 1:
-                    raise self.fail("impure_argument", f"{pname} is used {uses.get(pname, 0)} times in "
-                                                       f"{function.name}, so this value (it changes every time it "
-                                                       "is asked for) would not be the same each time: store it in "
-                                                       "a variable first", arg_node)
+                    raise self.fail("impure_argument", say("py", "{pname} is used {value} times in {name}, so this value (it changes every time it is asked for) would not be the same each time: store it in a variable first", pname=pname, value=uses.get(pname, 0), name=function.name), arg_node)
                 inner.values[pname] = Expr(f"({expr.text})" if expr.prec < _ATOM else expr.text, expr.type, _ATOM,
                                            expr.impure)
             result = self.expression(function.value, inner)
@@ -1231,19 +1239,19 @@ class _Compiler:
         """prg32.<name> -> name (None for anything else)."""
         if isinstance(node, ast.Attribute) and isinstance(node.value, ast.Name) and node.value.id == "prg32":
             if not self.imported:
-                raise self.fail("import", "Write  import prg32  at the top of the file first", node)
+                raise self.fail("import", say("py", "Write  import prg32  at the top of the file first"), node)
             return node.attr
         return None
 
     def prg32_constant(self, node: ast.Attribute) -> str:
         name = self.prg32_name(node)
         if name is None:
-            raise self.fail("attribute", "Only prg32.NAME has a dot in PRG32 Python", node)
+            raise self.fail("attribute", say("py", "Only prg32.NAME has a dot in PRG32 Python"), node)
         if name in CONSTANT_NAMES:
             return CONSTANT_NAMES[name]
         if name in VALUE_FUNCTIONS or name in STATEMENTS or name in CONDITIONS:
-            raise self.fail("call_missing", f"prg32.{name} is a function: call it with ( )", node)
-        raise self.fail("unknown_constant", f"prg32 has no constant {name}", node)
+            raise self.fail("call_missing", say("py", "prg32.{name} is a function: call it with ( )", name=name), node)
+        raise self.fail("unknown_constant", say("py", "prg32 has no constant {name}", name=name), node)
 
 
 def _joined(parts: list[ast.expr]) -> ast.expr:
@@ -1275,13 +1283,13 @@ def _name_uses(node: ast.AST | None) -> dict[str, int]:
 def _prescan(source: Any) -> str:
     """Limits checked before the parser sees the text."""
     if not isinstance(source, str) or not source.strip():
-        raise PythonError("empty", "game.py is empty")
+        raise PythonError("empty", say("py", "game.py is empty"))
     if "\x00" in source:
-        raise PythonError("nul", "game.py contains a NUL character")
+        raise PythonError("nul", say("py", "game.py contains a NUL character"))
     if len(source.encode("utf-8")) > MAX_SOURCE_BYTES:
-        raise PythonError("too_big", f"game.py is larger than {MAX_SOURCE_BYTES // 1024} KiB")
+        raise PythonError("too_big", say("py", "game.py is larger than {value} KiB", value=MAX_SOURCE_BYTES // 1024))
     if source.count("\n") + 1 > MAX_LINES:
-        raise PythonError("too_big", f"game.py has more than {MAX_LINES} lines")
+        raise PythonError("too_big", say("py", "game.py has more than {max_lines} lines", max_lines=MAX_LINES))
     depth, line, quote = 0, 1, ""
     i = 0
     while i < len(source):
@@ -1307,7 +1315,7 @@ def _prescan(source: Any) -> str:
         elif ch in "([{":
             depth += 1
             if depth > MAX_BRACKET_DEPTH:
-                raise PythonError("too_deep", f"More than {MAX_BRACKET_DEPTH} brackets inside each other",
+                raise PythonError("too_deep", say("py", "More than {max_bracket_depth} brackets inside each other", max_bracket_depth=MAX_BRACKET_DEPTH),
                                   line=line, column=1)
         elif ch in ")]}":
             depth = max(0, depth - 1)
@@ -1321,20 +1329,20 @@ def parse(source: Any) -> ast.Module:
     try:
         tree = ast.parse(text, filename=SOURCE_FILE, mode="exec")
     except SyntaxError as exc:
-        raise PythonError("syntax", f"Python syntax: {exc.msg}", line=exc.lineno or 0, column=exc.offset or 0,
+        raise PythonError("syntax", say("py", "Python syntax: {msg}", msg=exc.msg), line=exc.lineno or 0, column=exc.offset or 0,
                           end_line=getattr(exc, "end_lineno", 0) or 0,
                           end_column=getattr(exc, "end_offset", 0) or 0) from None
     except (MemoryError, RecursionError, ValueError):
-        raise PythonError("too_deep", "game.py is nested too deeply to read") from None
+        raise PythonError("too_deep", say("py", "game.py is nested too deeply to read")) from None
     nodes = 0
     stack: list[tuple[ast.AST, int]] = [(tree, 0)]
     while stack:  # without recursion, so a deep tree cannot exhaust the stack here
         node, depth = stack.pop()
         nodes += 1
         if nodes > MAX_NODES:
-            raise PythonError("too_big", f"game.py has more than {MAX_NODES} parts")
+            raise PythonError("too_big", say("py", "game.py has more than {max_nodes} parts", max_nodes=MAX_NODES))
         if depth > MAX_AST_DEPTH:
-            raise PythonError("too_deep", "This expression or block is nested too deeply", node)
+            raise PythonError("too_deep", say("py", "This expression or block is nested too deeply"), node)
         stack.extend((child, depth + 1) for child in ast.iter_child_nodes(node))
     return tree
 
@@ -1347,7 +1355,7 @@ def python_to_ir_traced(source: Any, project: dict[str, Any] | None = None
     try:
         game_ir = compiler.program(tree)
     except RecursionError:
-        raise PythonError("too_deep", "game.py is nested too deeply to translate") from None
+        raise PythonError("too_deep", say("py", "game.py is nested too deeply to translate")) from None
     return game_ir, compiler.origins
 
 

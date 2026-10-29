@@ -25,7 +25,10 @@ bundle from **Compile** so the store gets every architecture.
 ## 4. Publish
 
 1. Find the bundle in the list.
-2. Click **Publish**.
-3. Read the response panel.
+2. Click **Review**: the page shows exactly what will be sent (Store, cartridge, versions, file
+   fingerprints).
+3. Tick the box, click **Confirm**, and read the response panel.
+
+Publishing needs the publisher role; without it, ask your teacher to publish for you.
 
 A real Cartridge Store may return a pending submission that must be verified by an editor.

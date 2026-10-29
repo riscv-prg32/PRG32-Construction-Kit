@@ -100,16 +100,25 @@ window.PRG32Monaco = (function () {
       // The worker file is in static/vendor; it finds the rest of Monaco next to itself.
       getWorkerUrl: () => BASE + '/base/worker/workerMain.js',
     };
-    ready = new Promise((resolve, reject) => {
+    // Not while the PRG32 core loads with define.amd hidden (prg32_runtime.js): Monaco needs it.
+    const plain = window.PRG32PlainScriptLoading || Promise.resolve();
+    ready = plain.then(() => new Promise((resolve, reject) => {
       window.require.config({ paths: { vs: BASE } });
-      window.require(['vs/editor/editor.main'], () => {
+      // Monaco's own menus and messages in the reader's language (ADR-0027): its language pack
+      // must be loaded before the editor. English needs none.
+      const pack = (document.querySelector('meta[name="prg32-monaco-pack"]') || {}).content;
+      const first = pack ? ['vs/nls.messages.' + pack] : [];
+      window.require(first, () => window.require(['vs/editor/editor.main'], () => {
         registerAssembly(window.monaco);
         registerPython(window.monaco);
         resolve(window.monaco);
-      }, reject);
-    });
+      }, reject), reject);
+    }));
     return ready;
   }
 
-  return { load, DIRECTIVES, INSTRUCTIONS, REGISTERS };
+  // Settles when Monaco's loader is not loading anything (prg32_runtime.js waits for it).
+  function idle() { return ready ? ready.catch(() => {}) : Promise.resolve(); }
+
+  return { load, idle, DIRECTIVES, INSTRUCTIONS, REGISTERS };
 })();

@@ -12,6 +12,42 @@ GAMES_DIR = Path(__file__).resolve().parent.parent / "examples" / "games"
 PYTHON_DIR = Path(__file__).resolve().parent.parent / "examples" / "python"
 PYTHON_EXAMPLES = {"brick_catch": ("Brick Catch (Python)", "Catch falling bricks with a paddle: a game written in PRG32 Python.")}
 CLASSIC_GAMES = ("pong", "breakout", "space_invaders", "asteroids", "snake")
+# Star Catcher (docs/project_art.md): one game, four kinds of project, all using the same
+# Sprite Lab sprites, background and AudioStudio sound (examples/art/, tools/build_art_examples.py).
+ART_DIR = Path(__file__).resolve().parent.parent / "examples" / "art"
+ART_EXAMPLES = (
+    ("star_catcher_blocks", "Star Catcher (Blocks)", "blocks", "star_catcher.blocks.json"),
+    ("star_catcher_python", "Star Catcher (Python)", "python", "star_catcher.py"),
+    ("star_catcher_c", "Star Catcher (C)", "c", "star_catcher.c"),
+    ("star_catcher_asm", "Star Catcher (Assembly)", "asm", "star_catcher.S"),
+)
+_ART_DESCRIPTION = ("Catch the falling star with the rocket. Its sprites, background and sounds are made in "
+                    "Sprite Lab, Backgrounds and AudioStudio; the {language} uses them by name.")
+_ART_LANGUAGE = {"blocks": "blocks", "python": "Python code", "c": "C code", "asm": "assembly code"}
+
+
+def art_example_projects() -> list[dict]:
+    """The Star Catcher examples: each project with its art (``sprites``, ``assets``, ``audio_studio``)."""
+    art = json.loads((ART_DIR / "star_catcher.art.json").read_text(encoding="utf-8"))
+    out = []
+    for slug, title, kind, file in ART_EXAMPLES:
+        text = (ART_DIR / file).read_text(encoding="utf-8")
+        game_json: dict = {}
+        blocks_json: dict = {}
+        if kind == "blocks":
+            blocks_json = json.loads(text)
+        elif kind == "python":
+            game_json = {"source_mode": "python", "source_python": text, "python_language_version": 1}
+        else:
+            # The art include adds the features its art needs; these are the ones the code itself uses.
+            game_json = {"source_mode": kind, f"source_{kind}": text, "required_features": ["audio", "sprites", "tilemap"]}
+        project = {"title": title, "description": _ART_DESCRIPTION.format(language=_ART_LANGUAGE[kind]),
+                   "author": "PRG32-Construction-Kit", "tags": [kind, "art", "example"],
+                   "blocks_json": blocks_json, "game_json": game_json}
+        out.append({"slug": slug, "title": title, "description": project["description"], "kind": "art",
+                    "language": kind, "project": project, "sprites": art["sprites"], "assets": art["assets"],
+                    "audio_studio": art["audio_studio"]})
+    return out
 
 
 def classic_game_project(slug: str) -> dict:
@@ -50,6 +86,7 @@ def example_catalog() -> list[dict]:
                                     "tags": ["python", "example"], "blocks_json": {},
                                     "game_json": {"source_mode": "python", "source_python": source,
                                                   "python_language_version": 1}}})
+    catalog.extend(art_example_projects())
     complete = {item["slug"] for item in catalog}
     for example, project in zip(UPSTREAM_EXAMPLES, upstream_example_projects()):
         if example[0] not in complete:
@@ -322,9 +359,11 @@ def blocks_as_code(project: dict, language: str) -> dict:
 
     if language not in ("c", "asm"):
         raise ValueError("language must be c or asm")
-    game_ir, c_source = blocks_to_c(project.get("blocks_json") or {}, project)
+    # Sprites and backgrounds stay in Sprite Lab and Backgrounds: the code includes them
+    # (#include "prg32_assets.h" / ".S", project_assets.py) instead of keeping a copy.
+    game_ir, c_source = blocks_to_c(project.get("blocks_json") or {}, project, art_include=True)
     features = list(game_ir.get("required_features") or [])
     if language == "c":
         return {"source_mode": "c", "source_c": c_source.replace(_C_GENERATED, _C_STARTER), "required_features": features}
-    return {"source_mode": "asm", "source_asm": ir_to_asm(game_ir).replace(_ASM_GENERATED, _ASM_STARTER),
+    return {"source_mode": "asm", "source_asm": ir_to_asm(game_ir, art_include=True).replace(_ASM_GENERATED, _ASM_STARTER),
             "required_features": features}

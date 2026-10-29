@@ -24,7 +24,8 @@ FIXTURES = ROOT / "tests" / "fixtures"
 HOST_CC = shutil.which("cc") or shutil.which("gcc") or shutil.which("clang")
 
 # name -> (result type, parameter types). "str" is a C string, "bits" an 8-byte picture,
-# "peer" a prg32_player_state_t the stub fills in.
+# "peer" a prg32_player_state_t the stub fills in, "pixels" the first 4 RGB565 pixels of a sprite,
+# "isprite" a prg32_indexed_sprite_t (its numbers, its first palette colour and pixel byte).
 SIGNATURES: dict[str, tuple[str, list[str]]] = {
     "prg32_input_read": ("u32", []),
     "prg32_random_number": ("u32", ["u32", "u32"]),
@@ -41,6 +42,9 @@ SIGNATURES: dict[str, tuple[str, list[str]]] = {
     "prg32_sprite_hitbox": ("int", ["int"] * 8),
     "prg32_sprite_draw_8x8": ("void", ["int", "int", "bits", "u16", "u16"]),
     "prg32_tile_define": ("void", ["u8", "bits", "u16", "u16"]),
+    "prg32_platform_tile_flags": ("void", ["u8", "u8"]),
+    "prg32_sprite_draw_frame": ("void", ["int", "int", "int", "int", "pixels", "u32", "u16"]),
+    "prg32_sprite_draw_indexed": ("void", ["int", "int", "isprite", "u32"]),
     "prg32_playfield_clear": ("void", ["u8", "u8"]),
     "prg32_playfield_put": ("void", ["u8", "u8", "u8", "u8"]),
     "prg32_playfield_get": ("u8", ["u8", "u8", "u8"]),
@@ -63,7 +67,8 @@ SIGNATURES: dict[str, tuple[str, list[str]]] = {
     "prg32_multiplayer_get_peer": ("int", ["int", "peer"]),
 }
 _C_TYPES = {"int": "int", "u8": "uint8_t", "u16": "uint16_t", "u32": "uint32_t", "i16": "int16_t",
-            "str": "const char *", "bits": "const uint8_t *", "peer": "prg32_player_state_t *", "void": "void"}
+            "str": "const char *", "bits": "const uint8_t *", "peer": "prg32_player_state_t *", "void": "void",
+            "pixels": "const uint16_t *", "isprite": "const prg32_indexed_sprite_t *"}
 
 
 def find_riscv_gcc() -> str | None:
@@ -101,7 +106,11 @@ def _c_stubs() -> str:
              "        if (c == '\"' || c == '\\\\') printf(\"\\\\%c\", c); else if (c >= 32 && c < 127) putchar(c); else printf(\"\\\\x%02x\", c); }",
              "    putchar('\"');",
              "}",
-             "static void show_bits(const uint8_t *b) { int i; putchar('['); for (i = 0; i < 8; ++i) printf(\"%02x\", b[i]); putchar(']'); }"]
+             "static void show_bits(const uint8_t *b) { int i; putchar('['); for (i = 0; i < 8; ++i) printf(\"%02x\", b[i]); putchar(']'); }",
+             "static void show_pixels(const uint16_t *p) { printf(\"<%04x %04x %04x %04x>\", p[0], p[1], p[2], p[3]); }",
+             "static void show_isprite(const prg32_indexed_sprite_t *s) {",
+             "    printf(\"{%u %u %u %u %u %d %04x %02x}\", s->width, s->height, s->frame_count, s->palette_count,",
+             "           s->bits_per_pixel, s->transparent_index, s->palette[0], s->pixels[0]); }"]
     for name, (result, params) in SIGNATURES.items():
         args = ", ".join(f"{_C_TYPES[kind]} p{i}" for i, kind in enumerate(params)) or "void"
         lines.append(f"{_C_TYPES[result]} {name}({args}) {{")
@@ -115,6 +124,10 @@ def _c_stubs() -> str:
                 lines.append(f"    show_bits(p{i});")
             elif kind == "peer":
                 lines.append('    printf("&peer");')
+            elif kind == "pixels":
+                lines.append(f"    show_pixels(p{i});")
+            elif kind == "isprite":
+                lines.append(f"    show_isprite(p{i});")
             elif kind in ("u8", "u16", "u32"):
                 lines.append(f'    printf("%u", (unsigned)p{i});')
             else:
@@ -250,6 +263,13 @@ class RV32IM:
                 shown.append("[" + self.mem[reg:reg + 8].hex() + "]")
             elif kind == "peer":
                 shown.append("&peer")
+            elif kind == "pixels":
+                shown.append("<" + " ".join(f"{self.load(reg + 2 * i, 2, False):04x}" for i in range(4)) + ">")
+            elif kind == "isprite":
+                pixels, palette = self.load(reg, 4, False), self.load(reg + 4, 4, False)
+                shown.append("{" + " ".join(str(self.load(reg + offset, 2, False)) for offset in (8, 10, 12, 14))
+                             + f" {self.load(reg + 16, 1, False)} {self.load(reg + 18, 2, True)}"
+                             + f" {self.load(palette, 2, False):04x} {self.load(pixels, 1, False):02x}" + "}")
             elif kind in ("u8", "u16", "u32"):
                 shown.append(str(reg))  # unmasked on purpose: the caller must have widened it
             else:

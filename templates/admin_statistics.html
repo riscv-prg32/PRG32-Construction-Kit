@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block title %}{{ t("admin_statistics.title", name=(site.name)) }}{% endblock %}
+{% block head %}<link href="{{ url_for('static', filename='css/admin_stats.css') }}" rel="stylesheet">{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+  <div>
+    <h1 class="h3 mb-1"><i class="bi bi-bar-chart" aria-hidden="true"></i> {{ t("base.statistics") }}</h1>
+    <p class="text-muted mb-0">{{ t("admin_statistics.intro") }} <a href="/docs/activity_and_statistics.md">{{ t("admin_activity.how_privacy_works") }}</a></p>
+  </div>
+  <a class="btn btn-outline-secondary" href="/admin/activity"><i class="bi bi-activity" aria-hidden="true"></i> {{ t("admin_activity.activity") }}</a>
+</div>
+
+<form class="row g-2 align-items-end mb-3" id="statsFilter" novalidate>
+  <div class="col-6 col-md-3">
+    <label class="form-label small mb-1" for="statsFrom">{{ t("admin_activity.from") }}</label>
+    <input class="form-control form-control-sm" type="date" id="statsFrom" name="from">
+  </div>
+  <div class="col-6 col-md-3">
+    <label class="form-label small mb-1" for="statsTo">{{ t("admin_activity.to") }}</label>
+    <input class="form-control form-control-sm" type="date" id="statsTo" name="to">
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="btn-group btn-group-sm" role="group" aria-label="{{ t('admin_statistics.quick_ranges') }}" id="quickRange">
+      <button type="button" class="btn btn-outline-secondary" data-days="7">{{ t("admin_statistics.days_7") }}</button>
+      <button type="button" class="btn btn-outline-secondary" data-days="30">{{ t("admin_statistics.days_30") }}</button>
+      <button type="button" class="btn btn-outline-secondary" data-days="90">{{ t("admin_statistics.days_90") }}</button>
+    </div>
+  </div>
+  <div class="col-6 col-md-3 d-flex gap-2 align-items-center justify-content-md-end">
+    <div class="form-check form-switch mb-0">
+      <input class="form-check-input" type="checkbox" role="switch" id="statsNames">
+      <label class="form-check-label small" for="statsNames">{{ t("admin_statistics.show_usernames") }}</label>
+    </div>
+    <button class="btn btn-sm btn-primary" type="submit"><i class="bi bi-arrow-clockwise" aria-hidden="true"></i> {{ t("admin_activity.show") }}</button>
+  </div>
+</form>
+
+<div class="row g-2 mb-3" id="tiles"></div>
+
+<div class="row g-3 mb-3">
+  <div class="col-lg-6">
+    <div class="card h-100"><div class="card-body">
+      <h2 class="h6">{{ t("admin_statistics.active_people_per_day") }}</h2>
+      <div class="stats-legend small mb-1"><span class="me-3"><span class="swatch swatch-accounts"></span>{{ t("admin_statistics.accounts") }}</span><span><span class="swatch swatch-visitors"></span>{{ t("admin_statistics.visitor_days") }}</span></div>
+      <div class="stats-chart" id="chartPeople" role="img" aria-label="{{ t('admin_statistics.active_people_per_day') }}"></div>
+    </div></div>
+  </div>
+  <div class="col-lg-6">
+    <div class="card h-100"><div class="card-body">
+      <h2 class="h6">{{ t("admin_statistics.requests_per_day") }}</h2>
+      <div class="stats-chart" id="chartRequests" role="img" aria-label="{{ t('admin_statistics.requests_per_day') }}"></div>
+    </div></div>
+  </div>
+  <div class="col-lg-6">
+    <div class="card h-100"><div class="card-body">
+      <h2 class="h6">{{ t("admin_statistics.requests_by_hour") }}</h2>
+      <div class="stats-legend small mb-1"><span class="me-3"><span class="swatch swatch-accounts"></span>{{ t("admin_statistics.accounts") }}</span><span><span class="swatch swatch-visitors"></span>{{ t("admin_statistics.visitors") }}</span></div>
+      <div class="stats-chart" id="chartHours" role="img" aria-label="{{ t('admin_statistics.requests_by_hour') }}"></div>
+    </div></div>
+  </div>
+  <div class="col-lg-6">
+    <div class="card h-100"><div class="card-body">
+      <h2 class="h6">{{ t("admin_statistics.what_people_do") }}</h2>
+      <div class="stats-chart" id="chartCategories" role="img" aria-label="{{ t('admin_statistics.what_people_do') }}"></div>
+    </div></div>
+  </div>
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-md-4"><div class="card h-100"><div class="card-body"><h2 class="h6">{{ t("admin_statistics.accounts_by_role") }}</h2><div id="rolesTable"></div></div></div></div>
+  <div class="col-md-4"><div class="card h-100"><div class="card-body"><h2 class="h6">{{ t("admin_statistics.accounts_by_kit_role") }}</h2><div id="kitRolesTable"></div></div></div></div>
+  <div class="col-md-4"><div class="card h-100"><div class="card-body"><h2 class="h6">{{ t("admin_statistics.builds_by_status") }}</h2><div id="buildsTable"></div></div></div></div>
+</div>
+
+{% set table_labels = {"summary": t("admin_statistics.table_summary"), "daily": t("admin_statistics.table_daily"),
+                       "hours": t("admin_statistics.table_hours"), "categories": t("admin_statistics.table_categories"),
+                       "per_user": t("admin_statistics.table_per_user")} %}
+<ul class="nav nav-tabs" role="tablist">
+  {% for table in tables %}
+  <li class="nav-item" role="presentation">
+    <button class="nav-link{% if table == 'per_user' %} active{% endif %}" id="tab-{{ table }}" data-bs-toggle="tab" data-bs-target="#pane-{{ table }}"
+            type="button" role="tab" aria-controls="pane-{{ table }}" aria-selected="{{ 'true' if table == 'per_user' else 'false' }}">{{ table_labels[table] }}</button>
+  </li>
+  {% endfor %}
+</ul>
+<div class="tab-content border border-top-0 rounded-bottom p-3 mb-4">
+  {% for table in tables %}
+  <div class="tab-pane fade{% if table == 'per_user' %} show active{% endif %}" id="pane-{{ table }}" role="tabpanel" aria-labelledby="tab-{{ table }}" tabindex="0">
+    <div class="d-flex justify-content-end mb-2">
+      <button class="btn btn-sm btn-outline-primary csv-download" type="button" data-table="{{ table }}"><i class="bi bi-filetype-csv" aria-hidden="true"></i> {{ t("admin_statistics.download_csv") }}</button>
+    </div>
+    <div class="table-responsive stats-table" data-table="{{ table }}"><p class="text-muted mb-0">{{ t("common.loading") }}</p></div>
+  </div>
+  {% endfor %}
+</div>
+<p class="small text-muted">{{ t("admin_statistics.privacy_note") }}</p>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/admin_statistics.js') }}"></script>
+{% endblock %}

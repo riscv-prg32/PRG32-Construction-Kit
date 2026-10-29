@@ -23,6 +23,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from . import security
 from .db import db, list_resources, utcnow
+from .messages import body as message_body, text as say
 
 CLASS_ROLES = ("student", "teacher", "facilitator")
 
@@ -114,10 +115,10 @@ def api_classes():
         return jsonify({"classes": [_as_dict(item, principal) for item in db.session.scalars(query)]})
     if not (principal.is_admin or principal.is_teacher):
         security.record("class_create", target_type="class", outcome="denied")
-        return jsonify({"error": "Only teachers can make classes"}), 403
+        return jsonify({**message_body(say("classes", "Only teachers can make classes"))}), 403
     name = str((request.get_json(silent=True) or {}).get("name") or "").strip()[:80]
     if not name:
-        return jsonify({"error": "name is required"}), 400
+        return jsonify({**message_body(say("classes", "name is required"))}), 400
     item = SchoolClass(name=name, created_by=principal.id)
     db.session.add(item)
     db.session.flush()
@@ -136,12 +137,12 @@ def api_class(class_id: int):
     item = db.session.get(SchoolClass, class_id)
     role = _class_role(principal, class_id) if item else None
     if item is None or not (principal.is_admin or role):
-        return jsonify({"error": "class not found"}), 404
+        return jsonify({**message_body(say("classes", "class not found"))}), 404
     if request.method == "GET":
         return jsonify(_as_dict(item, principal))
     if not (principal.is_admin or role == "teacher"):
         security.record("class_update", target_type="class", target_id=class_id, outcome="denied")
-        return jsonify({"error": "Only the class's teachers can change it"}), 403
+        return jsonify({**message_body(say("classes", "Only the class's teachers can change it"))}), 403
     if request.method == "DELETE":
         db.session.delete(item)
         db.session.commit()
@@ -150,7 +151,7 @@ def api_class(class_id: int):
         return jsonify({"deleted": True})
     name = str((request.get_json(silent=True) or {}).get("name") or "").strip()[:80]
     if not name:
-        return jsonify({"error": "name is required"}), 400
+        return jsonify({**message_body(say("classes", "name is required"))}), 400
     item.name = name
     db.session.commit()
     return jsonify(_as_dict(item, principal))
@@ -164,14 +165,14 @@ def api_add_member(class_id: int):
     item = db.session.get(SchoolClass, class_id)
     role = _class_role(principal, class_id) if item else None
     if item is None or not (principal.is_admin or role):
-        return jsonify({"error": "class not found"}), 404
+        return jsonify({**message_body(say("classes", "class not found"))}), 404
     data = request.get_json(silent=True) or {}
     wanted = str(data.get("role") or "student")
     user = _find_user(data)
     if wanted not in CLASS_ROLES:
         return jsonify({"error": "role must be one of: " + ", ".join(CLASS_ROLES)}), 400
     if user is None:
-        return jsonify({"error": "no such account"}), 404
+        return jsonify({**message_body(say("classes", "no such account"))}), 404
     # Teachers add students only; teachers and facilitators are added by an administrator.
     allowed = principal.is_admin or (role == "teacher" and wanted == "student")
     fits = {"student": ("student",), "teacher": ("teacher",), "facilitator": ("facilitator", "teacher")}[wanted]
@@ -202,13 +203,13 @@ def api_remove_member(class_id: int, user_id: int):
     role = _class_role(principal, class_id) if item else None
     member = _member(class_id, user_id) if item else None
     if item is None or not (principal.is_admin or role):
-        return jsonify({"error": "class not found"}), 404
+        return jsonify({**message_body(say("classes", "class not found"))}), 404
     if member is None:
-        return jsonify({"error": "not a member"}), 404
+        return jsonify({**message_body(say("classes", "not a member"))}), 404
     if not (principal.is_admin or (role == "teacher" and member.role == "student")):
         security.record("class_member_remove", target_type="class", target_id=class_id, outcome="denied",
                         metadata={"user_id": user_id})
-        return jsonify({"error": "teachers remove students only; ask an administrator"}), 403
+        return jsonify({**message_body(say("classes", "teachers remove students only; ask an administrator"))}), 403
     db.session.execute(delete(ClassMember).where(ClassMember.class_id == class_id, ClassMember.user_id == user_id))
     db.session.commit()
     _forget()
@@ -225,7 +226,7 @@ def api_class_projects(class_id: int):
     item = db.session.get(SchoolClass, class_id)
     role = _class_role(principal, class_id) if item else None
     if item is None or not (principal.is_admin or role in ("teacher", "facilitator")):
-        return jsonify({"error": "class not found"}), 404
+        return jsonify({**message_body(say("classes", "class not found"))}), 404
     students = list(db.session.scalars(select(ClassMember.user_id).where(ClassMember.class_id == class_id,
                                                                         ClassMember.role == "student")))
     projects = []

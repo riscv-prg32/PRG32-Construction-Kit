@@ -1,0 +1,113 @@
+{
+  "address": "qemu",
+  "cartridge_sha256": "3b1171638043276a2e9a7a945bcad5499df1f34cf5ba5923d9526a3f9ab06d66",
+  "checks": [
+    {
+      "check": "the target is there",
+      "detail": "",
+      "ok": true
+    },
+    {
+      "check": "the toolchain built the protocol's cartridge",
+      "detail": "",
+      "ok": true
+    },
+    {
+      "check": "the target has cart0 and accepts the cartridge",
+      "detail": "",
+      "ok": true
+    },
+    {
+      "check": "the evaluation completed",
+      "detail": "",
+      "ok": true
+    },
+    {
+      "check": "every run gave a result",
+      "detail": "",
+      "ok": true
+    },
+    {
+      "check": "each measured run has a value for each case and metric",
+      "detail": "",
+      "ok": true
+    },
+    {
+      "check": "the dataset names the cartridge that ran",
+      "detail": "",
+      "ok": true
+    },
+    {
+      "check": "the chart is made again from the saved dataset, byte for byte",
+      "detail": "",
+      "ok": true
+    }
+  ],
+  "date": "2026-10-26T09:50:55+00:00",
+  "evidence": "emulator (QEMU)",
+  "files": {
+    "dataset.csv": "3108143e0d127f19b0322b9c22f3a2532bff9a4a0cf34c23caeebdf06d0d8b94",
+    "dataset.json": "82fb75f360966974635f72a87777834d2555facaa177f8ca41b9f43471ead79b",
+    "draw_us_mean.pdf": "3a9805007bcab8c4a2c37dc874645bc6d4824fb778a597f8b005961c3bc97c8e",
+    "draw_us_mean.svg": "f8ef9742afccab89f35657911e57b97a96ab247a919bd6d7ebaa016d76ce4b75",
+    "fps_mean.pdf": "1c4b3f5c53a85407ab7c154a3f0f22f3107ade3bceebcae12a69e5894c38a6a9",
+    "fps_mean.svg": "1758dcea629f99471841a86b3e8691097775a653ee0768529f2800b1f79e5541",
+    "frame_us_max.pdf": "0cd592b14c11a5bd655faafcade0aed608f4c3a376a7feb14ec29f69b0669781",
+    "frame_us_max.svg": "5bab33fd030385449b51bffa21de5be56af5a756332e4e6945773ad45c8a73c2",
+    "frame_us_mean.pdf": "2abde4c8ec720ba7eee6d7c4b0d5a7f423baf4bd2f628dae883c4a6580e4b2d5",
+    "frame_us_mean.svg": "4fc553af2e15f38ed19f412228b97ba5af5264934db0c89c22753dc534374a38",
+    "frame_us_min.pdf": "5738ab2aaf2c9445722ce69f28c17f8534fd28cd7527cd9c7757e62914c08f46",
+    "frame_us_min.svg": "2a7e645c25dedc0c26fc1f54ae384256256e610166e6c9a44d26ed711af207ad",
+    "frame_us_p50.pdf": "aa8bbfdb900744d84abe479d82f0441058b676d1008aaef24f5c109b02f38102",
+    "frame_us_p50.svg": "656604d4824fd601f5dceab75d56c79c767a6f8fe20ad501830c804d01f6d2c1",
+    "frame_us_p95.pdf": "d9dd7ad7787febcb4406e1c357be9c9630626ec9e33e63bf42016d41277229f4",
+    "frame_us_p95.svg": "f26aa58d220e27fdad553c83e9b96fd93399d5a7da8764ca7ae95d294434a029",
+    "frame_us_p99.pdf": "1e28453248f0d6e4242d57bdc5f8b8bfb31f629a494c1591876888bc86641a67",
+    "frame_us_p99.svg": "83daca9858b552deaa954e3289f366790230691866e0bc517b2c07074c3f7dd5",
+    "missed_deadlines.pdf": "029850d835859b01a91ba82c26847a7b88ca4dd9e51da4aec254a7f1187e1409",
+    "missed_deadlines.svg": "6dd97a2ac5d8b7cdddbef2c20ffaa774b8a383fa4f82b591b5dac190f969940d",
+    "present_us_mean.pdf": "2e02ecf7dacc0f6df961a6be0a1c091432dd7ca8a378f841d5e7bbaef1422c83",
+    "present_us_mean.svg": "45795c846d511ea094e7b939050129f4574c3306f1b362c3c5601e25a76a4d72",
+    "update_us_mean.pdf": "5d0474845cd9a075be40cec7a5165fda362919d3e2aa287174690b25133d77e8",
+    "update_us_mean.svg": "e6cd84a953963c9b36c2c98a7207b4ec7b80b6c711ed126429b87c2fc06ceb28"
+  },
+  "host": {
+    "cpus": 16,
+    "machine": "arm64",
+    "processor": "arm",
+    "python": "3.12.10",
+    "release": "25.6.0",
+    "system": "Darwin"
+  },
+  "kit_commit": "bbb2107a0b837d82561e08158b7f126ce4f04f41",
+  "notes": "Espressif QEMU esp_develop_9.0.0_20240606 (ESP32-C3 machine, no -icount: the emulated timer follows the host clock), SDL offscreen display, on the reference Mac; firmware from SDK 679dfb5 with tools/qemu/sdkconfig.deploy (tools/build_qemu_firmware.py); cartridge built by the same SDK revision. Nothing else heavy ran on the host.",
+  "passed": true,
+  "physical_device": false,
+  "prg32_sdk_commit": "679dfb58783bd007125de9ca0b75eaa077908739",
+  "protocol": "prg32-evaluation-protocol-1",
+  "repetitions": 5,
+  "slot": "cart0",
+  "target": {
+    "abi": {
+      "features": 511,
+      "hash": 638542134,
+      "major": 1,
+      "minor": 6
+    },
+    "fingerprint": "4d36a30a2632a52b",
+    "identity": {
+      "firmware_version": "679dfb5",
+      "host": "qemu",
+      "name": "PRG32",
+      "qemu": true,
+      "sdk_commit": "679dfb58783bd007125de9ca0b75eaa077908739"
+    },
+    "limits": {
+      "cart_max_size": 65536,
+      "cart_ram_size": 65536
+    }
+  },
+  "target_kind": "qemu",
+  "tool": "tools/evaluation_evidence.py",
+  "warm_up": 1
+}

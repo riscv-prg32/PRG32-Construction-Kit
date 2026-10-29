@@ -51,6 +51,8 @@ PACKAGES = [
     ("blockly", "11.2.1", "Apache-2.0", {
         "blockly.min.js": "blockly.min.js",
         "media/": "media/",  # icons and sounds Blockly would otherwise fetch from a Google server
+        # Blockly's own menus (Delete block, Undo, ...) in the kit's interface languages (ADR-0027).
+        **{f"msg/{code}.js": f"msg/{code}.js" for code in ("it", "es", "fr", "de", "zh-hans")},
     }),
     # The code editor of the IDE (ADR-0013): the classic AMD build, only the editor core,
     # its worker, the codicon font and the C/C++ grammar (no TypeScript/JSON/CSS/HTML services).
@@ -61,8 +63,25 @@ PACKAGES = [
         "min/vs/base/worker/workerMain.js": "min/vs/base/worker/workerMain.js",
         "min/vs/base/browser/ui/codicons/codicon/codicon.ttf": "min/vs/base/browser/ui/codicons/codicon/codicon.ttf",
         "min/vs/basic-languages/cpp/cpp.js": "min/vs/basic-languages/cpp/cpp.js",
+        # Monaco's own menus and messages in the kit's interface languages (ADR-0027).
+        **{f"min/vs/nls.messages.{code}.js": f"min/vs/nls.messages.{code}.js"
+           for code in ("it", "es", "fr", "de", "zh-cn")},
         "LICENSE": "LICENSE",
         "ThirdPartyNotices.txt": "ThirdPartyNotices.txt",
+    }),
+    # Direct cartridge deployment to an ESP32-C6 over Web Serial. The bundle
+    # includes its pako dependency and is served locally for the strict CSP.
+    ("esptool-js", "0.7.0", "Apache-2.0", {
+        "bundle.js": "bundle.js",
+        "LICENSE": "LICENSE",
+    }),
+    # Simplified Chinese text (ADR-0027) on computers without a CJK font: regular weight only,
+    # in the pieces a browser fetches one by one as the characters on a page need them
+    # (unicode-range); only Chinese pages load it. SIL Open Font License 1.1.
+    ("@fontsource/noto-sans-sc", "5.3.1", "OFL-1.1", {
+        "400.css": "400.css",
+        "files/*-400-normal.woff2": "files/",
+        "LICENSE": "LICENSE",
     }),
 ]
 
@@ -123,7 +142,13 @@ def vendor_into(root: Path, packages: list) -> int:
             shutil.rmtree(target, ignore_errors=True)
             copied: dict[str, str] = {}
             for source, destination in files.items():
-                if source.endswith("/"):
+                if "*" in source:   # a pattern: only the matching files of a folder
+                    for item in sorted(package.glob(source)):
+                        out = target / destination / item.name
+                        out.parent.mkdir(parents=True, exist_ok=True)
+                        shutil.copyfile(item, out)
+                        copied[str(out.relative_to(root))] = sha256(out)
+                elif source.endswith("/"):
                     for item in sorted((package / source).iterdir()):
                         out = target / destination / item.name
                         out.parent.mkdir(parents=True, exist_ok=True)
@@ -144,7 +169,7 @@ def vendor_into(root: Path, packages: list) -> int:
                 copied[str(out.relative_to(root))] = expected
             record["packages"].append({
                 "name": name, "version": version, "license": licence,
-                "source": f"https://registry.npmjs.org/{name}/-/{name}-{version}.tgz",
+                "source": f"https://registry.npmjs.org/{name}/-/{name.rsplit('/', 1)[-1]}-{version}.tgz",
                 "integrity": integrity, "files": copied,
                 "extra_sources": [url for url, _destination, _digest in EXTRA_FILES.get(name, [])],
             })

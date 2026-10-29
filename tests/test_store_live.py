@@ -39,7 +39,10 @@ from prg32_construction_kit import store_contract
 pytestmark = pytest.mark.skipif(os.environ.get("PRG32_LIVE_STORE") != "local",
                                 reason="live Store tests are opt-in: set PRG32_LIVE_STORE=local")
 ROOT = Path(__file__).resolve().parent.parent
-STORE_SOURCE = Path(os.environ.get("PRG32_CARTRIDGE_STORE_SOURCE") or ROOT.parent / "CartridgeStore")
+sys.path.insert(0, str(ROOT / "tools"))
+from pinned_store import store_source  # noqa: E402  (tools/pinned_store.py)
+
+STORE_SOURCE = store_source()
 PORT = 5160
 STORE = f"http://127.0.0.1:{PORT}"
 STORE_ADMIN = ("admin", "store-admin-test-only")      # the throwaway Store's first admin

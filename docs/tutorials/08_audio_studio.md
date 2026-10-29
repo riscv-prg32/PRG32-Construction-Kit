@@ -35,7 +35,7 @@ Back in the Blocks editor, open the **Sound** category:
 - put **play soundtrack Theme** in *on start*;
 - put **play sound effect Catch** where the player catches something.
 
-Press **Play** in the simulator: you hear the same sounds as in AudioStudio. Look at the
+Press **Run** (Shift+F10): you hear the same sounds as in AudioStudio. Look at the
 generated C: `prg32_audio_play_track(0);` and `prg32_audio_note(7, 8, 76, 255, 120);`.
 Can you say what each number means? (Hint: voice, instrument, note, volume, milliseconds.)
 

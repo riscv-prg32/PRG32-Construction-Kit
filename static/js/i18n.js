@@ -1,4 +1,5 @@
-// The kit's interface languages in the browser (ADR-0027): English, Italian, Spanish, French, German.
+// The kit's interface languages in the browser (ADR-0027): English, Italian, Spanish, French, German
+// and Simplified Chinese (zh-Hans).
 //
 // - The catalogs are static files (static/i18n/<locale>.js, made from the .json catalogs by
 //   tools/build_i18n.py), loaded by the page before this script, so they work offline.
@@ -12,25 +13,44 @@
 //   saved project or the code made from it.
 window.PRG32I18n = (function () {
   'use strict';
-  const LOCALES = ['en', 'it', 'es', 'fr', 'de'];
+  const LOCALES = ['en', 'it', 'es', 'fr', 'de', 'zh-Hans'];
+
+  // The kit's locale for one language tag, as i18n.locale_of does on the server: en-GB -> en,
+  // zh / zh-CN / zh-Hans-* -> zh-Hans; Traditional Chinese (zh-Hant, zh-TW, zh-HK, zh-MO) -> none.
+  function localeOf(tag) {
+    const code = String(tag || '').trim().replace(/_/g, '-').toLowerCase();
+    const starts = prefixes => prefixes.some(prefix => code === prefix || code.startsWith(prefix + '-'));
+    if (code.startsWith('zh')) {
+      if (starts(['zh-hant', 'zh-tw', 'zh-hk', 'zh-mo'])) return null;
+      return starts(['zh', 'zh-hans', 'zh-cn', 'zh-sg', 'zh-my']) ? 'zh-Hans' : null;
+    }
+    const base = code.split('-')[0];
+    return LOCALES.includes(base) ? base : null;
+  }
   const COOKIE = 'prg32_locale';
+  // The names of Blockly's own language packs (static/vendor/blockly/11.2.1/msg/, i18n.BLOCKLY_PACKS).
+  const BLOCKLY_PACKS = { it: 'it', es: 'es', fr: 'fr', de: 'de', 'zh-Hans': 'zh-hans' };
   const STORE = 'prg32-kit-locale';
   const catalogs = window.PRG32I18nCatalogs || (window.PRG32I18nCatalogs = {});
 
   function chosen() {
-    const cookie = (document.cookie.match(/(?:^|;\s*)prg32_locale=([a-z]{2})/) || [])[1];
+    const cookie = (document.cookie.match(/(?:^|;\s*)prg32_locale=([A-Za-z-]{2,7})/) || [])[1];
     if (LOCALES.includes(cookie)) return cookie;
     try { const kept = localStorage.getItem(STORE); if (LOCALES.includes(kept)) return kept; } catch (_) { /* private window */ }
-    const browser = (navigator.languages || [navigator.language || 'en']).map(code => String(code).slice(0, 2).toLowerCase());
-    return browser.find(code => LOCALES.includes(code)) || 'en';
+    const browser = (navigator.languages || [navigator.language || 'en']).map(localeOf);
+    return browser.find(code => code) || 'en';
   }
 
   // The server writes the page's language into <html lang>; a static page has none of its own.
-  const htmlLang = (document.documentElement.getAttribute('lang') || '').slice(0, 2);
+  const htmlLang = document.documentElement.getAttribute('lang') || '';
   const serverDrawn = document.documentElement.hasAttribute('data-i18n-server');
   let locale = serverDrawn && LOCALES.includes(htmlLang) ? htmlLang : chosen();
 
-  function pluralForm(count) { return count === 1 || (locale === 'fr' && count === 0) ? 'one' : 'other'; }
+  // Chinese has no plural forms; French counts 0 as one.
+  function pluralForm(count) {
+    if (locale === 'zh-Hans') return 'other';
+    return count === 1 || (locale === 'fr' && count === 0) ? 'one' : 'other';
+  }
 
   function t(key, values) {
     const vals = values || {};
@@ -95,6 +115,13 @@ window.PRG32I18n = (function () {
     });
     if (!serverDrawn) {
       loadCatalog(locale).then(() => { document.documentElement.setAttribute('lang', locale); apply(); });
+      // Blockly reads its menu texts when a menu opens, so the pack may arrive after the workspace.
+      const pack = BLOCKLY_PACKS[locale];
+      if (pack && window.Blockly && !window.define) {
+        const script = document.createElement('script');
+        script.src = '/static/vendor/blockly/11.2.1/msg/' + pack + '.js';
+        document.head.appendChild(script);
+      }
     }
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();

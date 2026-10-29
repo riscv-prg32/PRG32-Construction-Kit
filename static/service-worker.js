@@ -6,7 +6,7 @@
 // - when a page cannot be loaded because the server is unreachable, the static offline
 //   page is shown instead (a blocks scratchpad and a player for local .prg32 files);
 // - bump CACHE_NAME whenever a file in APP_SHELL changes.
-const CACHE_NAME = 'prg32-kit-v39';
+const CACHE_NAME = 'prg32-kit-v59';
 const OFFLINE_PAGE = '/static/offline.html';
 const APP_SHELL = [
   '/static/offline.html',
@@ -35,6 +35,7 @@ const APP_SHELL = [
   '/static/i18n/es.js',
   '/static/i18n/fr.js',
   '/static/i18n/de.js',
+  '/static/i18n/zh-Hans.js',
   '/static/wasm/prg32-core.js',
   '/static/wasm/prg32-core.wasm',
   '/static/img/prg32-logo.png',
@@ -48,6 +49,12 @@ const APP_SHELL = [
   '/static/vendor/bootstrap-icons/1.11.3/font/fonts/bootstrap-icons.woff',
   '/static/vendor/jquery/3.7.1/jquery.min.js',
   '/static/vendor/blockly/11.2.1/blockly.min.js',
+  '/static/vendor/blockly/11.2.1/msg/it.js',
+  '/static/vendor/blockly/11.2.1/msg/es.js',
+  '/static/vendor/blockly/11.2.1/msg/fr.js',
+  '/static/vendor/blockly/11.2.1/msg/de.js',
+  '/static/vendor/blockly/11.2.1/msg/zh-hans.js',
+  '/static/vendor/@fontsource/noto-sans-sc/5.3.1/400.css',
   '/static/vendor/blockly/11.2.1/media/sprites.png',
   '/static/vendor/blockly/11.2.1/media/sprites.svg',
   '/static/vendor/blockly/11.2.1/media/dropdown-arrow.svg',

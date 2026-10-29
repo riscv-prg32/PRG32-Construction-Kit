@@ -8,6 +8,8 @@ Scores: 0 missing, 1 prototype, 2 partial, 3 implemented/tested with an evidence
 | IDE-02 | 3 | Implemented/tested | Monaco shell, accessibility and responsive browser flows pass. |
 | IDE-03 | 4 | Reference-verified | Portable-ABI completion/navigation and validator ranges are backed by the real PRG32 compiler after every validated save. |
 | IDE-04 | 4 | Reference-verified | RV32IMC/Zicsr, ABI/labels/navigation and safe validation are backed by the real PRG32 assembler/compiler after every save. |
+| I18N-01 | 2 | Partial; fresh regressions | Six-language infrastructure, Simplified Chinese, server-message keys, editor packs, CJK behavior, lessons and locale-independent artifacts are substantial. Fresh tests fail because the Color Picker added untranslated template/script keys and Italian wraps the top menu at 1400/1440/1600 px; screenshots are stale and no human screen-reader session exists. |
+| PY-01 | 3 | Implemented/tested | Restricted non-executing parse, typed/limited AST, shared IR, deterministic C/assembly, source maps, provenance and archive/package flows have meaningful tests; exact-revision real-toolchain, browser and canonical PRG32-QT scenario-L evidence is missing. |
 | PRJ-01 | 3 | Implemented/tested | Deterministic project model, revisions and archive/import are covered. |
 | BLD-01 | 4 | Reference-verified | Retained Docker evidence rebuilds Blocks-C, Blocks-assembly, Advanced C and handwritten assembly for both targets; hashes match macOS builds. |
 | BLD-02 | 4 | Reference-verified | Isolation/provenance/diagnostics/debug identity plus successful production-image CI under 300 hidden same-UID processes; sandbox, budgets, AppArmor and real/concurrent cartridge builds passed at the audited SHA. |
@@ -36,14 +38,16 @@ Scores: 0 missing, 1 prototype, 2 partial, 3 implemented/tested with an evidence
 | DEP-01 | 0 | Missing | Physical PRG32 transfer/launch not verified. |
 | DEP-02 | 3 | Implemented/tested | Canonical PRG32-QT stored, launched and drew five hashed Kit cartridges through its web API; desktop Import-menu workflow remains untested. |
 | DEP-03 | 0 | Missing | iOS handoff not verified. |
+| DEP-04 | 3 | Implemented/tested | The project-menu Deploy tool shares one guarded adapter interface, validates identity/ABI/hash/staleness/slot state, supports progress/cancel/retry/recovery, and has retained QEMU and canonical PRG32-QT evidence. The console path is fake-tested only; no physical PRG32 run or dedicated real-browser workflow test exists. |
+| EVAL-01 | 3 | Implemented/tested | A versioned protocol records warm-up/measured runs, provenance, units, failures and statistics; deterministic CSV/JSON/SVG/PDF exports and same-cartridge comparisons are retained for QEMU and canonical PRG32-QT. No physical PRG32 dataset, dedicated real-browser workflow test or human chart screen-reader review exists; broker data are per-case summaries rather than frame samples. |
 | SEC-01 | 3 | Implemented/tested | SSRF/sandbox boundaries tested; builds still share a host UID, and the corrected kernel-count RLIMIT_NPROC path was not freshly exercised on Linux. |
 | SEC-02 | 4 | Reference-verified | Credential/session controls, retention, auditing, throttling, CSP, hash-locked dependencies and SBOM are covered. |
 | GDPR-01 | 3 | Implemented/tested; operational gate open | Generated field-level ROPA, notices, complete export/erasure/restriction, backup re-erasure, processor/transfer templates and technical breach rehearsal pass meaningful tests. Actual controller/legal bases, Member-State rules, DPIA, DPO/counsel review, contracts/transfers and staffed exercise remain explicitly open release blockers. |
 | OPS-01 | 4 | Reference-verified | CI/deployment/migrations and a tested backup/restore drill are documented and exercised. |
 | DOC-01 | 4 | Reference-verified | Capability IDs, generated status, traceability and commit-named milestones pass consistency tests with no ambiguous “this change” rows. |
-| DOC-02 | 4 | Reference-verified | Current README/architecture, generated diagrams, synthetic screenshots, visual manifest, human review records and CI checks for links/images/alt text/orphans/names/IDs/freshness all pass. |
-| QLT-01 | 3 | Implemented/tested with external integration failures | Broad coverage and quality gates remain strong, but the fresh feasible suite has three expected failures against unpatched canonical CartridgeStore; browser and Linux sandbox reruns were unavailable locally. |
+| DOC-02 | 2 | Partial; hard freshness gate failing | Architecture and guides describe the new tools, but `tools/check_docs.py` reports 12 stale IDE/locale screenshots after UI/i18n changes. The visual freshness hard gate fails at the audited revision. |
+| QLT-01 | 2 | Partial; regression gates failing | Fresh broad execution is 2,335 passed, 60 skipped, 10 failed and 4 errors. Failures include untranslated UI keys, multilingual menu wrapping, a new browser suite omitted from CI, stale documentation visuals and three canonical Store identity mismatches; the adjacent current SDK also makes four upstream-patch checks error. |
 
-Domain totals: IDE 14/16; Project 3/4; Build 8/8; WASM 8/8; Audio 13/16; Debug 22/24; Accounts 8/8; SSO 15/16; Cloud 6/8; Store 7/8; Delivery 3/12; Security 7/8; GDPR 3/4; Operations 4/4; Documentation 8/8; Quality 3/4.
+Domain totals: IDE 14/16; Internationalization 2/4; Python 3/4; Project 3/4; Build 8/8; WASM 8/8; Audio 13/16; Debug 22/24; Accounts 8/8; SSO 15/16; Cloud 6/8; Store 7/8; Delivery 6/16; Evaluation 3/4; Security 7/8; GDPR 3/4; Operations 4/4; Documentation 6/8; Quality 2/4.
 
-**Total: 132/156 (84.6%).**
+**Total: 140/172 (81.4%).**

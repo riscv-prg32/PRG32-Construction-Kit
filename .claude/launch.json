@@ -1,0 +1,111 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "kit",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": [
+        "app.py"
+      ],
+      "port": 5090
+    },
+    {
+      "name": "kit-toolchain",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": [
+        "-c",
+        "S=/private/tmp/claude-501/-Users-raffaelemontella-devel-riscv-prg32-PRG32-Construction-Kit/1afd5971-0349-4c4f-8594-13e1474b47bd/scratchpad; PORT=5091 PRG32_KIT_DATA=$S/kitdata PYTHONPATH=$S/prg32 PATH=$HOME/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/bin:$PATH exec python3 app.py"
+      ],
+      "port": 5091
+    },
+    {
+      "name": "kit-demo",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": [
+        "-c",
+        "PORT=5092 PRG32_KIT_DATA=/private/tmp/claude-501/-Users-raffaelemontella-devel-riscv-prg32-PRG32-Construction-Kit/0055615a-c1bf-46e2-a26a-ebbb538ada7b/scratchpad/demodata PYTHONPATH=/private/tmp/claude-501/-Users-raffaelemontella-devel-riscv-prg32-PRG32-Construction-Kit/1afd5971-0349-4c4f-8594-13e1474b47bd/scratchpad/prg32 PATH=$HOME/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/bin:$PATH exec python3 app.py"
+      ],
+      "port": 5092
+    },
+    {
+      "name": "kit-auth",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": [
+        "-c",
+        "PORT=5093 PRG32_KIT_DATA=/private/tmp/claude-501/-Users-raffaelemontella-devel-riscv-prg32-PRG32-Construction-Kit/14f088d2-4b50-4750-82cb-8aaef66bc458/scratchpad/authdata exec python3 app.py"
+      ],
+      "port": 5093
+    },
+    {
+      "name": "kit-isolation",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": [
+        "-c",
+        "PORT=5094 PRG32_ADMIN_PASSWORD=check-admin-pass PRG32_KIT_DATA=/private/tmp/claude-501/-Users-raffaelemontella-devel-riscv-prg32-PRG32-Construction-Kit/d0a11c91-594a-4f39-ba76-156c7772d3b7/scratchpad/isodata PYTHONPATH=$PWD/../PRG32 PATH=$HOME/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/bin:$PATH exec python3 app.py"
+      ],
+      "port": 5094
+    },
+    {
+      "name": "kit-asm",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": [
+        "-c",
+        "PORT=5095 PRG32_ADMIN_PASSWORD=check-admin-pass PRG32_KIT_DATA=/private/tmp/claude-501/-Users-raffaelemontella-devel-riscv-prg32-PRG32-Construction-Kit/f75018ff-a357-4004-9e45-986cec19f433/scratchpad/asmdata PYTHONPATH=$PWD/../PRG32 PATH=$HOME/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/bin:$PATH exec python3 app.py"
+      ],
+      "port": 5095
+    },
+    {
+      "name": "kit-ide",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": [
+        "-c",
+        "PORT=5096 PRG32_ADMIN_PASSWORD=check-admin-pass PRG32_KIT_DATA=/private/tmp/claude-501/-Users-raffaelemontella-devel-riscv-prg32-PRG32-Construction-Kit/c98f5997-4e31-4288-bb8c-406a6241f5c4/scratchpad/idedata PYTHONPATH=$PWD/../PRG32 PATH=$HOME/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/bin:$PATH exec python3 app.py"
+      ],
+      "port": 5096
+    },
+    {
+      "name": "kit-publish",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": [
+        "-c",
+        "python3 /private/tmp/claude-501/-Users-raffaelemontella-devel-riscv-prg32-PRG32-Construction-Kit/c98f5997-4e31-4288-bb8c-406a6241f5c4/scratchpad/fake_store.py 5098 & PORT=5097 PRG32_ADMIN_PASSWORD=check-admin-pass PRG32_KIT_DATA=/private/tmp/claude-501/-Users-raffaelemontella-devel-riscv-prg32-PRG32-Construction-Kit/c98f5997-4e31-4288-bb8c-406a6241f5c4/scratchpad/pubdata PRG32_STORE_URL=http://127.0.0.1:5098 PRG32_STORE_TRUSTED_LOCAL=1 PYTHONPATH=$PWD/../PRG32 PATH=$HOME/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/bin:$PATH exec python3 app.py"
+      ],
+      "port": 5097
+    },
+    {
+      "name": "kit-offline",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": [
+        "-c",
+        "PORT=5100 PRG32_ADMIN_PASSWORD=check-admin-pass PRG32_KIT_DATA=/private/tmp/claude-501/-Users-raffaelemontella-devel-riscv-prg32-PRG32-Construction-Kit/c98f5997-4e31-4288-bb8c-406a6241f5c4/scratchpad/offlinedata exec python3 app.py"
+      ],
+      "port": 5100
+    },
+    {
+      "name": "kit-debugger",
+      "runtimeExecutable": "sh",
+      "runtimeArgs": [
+        "/private/tmp/claude-501/-Users-raffaelemontella-devel-riscv-prg32-PRG32-Construction-Kit/c98f5997-4e31-4288-bb8c-406a6241f5c4/scratchpad/runkit.sh"
+      ],
+      "port": 5101
+    },
+    {
+      "name": "kit-i18n",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": [
+        "-c",
+        "PORT=5102 PRG32_ADMIN_PASSWORD=check-admin-pass PRG32_KIT_DATA=/private/tmp/claude-501/-Users-raffaelemontella-devel-riscv-prg32-PRG32-Construction-Kit/b02a72eb-136e-4b2e-9672-9cbf40d4b355/scratchpad/i18ndata PYTHONPATH=$PWD/../PRG32 PATH=$HOME/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/bin:$PATH exec python3 app.py"
+      ],
+      "port": 5102
+    },
+    {
+      "name": "kit-art",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": [
+        "-c",
+        "PORT=5099 PRG32_KIT_DATA=/private/tmp/claude-501/-Users-raffaelemontella-devel-riscv-prg32-PRG32-Construction-Kit/bd2058a1-18d7-42cd-84cd-6c2aa4618bb6/scratchpad/artdata PYTHONPATH=$PWD/../PRG32 PATH=$HOME/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/bin:$PATH exec python3 app.py"
+      ],
+      "port": 5099
+    }
+  ]
+}

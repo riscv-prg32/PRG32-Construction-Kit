@@ -1,0 +1,86 @@
+"""The browser-to-USB cartridge path writes one slot, never the firmware."""
+
+import os
+from pathlib import Path
+
+import pytest
+
+
+ROOT = Path(__file__).resolve().parent.parent
+SCRIPT = (ROOT / "static/js/usb_deploy.js").read_text(encoding="utf-8")
+PROTOCOL = (ROOT / "static/js/prg32_usb_protocol.js").read_text(encoding="utf-8")
+SDK = Path(os.environ.get("PRG32_SOURCE") or ROOT.parent / "PRG32")
+
+
+def test_usb_deploy_uses_the_eight_canonical_cartridge_slots_only():
+    expected = {
+        "cart0": "0x210000", "cart1": "0x230000", "cart2": "0x250000", "cart3": "0x270000",
+        "cart4": "0x290000", "cart5": "0x2b0000", "cart6": "0x2d0000", "cart7": "0x2f0000",
+    }
+    table = SDK / "profiles" / "partitions_prg32.csv"
+    if not table.is_file():
+        pytest.skip("needs a PRG32 SDK checkout with profiles/partitions_prg32.csv")
+    partitions = table.read_text(encoding="utf-8")
+    for slot, offset in expected.items():
+        assert f"{slot}," in partitions and offset in partitions
+        assert f"'{slot}'" in PROTOCOL
+    assert "SLOT_SIZE = 128 * 1024" in PROTOCOL
+    assert "SLOT_NAMES.includes(slot)" in SCRIPT
+    assert "SLOT_NAMES.includes(metadata.slot)" in PROTOCOL
+
+
+def test_usb_deploy_validates_before_writing_through_resident_firmware():
+    assert "crypto.subtle.digest('SHA-256', data)" in SCRIPT
+    assert "String.fromCharCode(...data.slice(0, 4)) !== 'PRG2'" in SCRIPT
+    assert "cartridge.architecture !== 'esp32c6'" in SCRIPT
+    assert "PROTOCOL = 'prg32-io-1.0'" in PROTOCOL
+    assert "cartridgeProblems(prepared.info, capabilities, command)" in SCRIPT
+    assert "port.open({ baudRate: 115200" in PROTOCOL
+    assert "serial.getPorts()" in PROTOCOL
+    assert "requestPort({ filters: USB_FILTERS })" in PROTOCOL
+    assert "usbVendorId: 0x303a, usbProductId: 0x1001" in PROTOCOL
+    assert "MESSAGE.UPLOAD_BEGIN" in PROTOCOL
+    assert "MESSAGE.UPLOAD_DATA" in PROTOCOL
+    assert "MESSAGE.UPLOAD_END" in PROTOCOL
+    assert "crc32(data)" in PROTOCOL
+
+
+def test_usb_deploy_exposes_run_performance_and_capability_checked_debugging():
+    template = (ROOT / "templates/deploy.html").read_text(encoding="utf-8")
+    for command in ("store", "run", "performance", "debug"):
+        assert f'value="{command}"' in template
+    assert "command === 'debug' && !hello.debug_supported" in PROTOCOL
+    assert "before it\nerases" in (ROOT / "docs/deploy.md").read_text(encoding="utf-8")
+    assert "MESSAGE.PERFORMANCE_GET" in PROTOCOL
+    assert 'id="usbPerformanceGet"' in template
+
+
+def test_usb_deploy_requires_an_explicit_slot_replacement_confirmation():
+    template = (ROOT / "templates/deploy.html").read_text(encoding="utf-8")
+    assert 'id="usbDeployConfirm"' in template
+    assert 'id="usbDeployStart" disabled' in template
+    assert "$confirm.is(':checked')" in SCRIPT
+
+
+def test_usb_deploy_docs_preserve_the_fixed_prototype1_pinout():
+    documentation = (ROOT / "docs/deploy.md").read_text(encoding="utf-8")
+    assert "Down button uses GPIO0" in documentation
+    assert "GPIO12/GPIO13 remain available" in documentation
+    assert "onboard RGB LED also shares GPIO8" in documentation
+    assert "with LCD D/C" in documentation
+    assert "Do not\nmove the canonical prototype1 pins" in documentation
+    assert "detects the first `prg32-io-1.0` frame automatically" in documentation
+    assert "ROM bootloader remains a firmware-recovery path" in documentation
+
+
+def test_the_browser_never_changes_the_reset_lines():
+    """DTR/RTS changed one at a time reset an ESP32-C6 (PRG32 usb_protocol.md)."""
+    assert "setSignals" not in PROTOCOL.replace("// ", "").split("export class ProtocolSession")[1]
+    assert "setSignals" not in SCRIPT
+
+
+def test_the_protocol_module_is_the_shared_store_copy():
+    """CartridgeStore serves a byte-identical copy (PRG32 web_usb_deployment.md)."""
+    store_copy = ROOT.parent / "CartridgeStore/static/js/prg32_usb_protocol.js"
+    if store_copy.exists():
+        assert store_copy.read_text(encoding="utf-8") == PROTOCOL

@@ -4,9 +4,9 @@ Your game is a list of RISC-V instructions. The processor runs them one by
 one, very fast: tens of thousands every frame. The **debugger** lets you
 stop it and run one instruction at a time, to see what really happens.
 
-You need a compiled cartridge: compile any project and press **Play in
-browser**, or open a `.prg32` file on the **Player** page. The debugger is
-the card under the screen.
+You need a cartridge built by the kit: in the IDE press **Run** and open the **Debug** tab
+below the editor, or press **Compile** and then **Debug** in the top menu (the Player with its
+debugger, under the screen). On that page you can also open any `.prg32` file.
 
 ## For students
 
@@ -38,8 +38,8 @@ Things to look for:
 
 ## Debug your blocks, your C or your assembly
 
-When you compile a project in the kit and press **Run & debug**, the Player
-also knows your program, not only its instructions. Under the machine code
+When the kit built the cartridge (**Run** in the IDE, or **Compile** and then **Debug** in
+the top menu), the debugger also knows your program, not only its instructions. Under the machine code
 you see:
 
 - **Blocks** (Blocks projects): your blocks. While the game is stopped, the
