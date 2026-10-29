@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}{{ t("admin_activity.title", name=(site.name)) }}{% endblock %}
+{% block head %}<link href="{{ url_for('static', filename='css/admin_stats.css') }}" rel="stylesheet">{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+  <div>
+    <h1 class="h3 mb-1"><i class="bi bi-activity" aria-hidden="true"></i> {{ t("admin_activity.activity") }}</h1>
+    <p class="text-muted mb-0">{{ t("admin_activity.intro") }} <a href="/docs/activity_and_statistics.md">{{ t("admin_activity.how_privacy_works") }}</a></p>
+  </div>
+  <div class="d-flex flex-wrap gap-2">
+    <a class="btn btn-outline-secondary" href="/admin/statistics"><i class="bi bi-bar-chart" aria-hidden="true"></i> {{ t("base.statistics") }}</a>
+    <a class="btn btn-outline-secondary" href="/admin/settings#privacy"><i class="bi bi-gear" aria-hidden="true"></i> {{ t("common.settings") }}</a>
+  </div>
+</div>
+
+<div class="alert alert-secondary small d-none" id="activityOff" role="status"><i class="bi bi-pause-circle" aria-hidden="true"></i> {{ t("admin_activity.log_is_off") }}</div>
+
+<form class="row g-2 align-items-end mb-3" id="activityFilter" novalidate>
+  <div class="col-6 col-md-2">
+    <label class="form-label small mb-1" for="filterFrom">{{ t("admin_activity.from") }}</label>
+    <input class="form-control form-control-sm" type="date" id="filterFrom" name="from">
+  </div>
+  <div class="col-6 col-md-2">
+    <label class="form-label small mb-1" for="filterTo">{{ t("admin_activity.to") }}</label>
+    <input class="form-control form-control-sm" type="date" id="filterTo" name="to">
+  </div>
+  <div class="col-6 col-md-2">
+    <label class="form-label small mb-1" for="filterActor">{{ t("admin_activity.who") }}</label>
+    <select class="form-select form-select-sm" id="filterActor" name="actor">
+      <option value="">{{ t("admin_activity.everyone") }}</option>
+      <option value="user">{{ t("admin_activity.accounts") }}</option>
+      <option value="token">{{ t("admin_activity.api_tokens") }}</option>
+      <option value="guest">{{ t("admin_activity.visitors_without_account") }}</option>
+    </select>
+  </div>
+  <div class="col-6 col-md-2">
+    <label class="form-label small mb-1" for="filterCategory">{{ t("admin_activity.action") }}</label>
+    <select class="form-select form-select-sm" id="filterCategory" name="category">
+      <option value="">{{ t("admin_activity.all_actions") }}</option>
+      {% for category in categories %}<option value="{{ category }}">{{ category }}</option>{% endfor %}
+    </select>
+  </div>
+  <div class="col-6 col-md-2">
+    <label class="form-label small mb-1" for="filterOutcome">{{ t("admin_activity.outcome") }}</label>
+    <select class="form-select form-select-sm" id="filterOutcome" name="outcome">
+      <option value="">{{ t("admin_activity.any_outcome") }}</option>
+      <option value="error">{{ t("admin_activity.errors_only") }}</option>
+    </select>
+  </div>
+  <div class="col-6 col-md-2 d-grid">
+    <button class="btn btn-sm btn-primary" type="submit"><i class="bi bi-funnel" aria-hidden="true"></i> {{ t("admin_activity.show") }}</button>
+  </div>
+</form>
+
+<div class="row g-3">
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span class="fw-semibold"><i class="bi bi-people" aria-hidden="true"></i> {{ t("admin_activity.people") }}</span>
+        <button class="btn btn-sm btn-link p-0 d-none" type="button" id="clearPerson">{{ t("admin_activity.everyone") }}</button>
+      </div>
+      <div class="list-group list-group-flush activity-people" id="people"><div class="list-group-item text-muted">{{ t("common.loading") }}</div></div>
+      <div class="card-footer small text-muted" id="peopleNote"></div>
+    </div>
+  </div>
+  <div class="col-lg-8">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+      <h2 class="h5 mb-0" id="logTitle">{{ t("admin_activity.log") }}</h2>
+      <div class="btn-group btn-group-sm" role="group" aria-label="{{ t('admin_activity.download_csv') }}">
+        <button class="btn btn-outline-primary" type="button" id="csvPseudonymous"><i class="bi bi-filetype-csv" aria-hidden="true"></i> {{ t("admin_activity.csv_pseudonymised") }}</button>
+        <button class="btn btn-outline-secondary" type="button" id="csvNamed">{{ t("admin_activity.csv_with_names") }}</button>
+      </div>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-sm table-hover align-middle">
+        <thead><tr>
+          <th scope="col">{{ t("admin_activity.when") }}</th><th scope="col">{{ t("admin_activity.who") }}</th>
+          <th scope="col">{{ t("admin_activity.action") }}</th><th scope="col">{{ t("admin_activity.route") }}</th>
+          <th scope="col">{{ t("admin_activity.outcome") }}</th><th scope="col">{{ t("admin_activity.browser_and_network") }}</th>
+        </tr></thead>
+        <tbody id="events"><tr><td colspan="6" class="text-muted">{{ t("common.loading") }}</td></tr></tbody>
+      </table>
+    </div>
+    <button class="btn btn-sm btn-outline-secondary d-none" type="button" id="moreEvents">{{ t("admin_activity.older") }}</button>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/admin_activity.js') }}"></script>
+{% endblock %}

@@ -73,3 +73,23 @@ def build_slot(slot_dir: Path, limit: int, timeout: float, poll_seconds: float =
                 f"All {limit} cartridge build slots are busy. Wait a moment, then compile again."
             )
         time.sleep(poll_seconds)
+
+
+def try_slot(slot_dir: Path, limit: int):
+    """Take one free slot of ``limit`` without waiting: an open, locked file, or None when all are busy.
+
+    For holders that start in one thread and finish in another (the mail queue, mail_queue.py);
+    give the slot back with ``release_slot``.
+    """
+    slot_dir.mkdir(parents=True, exist_ok=True)
+    for number in range(max(1, int(limit))):
+        handle = open(slot_dir / f"slot-{number}.lock", "a+b")
+        if _try_lock(handle):
+            return handle
+        handle.close()
+    return None
+
+
+def release_slot(handle) -> None:
+    _unlock(handle)
+    handle.close()

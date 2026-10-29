@@ -80,6 +80,8 @@ PERSONAL_TABLES: dict[str, tuple[str, str]] = {
     "deployments": ("user", "owner_id"),
     "evaluations": ("user", "owner_id"),
     "deploy_targets": ("user", "created_by"),
+    "activity_events": ("user", "user_id"),
+    "mail_outbox": ("email", "recipient"),
 }
 # Tables with nothing about a person, and why.
 NOT_PERSONAL: dict[str, str] = {
@@ -89,11 +91,12 @@ NOT_PERSONAL: dict[str, str] = {
     "sso_nonces": "random single-use ticket values, kept until they expire (minutes)",
     "auth_throttle": "sign-in attempt counters keyed by a SHA-256 hash, never a name or address in clear; "
                      "each window lasts minutes",
+    "activity_salts": "one random value for today's visitor pseudonyms; earlier days' values are deleted",
 }
 # Columns never exported or shown: the document says they exist, nothing more.
 SECRET_COLUMNS = {
     ("users", "password_hash"), ("api_tokens", "token_hash"), ("cloud_accounts", "tokens"),
-    ("publish_profiles", "bearer_token"), ("registration_tokens", "token_hash"),
+    ("publish_profiles", "bearer_token"), ("registration_tokens", "token_hash"), ("mail_outbox", "body"),
 }
 
 
@@ -341,6 +344,8 @@ def erase_account(user_id: int, handled_by: str) -> dict[str, Any]:
     from .classes import ClassMember, SchoolClass
     from .identity import ExternalIdentity
     from .publishing import PublishAttempt
+    from .activity import ActivityEvent
+    from .mail_queue import MailMessage
     from .retention import delete_account_items
     from .sso import SsoOutbox
 
@@ -401,12 +406,14 @@ def erase_account(user_id: int, handled_by: str) -> dict[str, Any]:
                               (cloud_storage.CloudLink, cloud_storage.CloudLink.user_id),
                               (ExternalIdentity, ExternalIdentity.user_id), (UserGroup, UserGroup.user_id),
                               (ClassMember, ClassMember.user_id), (PublishAttempt, PublishAttempt.user_id),
-                              (PrivacyNoticeRecord, PrivacyNoticeRecord.user_id)):
+                              (PrivacyNoticeRecord, PrivacyNoticeRecord.user_id),
+                              (ActivityEvent, ActivityEvent.user_id)):
             found = db.session.scalars(select(model).where(column == user_id)).all()
             for row in found:
                 db.session.delete(row)
             counts[model.__tablename__] = len(found)
-        for model, column in ((SsoOutbox, SsoOutbox.email), (RegistrationToken, RegistrationToken.email)):
+        for model, column in ((SsoOutbox, SsoOutbox.email), (RegistrationToken, RegistrationToken.email),
+                              (MailMessage, MailMessage.recipient)):
             found = db.session.scalars(select(model).where(column == email)).all()
             for row in found:
                 db.session.delete(row)

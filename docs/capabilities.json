@@ -964,6 +964,68 @@
     "tests/test_deploy_evaluate_browser.py::test_a_student_deploys_then_evaluates_on_the_console"
    ],
    "note": "contracts/prg32-evaluation-protocol-1.json: one hashed workload cartridge (5 cases x 60 frames through the PRG32 performance broker), warm-up then 1-20 measured runs, each target's restart, retrieval and timing source, metrics with units, statistics. Evaluate in the project menu sends it with Deploy's checks; every broker number of every run is a dataset row (failed runs kept and excluded); n, mean, sd, sem, 95% Student t CI, median, range from the dataset only; CSV (locale-safe), JSON with provenance, deterministic SVG/PDF charts (Okabe-Ito, shapes, every run a point, 'no data' instead of zero, title/desc/metadata), offline redraw; comparison only with the same protocol and cartridge SHA-256. Recorded 2026-10-26 (docs/evidence/evaluate/): QEMU (firmware SDK 679dfb5) and canonical PRG32-QT f6d80ad, 1+5 runs each, same cartridge SHA-256, comparison chart. Limits: the broker (ABI 1) keeps per-case summaries, not every frame, so statistics are over runs; no console was available, so no physical-device timings; emulator times depend on the host. No human screen-reader check of the page or charts yet."
+  },
+  {
+   "id": "OPS-02",
+   "title": "Email sending queue with an admin-set size and a status list",
+   "status": "implemented",
+   "audit_score": null,
+   "source": [
+    "prg32_construction_kit/mail_queue.py::enqueue",
+    "prg32_construction_kit/mail_queue.py::dispatch",
+    "prg32_construction_kit/mail_queue.py::start_sender",
+    "prg32_construction_kit/mail_queue.py::status",
+    "prg32_construction_kit/mail_queue.py::retry",
+    "prg32_construction_kit/build_slots.py::try_slot",
+    "prg32_construction_kit/settings.py::api_mail_status",
+    "static/js/admin_settings.js",
+    "templates/admin_settings.html"
+   ],
+   "tests": [
+    "tests/test_mail_activity_statistics.py::test_the_smtp_server_never_gets_more_messages_than_the_queue_size",
+    "tests/test_mail_activity_statistics.py::test_the_default_queue_size_is_five_and_the_admin_can_change_it",
+    "tests/test_mail_activity_statistics.py::test_a_refused_message_is_tried_again_then_failed_and_can_be_retried",
+    "tests/test_mail_activity_statistics.py::test_the_message_text_is_sealed_in_the_database",
+    "tests/test_mail_activity_statistics.py::test_registration_mail_goes_through_the_queue",
+    "tests/test_mail_activity_statistics.py::test_only_admins_see_the_mail_queue",
+    "tests/test_settings.py::test_a_test_mail_goes_to_the_admin"
+   ],
+   "note": "Every mail (sign-up links, new sign-in notices, the test mail) is queued in mail_outbox; at most SMTP_MAX_PARALLEL (Settings > Email, default 5) are with the SMTP server at once, across threads and worker processes (lock-file slots like the build queue). Retries after 1 and 5 minutes, then failed with Send again. The Email tab lists to send / sending / sent / failed with shortened addresses; text sealed and wiped once sent; rows kept PRG32_KIT_MAIL_DAYS. Verified 2026-10-29 with a pretend SMTP server (12 messages, never more than 5 at once, also through the real sender thread). Not yet tried against a real school SMTP server."
+  },
+  {
+   "id": "OPS-03",
+   "title": "Activity log and usage statistics for admins, GDPR by design",
+   "status": "implemented",
+   "audit_score": null,
+   "source": [
+    "prg32_construction_kit/activity.py::ActivityEvent",
+    "prg32_construction_kit/activity.py::visitor_of",
+    "prg32_construction_kit/activity.py::network_of",
+    "prg32_construction_kit/activity.py::category_of",
+    "prg32_construction_kit/activity.py::api_activity",
+    "prg32_construction_kit/activity.py::csv_response",
+    "prg32_construction_kit/usage_stats.py::collect",
+    "prg32_construction_kit/usage_stats.py::api_statistics_csv",
+    "static/js/admin_activity.js",
+    "static/js/admin_statistics.js",
+    "templates/admin_activity.html",
+    "templates/admin_statistics.html",
+    "docs/activity_and_statistics.md"
+   ],
+   "tests": [
+    "tests/test_mail_activity_statistics.py::test_every_request_is_logged_without_its_content",
+    "tests/test_mail_activity_statistics.py::test_visitors_without_an_account_get_a_daily_pseudonym_and_no_full_address",
+    "tests/test_mail_activity_statistics.py::test_addresses_are_shortened_to_their_network",
+    "tests/test_mail_activity_statistics.py::test_reading_one_persons_activity_is_audited_and_the_csv_is_pseudonymised",
+    "tests/test_mail_activity_statistics.py::test_the_activity_log_can_be_switched_off",
+    "tests/test_mail_activity_statistics.py::test_erasure_and_export_include_the_activity_log",
+    "tests/test_mail_activity_statistics.py::test_retention_removes_old_activity_and_mail",
+    "tests/test_mail_activity_statistics.py::test_statistics_count_accounts_visitors_and_actions",
+    "tests/test_mail_activity_statistics.py::test_every_statistics_table_downloads_as_csv",
+    "tests/test_mail_activity_statistics.py::test_csv_cells_cannot_become_spreadsheet_formulas",
+    "tests/test_mail_activity_statistics.py::test_the_admin_pages_open"
+   ],
+   "note": "Every page and API request is logged after it is answered, without content (route pattern, action kind, outcome, time, network /24 or /48, browser family). Visitors without an account get a keyed pseudonym from a random salt replaced and deleted every day (unlinkable across days); Global Privacy Control / Do Not Track counted without one. Admin > Activity shows the log per person with CSV; Admin > Statistics shows tiles, four SVG charts with tooltips and five tables (summary, per day, per hour, per action, per account), each as CSV; accounts pseudonymised unless usernames are switched on; viewing a person, showing names and every download are audited. Kept PRG32_KIT_ACTIVITY_DAYS (90), switchable off, in the data export and erasure, records activity_log and email_queue, notices guest 1.3 and account 1.1. Pages checked by hand in a browser 2026-10-29; no real-browser test suite or screen-reader session for them yet; the legal basis is proposed, not decided (GDPR-01)."
   }
  ]
 }

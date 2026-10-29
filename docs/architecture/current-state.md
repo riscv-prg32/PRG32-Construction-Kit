@@ -143,6 +143,11 @@ capability IDs.
   builds and their folders. [ACC-01] [ACC-02]
 - Threat model, SSRF controls, build isolation; CI, Docker, migrations,
   health; documentation and traceability. [SEC-01] [OPS-01] [DOC-01]
+- Email sending queue: at most the admin-set number of messages (default 5) with the
+  SMTP server at once, with a to send / sending / sent / failed list on the Email tab. [OPS-02]
+- Activity log and usage statistics for admins: per-person log without content, daily
+  visitor pseudonyms for people without an account, charts, tables and CSV downloads,
+  pseudonymised by default and audited (docs/activity_and_statistics.md). [OPS-03]
 - Self-contained frontend: every library from `static/vendor/`, strict CSP,
   static-only service worker at `/` (ADR-0012).
 

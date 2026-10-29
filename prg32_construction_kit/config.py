@@ -111,6 +111,10 @@ class Config:
     # ADR-0022: how long the audit log and backups are kept (docs/privacy/retention.md).
     PRG32_KIT_AUDIT_DAYS = int(os.environ.get("PRG32_KIT_AUDIT_DAYS", "365"))
     PRG32_KIT_BACKUP_DAYS = int(os.environ.get("PRG32_KIT_BACKUP_DAYS", "35"))
+    # The activity log (activity.py, docs/activity_and_statistics.md): on or off, and how many days
+    # its rows (and the statistics made from them) are kept.
+    PRG32_KIT_ACTIVITY_LOG = os.environ.get("PRG32_KIT_ACTIVITY_LOG", "1") != "0"
+    PRG32_KIT_ACTIVITY_DAYS = int(os.environ.get("PRG32_KIT_ACTIVITY_DAYS", "90"))
     # Closed rights requests are removed this many days after they were answered; 0 keeps them.
     # The period is the controller's decision (docs/privacy/decisions.md D-5).
     PRG32_KIT_PRIVACY_REQUEST_DAYS = int(os.environ.get("PRG32_KIT_PRIVACY_REQUEST_DAYS", "0"))
@@ -166,6 +170,12 @@ class Config:
     SMTP_USER = os.environ.get("PRG32_SMTP_USER", "")
     SMTP_PASSWORD = os.environ.get("PRG32_SMTP_PASSWORD", "")
     SMTP_TLS = _flag("PRG32_SMTP_TLS", True)
+    # The mail queue (mail_queue.py): at most this many messages are being handed to the SMTP
+    # server at the same time, across every worker process; the rest wait their turn.
+    SMTP_MAX_PARALLEL = int(os.environ.get("PRG32_SMTP_MAX_PARALLEL", "5"))
+    # Sent and failed messages stay listed on the Email tab this many days (their text is wiped
+    # as soon as they leave the queue).
+    PRG32_KIT_MAIL_DAYS = int(os.environ.get("PRG32_KIT_MAIL_DAYS", "30"))
 
     # Single sign-on and user sync with one Cartridge Store (see docs/accounts_and_sso.md).
     SSO_SECRET = os.environ.get("PRG32_SSO_SECRET", "")

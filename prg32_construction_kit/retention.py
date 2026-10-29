@@ -145,7 +145,8 @@ def apply(config: dict[str, Any], *, dry_run: bool = True, now: datetime | None 
 
 
 def _expire_records(config: dict[str, Any], now: datetime, dry_run: bool) -> dict[str, int]:
-    """The audit log and sign-up links are kept only as long as docs/privacy/retention.md says."""
+    """The audit log, sign-up links, the activity log and sent mail are kept only as long as
+    docs/privacy/retention.md says."""
     from sqlalchemy import delete, or_
 
     from .auth import RegistrationToken
@@ -167,6 +168,10 @@ def _expire_records(config: dict[str, Any], now: datetime, dry_run: bool) -> dic
         counts["expired_privacy_requests"] = len(db.session.scalars(old_requests).all())
         if not dry_run:
             db.session.execute(delete(PrivacyRequest).where(PrivacyRequest.id.in_(old_requests)))
+    from . import activity, mail_queue
+
+    counts["expired_activity_events"] = activity.expire(int(config.get("PRG32_KIT_ACTIVITY_DAYS", 90)), now, dry_run)
+    counts["expired_mail"] = mail_queue.expire(int(config.get("PRG32_KIT_MAIL_DAYS", 30)), now, dry_run)
     if not dry_run:
         db.session.execute(delete(AuditEvent).where(AuditEvent.created_at < audit_cutoff))
         db.session.execute(delete(RegistrationToken).where(or_(RegistrationToken.expires_at < link_cutoff,

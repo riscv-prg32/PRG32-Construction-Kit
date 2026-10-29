@@ -1,0 +1,41 @@
+/* Activity and Statistics pages (templates/admin_activity.html, admin_statistics.html).
+   Chart colours: two series, checked with the dataviz palette validator (CVD separation,
+   lightness band) on the light and the dark surface. Text never wears a series colour. */
+:root, [data-bs-theme="light"] {
+  --stats-accounts: #0072B2;
+  --stats-visitors: #E69F00;
+  --stats-error: #C62828;
+  --stats-grid: rgba(0, 0, 0, .08);
+  --stats-axis: rgba(0, 0, 0, .55);
+}
+[data-bs-theme="dark"] {
+  --stats-accounts: #3D8FCC;
+  --stats-visitors: #C07E00;
+  --stats-error: #EF5350;
+  --stats-grid: rgba(255, 255, 255, .10);
+  --stats-axis: rgba(255, 255, 255, .60);
+}
+.activity-people { max-height: 34rem; overflow-y: auto; }
+.stats-tile .stats-value { font-size: 1.75rem; font-weight: 600; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.stats-chart { position: relative; }
+.stats-chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+.stats-chart .grid line { stroke: var(--stats-grid); stroke-width: 1; }
+.stats-chart .axis text { fill: var(--stats-axis); font-size: 11px; }
+.stats-chart .label text { fill: var(--bs-body-color); font-size: 11px; }
+.stats-chart .series-accounts { fill: var(--stats-accounts); stroke: var(--stats-accounts); }
+.stats-chart .series-visitors { fill: var(--stats-visitors); stroke: var(--stats-visitors); }
+.stats-chart path.line { fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.stats-chart rect.bar { stroke: var(--bs-body-bg); stroke-width: 1; }
+.stats-chart .marker { stroke: var(--bs-body-bg); stroke-width: 2; }
+.stats-chart .crosshair { stroke: var(--stats-axis); stroke-width: 1; stroke-dasharray: 3 3; }
+.stats-chart .hit { fill: transparent; cursor: crosshair; }
+.stats-legend .swatch { display: inline-block; width: .75rem; height: .75rem; border-radius: 3px; margin-right: .3rem; vertical-align: -1px; }
+.stats-legend .swatch-accounts { background: var(--stats-accounts); }
+.stats-legend .swatch-visitors { background: var(--stats-visitors); }
+.stats-tip { position: absolute; pointer-events: none; z-index: 5; background: var(--bs-body-bg); color: var(--bs-body-color);
+  border: 1px solid var(--bs-border-color); border-radius: .4rem; padding: .35rem .5rem; font-size: .8rem;
+  box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .15); white-space: nowrap; }
+@media (forced-colors: active) {
+  .stats-chart .series-visitors { fill: CanvasText; stroke: CanvasText; }
+  .stats-chart .series-accounts { fill: Highlight; stroke: Highlight; }
+}

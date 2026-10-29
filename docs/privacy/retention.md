@@ -16,6 +16,9 @@ them. The controller confirms or changes each period (decision D-5 in
 | Interrupted build folders | 1 hour | none | Retention run |
 | Audit log | 365 days | `PRG32_KIT_AUDIT_DAYS` | Retention run. Erasure pseudonymises the person in it at once and drops their address. |
 | Sign-up links | 1 day after expiry or use | none | Retention run |
+| Activity log (and the statistics made from it) | 90 days | `PRG32_KIT_ACTIVITY_DAYS` | Every day, and the retention run. Erasure deletes the person's rows. |
+| Visitor pseudonym salt | 1 day | none | Replaced every day: earlier days cannot be linked |
+| Email queue | 30 days; the message text until it is sent | `PRG32_KIT_MAIL_DAYS` | Retention run; text wiped on sending; erasure deletes the person's rows |
 | Sign-in attempt counters (hashed) | their window (minutes) | none | Start-up and the next attempt |
 | Single sign-on tickets | minutes | none | Expiry |
 | Cloud tokens (encrypted) | until disconnected | none | Disconnect, or erasure (revoked at Google; Microsoft offers no revocation) |

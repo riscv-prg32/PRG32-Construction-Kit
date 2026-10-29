@@ -109,9 +109,62 @@
 
   $(document).on('click', '#smtpTest', function () {
     Kit.api('/api/admin/settings/smtp_test', { method: 'POST', body: {} })
-      .then(data => Kit.toast(tr('js.admin_settings.test_mail_sent_to', 'Test mail sent to {sent_to}', { sent_to: data.sent_to }), 'success'))
+      .then(data => Kit.toast(data.status === 'sent'
+        ? tr('js.admin_settings.test_mail_sent_to', 'Test mail sent to {sent_to}', { sent_to: data.sent_to })
+        : tr('js.admin_settings.test_mail_queued_for', 'Test mail for {sent_to} is waiting in the queue', { sent_to: data.sent_to }), 'success'))
+      .catch(err => Kit.toast(err.message, 'danger'))
+      .then(loadMail);
+  });
+
+  // The email sending queue (mail_queue.py): counts, the latest messages, a retry for failed ones.
+  // It refreshes itself every few seconds while the Email tab is open.
+  let mailStatus = '';
+  const MAIL_STATES = {
+    queued: ['text-bg-secondary', 'bi-hourglass', () => tr('js.admin_settings.mail_state_queued', 'to send')],
+    sending: ['text-bg-info', 'bi-send', () => tr('js.admin_settings.mail_state_sending', 'sending')],
+    sent: ['text-bg-success', 'bi-check2', () => tr('js.admin_settings.mail_state_sent', 'sent')],
+    failed: ['text-bg-danger', 'bi-x-octagon', () => tr('js.admin_settings.mail_state_failed', 'failed')],
+  };
+
+  function mailRow(item) {
+    const [badge, icon, label] = MAIL_STATES[item.status] || ['text-bg-light', 'bi-question', () => item.status];
+    const when = new Date(item.created_at).toLocaleString();
+    const note = item.status === 'queued' && item.attempts > 0 && item.next_attempt_at
+      ? `<div class="small text-muted">${Kit.escape(tr('js.admin_settings.mail_next_try', 'next try {when}', { when: new Date(item.next_attempt_at).toLocaleTimeString() }))}</div>` : '';
+    const error = item.last_error ? `<div class="small text-danger">${Kit.escape(item.last_error)}</div>` : '';
+    const retry = item.status === 'failed'
+      ? `<button type="button" class="btn btn-sm btn-outline-primary mail-retry" data-id="${item.id}"><i class="bi bi-arrow-repeat" aria-hidden="true"></i> ${Kit.escape(tr('js.admin_settings.mail_retry', 'Send again'))}</button>` : '';
+    return `<tr><td><span class="badge ${badge}"><i class="bi ${icon}" aria-hidden="true"></i> ${Kit.escape(label())}</span></td>
+      <td><code>${Kit.escape(item.recipient)}</code></td><td>${Kit.escape(item.subject)}${error}</td>
+      <td class="small">${Kit.escape(when)}${note}</td><td>${item.attempts}</td><td>${retry}</td></tr>`;
+  }
+
+  function loadMail() {
+    if (!$('#mailQueue').length) return Promise.resolve();
+    return Kit.api('/api/admin/mail?status=' + encodeURIComponent(mailStatus)).then(data => {
+      const counts = data.counts;
+      $('#mailLimit').text(tr('js.admin_settings.mail_limit', 'At most {limit} at the same time.', { limit: data.limit }));
+      Object.keys(counts).forEach(state => $(`[data-count="${state}"]`).text(counts[state]));
+      $('[data-count="all"]').text(Object.values(counts).reduce((a, b) => a + b, 0));
+      $('#mailRows').html(data.messages.length ? data.messages.map(mailRow).join('')
+        : `<tr><td colspan="6" class="text-muted">${Kit.escape(tr('js.admin_settings.mail_none', 'No messages.'))}</td></tr>`);
+    }).catch(err => $('#mailRows').html(`<tr><td colspan="6" class="text-danger">${Kit.escape(err.message)}</td></tr>`));
+  }
+
+  $(document).on('click', '#mailFilter [data-status]', function () {
+    mailStatus = $(this).data('status');
+    $('#mailFilter [data-status]').removeClass('active');
+    $(this).addClass('active');
+    loadMail();
+  });
+  $(document).on('click', '#mailRefresh', loadMail);
+  $(document).on('click', '.mail-retry', function () {
+    Kit.api(`/api/admin/mail/${$(this).data('id')}/retry`, { method: 'POST', body: {} })
+      .then(() => { Kit.toast(tr('js.admin_settings.mail_requeued', 'Back in the queue'), 'success'); loadMail(); })
       .catch(err => Kit.toast(err.message, 'danger'));
   });
+  $(document).on('shown.bs.tab', '#tab-email', loadMail);
+  setInterval(() => { if ($('#pane-email').hasClass('active') && !document.hidden) loadMail(); }, 5000);
 
   // /admin/settings#maintenance opens that tab (the maintenance banner links there).
   const wanted = window.location.hash.replace('#', '');
@@ -119,4 +172,5 @@
     bootstrap.Tab.getOrCreateInstance(document.getElementById('tab-' + wanted)).show();
   }
   load();
+  loadMail();
 })();

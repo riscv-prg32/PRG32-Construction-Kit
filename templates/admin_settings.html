@@ -39,6 +39,32 @@
         {% endif %}
       </div>
     </form>
+    {% if key == 'email' %}
+    <section class="mt-4" id="mailQueue" aria-labelledby="mailQueueTitle">
+      <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+        <h2 class="h5 mb-0" id="mailQueueTitle"><i class="bi bi-envelope-paper" aria-hidden="true"></i> {{ t("admin_settings.mail_queue") }}</h2>
+        <button class="btn btn-sm btn-outline-secondary" type="button" id="mailRefresh"><i class="bi bi-arrow-clockwise" aria-hidden="true"></i> {{ t("admin_settings.mail_refresh") }}</button>
+      </div>
+      <p class="small text-muted mb-2">{{ t("admin_settings.mail_queue_explained") }} <span id="mailLimit" class="fw-semibold"></span></p>
+      <div class="btn-group flex-wrap mb-2" role="group" aria-label="{{ t('admin_settings.mail_filter') }}" id="mailFilter">
+        <button type="button" class="btn btn-sm btn-outline-primary active" data-status="">{{ t("admin_settings.mail_all") }} <span class="badge text-bg-secondary" data-count="all">0</span></button>
+        <button type="button" class="btn btn-sm btn-outline-primary" data-status="queued">{{ t("admin_settings.mail_to_send") }} <span class="badge text-bg-secondary" data-count="queued">0</span></button>
+        <button type="button" class="btn btn-sm btn-outline-primary" data-status="sending">{{ t("admin_settings.mail_sending") }} <span class="badge text-bg-info" data-count="sending">0</span></button>
+        <button type="button" class="btn btn-sm btn-outline-primary" data-status="sent">{{ t("admin_settings.mail_sent") }} <span class="badge text-bg-success" data-count="sent">0</span></button>
+        <button type="button" class="btn btn-sm btn-outline-primary" data-status="failed">{{ t("admin_settings.mail_failed") }} <span class="badge text-bg-danger" data-count="failed">0</span></button>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-sm align-middle mb-0">
+          <thead><tr>
+            <th scope="col">{{ t("admin_settings.mail_status") }}</th><th scope="col">{{ t("admin_settings.mail_recipient") }}</th>
+            <th scope="col">{{ t("admin_settings.mail_subject") }}</th><th scope="col">{{ t("admin_settings.mail_queued_at") }}</th>
+            <th scope="col">{{ t("admin_settings.mail_attempts") }}</th><th scope="col"><span class="visually-hidden">{{ t("admin_settings.mail_actions") }}</span></th>
+          </tr></thead>
+          <tbody id="mailRows"><tr><td colspan="6" class="text-muted">{{ t("common.loading") }}</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+    {% endif %}
   </div>
   {% endfor %}
   <div class="tab-pane fade" id="pane-server" role="tabpanel" aria-labelledby="tab-server" tabindex="0">

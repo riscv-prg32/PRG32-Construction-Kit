@@ -638,18 +638,15 @@ def _send_registration_email(email: str, link: str) -> None:
     if config.get("TESTING"):
         current_app.extensions["prg32_last_registration"] = {"email": email, "link": link,
                                                             "token": link.rsplit("token=", 1)[-1]}
-        return
     host = str(config.get("SMTP_HOST") or "").strip()
     if not host:
         current_app.logger.warning("No SMTP server is set (PRG32_SMTP_HOST); registration link for %s: %s", email, link)
         return
-    message = EmailMessage()
-    message["From"] = config["SMTP_FROM"]
-    message["To"] = email
-    message["Subject"] = "Finish your PRG32-Construction-Kit registration"
-    message.set_content("Open this link to finish your PRG32-Construction-Kit registration:\n\n"
-                        f"{link}\n\nThe link expires in 24 hours.\n")
-    _smtp_send(message)
+    from . import mail_queue
+
+    mail_queue.enqueue("registration", email, "Finish your PRG32-Construction-Kit registration",
+                       "Open this link to finish your PRG32-Construction-Kit registration:\n\n"
+                       f"{link}\n\nThe link expires in 24 hours.\n")
 
 
 def _smtp_send(message: EmailMessage) -> None:
@@ -686,16 +683,11 @@ def note_new_address(user: User) -> bool:
             "(Account page) and tell your teacher.\n")
     if config.get("TESTING"):
         current_app.extensions["prg32_last_notice"] = {"email": user.email, "text": text}
-    elif str(config.get("SMTP_HOST") or "").strip():
-        message = EmailMessage()
-        message["From"] = config["SMTP_FROM"]
-        message["To"] = user.email
-        message["Subject"] = "New sign-in to your PRG32-Construction-Kit account"
-        message.set_content(text)
-        try:
-            _smtp_send(message)
-        except (OSError, smtplib.SMTPException) as error:   # never stop a sign-in because mail failed
-            current_app.logger.warning("could not send the new sign-in notice: %s", error)
+    if str(config.get("SMTP_HOST") or "").strip():
+        from . import mail_queue
+
+        # Queued, never sent here: a slow mail server never slows a sign-in down.
+        mail_queue.enqueue("new_sign_in", user.email, "New sign-in to your PRG32-Construction-Kit account", text)
     return True
 
 

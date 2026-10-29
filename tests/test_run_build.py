@@ -18,7 +18,10 @@ def rows(app) -> dict[str, int]:
 
     with app.app_context():
         return {name: db.session.scalar(select(func.count()).select_from(table))
-                for name, table in db.metadata.tables.items() if name not in ("auth_throttle", "audit_events")}
+                # Logs, not the guest's work: the activity log notes only that a request happened
+                # (route pattern and outcome, under a one-day pseudonym; tests/test_mail_activity_statistics.py).
+                for name, table in db.metadata.tables.items()
+                if name not in ("auth_throttle", "audit_events", "activity_events", "activity_salts")}
 
 
 @pytest.fixture()

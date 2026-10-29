@@ -590,6 +590,85 @@
    "transfers": "none",
    "review_owner": "the operator's privacy lead (name it in decisions.md)",
    "next_review": "2027-10-21 or on any change to the kit's data model"
+  },
+  {
+   "id": "activity_log",
+   "data": "activity log: who (account id, or a one-day visitor pseudonym), which kind of action and route pattern, outcome, time taken, network (IPv4 /24, IPv6 /48), browser family; never content, query strings or full addresses; and today's random salt for the pseudonyms",
+   "fields": {
+    "activity_events": [
+     "id",
+     "created_at",
+     "day",
+     "actor",
+     "user_id",
+     "visitor",
+     "category",
+     "method",
+     "route",
+     "object_id",
+     "status",
+     "duration_ms",
+     "network",
+     "agent"
+    ],
+    "activity_salts": [
+     "day",
+     "salt"
+    ]
+   },
+   "subjects": [
+    "students",
+    "teachers and facilitators",
+    "administrators",
+    "visitors without an account"
+   ],
+   "purpose": "running the service for the school: support, spotting errors and misuse, capacity planning, and the aggregate usage statistics on the admin Statistics page",
+   "legal_basis": "Art. 6(1)(e) public task of the school (or 6(1)(f) legitimate interest for a private operator), with a balancing test for children; PROPOSED - not decided: the controller confirms with its DPO (decisions.md)",
+   "special_categories": "none",
+   "access": "administrators only; opening one person's activity, showing usernames in statistics and every CSV download are written to the audit log",
+   "recipients": "none",
+   "location": "the server chosen by the operator (configure in the EU/EEA, see processors_and_transfers.md)",
+   "retention": "PRG32_KIT_ACTIVITY_DAYS (90); the visitor salt one day (unlinkable afterwards); PRG32_KIT_ACTIVITY_LOG turns logging off",
+   "deletion": "daily expiry and retention.py; erasure deletes the person's rows; part of the access/portability export",
+   "transfers": "none",
+   "review_owner": "the operator's privacy lead (name it in decisions.md)",
+   "next_review": "2027-10-21 or on any change to the kit's data model"
+  },
+  {
+   "id": "email_queue",
+   "data": "email sending queue: recipient address, subject, kind, state, attempts, last error and times; the message text sealed (encrypted) and wiped once sent",
+   "fields": {
+    "mail_outbox": [
+     "id",
+     "kind",
+     "recipient",
+     "subject",
+     "body",
+     "status",
+     "attempts",
+     "last_error",
+     "created_at",
+     "next_attempt_at",
+     "started_at",
+     "finished_at"
+    ]
+   },
+   "subjects": [
+    "people signing up",
+    "account holders receiving sign-in notices",
+    "administrators (test mail)"
+   ],
+   "purpose": "delivering the kit's own mail (sign-up links, new sign-in notices, test mail) without overloading the school's SMTP server",
+   "legal_basis": "Art. 6(1)(b)/(e) as for the account itself; security notices Art. 32; PROPOSED - not decided: the controller confirms with its DPO (decisions.md)",
+   "special_categories": "none",
+   "access": "administrators see the address shortened (ma***@school.example), never the text",
+   "recipients": "the school's SMTP server (configured on the Settings page; a processor or the school itself)",
+   "location": "the server chosen by the operator (configure in the EU/EEA, see processors_and_transfers.md)",
+   "retention": "PRG32_KIT_MAIL_DAYS (30) after queuing; the text is wiped as soon as the message is sent",
+   "deletion": "retention.py; erasure deletes the person's rows",
+   "transfers": "only where the operator's SMTP provider is outside the EEA",
+   "review_owner": "the operator's privacy lead (name it in decisions.md)",
+   "next_review": "2027-10-21 or on any change to the kit's data model"
   }
  ],
  "other_stores": [
@@ -677,7 +756,7 @@
    "id": "guest_requests",
    "data": "a guest's blocks, code, sound or sprite, sent to generate code, preview sound or build the game to run it (ADR-0023, ADR-0024)",
    "where": "server memory, and for a run build a private build folder removed as soon as the cartridge is read",
-   "retention": "none: not written, not logged",
+   "retention": "none: the content is not written or logged (the activity log notes only that the request happened, under a one-day pseudonym: record activity_log)",
    "deletion": "automatic at the end of the request",
    "personal": false
   },
