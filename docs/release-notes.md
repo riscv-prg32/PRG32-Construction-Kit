@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+### Project art in every kind of project
+
+- **Sprites, backgrounds and sounds by name, in Blocks, Python, C and assembly** (ADR-0029). New
+  blocks **draw sprite**, **load background** and **draw background**; PRG32 Python gets
+  `prg32.sprite`, `prg32.background_load` and `prg32.background_draw`; C and assembly games write
+  `#include "prg32_assets.h"` (or `"prg32_assets.S"`) and call `rocket_draw(x, y)`, `sky_load()`,
+  `sfx_coin()`, `TRACK_THEME`. The kit writes the art in place of that line, on that same line, so
+  line numbers and the debugger stay on the student's lines. ([project_art.md](project_art.md))
+- Sprite Lab, Backgrounds and AudioStudio show **Use it in your game**: the line for the art being
+  edited, in each language. C and assembly projects show **Project art** (`prg32_assets.h`/`.S`,
+  read-only) in the project files. Converting a Blocks game to code keeps the include line.
+- New examples: **Star Catcher** in Blocks, PRG32 Python, C and assembly, with the same sprites,
+  background and sound; the four cartridges draw identical frames. Lesson 10 walks through them.
+  ([tutorials/10_project_art.md](tutorials/10_project_art.md))
+
 ### Deploy, Evaluate, and four new tools (after the audit of 7a700ba)
 
 - **Deploy** (project menu, ADR-0028) puts a compiled cartridge on a PRG32 console, PRG32-QT

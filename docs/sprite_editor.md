@@ -8,6 +8,19 @@ AudioStudio: the toolbar on top (**New**, **Save**, **Import**, **Export PNG**, 
 **Convert to C**), the project's sprites on the left, the canvas in the centre, the
 properties and the generated C on the right.
 
+## Use it in your game
+
+Under **Use it in your game**, Sprite Lab shows the line that draws the saved sprite, in Blocks,
+PRG32 Python, C or assembly (choose one; the IDE starts with the project's own language):
+
+- Blocks: `draw sprite ship x 10 y 20` (category **Sprites & Tiles**);
+- PRG32 Python: `prg32.sprite("ship", 10, 20)`;
+- C: `ship_draw(10, 20);` after `#include "prg32_assets.h"`;
+- assembly: `li a0, 10`, `li a1, 20`, `call ship_draw` after `#include "prg32_assets.S"`.
+
+The game always draws the sprite as it is now in Sprite Lab: there is nothing to copy.
+[project_art.md](project_art.md) explains the names and the include line.
+
 ## Features
 
 - Create, load, update and delete the project's sprites (`/api/sprites?project_id=...`).
@@ -75,7 +88,9 @@ sprites keeps working. `data_url` is a convenience preview/export image.
 
 ## Convert to C
 
-Click **Convert to C** in Sprite Lab. The backend creates a `sprite_c_source` artifact.
+Click **Convert to C** in Sprite Lab to read the sprite as a C array. The backend creates a
+`sprite_c_source` artifact. To use the sprite in a game, prefer **Use it in your game** above:
+the include line keeps the game in step with Sprite Lab.
 
 Example output:
 

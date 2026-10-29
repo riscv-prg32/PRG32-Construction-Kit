@@ -77,13 +77,16 @@ def test_upstream_blocks_examples_can_be_listed_and_imported(client):
     response = client.get("/api/examples")
     assert response.status_code == 200
     examples = response.get_json()["examples"]
-    # Five complete games replace four of the 22 upstream sketches: 22 - 4 + 5, plus one PRG32 Python game.
-    assert len(examples) == 24
+    # Five complete games replace four of the 22 upstream sketches: 22 - 4 + 5, plus one PRG32 Python game
+    # and Star Catcher in four languages (docs/project_art.md).
+    assert len(examples) == 28
     assert {example["slug"] for example in examples} >= {"pong", "raycaster", "audio_synth", "snake"}
     kinds = {example["slug"]: example["kind"] for example in examples}
     assert [slug for slug, kind in kinds.items() if kind == "game"] == [
         "pong", "breakout", "space_invaders", "asteroids", "snake"]
     assert kinds["raycaster"] == "sketch" and kinds["brick_catch_python"] == "python"
+    assert [slug for slug, kind in kinds.items() if kind == "art"] == [
+        "star_catcher_blocks", "star_catcher_python", "star_catcher_c", "star_catcher_asm"]
 
     response = client.post("/api/examples/pong/import", json={})
     assert response.status_code == 201

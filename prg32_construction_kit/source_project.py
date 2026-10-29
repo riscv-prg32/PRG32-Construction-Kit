@@ -8,7 +8,8 @@ from .generator import c_identifier
 from .messages import text as say
 
 _INCLUDE = re.compile(r'^\s*#\s*include\s*[<"]([^>"]+)[>"]\s*$')
-_ALLOWED_HEADERS = {"prg32.h", "prg32_audio.h", "stdint.h", "stddef.h", "stdbool.h"}
+# prg32_assets.h is not a file: the kit writes the project's art in its place (project_assets.py).
+_ALLOWED_HEADERS = {"prg32.h", "prg32_audio.h", "prg32_assets.h", "stdint.h", "stddef.h", "stdbool.h"}
 FEATURES = {"audio", "wifi", "multiplayer", "metrics", "audio_plus", "keyboard", "tilemap", "platformer", "sprites"}
 _LIFECYCLE = r'\bvoid\s+({prefix}_(?:init|update|draw))\s*\(\s*void\s*\)\s*\{{'
 _DIRECTIVE_START = re.compile(r"^\s*(?:#|%:)")
@@ -225,6 +226,11 @@ def validate_asm_source(source: str, title: str) -> str:
         raise ValueError(say("source", "Assembly source exceeds 256 KiB or contains NUL bytes"))
     if "??=" in source or "??/" in source:
         raise ValueError(say("source", "Trigraphs (??= and ??/) are not supported"))
+    # The one include allowed: #include "prg32_assets.S" on a line of its own. It names no file:
+    # the kit writes the project's art in its place before the assembler runs (project_assets.py),
+    # so it is blanked here and every other include is still refused below.
+    from .project_assets import blank_include
+    source = blank_include(source)
     bare, origin = _without_strings_mapped(*_without_comments_mapped(source))
     source_line = _source_lines(source, bare, origin)  # the line the student sees, for each line of bare
     # After an instruction '#' starts a comment; a line that starts with '#' is a preprocessor line.

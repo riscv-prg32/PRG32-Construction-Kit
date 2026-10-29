@@ -128,8 +128,33 @@ A user record looks like this:
 `slug`, `title`, `description` and `kind`: `"game"` for the five complete games
 (`pong`, `breakout`, `space_invaders`, `asteroids`, `snake`, read from
 `examples/games/`) and `"sketch"` for the short adaptations of the other
-upstream PRG32 examples. `POST /api/examples/<slug>/import` creates a new
-project from one of them; it never changes the built-in example.
+upstream PRG32 examples, `"python"` for the PRG32 Python game and `"art"` for the four Star
+Catcher games (`star_catcher_blocks`, `_python`, `_c`, `_asm`; their entries also have a
+`language`). `POST /api/examples/<slug>/import` creates a new project from one of them; it never
+changes the built-in example. An `"art"` example also gets its sprites, its background and its
+AudioStudio sound.
+
+## Project art
+
+```http
+GET /api/projects/<id>/art
+```
+
+The project's sprites, backgrounds and sounds as code (`project_assets.py`, docs/project_art.md):
+
+```json
+{"catalog": {"sprites": [{"name": "rocket", "title": "rocket", "width": 16, ...}], "backgrounds": [...],
+             "effects": [...], "soundtracks": [...], "skipped": []},
+ "c_header": "/* prg32_assets.h ... */", "asm_include": "/* prg32_assets.S ... */",
+ "usage": {"sprites": [{"title": "rocket", "name": "rocket", "blocks": "...", "python": "...",
+                        "c": "rocket_draw(10, 20);", "asm": "..."}], ...},
+ "features": ["audio", "sprites", "tilemap"], "files": {"c": "prg32_assets.h", "asm": "prg32_assets.S"}}
+```
+
+A guest gets the same answer from `POST /api/guest/art` with `{title, sprites, backgrounds,
+audio_studio}`; nothing is stored. A C or assembly project that writes `#include
+"prg32_assets.h"` (or `"prg32_assets.S"`) gets this code in place of that line when it is
+converted, checked or built.
 
 ## Compile and download a cartridge
 

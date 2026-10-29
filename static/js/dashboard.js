@@ -87,6 +87,7 @@
       const badge = example => example.kind === 'game'
         ? `<span class="badge text-bg-success ms-2">${tr('js.dashboard.complete_game', 'complete game')}</span>`
         : example.kind === 'python' ? '<span class="badge text-bg-info ms-2">Python</span>'
+        : example.kind === 'art' ? `<span class="badge text-bg-warning ms-2">${tr('js.dashboard.sprites_and_sound', 'sprites & sound')}</span>`
           : `<span class="badge text-bg-secondary ms-2">${tr('js.dashboard.sketch', 'sketch')}</span>`;
       $('#exampleList').html(data.examples.map(example => `<div class="list-group-item d-flex gap-3 align-items-center justify-content-between"><div><strong>${Kit.escape(example.title)}</strong>${badge(example)}<div class="small text-muted">${Kit.escape(example.description)}</div></div><button class="btn btn-primary btn-sm import-example" data-slug="${Kit.escape(example.slug)}">${tr('js.dashboard.add', 'Add')}</button></div>`).join(''));
     }).catch(err => $('#exampleList').html(`<div class="alert alert-danger">${Kit.escape(err.message)}</div>`));

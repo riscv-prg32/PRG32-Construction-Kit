@@ -147,6 +147,12 @@ without the `PRG32_` start (`prg32.TILE_W`, ...).
 A picture (`rows`) is 8 texts of up to 8 characters, `.` for an empty pixel:
 `["..XX....", ".XXXX...", ...]`.
 
+**Project art** ([project_art.md](project_art.md)): `sprite("name", x, y)` draws a sprite made in
+Sprite Lab with its top-left corner at x, y; `background_load("name")` puts a background made in
+Backgrounds into the playfield (once, in `init`) and `background_draw("name")` draws it (in
+`draw`, before the sprites). The name is the one in the tool, in quotes; a name the project does
+not have stops the translation on that line.
+
 **Tiles and playfields:** `tile_define(id, rows, fg, bg)`, `playfield_clear(layer, id)`,
 `playfield_put(layer, tx, ty, id)`, `playfield_scroll(layer, x, y)`, `playfield_camera(x, y)`,
 `playfield_draw(layer, transparent=False)`, and the value `tile(layer, tx, ty)`.

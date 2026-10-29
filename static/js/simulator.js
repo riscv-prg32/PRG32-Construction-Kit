@@ -526,6 +526,22 @@ window.PRG32Simulator = (function () {
     }
     if (type === 'prg32_soundtrack_stop') { ctx.features.add('audio'); return { op: 'track_stop' }; }
     if (type === 'prg32_sound_stop_all') { ctx.features.add('audio'); return { op: 'sound_stop_all' }; }
+    // Sprite Lab and Backgrounds (docs/project_art.md): the picture itself goes into the IR, as on the server.
+    if (type === 'prg32_draw_project_sprite') {
+      ctx.features.add('sprites');
+      const wanted = String(field(block, 'SPRITE', ''));
+      const entry = ctx.artEntry('sprites', wanted);
+      if (!entry) return { op: 'comment', text: 'skipped: no sprite named ' + wanted.slice(0, 64) };
+      return { op: 'sprite_draw', sprite: entry.name, name: entry.title, x: f('X', 0), y: f('Y', 0) };
+    }
+    if (type === 'prg32_background_load' || type === 'prg32_background_draw') {
+      ctx.features.add('tilemap');
+      const wanted = String(field(block, 'BACKGROUND', ''));
+      const entry = ctx.artEntry('backgrounds', wanted);
+      if (!entry) return { op: 'comment', text: 'skipped: no background named ' + wanted.slice(0, 64) };
+      if (type === 'prg32_background_load' && entry.tiles.some(tile => tile.flags.length)) ctx.features.add('platformer');
+      return { op: type === 'prg32_background_load' ? 'background_load' : 'background_draw', background: entry.name, name: entry.title };
+    }
     if (type === 'prg32_band_text') {
       const stmt = { op: 'band', text: text('TEXT', 'SCORE', 24) };
       const value = field(block, 'VALUE', '');
@@ -548,6 +564,13 @@ window.PRG32Simulator = (function () {
   let audioDocument = null;
   function setAudio(document) { audioDocument = document || null; }
 
+  // The project's art (project_assets.catalog, from /api/projects/<id>/art): sprites and backgrounds by name.
+  let artCatalog = null;
+  function setArt(catalog) { artCatalog = catalog || null; }
+  function findArt(entries, wanted) {
+    return (entries || []).find(entry => entry.title === wanted) || (entries || []).find(entry => entry.name === wanted) || null;
+  }
+
   // The MIDI note nearest to a frequency, from C3 (48) to C6 (84): prg32_kit_note_from_hz in the generated C.
   const NOTE_HZ = [131, 139, 147, 156, 165, 175, 185, 196, 208, 220, 233, 247,
     262, 277, 294, 311, 330, 349, 370, 392, 415, 440, 466, 494,
@@ -563,6 +586,13 @@ window.PRG32Simulator = (function () {
   function compileBlocks(data) {
     const ctx = makeContext();
     ctx.audio = audioDocument;
+    const usedArt = { sprites: new Set(), backgrounds: new Set() };
+    ctx.artEntry = (kind, wanted) => {
+      const entry = findArt((artCatalog || {})[kind], wanted);
+      if (!entry) { ctx.warnings.push(`The ${kind === 'sprites' ? 'sprite' : 'background'} '${wanted.slice(0, 64)}' is not in this project`); return null; }
+      usedArt[kind].add(entry.name);
+      return entry;
+    };
     const ir = { abi: 'prg32-construction-kit-game-1.1', state: [], lists: [], required_features: [], init: [], update: [], draw: [], warnings: ctx.warnings };
     const tops = asBlocks(data);
     allBlocks(tops).forEach(block => {
@@ -591,7 +621,17 @@ window.PRG32Simulator = (function () {
     ir.state = Object.entries(ctx.vars).map(([name, initial]) => ({ name, type: 'int', initial }));
     ir.lists = Object.entries(ctx.lists).map(([name, size]) => ({ name, size }));
     ir.required_features = Array.from(ctx.features).sort();
+    if (usedArt.sprites.size || usedArt.backgrounds.size) {
+      ir.assets = { sprites: ((artCatalog || {}).sprites || []).filter(entry => usedArt.sprites.has(entry.name)),
+                    backgrounds: ((artCatalog || {}).backgrounds || []).filter(entry => usedArt.backgrounds.has(entry.name)) };
+    }
     return ir;
+  }
+
+  // '#rrggbb' as RGB565, like generator._rgb565.
+  function rgb565Of(hex) {
+    const value = parseInt(String(hex).slice(1), 16) || 0;
+    return (((value >> 16) & 0xF8) << 8) | (((value >> 8) & 0xFC) << 3) | ((value & 0xFF) >> 3);
   }
 
   // ---- The simulated PRG32: a 320x200 RGB565 framebuffer drawn the way the firmware draws ----
@@ -854,6 +894,13 @@ window.PRG32Simulator = (function () {
         if (layer < 2) this.scroll[layer] = [v(stmt.x), v(stmt.y)];
       } else if (op === 'playfield_camera') this.camera = [v(stmt.x), v(stmt.y)];
       else if (op === 'playfield_draw') this.drawPlayfield(v(stmt.layer) & 255, stmt.transparent);
+      else if (op === 'sprite_draw') this.drawSprite(stmt.sprite, v(stmt.x), v(stmt.y));
+      else if (op === 'background_load') this.loadBackground(stmt.background);
+      else if (op === 'background_draw') {
+        const background = this.art('backgrounds', stmt.background);
+        this.drawPlayfield(0, false);
+        if (background && background.layers.length > 1) this.drawPlayfield(1, true);
+      }
       else if (op === 'beep') this.sound('note', 0, 0, noteFromHz(v(stmt.freq)), 255, v(stmt.ms));
       else if (op === 'note') this.sound('note', v(stmt.channel) & 7, 0, v(stmt.note) & 127, 255, v(stmt.ms));
       else if (op === 'note_off') this.sound('noteOff', v(stmt.channel) & 7);
@@ -874,6 +921,31 @@ window.PRG32Simulator = (function () {
         this.present();
         this.waitUntil = (typeof performance !== 'undefined' ? performance.now() : 0) + Math.max(0, Math.min(10000, v(stmt.ms)));
       }
+    }
+
+    art(kind, name) {
+      return (((this.ir && this.ir.assets) || {})[kind] || []).find(entry => entry.name === name) || null;
+    }
+
+    // <name>_draw(x, y): every pixel that is not see-through, as prg32_sprite_draw_frame draws it.
+    drawSprite(name, x, y) {
+      const sprite = this.art('sprites', name);
+      if (!sprite) return;
+      sprite.pixels.forEach((row, py) => row.forEach((color, px) => {
+        if (color !== 'transparent') this.pixel(x + px, y + py, rgb565Of(color));
+      }));
+    }
+
+    // <name>_load(): define the tiles, then fill each layer with the map (prg32_tile_define, prg32_playfield_put).
+    loadBackground(name) {
+      const background = this.art('backgrounds', name);
+      if (!background) return;
+      background.tiles.forEach(tile => { this.tiles[tile.id] = { rows: tile.rows.slice(), fg: rgb565Of(tile.fg), bg: rgb565Of(tile.bg) }; });
+      background.layers.forEach((layer, number) => {
+        this.playfield[number].fill(0);
+        this.scroll[number] = [0, 0];
+        layer.forEach((row, ty) => row.forEach((id, tx) => { this.playfield[number][ty * 64 + tx] = id & 255; }));
+      });
     }
 
     tileAt(layer, tx, ty) {
@@ -1000,5 +1072,5 @@ window.PRG32Simulator = (function () {
     }
   }
 
-  return { compileBlocks, setAudio, noteFromHz, evalExpr, saneExpr, checkExpr, toRgb, COLOR, FONT, Simulator };
+  return { compileBlocks, setAudio, setArt, noteFromHz, evalExpr, saneExpr, checkExpr, toRgb, COLOR, FONT, Simulator };
 })();

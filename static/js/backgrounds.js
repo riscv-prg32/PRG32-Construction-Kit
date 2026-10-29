@@ -105,6 +105,7 @@
     $('#backgroundWidth').val(current.width);
     $('#backgroundHeight').val(current.height);
     redraw();
+    if (window.PRG32ArtUsage) PRG32ArtUsage.render();   // "Use it in your game" follows the open background
   }
 
   function payload() {

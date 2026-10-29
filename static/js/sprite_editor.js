@@ -143,6 +143,7 @@
     $('#spriteWidth').val(width);
     $('#spriteHeight').val(height);
     draw();
+    if (window.PRG32ArtUsage) PRG32ArtUsage.render();   // "Use it in your game" follows the open sprite
   }
 
   function currentPayload() {

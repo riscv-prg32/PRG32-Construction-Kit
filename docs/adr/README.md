@@ -34,3 +34,4 @@ Short records of decisions for the full-IDE work. Each has a status:
 | [0026](0026-prg32-python-projects.md) | PRG32 Python projects, compiled ahead of time to the game IR | Accepted (amends 0001, 0024) |
 | [0027](0027-interface-languages.md) | The interface in five languages, never in the build | Accepted |
 | [0028](0028-one-deploy-tool.md) | One Deploy tool for a PRG32 console, PRG32-QT and QEMU | Accepted (builds on 0020) |
+| [0029](0029-project-art-in-code.md) | Project art in code, by name, in every kind of project | Accepted (amends 0004) |

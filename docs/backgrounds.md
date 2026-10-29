@@ -21,6 +21,20 @@ the right. Without an account, backgrounds are kept in your browser with the pro
 - **For the platform helpers** marks what a tile is in a platform game: **solid** (walls),
   **platform** (stand on it from above), **hazard** (it hurts), **collect** (pick it up).
 
+## In your game
+
+**Use it in your game** (under the properties) shows the lines for the saved background:
+
+| Kind of project | Once, when the game starts | Every frame, before the sprites |
+|---|---|---|
+| Blocks | `load background level` | `draw background level` |
+| PRG32 Python | `prg32.background_load("level")` | `prg32.background_draw("level")` |
+| C (after `#include "prg32_assets.h"`) | `level_load();` | `level_draw();` |
+| Assembly (after `#include "prg32_assets.S"`) | `call level_load` | `call level_draw` |
+
+`level_draw()` draws layer 0, then layer 1 with tile 0 see-through. Scroll with
+`prg32_playfield_scroll` or the camera as before. See [project_art.md](project_art.md).
+
 ## In code
 
 **Convert to C** saves the background and writes, for a background called `level`:

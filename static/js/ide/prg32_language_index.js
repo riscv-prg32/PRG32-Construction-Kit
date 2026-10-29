@@ -4564,6 +4564,7 @@
   },
   "headers": [
    "prg32.h",
+   "prg32_assets.h",
    "prg32_audio.h",
    "stdbool.h",
    "stddef.h",
@@ -5257,6 +5258,24 @@
   ],
   "functions": [
    {
+    "help": "Draw a background's playfield layers (layer 1 in front, its tile 0 see-through).",
+    "kind": "statement",
+    "name": "background_draw",
+    "params": [
+     "name"
+    ],
+    "signature": "prg32.background_draw(name)"
+   },
+   {
+    "help": "Define the tiles of a background made in Backgrounds and fill the playfield with its map.",
+    "kind": "statement",
+    "name": "background_load",
+    "params": [
+     "name"
+    ],
+    "signature": "prg32.background_load(name)"
+   },
+   {
     "help": "Show a short text (and a number) in the band above the game.",
     "kind": "statement",
     "name": "band",
@@ -5591,6 +5610,17 @@
      "accent"
     ],
     "signature": "prg32.splash(title, subtitle=\"PRESS START\", ms=1500, bg=prg32.BLACK, fg=prg32.WHITE, accent=prg32.YELLOW)"
+   },
+   {
+    "help": "Draw a sprite made in Sprite Lab, by its name, with its top-left corner at x, y.",
+    "kind": "statement",
+    "name": "sprite",
+    "params": [
+     "name",
+     "x",
+     "y"
+    ],
+    "signature": "prg32.sprite(name, x, y)"
    },
    {
     "help": "Draw an 8x8 sprite with the firmware's sprite service.",

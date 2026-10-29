@@ -41,6 +41,10 @@ game state, and the three lifecycle functions that the firmware calls
 - Beside a line, a comment explains that line. The first time a kind of C
   statement appears (`=`, `+=`, `if`, `&`, `&&`, a loop, a string, ...), its
   comment also explains the C syntax.
+- Part 3 (*Pictures*) also holds the Sprite Lab sprites and the backgrounds the blocks use, each
+  under a comment with its size and colours, as `<name>_draw(x, y)`, `<name>_load()` and
+  `<name>_draw()` ([project_art.md](project_art.md)). The assembly has the same functions with
+  the same names, in part 2 (data) and part 4 (helpers).
 - Every kit helper (`prg32_kit_...`) starts with a short documentation block:
   what it does, its inputs, its result and the method (for example Bresenham's
   line algorithm or the midpoint circle algorithm).

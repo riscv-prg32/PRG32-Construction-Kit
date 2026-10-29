@@ -100,7 +100,8 @@ class PythonError(ValueError):
 # (python name, IR key, kind, default); a default of None means "must be given".
 # Kinds: "int" a whole-number expression; "color" a fixed prg32 colour such as prg32.RED;
 # "text" a short text in quotes; "rows" eight picture rows such as ["..XX....", ...];
-# "flag" True or False; "effect"/"track" the name of an AudioStudio sound effect/soundtrack.
+# "flag" True or False; "effect"/"track" the name of an AudioStudio sound effect/soundtrack;
+# "sprite"/"background" the name of a Sprite Lab sprite / a background (docs/project_art.md).
 _P = tuple[str, str, str, Any]
 STATEMENTS: dict[str, tuple[str, list[_P], str | None, str]] = {
     "clear": ("clear", [("color", "color", "color", "BLACK")], None,
@@ -166,6 +167,12 @@ STATEMENTS: dict[str, tuple[str, list[_P], str | None, str]] = {
              "audio", "Play MIDI note number note (60 is middle C) on voice 0-7."),
     "note_off": ("note_off", [("voice", "channel", "int", 0)], "audio", "Release the note on voice 0-7."),
     "volume": ("volume", [("volume", "volume", "int", None)], "audio", "Set the master volume, 0-255."),
+    "sprite": ("sprite_draw", [("name", "name", "sprite", None), ("x", "x", "int", None), ("y", "y", "int", None)],
+               "sprites", "Draw a sprite made in Sprite Lab, by its name, with its top-left corner at x, y."),
+    "background_load": ("background_load", [("name", "name", "background", None)], "tilemap",
+                        "Define the tiles of a background made in Backgrounds and fill the playfield with its map."),
+    "background_draw": ("background_draw", [("name", "name", "background", None)], "tilemap",
+                        "Draw a background's playfield layers (layer 1 in front, its tile 0 see-through)."),
     "sound_effect": ("sfx", [("name", "name", "effect", None)], "audio",
                      "Play a sound effect made in AudioStudio, by its name."),
     "soundtrack_play": ("track_play", [("name", "name", "track", None)], "audio",
@@ -339,6 +346,8 @@ class _Compiler:
         self.source = source
         self.project = project
         self.audio = project.get("audio_studio") or None
+        self.art = project.get("assets") or None
+        self.used_art: dict[str, set[str]] = {"sprites": set(), "backgrounds": set()}
         self.globals: dict[str, Symbol] = {}
         self.c_names: dict[str, ast.AST] = {}     # every C name in use -> where it was declared
         self.state: dict[str, int] = {}           # C name -> initial value, in declaration order
@@ -414,7 +423,9 @@ class _Compiler:
         description = self.project.get("description") or ""
         if not description and docstring.strip():
             description = docstring.strip().splitlines()[0][:200]
-        return {
+        from .generator import with_art
+
+        return with_art({
             "abi": IR_ABI,
             "title": title,
             "description": description,
@@ -429,7 +440,7 @@ class _Compiler:
             "warnings": [],
             "source_mode": "python",
             "python_language_version": LANGUAGE_VERSION,
-        }
+        }, self.art, self.used_art)
 
     def declare(self, tree: ast.Module) -> str:
         """Read the top level: the import, the typed variables and the functions. Returns the docstring."""
@@ -888,6 +899,8 @@ class _Compiler:
                     self.features.add(feature)
                 if op in ("sfx", "track_play"):
                     ir = self.audio_statement(ir, call)
+                if op in ("sprite_draw", "background_load", "background_draw"):
+                    ir = self.art_statement(ir, call)
                 if op == "band" and ir.get("value") == "":
                     del ir["value"]
                 return [self.stmt(node, ir)]
@@ -971,6 +984,22 @@ class _Compiler:
             raise self.fail("missing_sound", say("py", "This project's AudioStudio has no soundtrack named {name}", name=repr(name)), call)
         return {"op": "track_play", "name": name, "track": index}
 
+    def art_statement(self, ir: dict[str, Any], call: ast.Call) -> dict[str, Any]:
+        """Sprite and background names become the art itself, carried in the IR, as for the Blocks."""
+        from .project_assets import find
+
+        kind = "sprites" if ir["op"] == "sprite_draw" else "backgrounds"
+        entry = find((self.art or {}).get(kind) or [], ir["name"])
+        if entry is None:
+            if kind == "sprites":
+                raise self.fail("missing_art", say("py", "This project has no sprite named {name}: draw it in Sprite Lab first", name=repr(ir["name"])), call)
+            raise self.fail("missing_art", say("py", "This project has no background named {name}: make it in Backgrounds first", name=repr(ir["name"])), call)
+        self.used_art[kind].add(entry["name"])
+        if ir["op"] == "background_load" and any(tile["flags"] for tile in entry["tiles"]):
+            self.features.add("platformer")
+        key = "sprite" if kind == "sprites" else "background"
+        return {**{k: v for k, v in ir.items() if k != "name"}, key: entry["name"], "name": entry["title"]}
+
     def arguments(self, name: str, params: list[_P], call: ast.Call, scope: _Scope) -> dict[str, Any]:
         """Match a prg32 call's values to its parameters (in order or by name) and check each one."""
         if any(isinstance(arg, ast.Starred) for arg in call.args) or any(k.arg is None for k in call.keywords):
@@ -1021,8 +1050,8 @@ class _Compiler:
             if not (isinstance(node, ast.Constant) and isinstance(node.value, bool)):
                 raise self.fail("flag", say("py", "{pname} is True or False", pname=pname), node)
             return node.value
-        if kind in ("text", "effect", "track"):
-            limit = _TEXT_LIMITS.get(name, MAX_TEXT) if kind == "text" else 32
+        if kind in ("text", "effect", "track", "sprite", "background"):
+            limit = _TEXT_LIMITS.get(name, MAX_TEXT) if kind == "text" else 64 if kind in ("sprite", "background") else 32
             if not (isinstance(node, ast.Constant) and isinstance(node.value, str)):
                 raise self.fail("text", say("py", "{pname} is a text in quotes, for example \"SCORE\"", pname=pname), node)
             text = node.value

@@ -32,8 +32,8 @@ from .db import (
     update_if_unchanged,
     update_resource,
 )
-from . import (audio_studio, audio_studio_api, build_budget, project_format, publishing, retention, secrets_at_rest,
-               security, sso, storage_policy, store_contract)
+from . import (audio_studio, audio_studio_api, build_budget, project_assets, project_format, publishing, retention,
+               secrets_at_rest, security, sso, storage_policy, store_contract)
 from .auth import Principal, current_principal, role_at_least
 from .build_check import builds_available, toolchain_present
 from .db import utcnow
@@ -581,7 +581,7 @@ def api_convert_project_type(project_id: str):
     if expected is not None and expected != project.get("version", 0):
         return _version_conflict(project)
     try:
-        game_json = blocks_as_code({**project, "audio_studio": audio_studio_api.document_of(project_id)[0]}, language)
+        game_json = blocks_as_code(with_media(project), language)
     except Exception as exc:  # noqa: BLE001 - blocks that do not generate cannot be converted
         return json_error(say("api", "These blocks cannot be converted yet: {exc}", exc=exc))
     save_revision(project, "convert")
@@ -607,6 +607,18 @@ def _history_is_old(project_id: str) -> bool:
     minutes = int(site_settings.get("PRG32_KIT_AUTOSAVE_SNAPSHOT_MINUTES"))
     age = datetime.now(timezone.utc) - datetime.fromisoformat(newest)
     return age.total_seconds() >= minutes * 60
+
+
+def with_media(project: dict[str, Any]) -> dict[str, Any]:
+    """A stored project with its AudioStudio document and its art (project_assets.catalog).
+
+    Sound-effect and soundtrack blocks become fixed numbers from the document; sprite and
+    background blocks, prg32.sprite(...) and #include "prg32_assets.h" take their pictures
+    from the art. Every sprite and background of the project counts, whoever drew it."""
+    document = audio_studio_api.document_of(project["id"])[0]
+    sprites, assets = _project_children(project["id"], everyone=True)
+    return {**project, "audio_studio": document,
+            "assets": project_assets.catalog(sprites, assets, document, project.get("title"))}
 
 
 def _project_children(project_id: str, everyone: bool = False) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
@@ -909,7 +921,8 @@ def api_list_examples():
     return jsonify(
         {
             "examples": [
-                {"slug": item["slug"], "title": item["title"], "description": item["description"], "kind": item["kind"]}
+                {"slug": item["slug"], "title": item["title"], "description": item["description"], "kind": item["kind"],
+                 **({"language": item["language"]} if "language" in item else {})}
                 for item in example_catalog()
             ]
         }
@@ -932,8 +945,17 @@ def api_starter(kind: str):
 def api_import_example(slug: str):
     for item in example_catalog():
         if item["slug"] == slug:
-            quota(adding_bytes=_size(item["project"]), adding_projects=1)
-            return jsonify(public("projects", create_resource("projects", owned(item["project"])))), 201
+            art = {key: item.get(key) or [] for key in ("sprites", "assets")}
+            quota(adding_bytes=_size(item["project"]) + _size(art), adding_projects=1)
+            project = create_resource("projects", owned(item["project"]))
+            # An example with art (docs/project_art.md) brings its sprites, backgrounds and sound.
+            for sprite in art["sprites"]:
+                create_resource("sprites", owned(checked_payload("sprites", {**sprite, "project_id": project["id"]})))
+            for asset in art["assets"]:
+                create_resource("assets", owned(checked_payload("assets", {**asset, "project_id": project["id"]})))
+            if item.get("audio_studio"):
+                audio_studio_api._save(project, item["audio_studio"], 0)
+            return jsonify(public("projects", get_resource("projects", project["id"]))), 201
     return json_error(say("api", "Example not found"), 404)
 
 
@@ -956,8 +978,8 @@ def _generate_project(project_id: str) -> tuple[dict[str, Any] | None, dict[str,
         return None, None, None, json_error(say("api", "Project not found"), 404)
     if not can_write(project):
         return project, None, None, json_error(say("api", "This is a shared classroom project: make your own copy to build it"), 403)
-    # Its AudioStudio document: sound-effect and soundtrack blocks become fixed numbers from it.
-    project = {**project, "audio_studio": audio_studio_api.document_of(project_id)[0]}
+    # Its AudioStudio document and its art: sound and picture names become numbers and code.
+    project = with_media(project)
     game_ir, c_source, message = generate_sources(project)
     if message is not None:
         return project, None, None, json_error(message)
@@ -975,7 +997,8 @@ def generate_sources(project: dict[str, Any]) -> tuple[dict[str, Any] | None, st
     """Validated game IR and C for a project (stored or a guest's): (game_ir, c_source, refusal).
 
     Pure: it reads nothing and stores nothing, so the guest workspace uses it too (guest_api.py).
-    ``project["audio_studio"]`` is the project's AudioStudio document, or None.
+    ``project["audio_studio"]`` is the project's AudioStudio document, or None, and
+    ``project["assets"]`` its art (project_assets.catalog), or None.
     """
     saved = project.get("game_json") or {}
     if isinstance(saved, dict) and saved.get("source_mode") == "c":
@@ -983,22 +1006,24 @@ def generate_sources(project: dict[str, Any]) -> tuple[dict[str, Any] | None, st
         try:
             prefix = validate_c_source(source, project.get("title") or "")
             required_features = validate_features(saved.get("required_features", []))
+            art = project_assets.check_include(source, "c")
         except ValueError as exc:
             return None, None, messages.of(exc) or str(exc)
-        return {"abi": "prg32-construction-kit-c-1.0", "entry_prefix": prefix,
-                "source_mode": "c", "source_c": source,
-                "required_features": required_features, "warnings": []}, source, None
+        return _code_ir({"abi": "prg32-construction-kit-c-1.0", "entry_prefix": prefix,
+                         "source_mode": "c", "source_c": source,
+                         "required_features": required_features, "warnings": []}, project, art), source, None
     if isinstance(saved, dict) and saved.get("source_mode") == "asm":
         # Handwritten assembly: checked (docs/adr/0004-handwritten-assembly-mode.md), then built as written.
         source = saved.get("source_asm", "")
         try:
             prefix = validate_asm_source(source, project.get("title") or "")
             required_features = validate_features(saved.get("required_features", []))
+            art = project_assets.check_include(source, "asm")
         except ValueError as exc:
             return None, None, messages.of(exc) or str(exc)
-        return {"abi": "prg32-construction-kit-asm-1.0", "entry_prefix": prefix,
-                "source_mode": "asm", "source_asm": source,
-                "required_features": required_features, "warnings": []}, "", None
+        return _code_ir({"abi": "prg32-construction-kit-asm-1.0", "entry_prefix": prefix,
+                         "source_mode": "asm", "source_asm": source,
+                         "required_features": required_features, "warnings": []}, project, art), "", None
     if isinstance(saved, dict) and saved.get("source_mode") == "python":
         # PRG32 Python (ADR-0026): parsed and checked, never run, then the same IR as the Blocks.
         try:
@@ -1011,6 +1036,16 @@ def generate_sources(project: dict[str, Any]) -> tuple[dict[str, Any] | None, st
     except Exception as exc:
         return None, None, f"Conversion failed: {exc}"
     return game_ir, c_source, None
+
+
+def _code_ir(game_ir: dict[str, Any], project: dict[str, Any], art: bool) -> dict[str, Any]:
+    """A C or assembly project's IR; with #include "prg32_assets.h"/".S" it also carries the
+    project's art (written in place of that line when the game is built) and the features it needs."""
+    if not art:
+        return game_ir
+    assets = project.get("assets") or project_assets.catalog([], [], project.get("audio_studio"), project.get("title"))
+    features = sorted(set(game_ir["required_features"]) | project_assets.features(assets))
+    return {**game_ir, "assets": assets, "required_features": features}
 
 
 def _changed_elsewhere(project: dict[str, Any], payload: dict[str, Any]) -> bool:
@@ -1065,10 +1100,13 @@ def _generated_sources(language: str, game_ir: dict[str, Any], c_source: str) ->
     """The source files for one request, C first: {"c": ..., "asm": ...}."""
     sources: dict[str, str] = {}
     if language in ("c", "both"):
-        sources["c"] = c_source
+        # A C project's #include "prg32_assets.h" line becomes the project's art, on that line.
+        sources["c"] = project_assets.expand_c(c_source, game_ir.get("assets")) \
+            if game_ir.get("source_mode") == "c" else c_source
     if language in ("asm", "both"):
         handwritten = game_ir.get("source_mode") == "asm"
-        sources["asm"] = game_ir["source_asm"] if handwritten else ir_to_asm(game_ir)
+        sources["asm"] = project_assets.expand_asm(game_ir["source_asm"], game_ir.get("assets")) if handwritten \
+            else ir_to_asm(game_ir)
     return sources
 
 
@@ -1184,7 +1222,7 @@ def api_run_project(project_id: str):
     project = readable("projects", project_id)
     if project is None:
         return json_error(say("api", "Project not found"), 404)
-    project = {**project, "audio_studio": audio_studio_api.document_of(project_id)[0]}
+    project = with_media(project)
     try:
         audio = audio_studio_api.project_audio(project)
         return jsonify(run_build.run(project, audio))
@@ -1474,6 +1512,16 @@ def _sha256_text(text: str) -> str:
     import hashlib
 
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
+@bp.get("/api/projects/<project_id>/art")
+def api_project_art(project_id: str):
+    """The project's art as code (project_assets.py): its catalog, the read-only prg32_assets.h and
+    prg32_assets.S, and the line that uses each sprite, background and sound in every language."""
+    project = readable("projects", project_id)
+    if project is None:
+        return json_error(say("api", "Project not found"), 404)
+    return jsonify(project_assets.public(with_media(project)["assets"]))
 
 
 @bp.post("/api/assets/<asset_id>/convert")

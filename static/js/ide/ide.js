@@ -112,6 +112,11 @@
       { id: 'sound-effects', label: tr('js.ide.sound_effects', 'Sound effects'), icon: 'bi-music-note' },
       { id: 'sound-tracks', label: tr('js.ide.soundtracks', 'Soundtracks'), icon: 'bi-music-note-list' },
       { id: 'sound-samples', label: tr('js.ide.samples', 'Samples'), icon: 'bi-mic' }] });
+    // A C or assembly game reaches its art with #include "prg32_assets.h" / ".S" (docs/project_art.md).
+    if (mode === 'c' || mode === 'asm') {
+      items.push({ id: 'folder-art', label: tr('js.ide.project_art_read_only', 'Project art (read-only)'), children: [
+        { id: 'art-file', label: mode === 'c' ? 'prg32_assets.h' : 'prg32_assets.S', icon: 'bi-file-earmark-lock', readonly: true }] });
+    }
     items.push({ id: 'folder-backgrounds', label: tr('backgrounds.backgrounds', 'Backgrounds'), children: backgroundList
       .map(item => ({ id: 'background-' + item.id, label: item.name, icon: 'bi-grid-3x3' }))
       .concat([{ id: 'background-new', label: tr('js.ide.new_background', 'New background…'), icon: 'bi-plus-circle' }]) });
@@ -122,6 +127,7 @@
     if (id === 'blocks') return openBlocks(true);
     if (id === 'src') return openSource(true);
     if (id === 'gen-c' || id === 'gen-asm' || id === 'gen-py' || id === 'gen-ir') return openGenerated(id.slice(4), true);
+    if (id === 'art-file') return openArtFile(true);
     if (id === 'sprite-new') { openTool('sprites'); return PRG32SpriteLab.create(); }
     if (id.startsWith('sprite-')) { openTool('sprites'); return PRG32SpriteLab.open(id.slice(7)); }
     if (id.startsWith('sound-')) return openTool('sound', id.slice(6));
@@ -226,6 +232,37 @@
     if (generated[kind] === null) generate();
   }
 
+  // prg32_assets.h / .S: what the include line becomes when the game is built (project_assets.py).
+  function artText() {
+    if (!artInfo) return '/* Loading… */';
+    return mode === 'asm' ? artInfo.asm_include : artInfo.c_header;
+  }
+  function openArtFile(focus) {
+    const file = mode === 'asm' ? 'prg32_assets.S' : 'prg32_assets.h';
+    if (IdeShell.tabs.has('art-file') && editors['art-file']) IdeShell.activateTab('art-file');
+    else {
+      monacoTab('art-file', file, mode === 'asm' ? 'prg32-asm' : 'c', artText(), {
+        readOnly: true, closable: true, ariaLabel: file + tr('js.ide.read_only', ', read-only'), download: file,
+        note: tr('js.ide.read_only_your_project_art', 'Read-only: your sprites, backgrounds and sounds as code. Write #include "{file}" in your game to use them.', { file }) });
+    }
+    if (focus) editors['art-file'].focus();
+  }
+
+  // The project's art (GET /api/projects/<id>/art): names for the blocks, pictures for the
+  // simulator, the read-only include file, and the "Use it in your game" lines of the tools.
+  let artInfo = null;
+  function loadArt() {
+    return Kit.api(api + '/art').then(info => {
+      artInfo = info;
+      PRG32Blocks.setArtNames({ sprites: info.catalog.sprites.map(entry => entry.title),
+                                backgrounds: info.catalog.backgrounds.map(entry => entry.title) });
+      PRG32Simulator.setArt(info.catalog);
+      if (editors['art-file']) editors['art-file'].setValue(artText());
+      $(document).trigger('prg32:art', [info]);
+      refreshPreview();
+    }).catch(() => { /* the art is shown again after the next change */ });
+  }
+
   function updateGenerated() {
     for (const kind of ['c', 'asm', 'py', 'ir']) {
       const editor = editors['gen-' + kind];
@@ -298,10 +335,12 @@
   $(document).on('prg32:sprites-changed', () => {
     Kit.api('/api/sprites?project_id=' + encodeURIComponent(projectId))
       .then(data => { spriteList = data.sprites || []; renderTree(spriteList); }).catch(() => {});
+    loadArt();
   });
-  $(document).on('prg32:audio-saved', () => { loadAudio(); });
+  $(document).on('prg32:audio-saved', () => { loadAudio(); loadArt(); });
   $(document).on('prg32:backgrounds-changed', () => {
     PRG32Backgrounds.list().then(items => { backgroundList = items; renderTree(spriteList); }).catch(() => {});
+    loadArt();
   });
 
   // --- preview (Blocks) -------------------------------------------------------------------------
@@ -827,7 +866,7 @@
   }
 
   Promise.all([Kit.api(api), Kit.api('/api/sprites?project_id=' + encodeURIComponent(projectId)), PRG32Monaco.load(),
-               loadAudio(), PRG32Backgrounds.list().catch(() => [])])
+               loadAudio(), PRG32Backgrounds.list().catch(() => []), loadArt()])
     .then(([data, sprites, loadedMonaco, _audio, backgrounds]) => {
       backgroundList = backgrounds || [];
       project = data;
@@ -850,5 +889,5 @@
   window.PRG32Ide = { save, generate, compile, run, restart, log, editors, openSdkHeader, get mode() { return mode; },
     get version() { return project && project.version; }, get autosavePaused() { return autosavePaused; },
     get dirty() { return dirty; }, get problems() { return $('#ideProblems').data('problems') || []; },
-    get serverProblems() { return serverProblems; } };
+    get serverProblems() { return serverProblems; }, get art() { return artInfo; } };
 })();

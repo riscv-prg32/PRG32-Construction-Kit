@@ -123,36 +123,51 @@ window.PRG32Blocks = (function () {
     defineAudioStudioBlocks();
   }
 
-  // The names of this project's AudioStudio sound effects and soundtracks (the editor sets them).
-  let audioNames = { effects: [], soundtracks: [] };
+  // The names of this project's AudioStudio sound effects and soundtracks, Sprite Lab sprites and
+  // backgrounds (the editor sets them).
+  const projectNames = { effects: [], soundtracks: [], sprites: [], backgrounds: [] };
 
   function setAudioNames(names) {
-    audioNames = { effects: (names && names.effects) || [], soundtracks: (names && names.soundtracks) || [] };
+    projectNames.effects = (names && names.effects) || [];
+    projectNames.soundtracks = (names && names.soundtracks) || [];
   }
 
-  // A dropdown of AudioStudio names that keeps a saved name even when it is not (or not yet)
-  // in the list, so loading a project never changes what a block plays.
-  function audioNameField(kind) {
-    class AudioNameField extends Blockly.FieldDropdown {
+  // docs/project_art.md: the sprite and background blocks name a picture of this project.
+  function setArtNames(names) {
+    projectNames.sprites = (names && names.sprites) || [];
+    projectNames.backgrounds = (names && names.backgrounds) || [];
+  }
+
+  const EMPTY_NAMES = {
+    effects: () => tr('js.blockly_blocks.make_one_in_audiostudio', '(make one in AudioStudio)'),
+    soundtracks: () => tr('js.blockly_blocks.make_one_in_audiostudio', '(make one in AudioStudio)'),
+    sprites: () => tr('js.blockly_blocks.draw_one_in_sprite_lab', '(draw one in Sprite Lab)'),
+    backgrounds: () => tr('js.blockly_blocks.make_one_in_backgrounds', '(make one in Backgrounds)'),
+  };
+
+  // A dropdown of the project's names that keeps a saved name even when it is not (or not yet)
+  // in the list, so loading a project never changes what a block plays or draws.
+  function projectNameField(kind) {
+    class ProjectNameField extends Blockly.FieldDropdown {
       constructor() {
         super(function () {
-          const names = audioNames[kind].slice();
+          const names = projectNames[kind].slice();
           const current = this.getValue ? this.getValue() : '';
           if (current && !names.includes(current)) names.push(current);
-          return names.length ? names.map(name => [name, name]) : [[tr('js.blockly_blocks.make_one_in_audiostudio', '(make one in AudioStudio)'), '']];
+          return names.length ? names.map(name => [name, name]) : [[EMPTY_NAMES[kind](), '']];
         });
       }
       doClassValidation_(value) { return typeof value === 'string' ? value : null; }
-      getText_() { return this.getValue() || tr('js.blockly_blocks.make_one_in_audiostudio', '(make one in AudioStudio)'); }
+      getText_() { return this.getValue() || EMPTY_NAMES[kind](); }
     }
-    return new AudioNameField();
+    return new ProjectNameField();
   }
 
   function defineAudioStudioBlocks() {
     if (Blockly.Blocks.prg32_sound_effect) return;
     Blockly.Blocks.prg32_sound_effect = {
       init() {
-        this.appendDummyInput().appendField(tr('js.blockly_blocks.play_sound_effect', 'play sound effect')).appendField(audioNameField('effects'), 'EFFECT');
+        this.appendDummyInput().appendField(tr('js.blockly_blocks.play_sound_effect', 'play sound effect')).appendField(projectNameField('effects'), 'EFFECT');
         this.setPreviousStatement(true);
         this.setNextStatement(true);
         this.setColour(300);
@@ -161,11 +176,41 @@ window.PRG32Blocks = (function () {
     };
     Blockly.Blocks.prg32_soundtrack_play = {
       init() {
-        this.appendDummyInput().appendField(tr('js.blockly_blocks.play_soundtrack', 'play soundtrack')).appendField(audioNameField('soundtracks'), 'TRACK');
+        this.appendDummyInput().appendField(tr('js.blockly_blocks.play_soundtrack', 'play soundtrack')).appendField(projectNameField('soundtracks'), 'TRACK');
         this.setPreviousStatement(true);
         this.setNextStatement(true);
         this.setColour(300);
         this.setTooltip(tr('js.blockly_blocks.a_soundtrack_made_in_audiostudio_voice', 'A soundtrack made in AudioStudio: voice N plays instrument N.'));
+      }
+    };
+    // Sprite Lab and Backgrounds (docs/project_art.md): pictures made for this project.
+    Blockly.Blocks.prg32_draw_project_sprite = {
+      init() {
+        this.appendDummyInput().appendField(tr('js.blockly_blocks.draw_sprite', 'draw sprite')).appendField(projectNameField('sprites'), 'SPRITE')
+          .appendField('x').appendField(new Blockly.FieldTextInput('10'), 'X')
+          .appendField('y').appendField(new Blockly.FieldTextInput('20'), 'Y');
+        this.setPreviousStatement(true);
+        this.setNextStatement(true);
+        this.setColour(330);
+        this.setTooltip(tr('js.blockly_blocks.a_sprite_drawn_in_sprite_lab', 'A sprite drawn in Sprite Lab, with its top-left corner at x, y. See-through pixels are not drawn.'));
+      }
+    };
+    Blockly.Blocks.prg32_background_load = {
+      init() {
+        this.appendDummyInput().appendField(tr('js.blockly_blocks.load_background', 'load background')).appendField(projectNameField('backgrounds'), 'BACKGROUND');
+        this.setPreviousStatement(true);
+        this.setNextStatement(true);
+        this.setColour(330);
+        this.setTooltip(tr('js.blockly_blocks.load_background_tooltip', 'Defines the tiles of a background made in Backgrounds and puts its map in the playfield. Use it once, when the game starts.'));
+      }
+    };
+    Blockly.Blocks.prg32_background_draw = {
+      init() {
+        this.appendDummyInput().appendField(tr('js.blockly_blocks.draw_background', 'draw background')).appendField(projectNameField('backgrounds'), 'BACKGROUND');
+        this.setPreviousStatement(true);
+        this.setNextStatement(true);
+        this.setColour(330);
+        this.setTooltip(tr('js.blockly_blocks.draw_background_tooltip', 'Draws the background\'s playfield: layer 0, then layer 1 in front of it.'));
       }
     };
   }
@@ -218,6 +263,9 @@ window.PRG32Blocks = (function () {
       <block type="prg32_draw_bitmap"></block>
     </category>
     <category name="${xml(tr('js.blockly_blocks.category_sprites_tiles', 'Sprites & Tiles'))}" colour="330">
+      <block type="prg32_draw_project_sprite"></block>
+      <block type="prg32_background_load"></block>
+      <block type="prg32_background_draw"></block>
       <block type="prg32_draw_sprite8"></block>
       <block type="prg32_tile_define"></block>
       <block type="prg32_playfield_clear"></block>
@@ -285,5 +333,5 @@ window.PRG32Blocks = (function () {
 
   function getWorkspace() { return workspace; }
 
-  return { init, save, load, getWorkspace, defineBlocks, setAudioNames };
+  return { init, save, load, getWorkspace, defineBlocks, setAudioNames, setArtNames };
 })();

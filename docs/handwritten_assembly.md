@@ -64,7 +64,18 @@ The file goes through the C preprocessor before the assembler, so:
 | Options | `.option norelax` (and other `.option` settings) |
 | Instructions | every RV32IMC instruction the assembler knows |
 
-**Not allowed:** `#include`, `.include`, `.incbin` and anything else that
+**The project's art:** one line is allowed, exactly as written here and on a line of its own:
+
+```text
+#include "prg32_assets.S"
+```
+
+It names no file: the kit writes the project's sprites, backgrounds and sounds in its place, on
+that same line (labels such as `rocket_draw`, `sky_load`, `sfx_coin`, constants such as
+`ROCKET_WIDTH` and `TRACK_THEME`). Read what it gives you in the IDE under **Project art**
+(`prg32_assets.S`, read-only) and in [project_art.md](project_art.md).
+
+**Not allowed:** any other `#include`, `.include`, `.incbin` and anything else that
 could read a file on the server, macros (`.macro`, `.rept`, `.irp`,
 `#define` with arguments), and other sections. The words `include` and
 `incbin` are refused anywhere in your code (but are fine inside strings and

@@ -121,6 +121,10 @@ capability IDs.
   same engine; one versioned asset per project; named blocks become fixed
   numbers in the generated C and assembly; the audio block is packed
   deterministically into the cartridge build. [AUD-03]
+- Project art in code (ADR-0029): Sprite Lab sprites, Backgrounds and AudioStudio sounds used by
+  name from Blocks, PRG32 Python, C and assembly; C and assembly through `#include
+  "prg32_assets.h"`/`".S"`, written on that same line at build time; Star Catcher in all four
+  languages draws identical frames in `prg32qt-headless`. [ART-01]
 - Player debugger: pause, continue, restart, speeds, instruction/over/out
   stepping, address breakpoints, browser state equal to PRG32-QT's. [DBG-01] [DBG-02] [DBG-03] [DBG-06]
 - Source and block debugging for kit-compiled cartridges (ADR-0015): a saved

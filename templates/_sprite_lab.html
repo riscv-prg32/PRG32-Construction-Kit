@@ -72,6 +72,16 @@
       </div>
       <div class="kit-tool-heading">{{ t("sprite_lab.generated_c") }}</div>
       <pre class="code-panel small mb-0" tabindex="0"><code id="spriteC">Press Convert to C.</code></pre>
+      <div class="kit-tool-heading mt-3" id="artUsageSpritesLabel">{{ t("art_usage.use_it_in_your_game") }}</div>
+      <div data-art-usage="sprites" data-name-input="#spriteName">
+        <select class="form-select form-select-sm mb-1 art-usage-language" aria-labelledby="artUsageSpritesLabel">
+          <option value="blocks">{{ t("art_usage.blocks") }}</option>
+          <option value="python">{{ t("art_usage.python") }}</option>
+          <option value="c">C</option>
+          <option value="asm">{{ t("art_usage.assembly") }}</option>
+        </select>
+        <pre class="code-panel small mb-0" tabindex="0"><code class="art-usage-code">{{ t("art_usage.loading") }}</code></pre>
+      </div>
     </aside>
   </div>
 </section>

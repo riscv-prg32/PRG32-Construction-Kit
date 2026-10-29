@@ -61,6 +61,21 @@ AudioStudio shows the exact lines, and the generated C and assembly say which so
 number is. If a block names a sound that is not in AudioStudio (it was renamed or deleted),
 the code generator warns you and leaves the block out; it never guesses another sound.
 
+## In PRG32 Python, C and assembly
+
+PRG32 Python names the sounds like the blocks: `prg32.sound_effect("Jump")`,
+`prg32.soundtrack_play("Theme")`. A C game that writes `#include "prg32_assets.h"` gets one
+function per sound effect and one number per soundtrack (an assembly game the same with
+`#include "prg32_assets.S"`):
+
+```c
+sfx_jump();                              /* play the sound effect Jump */
+prg32_audio_play_track(TRACK_THEME);     /* start the soundtrack Theme */
+```
+
+**Use it in your game**, under **What the code says**, lists these lines for every sound, in
+Blocks, PRG32 Python, C or assembly ([project_art.md](project_art.md)).
+
 ## For teachers
 
 - One AudioStudio document per project, saved as the project's asset of kind

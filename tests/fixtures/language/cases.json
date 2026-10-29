@@ -11,6 +11,13 @@
     },
     {
      "detail": "header",
+     "documentation": "your project's sprites, backgrounds and sounds as C",
+     "insertText": "prg32_assets.h\"",
+     "kind": "file",
+     "label": "prg32_assets.h"
+    },
+    {
+     "detail": "header",
      "documentation": "PRG32 SDK header",
      "insertText": "prg32_audio.h\"",
      "kind": "file",
@@ -1078,7 +1085,7 @@
     "column": 11,
     "endColumn": 18,
     "endLine": 2,
-    "explanation": "A PRG32 cartridge can include only prg32.h, prg32_audio.h, stdint.h, stddef.h and stdbool.h. Other headers would need a C library or files on the server.",
+    "explanation": "A PRG32 cartridge can include only prg32.h, prg32_audio.h, prg32_assets.h (your project's art), stdint.h, stddef.h and stdbool.h. Other headers would need a C library or files on the server.",
     "line": 2,
     "message": "The header stdio.h is not available in a PRG32 cartridge",
     "severity": "error"
@@ -1159,7 +1166,7 @@
     "column": 14,
     "endColumn": 25,
     "endLine": 2,
-    "explanation": "A PRG32 cartridge can include only prg32.h, prg32_audio.h, stdint.h, stddef.h and stdbool.h. Other headers would need a C library or files on the server.",
+    "explanation": "A PRG32 cartridge can include only prg32.h, prg32_audio.h, prg32_assets.h (your project's art), stdint.h, stddef.h and stdbool.h. Other headers would need a C library or files on the server.",
     "line": 2,
     "message": "The header /etc/passwd is not available in a PRG32 cartridge",
     "severity": "error"

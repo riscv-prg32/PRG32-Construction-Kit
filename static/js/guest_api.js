@@ -107,11 +107,26 @@ window.PRG32GuestApi = (function () {
   function duplicate(id, body) {
     return store.get(id).then(row => {
       if (!row) return notFound();
-      const copy = Object.assign(pick(row, PROJECT_FIELDS), { audio: row.audio, title: (body && body.title) || row.title + ' (copy)' });
+      const copy = Object.assign(pick(row, PROJECT_FIELDS), { audio: row.audio, backgrounds: row.backgrounds || [],
+        title: (body && body.title) || row.title + ' (copy)' });
       return store.save(copy).then(created => store.listSprites(id)
         .then(sprites => Promise.all(sprites.map(sprite => store.saveSprite(Object.assign({}, sprite, { id: undefined, project_id: created.id })))))
         .then(() => project(created)));
     });
+  }
+
+  // The game's art (docs/project_art.md): its sprites and backgrounds, sent with every request
+  // that turns the game into code, so sprite and background blocks find their pictures.
+  function withArt(row, body) {
+    return store.listSprites(row.id).then(sprites => Object.assign(body, {
+      sprites: sprites.map(sprite => pick(sprite, ['id', 'name', 'width', 'height', 'pixels', 'palette'])),
+      backgrounds: (row.backgrounds || []).map(item => pick(item, ['id', 'name', 'data'])),
+    }));
+  }
+
+  function art(id) {
+    return store.get(id).then(row => row ? withArt(row, { title: row.title, audio_studio: row.audio ? row.audio.document : null })
+      .then(body => server('/api/guest/art', body)) : notFound());
   }
 
   // One way: the server writes the Blocks game as code (and keeps nothing); it is stored here.
@@ -120,8 +135,9 @@ window.PRG32GuestApi = (function () {
       if (!row) return notFound();
       if (projectType(row.game_json) !== 'blocks') return typeLocked(row);
       const language = body && body.language;
-      return server('/api/guest/convert_to', { project: pick(row, ['title', 'blocks_json']), language,
+      return withArt(row, { project: pick(row, ['title', 'blocks_json']), language,
         audio_studio: row.audio ? row.audio.document : null })
+        .then(request => server('/api/guest/convert_to', request))
         .then(answer => store.save({ id, game_json: answer.game_json })).then(project);
     });
   }
@@ -129,11 +145,11 @@ window.PRG32GuestApi = (function () {
   function convert(id, body) {
     return store.get(id).then(row => {
       if (!row) return notFound();
-      return server('/api/guest/convert', {
+      return withArt(row, {
         project: pick(row, ['title', 'blocks_json', 'game_json']),
         audio_studio: row.audio ? row.audio.document : null,
         source_language: (body && body.source_language) || 'c',
-      }).then(result => {
+      }).then(request => server('/api/guest/convert', request)).then(result => {
         const kept = { id: 'in this browser', name: tr('js.guest_api.not_saved_on_the_server', 'not saved on the server') };
         return Object.assign({ project: project(row), artifact: kept, artifacts: [kept], asm_artifact: kept }, result);
       });
@@ -142,10 +158,10 @@ window.PRG32GuestApi = (function () {
 
   // Run: the server builds the game for the simulator and keeps nothing (/api/guest/run).
   function runGame(id) {
-    return store.get(id).then(row => row ? server('/api/guest/run', {
+    return store.get(id).then(row => row ? withArt(row, {
       project: pick(row, ['title', 'blocks_json', 'game_json']),
       audio_studio: row.audio ? row.audio.document : null,
-    }).then(answer => {
+    }).then(request => server('/api/guest/run', request)).then(answer => {
       if (answer.debug && answer.debug.cartridge) answer.debug.cartridge.project_id = id;   // breakpoints per game
       return answer;
     }) : notFound());
@@ -160,9 +176,18 @@ window.PRG32GuestApi = (function () {
     return file.text().then(text => store.save(store.importText(text))).then(project);
   }
 
+  // An example comes with its art and sound (sprites, backgrounds, an AudioStudio document).
   function importExample(slug) {
-    return server('/api/guest/examples/' + encodeURIComponent(slug))
-      .then(data => store.save(pick(data.project, PROJECT_FIELDS))).then(project);
+    return server('/api/guest/examples/' + encodeURIComponent(slug)).then(data => {
+      const now = new Date().toISOString();
+      const backgrounds = (data.assets || []).filter(item => item.kind === 'background').map(item => ({
+        id: 'guest-bg-' + Math.random().toString(36).slice(2, 10), name: item.name, data: item.data, version: 1,
+        created_at: now, updated_at: now }));
+      const row = Object.assign(pick(data.project, PROJECT_FIELDS), { backgrounds },
+        data.audio_studio ? { audio: { document: data.audio_studio, version: 1 } } : {});
+      return store.save(row).then(created => Promise.all((data.sprites || []).map(sprite =>
+        store.saveSprite(Object.assign(pick(sprite, SPRITE_FIELDS), { project_id: created.id })))).then(() => created));
+    }).then(project);
   }
 
   // --- sound (AudioStudio) -------------------------------------------------------------------
@@ -282,6 +307,7 @@ window.PRG32GuestApi = (function () {
     ['POST', new RegExp('^/api/projects/' + ID + '/check$'), () => Promise.resolve({ available: false, guest: true })],
     ['POST', new RegExp('^/api/projects/' + ID + '/package$'), () => needsAccount(tr('js.guest_api.making_a_cartridge_to_download', 'Making a cartridge to download'))],
     ['POST', new RegExp('^/api/projects/' + ID + '/run$'), m => runGame(m[1])],
+    ['GET', new RegExp('^/api/projects/' + ID + '/art$'), m => art(m[1])],
     ['GET', new RegExp('^/api/projects/' + ID + '/revisions$'), () => Promise.resolve({ revisions: [] })],
     ['GET', new RegExp('^/api/projects/' + ID + '/audio$'), m => getAudio(m[1])],
     ['PUT', new RegExp('^/api/projects/' + ID + '/audio$'), (m, q, body) => putAudio(m[1], body || {})],
