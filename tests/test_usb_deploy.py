@@ -1,11 +1,15 @@
 """The browser-to-USB cartridge path writes one slot, never the firmware."""
 
+import os
 from pathlib import Path
+
+import pytest
 
 
 ROOT = Path(__file__).resolve().parent.parent
 SCRIPT = (ROOT / "static/js/usb_deploy.js").read_text(encoding="utf-8")
 PROTOCOL = (ROOT / "static/js/prg32_usb_protocol.js").read_text(encoding="utf-8")
+SDK = Path(os.environ.get("PRG32_SOURCE") or ROOT.parent / "PRG32")
 
 
 def test_usb_deploy_uses_the_eight_canonical_cartridge_slots_only():
@@ -13,7 +17,10 @@ def test_usb_deploy_uses_the_eight_canonical_cartridge_slots_only():
         "cart0": "0x210000", "cart1": "0x230000", "cart2": "0x250000", "cart3": "0x270000",
         "cart4": "0x290000", "cart5": "0x2b0000", "cart6": "0x2d0000", "cart7": "0x2f0000",
     }
-    partitions = (ROOT.parent / "PRG32/profiles/partitions_prg32.csv").read_text(encoding="utf-8")
+    table = SDK / "profiles" / "partitions_prg32.csv"
+    if not table.is_file():
+        pytest.skip("needs a PRG32 SDK checkout with profiles/partitions_prg32.csv")
+    partitions = table.read_text(encoding="utf-8")
     for slot, offset in expected.items():
         assert f"{slot}," in partitions and offset in partitions
         assert f"'{slot}'" in PROTOCOL
