@@ -23,7 +23,6 @@ from __future__ import annotations
 import os
 import smtplib
 import threading
-import time
 from datetime import datetime, timedelta, timezone
 from email.message import EmailMessage
 from pathlib import Path

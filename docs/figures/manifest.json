@@ -771,7 +771,7 @@
    "captured": "2026-10-29",
    "kind": "screenshot",
    "locale": "en-US",
-   "product_commit": "43f810b9a9f232725b6aaffaa5b9bca6937fe5fa",
+   "product_commit": "ea895044e9b16fd148b95f150f73323af15f8efd",
    "purpose": "The IDE with the Pong project: project tree, Blocks editor, generated C, Problems and Run panels",
    "recipe": "python3 tools/capture_visuals.py ide-hero",
    "review_note": "the menu bar on one row; the interface, block categories and blocks in en-US",
@@ -842,7 +842,7 @@
    "captured": "2026-10-29",
    "kind": "screenshot",
    "locale": "en-US",
-   "product_commit": "43f810b9a9f232725b6aaffaa5b9bca6937fe5fa",
+   "product_commit": "ea895044e9b16fd148b95f150f73323af15f8efd",
    "purpose": "The Asteroids project in the IDE: its blocks, and the game running in the simulator",
    "recipe": "python3 tools/capture_visuals.py asteroids-editor",
    "review_note": "the menu bar on one row; the game runs",
@@ -895,6 +895,12 @@
    ]
   },
   "docs/figures/games/asteroids-simulator.png": {
+   "acknowledged": {
+    "commit": "ea895044e9b16fd148b95f150f73323af15f8efd",
+    "date": "2026-10-29",
+    "note": "simulator.js gained project art by name (ART-01); re-rendered with the same recipe: identical pixels",
+    "reviewer": "kit maintainers (AI-assisted review: Claude)"
+   },
    "browser": "n/a",
    "captured": "2026-10-21",
    "kind": "runtime frame",
@@ -914,6 +920,12 @@
    ]
   },
   "docs/figures/games/asteroids-title.png": {
+   "acknowledged": {
+    "commit": "ea895044e9b16fd148b95f150f73323af15f8efd",
+    "date": "2026-10-29",
+    "note": "simulator.js gained project art by name (ART-01); re-rendered with the same recipe: identical pixels",
+    "reviewer": "kit maintainers (AI-assisted review: Claude)"
+   },
    "browser": "n/a",
    "captured": "2026-10-21",
    "kind": "runtime frame",
@@ -973,7 +985,7 @@
    "captured": "2026-10-29",
    "kind": "screenshot",
    "locale": "en-US",
-   "product_commit": "43f810b9a9f232725b6aaffaa5b9bca6937fe5fa",
+   "product_commit": "ea895044e9b16fd148b95f150f73323af15f8efd",
    "purpose": "The Breakout project in the IDE: its blocks, and the game running in the simulator",
    "recipe": "python3 tools/capture_visuals.py breakout-editor",
    "review_note": "the menu bar on one row; the game runs",
@@ -1026,6 +1038,12 @@
    ]
   },
   "docs/figures/games/breakout-simulator.png": {
+   "acknowledged": {
+    "commit": "ea895044e9b16fd148b95f150f73323af15f8efd",
+    "date": "2026-10-29",
+    "note": "simulator.js gained project art by name (ART-01); re-rendered with the same recipe: identical pixels",
+    "reviewer": "kit maintainers (AI-assisted review: Claude)"
+   },
    "browser": "n/a",
    "captured": "2026-10-21",
    "kind": "runtime frame",
@@ -1045,6 +1063,12 @@
    ]
   },
   "docs/figures/games/breakout-title.png": {
+   "acknowledged": {
+    "commit": "ea895044e9b16fd148b95f150f73323af15f8efd",
+    "date": "2026-10-29",
+    "note": "simulator.js gained project art by name (ART-01); re-rendered with the same recipe: identical pixels",
+    "reviewer": "kit maintainers (AI-assisted review: Claude)"
+   },
    "browser": "n/a",
    "captured": "2026-10-21",
    "kind": "runtime frame",
@@ -1137,6 +1161,12 @@
    ]
   },
   "docs/figures/games/feature_tour-simulator.png": {
+   "acknowledged": {
+    "commit": "ea895044e9b16fd148b95f150f73323af15f8efd",
+    "date": "2026-10-29",
+    "note": "simulator.js gained project art by name (ART-01); re-rendered with the same recipe: identical pixels",
+    "reviewer": "kit maintainers (AI-assisted review: Claude)"
+   },
    "browser": "n/a",
    "captured": "2026-10-21",
    "kind": "runtime frame",
@@ -1196,7 +1226,7 @@
    "captured": "2026-10-29",
    "kind": "screenshot",
    "locale": "en-US",
-   "product_commit": "43f810b9a9f232725b6aaffaa5b9bca6937fe5fa",
+   "product_commit": "ea895044e9b16fd148b95f150f73323af15f8efd",
    "purpose": "The Pong project in the IDE: its blocks, and the game running in the simulator",
    "recipe": "python3 tools/capture_visuals.py pong-editor",
    "review_note": "the menu bar on one row; the game runs",
@@ -1249,6 +1279,12 @@
    ]
   },
   "docs/figures/games/pong-simulator.png": {
+   "acknowledged": {
+    "commit": "ea895044e9b16fd148b95f150f73323af15f8efd",
+    "date": "2026-10-29",
+    "note": "simulator.js gained project art by name (ART-01); re-rendered with the same recipe: identical pixels",
+    "reviewer": "kit maintainers (AI-assisted review: Claude)"
+   },
    "browser": "n/a",
    "captured": "2026-10-21",
    "kind": "runtime frame",
@@ -1268,6 +1304,12 @@
    ]
   },
   "docs/figures/games/pong-title.png": {
+   "acknowledged": {
+    "commit": "ea895044e9b16fd148b95f150f73323af15f8efd",
+    "date": "2026-10-29",
+    "note": "simulator.js gained project art by name (ART-01); re-rendered with the same recipe: identical pixels",
+    "reviewer": "kit maintainers (AI-assisted review: Claude)"
+   },
    "browser": "n/a",
    "captured": "2026-10-21",
    "kind": "runtime frame",
@@ -1327,7 +1369,7 @@
    "captured": "2026-10-29",
    "kind": "screenshot",
    "locale": "en-US",
-   "product_commit": "43f810b9a9f232725b6aaffaa5b9bca6937fe5fa",
+   "product_commit": "ea895044e9b16fd148b95f150f73323af15f8efd",
    "purpose": "The Snake project in the IDE: its blocks, and the game running in the simulator",
    "recipe": "python3 tools/capture_visuals.py snake-editor",
    "review_note": "the menu bar on one row; the game runs",
@@ -1380,6 +1422,12 @@
    ]
   },
   "docs/figures/games/snake-simulator.png": {
+   "acknowledged": {
+    "commit": "ea895044e9b16fd148b95f150f73323af15f8efd",
+    "date": "2026-10-29",
+    "note": "simulator.js gained project art by name (ART-01); re-rendered with the same recipe: identical pixels",
+    "reviewer": "kit maintainers (AI-assisted review: Claude)"
+   },
    "browser": "n/a",
    "captured": "2026-10-21",
    "kind": "runtime frame",
@@ -1399,6 +1447,12 @@
    ]
   },
   "docs/figures/games/snake-title.png": {
+   "acknowledged": {
+    "commit": "ea895044e9b16fd148b95f150f73323af15f8efd",
+    "date": "2026-10-29",
+    "note": "simulator.js gained project art by name (ART-01); re-rendered with the same recipe: identical pixels",
+    "reviewer": "kit maintainers (AI-assisted review: Claude)"
+   },
    "browser": "n/a",
    "captured": "2026-10-21",
    "kind": "runtime frame",
@@ -1458,7 +1512,7 @@
    "captured": "2026-10-29",
    "kind": "screenshot",
    "locale": "en-US",
-   "product_commit": "43f810b9a9f232725b6aaffaa5b9bca6937fe5fa",
+   "product_commit": "ea895044e9b16fd148b95f150f73323af15f8efd",
    "purpose": "The Space Invaders project in the IDE: its blocks, and the game running in the simulator",
    "recipe": "python3 tools/capture_visuals.py space_invaders-editor",
    "review_note": "the menu bar on one row; the game runs",
@@ -1511,6 +1565,12 @@
    ]
   },
   "docs/figures/games/space_invaders-simulator.png": {
+   "acknowledged": {
+    "commit": "ea895044e9b16fd148b95f150f73323af15f8efd",
+    "date": "2026-10-29",
+    "note": "simulator.js gained project art by name (ART-01); re-rendered with the same recipe: identical pixels",
+    "reviewer": "kit maintainers (AI-assisted review: Claude)"
+   },
    "browser": "n/a",
    "captured": "2026-10-21",
    "kind": "runtime frame",
@@ -1530,6 +1590,12 @@
    ]
   },
   "docs/figures/games/space_invaders-title.png": {
+   "acknowledged": {
+    "commit": "ea895044e9b16fd148b95f150f73323af15f8efd",
+    "date": "2026-10-29",
+    "note": "simulator.js gained project art by name (ART-01); re-rendered with the same recipe: identical pixels",
+    "reviewer": "kit maintainers (AI-assisted review: Claude)"
+   },
    "browser": "n/a",
    "captured": "2026-10-21",
    "kind": "runtime frame",
@@ -1553,7 +1619,7 @@
    "captured": "2026-10-29",
    "kind": "screenshot",
    "locale": "de-DE",
-   "product_commit": "43f810b9a9f232725b6aaffaa5b9bca6937fe5fa",
+   "product_commit": "ea895044e9b16fd148b95f150f73323af15f8efd",
    "purpose": "The IDE with the Pong project, the interface in de",
    "recipe": "python3 tools/capture_visuals.py ide-de",
    "review_note": "the menu bar on one row; the interface, block categories and blocks in de-DE",
@@ -1573,7 +1639,7 @@
    "captured": "2026-10-29",
    "kind": "screenshot",
    "locale": "en-US",
-   "product_commit": "43f810b9a9f232725b6aaffaa5b9bca6937fe5fa",
+   "product_commit": "ea895044e9b16fd148b95f150f73323af15f8efd",
    "purpose": "The IDE with the Pong project, the interface in en",
    "recipe": "python3 tools/capture_visuals.py ide-en",
    "review_note": "the menu bar on one row; the interface, block categories and blocks in en-US",
@@ -1593,7 +1659,7 @@
    "captured": "2026-10-29",
    "kind": "screenshot",
    "locale": "es-ES",
-   "product_commit": "43f810b9a9f232725b6aaffaa5b9bca6937fe5fa",
+   "product_commit": "ea895044e9b16fd148b95f150f73323af15f8efd",
    "purpose": "The IDE with the Pong project, the interface in es",
    "recipe": "python3 tools/capture_visuals.py ide-es",
    "review_note": "the menu bar on one row; the interface, block categories and blocks in es-ES",
@@ -1613,7 +1679,7 @@
    "captured": "2026-10-29",
    "kind": "screenshot",
    "locale": "fr-FR",
-   "product_commit": "43f810b9a9f232725b6aaffaa5b9bca6937fe5fa",
+   "product_commit": "ea895044e9b16fd148b95f150f73323af15f8efd",
    "purpose": "The IDE with the Pong project, the interface in fr",
    "recipe": "python3 tools/capture_visuals.py ide-fr",
    "review_note": "the menu bar on one row; the interface, block categories and blocks in fr-FR",
@@ -1633,7 +1699,7 @@
    "captured": "2026-10-29",
    "kind": "screenshot",
    "locale": "it-IT",
-   "product_commit": "43f810b9a9f232725b6aaffaa5b9bca6937fe5fa",
+   "product_commit": "ea895044e9b16fd148b95f150f73323af15f8efd",
    "purpose": "The IDE with the Pong project, the interface in it",
    "recipe": "python3 tools/capture_visuals.py ide-it",
    "review_note": "the menu bar on one row; the interface, block categories and blocks in it-IT",
@@ -1653,7 +1719,7 @@
    "captured": "2026-10-29",
    "kind": "screenshot",
    "locale": "zh-CN",
-   "product_commit": "43f810b9a9f232725b6aaffaa5b9bca6937fe5fa",
+   "product_commit": "ea895044e9b16fd148b95f150f73323af15f8efd",
    "purpose": "The IDE with the Pong project, the interface in zh-Hans",
    "recipe": "python3 tools/capture_visuals.py ide-zh-Hans",
    "review_note": "the menu bar on one row; the interface, block categories and blocks in zh-CN",

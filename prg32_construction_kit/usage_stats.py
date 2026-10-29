@@ -24,7 +24,7 @@ from typing import Any
 from flask import Blueprint, jsonify, render_template, request
 from sqlalchemy import case, func, select
 
-from .activity import ActivityEvent, csv_response, day_range, usernames
+from .activity import ActivityEvent, csv_response, day_range
 from .auth import admin_required
 from .db import Build, Project, db
 from .messages import body as message_body, text as say

@@ -84,8 +84,8 @@ updates are an unavoidable electrical side effect and do not indicate a failed d
 move the canonical prototype1 pins to hide these effects.
 
 The framing, message definitions and browser rules are maintained in the PRG32 SDK's
-[`docs/software/usb_protocol.md`](../../PRG32/docs/software/usb_protocol.md) and
-[`docs/software/web_usb_deployment.md`](../../PRG32/docs/software/web_usb_deployment.md).
+[`docs/software/usb_protocol.md`](https://github.com/riscv-prg32/PRG32/blob/development-c6/docs/software/usb_protocol.md) and
+[`docs/software/web_usb_deployment.md`](https://github.com/riscv-prg32/PRG32/blob/development-c6/docs/software/web_usb_deployment.md).
 The client, `static/js/prg32_usb_protocol.js`, is shared byte for byte with the Cartridge Store;
 cartridge validation and execution policy stay on the device.
 
