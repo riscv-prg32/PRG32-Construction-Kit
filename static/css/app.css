@@ -507,18 +507,36 @@ body.dbg-mode-advanced .dbg-beginner { display: none !important; }
 
 /* --- footer and the storage note (base.html, storage_notice.js) ------------------------- */
 .kit-navbar .nav-link { white-space: nowrap; }
-/* One row in every interface language (French and German labels are long): compact links once the
-   menu is unfolded (from 1400 px); below that it folds behind the menu button. */
+/* One row in every interface language (French and German labels are long) and with every
+   computer's fonts (Linux draws them about a tenth wider than macOS): compact links once the
+   menu is unfolded (from 1400 px); below that it folds behind the menu button.
+   tests/test_i18n_browser.py checks one row with room to spare, in CI on Linux too. */
 @media (min-width: 1400px) {
-  .kit-navbar .navbar-nav .nav-link { padding-left: .3rem; padding-right: .3rem; }
+  .kit-navbar .navbar-nav .nav-link { padding-left: .25rem; padding-right: .25rem; }
   .kit-navbar .navbar-brand { margin-right: .5rem; }
-  .kit-navbar .navbar-brand span { font-size: 1.1rem; }
+  .kit-navbar .navbar-brand span { font-size: 1rem; }
 }
-/* Between 1400 and 1600 px the labels need the room of their icons: the words stay
-   (tests/test_i18n_browser.py checks one row in every language). */
-@media (min-width: 1400px) and (max-width: 1599.98px) {
+/* Below 1920 px the labels need the room of their icons, and a slightly smaller size (smallest
+   just above the fold, where German is tightest): the words stay. */
+@media (min-width: 1400px) and (max-width: 1919.98px) {
+  .kit-navbar .navbar-nav .nav-link { font-size: .95rem; }
   .kit-navbar .navbar-nav .nav-link > .bi { display: none; }
   .kit-navbar .navbar-nav .nav-icon-only > .bi { display: inline-block; }
+}
+@media (min-width: 1400px) and (max-width: 1599.98px) {
+  .kit-navbar .navbar-nav .nav-link { font-size: .9rem; }
+}
+/* A phone: the kit's name, the logo and the menu button on one row; on the narrowest
+   screens the logo alone, the name kept for screen readers. */
+@media (max-width: 575.98px) {
+  .kit-navbar .navbar-brand { margin-right: .5rem; }
+  .kit-navbar .navbar-brand span { font-size: 1rem; }
+}
+@media (max-width: 359.98px) {
+  .kit-navbar .navbar-brand span {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden;
+    clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+  }
 }
 /* On the unfolded bar, Docs and Admin are their icons; the words are kept for screen readers (visually hidden). */
 @media (min-width: 1400px) {

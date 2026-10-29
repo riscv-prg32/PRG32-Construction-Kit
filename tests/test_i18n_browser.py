@@ -213,10 +213,22 @@ def test_a_server_message_reaches_the_reader_in_their_language(browser, live_kit
     ctx.close()
 
 
+# The free width on the bar's row: folded, between the kit's name and the menu button; unfolded,
+# between the last menu link and the language choice (pushed to the right by ms-xxl-auto).
+SPARE = """() => {
+  const right = e => e.getBoundingClientRect().right, left = e => e.getBoundingClientRect().left;
+  const toggler = document.querySelector('.kit-navbar .navbar-toggler');
+  if (toggler.offsetParent !== null) return left(toggler) - right(document.querySelector('.kit-navbar .navbar-brand'));
+  const links = [...document.querySelectorAll('#topNav > .navbar-nav > .nav-item')];
+  return left(document.querySelector('#topNav > .ms-xxl-auto')) - Math.max(...links.map(right));
+}"""
+
+
 @pytest.mark.parametrize("width", (375, 1024, 1280, 1366, 1400, 1440, 1600, 1920))
 def test_the_menu_bar_is_one_row_in_every_language(browser, live_kit, width):  # noqa: F811
-    """Long labels (French, German) never push the menu onto a second row; below 1400 px it folds
-    behind the menu button. Signed in as admin: the longest menu."""
+    """Long labels (French, German) never push the menu onto a second row, with at least 32 px to
+    spare for wider fonts; below 1400 px it folds behind the menu button. Signed in as admin: the
+    longest menu. CI runs it on Linux, whose fonts are wider than macOS's."""
     for locale in i18n.LOCALES:
         ctx = browser.new_context(viewport={"width": width, "height": 800})
         ctx.add_cookies([{"name": i18n.COOKIE, "value": locale, "url": live_kit}])
@@ -227,4 +239,7 @@ def test_the_menu_bar_is_one_row_in_every_language(browser, live_kit, width):  #
         height = page.evaluate("document.querySelector('.kit-navbar').getBoundingClientRect().height")
         assert height < 80, f"{locale} at {width} px: the menu bar is {height:.0f} px tall (two rows)"
         assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth + 1"), (locale, width)
+        # Room to spare on that row, so another computer's wider fonts do not wrap it.
+        spare = page.evaluate(SPARE)
+        assert spare >= 32, f"{locale} at {width} px: only {spare:.0f} px to spare on the menu bar"
         ctx.close()
