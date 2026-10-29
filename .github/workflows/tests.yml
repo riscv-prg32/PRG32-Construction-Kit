@@ -371,10 +371,35 @@ jobs:
     steps:
       - name: Check out the repository
         uses: actions/checkout@v7
+      # Dependency review needs the repository's Dependency graph (Settings > Code security).
+      # When it is off, GitHub refuses the comparison; audit the whole lock instead, so a pull
+      # request is never merged without a vulnerability check.
+      - name: Is the Dependency graph on?
+        id: graph
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh api "repos/${{ github.repository }}/dependency-graph/compare/${{ github.event.pull_request.base.sha }}...${{ github.event.pull_request.head.sha }}" > /dev/null 2>&1; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::The Dependency graph is off, so GitHub cannot review new dependencies; auditing requirements.lock with pip-audit instead"
+          fi
       - name: Reject newly introduced vulnerable dependencies
+        if: steps.graph.outputs.available == 'true'
         uses: actions/dependency-review-action@v5
         with:
           fail-on-severity: high
+      - name: Set up Python (Dependency graph off)
+        if: steps.graph.outputs.available != 'true'
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Audit requirements.lock (Dependency graph off)
+        if: steps.graph.outputs.available != 'true'
+        run: |
+          python -m pip install --disable-pip-version-check "pip-audit==2.9.0"
+          pip-audit --require-hashes --disable-pip -r requirements.lock
 
   # Lint (real mistakes only), a coverage floor, and the dependency lock and SBOM kept in step.
   quality:
