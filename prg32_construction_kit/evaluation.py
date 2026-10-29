@@ -24,6 +24,7 @@ import hashlib
 import io
 import json
 import math
+import os
 import statistics
 import threading
 from pathlib import Path
@@ -249,7 +250,11 @@ def run_evaluation(evaluation_id: str, target: dict[str, Any], data: bytes, expe
                             "cartridge_bytes": header["bytes"], "repetitions": row.repetitions, "warm_up": row.warm_up,
                             "started_at": row.created_at, "finished_at": utcnow() if finished else None,
                             "kit_version": KIT_VERSION, "runs": result["runs"]}
-        dataset_path(evaluation_id).write_text(json.dumps(dataset, indent=1, sort_keys=True) + "\n")
+        # Write a new file and swap it in, so a reader never sees a half-written dataset.
+        path = dataset_path(evaluation_id)
+        partial = path.with_name(path.name + ".partial")
+        partial.write_text(json.dumps(dataset, indent=1, sort_keys=True) + "\n")
+        os.replace(partial, path)
 
     try:
         job.step("checking", 5, say("deploy", "Asking {target} who it is", target=target["name"]))
