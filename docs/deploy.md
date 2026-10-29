@@ -103,6 +103,12 @@ run the same module under Node. It writes the slot you name:
 node tools/usb_device_check.mjs /dev/cu.usbmodem101 build/game.prg32 cart7 store
 ```
 
+Recorded 2026-10-29 with this tool on the physical ESP32-C6 (firmware `5202077-dirty`): all 32
+`esp32c6` cartridges published at `https://store.prg32.uniparthenope.it` were downloaded, matched
+their catalog SHA-256 and size, and were stored in `cart7` with 8/8 checks each, from 2,317 to
+62,679 bytes in 1.50-2.05 s; the largest, Cockroaches, then went to `cart7` with **run** and was
+reported running.
+
 Register each target once, at the bottom of the Deploy page (administrators only):
 
 - **PRG32 console**: its Wi-Fi address, usually `http://192.168.4.1`. The computer that runs
