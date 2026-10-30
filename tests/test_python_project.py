@@ -42,7 +42,8 @@ def refusal(source: str) -> pp.PythonError:
 
 def test_the_starter_becomes_the_same_ir_contract_as_the_blocks():
     ir = ir_of(pp.STARTER)
-    blocks = blocks_to_ir({}, {"title": "Py Test"})
+    events = [{"type": kind} for kind in ("prg32_on_start", "prg32_update", "prg32_draw")]
+    blocks = blocks_to_ir({"blocks": {"blocks": events}}, {"title": "Py Test"})
     # One IR contract (generator.IR_ABI): Python adds only its source mode and language version.
     assert ir["abi"] == blocks["abi"] and set(blocks) <= set(ir)
     assert set(ir) - set(blocks) == {"source_mode", "python_language_version"}

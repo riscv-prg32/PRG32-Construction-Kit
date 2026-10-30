@@ -16,6 +16,7 @@ from prg32_construction_kit import audio_block, audio_studio
 from prg32_construction_kit.asm_generator import blocks_to_asm
 from prg32_construction_kit.audio_studio import AudioStudioError
 from prg32_construction_kit.generator import blocks_to_c, blocks_to_ir
+from prg32_construction_kit.sample_data import default_blocks
 
 from test_asm_generator import program, stmt
 from test_auth import make_student, student_client
@@ -155,7 +156,7 @@ def test_export_and_import_keep_the_sound():
 # --- the API --------------------------------------------------------------------------------
 
 def new_project(client, title="Song game"):
-    response = client.post("/api/projects", json={"title": title})
+    response = client.post("/api/projects", json={"title": title, "blocks_json": default_blocks()})
     assert response.status_code == 201
     return response.get_json()
 

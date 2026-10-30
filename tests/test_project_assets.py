@@ -55,9 +55,8 @@ def program(start=(), draw=()) -> dict:
             current["next"] = {"block": following}
         return blocks[0]
     tops = []
-    for kind, body in (("prg32_on_start", start), ("prg32_draw", draw)):
-        if body:
-            tops.append({"type": kind, "inputs": {"DO": {"block": chain(body)}}})
+    for kind, body in (("prg32_on_start", start), ("prg32_update", ()), ("prg32_draw", draw)):
+        tops.append({"type": kind, "inputs": {"DO": {"block": chain(body)}}} if body else {"type": kind})
     return {"blocks": {"languageVersion": 0, "blocks": tops}}
 
 

@@ -4,6 +4,12 @@ from prg32_construction_kit.generator import blocks_to_c, blocks_to_ir, check_ex
 from prg32_construction_kit.sample_data import default_blocks, upstream_example_projects
 
 
+def _loose(blocks_json):
+    """Loose blocks (they count as update logic) next to the three event blocks every game has."""
+    events = [{"type": kind} for kind in ("prg32_on_start", "prg32_update", "prg32_draw")]
+    return {"blocks": {"blocks": events + blocks_json["blocks"]["blocks"]}}
+
+
 def test_blocks_to_ir_has_lifecycle():
     ir = blocks_to_ir(default_blocks(), {"title": "Hello Blocks", "author": "Tester"})
     assert ir["entry_prefix"] == "hello_blocks"
@@ -23,13 +29,13 @@ def test_blocks_to_c_contains_prg32_calls():
 
 
 def test_beep_uses_current_audio_abi():
-    blocks = {"blocks": {"blocks": [{"type": "prg32_play_beep", "fields": {"FREQ": "880", "MS": "80"}}]}}
+    blocks = _loose({"blocks": {"blocks": [{"type": "prg32_play_beep", "fields": {"FREQ": "880", "MS": "80"}}]}})
     _, c_source = blocks_to_c(blocks, {"title": "Tone"})
     assert "prg32_audio_note(0, 0, prg32_kit_note_from_hz(880), 255, 80);" in c_source
 
 
 def test_current_main_scalar_features_generate_public_api_calls():
-    blocks = {"blocks": {"blocks": [
+    blocks = _loose({"blocks": {"blocks": [
         {"type": "prg32_random_state", "fields": {"VAR": "target_x", "LOW": "0", "HIGH": "319"}},
         {"type": "prg32_palette_set", "fields": {"INDEX": "1", "COLOR": "RED"}},
         {"type": "prg32_clear_indexed", "fields": {"INDEX": "0"}},
@@ -37,7 +43,7 @@ def test_current_main_scalar_features_generate_public_api_calls():
         {"type": "prg32_draw_pixel_indexed", "fields": {"X": "6", "Y": "7", "INDEX": "1"}},
         {"type": "prg32_draw_pixel", "fields": {"X": "8", "Y": "9", "COLOR": "BLUE"}},
         {"type": "prg32_audio_note", "fields": {"NOTE": "60", "CHANNEL": "1", "MS": "250"}},
-    ]}}
+    ]}})
     _, source = blocks_to_c(blocks, {"title": "API Check"})
     for call in (
         "prg32_kit_random(0, 319)", "prg32_palette_set(1, PRG32_COLOR_RED)",
@@ -71,14 +77,14 @@ def test_sprite_to_c_rgb565():
 
 
 def _stmt(block_type, **fields):
-    return {"blocks": {"blocks": [{"type": block_type, "fields": fields}]}}
+    return _loose({"blocks": {"blocks": [{"type": block_type, "fields": fields}]}})
 
 
 def test_dropdown_values_cannot_inject_c():
     _, source = blocks_to_c(_stmt("prg32_clear_screen", COLOR="PRG32_COLOR_RED); system(\"x\"); (0"), {"title": "Inject"})
     assert "system(" not in source  # the header comment mentions an "operating system"
     assert "prg32_gfx_clear(PRG32_COLOR_BLACK);" in source
-    blocks = {"blocks": {"blocks": [{"type": "prg32_if_button", "fields": {"BUTTON": "PRG32_BTN_A) { evil(); } if (1"}}]}}
+    blocks = _loose({"blocks": {"blocks": [{"type": "prg32_if_button", "fields": {"BUTTON": "PRG32_BTN_A) { evil(); } if (1"}}]}})
     _, source = blocks_to_c(blocks, {"title": "Inject"})
     assert "evil" not in source
     assert "if (input & PRG32_BTN_A) {" in source
@@ -90,7 +96,7 @@ def test_comments_and_text_cannot_escape_into_c():
     _, source = blocks_to_c(_stmt("prg32_draw_text", TEXT='a"b\\c??/\r', X="1", Y="2"), {"title": "Text"})
     # Control characters are not in the 8x8 font, so they become '?' (and trigraphs stay escaped).
     assert 'prg32_gfx_text8(1, 2, "a\\"b\\\\c?\\?/?",' in source
-    _, source = blocks_to_c({"blocks": {"blocks": [{"type": "*/ evil(); /*"}]}}, {"title": "Type"})
+    _, source = blocks_to_c(_loose({"blocks": {"blocks": [{"type": "*/ evil(); /*"}]}}), {"title": "Type"})
     assert "*/ evil" not in source
 
 
@@ -106,10 +112,10 @@ def test_expressions_are_validated_with_warnings():
 
 
 def test_reserved_names_become_safe_state_variables():
-    _, source = blocks_to_c({"blocks": {"blocks": [
+    _, source = blocks_to_c(_loose({"blocks": {"blocks": [
         {"type": "prg32_set_state", "fields": {"VAR": "input", "VALUE": "1"}},
         {"type": "prg32_change_state", "fields": {"VAR": "int", "DELTA": "input"}},
-    ]}}, {"title": "Names"})
+    ]}}), {"title": "Names"})
     assert "static int input_var = 1;" in source
     assert "int_var += input_var;" in source
 

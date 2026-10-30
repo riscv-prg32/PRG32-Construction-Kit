@@ -15,7 +15,9 @@ import json
 from test_accounts_browser import serious
 from test_browser_offline import Recorder, browser, live_kit, sign_in, wait_until  # noqa: F401 - fixtures
 
-GAME = {"blocks": {"languageVersion": 0, "blocks": [{"type": "prg32_on_start", "id": "g1", "x": 20, "y": 20}]}}
+GAME = {"blocks": {"languageVersion": 0, "blocks": [{"type": "prg32_on_start", "id": "g1", "x": 20, "y": 20},
+                                                    {"type": "prg32_update", "id": "g2", "x": 320, "y": 20},
+                                                    {"type": "prg32_draw", "id": "g3", "x": 620, "y": 20}]}}
 
 
 def api(page, path, method="GET", body=None):

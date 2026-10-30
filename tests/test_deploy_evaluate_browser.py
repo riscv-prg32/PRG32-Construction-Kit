@@ -28,6 +28,8 @@ from test_accounts_browser import serious
 from test_browser_offline import Recorder, browser, sign_in, wait_until  # noqa: F401 - fixtures
 from test_i18n_browser import api
 
+from prg32_construction_kit.sample_data import default_blocks
+
 
 @pytest.fixture(scope="module")
 def deploy_kit(tmp_path_factory):
@@ -62,7 +64,7 @@ def test_a_student_deploys_then_evaluates_on_the_console(browser, deploy_kit):  
     page = record.watch(context.new_page())
     sign_in(page, live_kit)
     api(page, "/api/admin/deploy_targets", "POST", {"name": "Class console", "kind": "prg32", "address": deploy_kit.console.url})
-    project = api(page, "/api/projects", "POST", {"title": "Deploy Me"})
+    project = api(page, "/api/projects", "POST", {"title": "Deploy Me", "blocks_json": default_blocks()})
     api(page, f"/api/projects/{project['id']}/package", "POST", {})
     # Deploy, from the project menu.
     page.goto(f"{live_kit}/ide/{project['id']}")
@@ -119,7 +121,7 @@ def target_named(page, name: str, address: str) -> dict:
 
 
 def compiled_project(page, title: str) -> dict:
-    project = api(page, "/api/projects", "POST", {"title": title})
+    project = api(page, "/api/projects", "POST", {"title": title, "blocks_json": default_blocks()})
     api(page, f"/api/projects/{project['id']}/package", "POST", {})
     return project
 

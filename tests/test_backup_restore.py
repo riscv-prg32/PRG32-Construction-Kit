@@ -45,7 +45,9 @@ def kit(tmp_path, monkeypatch):
     project = ada.post("/api/projects", json={"title": "Backed Up", "blocks_json": default_blocks()}).get_json()
     ada.post("/api/sprites", json={"project_id": project["id"], "name": "hero", "width": 8, "height": 8,
                                    "pixels": [0] * 64})
-    ada.put(f"/api/projects/{project['id']}", json={"blocks_json": {"changed": 1}, "expected_version": project["version"]})
+    changed = default_blocks()
+    changed["blocks"]["blocks"][0]["x"] = 40
+    ada.put(f"/api/projects/{project['id']}", json={"blocks_json": changed, "expected_version": project["version"]})
     built = ada.post(f"/api/projects/{project['id']}/package", json={}).get_json()
     return SimpleNamespace(data=data, app=app, project=project, built=built, tmp=tmp_path)
 
