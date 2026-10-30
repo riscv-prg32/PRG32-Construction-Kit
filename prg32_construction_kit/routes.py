@@ -44,7 +44,7 @@ from .classes import supervises
 from .asm_generator import ir_to_asm
 from .py_generator import from_blocks, ir_to_python
 from .debug_info import unavailable as debug_unavailable
-from .generator import blocks_to_c, ir_to_c, sprite_to_c
+from .generator import EventBlockError, blocks_to_c, ir_to_c, sprite_to_c
 from .source_maps import project_source_map
 from . import python_project
 from .packager import SUPPORTED_ARCHITECTURES, check_source, prepare_package
@@ -1033,6 +1033,8 @@ def generate_sources(project: dict[str, Any]) -> tuple[dict[str, Any] | None, st
         return game_ir, ir_to_c(game_ir), None
     try:
         game_ir, c_source = blocks_to_c(project.get("blocks_json") or {}, project)
+    except EventBlockError as exc:
+        return None, None, messages.of(exc) or str(exc)
     except Exception as exc:
         return None, None, f"Conversion failed: {exc}"
     return game_ir, c_source, None

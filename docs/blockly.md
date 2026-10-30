@@ -27,6 +27,12 @@ browser simulator reads the same JSON into the same IR.
 | `comment` | A `/* ... */` comment in the C. |
 | `show splash title ... for ms` | `prg32_splash_show_game(...)`; use it in *when game starts*. |
 
+A Blocks game has **one and only one** of each of the three event blocks — `when game starts`,
+`every frame update` and `every frame draw` — because each one is the body of exactly one C
+function. The editor puts a warning on every extra copy, and **Generate**, **Run** and **Compile**
+refuse a game with a missing or an extra event block, naming the block. To fix it, drag the blocks
+inside the extra copy into the first one, then delete the empty copy.
+
 ## Variables
 
 All variables are whole numbers (`int`). Using a name anywhere creates it.

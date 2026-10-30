@@ -15,10 +15,11 @@ from test_source_languages import fake_builder
 
 from prg32_construction_kit import retention
 from prg32_construction_kit.db import ProjectRevision, db
+from prg32_construction_kit.sample_data import default_blocks
 
 
 def new_project(browser, **fields):
-    response = browser.post("/api/projects", json={"title": "Game", **fields})
+    response = browser.post("/api/projects", json={"title": "Game", "blocks_json": default_blocks(), **fields})
     assert response.status_code == 201, response.get_json()
     return response.get_json()
 

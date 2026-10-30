@@ -105,7 +105,9 @@ def test_build_notices_a_save_from_another_window(client, monkeypatch):
     monkeypatch.setattr("prg32_construction_kit.packager.subprocess.run", FakeCompiler(0))
     project = client.post("/api/projects", json={"title": "Two Windows", "blocks_json": default_blocks()}).get_json()
     mine = client.put(f"/api/projects/{project['id']}", json={"blocks_json": default_blocks()}).get_json()
-    client.put(f"/api/projects/{project['id']}", json={"blocks_json": {"blocks": {"blocks": []}}})
+    theirs = default_blocks()
+    theirs["blocks"]["blocks"][0]["x"] = 40
+    client.put(f"/api/projects/{project['id']}", json={"blocks_json": theirs})
 
     response = client.post(f"/api/projects/{project['id']}/package",
                            json={"expected_blocks_json": mine["blocks_json"]})

@@ -315,7 +315,28 @@ window.PRG32Blocks = (function () {
       zoom: { controls: true, wheel: true, startScale: 0.75, maxScale: 2.0, minScale: 0.2, scaleSpeed: 1.1 },
       grid: { spacing: 20, length: 3, colour: '#d1d5db', snap: true }
     });
+    workspace.addChangeListener(event => {
+      if (!event.isUiEvent && [Blockly.Events.BLOCK_CREATE, Blockly.Events.BLOCK_DELETE, Blockly.Events.FINISHED_LOADING].includes(event.type)) markExtraEventBlocks();
+    });
     return workspace;
+  }
+
+  // A Blocks game has one and only one of each event block (generator.EVENT_BLOCKS): every
+  // copy after the first gets a warning, and the server refuses to build until one is left.
+  const EVENT_BLOCKS = {
+    prg32_on_start: () => tr('js.blockly_blocks.when_game_starts_1_2', 'when game starts %1 %2'),
+    prg32_update: () => tr('js.blockly_blocks.every_frame_update_1_2', 'every frame update %1 %2'),
+    prg32_draw: () => tr('js.blockly_blocks.every_frame_draw_1_2', 'every frame draw %1 %2')
+  };
+
+  function markExtraEventBlocks() {
+    if (!workspace) return;
+    Object.keys(EVENT_BLOCKS).forEach(type => {
+      const label = EVENT_BLOCKS[type]().replace(/%\d+/g, '').trim();
+      workspace.getBlocksByType(type, false).forEach((block, index) => {
+        block.setWarningText(index === 0 ? null : tr('js.blockly_blocks.only_one_event_block', 'A game has only one \'{block}\' block: move these blocks into the first one and delete this one.', { block: label }));
+      });
+    });
   }
 
   function save() {

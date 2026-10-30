@@ -159,6 +159,7 @@ EDGE_PROJECT = {"blocks": {"blocks": [
                     "type": "prg32_set_state", "fields": {"VAR": "uint32_t", "VALUE": "0x10"}, "next": {"block": {
                         "type": "prg32_set_state", "fields": {"VAR": "big", "VALUE": "1e3"}, "next": {"block": {
                             "type": "prg32_set_state", "fields": {"VAR": "neg", "VALUE": "-3"}}}}}}}}}}}}}}},
+    {"type": "prg32_update"},
     {"type": "prg32_draw", "inputs": {"DO": {"block": {
         "type": "prg32_draw_text", "fields": {"TEXT": "Caf\u00e9 \U0001F600 ok", "X": "constructor / neg", "Y": "uint32_t % 0"}}}}},
 ]}}

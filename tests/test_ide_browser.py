@@ -155,7 +155,13 @@ def test_blocks_stay_editable_and_generated_code_is_read_only(browser, live_kit)
     context = browser.new_context()
     page, _ = open_ide(context, live_kit)
     assert page.evaluate("""() => { const ws = PRG32Blocks.getWorkspace(); const n = ws.getAllBlocks(false).length;
-        const b = ws.newBlock('prg32_on_start'); b.initSvg(); b.render(); return ws.getAllBlocks(false).length === n + 1; }""")
+        const b = ws.newBlock('prg32_comment'); b.initSvg(); b.render(); return ws.getAllBlocks(false).length === n + 1; }""")
+    # A game has one 'when game starts': a second copy is marked until it is deleted (docs/blockly.md).
+    page.evaluate("() => { const b = PRG32Blocks.getWorkspace().newBlock('prg32_on_start'); b.initSvg(); b.render(); window.extraStart = b; }")
+    wait_until(page, "!!window.extraStart.getIcon(Blockly.icons.IconType.WARNING)")
+    assert page.evaluate("PRG32Blocks.getWorkspace().getBlocksByType('prg32_on_start', false)[0]"
+                         ".getIcon(Blockly.icons.IconType.WARNING)") is None
+    page.evaluate("window.extraStart.dispose()")
     for command, tab in (("generated assembly", "gen-asm"), ("game ir", "gen-ir")):
         page.keyboard.press("Control+Shift+P")
         wait_until(page, "document.activeElement.id === 'paletteInput'")

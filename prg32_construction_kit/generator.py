@@ -33,6 +33,7 @@ from .expressions import (
     render,
     state_name,
 )
+from .messages import text as say
 
 IR_ABI = "prg32-construction-kit-game-1.1"
 
@@ -509,6 +510,36 @@ def parse_stack(first_block: dict[str, Any] | None, ctx: ParseContext) -> list[d
     return statements
 
 
+# The three blocks that become <prefix>_init, <prefix>_update and <prefix>_draw: a Blocks
+# cartridge has exactly one of each (docs/blockly.md), so each function has one clear body.
+EVENT_BLOCKS = {"prg32_on_start": "when game starts", "prg32_update": "every frame update",
+                "prg32_draw": "every frame draw"}
+
+
+class EventBlockError(ValueError):
+    """A Blocks game without exactly one of each event block. args[0] is the Message;
+    ``block_type`` names the block and ``block_ids`` the extra copies (empty when it is missing)."""
+
+    def __init__(self, message: Any, block_type: str, block_ids: list[str]):
+        super().__init__(message)
+        self.block_type = block_type
+        self.block_ids = block_ids
+
+
+def check_event_blocks(top_blocks: list[dict[str, Any]]) -> None:
+    """Raise EventBlockError unless there is one and only one of each event block."""
+    for btype, label in EVENT_BLOCKS.items():
+        found = [top for top in top_blocks if top.get("type") == btype]
+        if not found:
+            raise EventBlockError(say("blocks", "Add one '{block}' block: every Blocks game needs exactly one",
+                                      block=label), btype, [])
+        if len(found) > 1:
+            raise EventBlockError(say("blocks", "There are {count} '{block}' blocks: a Blocks game needs exactly one. "
+                                      "Move their blocks into one of them and delete the others",
+                                      count=len(found), block=label),
+                                  btype, [str(top.get("id", "")) for top in found[1:]])
+
+
 def blocks_to_ir(blocks_json: Any, project: dict[str, Any] | None = None) -> dict[str, Any]:
     return blocks_to_ir_traced(blocks_json, project)[0]
 
@@ -521,6 +552,7 @@ def blocks_to_ir_traced(blocks_json: Any, project: dict[str, Any] | None = None)
     update: list[dict[str, Any]] = []
     draw: list[dict[str, Any]] = []
     top_blocks = workspace_blocks(blocks_json)
+    check_event_blocks(top_blocks)
 
     # Lists are found first, so any block may read a list made in 'when game starts'.
     for block in all_blocks(top_blocks):
