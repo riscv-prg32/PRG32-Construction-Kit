@@ -52,6 +52,21 @@
     });
   }
 
+  // The newest build first, and in one build the esp32c6 cartridge first (the first one is what the
+  // page starts with, and the PRG32 takes that one). A build's cartridges are saved one after the
+  // other, so their times can differ by a second: they are compared as one build, not one by one.
+  function newestBuildFirst(items) {
+    const buildOf = item => item.metadata.build_id || item.id;
+    const newest = {};
+    items.forEach(item => {
+      const time = item.created_at || '';
+      if (!(buildOf(item) in newest) || time > newest[buildOf(item)]) newest[buildOf(item)] = time;
+    });
+    const esp32c6First = item => (item.metadata.architecture === 'esp32c6' ? 0 : 1);
+    return items.slice().sort((a, b) => newest[buildOf(b)].localeCompare(newest[buildOf(a)])
+      || buildOf(a).localeCompare(buildOf(b)) || esp32c6First(a) - esp32c6First(b));
+  }
+
   function loadCartridges() {
     const project = $('#deployProject').val();
     if (!project) {
@@ -59,8 +74,7 @@
       return Promise.resolve(reset());
     }
     return Kit.api('/api/artifacts?kind=prg32_cartridge&project_id=' + encodeURIComponent(project)).then(data => {
-      const items = (data.artifacts || []).filter(item => item.metadata && item.metadata.sha256)
-        .sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''));
+      const items = newestBuildFirst((data.artifacts || []).filter(item => item.metadata && item.metadata.sha256));
       $('#deployCartridge').html(items.length ? items.map(item => {
         const meta = item.metadata;
         return `<option value="${Kit.escape(item.id)}" data-architecture="${Kit.escape(meta.architecture)}" data-sha256="${Kit.escape(meta.sha256)}">${Kit.escape(item.name)} · ${Kit.escape(meta.architecture)} · ${Kit.escape((item.created_at || '').replace('T', ' ').slice(0, 16))} · ${Kit.escape(meta.sha256.slice(0, 12))}</option>`;

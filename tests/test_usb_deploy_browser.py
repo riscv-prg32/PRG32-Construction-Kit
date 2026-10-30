@@ -10,6 +10,8 @@ translations. The physical counterpart is tools/usb_device_check.mjs.
 from __future__ import annotations
 
 import json
+import sys
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from test_accounts_browser import serious
@@ -90,6 +92,30 @@ def test_closing_the_port_chooser_writes_nothing(browser, deploy_kit):  # noqa: 
     wait_until(page, "document.querySelector('#usbDeployStatus .text-danger') !== null", timeout=30)
     assert page.text_content("#usbDeployStatus") == "No USB device was selected; nothing was written."
     assert device(page, "opened") == 0
+    assert not page.is_disabled("#usbDeployStart")
+    context.close()
+
+
+def test_the_page_starts_with_the_newest_esp32c6_cartridge_when_a_build_crosses_a_second(browser, deploy_kit, monkeypatch):  # noqa: F811
+    # Every saved time is one second after the last, so qemu, saved after esp32c6, always looks newer.
+    now = [datetime.now(timezone.utc).replace(microsecond=0)]
+
+    def ticking():
+        now[0] += timedelta(seconds=1)
+        return now[0].isoformat()
+    monkeypatch.setattr(sys.modules["prg32_construction_kit.db"], "utcnow", ticking)
+    context, _record, page = usb_page(browser, deploy_kit)
+    project = compiled_project(page, "USB Twice")
+    first = api(page, f"/api/artifacts?kind=prg32_cartridge&project_id={project['id']}", "GET")["artifacts"]
+    api(page, f"/api/projects/{project['id']}/package", "POST", {})
+    second = [item for item in api(page, f"/api/artifacts?kind=prg32_cartridge&project_id={project['id']}", "GET")["artifacts"]
+              if item["id"] not in {old["id"] for old in first}]
+    newest = next(item["id"] for item in second if item["metadata"]["architecture"] == "esp32c6")
+    page.goto(f"{deploy_kit.url}/deploy?project={project['id']}")
+    wait_until(page, "document.querySelectorAll('#deployCartridge option[value]:not([value=\"\"])').length > 0")
+    assert page.input_value("#deployCartridge") == newest
+    page.select_option("#usbDeploySlot", "cart0")
+    page.check("#usbDeployConfirm")
     assert not page.is_disabled("#usbDeployStart")
     context.close()
 
