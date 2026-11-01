@@ -170,8 +170,10 @@ def test_breakpoints_switch_off_and_survive_compiling_again(browser, debug_kit):
     page.click("#dbgContinue")
     page.wait_for_timeout(600)
     assert page.evaluate("prg32Player.debugState().running") is True
-    key = page.evaluate("Object.keys(localStorage).find(k => k.startsWith('prg32-kit-breakpoints:'))")
-    assert key and key.endswith(":game.c")          # by project and file, not by cartridge
+    # Source breakpoints are kept by project and file. (Address breakpoints have their own key, by
+    # cartridge SHA-256, and the order of the two keys depends on that hash.)
+    key = page.evaluate("Object.keys(localStorage).find(k => k.startsWith('prg32-kit-breakpoints:') && k.endsWith(':game.c'))")
+    assert key
     saved = page.evaluate(f"JSON.parse(localStorage.getItem('{key}'))")
     assert saved["lines"][0]["enabled"] is False and saved["lines"][0]["text"]
 
