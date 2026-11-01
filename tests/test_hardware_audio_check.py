@@ -145,8 +145,8 @@ def test_the_check_rebuilds_byte_for_byte_with_the_toolchain():
 
     if not toolchain_present(Config.PRG32_BUILD_COMMAND):
         pytest.skip("the PRG32 toolchain is not installed")
-    # Built against the SDK revision the kit is pinned to (tools/pinned_sdk.py), whatever the
-    # local checkout holds: BUILD.json records that revision.
+    # Built against the SDK revision the QEMU evidence records (tests/fixtures/hardware/BUILD.json),
+    # whatever the local checkout holds: docs/evidence/qemu-audio is about these exact cartridges.
     import importlib.util
 
     from pinned_sdk import pinned_checkout
@@ -155,9 +155,9 @@ def test_the_check_rebuilds_byte_for_byte_with_the_toolchain():
     env = dict(os.environ)
     if spec is not None and spec.origin:
         local = Path(spec.origin).resolve().parent.parent
-        sdk = pinned_checkout(local)
+        sdk = pinned_checkout(local, "679dfb58783bd007125de9ca0b75eaa077908739")
         if sdk is None:
-            pytest.skip("the PRG32 SDK here does not have the pinned revision")
+            pytest.skip("the PRG32 SDK here does not have the revision of the evidence")
         others = [item for item in env.get("PYTHONPATH", "").split(os.pathsep) if item and Path(item).resolve() != local]
         env["PYTHONPATH"] = os.pathsep.join([str(sdk), *others])
     result = subprocess.run([sys.executable, str(ROOT / "tools" / "build_hardware_audio_check.py"), "--check"],

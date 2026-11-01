@@ -15,7 +15,7 @@ which ones also have blocks.
 | PRG32 feature (ABI group) | Blocks | Simulator | Advanced C only |
 | --- | --- | --- | --- |
 | Lifecycle `init` / `update` / `draw` | three hat blocks | yes | - |
-| Input, player 1 and 2 (`prg32_input_read`) | *is held*, *was just pressed*, P2 buttons | yes (keyboard, on-screen pad) | `input_read_player`, `input_read_menu`, `controller_read`, `input_wait_released` |
+| Input, buttons A-D, L, R and the directions (`prg32_input_read`) | *is held*, *was just pressed* | yes (keyboard, on-screen pad, game controllers) | `input_read_player`, `input_read_menu`, `controller_read`, `input_wait_released` |
 | Graphics (`gfx_clear/pixel/rect/text8`) | clear, rectangle, outline, pixel, line, circle, text, number, picture | yes, same font and RGB565 colours | `gfx_present`, `set_fullscreen`, `snapshot_row_rgb565` |
 | Indexed palette (`palette_set`, `*_indexed`) | 4 palette blocks | yes | `palette_get` |
 | Random (`prg32_random_number`) | *set to random*, `random()` | yes (different sequence) | - |
@@ -27,7 +27,8 @@ which ones also have blocks.
 | Status bands | *show in status band* (game info) | shown in the debug line | band modes, colours, log |
 | Splash | *show splash* | yes | `splash_draw`, `splash_show_default` |
 | Scores | *save high score*, *show scoreboard*, *ask the player's name* | messages only | `score_player_get/set`, `score_count/get`, `score_sync_remote` |
-| Multiplayer (`multiplayer`) | *join*, *share my position*, `peers()`, `peer_x/y/look()` | offline (0 peers) | `multiplayer_leave`, `set_input`, raw peer records |
+| Analog stick (`prg32_input_axis_x/y`, `has_analog`) | `stick_x()`, `stick_y()`, `has_stick()` | yes (game controllers, on-screen stick) | `input_axes_raw` |
+| Multiplayer (`multiplayer`) | *join*, *leave*, *share my position*, *share my buttons*, `peers()`, `peer_x/y/look/flags/input/id()`, `my_id()` | offline (0 peers) | `multiplayer_available` |
 | Keyboard (`keyboard`) | through *ask the player's name* | - | `keyboard_init/update/draw`, `text_input` |
 | Wi-Fi (`wifi`) | - | - | `wifi_start_mode`, setup, status |
 | Metrics and performance (`metrics`) | - | - | `perf_*` measurement API |

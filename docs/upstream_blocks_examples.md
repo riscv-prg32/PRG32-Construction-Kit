@@ -21,7 +21,7 @@ was run on the QEMU firmware and on PRG32-QT (`runtime_check.md`).
 
 `examples/feature_tour.json` is a one-screen reference that uses every family
 of blocks (tiles, scrolling, sprites, palette, lines, circles, lists, sound,
-status band, multiplayer, player 2).
+status band, multiplayer, the analog stick).
 
 ## Sketches of the other upstream examples
 

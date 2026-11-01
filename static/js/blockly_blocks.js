@@ -6,8 +6,7 @@ window.PRG32Blocks = (function () {
     [tr('js.blockly_blocks.color_yellow', 'yellow'), 'YELLOW'], [tr('js.blockly_blocks.color_cyan', 'cyan'), 'CYAN'], [tr('js.blockly_blocks.color_magenta', 'magenta'), 'MAGENTA'], [tr('js.blockly_blocks.color_orange', 'orange'), 'ORANGE'], [tr('js.blockly_blocks.color_pink', 'pink'), 'PINK'],
     [tr('js.blockly_blocks.color_gray', 'gray'), 'GRAY'], [tr('js.blockly_blocks.dark_gray', 'dark gray'), 'DARK_GRAY'], [tr('js.blockly_blocks.color_brown', 'brown'), 'BROWN'], [tr('js.blockly_blocks.color_purple', 'purple'), 'PURPLE'], [tr('js.blockly_blocks.color_navy', 'navy'), 'NAVY'], [tr('js.blockly_blocks.color_lime', 'lime'), 'LIME']
   ];
-  const BUTTONS = [[tr('js.blockly_blocks.button_left', 'left'), 'LEFT'], [tr('js.blockly_blocks.button_right', 'right'), 'RIGHT'], [tr('js.blockly_blocks.button_up', 'up'), 'UP'], [tr('js.blockly_blocks.button_down', 'down'), 'DOWN'], ['A', 'A'], ['B', 'B'], [tr('js.blockly_blocks.button_start', 'start'), 'START'], [tr('js.blockly_blocks.button_select', 'select'), 'SELECT'],
-    [tr('js.blockly_blocks.player_2_left', 'player 2 left'), 'P2_LEFT'], [tr('js.blockly_blocks.player_2_right', 'player 2 right'), 'P2_RIGHT'], [tr('js.blockly_blocks.player_2_up', 'player 2 up'), 'P2_UP'], [tr('js.blockly_blocks.player_2_down', 'player 2 down'), 'P2_DOWN'], ['player 2 A', 'P2_A'], ['player 2 B', 'P2_B']];
+  const BUTTONS = [[tr('js.blockly_blocks.button_left', 'left'), 'LEFT'], [tr('js.blockly_blocks.button_right', 'right'), 'RIGHT'], [tr('js.blockly_blocks.button_up', 'up'), 'UP'], [tr('js.blockly_blocks.button_down', 'down'), 'DOWN'], ['A', 'A'], ['B', 'B'], ['C', 'C'], ['D', 'D'], ['L', 'L'], ['R', 'R'], [tr('js.blockly_blocks.button_start', 'start'), 'START'], [tr('js.blockly_blocks.button_select', 'select'), 'SELECT']];
 
   const text = (name, value) => ({ type: 'field_input', name, text: String(value) });
   const color = (name) => ({ type: 'field_dropdown', name, options: COLORS });
@@ -113,8 +112,10 @@ window.PRG32Blocks = (function () {
       stmt({ type: 'prg32_player_name', message0: "ask the player's name", colour: 60, tooltip: tr('js.blockly_blocks.firmware_on_screen_keyboard_for_the', 'Firmware on-screen keyboard for the score name (prg32_score_player_prompt).') }),
 
       // Multiplayer
-      stmt({ type: 'prg32_mp_join', message0: tr('js.blockly_blocks.join_multiplayer_game', 'join multiplayer game'), colour: 230, tooltip: tr('js.blockly_blocks.join_the_cartridge_store_relay_for', 'Join the Cartridge Store relay for this game (prg32_multiplayer_join). Use it in "when game starts".') }),
-      stmt({ type: 'prg32_mp_share', message0: tr('js.blockly_blocks.share_my_position_x_1_y', 'share my position x %1 y %2 look %3'), args0: [text('X', 'player_x'), text('Y', 'player_y'), text('LOOK', 0)], colour: 230, tooltip: tr('js.blockly_blocks.send_your_position_every_frame_read', 'Send your position every frame. Read others with peers(), peer_x(i), peer_y(i), peer_look(i).') }),
+      stmt({ type: 'prg32_mp_join', message0: tr('js.blockly_blocks.join_multiplayer_room_1', 'join multiplayer room %1'), args0: [text('ROOM', '')], colour: 230, tooltip: tr('js.blockly_blocks.join_room_tooltip', 'Ask the PRG32 Multiplayer Server for a place in this room (prg32_multiplayer_join). Consoles see each other only in the same room; empty means the name of the game. Put it in "when game starts".') }),
+      stmt({ type: 'prg32_mp_leave', message0: tr('js.blockly_blocks.leave_multiplayer_room', 'leave multiplayer room'), colour: 230, tooltip: tr('js.blockly_blocks.leave_room_tooltip', 'Leave the room (prg32_multiplayer_leave). The other players stop seeing this console.') }),
+      stmt({ type: 'prg32_mp_share', message0: tr('js.blockly_blocks.share_my_position_flags', 'share my position x %1 y %2 look %3 flags %4'), args0: [text('X', 'player_x'), text('Y', 'player_y'), text('LOOK', 0), text('FLAGS', 0)], colour: 230, tooltip: tr('js.blockly_blocks.share_position_tooltip', 'Give the others your numbers (prg32_multiplayer_set_local_state): -32768 to 32767 for x and y, 0 to 65535 for look and flags. They mean what your game decides.') }),
+      stmt({ type: 'prg32_mp_send_buttons', message0: tr('js.blockly_blocks.share_my_buttons', 'share my buttons'), colour: 230, tooltip: tr('js.blockly_blocks.share_buttons_tooltip', 'Let the others read the buttons you hold with peer_input(i) (prg32_multiplayer_set_input).') }),
 
       // AudioStudio (docs/audio_studio.md): sounds made for this project
       stmt({ type: 'prg32_soundtrack_stop', message0: tr('js.blockly_blocks.stop_soundtrack', 'stop soundtrack'), colour: 300, tooltip: tr('js.blockly_blocks.the_soundtrack_stops_notes_already_playi', 'The soundtrack stops; notes already playing fade out.') }),
@@ -249,6 +250,9 @@ window.PRG32Blocks = (function () {
     <category name="${xml(tr('js.blockly_blocks.category_input', 'Input'))}" colour="20">
       <block type="prg32_if_button"></block>
       <block type="prg32_if_button_once"></block>
+      <label text="${xml(tr('js.blockly_blocks.label_stick', 'Analog stick: stick_x() and stick_y() run from -127 to 127, has_stick() is 1 with a real stick'))}"></label>
+      <block type="prg32_change_state"><field name="VAR">player_x</field><field name="DELTA">stick_x() / 32</field></block>
+      <block type="prg32_change_state"><field name="VAR">player_y</field><field name="DELTA">stick_y() / 32</field></block>
     </category>
     <category name="${xml(tr('js.blockly_blocks.category_drawing', 'Drawing'))}" colour="160">
       <block type="prg32_clear_screen"></block>
@@ -297,9 +301,12 @@ window.PRG32Blocks = (function () {
       <block type="prg32_player_name"></block>
     </category>
     <category name="${xml(tr('js.blockly_blocks.category_multiplayer', 'Multiplayer'))}" colour="230">
-      <label text="${xml(tr('js.blockly_blocks.label_other_players_peers_peer_x_i', 'Other players: peers(), peer_x(i), peer_y(i), peer_look(i)'))}"></label>
+      <label text="${xml(tr('js.blockly_blocks.label_other_players', 'Other players: peers(), peer_x(i), peer_y(i), peer_look(i), peer_flags(i), peer_input(i), peer_id(i)'))}"></label>
+      <label text="${xml(tr('js.blockly_blocks.label_my_id', 'my_id() is 0 until the server lets this console into the room'))}"></label>
       <block type="prg32_mp_join"></block>
       <block type="prg32_mp_share"></block>
+      <block type="prg32_mp_send_buttons"></block>
+      <block type="prg32_mp_leave"></block>
     </category>
   </xml>`;
 
@@ -344,9 +351,23 @@ window.PRG32Blocks = (function () {
     return Blockly.serialization.workspaces.save(workspace);
   }
 
+  // A project saved when PRG32 had player 2 buttons keeps showing what it says, marked as removed,
+  // instead of Blockly quietly changing it to another button. The server refuses to build it.
+  function offerRetiredButtons(value) {
+    if (Array.isArray(value)) value.forEach(offerRetiredButtons);
+    else if (value && typeof value === 'object') {
+      const button = value.fields && value.fields.BUTTON;
+      if (typeof button === 'string' && button.startsWith('P2_') && !BUTTONS.some(option => option[1] === button)) {
+        BUTTONS.push([tr('js.blockly_blocks.retired_button', 'removed: {button}', { button }), button]);
+      }
+      Object.values(value).forEach(offerRetiredButtons);
+    }
+  }
+
   function load(json) {
     if (!workspace) return;
     workspace.clear();
+    offerRetiredButtons(json);
     if (json && Object.keys(json).length) {
       Blockly.serialization.workspaces.load(json, workspace);
     }

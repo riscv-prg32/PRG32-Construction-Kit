@@ -343,7 +343,9 @@ class _Writer:
             return call("sprite", json.dumps(str(stmt.get("name", ""))), i(stmt.get("x")), i(stmt.get("y")))
         if op in ("background_load", "background_draw"):
             return call(op, json.dumps(str(stmt.get("name", ""))))
-        if op in ("track_stop", "sound_stop_all", "player_name", "mp_join"):
+        if op == "mp_join":
+            return call("mp_join", json.dumps(str(stmt["room"]))) if stmt.get("room") else call("mp_join")
+        if op in ("track_stop", "sound_stop_all", "player_name", "mp_leave", "mp_send_buttons"):
             return call({"track_stop": "soundtrack_stop"}.get(op, op))
         if op == "band":
             value = i(stmt["value"]) if str(stmt.get("value", "")).strip() else ""
@@ -356,7 +358,9 @@ class _Writer:
             return call("splash", json.dumps(str(stmt.get("title", ""))), json.dumps(str(stmt.get("subtitle", ""))),
                         i(stmt.get("ms")), c(stmt.get("bg")), c(stmt.get("fg")), c(stmt.get("accent")))
         if op == "mp_share":
-            return call("mp_share", i(stmt.get("x")), i(stmt.get("y")), i(stmt.get("look")))
+            flags = i(stmt.get("flags", 0))
+            return call("mp_share", i(stmt.get("x")), i(stmt.get("y")), i(stmt.get("look")),
+                        *([] if flags == "0" else [flags]))
         raise NotPython(f"no PRG32 Python statement for {op}")
 
     def function_lines(self, name: str, statements: Any, doc: str) -> list[str]:

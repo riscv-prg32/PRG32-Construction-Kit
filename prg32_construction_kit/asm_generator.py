@@ -56,6 +56,7 @@ from .generator import (
     SINE_TABLE,
     _Emitter,
     _statements_read_input,
+    room_signature,
     bitmap_picture,
     blocks_to_ir,
     c_comment,
@@ -514,11 +515,12 @@ ASM_HELPERS: dict[str, list[str]] = {
         ("ret", ""),
     ]),
     "peer_value": _function("prg32_kit_peer_value", _doc(
-        "int prg32_kit_peer_value(int index, int what)        a0 = player index, a1 = 0 x / 1 y / 2 look",
+        "int prg32_kit_peer_value(int index, int what)        a0 = player index",
+        "a1 = 0 x / 1 y / 2 look / 3 flags / 4 buttons / 5 player ID",
         "The firmware fills a prg32_player_state_t that lives in our stack frame:",
         "|   offset 0  uint32_t player_id    offset 4  int16_t x    offset 6  int16_t y",
-        "|   offset 8  uint16_t sprite       offset 10 uint16_t flags  ...  24 bytes in all",
-        "lh sign-extends the signed fields, lhu zero-extends the unsigned one."), [
+        "|   offset 8  uint16_t sprite       offset 10 uint16_t flags  offset 12 uint32_t input  ...  24 bytes in all",
+        "lh sign-extends the signed fields, lhu zero-extends the unsigned ones."), [
         ("addi sp, sp, -32", "frame: 24-byte structure, what, ra"),
         ("sw ra, 28(sp)", ""),
         ("sw a1, 24(sp)", "keep 'what' during the call"),
@@ -529,7 +531,22 @@ ASM_HELPERS: dict[str, list[str]] = {
         ("beqz t0, .Lkit_peer_x", ""),
         ("li t1, 1", ""),
         ("beq t0, t1, .Lkit_peer_y", ""),
+        ("li t1, 2", ""),
+        ("beq t0, t1, .Lkit_peer_look", ""),
+        ("li t1, 3", ""),
+        ("beq t0, t1, .Lkit_peer_flags", ""),
+        ("li t1, 4", ""),
+        ("beq t0, t1, .Lkit_peer_input", ""),
+        ("lw a0, 0(sp)", "a0 = peer.player_id"),
+        ("j .Lkit_peer_done", ""),
+        (".Lkit_peer_look:", ""),
         ("lhu a0, 8(sp)", "a0 = peer.sprite"),
+        ("j .Lkit_peer_done", ""),
+        (".Lkit_peer_flags:", ""),
+        ("lhu a0, 10(sp)", "a0 = peer.flags"),
+        ("j .Lkit_peer_done", ""),
+        (".Lkit_peer_input:", ""),
+        ("lw a0, 12(sp)", "a0 = peer.input"),
         ("j .Lkit_peer_done", ""),
         (".Lkit_peer_x:", ""),
         ("lh a0, 4(sp)", "a0 = peer.x"),
@@ -553,6 +570,43 @@ ASM_HELPERS: dict[str, list[str]] = {
         ("li a1, 1", "what = 1: y"), ("j prg32_kit_peer_value", "tail call")]),
     "peer_look": _function("prg32_kit_peer_look", _doc("int prg32_kit_peer_look(int index)"), [
         ("li a1, 2", "what = 2: look"), ("j prg32_kit_peer_value", "tail call")]),
+    "peer_flags": _function("prg32_kit_peer_flags", _doc("int prg32_kit_peer_flags(int index)"), [
+        ("li a1, 3", "what = 3: flags"), ("j prg32_kit_peer_value", "tail call")]),
+    "peer_input": _function("prg32_kit_peer_input", _doc("int prg32_kit_peer_input(int index)"), [
+        ("li a1, 4", "what = 4: buttons"), ("j prg32_kit_peer_value", "tail call")]),
+    "peer_id": _function("prg32_kit_peer_id", _doc("int prg32_kit_peer_id(int index)"), [
+        ("li a1, 5", "what = 5: player ID"), ("j prg32_kit_peer_value", "tail call")]),
+    "my_id": _function("prg32_kit_my_id", _doc("int prg32_kit_my_id(void): the server's ID for us, 0 outside the room"), [
+        ("tail prg32_multiplayer_local_player_id", "the firmware answers directly to our caller"),
+    ]),
+    "mp_join": _function("prg32_kit_mp_join", _doc(
+        "void prg32_kit_mp_join(const char *room)        a0 = room name",
+        "Asks once: every firmware join forgets the other players, so a join block that",
+        "runs every frame would never see anyone."), [
+        ("la t0, prg32_kit_mp_joined", "t0 = address of the 'already asked' word"),
+        ("lw t1, 0(t0)", ""),
+        ("bnez t1, .Lkit_mp_asked", "already asked: nothing to do"),
+        ("li t1, 1", ""),
+        ("sw t1, 0(t0)", "remember that we asked"),
+        ("li a1, 1", "a1 = PRG32_MP_FLAG_ENABLE"),
+        ("tail prg32_multiplayer_join", "a0 is still the room name"),
+        (".Lkit_mp_asked:", ""),
+        ("ret", ""),
+    ]),
+    "mp_leave": _function("prg32_kit_mp_leave", _doc("void prg32_kit_mp_leave(void): a later join block may ask again"), [
+        ("la t0, prg32_kit_mp_joined", ""),
+        ("sw zero, 0(t0)", "not asked any more"),
+        ("tail prg32_multiplayer_leave", ""),
+    ]),
+    "stick_x": _function("prg32_kit_stick_x", _doc("int prg32_kit_stick_x(void): -127 (left) .. 127 (right), 0 at rest"), [
+        ("tail prg32_input_axis_x", "the firmware answers directly to our caller"),
+    ]),
+    "stick_y": _function("prg32_kit_stick_y", _doc("int prg32_kit_stick_y(void): -127 (up) .. 127 (down), 0 at rest"), [
+        ("tail prg32_input_axis_y", "the firmware answers directly to our caller"),
+    ]),
+    "has_stick": _function("prg32_kit_has_stick", _doc("int prg32_kit_has_stick(void): 1 with an analog stick"), [
+        ("tail prg32_input_has_analog", "the firmware answers directly to our caller"),
+    ]),
     "beep": _function("prg32_kit_note_from_hz", _doc(
         "uint8_t prg32_kit_note_from_hz(int hz): nearest MIDI note, 48..84     a0 = hz",
         "prg32_kit_note_frequencies holds the 37 frequencies of notes 48..84 as halfwords.",
@@ -870,9 +924,11 @@ ASM_HELPERS: dict[str, list[str]] = {
 
 # C-only helpers: the assembly has no div/mod helper and keeps "once" as data.
 _ASM_HELPER_NEEDS = {"cos": {"sin"}, "band": {"number"}, "peer_x": {"peer_value"}, "peer_y": {"peer_value"},
-                     "peer_look": {"peer_value"}}
+                     "peer_look": {"peer_value"}, "peer_flags": {"peer_value"}, "peer_input": {"peer_value"},
+                     "peer_id": {"peer_value"}, "mp_leave": {"mp_join"}}
 _ASM_HELPER_ORDER = ["list_get", "list_set", "list_fill", "abs", "sign", "min", "max", "clamp", "sin", "cos", "rgb",
-                     "random", "frame", "tile", "peer_value", "peers", "peer_x", "peer_y", "peer_look", "beep",
+                     "random", "frame", "tile", "peer_value", "peers", "peer_x", "peer_y", "peer_look", "peer_flags",
+                     "peer_input", "peer_id", "my_id", "mp_join", "mp_leave", "stick_x", "stick_y", "has_stick", "beep",
                      "number", "band", "frame_rect", "line", "circle", "bitmap"]
 
 _NOTE_FREQUENCIES = [131, 139, 147, 156, 165, 175, 185, 196, 208, 220, 233, 247, 262, 277, 294, 311, 330, 349, 370,
@@ -1371,12 +1427,19 @@ class _AsmEmitter:
         elif op == "player_name":
             self.call("prg32_score_player_prompt", [], slot, "the firmware asks for a name")
         elif op == "mp_join":
-            self.call("prg32_multiplayer_join", [("addr", self.string(self.title[:31]), None), ("imm", 1, None)], slot,
-                      "join with PRG32_MP_FLAG_ENABLE (1)")
+            self.needs.add("mp_join")
+            self.call("prg32_kit_mp_join", [("addr", self.string(room_signature(stmt.get("room"), self.title)), None)],
+                      slot, "ask for a place in the room, once")
+        elif op == "mp_leave":
+            self.needs.add("mp_leave")
+            self.emit("call prg32_kit_mp_leave", "leave the room")
+        elif op == "mp_send_buttons":
+            self.emit("call prg32_input_read", "a0 = the buttons held now")
+            self.emit("call prg32_multiplayer_set_input", "a0 is already the argument")
         elif op == "mp_share":
             self.call("prg32_multiplayer_set_local_state", [typed("x", "i16"), typed("y", "i16"), typed("look", "u16"),
-                                                            ("imm", 0, None)], slot, "publish our state")
-            self.call("prg32_multiplayer_tick", [], slot, "exchange messages with the relay")
+                                                            typed("flags", "u16")], slot,
+                      "the firmware sends this at the end of the frame")
         else:
             self.lines.extend(comment_block([f"Unsupported op: {op}"], "    "))
 
@@ -1440,6 +1503,8 @@ class _AsmEmitter:
             self.emit("call prg32_input_read", "buttons already held do not count as a press")
             self.emit("la t0, prg32_kit_previous_input", "")
             self.emit("sw a0, 0(t0)", "previous input = buttons now")
+        elif kind == "mp_tick":
+            self.emit("call prg32_multiplayer_tick", "every frame: send our state, receive the others'")
         elif kind == "once_save":
             self.emit("lw t0, 0(sp)", "t0 = this frame's buttons")
             self.emit("la t1, prg32_kit_previous_input", "")
@@ -1515,6 +1580,8 @@ def ir_to_asm(game_ir: dict[str, Any], trace: dict[int, str] | None = None, art_
     update_after: list[tuple] = []
     if once:
         update_after.append(("once_save",))
+    if "multiplayer" in (game_ir.get("required_features") or []):
+        update_after.append(("mp_tick",))
     if frame:
         update_after.append(("frame_count",))
     if update_after:
@@ -1573,6 +1640,8 @@ def ir_to_asm(game_ir: dict[str, Any], trace: dict[int, str] | None = None, art_
         bss.append(asm_line(f".zero {4 * size}", f"{size} x 4 = {4 * size} bytes, all 0"))
     if frame:
         bss += [asm_line("prg32_kit_frame_count:", "frames finished since the start"), asm_line(".zero 4", "")]
+    if "mp_join" in wanted:
+        bss += [asm_line("prg32_kit_mp_joined:", "1 once the game has asked for a room"), asm_line(".zero 4", "")]
     if once:
         bss += [asm_line("prg32_kit_previous_input:", "buttons held one frame ago"), asm_line(".zero 4", "")]
     if "band" in wanted:

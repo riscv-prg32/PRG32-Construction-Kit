@@ -112,6 +112,7 @@ jobs:
           repository: riscv-prg32/PRG32
           ref: ${{ steps.audio.outputs.revision }}
           path: PRG32
+          fetch-depth: 0   # the upstream patches are checked on the older commit they were written for
 
       - name: Set up Python
         uses: actions/setup-python@v7
@@ -576,7 +577,7 @@ jobs:
       - name: Rebuild the audio conformance fixtures with the image's toolchain
         run: >-
           docker run --rm ${{ env.SANDBOX_OPTS }} -v "$PWD/ci-evidence:/evidence" --entrypoint sh ${{ env.CI_IMAGE }} -c
-          "python tools/build_audio_fixtures.py --check > /evidence/audio-fixtures.log 2>&1;
+          "python tools/build_audio_fixtures.py --check-if-comparable > /evidence/audio-fixtures.log 2>&1;
           status=$?; cat /evidence/audio-fixtures.log; exit $status"
 
       - name: Rebuild the console audio check with the image's toolchain

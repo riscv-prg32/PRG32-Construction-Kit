@@ -57,6 +57,23 @@ kit_patch(Runtime.h "    void setLEDCallback(std::function<void(RGBState)> cb) {
   "    /** Construction Kit: called before and after every host call (ADR-0021). */\n    void setHostHooks(std::function<void(uint32_t)> before, std::function<void(uint32_t)> after) {\n        hostBefore_ = std::move(before);\n        hostAfter_ = std::move(after);\n    }\n    /** Construction Kit: the value a host call returns in a0. */\n    void setHostResult(uint32_t value) {\n        cpu_.setReg(10, value);\n    }\n    void setLEDCallback(std::function<void(RGBState)> cb) {")
 kit_patch(Runtime.h "    std::function<void(RGBState)> ledCallback_;\n"
   "    std::function<void(RGBState)> ledCallback_;\n    std::function<void(uint32_t)> hostBefore_, hostAfter_;\n")
+# The analog stick (ABI #140 to #143). PRG32-QT's hosts have none, so its core always answers from
+# the digital directions; the browser has one (a game controller or the on-screen stick). The rules
+# are the firmware's (components/prg32/prg32_input.c): a resting stick still lets the buttons steer.
+kit_patch(Runtime.h "    void setLEDCallback(std::function<void(RGBState)> cb) {"
+  "    /** Construction Kit: the analog stick, -127..127, from the browser. */\n    void setKitStick(bool present, int32_t x, int32_t y) {\n        kitStickPresent_ = present;\n        kitStickX_ = x;\n        kitStickY_ = y;\n    }\n    void setLEDCallback(std::function<void(RGBState)> cb) {")
+kit_patch(Runtime.h "    std::function<void(RGBState)> ledCallback_;\n"
+  "    std::function<void(RGBState)> ledCallback_;\n    bool kitStickPresent_ = false;\n    int32_t kitStickX_ = 0, kitStickY_ = 0;\n")
+kit_patch(Runtime.cpp "        ret(uint32_t(digitalAxis(input_, ButtonLeft, ButtonRight)));\n"
+  "        ret(uint32_t(kitStickX_ != 0 ? kitStickX_ : digitalAxis(input_, ButtonLeft, ButtonRight)));\n")
+kit_patch(Runtime.cpp "        ret(uint32_t(digitalAxis(input_, ButtonUp, ButtonDown)));\n"
+  "        ret(uint32_t(kitStickY_ != 0 ? kitStickY_ : digitalAxis(input_, ButtonUp, ButtonDown)));\n")
+kit_patch(Runtime.cpp "            cpu_.store32(a(0), AnalogRawCenter, ok);\n"
+  "            cpu_.store32(a(0), kitStickPresent_ ? uint32_t(AnalogRawCenter + kitStickX_ * 16) : AnalogRawCenter, ok);\n")
+kit_patch(Runtime.cpp "            cpu_.store32(a(1), AnalogRawCenter, ok);\n        ret(uint32_t(-1));\n"
+  "            cpu_.store32(a(1), kitStickPresent_ ? uint32_t(AnalogRawCenter + kitStickY_ * 16) : AnalogRawCenter, ok);\n        ret(kitStickPresent_ ? 0u : uint32_t(-1));\n")
+kit_patch(Runtime.cpp "        // ABI #143 input_has_analog(): axis values come from digital directions on every Qt host.\n        ret(0);\n"
+  "        // ABI #143 input_has_analog(): 1 once the browser has a stick to read.\n        ret(kitStickPresent_ ? 1 : 0);\n")
 kit_patch(Runtime.cpp "void Runtime::hostCall(uint32_t i) {\n"
   "void Runtime::hostCall(uint32_t i) {\n    if (hostBefore_)\n        hostBefore_(i);\n    hostCallCore(i);\n    if (hostAfter_)\n        hostAfter_(i);\n}\nvoid Runtime::hostCallCore(uint32_t i) {\n")
 

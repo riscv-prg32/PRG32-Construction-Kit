@@ -6,7 +6,7 @@
 
 The kit's simulator interprets the kit's *game IR*, so it cannot run Advanced
 C or any real `.prg32`. PRG32-QT's `src/core` is a Qt-free RV32IMAC
-interpreter that implements all 139 entries of ABI 1.6 and already has
+interpreter that implements all 139 entries of the old ABI 1.6 and already has
 headless golden tests (`Asteroids.prg32`, `Bach.prg32`). PRG32-iOS shows the
 cost of a second implementation: a Swift copy that must be kept in step.
 

@@ -25,6 +25,8 @@ PRG32-Construction-Kit is a classroom web application for making PRG32 games wit
    - `deploy.md` - the Deploy tool: a compiled cartridge onto a PRG32 console, PRG32-QT or QEMU, checked step by step.
    - `backgrounds.md` - Backgrounds: PRG32 tiles and the two-layer maps made of them, as C.
    - `project_art.md` - using the project's sprites, backgrounds and sounds by name in Blocks, Python, C and assembly (`#include "prg32_assets.h"`).
+   - `multiplayer.md` - rooms, sharing and reading other players, in Blocks and PRG32 Python.
+   - `game_controllers.md` - game controllers, the on-screen stick and `stick_x()`.
    - `tutorials/10_project_art.md` - Star Catcher: one game with Sprite Lab art in all four languages.
    - `color_picker.md` - Tools → Color Picker: a colour as RGB24 and as the PRG32's RGB565, in hex, decimal and binary.
    - `external_gates.md` - what only the school, other repositories, a real console or real accounts can close, and the evidence that closes each.

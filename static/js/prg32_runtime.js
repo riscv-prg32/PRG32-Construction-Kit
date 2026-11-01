@@ -17,12 +17,12 @@
 (function () {
   'use strict';
 
-  const BUTTONS = { LEFT: 1, RIGHT: 2, UP: 4, DOWN: 8, A: 16, B: 32, SELECT: 64 };
+  const BUTTONS = { LEFT: 1, RIGHT: 2, UP: 4, DOWN: 8, A: 16, B: 32, SELECT: 64, C: 128, D: 256, L: 512, R: 1024 };
   // The same keys as PRG32-QT (qml/Main.qml).
   const KEYS = {
     ArrowLeft: 'LEFT', KeyA: 'LEFT', ArrowRight: 'RIGHT', KeyD: 'RIGHT', ArrowUp: 'UP', KeyW: 'UP',
     ArrowDown: 'DOWN', KeyS: 'DOWN', KeyZ: 'A', KeyJ: 'A', KeyX: 'B', KeyK: 'B',
-    Enter: 'SELECT', NumpadEnter: 'SELECT', Space: 'SELECT'
+    Enter: 'SELECT', NumpadEnter: 'SELECT', Space: 'SELECT', KeyC: 'C', KeyV: 'D', KeyQ: 'L', KeyE: 'R'
   };
   const FRAME_MS = 33; // PRG32 VirtualClock::FramePeriodNanoseconds
   // PRG32-QT's debugger speeds (AppController::setDebugSpeed).
@@ -170,6 +170,7 @@
       this.core = null;
       this.running = false;
       this.speed = 1;
+      this.stick = null;  // the last reading of the controllers: { mask, x, y, stick }
       this.held = 0;      // buttons held now
       this.pressed = 0;   // buttons pressed since the last frame (a quick tap still counts)
       this.frames = 0;
@@ -240,9 +241,21 @@
       if (down) { this.held |= bit; this.pressed |= bit; } else this.held &= ~bit;
     }
 
+    // Game controllers and the on-screen stick (prg32_controllers.js): the buttons, and the stick
+    // the cartridge reads with prg32_input_axis_x/y. Runs on every animation frame as well as on
+    // every game frame, so a quick press between two game frames still counts.
+    pollControllers() {
+      const controllers = window.PRG32Controllers;
+      if (!controllers) return;
+      this.stick = controllers.hub.poll();
+      this.pressed |= this.stick.mask;
+    }
+
     input() {
-      const mask = this.held | this.pressed;
+      this.pollControllers();
+      const mask = this.held | this.pressed | (this.stick ? this.stick.mask : 0);
       this.pressed = 0;
+      if (this.stick && this.core) this.core._prg32_set_stick(this.stick.stick ? 1 : 0, this.stick.x, this.stick.y);
       return mask;
     }
 

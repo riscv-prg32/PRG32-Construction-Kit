@@ -207,7 +207,7 @@ def test_an_unsupported_abi_is_refused_before_anything_is_sent(client, monkeypat
 
 def test_missing_features_and_a_major_version_are_unsupported_too():
     header = deploy.cartridge_header(cartridge(features=0b100))
-    probe = {"abi": {"major": 1, "minor": 6, "hash": ABI_HASH, "features": 0b011}, "limits": {}}
+    probe = {"abi": {"major": 1, "minor": 8, "hash": ABI_HASH, "features": 0b011}, "limits": {}}
     assert "features" in str(deploy.abi_problems(header, probe)[0])
     assert "ABI 1, the target has ABI 2" in str(deploy.abi_problems(header, {**probe, "abi": {**probe["abi"], "major": 2}})[0])
     older = deploy.cartridge_header(cartridge(abi_hash=1810294992))      # an older hash the SDK still runs

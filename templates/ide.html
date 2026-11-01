@@ -144,14 +144,27 @@
         <button class="btn btn-outline-secondary btn-sm touch-button" type="button" data-button="RIGHT" data-game-button="RIGHT" aria-label="{{ t('ide.right') }}"><i class="bi bi-caret-right-fill" aria-hidden="true"></i></button>
         <button class="btn btn-outline-secondary btn-sm touch-button" type="button" data-button="DOWN" data-game-button="DOWN" aria-label="{{ t('ide.down') }}"><i class="bi bi-caret-down-fill" aria-hidden="true"></i></button>
       </div>
-      <button class="btn btn-secondary btn-sm touch-button" type="button" data-button="SELECT" data-game-button="START">{{ t("ide.start") }}</button>
+      <div class="analog-stick" data-analog-stick role="img" aria-label="{{ t('common.on_screen_stick') }}"><span></span></div>
+      <div class="d-flex flex-column gap-1">
+        <button class="btn btn-secondary btn-sm touch-button" type="button" data-button="SELECT" data-game-button="START">{{ t("ide.start") }}</button>
+        <div class="d-flex gap-1">
+          <button class="btn btn-outline-secondary btn-sm touch-button" type="button" data-button="L" data-game-button="L">L</button>
+          <button class="btn btn-outline-secondary btn-sm touch-button" type="button" data-button="R" data-game-button="R">R</button>
+        </div>
+      </div>
       <div class="d-flex gap-2">
         <button class="btn btn-danger btn-sm rounded-circle touch-button ide-ab" type="button" data-button="B" data-game-button="B">B</button>
         <button class="btn btn-danger btn-sm rounded-circle touch-button ide-ab" type="button" data-button="A" data-game-button="A">A</button>
       </div>
+      <div class="d-flex flex-column gap-1">
+        <button class="btn btn-outline-danger btn-sm touch-button" type="button" data-button="C" data-game-button="C">C</button>
+        <button class="btn btn-outline-danger btn-sm touch-button" type="button" data-button="D" data-game-button="D">D</button>
+      </div>
     </div>
     <p class="small text-muted px-2 mb-2">{{ t("ide.keys_click_the_screen_first_arrows") }} <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> {{ t("ide.move") }}
-      <kbd>Z</kbd> {{ t("ide.is_a") }} <kbd>X</kbd> {{ t("ide.is_b") }} <kbd>Enter</kbd> {{ t("ide.is_start") }}</p>
+      <kbd>Z</kbd> {{ t("ide.is_a") }} <kbd>X</kbd> {{ t("ide.is_b") }} <kbd>Enter</kbd> {{ t("ide.is_start") }}
+      <kbd>C</kbd><kbd>V</kbd><kbd>Q</kbd><kbd>E</kbd> {{ t("ide.are_c_d_l_r") }}</p>
+    <p class="small text-muted px-2 mb-2" data-controller-status aria-live="polite"></p>
   </aside>
 
   {# Sprite Lab, AudioStudio and Backgrounds wait here, hidden, until the IDE opens them in a tab (ide.js moves them). #}
@@ -252,6 +265,7 @@
 {# Blockly's own menus in the reader's language (ADR-0027), before Monaco's AMD loader exists. #}
 {% if blockly_pack %}<script src="{{ url_for('static', filename='vendor/blockly/11.2.1/msg/' ~ blockly_pack ~ '.js') }}"></script>{% endif %}
 <script src="{{ url_for('static', filename='js/blockly_blocks.js') }}"></script>
+<script src="{{ url_for('static', filename='js/prg32_controllers.js') }}"></script>
 <script src="{{ url_for('static', filename='js/simulator.js') }}"></script>
 <script src="{{ url_for('static', filename='js/prg32_runtime.js') }}"></script>
 <script src="{{ url_for('static', filename='js/prg32_audio.js') }}"></script>

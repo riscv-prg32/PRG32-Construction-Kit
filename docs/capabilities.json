@@ -1056,6 +1056,49 @@
     "tests/test_asm_generator.py::test_assembly_makes_exactly_the_same_firmware_calls_as_the_c"
    ],
    "note": "ADR-0029, docs/project_art.md. Sprite Lab sprites (direct and indexed), Backgrounds and AudioStudio sounds are used by name: three blocks and prg32.sprite/background_load/background_draw carry the art in the IR; C and assembly write #include \"prg32_assets.h\"/\".S\", replaced on that same line by the art (line numbers unchanged, every other include still refused). Sprite Lab, Backgrounds and AudioStudio show the line for each language; the IDE shows the include read-only. Star Catcher in four languages: the four cartridges draw identical frames in prg32qt-headless. Real-toolchain and C-vs-assembly parity tests run where the toolchain and GCC exist (CI). Browser checks of the new panels are not automated yet."
+  },
+  {
+   "id": "INP-01",
+   "title": "ABI 1.8 input: buttons C, D, L, R, the analog stick and game controllers in the browser",
+   "status": "implemented",
+   "audit_score": null,
+   "source": [
+    "prg32_construction_kit/expressions.py::FUNCTIONS",
+    "prg32_construction_kit/source_project.py::_refuse_player_2",
+    "static/js/prg32_controllers.js",
+    "static/js/prg32_runtime.js",
+    "static/js/simulator.js",
+    "wasm/CMakeLists.txt",
+    "wasm/prg32_core_api.cpp"
+   ],
+   "tests": [
+    "tests/test_input_and_multiplayer.py::test_the_firmware_buttons_and_no_player_2",
+    "tests/test_input_and_multiplayer.py::test_a_saved_player_2_button_is_refused_not_changed_to_a",
+    "tests/test_input_and_multiplayer.py::test_the_stick_in_blocks_and_python",
+    "tests/test_input_and_multiplayer.py::test_controllers_follow_the_firmware_rules",
+    "tests/test_controllers_browser.py::test_a_cartridge_reads_a_game_controller",
+    "tests/test_controllers_browser.py::test_the_on_screen_stick_moves_the_game_and_springs_back"
+   ],
+   "note": "Checked with a simulated controller in a real browser: no physical controller was used."
+  },
+  {
+   "id": "MP-01",
+   "title": "Multiplayer in Blocks and PRG32 Python: valid room names, one join, a tick every frame, all peer values",
+   "status": "implemented",
+   "audit_score": null,
+   "source": [
+    "prg32_construction_kit/generator.py::room_signature",
+    "prg32_construction_kit/generator.py::multiplayer_warnings",
+    "prg32_construction_kit/asm_generator.py",
+    "prg32_construction_kit/python_project.py"
+   ],
+   "tests": [
+    "tests/test_input_and_multiplayer.py::test_a_room_name_is_one_the_firmware_accepts",
+    "tests/test_input_and_multiplayer.py::test_blocks_join_with_a_valid_room_once_and_tick_every_frame",
+    "tests/test_input_and_multiplayer.py::test_python_multiplayer_generates_the_same_as_blocks",
+    "tests/test_input_and_multiplayer.py::test_multiplayer_without_a_join_warns"
+   ],
+   "note": "A real room was run once by hand on two QEMU consoles and the PRG32 Multiplayer Server; CI checks the generated code only. The browser stays offline."
   }
  ]
 }

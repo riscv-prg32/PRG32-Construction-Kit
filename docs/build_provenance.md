@@ -16,7 +16,7 @@ its metadata.
 | --- | --- |
 | `kit` | This kit's version and commit (from `.git`, or `PRG32_KIT_REVISION` in the Docker image). |
 | `sdk` | The PRG32 tools (`prg32` package) the kit's Python can import: installed?, version, commit. |
-| `abi` | The portable cartridge ABI: name, version 1.6, hash `0x260f6136`. |
+| `abi` | The portable cartridge ABI: name, version 1.8, hash `0x71b93e23`. |
 | `toolchain` | The RISC-V compiler name and the first line of its `--version`. |
 | `build_command` | The build command with program names only (no folders, secret-looking options hidden) and a SHA-256 of the exact command. |
 | `authoring`, `source_language` | `blocks`, `c` or `assembly`, and which file was compiled (`c` or `asm`). |

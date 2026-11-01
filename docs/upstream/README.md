@@ -14,8 +14,9 @@ and checked again there:
 | §2 `prg32-sdk-retire-buzzer.patch` | [riscv-prg32/PRG32#45](https://github.com/riscv-prg32/PRG32/pull/45) |
 | §3 `prg32-sdk-audio-clock-and-reset.patch` | [riscv-prg32/PRG32#46](https://github.com/riscv-prg32/PRG32/pull/46) |
 
-The kit keeps pinning `679dfb5` and `f6d80ad` until the maintainers merge. After that, follow
-"When it lands upstream" in §2 and move `static/wasm/BUILD.json` to the merged SDK commit.
+The kit now pins the merged ABI 1.8 heads (PRG32 `1eff2e2`, PRG32-QT `b98a6aa`), without these patches.
+They still apply to the commits above, where the tests check them, but not to those heads: **rebase them
+before the pull requests can land**, and then follow "When it lands upstream" in §2.
 
 ## 1. PRG32-QT: render sound with the PRG32 firmware's engine (patch)
 

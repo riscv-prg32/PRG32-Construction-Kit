@@ -4,8 +4,8 @@
 
 | Item | Value | Source |
 | --- | --- | --- |
-| ABI | 1.6, hash `0x260f6136` | PRG32 `prg32/abi/abi_generated.py` |
-| Also accepted by PRG32-QT | `0x006427c2`, `0x6be6e8d0` | PRG32-QT `src/core/Runtime.h` |
+| ABI | 1.8, hash `0x71b93e23` | PRG32 `prg32/abi/abi_generated.py` |
+| Also accepted by PRG32-QT | `0x006427c2`, `0x6be6e8d0`, `0x260f6136`, `0xb3845925` | PRG32-QT `src/core/Runtime.h` |
 | Compiler target | `rv32imc_zicsr_zifencei` (SDK default) | PRG32 `prg32/prg32.py` |
 | Runtime ISA | RV32IMAC interpreter | PRG32-QT `src/core/Rv32Cpu.h` |
 | Kit-generated assembly | RV32IM `.S`, portable ABI table | `asm_generator.py` |
@@ -59,10 +59,12 @@ The browser runs PRG32-QT's own core (`docs/wasm_runtime.md`).
 
 | Area | PRG32-QT | Browser (`/player`) |
 | --- | --- | --- |
-| RV32IMAC interpreter, ABI 1.6 (139 calls) | Yes | Same code; identical state in golden tests |
+| RV32IMAC interpreter, ABI 1.8 (144 calls) | Yes | Same code; identical state in golden tests |
 | Accurate ESP32-C6 timing (virtual clock) | Yes (default) | Yes (default) |
 | 320 × 200 RGB565 framebuffer | Yes | Yes; identical frames to `prg32qt-headless` |
 | Buttons (keyboard map, latch of quick taps) | Yes | Yes, same keys; on-screen buttons |
+| Game controllers | Buttons and directions | Yes, through the browser (`game_controllers.md`) |
+| Analog stick (ABI #140 to #143) | No: answers from the directions | **Kit adds**: controllers and an on-screen stick (ADR-0030) |
 | Audio | Qt mixer (no ADSR, floating point) | The PRG32 firmware's own engine: 8 voices, ADSR, synth filter, samples, tracker, stereo mix (ADR-0021, `audio_engine.md`) |
 | Multiplayer, Wi-Fi, score upload | Yes | No |
 | Debugger UI | Yes | Yes (see the parity table above) |

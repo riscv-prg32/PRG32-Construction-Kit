@@ -13,7 +13,8 @@ there.
    plays the newest cartridge compiled for that project, with the debugger below it (`/player?project=<id>`): press **Compile**
    in the IDE first.
 2. Press **Play**. Buttons: arrows or W A S D, **Z**/**J** = A, **X**/**K** = B,
-   **Enter**/**Space** = Select. On a tablet, use the on-screen buttons.
+   **C** = C, **V** = D, **Q** = L, **E** = R, **Enter**/**Space** = Select. On a tablet, use the
+   on-screen buttons and stick. A game controller works too (`game_controllers.md`).
 3. **Frame** runs exactly one frame (update + draw) and stops.
 4. **Speed** (0.01× to 4×) changes how fast frames come. The game always
    thinks 33 ms passed per frame, so it behaves the same at every speed:
@@ -50,7 +51,7 @@ static/js/prg32_runtime.js: canvas, buttons, timing, plays the engine's PCM  ─
 - `python3 tools/build_wasm.py --prg32qt ../PRG32-QT` rebuilds the module and
   writes `static/wasm/BUILD.json`: the PRG32-QT commit, the Emscripten version
   and the SHA-256 of both files. `--check` only compares.
-- The C API: `prg32_load`, `prg32_frame`, `prg32_state_json`, the audio
+- The C API: `prg32_load`, `prg32_frame`, `prg32_set_stick`, `prg32_state_json`, the audio
   queue, and the debugger calls below.
 
 ## The debugger (G5)
@@ -121,7 +122,7 @@ them against the committed module and against a fresh build.
 
 ## Limits
 
-- Not done: multiplayer (no transport in the browser), Wi-Fi, score upload,
+- Not done: multiplayer (no transport in the browser, `multiplayer.md`), Wi-Fi, score upload,
   the PRG32-QT performance overlay. Scores stay in memory.
 - Sound follows the PRG32 firmware, not PRG32-QT's desktop mixer (which has no ADSR);
   `prg32_audio_notes` plays its notes in engine time while the game keeps running

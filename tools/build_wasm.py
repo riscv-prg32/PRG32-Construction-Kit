@@ -10,7 +10,7 @@ copy, see wasm/CMakeLists.txt), and its sound from the PRG32 firmware's audio en
 interface in wasm/prg32_core_api.cpp and the audio port in wasm/audio/. The result is written to
 
     static/wasm/prg32-core.js     JavaScript loader (createPrg32Core)
-    static/wasm/prg32-core.wasm   the core: RV32IMAC interpreter + PRG32 ABI 1.6
+    static/wasm/prg32-core.wasm   the core: RV32IMAC interpreter + PRG32 ABI 1.8
     static/wasm/BUILD.json        what it was built from, with SHA-256 fingerprints
 
 With --check nothing is copied: the script only says whether static/wasm
@@ -30,6 +30,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
+from prg32_construction_kit.project_format import SDK_ABI
 from prg32_construction_kit.provenance import git_revision
 
 OUTPUT = ROOT / "static" / "wasm"
@@ -85,7 +86,7 @@ def main() -> int:
                   "sources": "components/prg32_audio (audio.c, audio_assets.c, audio_mixer.c, audio_synth.c, "
                              "audio_tracker.c)",
                   "license": "MIT"},
-        "abi": {"major": 1, "minor": 6, "hash": "0x260f6136"},
+        "abi": {"major": SDK_ABI["major"], "minor": SDK_ABI["minor"], "hash": SDK_ABI["hash"]},
         "emscripten": emscripten_version(),
         "files": {name: {"sha256": sha256(built / name), "bytes": (built / name).stat().st_size} for name in FILES},
     }

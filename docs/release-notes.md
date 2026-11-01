@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+### PRG32 ABI 1.8: analog stick, game controllers, working multiplayer
+
+- **Aligned with PRG32 ABI 1.8** (`0x71b93e23`) and the merged PRG32 and PRG32-QT. New buttons **C, D,
+  L, R** everywhere. **Player 2 buttons are gone**, as in the firmware: a saved block that uses one
+  shows it as *removed* and does not build until another button is chosen; C and assembly naming
+  `PRG32_P2_BTN_*` and PRG32 Python naming `prg32.P2_*` are refused.
+- **Analog stick:** `stick_x()`, `stick_y()` and `has_stick()` in Blocks and PRG32 Python, and the
+  ABI calls in C and assembly. It works in the browser. ([game_controllers.md](game_controllers.md))
+- **Game controllers** on the computer running the browser work in the IDE, the Player and the
+  offline pages, and an **on-screen stick** stands in without one.
+- **Multiplayer fixed in Blocks and PRG32 Python:** a game whose title had a space or other unusual
+  character never got into a room, because the firmware refused its name; a game that only read other players
+  never kept its connection; and a join block running every frame kept forgetting the others. Rooms
+  now have a valid name, which you can choose. New: *leave*, *share my buttons*, flags, `peer_flags`,
+  `peer_input`, `peer_id`, `my_id`. Games with multiplayer but no join get a warning. ([multiplayer.md](multiplayer.md))
+
 ### Project art in every kind of project
 
 - **Sprites, backgrounds and sounds by name, in Blocks, Python, C and assembly** (ADR-0029). New

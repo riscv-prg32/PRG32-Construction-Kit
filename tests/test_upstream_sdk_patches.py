@@ -19,9 +19,15 @@ from pathlib import Path
 
 import pytest
 
-from test_wasm_runtime import PRG32_SDK
+import test_wasm_runtime
 
 ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT / "tools"))
+from pinned_sdk import pinned_checkout  # noqa: E402
+
+# The open pull requests were made against this SDK commit (docs/upstream/README.md); the kit has moved on.
+PATCH_BASE = "679dfb58783bd007125de9ca0b75eaa077908739"
+PRG32_SDK = test_wasm_runtime.PRG32_SDK
 PATCHES = [ROOT / "docs" / "upstream" / "prg32-sdk-audio-clock-and-reset.patch",
            ROOT / "docs" / "upstream" / "prg32-sdk-retire-buzzer.patch"]
 
@@ -34,8 +40,12 @@ def patched(tmp_path_factory):
         pytest.skip(f"no PRG32 SDK checkout at {PRG32_SDK} (set PRG32_SOURCE)")
     if shutil.which("git") is None:
         pytest.skip("needs git")
+    base = pinned_checkout(PRG32_SDK, PATCH_BASE)
+    if base is None:
+        pytest.skip(f"this SDK checkout does not have {PATCH_BASE[:7]}, the patches' base")
+    globals()["PRG32_SDK"] = base
     copy = tmp_path_factory.mktemp("sdk") / "PRG32"
-    shutil.copytree(PRG32_SDK, copy, ignore=shutil.ignore_patterns(".git", "build", "build-*", "managed_components", "__pycache__"))
+    shutil.copytree(base, copy, ignore=shutil.ignore_patterns(".git", "build", "build-*", "managed_components", "__pycache__"))
     for patch in PATCHES:
         applied = subprocess.run(["git", "apply", "--directory=", str(patch)], cwd=copy, capture_output=True, text=True)
         assert applied.returncode == 0, f"{patch.name} no longer applies: {applied.stderr}"

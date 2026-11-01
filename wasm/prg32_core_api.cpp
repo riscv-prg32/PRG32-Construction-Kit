@@ -373,6 +373,16 @@ PRG32_EXPORT void prg32_unload() {
     session.reset();
 }
 
+/**
+ * The analog stick for the frames that follow: present 0 or 1 and each axis in -127..127,
+ * where -127 is left and up. A cartridge reads it with prg32_input_axis_x/y (ABI #140, #141).
+ * The direction bits of the input mask stay the caller's work (static/js/prg32_controllers.js).
+ */
+PRG32_EXPORT void prg32_set_stick(int present, int x, int y) {
+    if (session)
+        session->runtime.setKitStick(present != 0, std::clamp(x, -127, 127), std::clamp(y, -127, 127));
+}
+
 /** Run one update + draw with the PRG32 input bit mask. Returns 1 on success, 0 on a guest trap. */
 PRG32_EXPORT int prg32_frame(uint32_t input) {
     if (!session)

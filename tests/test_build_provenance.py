@@ -55,7 +55,7 @@ def test_c_build_records_provenance_and_cartridge_hashes(client, monkeypatch, to
     record = result["build"]["metadata"]["provenance"]
     assert record["schema"] == provenance.SCHEMA and record["status"] == "ready"
     assert record["kit"]["name"] == "PRG32-Construction-Kit" and record["kit"]["version"]
-    assert record["abi"] == {"name": "prg32-portable-abi", "major": 1, "minor": 6, "hash": "0x260f6136"}
+    assert record["abi"] == {"name": "prg32-portable-abi", "major": 1, "minor": 8, "hash": "0x71b93e23"}
     assert record["authoring"] == "blocks" and record["source_language"] == "c"
     assert record["entry_prefix"] == "prov_game" and record["architectures_requested"] == ["qemu"]
     assert record["cart_ram_kib"] == 64 and isinstance(record["required_features"], list)

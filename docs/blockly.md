@@ -73,9 +73,11 @@ does nothing, in the simulator and in C (`prg32_kit_get` / `prg32_kit_set`).
 | `if button LEFT is held` | `if (input & PRG32_BTN_LEFT)`: true on every frame the button is down |
 | `if button A was just pressed` | true only on the first frame of a press (edge detection) |
 
-The button list includes the second controller: *player 2 left/right/up/down/A/B*
-(`PRG32_P2_BTN_*`). In the simulator, player 2 uses `J L I K` for the
-directions and `U`/`O` for A/B.
+The button list has the firmware's eleven buttons, with C, D and the bumpers L and R. PRG32 no longer
+has player 2 buttons: a project saved with one shows it as *removed*, and does not build until you
+choose another button. A second player is a second console ([multiplayer.md](multiplayer.md)).
+
+The stick is read with `stick_x()` and `stick_y()` ([game_controllers.md](game_controllers.md)).
 
 ## Drawing
 
@@ -154,10 +156,14 @@ instrument (a soft sine wave).
 
 | Block | C behaviour |
 | --- | --- |
-| `join multiplayer game` | `prg32_multiplayer_join` (Cartridge Store relay) |
-| `share my position x y look` | `prg32_multiplayer_set_local_state` and `prg32_multiplayer_tick` |
+| `join multiplayer room` | `prg32_multiplayer_join`, once, through the PRG32 Multiplayer Server |
+| `share my position x y look flags` | `prg32_multiplayer_set_local_state` |
+| `share my buttons` | `prg32_multiplayer_set_input` |
+| `leave multiplayer room` | `prg32_multiplayer_leave` |
 
-Read other players with `peers()`, `peer_x(i)`, `peer_y(i)`, `peer_look(i)`.
+Read other players with `peers()`, `peer_x(i)`, `peer_y(i)`, `peer_look(i)`, `peer_flags(i)`,
+`peer_input(i)`, `peer_id(i)`, and your own ID with `my_id()`. A game that uses multiplayer also calls
+`prg32_multiplayer_tick` every frame. See [multiplayer.md](multiplayer.md).
 The simulator and QEMU are offline: `peers()` is 0 there.
 
 ## Expressions
@@ -174,7 +180,7 @@ An expression may use:
 - whole numbers (`16`, `-3`, `0x1F`) and variable names;
 - list items `name[position]`;
 - PRG32 constants: `PRG32_GAME_W`, `PRG32_GAME_H`, `PRG32_SCREEN_W`, `PRG32_SCREEN_H`,
-  `PRG32_TILE_*`, `PRG32_PLAYFIELD_*`, `PRG32_BTN_*`, `PRG32_P2_BTN_*`, `PRG32_COLOR_*`;
+  `PRG32_TILE_*`, `PRG32_PLAYFIELD_*`, `PRG32_BTN_*`, `PRG32_INPUT_BUTTONS_MASK`, `PRG32_COLOR_*`;
 - parentheses and the C operators `+ - * / % < > <= >= == != && || ! & | ^ ~ << >>`;
 - these kit functions:
 
@@ -187,7 +193,9 @@ An expression may use:
 | `random(low, high)` | a random whole number, both ends included |
 | `frame()` | frames finished since the game started |
 | `tile(layer, column, row)` | the tile number in a playfield |
-| `peers()`, `peer_x(i)`, `peer_y(i)`, `peer_look(i)` | other multiplayer players |
+| `peers()`, `peer_x(i)`, `peer_y(i)`, `peer_look(i)`, `peer_flags(i)`, `peer_input(i)`, `peer_id(i)` | other multiplayer players |
+| `my_id()` | this console's player ID, 0 outside the room |
+| `stick_x()`, `stick_y()`, `has_stick()` | the analog stick: -127 to 127, and 1 with a real stick |
 
 Anything else is replaced by the block's default value, and the replacement is
 listed under **Warnings** after **Generate**. That includes unknown
