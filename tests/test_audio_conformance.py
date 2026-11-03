@@ -304,7 +304,7 @@ def test_the_earlier_patched_recordings_are_intact():
 @pytest.mark.parametrize("name", sorted(FRAME_CLOCK_CARTRIDGES))
 def test_qemu_firmware_equals_the_browser_core_over_the_whole_recording(name, tmp_path):
     """docs/evidence/qemu-audio/2026-10-21-frame-clock: the firmware recording is intact and made with
-    today's SDK patch; this browser core renders the recorded browser side; and at shift 0 every
+    the patch kept beside it, which changes the same lines as today's SDK patch; this browser core renders the recorded browser side; and at shift 0 every
     20 ms chunk is equal, so the aligned firmware PCM has the browser PCM's SHA-256. Three runs."""
     import hashlib
     import sys
@@ -316,8 +316,13 @@ def test_qemu_firmware_equals_the_browser_core_over_the_whole_recording(name, tm
     report = json.loads((FRAME_CLOCK / name / "comparison.json").read_text())
     cartridge = FRAME_CLOCK_CARTRIDGES[name]
     assert hashlib.sha256(cartridge.read_bytes()).hexdigest() == report["cartridge"]["sha256"]
+    # Recorded at SDK 679dfb5. Rebasing the patch moved its context lines, not what it changes.
+    recorded = FRAME_CLOCK / "prg32-sdk-audio-clock-and-reset-679dfb5.patch"
+    assert report["firmware"]["patches"][0]["sha256"] == hashlib.sha256(recorded.read_bytes()).hexdigest()
     patch = ROOT / "docs" / "upstream" / "prg32-sdk-audio-clock-and-reset.patch"
-    assert report["firmware"]["patches"][0]["sha256"] == hashlib.sha256(patch.read_bytes()).hexdigest()
+    changed = [[line for line in path.read_text().splitlines() if line[:1] in "+-" and line[:3] not in ("+++", "---")]
+               for path in (recorded, patch)]
+    assert changed[0] == changed[1]
     with wave.open(str(FRAME_CLOCK / name / "firmware.wav")) as source:
         firmware = source.readframes(source.getnframes())
     assert hashlib.sha256(firmware).hexdigest() == report["firmware_pcm_sha256"]

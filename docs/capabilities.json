@@ -294,7 +294,7 @@
     "tests/test_upstream_sdk_patches.py::test_the_buzzer_slots_are_retired_and_every_other_slot_keeps_its_index",
     "tests/test_no_buzzer.py::test_the_index_builder_skips_retired_abi_slots"
    ],
-   "note": "Kit side complete: refused in C and assembly, obsolete-only in the language index, silent and counted for old cartridges, a repository-wide guard. The SDK retirement is a tested patch (docs/upstream/prg32-sdk-retire-buzzer.patch: ABI 1.7, slots 5/7/8 kept and silent, the 1.6 hash compatible, no public declaration, examples migrated; SDK tests 89 passed); the canonical SDK still exports the buzzer until it is merged."
+   "note": "Kit side complete: refused in C and assembly, obsolete-only in the language index, silent and counted for old cartridges, a repository-wide guard. The SDK retirement is a tested patch (docs/upstream/prg32-sdk-retire-buzzer.patch, rebased onto the pinned 1eff2e2: ABI 1.9, slots 5/7/8 kept and silent, the 1.6, 1.7 and 1.8 hashes compatible, no public declaration, examples migrated; SDK tests 191 passed); the canonical SDK still exports the buzzer until it is merged."
   },
   {
    "id": "DBG-01",

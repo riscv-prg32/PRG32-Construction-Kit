@@ -1,0 +1,51 @@
+{
+ "cartridge": {
+  "file": "conformance.prg32",
+  "sha256": "382ea6956d83916c3276895f1d298f38955708cafe094de9b6e9c4599c3d42db"
+ },
+ "firmware": {
+  "sdk_revision": "1eff2e20b8663d1fc816e5d68f773b8a22e65dd1",
+  "flash_sha256": "bd2c5f28164bc3c5cc23c1e06bb585167a763ee41e3c22beb23db1d5ef8f6362",
+  "qemu": "QEMU emulator version 9.0.0 (esp_develop_9.0.0_20240606)",
+  "patches": [
+   {
+    "file": "prg32-sdk-audio-clock-and-reset.patch",
+    "sha256": "7247d965f87b0a2f8d27073ada3ca3eb1ef7646d45063bee264885683306ae31"
+   },
+   {
+    "file": "prg32-sdk-retire-buzzer.patch",
+    "sha256": "cd70d8d33e028c2750dd3d40cf9d31d9a7da5a76ba43321ec29acee84fa22caa"
+   }
+  ],
+  "overlay": "# The firmware build for the QEMU audio comparison (tools/qemu_audio_capture.py, ADR-0021):\n# the PRG32 QEMU profile with stereo output (PRG32 Audio Plus). The QEMU profile sets the\n# I2S pins to -1, and the firmware's audio set-up refuses -1 pins even though QEMU sends the\n# sound over UART1 instead; any free ESP32-C3 pins make it start (4 and 5 are UART1).\n# CONFIG_PRG32_AUDIO_MODE_MONO is not set\nCONFIG_PRG32_AUDIO_MODE_STEREO=y\nCONFIG_PRG32_AUDIO_I2S_BCLK_GPIO=6\nCONFIG_PRG32_AUDIO_I2S_LRCLK_GPIO=7\nCONFIG_PRG32_AUDIO_I2S_DATA_GPIO=10\n"
+ },
+ "kit_revision": "cbb18e957383e8a30a537d5adab9a5eeca7a0315",
+ "seconds": 7.0,
+ "firmware_pcm_sha256": "970045cc5c69861fba2aa7652bc6eb8a27eeabd812b8f1f8dabf2c138fc2f2cc",
+ "browser_pcm_sha256": "a5af48747f363fc3fef3184ce55d9dd9fde78a78927c79f6219064025fc95b31",
+ "qemu_options": [
+  "-icount",
+  "shift=3,sleep=off"
+ ],
+ "aligned": {
+  "shift_chunks": 1,
+  "equal_chunks": 348,
+  "compared_chunks": 348,
+  "differing_chunks": [],
+  "whole_recording_equal": true,
+  "firmware_aligned_sha256": "a5af48747f363fc3fef3184ce55d9dd9fde78a78927c79f6219064025fc95b31",
+  "browser_sha256": "a5af48747f363fc3fef3184ce55d9dd9fde78a78927c79f6219064025fc95b31"
+ },
+ "browser_chunks": 348,
+ "firmware_chunks": 360,
+ "browser_sounding_chunks": 234,
+ "identical_sounding_chunks": 347,
+ "segments": [
+  {
+   "browser_chunk": 1,
+   "firmware_chunk": 2,
+   "identical_chunks": 347,
+   "identical_ms": 6940
+  }
+ ]
+}

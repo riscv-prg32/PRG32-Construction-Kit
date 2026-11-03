@@ -290,7 +290,7 @@ index 0000000..cced943
 +}
 +#endif
 diff --git a/main/main.c b/main/main.c
-index 857e1e9..bb0add0 100644
+index 6cb317a..72d100e 100644
 --- a/main/main.c
 +++ b/main/main.c
 @@ -11,6 +11,7 @@
@@ -301,15 +301,15 @@ index 857e1e9..bb0add0 100644
  #include "prg32_config.h"
  #include "sdkconfig.h"
  
-@@ -205,6 +206,7 @@ void app_main(void) {
-         prg32_console_clear();
+@@ -216,6 +217,7 @@ void app_main(void) {
          prg32_stop_metrics_run();
+         prg32_band_reset();
          prg32_display_log_memory("immediately before cartridge init");
 +        prg32_audio_cartridge_start();
          prg32_cart_call_init();
          prg32_start_metrics_for_loaded_cart();
        }
-@@ -241,8 +243,10 @@ void app_main(void) {
+@@ -252,8 +254,10 @@ void app_main(void) {
          prg32_gfx_unlock();
        }
        prg32_diag_increment_frame();

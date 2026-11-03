@@ -25,8 +25,8 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "tools"))
 from pinned_sdk import pinned_checkout  # noqa: E402
 
-# The open pull requests were made against this SDK commit (docs/upstream/README.md); the kit has moved on.
-PATCH_BASE = "679dfb58783bd007125de9ca0b75eaa077908739"
+# The patches are made against the SDK commit the kit pins (docs/upstream/README.md, static/wasm/BUILD.json).
+PATCH_BASE = "1eff2e20b8663d1fc816e5d68f773b8a22e65dd1"
 PRG32_SDK = test_wasm_runtime.PRG32_SDK
 PATCHES = [ROOT / "docs" / "upstream" / "prg32-sdk-audio-clock-and-reset.patch",
            ROOT / "docs" / "upstream" / "prg32-sdk-retire-buzzer.patch"]
@@ -67,7 +67,8 @@ def test_the_generated_abi_files_match_the_patched_table(patched):
 def test_the_buzzer_slots_are_retired_and_every_other_slot_keeps_its_index(patched):
     original = json.loads((PRG32_SDK / "prg32/abi/prg32_abi.json").read_text())
     table = json.loads((patched / "prg32/abi/prg32_abi.json").read_text())
-    assert (table["major"], table["minor"]) == (1, 7)
+    assert (table["major"], table["minor"]) == (1, 9)       # upstream used 1.7 and 1.8 for other things
+    assert all(fn["retired"]["since"] == "1.9" for fn in table["functions"] if fn.get("retired"))
     assert len(table["functions"]) == len(original["functions"])
     for index, (before, after) in enumerate(zip(original["functions"], table["functions"])):
         assert before["name"] == after["name"], index          # the slot's history stays readable
@@ -75,7 +76,8 @@ def test_the_buzzer_slots_are_retired_and_every_other_slot_keeps_its_index(patch
     names = generated(patched)["IMPORT_NAMES"]
     assert [index for index, name in enumerate(names) if name is None] == [5, 7, 8]
     assert not any(name and "buzzer" in name for name in names)
-    assert generated(patched)["COMPATIBLE_ABI_HASHES"][-1] == 0x260F6136   # 1.6 cartridges still load
+    # 1.6, 1.7 and 1.8 cartridges still load
+    assert generated(patched)["COMPATIBLE_ABI_HASHES"][-3:] == [0x260F6136, 0xB3845925, 0x71B93E23]
     c_table = (patched / "components/prg32/prg32_abi_table.c").read_text()
     assert c_table.count("(const void *)prg32_abi_retired_silent") == 3 and "buzzer" not in c_table
 
