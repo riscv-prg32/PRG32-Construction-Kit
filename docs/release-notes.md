@@ -12,7 +12,7 @@
   longer patches them in; it adds only the analog stick.
 - Upstream: the frame clock and fresh mixer are in PRG32 `main`, PRG32-QT#1 is merged, and the
   buzzer retirement (PRG32#45) was closed without merging; its patch is kept rebased onto `main`. A
-  new PRG32-QT patch lets PRG32-QT build against SDK `main` ([upstream/README.md](upstream/README.md)).
+  new PRG32-QT patch (PRG32-QT#2, open) lets PRG32-QT build against SDK `main` ([upstream/README.md](upstream/README.md)).
 
 ### PRG32 ABI 1.8: analog stick, game controllers, working multiplayer
 

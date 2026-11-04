@@ -10,7 +10,7 @@ and PRG32-QT `7683be1` (`static/wasm/BUILD.json`).
 | Proposal | Pull request | State |
 |---|---|---|
 | §1 PRG32-QT plays sound with the firmware's audio engine | [riscv-prg32/PRG32-QT#1](https://github.com/riscv-prg32/PRG32-QT/pull/1) | **merged** (`7683be1`, 2026-11-01) |
-| §1.1 PRG32-QT builds against SDK `main` (`prg32-qt-sdk-main.patch`) | none yet | **new**, waits for the maintainer's go-ahead |
+| §1.1 PRG32-QT builds against SDK `main` (`prg32-qt-sdk-main.patch`) | [riscv-prg32/PRG32-QT#2](https://github.com/riscv-prg32/PRG32-QT/pull/2) | **open** (2026-11-04) |
 | §2 PRG32 SDK retires the buzzer (`prg32-sdk-retire-buzzer.patch`) | [riscv-prg32/PRG32#45](https://github.com/riscv-prg32/PRG32/pull/45) | **closed without merging** (2026-11-03); the patch, rebased onto `1fa8474`, stays the kit's record |
 | §3 PRG32 SDK audio frame clock and fresh mixer | [riscv-prg32/PRG32#46](https://github.com/riscv-prg32/PRG32/pull/46) | the pull request was closed, but its commit is **in `main`** (`01663b7`), with later fixes by upstream (`1fa8474`) |
 
@@ -74,7 +74,7 @@ cmake -S . -B build && cmake --build build && (cd build && ctest)
 firmware audio build stops: the engine's `audio.c` now includes `esp_log.h` and creates a binary
 semaphore (`xSemaphoreCreateBinary`), and the port's shim has neither.
 
-**Patch.** [`prg32-qt-sdk-main.patch`](prg32-qt-sdk-main.patch), against PRG32-QT `7683be1`:
+**Patch** (riscv-prg32/PRG32-QT#2, open, with a `docs/TESTING.md` entry as well). [`prg32-qt-sdk-main.patch`](prg32-qt-sdk-main.patch), against PRG32-QT `7683be1`:
 `src/core/firmware_audio/shim/esp_log.h` (the four log macros, doing nothing), one line in
 `shim/freertos/semphr.h`, and `PRG32_SDK_REVISION` moved to `1fa8474`.
 
