@@ -30,7 +30,9 @@ function ready() {
   const cartridge = selectedCartridge();
   const supported = webSerialAvailable();
   $('#usbDeployUnsupported').toggleClass('d-none', supported);
-  $start.prop('disabled', busy || !supported || !$confirm.is(':checked') || !cartridge || cartridge.architecture !== 'esp32c6');
+  // No slot is chosen for the student: they pick the one whose game may be replaced.
+  const slotChosen = SLOT_NAMES.includes($slot.val());
+  $start.prop('disabled', busy || !supported || !slotChosen || !$confirm.is(':checked') || !cartridge || cartridge.architecture !== 'esp32c6');
   $performance.prop('disabled', busy || !supported);
 }
 
@@ -43,10 +45,30 @@ function setProgress(percent) {
   $progress.removeClass('d-none').attr('aria-valuenow', value).find('.progress-bar').css('width', value + '%');
 }
 
-function showError(error) {
-  const message = error && error.name === 'NotFoundError'
-    ? tr('js.deploy.usb_cancelled', 'No USB device was selected; nothing was written.')
-    : describeSerialError(error);
+// Web Serial gives the same error names for "another program has the port" (when
+// opening) and "the cable was pulled" (once it is open), so the advice depends on
+// how far the deploy got. phase: 'opening' (choosing and opening the port),
+// 'open' (talking to the PRG32, nothing sent to a slot yet) or 'sending' (the
+// upload has begun, so the PRG32 has started erasing the slot).
+function lostConnection(error) {
+  if (!error) return false;
+  if (error.name === 'NetworkError' || error.name === 'InvalidStateError') return true;
+  return error.message === 'The PRG32 USB connection closed unexpectedly.';
+}
+
+function showError(error, phase = 'opening', slot = '') {
+  let message;
+  if (error && error.name === 'NotFoundError') {
+    message = tr('js.deploy.usb_cancelled', 'No USB device was selected; nothing was written.');
+  } else if (phase === 'opening' && lostConnection(error)) {
+    message = tr('js.deploy.usb_busy', 'The USB port is busy. Close serial monitors and other programs that use the PRG32, then try again.');
+  } else if (phase === 'sending' && lostConnection(error)) {
+    message = tr('js.deploy.usb_disconnected_sending', 'The PRG32 was disconnected during the transfer. {slot} may now be empty or hold half a cartridge, which never starts. Plug the PRG32 in again and deploy again.', { slot });
+  } else if (lostConnection(error)) {
+    message = tr('js.deploy.usb_disconnected', 'The PRG32 was disconnected. Nothing was written. Plug it in again and try again.');
+  } else {
+    message = describeSerialError(error);
+  }
   $status.html('<span class="text-danger"></span>').find('span').text(message);
   appendLog(message);
 }
@@ -100,9 +122,11 @@ async function deployUsb() {
   setProgress(0);
   $result.text('').addClass('d-none');
   let session = null;
+  let phase = 'opening';
   try {
     $status.text(tr('js.deploy.usb_choose', 'Choose the PRG32 USB serial device.'));
     session = await openSession();
+    phase = 'open';
     $status.text(tr('js.deploy.usb_preparing', 'Preparing the cartridge…'));
     const prepared = await cartridgeBytes(cartridge);
     $status.text(tr('js.deploy.usb_connecting', 'Negotiating PRG32 USB capabilities…'));
@@ -115,6 +139,7 @@ async function deployUsb() {
     appendLog('PRG32 cartridge: ' + prepared.info.name + ' (' + prepared.info.size + ' bytes, ABI ' + prepared.info.abiMajor + '.' + prepared.info.abiMinor + ')');
     appendLog('Destination: ' + slot + '; command: ' + command + '; chunk: ' + session.chunkSize() + ' bytes');
     $status.text(tr('js.deploy.usb_writing', 'Writing and verifying {slot}…', { slot }));
+    phase = 'sending';
     const result = await session.upload(prepared.data, { name: prepared.info.name, slot, command }, (received, total) => setProgress(received * 100 / total));
     setProgress(100);
     appendLog('Device: ' + JSON.stringify(result));
@@ -123,7 +148,7 @@ async function deployUsb() {
       : tr('js.deploy.usb_stored', '{slot} holds the cartridge. The PRG32 is back in setup.', { slot });
     $status.empty().append($('<span class="text-success">').text(finished));
   } catch (error) {
-    showError(error);
+    showError(error, phase, slot);
   } finally {
     if (session) await session.close();
     busy = false;
@@ -136,9 +161,11 @@ async function retrievePerformance() {
   ready();
   $result.text('').addClass('d-none');
   let session = null;
+  let phase = 'opening';
   try {
     $status.text(tr('js.deploy.usb_choose', 'Choose the PRG32 USB serial device.'));
     session = await openSession();
+    phase = 'open';
     const capabilities = await session.hello();
     logDevice(capabilities);
     if (!(capabilities.capabilities || []).includes('performance')) throw new Error('This device does not offer performance results over USB.');
@@ -146,7 +173,7 @@ async function retrievePerformance() {
     $result.removeClass('d-none').text(JSON.stringify(JSON.parse(text), null, 2));
     $status.empty().append($('<span class="text-success">').text(tr('js.deploy.usb_performance_done', 'Performance results retrieved over USB.')));
   } catch (error) {
-    showError(error);
+    showError(error, phase);
   } finally {
     if (session) await session.close();
     busy = false;

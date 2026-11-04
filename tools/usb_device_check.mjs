@@ -1,7 +1,12 @@
 #!/usr/bin/env node
 // Hardware check for static/js/prg32_usb_protocol.js on a real PRG32.
 //
-//   node tools/usb_device_check.mjs /dev/cu.usbmodem101 game.prg32 [slot] [store|run]
+//   node tools/usb_device_check.mjs /dev/cu.usbmodem101 game.prg32 [slot] [store|run|performance]
+//
+// With performance the cartridge must measure itself (for example the kit's
+// examples/evaluation/prg32_evaluation.c): the tool waits until the PRG32 has
+// results and checks them. With store or run it only checks that the PRG32
+// answers a performance request, since such a cartridge leaves no results.
 //
 // Browsers need a person to choose the port, so this tool runs the exact
 // module the Deploy page loads under Node, with a small adapter that gives a
@@ -30,6 +35,8 @@ class NodeSerialPort {
       start(controller) {
         input.on('data', chunk => controller.enqueue(new Uint8Array(chunk)));
         input.on('end', () => controller.close());
+        // A pulled cable ends the read with ENXIO: report it instead of crashing.
+        input.on('error', error => { try { controller.error(error); } catch (_) { /* already closed */ } });
       },
       cancel() { input.pause(); }
     });
@@ -56,7 +63,7 @@ class NodeSerialPort {
 
 const [path, file, slot = 'cart7', command = 'store'] = process.argv.slice(2);
 if (!path || !file) {
-  console.error('usage: node tools/usb_device_check.mjs PORT CARTRIDGE.prg32 [slot] [store|run]');
+  console.error('usage: node tools/usb_device_check.mjs PORT CARTRIDGE.prg32 [slot] [store|run|performance]');
   process.exit(2);
 }
 const bytes = new Uint8Array(fs.readFileSync(file));
@@ -67,6 +74,8 @@ const check = (name, ok, detail = '') => {
   results.push(ok);
   console.log(`${ok ? 'PASS' : 'FAIL'} ${name}${detail ? ': ' + detail : ''}`);
 };
+
+const starts = command === 'run' || command === 'performance';
 
 await session.open();
 try {
@@ -81,15 +90,30 @@ try {
   const started = Date.now();
   const result = await session.upload(bytes, { name: info.name, slot, command }, (received, total) => steps.push([received, total]));
   const seconds = (Date.now() - started) / 1000;
-  check(`${command} upload to ${slot}`, result.ok && result.slot === slot && result.running === (command === 'run'),
+  check(`${command} upload to ${slot}`, result.ok && result.slot === slot && result.running === starts,
     `${JSON.stringify(result)} in ${seconds.toFixed(2)} s, ${steps.length} progress reports`);
   check('progress reached the full size', steps.length > 0 && steps[steps.length - 1][0] === bytes.length);
   const again = await session.hello();
   check('device still answers after the upload', again.protocol === 'prg32-io-1.0');
-  const text = await session.performance();
-  check('performance retrieval returns JSON', JSON.parse(text) !== null, text.slice(0, 80));
+  let answer = JSON.parse(await session.performance());
+  if (command === 'performance') {
+    // The cartridge measures itself for a while; the PRG32 answers "no results" until it is done.
+    const deadline = Date.now() + 120000;
+    while (answer.ok !== true && Date.now() < deadline) {
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      answer = JSON.parse(await session.performance());
+    }
+    const summary = answer.summary || {};
+    check('performance results retrieved', answer.ok === true && Array.isArray(answer.screen_summaries) && answer.screen_summaries.length > 0,
+      answer.ok ? `${answer.screen_summaries.length} cases, ${summary.frames} frames, ${summary.fps_mean} fps` : JSON.stringify(answer));
+  } else {
+    check('performance request answered', typeof answer.ok === 'boolean',
+      answer.ok ? 'results present' : `no results (${answer.error}): this cartridge does not measure itself`);
+  }
+} catch (error) {
+  check('the PRG32 stayed connected', false, error.message || String(error));
 } finally {
-  await session.close();
+  await session.close().catch(() => {});
 }
 const failed = results.filter(ok => !ok).length;
 console.log(`${results.length - failed}/${results.length} checks passed`);

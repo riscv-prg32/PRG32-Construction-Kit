@@ -53,8 +53,15 @@
       setSignalsCalls: 0,
       opened: 0,
       closed: 0,
-      silent: Boolean(options.silent)
+      silent: Boolean(options.silent),
+      // busy: another program has the port, so opening it fails as in Chrome.
+      busy: Boolean(options.busy),
+      // unplugAfterChunks: the cable is pulled when this many data chunks have arrived.
+      unplugAfterChunks: options.unplugAfterChunks || 0,
+      unplugged: false
     };
+    // What Chrome reports for a busy port and for a pulled cable.
+    const networkError = message => Object.assign(new Error(message), { name: 'NetworkError' });
     let controller = null;
     let input = new Uint8Array();
     const reply = (type, id, payload, flags = 1) => controller && controller.enqueue(frame(type, id, payload, flags));
@@ -89,6 +96,12 @@
           upload.received.push(...data);
           upload.size += data.length;
           device.chunkSizes.push(data.length);
+        }
+        if (device.unplugAfterChunks && device.dataRequests >= device.unplugAfterChunks) {
+          device.unplugged = true;
+          if (controller) controller.error(networkError('The device has been lost.'));
+          controller = null;
+          return;
         }
         if (device.dropReplies.includes(device.dataRequests)) return;
         return reply(0x80, id, json({ ok: true, received: upload.size, total: upload.meta.size }));
@@ -137,6 +150,7 @@
       device,
       getInfo: () => ({ usbVendorId: 0x303a, usbProductId: 0x1001 }),
       async open() {
+        if (device.busy) throw networkError('Failed to open serial port.');
         device.opened += 1;
         this.readable = new ReadableStream({
           start(c) {
@@ -145,7 +159,12 @@
             c.enqueue(new TextEncoder().encode('I (1234) prg32_main: idle heartbeat\n'));
           }
         });
-        this.writable = new WritableStream({ write(chunk) { consume(new Uint8Array(chunk)); } });
+        this.writable = new WritableStream({
+          write(chunk) {
+            if (device.unplugged) throw networkError('The device has been lost.');
+            consume(new Uint8Array(chunk));
+          }
+        });
       },
       async setSignals() { device.setSignalsCalls += 1; },
       async close() { device.closed += 1; controller = null; }

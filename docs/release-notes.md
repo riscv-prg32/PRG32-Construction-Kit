@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+### USB deploy: clearer messages, no slot chosen for you
+
+- **A pulled cable is not a busy port:** the Deploy page used to say "The USB port is busy" both
+  when another program had the port and when the PRG32 was unplugged during a transfer. It now says
+  the PRG32 was disconnected, and whether the slot may have been changed ([deploy.md](deploy.md)).
+- **Pick the slot yourself:** the USB slot starts empty instead of on `cart0`, so a deploy never
+  replaces the first slot's game by accident.
+- `tools/usb_device_check.mjs` takes **performance** and checks the results of a cartridge that
+  measures itself; with **store** and **run** it no longer calls "no performance test results" a
+  retrieval. An unplugged console ends the check with a message instead of a crash.
+- Checked on an ESP32-C6 with PRG32 `main`: 66 kit cartridges stored and run over USB, and the
+  Deploy page in Chrome with a person picking the port (store, run, debug refused, performance).
+
 ### Multiplayer in the browser, a controller per window
 
 - **Two windows, two players:** windows and tabs of the same browser that play the same room now see

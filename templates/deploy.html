@@ -41,6 +41,7 @@
           <div id="usbDeployUnsupported" class="alert alert-warning d-none" role="status">{{ t("deploy.usb_unsupported") }}</div>
           <label class="form-label" for="usbDeploySlot">{{ t("deploy.slot") }}</label>
           <select class="form-select mb-3" id="usbDeploySlot">
+            <option value="" selected>{{ t("deploy.usb_choose_slot") }}</option>
             {% for number in range(8) %}<option value="cart{{ number }}">cart{{ number }}</option>{% endfor %}
           </select>
           <label class="form-label" for="usbDeployCommand">{{ t("deploy.usb_command") }}</label>
