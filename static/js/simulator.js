@@ -21,6 +21,12 @@ window.PRG32Simulator = (function () {
   Object.keys(COLOR).forEach(name => { CONSTANTS['PRG32_COLOR_' + name] = COLOR[name]; });
 
   const FUNCTIONS = { abs: 1, sign: 1, min: 2, max: 2, clamp: 3, sin: 1, cos: 1, rgb: 3, random: 2, frame: 0, tile: 3, peers: 0, peer_x: 1, peer_y: 1, peer_look: 1, peer_flags: 1, peer_input: 1, peer_id: 1, my_id: 0, stick_x: 0, stick_y: 0, has_stick: 0 };
+  const PEER_FIELDS = { peer_x: 'x', peer_y: 'y', peer_look: 'look', peer_flags: 'flags', peer_input: 'input', peer_id: 'id' };
+  // The room name, as the generator makes it (generator.room_signature): the block's name, else the title.
+  function roomSignature(room, title) {
+    const name = String(room || '').trim() || String(title || '').trim();
+    return name.replace(/[^A-Za-z0-9_.:-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 47) || 'prg32-game';
+  }
   const FUNCTION_FEATURES = { tile: 'tilemap', peers: 'multiplayer', peer_x: 'multiplayer', peer_y: 'multiplayer', peer_look: 'multiplayer', peer_flags: 'multiplayer', peer_input: 'multiplayer', peer_id: 'multiplayer', my_id: 'multiplayer' };
   const SINE = [0, 4, 9, 13, 18, 22, 27, 31, 36, 40, 44, 49, 53, 58, 62, 66, 71, 75, 79, 83, 88, 92, 96, 100,
     104, 108, 112, 116, 120, 124, 128, 132, 136, 139, 143, 147, 150, 154, 158, 161, 165, 168, 171,
@@ -256,9 +262,14 @@ window.PRG32Simulator = (function () {
           case 'random': return randomInt(a[0], a[1]);
           case 'frame': return env.frame | 0;
           case 'tile': return env.tile ? env.tile(a[0], a[1], a[2]) : 0;
-          // The simulator is offline, like QEMU: no other players are connected.
-          case 'peers': case 'peer_x': case 'peer_y': case 'peer_look': case 'peer_flags': case 'peer_input':
-          case 'peer_id': case 'my_id': return 0;
+          // The other players: windows of this browser in the same room (prg32_multiplayer.js),
+          // none in Node or when the browser cannot carry them. A missing player answers 0.
+          case 'peers': return (env.peers || []).length;
+          case 'peer_x': case 'peer_y': case 'peer_look': case 'peer_flags': case 'peer_input': case 'peer_id': {
+            const peer = (env.peers || [])[a[0]];
+            return peer ? peer[PEER_FIELDS[node.name]] | 0 : 0;
+          }
+          case 'my_id': return env.my_id | 0;
           // As on the console: a resting stick still lets the direction buttons steer.
           case 'stick_x': return env.stick_x | 0;
           case 'stick_y': return env.stick_y | 0;
@@ -677,6 +688,10 @@ window.PRG32Simulator = (function () {
       this.latched = {};
       this.fb = new Uint16Array(W * H);
       this.frameMs = 1000 / 30; // PRG32 firmware paces games at about 30 frames per second.
+      this.title = '';          // the project's title: the room of a join block without a name
+      // Multiplayer between the windows of this browser (prg32_multiplayer.js); none in Node.
+      this.link = canvas && typeof window !== 'undefined' && window.PRG32Multiplayer ? new window.PRG32Multiplayer.Link() : null;
+      this.shared = { x: 0, y: 0, look: 0, flags: 0, input: 0, frame: 0 };
       if (typeof window !== 'undefined' && window.addEventListener && canvas) {
         this.bindKeys();
         this.bindGamepad();
@@ -755,7 +770,8 @@ window.PRG32Simulator = (function () {
       });
     }
 
-    loadBlocks(blocks) {
+    loadBlocks(blocks, title) {
+      if (title !== undefined) this.title = String(title || '');
       this.ir = compileBlocks(blocks);
       this.reset();
       return this.ir;
@@ -777,7 +793,9 @@ window.PRG32Simulator = (function () {
       this.frame = 0;
       this.previousInput = this.inputMask();
       this.sound('stop');   // a reset leaves no note sounding
-      this.env = { state: this.state, lists: this.lists, frame: 0, tile: (l, x, y) => this.tileAt(l, x, y) };
+      if (this.link) this.link.leave();   // a game starts outside every room
+      this.shared = { x: 0, y: 0, look: 0, flags: 0, input: 0, frame: 0 };
+      this.env = { state: this.state, lists: this.lists, frame: 0, tile: (l, x, y) => this.tileAt(l, x, y), peers: [], my_id: 0 };
       this.exec(this.ir.init || [], 0);
       this.drawFrame();
       this.report('Reset');
@@ -817,7 +835,9 @@ window.PRG32Simulator = (function () {
       this.input = this.inputMask();
       this.latched = {};
       this.env.frame = this.frame;
+      this.env.peers = this.link && this.link.room ? this.link.peers() : [];
       this.exec(this.ir.update || [], 0);
+      if (this.link && this.link.room) this.link.send(this.shared);   // once per frame, like prg32_multiplayer_tick
       this.previousInput = this.input;
       this.frame += 1;
       this.env.frame = this.frame;
@@ -928,7 +948,28 @@ window.PRG32Simulator = (function () {
       else if (op === 'band') this.band = stmt.text + ('value' in stmt ? ' ' + v(stmt.value) : '');
       else if (op === 'score_submit') this.band = 'Score submitted: ' + v(stmt.value);
       else if (op === 'player_name') this.band = 'PRG32 asks for the player name here';
-      else if (op === 'mp_join') this.band = 'Multiplayer: offline here (0 other players). Play it on consoles or PRG32-QT';
+      else if (op === 'mp_join') {
+        // As the generated C: only the first join asks (prg32_kit_mp_join), and a join forgets the others.
+        if (this.link && !this.link.room) {
+          this.link.join(roomSignature(stmt.room, this.title));
+          this.shared = { x: 0, y: 0, look: 0, flags: 0, input: 0, frame: 0 };
+          this.env.peers = [];
+        }
+        this.env.my_id = this.link && this.link.room ? this.link.id : 0;
+        if (!this.link || !this.link.available) this.band = 'Multiplayer: this browser plays alone here (0 other players)';
+      } else if (op === 'mp_leave') {
+        if (this.link) this.link.leave();
+        this.env.peers = [];
+        this.env.my_id = 0;
+      } else if (op === 'mp_share') {
+        if (this.link && this.link.room) {
+          const clip = (value, low, high) => Math.max(low, Math.min(high, value | 0));
+          Object.assign(this.shared, { x: clip(v(stmt.x), -32768, 32767), y: clip(v(stmt.y), -32768, 32767),
+            look: clip(v(stmt.look), 0, 65535), flags: clip(v(stmt.flags), 0, 65535), frame: (this.shared.frame + 1) >>> 0 });
+        }
+      } else if (op === 'mp_send_buttons') {
+        if (this.link && this.link.room) this.shared.input = this.input & 0x7ff;
+      }
       else if (op === 'splash') {
         this.fb.fill(COLOR[stmt.bg]);
         this.rect(0, 92, W, 2, COLOR[stmt.accent]);

@@ -2083,5 +2083,11 @@
  "common.on_screen_stick": "Stick sullo schermo",
  "ide.are_c_d_l_r": "sono C, D, L, R.",
  "server.blocks.the_block_reads_button_but_prg32_89bc": "Il blocco legge il pulsante {button}, ma PRG32 non ha più i pulsanti del giocatore 2: scegli un altro pulsante o usa i blocchi Multigiocatore",
- "server.source.prg32_no_longer_has_player_2_98ff": "{value}{name}: PRG32 non ha più i pulsanti del giocatore 2. Usa i pulsanti C, D, L e R, oppure il multigiocatore (prg32_multiplayer_*)."
+ "server.source.prg32_no_longer_has_player_2_98ff": "{value}{name}: PRG32 non ha più i pulsanti del giocatore 2. Usa i pulsanti C, D, L e R, oppure il multigiocatore (prg32_multiplayer_*).",
+ "common.controller_for_this_window": "Controller per questa finestra",
+ "js.controllers.all": "Tutti i controller",
+ "js.controllers.only": "Solo il controller {number}: {name}",
+ "js.controllers.only_missing": "Solo il controller {number} (non collegato)",
+ "js.player.multiplayer_title": "Le altre finestre di questo browser nella stessa stanza giocano con questa",
+ "js.player.multiplayer_room": "Stanza {room}: {count} altri giocatori"
 }

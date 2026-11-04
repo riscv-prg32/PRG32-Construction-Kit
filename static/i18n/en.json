@@ -2083,5 +2083,11 @@
  "common.on_screen_stick": "On-screen stick",
  "ide.are_c_d_l_r": "are C, D, L, R.",
  "server.blocks.the_block_reads_button_but_prg32_89bc": "The block reads button {button}, but PRG32 no longer has player 2 buttons: choose another button, or use the Multiplayer blocks",
- "server.source.prg32_no_longer_has_player_2_98ff": "{value}{name}: PRG32 no longer has player 2 buttons. Use the buttons C, D, L and R, or multiplayer (prg32_multiplayer_*)."
+ "server.source.prg32_no_longer_has_player_2_98ff": "{value}{name}: PRG32 no longer has player 2 buttons. Use the buttons C, D, L and R, or multiplayer (prg32_multiplayer_*).",
+ "common.controller_for_this_window": "Controller for this window",
+ "js.controllers.all": "All controllers",
+ "js.controllers.only": "Only controller {number}: {name}",
+ "js.controllers.only_missing": "Only controller {number} (not connected)",
+ "js.player.multiplayer_title": "Other windows of this browser in the same room play with this one",
+ "js.player.multiplayer_room": "Room {room}: {count} other players"
 }

@@ -2083,5 +2083,11 @@
  "common.on_screen_stick": "Stick auf dem Bildschirm",
  "ide.are_c_d_l_r": "sind C, D, L, R.",
  "server.blocks.the_block_reads_button_but_prg32_89bc": "Der Block liest die Taste {button}, aber PRG32 hat keine Tasten für Spieler 2 mehr: Wähle eine andere Taste oder verwende die Mehrspieler-Blöcke",
- "server.source.prg32_no_longer_has_player_2_98ff": "{value}{name}: PRG32 hat keine Tasten für Spieler 2 mehr. Verwende die Tasten C, D, L und R oder den Mehrspielermodus (prg32_multiplayer_*)."
+ "server.source.prg32_no_longer_has_player_2_98ff": "{value}{name}: PRG32 hat keine Tasten für Spieler 2 mehr. Verwende die Tasten C, D, L und R oder den Mehrspielermodus (prg32_multiplayer_*).",
+ "common.controller_for_this_window": "Controller für dieses Fenster",
+ "js.controllers.all": "Alle Controller",
+ "js.controllers.only": "Nur Controller {number}: {name}",
+ "js.controllers.only_missing": "Nur Controller {number} (nicht verbunden)",
+ "js.player.multiplayer_title": "Andere Fenster dieses Browsers im selben Raum spielen mit diesem",
+ "js.player.multiplayer_room": "Raum {room}: {count} andere Spieler"
 }

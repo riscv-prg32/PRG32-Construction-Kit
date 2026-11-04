@@ -163,7 +163,8 @@ instrument (a soft sine wave).
 
 Read other players with `peers()`, `peer_x(i)`, `peer_y(i)`, `peer_look(i)`, `peer_flags(i)`,
 `peer_input(i)`, `peer_id(i)`, and your own ID with `my_id()`. A game that uses multiplayer also calls
-`prg32_multiplayer_tick` every frame. See [multiplayer.md](multiplayer.md).
+`prg32_multiplayer_tick` every frame. To try it, open the game in two browser windows side by side:
+windows in the same room play together. See [multiplayer.md](multiplayer.md).
 The simulator and QEMU are offline: `peers()` is 0 there.
 
 ## Expressions

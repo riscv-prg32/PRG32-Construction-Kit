@@ -63,11 +63,23 @@ Things that are good to know:
   *Star Catcher* is the room `Star-Catcher`.
 - Change the room name, for example to `pong:v2`, when a new version shares its numbers differently.
 
-## Testing without consoles
+## Testing on one computer
 
-The browser's Player and the quick preview have no connection to the server: the game runs alone,
-with `peers()` at 0 and `my_id()` at 0. To see two players, download the PRG32 cartridge and run it
-on two consoles, or on PRG32-QT with the server's address in its settings.
+Open your game in **two windows** of the same browser (or two tabs), side by side, and press Run (or
+Play in the Player) in both. Windows in the same room see each other: `peers()` is 1, `my_id()` is
+a number, and each window is one player. The status line under the Player says how many others are
+in the room. The quick Blocks preview joins the same rooms, so it can even play against the Player.
+
+To give each window its own player:
+
+- **Keyboard:** click a window's game screen; the keys go to that window only.
+- **Two game controllers:** choose *Controller for this window* under the screen, a different one in
+  each window. With *All controllers*, every controller moves every window.
+
+The browser does not reach the PRG32 Multiplayer Server: only windows of this browser meet. To play
+with consoles, download the PRG32 cartridge and run it on consoles, or on PRG32-QT with the server's
+address in its settings. A window that is hidden (minimised, or a tab in the background) stops its
+game, and the others see it leave after 3 seconds.
 
 ## For teachers
 
@@ -91,3 +103,7 @@ The generated C and assembly call the firmware directly, and you can read both:
   seconds is dropped by the server.
 - The kit warns about a game that uses multiplayer but has no join step, because it would stay alone
   without any error.
+
+In the browser the same calls reach `static/js/prg32_multiplayer.js`, which passes the numbers to the
+other windows of the browser with a `BroadcastChannel` (ADR-0031): nothing is sent to the server or
+stored.

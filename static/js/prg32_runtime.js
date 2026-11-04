@@ -185,6 +185,8 @@
       this.sha256 = '';
       this.instructionsPerFrame = 8192; // measured each frame, sets the slice size at slow speeds
       this.instructionsThisFrame = 0;
+      // Multiplayer between the windows of this browser (prg32_multiplayer.js, ADR-0031).
+      this.link = window.PRG32Multiplayer ? new window.PRG32Multiplayer.Link() : null;
       this.tick = this.tick.bind(this);
       this.keyHandler = this.keyHandler.bind(this);
       window.addEventListener('keydown', this.keyHandler);
@@ -195,6 +197,10 @@
       this.pause();
       this.core = await loadCore(this.base);
       const data = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
+      if (this.link) {
+        this.link.leave();                       // a new cartridge starts outside every room
+        this.core._prg32_mp_set_player_id(this.link.id);
+      }
       const pointer = this.core._malloc(data.length);
       this.core.HEAPU8.set(data, pointer);
       const ok = this.core._prg32_load(pointer, data.length);
@@ -212,6 +218,7 @@
       this.sha256 = await sha256Hex(data);
       for (const address of storedBreakpoints(this.sha256)) this.core._prg32_breakpoint(address >>> 0, 1);
       this.audio.stopAll();
+      this.shareMultiplayer();                 // init may have joined a room
       this.draw();
       this.status();
       return { name: this.core.UTF8ToString(this.core._prg32_cartridge_name()) };
@@ -256,7 +263,19 @@
       const mask = this.held | this.pressed | (this.stick ? this.stick.mask : 0);
       this.pressed = 0;
       if (this.stick && this.core) this.core._prg32_set_stick(this.stick.stick ? 1 : 0, this.stick.x, this.stick.y);
+      if (this.link && this.loaded) window.PRG32Multiplayer.beforeFrame(this.link, this.core);
       return mask;
+    }
+
+    // After a frame: the room the cartridge is in, and what it shares, to the other windows.
+    shareMultiplayer() {
+      if (this.link && this.loaded) window.PRG32Multiplayer.afterFrame(this.link, this.core);
+    }
+
+    // The other players this window sees now (for the status line and the tests).
+    multiplayerStatus() {
+      if (!this.link) return { available: false, room: '', id: 0, peers: 0 };
+      return { available: this.link.available, room: this.link.room, id: this.link.id, peers: this.link.room ? this.link.peers().length : 0 };
     }
 
     frame() {
@@ -267,6 +286,7 @@
         this.pause();
         return false;
       }
+      this.shareMultiplayer();
       this.playAudio();
       return true;
     }
@@ -383,6 +403,7 @@
       this.pressed = 0;
       this.instructionsPerFrame = Math.max(1, this.instructionsThisFrame);
       this.instructionsThisFrame = 0;
+      this.shareMultiplayer();
       this.playAudio();
     }
 
@@ -568,7 +589,8 @@
         frames: this.frames, guestMs: this.frames * FRAME_MS, wallMs: Math.round(this.wallMs),
         retired: state ? state.retired : 0, pc: state ? state.pc : null,
         // An old cartridge that calls the obsolete buzzer: silent, as on a console without one.
-        legacySoundCalls: this.loaded ? this.core._prg32_audio_buzzer_calls() : 0
+        legacySoundCalls: this.loaded ? this.core._prg32_audio_buzzer_calls() : 0,
+        multiplayer: this.multiplayerStatus()
       });
     }
 
@@ -576,6 +598,7 @@
       this.pause();
       window.removeEventListener('keydown', this.keyHandler);
       window.removeEventListener('keyup', this.keyHandler);
+      if (this.link) this.link.leave();
       if (this.core) this.core._prg32_unload();
     }
   }

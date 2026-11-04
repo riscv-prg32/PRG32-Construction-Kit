@@ -2083,5 +2083,11 @@
  "common.on_screen_stick": "屏幕摇杆",
  "ide.are_c_d_l_r": "是 C、D、L、R。",
  "server.blocks.the_block_reads_button_but_prg32_89bc": "此积木读取按键 {button}，但 PRG32 已没有玩家 2 按键：请选择其他按键，或使用多人积木",
- "server.source.prg32_no_longer_has_player_2_98ff": "{value}{name}：PRG32 已没有玩家 2 按键。请使用 C、D、L、R 键或多人功能（prg32_multiplayer_*）。"
+ "server.source.prg32_no_longer_has_player_2_98ff": "{value}{name}：PRG32 已没有玩家 2 按键。请使用 C、D、L、R 键或多人功能（prg32_multiplayer_*）。",
+ "common.controller_for_this_window": "此窗口使用的手柄",
+ "js.controllers.all": "所有手柄",
+ "js.controllers.only": "仅手柄 {number}：{name}",
+ "js.controllers.only_missing": "仅手柄 {number}（未连接）",
+ "js.player.multiplayer_title": "此浏览器中同一房间的其他窗口与此窗口一起游戏",
+ "js.player.multiplayer_room": "房间 {room}：{count} 位其他玩家"
 }

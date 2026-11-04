@@ -23,4 +23,5 @@ deadzone and direction thresholds, once per frame. All controllers drive the one
 - PRG32-QT's own results are unchanged while a cartridge reads no axis; the golden tests still compare.
 - The kit's harnesses sweep the stick with the same script, so the native and WebAssembly builds are
   compared on these calls too.
-- Multiplayer stays offline in the browser: the core has no transport there.
+- Multiplayer stays offline in the browser: the core has no transport there. (Amended by ADR-0031:
+  windows of one browser now play together.)

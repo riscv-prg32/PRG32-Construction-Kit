@@ -41,8 +41,10 @@ Pushing a stick also presses the direction buttons, so a game written for button
 - Nothing needs installing, and nothing about a controller is sent to the server or stored.
 - Browsers offer controllers only on `https://` pages and on `localhost`. On a plain `http://` school
   server, controllers do not appear; the on-screen stick and the keyboard still work.
-- Every controller drives the same player. A PRG32 console has one player: a second player needs a
-  second console ([multiplayer](multiplayer.md)).
+- Every controller drives the same player, unless a window is given one controller of its own with
+  *Controller for this window* (kept for that tab only). A PRG32 console has one player: a second
+  player is a second console, or a second browser window in the same multiplayer room, each with its
+  own controller ([multiplayer](multiplayer.md)).
 - A controller that the browser does not recognise as "standard" uses its first six buttons as
   A, B, C, D, L, R and its next four as SELECT. The kit has no screen for changing this.
 

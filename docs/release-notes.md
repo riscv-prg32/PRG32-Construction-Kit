@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+### Multiplayer in the browser, a controller per window
+
+- **Two windows, two players:** windows and tabs of the same browser that play the same room now see
+  each other, in the Player (the PRG32 core) and in the quick Blocks preview, so a Blocks multiplayer
+  game can be tried without consoles. Nothing is sent over the network: the numbers go from window to
+  window inside the browser (ADR-0031, [multiplayer.md](multiplayer.md)). The Player's status line
+  shows the room and how many others are in it.
+- **Controller for this window:** with two game controllers, each window can use its own, so two
+  players sit at one computer ([game_controllers.md](game_controllers.md)).
+- Checked against PRG32 `main` (`1fa8474`) and PRG32-QT `main` (`7683be1`): still the newest, ABI 1.8;
+  the multiplayer blocks follow the firmware's rules and Poing Wall's use of the calls.
+
 ### PRG32 and PRG32-QT `main` as the reference
 
 - The browser core is built from PRG32 `1fa8474` and PRG32-QT `7683be1`, the `main` branches. The

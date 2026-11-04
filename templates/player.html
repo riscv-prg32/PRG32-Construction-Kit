@@ -54,6 +54,8 @@
           <div class="analog-stick" data-analog-stick role="img" aria-label="{{ t('common.on_screen_stick') }}"><span></span></div>
           <span class="text-muted" data-controller-status aria-live="polite"></span>
         </div>
+        <label class="form-label small mt-2 mb-1" for="controllerChoice">{{ t("common.controller_for_this_window") }}</label>
+        <select class="form-select form-select-sm" id="controllerChoice" data-controller-choice></select>
       </div>
     </div>
     <div class="card shadow-sm">
@@ -74,6 +76,7 @@
 {% if blockly_pack %}<script src="{{ url_for('static', filename='vendor/blockly/11.2.1/msg/' ~ blockly_pack ~ '.js') }}"></script>{% endif %}
 <script src="{{ url_for('static', filename='js/blockly_blocks.js') }}"></script>
 <script src="{{ url_for('static', filename='js/prg32_controllers.js') }}"></script>
+<script src="{{ url_for('static', filename='js/prg32_multiplayer.js') }}"></script>
 <script src="{{ url_for('static', filename='js/prg32_runtime.js') }}"></script>
 <script src="{{ url_for('static', filename='js/player.js') }}"></script>
 <script src="{{ url_for('static', filename='js/prg32_debugger.js') }}"></script>

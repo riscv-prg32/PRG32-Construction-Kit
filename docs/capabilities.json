@@ -1077,7 +1077,8 @@
     "tests/test_input_and_multiplayer.py::test_the_stick_in_blocks_and_python",
     "tests/test_input_and_multiplayer.py::test_controllers_follow_the_firmware_rules",
     "tests/test_controllers_browser.py::test_a_cartridge_reads_a_game_controller",
-    "tests/test_controllers_browser.py::test_the_on_screen_stick_moves_the_game_and_springs_back"
+    "tests/test_controllers_browser.py::test_the_on_screen_stick_moves_the_game_and_springs_back",
+    "tests/test_controllers_browser.py::test_a_window_can_use_one_controller_of_its_own"
    ],
    "note": "Checked with a simulated controller in a real browser: no physical controller was used."
   },
@@ -1098,7 +1099,27 @@
     "tests/test_input_and_multiplayer.py::test_python_multiplayer_generates_the_same_as_blocks",
     "tests/test_input_and_multiplayer.py::test_multiplayer_without_a_join_warns"
    ],
-   "note": "A real room was run once by hand on two QEMU consoles and the PRG32 Multiplayer Server; CI checks the generated code only. The browser stays offline."
+   "note": "A real room was run once by hand on two QEMU consoles and the PRG32 Multiplayer Server; CI checks the generated code only. In the browser see MP-02."
+  },
+  {
+   "id": "MP-02",
+   "title": "Multiplayer between windows of one browser, in the Player and the Blocks preview",
+   "status": "implemented",
+   "audit_score": null,
+   "source": [
+    "wasm/prg32_core_api.cpp",
+    "static/js/prg32_multiplayer.js",
+    "static/js/prg32_runtime.js",
+    "static/js/simulator.js",
+    "static/js/prg32_controllers.js"
+   ],
+   "tests": [
+    "tests/test_multiplayer_browser.py::test_two_windows_in_one_room_see_each_other",
+    "tests/test_multiplayer_browser.py::test_the_blocks_preview_plays_multiplayer_between_windows_too",
+    "tests/test_multiplayer_browser.py::test_other_browsers_do_not_share_a_room",
+    "tests/test_multiplayer_browser.py::test_the_fixture_is_the_generated_c_of_its_blocks"
+   ],
+   "note": "BroadcastChannel only: consoles and the PRG32 Multiplayer Server are never reached from the browser. Checked in headless Chromium with simulated controllers."
   }
  ]
 }

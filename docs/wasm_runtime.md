@@ -122,7 +122,7 @@ them against the committed module and against a fresh build.
 
 ## Limits
 
-- Not done: multiplayer (no transport in the browser, `multiplayer.md`), Wi-Fi, score upload,
+- Multiplayer reaches only other windows of the same browser (ADR-0031, `multiplayer.md`), never the server. Not done: Wi-Fi, score upload,
   the PRG32-QT performance overlay. Scores stay in memory.
 - Sound follows the PRG32 firmware, not PRG32-QT's desktop mixer (which has no ADSR);
   `prg32_audio_notes` plays its notes in engine time while the game keeps running

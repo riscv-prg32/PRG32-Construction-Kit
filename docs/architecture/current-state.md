@@ -127,8 +127,9 @@ capability IDs.
   languages draws identical frames in `prg32qt-headless`. [ART-01]
 - Input follows ABI 1.8: buttons C, D, L, R, no player 2 buttons, the analog stick in every language, and
   game controllers and an on-screen stick in the browser. [INP-01]
-- Multiplayer in Blocks and PRG32 Python joins a valid room once and ticks every frame; the browser stays
-  offline. [MP-01]
+- Multiplayer in Blocks and PRG32 Python joins a valid room once and ticks every frame. [MP-01]
+- Windows of one browser play multiplayer together, in the Player and the Blocks preview, and each
+  window can use a controller of its own (ADR-0031); the browser never reaches the server. [MP-02]
 - Player debugger: pause, continue, restart, speeds, instruction/over/out
   stepping, address breakpoints, browser state equal to PRG32-QT's. [DBG-01] [DBG-02] [DBG-03] [DBG-06]
 - Source and block debugging for kit-compiled cartridges (ADR-0015): a saved

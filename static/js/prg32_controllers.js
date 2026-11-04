@@ -1,8 +1,10 @@
 // Game controllers and the on-screen stick, for the Player and the quick Blocks preview.
 //
 // PRG32 has one player per console: every controller plugged into this computer drives that one
-// player (a second player is a second console, through multiplayer). Nothing here leaves the
-// browser and nothing is stored. See docs/game_controllers.md.
+// player, unless this window is given one controller of its own (the "Controller" list). Two
+// windows side by side, each with its own controller, are two players of a multiplayer game
+// (prg32_multiplayer.js). Nothing here leaves the browser; the choice is kept for this tab only.
+// See docs/game_controllers.md.
 //
 // The stick follows the firmware's rules (components/prg32/prg32_joystick_analog.c), so a game
 // feels the same here and on a console with an analog stick:
@@ -59,6 +61,17 @@ window.PRG32Controllers = (function () {
       this.screen = { x: 0, y: 0, used: false };
       this.directions = 0;            // the direction bits the stick holds on now
       this.names = [];
+      this.choice = 'all';            // 'all', or the index of the one controller this window uses
+    }
+
+    // Which controllers drive this window: 'all' or one controller's index (navigator.getGamepads).
+    choose(choice) {
+      const index = Number.parseInt(choice, 10);
+      this.choice = choice === 'all' || !Number.isInteger(index) || index < 0 ? 'all' : String(index);
+    }
+
+    used(pads) {
+      return this.choice === 'all' ? pads : pads.filter(pad => String(pad.index) === this.choice);
     }
 
     pads() {
@@ -86,7 +99,7 @@ window.PRG32Controllers = (function () {
       let y = 0;
       let stick = this.screen.used;
       if (typeof document === 'undefined' || document.visibilityState !== 'hidden') {
-        pads.forEach(pad => {
+        this.used(pads).forEach(pad => {
           const now = readPad(pad);
           mask |= now.mask;
           if (!x) x = now.x;
@@ -149,6 +162,35 @@ window.PRG32Controllers = (function () {
     element.addEventListener('contextmenu', event => event.preventDefault());
   }
 
+  // <select data-controller-choice>: all controllers, or one of them, for this window.
+  const CHOICE_KEY = 'prg32-kit-controller-choice';
+  function bindChoice(element) {
+    try { hub.choose(sessionStorage.getItem(CHOICE_KEY) || 'all'); } catch (error) { /* private window */ }
+    const fill = () => {
+      const pads = hub.pads();
+      const options = [['all', tr('js.controllers.all', 'All controllers')]]
+        .concat(pads.map(pad => [String(pad.index), tr('js.controllers.only', 'Only controller {number}: {name}',
+          { number: Number(pad.index) + 1, name: String(pad.id || '').slice(0, 40) })]));
+      if (hub.choice !== 'all' && !options.some(option => option[0] === hub.choice)) {
+        options.push([hub.choice, tr('js.controllers.only_missing', 'Only controller {number} (not connected)', { number: Number(hub.choice) + 1 })]);
+      }
+      element.replaceChildren(...options.map(([value, label]) => {
+        const option = document.createElement('option');
+        option.value = value;
+        option.textContent = label;
+        return option;
+      }));
+      element.value = hub.choice;
+    };
+    element.addEventListener('change', () => {
+      hub.choose(element.value);
+      try { sessionStorage.setItem(CHOICE_KEY, hub.choice); } catch (error) { /* not kept */ }
+    });
+    window.addEventListener('gamepadconnected', fill);
+    window.addEventListener('gamepaddisconnected', fill);
+    fill();
+  }
+
   // <span data-controller-status></span>: which controller is connected. A browser shows a
   // controller to a page only after one of its buttons is pressed, so the text says to press one.
   function bindStatus(element) {
@@ -167,6 +209,7 @@ window.PRG32Controllers = (function () {
     const start = () => {
       document.querySelectorAll('[data-analog-stick]').forEach(bindScreenStick);
       document.querySelectorAll('[data-controller-status]').forEach(bindStatus);
+      document.querySelectorAll('[data-controller-choice]').forEach(bindChoice);
     };
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
     else start();

@@ -2083,5 +2083,11 @@
  "common.on_screen_stick": "Stick en pantalla",
  "ide.are_c_d_l_r": "son C, D, L, R.",
  "server.blocks.the_block_reads_button_but_prg32_89bc": "El bloque lee el botón {button}, pero PRG32 ya no tiene botones del jugador 2: elige otro botón o usa los bloques Multijugador",
- "server.source.prg32_no_longer_has_player_2_98ff": "{value}{name}: PRG32 ya no tiene botones del jugador 2. Usa los botones C, D, L y R, o el multijugador (prg32_multiplayer_*)."
+ "server.source.prg32_no_longer_has_player_2_98ff": "{value}{name}: PRG32 ya no tiene botones del jugador 2. Usa los botones C, D, L y R, o el multijugador (prg32_multiplayer_*).",
+ "common.controller_for_this_window": "Mando para esta ventana",
+ "js.controllers.all": "Todos los mandos",
+ "js.controllers.only": "Solo el mando {number}: {name}",
+ "js.controllers.only_missing": "Solo el mando {number} (no conectado)",
+ "js.player.multiplayer_title": "Las otras ventanas de este navegador en la misma sala juegan con esta",
+ "js.player.multiplayer_room": "Sala {room}: {count} jugadores más"
 }

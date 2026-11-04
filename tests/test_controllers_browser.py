@@ -118,3 +118,29 @@ def test_the_new_buttons_have_keys_and_on_screen_buttons(browser, live_kit):  # 
     assert seen(page, "s.r")["r"] is True
     page.mouse.up()
     context.close()
+
+
+def two_pads(first_axes, second_axes):
+    def one(index, axes):
+        buttons = ", ".join("{pressed: false}" for _ in range(16))
+        return f"{{id: 'Pad {index + 1}', index: {index}, mapping: 'standard', connected: true, axes: {list(axes)}, buttons: [{buttons}]}}"
+    return f"window.__pads = [{one(0, first_axes)}, {one(1, second_axes)}]"
+
+
+def test_a_window_can_use_one_controller_of_its_own(browser, live_kit):  # noqa: F811
+    """Two controllers, two windows: each window picks its controller, so they are two players."""
+    context, page = open_cartridge(browser, live_kit, FAKE_PADS)
+    page.evaluate(two_pads((1, 0), (-1, 0)))
+    page.evaluate("window.dispatchEvent(new Event('gamepadconnected'))")
+    options = page.eval_on_selector_all("#controllerChoice option", "all => all.map(o => o.value + ' ' + o.textContent)")
+    assert options[0].startswith("all ") and "Pad 1" in options[1] and "Pad 2" in options[2]
+    # All controllers: the first stick that is tilted wins (the first controller).
+    assert seen(page, "s.square && s.square[0] === 277")["square"] == [277, 90]
+    page.select_option("#controllerChoice", "1")
+    assert seen(page, "s.square && s.square[0] === 23")["square"] == [23, 90]
+    # The choice is kept for this tab when the page opens again; a missing controller is named.
+    page.reload()
+    page.evaluate("window.__pads = []")
+    assert page.input_value("#controllerChoice") == "1"
+    assert "not connected" in page.eval_on_selector("#controllerChoice option:checked", "o => o.textContent")
+    context.close()

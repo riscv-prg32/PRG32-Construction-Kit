@@ -165,6 +165,10 @@
       <kbd>Z</kbd> {{ t("ide.is_a") }} <kbd>X</kbd> {{ t("ide.is_b") }} <kbd>Enter</kbd> {{ t("ide.is_start") }}
       <kbd>C</kbd><kbd>V</kbd><kbd>Q</kbd><kbd>E</kbd> {{ t("ide.are_c_d_l_r") }}</p>
     <p class="small text-muted px-2 mb-2" data-controller-status aria-live="polite"></p>
+    <div class="px-2 mb-2">
+      <label class="form-label small mb-1" for="controllerChoice">{{ t("common.controller_for_this_window") }}</label>
+      <select class="form-select form-select-sm" id="controllerChoice" data-controller-choice></select>
+    </div>
   </aside>
 
   {# Sprite Lab, AudioStudio and Backgrounds wait here, hidden, until the IDE opens them in a tab (ide.js moves them). #}
@@ -266,6 +270,7 @@
 {% if blockly_pack %}<script src="{{ url_for('static', filename='vendor/blockly/11.2.1/msg/' ~ blockly_pack ~ '.js') }}"></script>{% endif %}
 <script src="{{ url_for('static', filename='js/blockly_blocks.js') }}"></script>
 <script src="{{ url_for('static', filename='js/prg32_controllers.js') }}"></script>
+<script src="{{ url_for('static', filename='js/prg32_multiplayer.js') }}"></script>
 <script src="{{ url_for('static', filename='js/simulator.js') }}"></script>
 <script src="{{ url_for('static', filename='js/prg32_runtime.js') }}"></script>
 <script src="{{ url_for('static', filename='js/prg32_audio.js') }}"></script>
