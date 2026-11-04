@@ -4,28 +4,25 @@ The kit never changes the PRG32 SDK, PRG32-QT or the Cartridge Store. When kit w
 something one of them should change, it is written here. If the kit could prove the change,
 it is a patch, built and tested against a copy of that repository.
 
-**Pull requests (2026-10-21, open, not merged).** Each was made from a fresh clone of the
-then canonical head (PRG32 `679dfb5`, PRG32-QT `f6d80ad`) with the patch below applied unchanged,
-and checked again there:
+**Where the proposals stand (2026-11-04).** The kit follows the `main` branches: PRG32 `1fa8474`
+and PRG32-QT `7683be1` (`static/wasm/BUILD.json`).
 
-| Patch | Pull request |
-|---|---|
-| §1 `prg32-qt-firmware-audio.patch` | [riscv-prg32/PRG32-QT#1](https://github.com/riscv-prg32/PRG32-QT/pull/1) |
-| §2 `prg32-sdk-retire-buzzer.patch` | [riscv-prg32/PRG32#45](https://github.com/riscv-prg32/PRG32/pull/45) |
-| §3 `prg32-sdk-audio-clock-and-reset.patch` | [riscv-prg32/PRG32#46](https://github.com/riscv-prg32/PRG32/pull/46) |
+| Proposal | Pull request | State |
+|---|---|---|
+| §1 PRG32-QT plays sound with the firmware's audio engine | [riscv-prg32/PRG32-QT#1](https://github.com/riscv-prg32/PRG32-QT/pull/1) | **merged** (`7683be1`, 2026-11-01) |
+| §1.1 PRG32-QT builds against SDK `main` (`prg32-qt-sdk-main.patch`) | none yet | **new**, waits for the maintainer's go-ahead |
+| §2 PRG32 SDK retires the buzzer (`prg32-sdk-retire-buzzer.patch`) | [riscv-prg32/PRG32#45](https://github.com/riscv-prg32/PRG32/pull/45) | **closed without merging** (2026-11-03); the patch, rebased onto `1fa8474`, stays the kit's record |
+| §3 PRG32 SDK audio frame clock and fresh mixer | [riscv-prg32/PRG32#46](https://github.com/riscv-prg32/PRG32/pull/46) | the pull request was closed, but its commit is **in `main`** (`01663b7`), with later fixes by upstream (`1fa8474`) |
 
-**Rebased (2026-11-03) onto the commits the kit pins**, the merged ABI 1.8 heads (PRG32 `1eff2e2`,
-PRG32-QT `b98a6aa`, `static/wasm/BUILD.json`). The patches below are the rebased ones; the tests apply
-them to those commits. The pull requests still carry the 2026-10-21 versions: updating them is an
-outward action and waits for the maintainer's go-ahead.
-
-- §3 (frame clock) changes the same lines as before; only `main/main.c`'s context moved.
-- §1 (PRG32-QT) is unchanged apart from its context and `PRG32_SDK_REVISION`, now `1eff2e2`.
-- §2 (buzzer) needed a new ABI number: upstream used 1.7 for `prg32_multiplayer_local_player_id`
-  and 1.8 for the analog stick. It now makes **ABI 1.9** (hash `0xa9f89cec`), with the 1.8 hash
-  `0x71b93e23` among the compatible ones.
+The kit keeps refusing the buzzer on its own side whatever the SDK does (ADR-0021,
+`tests/test_no_buzzer.py`). The §1 and §3 patch files stay here unchanged: the evidence recorded
+with them names them.
 
 ## 1. PRG32-QT: render sound with the PRG32 firmware's engine (patch)
+
+**Merged** as riscv-prg32/PRG32-QT#1 (`7683be1`). What follows describes the patch as it was
+proposed; the kit's `wasm/audio/` is now the same, file for file, as PRG32-QT's
+`src/core/firmware_audio/` with §1.1 applied (`tests/test_prg32qt_firmware_audio.py`).
 
 **Problem.** PRG32-QT mixes sound with its own floating-point renderer (`QtAudioEngine`). It
 has no ADSR envelopes, so the desktop does not sound like the console and cannot be an audio
@@ -71,10 +68,30 @@ cd PRG32-QT && git apply ../PRG32-Construction-Kit/docs/upstream/prg32-qt-firmwa
 cmake -S . -B build && cmake --build build && (cd build && ctest)
 ```
 
+### 1.1 PRG32-QT: build against SDK `main` (patch)
+
+**Problem.** PRG32-QT `7683be1` fetches the SDK at `679dfb5`. With SDK `main` (`1fa8474`) its
+firmware audio build stops: the engine's `audio.c` now includes `esp_log.h` and creates a binary
+semaphore (`xSemaphoreCreateBinary`), and the port's shim has neither.
+
+**Patch.** [`prg32-qt-sdk-main.patch`](prg32-qt-sdk-main.patch), against PRG32-QT `7683be1`:
+`src/core/firmware_audio/shim/esp_log.h` (the four log macros, doing nothing), one line in
+`shim/freertos/semphr.h`, and `PRG32_SDK_REVISION` moved to `1fa8474`.
+
+| Check (2026-11-04, macOS, clean clones) | Result |
+|---|---|
+| PRG32-QT `7683be1`, unpatched, `-DPRG32_SDK_DIR=` SDK `1fa8474` | does not build (`'esp_log.h' file not found`) |
+| Same with the patch, `prg32qt-headless` and the core library | builds, no warnings |
+| PRG32-QT's CTest suite (`-DPRG32QT_BUILD_APP=OFF`) | 4/4 |
+| Conformance cartridge, 170 frames | `pcm_fnv1a=2e6c5af207d3d5f2`, the browser core's |
+| `tests/test_prg32qt_firmware_audio.py` (kit) | 5 passed: the kit's port equals PRG32-QT's with the patch; conformance, console check and old buzzer cartridges as the browser core |
+
 ## 2. PRG32 SDK: retire the buzzer from the portable ABI (patch)
 
-[`prg32-sdk-retire-buzzer.patch`](prg32-sdk-retire-buzzer.patch), against PRG32 SDK `1eff2e2`
-after §3's patch (it also applies alone), implements this policy:
+**Closed without merging** (riscv-prg32/PRG32#45, 2026-11-03). The patch is kept up to date for
+the record: [`prg32-sdk-retire-buzzer.patch`](prg32-sdk-retire-buzzer.patch), against PRG32 SDK
+`1fa8474` (`main`; rebased 2026-11-04 with exactly the same changed lines as on `1eff2e2`),
+implements this policy:
 
 - **ABI 1.9.** Entries 5, 7 and 8 (`prg32_buzzer_tone`, `_play_notes`, `_sample_u8`) are
   marked `"retired"` (`"since": "1.9"`) in `prg32_abi.json`. They keep their slot, so the other
@@ -98,7 +115,9 @@ after §3's patch (it also applies alone), implements this policy:
 - **Not covered:** `tools/prg32_audio_convert.py --format c` (and `docs/tools/assets.md`) still
   write a `prg32_note_t` melody, which no longer compiles. It did before the rebase too.
 
-What was checked in clean clones of `1eff2e2` (2026-11-01, macOS):
+On `1fa8474` (2026-11-04, macOS, without `pyserial`): the SDK's own tests give 194 passed and the
+same 7 `test_find_port` failures as unpatched `main` (192 passed); `tests/test_upstream_sdk_patches.py`
+passes. What was checked in clean clones of `1eff2e2` (2026-11-01, macOS):
 
 | Check | Result |
 |---|---|
@@ -113,8 +132,8 @@ What was checked in clean clones of `1eff2e2` (2026-11-01, macOS):
 
 QEMU evidence: `docs/evidence/qemu-audio/2026-11-03-rebased/`.
 
-`tests/test_upstream_sdk_patches.py` (in CI) applies both SDK patches to a copy of the
-checkout and repeats the ABI, header and example checks.
+`tests/test_upstream_sdk_patches.py` (in CI) applies the patch to a copy of the pinned SDK and
+repeats the ABI, header and example checks.
 
 **How the kit's tests reach it, until it lands.** The Store tests (`test_store_contract.py`,
 `test_store_live.py`, `test_sso_with_cartridge_store.py`, `tools/run_live_suites.py`) take the
@@ -146,6 +165,11 @@ the run; the clone at `8426331` (`4a3138b` + this patch):
 5. Move `static/wasm/BUILD.json` `audio.revision` to the new SDK commit.
 
 ## 3. PRG32 SDK: the audio frame clock in QEMU, and a fresh mixer per cartridge (patch)
+
+**In `main`** since `01663b7` (the commit of riscv-prg32/PRG32#46), followed by upstream's own
+fixes in `1fa8474`: the audio task waits for the old task's exit without a time limit, runs at
+`tskIDLE_PRIORITY + 6`, and stops waiting for the QEMU audio player after 500 ms without one. The
+kit's browser core is built from that engine. The text below describes the patch as proposed.
 
 [`prg32-sdk-audio-clock-and-reset.patch`](prg32-sdk-audio-clock-and-reset.patch), against
 PRG32 SDK `1eff2e2`, changes `components/prg32_audio` and `main/main.c`:

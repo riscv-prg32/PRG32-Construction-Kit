@@ -13,8 +13,8 @@ disagree with it. Audit scores belong to the auditor (`../../audit/`).
 | Repository | Branch | Commit | Role |
 | --- | --- | --- | --- |
 | PRG32-Construction-Kit | `development` | `7a700ba` (audited); later work under Milestones | This repository. Flask + SQLAlchemy + Bootstrap + jQuery + Blockly + Monaco PWA, all served from `static/vendor/`. MIT. |
-| PRG32 | `main` | `1eff2e2` | SDK, firmware, `prg32` CLI, portable cartridge builder, ABI 1.8 (`prg32/abi/abi_generated.py`). Open, unmerged proposals from the kit: riscv-prg32/PRG32#45 (buzzer retired), #46 (audio frame clock, fresh mixer); `docs/upstream/` holds them rebased onto `1eff2e2`, the buzzer one as ABI 1.9. |
-| PRG32-QT | `main` | `b98a6aa` (0.4.1) | Qt host; its Qt-free `src/core` is compiled into the kit's browser runtime (`static/wasm/BUILD.json`). Open, unmerged proposal: riscv-prg32/PRG32-QT#1 (firmware audio engine). |
+| PRG32 | `main` | `1fa8474` | SDK, firmware, `prg32` CLI, portable cartridge builder, ABI 1.8 (`prg32/abi/abi_generated.py`). The kit's audio frame clock and fresh mixer are in it (`01663b7`). The buzzer retirement (riscv-prg32/PRG32#45) was closed without merging; `docs/upstream/` keeps it rebased onto `1fa8474` as ABI 1.9. |
+| PRG32-QT | `main` | `7683be1` | Qt host; its Qt-free `src/core` is compiled into the kit's browser runtime (`static/wasm/BUILD.json`). Plays sound with the firmware's engine since riscv-prg32/PRG32-QT#1 (merged); building it against SDK `main` needs the kit's `docs/upstream/prg32-qt-sdk-main.patch` (not yet proposed). |
 | CartridgeStore | `main` | `4a3138b` (GDPR remediation); the kit's CI pins `820f74b` | Store, accounts, `/api/publish/bundle` (pending review). `sso_protocol.py` identical to the kit's. From `4a3138b` the shared username needs the kit's proposal `docs/upstream/cartridge-store-shared-identity.patch` (not merged). |
 | PRG32-iOS | `main` | `547fa45` (read 2026-10-18, not checked out here) | Private. Imports cartridges with a SwiftUI file importer; no URL scheme, no debugger. |
 
@@ -114,7 +114,7 @@ capability IDs.
 - Browser runtime: the PRG32-QT core as WebAssembly, equal to the native core
   and `prg32qt-headless`. [WASM-01]
 - Eight-voice audio in the browser: the PRG32 firmware's own engine (8 voices,
-  SID-like synth, independent ADSR, samples, tracker) behind a host-call hook,
+  SID-like synth, independent ADSR, samples, tracker) behind PRG32-QT's host-call hooks,
   checked against the audio contract on a toolchain-built fixture (ADR-0021). [AUD-01]
 - AudioStudio, parallel to Sprite Lab: voice instruments with ADSR, sound
   effects, an 8-voice soundtrack grid and WAV samples, previewed through the

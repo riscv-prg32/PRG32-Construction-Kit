@@ -1,7 +1,7 @@
-"""The kit's proposed PRG32 SDK changes (docs/upstream/) still apply and do what they say.
+"""The kit's proposed PRG32 SDK change (docs/upstream/) still applies and does what it says.
 
-The kit never changes the SDK checkout: both patches are applied to a copy. This proves:
-they apply together, the SDK's generated ABI files match its ABI table, the buzzer slots
+The kit never changes the SDK checkout: the patch is applied to a copy. (The audio frame clock
+and fresh mixer, the kit's other SDK proposal, is in the SDK since 01663b7.) This proves: it applies, the SDK's generated ABI files match its ABI table, the buzzer slots
 keep their indices but lose their names, no public header offers the buzzer, and every
 other entry keeps its index. PRG32_REQUIRE_SDK=1 (CI's WebAssembly job) turns a missing
 checkout into a failure. The SDK's own test suite is run by hand (docs/upstream/README.md).
@@ -25,11 +25,10 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "tools"))
 from pinned_sdk import pinned_checkout  # noqa: E402
 
-# The patches are made against the SDK commit the kit pins (docs/upstream/README.md, static/wasm/BUILD.json).
-PATCH_BASE = "1eff2e20b8663d1fc816e5d68f773b8a22e65dd1"
+# The patch is made against the SDK commit the kit pins (docs/upstream/README.md, static/wasm/BUILD.json).
+PATCH_BASE = "1fa8474427bb3998a79d2b350550efdb2578b3be"
 PRG32_SDK = test_wasm_runtime.PRG32_SDK
-PATCHES = [ROOT / "docs" / "upstream" / "prg32-sdk-audio-clock-and-reset.patch",
-           ROOT / "docs" / "upstream" / "prg32-sdk-retire-buzzer.patch"]
+PATCHES = [ROOT / "docs" / "upstream" / "prg32-sdk-retire-buzzer.patch"]
 
 
 @pytest.fixture(scope="module")

@@ -4,7 +4,7 @@
     python3 tools/build_wasm.py [--prg32qt ../PRG32-QT] [--prg32 ../PRG32] [--check]
 
 Needs Emscripten (emcc, emcmake) and CMake. The core's C++ sources are
-compiled straight from PRG32-QT's src/core (with the kit's host-call hook added to a
+compiled straight from PRG32-QT's src/core (with the kit's analog-stick patch added to a
 copy, see wasm/CMakeLists.txt), and its sound from the PRG32 firmware's audio engine
 (components/prg32_audio of a PRG32 checkout, ADR-0021): the kit adds only the C
 interface in wasm/prg32_core_api.cpp and the audio port in wasm/audio/. The result is written to

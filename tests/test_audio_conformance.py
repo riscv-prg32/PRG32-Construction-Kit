@@ -374,15 +374,18 @@ def test_a_one_buffer_shift_of_one_effect_breaks_whole_recording_equality():
 @pytest.mark.skipif(os.environ.get("PRG32_LIVE_QEMU") != "1",
                     reason="live QEMU firmware run is opt-in: PRG32_LIVE_QEMU=1 (needs ESP-IDF and Espressif QEMU)")
 def test_live_qemu_audio_does_not_drift(tmp_path):
-    """Builds the PRG32 firmware with the proposed SDK patch, records the console check in QEMU and
-    fails unless the whole recording equals the browser core's, sample for sample."""
+    """Builds the PRG32 firmware, records the console check in QEMU and fails unless the whole
+    recording equals the browser core's, sample for sample. The frame clock is in the SDK since
+    01663b7; an older SDK gets the kit's patch (docs/upstream/prg32-sdk-audio-clock-and-reset.patch)."""
     out = tmp_path / "evidence"
     env = {**os.environ, "PRG32_QEMU_EXTRA": "-icount shift=3,sleep=off"}
     # ESP-IDF's own Python (export.sh sets IDF_PYTHON_ENV_PATH): the firmware build runs idf.py with it.
     idf_python = Path(os.environ.get("IDF_PYTHON_ENV_PATH", "")) / "bin" / "python"
     python = str(idf_python) if idf_python.is_file() else sys.executable
-    result = subprocess.run([python, str(ROOT / "tools" / "qemu_audio_capture.py"), "--build",
-                             "--patch", str(ROOT / "docs" / "upstream" / "prg32-sdk-audio-clock-and-reset.patch"),
+    sdk = Path(os.environ.get("PRG32_SOURCE") or ROOT.parent / "PRG32")
+    patch = [] if (sdk / "components/prg32_audio/include/prg32_audio_frame_clock.h").is_file() else \
+        ["--patch", str(ROOT / "docs" / "upstream" / "prg32-sdk-audio-clock-and-reset.patch")]
+    result = subprocess.run([python, str(ROOT / "tools" / "qemu_audio_capture.py"), "--build", *patch,
                              str(FIXTURES / "hardware" / "audio_check-qemu.prg32"), "--seconds", "11", "--out", str(out)],
                             capture_output=True, text=True, timeout=3600, env=env)
     assert result.returncode == 0, result.stderr[-3000:]

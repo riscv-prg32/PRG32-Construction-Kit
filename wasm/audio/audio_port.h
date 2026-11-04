@@ -14,22 +14,22 @@ extern "C" {
 #endif
 
 #define PRG32_KIT_AUDIO_STEP_MS 20u
-#define PRG32_KIT_AUDIO_STEP_FRAMES 441u            /* 20 ms at 22050 Hz */
-#define PRG32_KIT_AUDIO_QUEUE_FRAMES (22050u * 4u)  /* at most 4 s waiting to be played */
+#define PRG32_KIT_AUDIO_STEP_FRAMES 441u           /* 20 ms at 22050 Hz */
+#define PRG32_KIT_AUDIO_QUEUE_FRAMES (22050u * 4u) /* at most 4 s waiting to be played */
 
 /* Start the engine as the console does at power-on (prg32_audio_init(NULL)): 8 voices,
  * 22050 Hz, stereo, the default instruments. */
 int prg32_kit_audio_start(void);
 /* Load a cartridge's AUD0 block (or clear the assets when there is none), as the
  * console does when it starts a cartridge. The block must stay alive while used. */
-int prg32_kit_audio_load(const uint8_t *block, size_t size);
+int prg32_kit_audio_load(const uint8_t* block, size_t size);
 
 /* Let `ms` of engine time pass: every full 20 ms runs the tracker and the voices and
  * mixes 441 frames into the queue. */
 void prg32_kit_audio_advance_ms(uint32_t ms);
 /* Frames waiting, a pointer to them (interleaved left, right) and removing them. */
 size_t prg32_kit_audio_frames(void);
-const int16_t *prg32_kit_audio_pcm(void);
+const int16_t* prg32_kit_audio_pcm(void);
 void prg32_kit_audio_clear(void);
 /* Frames dropped because nobody took them in time (the queue is bounded). */
 uint32_t prg32_kit_audio_dropped(void);

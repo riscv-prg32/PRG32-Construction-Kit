@@ -33,7 +33,7 @@ index 7606e38..628d50b 100644
    text(8, 110, "Sound pages also drive the optional RGB LED VU path.", C_LIME);
    value_bar(8, 140, 280, (int)((g_frame * 7) % 256), 255, C_ORANGE);
 diff --git a/components/prg32/include/prg32.h b/components/prg32/include/prg32.h
-index 9645e57..c5c9649 100644
+index 6bd65ee..7b5bf32 100644
 --- a/components/prg32/include/prg32.h
 +++ b/components/prg32/include/prg32.h
 @@ -293,7 +293,6 @@ typedef struct {
@@ -260,7 +260,7 @@ index 62f2fef..9d3d359 100644
  #include "sdkconfig.h"
  #include <stddef.h>
 diff --git a/components/prg32/prg32_system.c b/components/prg32/prg32_system.c
-index ca3cfd4..cb54a7c 100644
+index f16d091..bbdbebb 100644
 --- a/components/prg32/prg32_system.c
 +++ b/components/prg32/prg32_system.c
 @@ -16,7 +16,7 @@ static bool g_setup_open;
@@ -370,7 +370,7 @@ index ee205b1..c838f0a 100644
  and `tests/test_prg32_abi_gen.py` fails when a JSON signature differs from the
  declaration in the public headers.
 diff --git a/docs/software/audio_polyphony.md b/docs/software/audio_polyphony.md
-index 595ed2d..bd5ca72 100644
+index 3a75f3b..cdddcb2 100644
 --- a/docs/software/audio_polyphony.md
 +++ b/docs/software/audio_polyphony.md
 @@ -1,6 +1,6 @@
@@ -381,7 +381,7 @@ index 595ed2d..bd5ca72 100644
  
  This document explains every available audio function, how they overlap, and how to manage polyphony effectively.
  
-@@ -54,18 +54,17 @@ To use the advanced API, you must have instruments registered. The engine provid
+@@ -61,18 +61,17 @@ change how the next cartridge's notes sound.
  
  ---
  
@@ -409,7 +409,7 @@ index 595ed2d..bd5ca72 100644
  
  ---
  
-@@ -99,4 +98,4 @@ Because the automated Tracker Engine and your manual C code share the same physi
+@@ -106,4 +105,4 @@ Because the automated Tracker Engine and your manual C code share the same physi
  Partition your voices explicitly.
  1. When composing your `.json` tracker music, restrict it to using channels `0` through `5`.
  2. When triggering sound effects from your game code, ensure you only call `prg32_audio_note_on` or `prg32_audio_play_sample` targeting channels `6` and `7`.
@@ -478,10 +478,10 @@ index b975046..6a45f45 100644
  ## Volume Scaling
  
 diff --git a/docs/usage/qemu.md b/docs/usage/qemu.md
-index 9c598e2..7aeaae2 100644
+index 2570e8e..4375cb5 100644
 --- a/docs/usage/qemu.md
 +++ b/docs/usage/qemu.md
-@@ -121,10 +121,8 @@ Because QEMU lacks native I2S emulation for the ESP32-C3 backend, PRG32 uses a c
+@@ -153,10 +153,8 @@ Because QEMU lacks native I2S emulation for the ESP32-C3 backend, PRG32 uses a c
  ## Input and Controls
  
  QEMU disables physical GPIO buttons and enables a small UART keyboard

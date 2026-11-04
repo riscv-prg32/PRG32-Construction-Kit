@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+### PRG32 and PRG32-QT `main` as the reference
+
+- The browser core is built from PRG32 `1fa8474` and PRG32-QT `7683be1`, the `main` branches. The
+  ABI is still 1.8. From the SDK: every cartridge starts with a fresh mixer (no leftover volume from
+  the setup menu or the game before), and an audio block whose events overlap its samples is refused,
+  as the kit's own check already did.
+- PRG32-QT now has the host-call hooks and the firmware audio engine the kit proposed, so the kit no
+  longer patches them in; it adds only the analog stick.
+- Upstream: the frame clock and fresh mixer are in PRG32 `main`, PRG32-QT#1 is merged, and the
+  buzzer retirement (PRG32#45) was closed without merging; its patch is kept rebased onto `main`. A
+  new PRG32-QT patch lets PRG32-QT build against SDK `main` ([upstream/README.md](upstream/README.md)).
+
 ### PRG32 ABI 1.8: analog stick, game controllers, working multiplayer
 
 - **Aligned with PRG32 ABI 1.8** (`0x71b93e23`) and the merged PRG32 and PRG32-QT. New buttons **C, D,

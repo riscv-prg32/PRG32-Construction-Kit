@@ -4,6 +4,8 @@
 
 #include <stdint.h>
 
-static inline int64_t esp_timer_get_time(void) { return 0; }
+static inline int64_t esp_timer_get_time(void) {
+    return 0;
+}
 
 #endif

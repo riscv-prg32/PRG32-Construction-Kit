@@ -84,7 +84,7 @@ sample between cartridge events: 76 of 234 sounding chunks for the conformance c
 66 of 269 for the console check. The runs break at events because, in QEMU, the firmware
 advances its engine by the emulated clock rather than by the samples it renders (upstream).
 
-With the proposed SDK patch (`docs/upstream/`, riscv-prg32/PRG32#46) the firmware follows the
+Since SDK `01663b7` (the kit's proposal, riscv-prg32/PRG32#46, now in `main`) the firmware follows the
 same frame clock as the browser core: a sound a cartridge starts in frame N begins in 20 ms
 buffer ⌊N × 33 / 20⌋. The whole recordings are then equal, sample for sample, in every run:
 546 of 546 buffers for the console check and 348 of 348 for the conformance cartridge

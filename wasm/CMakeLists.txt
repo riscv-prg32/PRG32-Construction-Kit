@@ -27,11 +27,11 @@ if(NOT EXISTS "${PRG32_AUDIO_DIR}/audio_synth.c")
   message(FATAL_ERROR "PRG32_DIR does not contain components/prg32_audio: ${PRG32_DIR}")
 endif()
 
-# The core is used as PRG32-QT has it, with one addition for the kit: a pair of hooks
-# around every host call, so the kit's audio engine sees the audio calls (and their
-# arguments) while PRG32-QT's own handling, timing and state stay exactly as they are.
-# The core is copied into the build folder and the hook is added to that copy; if
-# PRG32-QT changes the lines it is anchored to, the build stops here and says so.
+# The core is used as PRG32-QT has it: since PRG32-QT 7683be1 its Runtime has the host-call hooks
+# (setHostHooks, setHostResult) that let the firmware audio engine see the audio calls, so the kit
+# no longer adds them. The kit adds only the analog stick, below. The core is copied into the build
+# folder and the stick is added to that copy; if PRG32-QT changes the lines it is anchored to, the
+# build stops here and says so.
 set(KIT_CORE "${CMAKE_BINARY_DIR}/kit-core")
 file(GLOB PRG32QT_CORE_FILES "${PRG32QT_DIR}/src/core/*.h" "${PRG32QT_DIR}/src/core/*.cpp")
 file(MAKE_DIRECTORY "${KIT_CORE}")
@@ -44,19 +44,13 @@ function(kit_patch file anchor replacement)
   file(READ "${KIT_CORE}/${file}" text)
   string(FIND "${text}" "${anchor}" found)
   if(found EQUAL -1)
-    message(FATAL_ERROR "PRG32-QT changed ${file}: the kit's host-call hook cannot find\n${anchor}\n"
+    message(FATAL_ERROR "PRG32-QT changed ${file}: the kit's stick patch cannot find\n${anchor}\n"
                         "Update wasm/CMakeLists.txt (ADR-0021).")
   endif()
   string(REPLACE "${anchor}" "${replacement}" text "${text}")
   file(WRITE "${KIT_CORE}/${file}" "${text}")
 endfunction()
 
-kit_patch(Runtime.h "    void hostCall(uint32_t);\n"
-  "    void hostCall(uint32_t);\n    void hostCallCore(uint32_t);\n")
-kit_patch(Runtime.h "    void setLEDCallback(std::function<void(RGBState)> cb) {"
-  "    /** Construction Kit: called before and after every host call (ADR-0021). */\n    void setHostHooks(std::function<void(uint32_t)> before, std::function<void(uint32_t)> after) {\n        hostBefore_ = std::move(before);\n        hostAfter_ = std::move(after);\n    }\n    /** Construction Kit: the value a host call returns in a0. */\n    void setHostResult(uint32_t value) {\n        cpu_.setReg(10, value);\n    }\n    void setLEDCallback(std::function<void(RGBState)> cb) {")
-kit_patch(Runtime.h "    std::function<void(RGBState)> ledCallback_;\n"
-  "    std::function<void(RGBState)> ledCallback_;\n    std::function<void(uint32_t)> hostBefore_, hostAfter_;\n")
 # The analog stick (ABI #140 to #143). PRG32-QT's hosts have none, so its core always answers from
 # the digital directions; the browser has one (a game controller or the on-screen stick). The rules
 # are the firmware's (components/prg32/prg32_input.c): a resting stick still lets the buttons steer.
@@ -74,8 +68,6 @@ kit_patch(Runtime.cpp "            cpu_.store32(a(1), AnalogRawCenter, ok);\n   
   "            cpu_.store32(a(1), kitStickPresent_ ? uint32_t(AnalogRawCenter + kitStickY_ * 16) : AnalogRawCenter, ok);\n        ret(kitStickPresent_ ? 0u : uint32_t(-1));\n")
 kit_patch(Runtime.cpp "        // ABI #143 input_has_analog(): axis values come from digital directions on every Qt host.\n        ret(0);\n"
   "        // ABI #143 input_has_analog(): 1 once the browser has a stick to read.\n        ret(kitStickPresent_ ? 1 : 0);\n")
-kit_patch(Runtime.cpp "void Runtime::hostCall(uint32_t i) {\n"
-  "void Runtime::hostCall(uint32_t i) {\n    if (hostBefore_)\n        hostBefore_(i);\n    hostCallCore(i);\n    if (hostAfter_)\n        hostAfter_(i);\n}\nvoid Runtime::hostCallCore(uint32_t i) {\n")
 
 # The Qt-free core, exactly the files of PRG32-QT's prg32qt_core library (from the copy).
 set(PRG32_CORE_SOURCES
