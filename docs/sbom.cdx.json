@@ -1,7 +1,7 @@
 {
  "bomFormat": "CycloneDX",
  "specVersion": "1.5",
- "serialNumber": "urn:uuid:37e9cd7e-6662-57ef-8793-702b98f54f1a",
+ "serialNumber": "urn:uuid:da801cb4-7ea3-50fd-9a97-d92d8da0d98b",
  "version": 1,
  "metadata": {
   "component": {
@@ -276,18 +276,18 @@
   },
   {
    "type": "library",
-   "bom-ref": "pkg:pypi/certifi@2026.10.19",
+   "bom-ref": "pkg:pypi/certifi@2026.10.23",
    "name": "certifi",
-   "version": "2026.10.19",
-   "purl": "pkg:pypi/certifi@2026.10.19",
+   "version": "2026.10.23",
+   "purl": "pkg:pypi/certifi@2026.10.23",
    "hashes": [
     {
      "alg": "SHA-256",
-     "content": "035c1e85572b141bf1c3a3eff0e33a8eb74917522f2559075ff8d2fea780a1ae"
+     "content": "a9895e6e2758b371e0545e321a3a8fd1fcfd9829ada8824a936dfb16aaaf36cd"
     },
     {
      "alg": "SHA-256",
-     "content": "42d35340cc5b9ba78e818ddbff0c5b1c2b779de448a340fd1b989f5fa8670e1b"
+     "content": "e9b54de76e530bb6cf0ccd036787103acb58fd42ba930ea8bf948ddbaa2f61d1"
     }
    ],
    "properties": [
@@ -2540,274 +2540,274 @@
   },
   {
    "type": "library",
-   "bom-ref": "pkg:pypi/psycopg-binary@3.3.6",
+   "bom-ref": "pkg:pypi/psycopg-binary@3.3.8",
    "name": "psycopg-binary",
-   "version": "3.3.6",
-   "purl": "pkg:pypi/psycopg-binary@3.3.6",
+   "version": "3.3.8",
+   "purl": "pkg:pypi/psycopg-binary@3.3.8",
    "hashes": [
     {
      "alg": "SHA-256",
-     "content": "05a83ac9fd52b9bca7cb5ab04b3691163170bd16f53defa27216ea3aa07ee781"
+     "content": "00c226f718901ce022bcee2e0779dc2f0a6d8bcedd5a3818e21ff25564efaa97"
     },
     {
      "alg": "SHA-256",
-     "content": "0a52991594ac4db888c7d39bccef331797e30cb31a95cae02cf2607f83a42dc2"
+     "content": "0332e83c2e78b1c8c00c1095688f9b332bdde9d5e9d61b8ce1cdcaf716a19b9e"
     },
     {
      "alg": "SHA-256",
-     "content": "0bf08b749cc144f33b44a91b78e3f71c60eb07963746a0df5a100b36ce3d7475"
+     "content": "09676448a9bbc5c09ce8d578a6958a0bb8175e63c94edf6d88a62d2b07fadd23"
     },
     {
      "alg": "SHA-256",
-     "content": "0ebfad5d131de9f892ae9e70cc7616207768b6714b66a52d4612b8ceaf78b372"
+     "content": "0d483014dde0bd5404801aa91ebbd7912006065dd8d244a962f228fe44bfc08b"
     },
     {
      "alg": "SHA-256",
-     "content": "1679a1cb93fbe5a6d1fd58d82cbddcc6fcb8c61446ba7cae6eb2a7b19bc585de"
+     "content": "0f454d1d8e8071c7ec5fc10db6204334c36bba5ad30005c4b8c35859b1250ac6"
     },
     {
      "alg": "SHA-256",
-     "content": "198a48e68cc99ccac03ba95ac857e73aa66f3bf6be77019fafb0832a05f7ad03"
+     "content": "0fd106e47b7d1f82744b23b6dd31856435e46c3d1b3d4972325d76f2e7a3d771"
     },
     {
      "alg": "SHA-256",
-     "content": "1fbd30e537dab22cafdf080608f10148fe2a5f3a61294ddb5113caac8a623840"
+     "content": "1126ff5eae645a304e6ca94e1c79cc19249fb54517b923ee5862badd2fabb334"
     },
     {
      "alg": "SHA-256",
-     "content": "289aadd6a00e151203c081f708348ec89f1e483c9b510ef4ac3981f847f01f79"
+     "content": "1f65e8e84e13b34ef40011b30c7e6eb39578956c4a0f326a0a5a274a3d84f812"
     },
     {
      "alg": "SHA-256",
-     "content": "2f122603f36050937982abf9668d8bc4769a79f7c93a65013b1c49f1cab7b56b"
+     "content": "281d0e891fa8c2bb231a97a5a57522cc2a9664c3f77b9fb007d2719bc1afd29e"
     },
     {
      "alg": "SHA-256",
-     "content": "303732e798fe6729f8e12021b9c96107df8e95ecec4dd487c67b98ec2a59435e"
+     "content": "2f72c18d75d16500fe2f7f300945d68fba9dbb883aef20ba4be0c386afbbf2e9"
     },
     {
      "alg": "SHA-256",
-     "content": "31cd942c23f613276b81a6e6598cefa12960058b0f46e1e874b540c793f6aca5"
+     "content": "31dd2597df303d22a2cabf73c40bb05afaf4ca1394e22935b97f627d4968c87d"
     },
     {
      "alg": "SHA-256",
-     "content": "366db6e97e66b37211475f20c4c1324a2dc0dd825e46d4e87f9d599304d276f9"
+     "content": "382e3a1fcc7988cd05bfa68db7cc50189e785c05be212d27b524f0cc983fc77a"
     },
     {
      "alg": "SHA-256",
-     "content": "373704aea331d3f3e3402c125a1543f5875e2986ebb54f97d1647942161f803f"
+     "content": "39bc3b42e6486ae8ace820df93b00dce4858338e8a428d14d8e71130e852bab1"
     },
     {
      "alg": "SHA-256",
-     "content": "37d40450659401600e6d043ff586c89a71a69f33cbb8bcdba6cdb2569beecdbe"
+     "content": "419a52eb62bdc0bf9eff80039329435c55a1943b1fa12f4d0cbdc45b5f856c5b"
     },
     {
      "alg": "SHA-256",
-     "content": "37e517c146b185f9c0c6e8d0a0ebbdeeeb67896af28466e032bc810d0c7dc7a7"
+     "content": "41c31b175084a85232b6ea5f8eb474491b6c963302c69b46fa2ed60afb888b62"
     },
     {
      "alg": "SHA-256",
-     "content": "3af90f92769d8cc10f94515ee7a0aef36ea85ca733a0ce22858f6e0953f41138"
+     "content": "42718d7e5732aa1feb0a7f0ff7e0404fd080528bd4694b40b31ef0b146eda8e1"
     },
     {
      "alg": "SHA-256",
-     "content": "3c9e663b2e800e3218994cf948c11bcc2844e6491b34aa80d089baf6531827bf"
+     "content": "4bedd0fbbbebe0c0f66b34c3f6be972ce38357ce3451510e1dcf5025f7011dba"
     },
     {
      "alg": "SHA-256",
-     "content": "3f84dab25e0385692ee13274c68678377e0b1a70ab9d14e56264cbf61f60c62d"
+     "content": "522acdc8a71a042b407851658eb1da85fe09c78b222b2233faef7da3385a757b"
     },
     {
      "alg": "SHA-256",
-     "content": "4690cf67738f0e0e49a32aeec99bf0e4595cc2b4f1af984a4345394b1dcff91a"
+     "content": "5a3925d0c67b0452db066d97d0452af012e7bd2fdf8e6ab4ab0392df8906a6e1"
     },
     {
      "alg": "SHA-256",
-     "content": "566dd827f17728efdf7d88a5b066f815170f6fdad13967ae952842d90e6aaa9f"
+     "content": "5deec7746acf1c742572b8bf8599f2f61a38c9925015d77254d87d3781169b3f"
     },
     {
      "alg": "SHA-256",
-     "content": "5927b7ba63153cd8e9862987290a2b783a5c590daf2a4ef981700cc3569166d4"
+     "content": "5f51d97b67276e90cda022ad363eca61dbe855dbb5342e358469006d4b5254df"
     },
     {
      "alg": "SHA-256",
-     "content": "5ad8f35e67cc16d1fad1fa8c88972dc9b3a3141ea67897399904edab96a301b6"
+     "content": "5fd40b5ced3f8b458024ea434f2dfee7aa62a65663089bde26c41302f6c31b2e"
     },
     {
      "alg": "SHA-256",
-     "content": "5ea8beeb5541780b4b50b462eeacbc4f594ce3b911dc20c81c75f267876f71d2"
+     "content": "6891b6d9d25103c31411b50f83f9a8aba63f4cbcc63b009f461c115bfaf7b78d"
     },
     {
      "alg": "SHA-256",
-     "content": "5f598f19fa9a91540b5cee17932ffd227b7b53a481605bcc4573c0eafa647300"
+     "content": "6bde86fb307fe1698fbbfeaa96130d4825f265afbeff217b959c1905b86f924d"
     },
     {
      "alg": "SHA-256",
-     "content": "612382ac3ed13651c7fa44b5fee9fbf7baaa2ddbc6f500391672682c5f1df9e0"
+     "content": "6d899f361effad9a23d90940b6b55683bc87ed2d457ef64a7fa76fee7c3b9dfc"
     },
     {
      "alg": "SHA-256",
-     "content": "6ff05561e4a067d35507dc5c90f1deb2ec1c9703ac5cccc1bc26e08a197f9c5a"
+     "content": "6ff02f23b7d95de68f42d5ebe91374540d3d31851d83d9cd37e6e71a5dbd0bcd"
     },
     {
      "alg": "SHA-256",
-     "content": "7308c93cf0b19bbaf8e6ff0a6ad50d3c442385739245fe15a8d593bf841734a6"
+     "content": "710183a2e29c72050c3a447f9f566de27c6efea9da40bf7b800381ac57026204"
     },
     {
      "alg": "SHA-256",
-     "content": "79a2a1c3449f6c3409427078ed1cec10de79f3023cb5f2504f0597d350ad46c7"
+     "content": "78f92c5c9c9177b247b0f72f03412bc829185786525a8cf8742460066762a7d1"
     },
     {
      "alg": "SHA-256",
-     "content": "7beb3e41c9a1e509f3ed85263386588cbe3e975aa67be21f79f44fd35ffaeefc"
+     "content": "7d2b484e8ced7c3292e811d28087814467aecd3ef19badb64ed45a0f5fd78bf8"
     },
     {
      "alg": "SHA-256",
-     "content": "86147cb5d140341c3363fb5bacce31f8d5543902a46699d3c536b101bbceaf9e"
+     "content": "804041b79916b0e8021a1130650d724741eff1e81ccec8133abf357b4d284a24"
     },
     {
      "alg": "SHA-256",
-     "content": "889e42acec10450185e0cdfb396f375e2c1a8d7737c114830a7fde4654f59e30"
+     "content": "9199be795608cbd3e6cc39b21c19e6043c44bc15d5a1d28f1df379830c553dd5"
     },
     {
      "alg": "SHA-256",
-     "content": "910ace140e3e7b7596898d083f37a8fe90c5c40684252ad4e682364b2cd3deba"
+     "content": "9353240f6e58d4a988f3ca842185f5349594153dcddd05e30f83c7d8badfbe0e"
     },
     {
      "alg": "SHA-256",
-     "content": "955e3dd94da361e052d2e49acf591017158dc8f8ed2c8a42c2e3943403c39dc2"
+     "content": "9a7b232d55ab7ba22be48487c5f0adb7a6941fd54b436bdbbb72df4e5a740fb2"
     },
     {
      "alg": "SHA-256",
-     "content": "9892188bb15e5803beb51afe8a25add6b56be391a53058e8bca03b74e1e6bf22"
+     "content": "9daff4d6257969b02678943d62bfd83b971004f6efef68d5b767ac69c2222751"
     },
     {
      "alg": "SHA-256",
-     "content": "98c02090d88f2ebc0ec1e8da538f77d225ce0fffecf372aa39262e62a1b054ef"
+     "content": "a09aa2ba7927e9b11bd5bddb6d33cec274235d6f54f1ab777ed71c932cfc8d72"
     },
     {
      "alg": "SHA-256",
-     "content": "9b2f11794e017ce340934e35de46181c46ef71ec75ea3d85dd75cd836761c01e"
+     "content": "a565d8446b59d26dcf75b08d3ccd4e85b750edba9e53a396cb7a4652d7cbc9e8"
     },
     {
      "alg": "SHA-256",
-     "content": "a2e44a342d2aee40508e28a563d8961c39d9bbd8cae36d8578f0a3c6658aab0f"
+     "content": "a63be4f745b778654e3c438d1b0e31bcf5ce265151c6982d5c6d5d286bae84c0"
     },
     {
      "alg": "SHA-256",
-     "content": "a4ee3bdd5468a725f2a4d9aab8a74b6d0279f768c8b5d3aeb102c5307ff3d59c"
+     "content": "a7cdba018e4decf3837793c1e18dbe3dd71709adef54892ab83d81c00e866dc3"
     },
     {
      "alg": "SHA-256",
-     "content": "a5165300324efd5a772c48a88ab3a928513ab3979fca76553e62ee815f7b2b9c"
+     "content": "aa7af0d2d1194b65b8c4d0056c5607de6c38fb6a295f04087d17e1c9d2d11fba"
     },
     {
      "alg": "SHA-256",
-     "content": "a9348c5b43a3bb5ef8c2e89d5237c9c87eeafb01d338c84a7aebbc5cd0313299"
+     "content": "b26fbeb64c3ec29d799c89709f9500bd3bfa452ae22bdac3e11c3bb15fb057dc"
     },
     {
      "alg": "SHA-256",
-     "content": "aa73160077345ec21b3f51e8e24b3de2e99586217e497629326eb9b2ea88c52e"
+     "content": "bb88457e8357a8709ab04f542c07361a816793f012a1c9818a4edd86d02cde4d"
     },
     {
      "alg": "SHA-256",
-     "content": "ad1c785e784cfd87e8436c6b7702f2d321fc39601bbaf29bc63a41a867091638"
+     "content": "bf9388216da2069ca0dbad58479bb83e4b979ed35c4a80d247399ac93361417c"
     },
     {
      "alg": "SHA-256",
-     "content": "b3f75dee0f9afafabe4edc52c4842f1e1878ed2069bd05b22d6fe961e97e4dba"
+     "content": "bf96efb4530605813b30d664f5d3b510540d89434a8e89dd7c62fb2d4fa4278f"
     },
     {
      "alg": "SHA-256",
-     "content": "b599defe9190b17e9907c8b4d114c181e702c87efcd1b8a0ad40971cdcc4634a"
+     "content": "c2154bd84cf20148d9a59e3ade04f0f754462b96cfac91d54d76ef33af7946e5"
     },
     {
      "alg": "SHA-256",
-     "content": "b82491019b884d62318b5f30706c3d7e6d4e5a6cb7eabcb3edc0c1b0fdaceae9"
+     "content": "c3a8420317a3b3910a08b77a952ef8f8051da61622c6a2e03fc51b75761c6acf"
     },
     {
      "alg": "SHA-256",
-     "content": "b8ece331509f7a975b90501f41e83ad905e4141753fedf3f2711b2bc70a8efbc"
+     "content": "c3ac86af1a7ac65fe3461d831e8bc9fa62bc247ef1b73d58e9dd4ed406be4bfd"
     },
     {
      "alg": "SHA-256",
-     "content": "b979a42815410432420275412633960807178b1ce26591a16ce06e78a5bd4bb2"
+     "content": "ced3499d480a979b956536b3f71a4736451bf3a976e4e400fc5c4b8dd3f43b23"
     },
     {
      "alg": "SHA-256",
-     "content": "be4f9b3c9338ac5dd217c5847e21521b396c8117f78dc420d495a5c49bbef874"
+     "content": "d01495f37407899a699726710e26d6105654273a12afc8fe87784743b4802844"
     },
     {
      "alg": "SHA-256",
-     "content": "bf8c8481d026b85dd70c5fa7dde85b2333aed0b32a2602bcd38a900cbd78a49c"
+     "content": "d4de096987b9f7c346879e164637de91a66067378b1ee4b49f07d1bac0e2847a"
     },
     {
      "alg": "SHA-256",
-     "content": "c61617eaae0112ca154da87ffb99b73af2c74067acac28dfb9a4455b019dff2e"
+     "content": "da101085aa9f74817e48fc96dda859528fc52fabcf81e27c3640d1df17dd6dcb"
     },
     {
      "alg": "SHA-256",
-     "content": "c6d19cb4999d03231e8730a5f66c8f5068bc3b532677eb39dab0f600bff3e312"
+     "content": "df35063b88af16c08bb8960aac9882cce620aea478dfec5a67cff397b575b97d"
     },
     {
      "alg": "SHA-256",
-     "content": "c7753871eb57e6a5f4646f6168590c6653073dea5e9e720b201c8875332df4c8"
+     "content": "e0972d8de5a0d855d76624f559a6ce5dd068fb4bbfa01e1d7cf929e6800dc4f0"
     },
     {
      "alg": "SHA-256",
-     "content": "c7f92daa0d2a1c76f07264abddf8cbabd30152a2f09c3270e50f0c7efdf5dcac"
+     "content": "e09cc11a367cbb147bacec0a41d748d22245e322827911d9c82b6066a8ba2059"
     },
     {
      "alg": "SHA-256",
-     "content": "cbd5f73073ed19c378d4c35499db1e3e703a5b1a324e521204065967bfaa7a18"
+     "content": "e42c0e37eaed1ff03c24008561bca218eae8ec5ca4405a37897c6245ead8d612"
     },
     {
      "alg": "SHA-256",
-     "content": "cec5ea900390897d0b46130f60bc2883bf19c314f9044235217c8be88b0ef269"
+     "content": "e4332b7178062649e29d2770905f20e6a4b2dfc54581dcfcd919aeaed26291f4"
     },
     {
      "alg": "SHA-256",
-     "content": "d636338c8f21b0df2f84657b00bc34f9313f826ef93f1155bc743607e4a0c5eb"
+     "content": "e8f1addbaec62c9e2bf5b3ae4b32a20c793c06de7d57471f6509a127f1c902f4"
     },
     {
      "alg": "SHA-256",
-     "content": "dc75da5a20951049f7b773145f998f69d181adad9c58a0ff36e0cf1d73c10e10"
+     "content": "eb4cd3f0ad6ebcf2baeb94f93d87138044976b57b7113b6321ac3c5cf70a8130"
     },
     {
      "alg": "SHA-256",
-     "content": "e23a66a763fbe83fcc210bc77c27e5a5ea380ebf091c06f34d8561b695e5a40f"
+     "content": "ec6773395189417c92102b34c77ed299f6111fbbc37d50d4fa12ab819f763669"
     },
     {
      "alg": "SHA-256",
-     "content": "e8cbb54454dbf1bbf2ff08dd7693e8d94ac94b1a20f70f4b3b813d52ecb5cbc1"
+     "content": "ed65d1b32a7f9684ab682296ac7cac1dd972bb8d86c9336753bc915efc3515f4"
     },
     {
      "alg": "SHA-256",
-     "content": "ee2c4728c691245e24501fcd7a97b5b381236b9985bc445bba88cdce7d1b5784"
+     "content": "ef2dcdad18f7e6b0241dafbaad3033ca5c12e07755418ece4c3a90e9665e434e"
     },
     {
      "alg": "SHA-256",
-     "content": "f0535693ce476a722b718b002d5d2c27d47e71ca945276ac194409c98e74c492"
+     "content": "f09cb4e7744522d71048a8998ff841c7af942a61ffbd4142a140b42d89b950fe"
     },
     {
      "alg": "SHA-256",
-     "content": "f19cc87343eaa55255e76b31259a570072ac95d6ae82c92dd34b97691f5e49dc"
+     "content": "f31dea98f8c5c6c60e8e049388f24eec14088518e2ded0f892d96c785401e688"
     },
     {
      "alg": "SHA-256",
-     "content": "f21d057f3e5f5491067e5b292498073b73847d48799b099803fef100775fcc52"
+     "content": "f719b1b6498b3562843be83add8714c8967da95bb9aa626aae157a8ca31e4742"
     },
     {
      "alg": "SHA-256",
-     "content": "f87dbdc42e78ee0f7ea180c03f8c78e80a949e373066629bd90fefff10552dff"
+     "content": "fc134798cd646a15326004bbeff4c2719e000a9ac52f6b893a767f7c5276e24b"
     },
     {
      "alg": "SHA-256",
-     "content": "fa34eb47969297471db7b7f193622c7e3ee839ec05abd05f1fe104d5b1b1dcf4"
+     "content": "fc9b9922899a3ca6193fd1d96920329c10acb72d3fad0dbc87b1ecdd8a791c14"
     },
     {
      "alg": "SHA-256",
-     "content": "fdccb3a0e184b03e9baa673b15a809cf36c339c85dbda0ebc25a698846dfbee8"
+     "content": "fe26e72b87ca280e538f4f78d1a956df0ae6ed51aab73ccc4c1dcf6f25256438"
     }
    ],
    "properties": [
@@ -2819,18 +2819,18 @@
   },
   {
    "type": "library",
-   "bom-ref": "pkg:pypi/psycopg@3.3.6",
+   "bom-ref": "pkg:pypi/psycopg@3.3.8",
    "name": "psycopg",
-   "version": "3.3.6",
-   "purl": "pkg:pypi/psycopg@3.3.6",
+   "version": "3.3.8",
+   "purl": "pkg:pypi/psycopg@3.3.8",
    "hashes": [
     {
      "alg": "SHA-256",
-     "content": "a1db9f7148b06a28606767efaca51fa6f9398c5c0a3810519be69d7000bdb631"
+     "content": "86c135a9a6f5e98404975c5787e620bf436a7807e088baebd1b20fa48d3b4b4f"
     },
     {
      "alg": "SHA-256",
-     "content": "c081f2250df751a943036e42db6df4571c66cd0aabe8291a7a506512b12007d2"
+     "content": "ca50af6072ba9ea6866f33021975230c2555d7bfdb9d8f94ca3af5c3d1bf2167"
     }
    ],
    "properties": [
@@ -2842,18 +2842,18 @@
   },
   {
    "type": "library",
-   "bom-ref": "pkg:pypi/pycparser@3.11",
+   "bom-ref": "pkg:pypi/pycparser@3.12",
    "name": "pycparser",
-   "version": "3.11",
-   "purl": "pkg:pypi/pycparser@3.11",
+   "version": "3.12",
+   "purl": "pkg:pypi/pycparser@3.12",
    "hashes": [
     {
      "alg": "SHA-256",
-     "content": "51d5a8ba2be0bbe440b99d2112604c95bbbc3c2748a64260186c541e1729cd80"
+     "content": "a076f3f489b39b43ed13563a1dafe42447445bec2e294154ec5c57fcdda4c85e"
     },
     {
      "alg": "SHA-256",
-     "content": "d875f09c3507d00e1aba0eecc6dcadc1352f30fff09dc6bff2f1c2935e97c2bc"
+     "content": "f03387877eab82ce01bbdfd0ba7252ee55a90b1c708d5129e2ce915475cf1db6"
     }
    ],
    "properties": [
@@ -2911,18 +2911,18 @@
   },
   {
    "type": "library",
-   "bom-ref": "pkg:pypi/pytest@9.1.1",
+   "bom-ref": "pkg:pypi/pytest@9.2.0",
    "name": "pytest",
-   "version": "9.1.1",
-   "purl": "pkg:pypi/pytest@9.1.1",
+   "version": "9.2.0",
+   "purl": "pkg:pypi/pytest@9.2.0",
    "hashes": [
     {
      "alg": "SHA-256",
-     "content": "1088fbde8f2b49d95a549a195707afa7a76a3ce9bcadc26b6d71f0ffda5fe313"
+     "content": "07acdcf88ec174f907dc01af70bf52d49b014bbab03faeeade31c96b18c2e588"
     },
     {
      "alg": "SHA-256",
-     "content": "37a86b45efb9a47a61a36449063e8e18d0cab3161329fc099eb21783169c4f0c"
+     "content": "97c4f3b1f3c7414aa36465e09b8220f1d03627993bd51b1282e193753c80557b"
     }
    ],
    "properties": [
@@ -2957,298 +2957,298 @@
   },
   {
    "type": "library",
-   "bom-ref": "pkg:pypi/sqlalchemy@2.1.5",
+   "bom-ref": "pkg:pypi/sqlalchemy@2.1.8",
    "name": "sqlalchemy",
-   "version": "2.1.5",
-   "purl": "pkg:pypi/sqlalchemy@2.1.5",
+   "version": "2.1.8",
+   "purl": "pkg:pypi/sqlalchemy@2.1.8",
    "hashes": [
     {
      "alg": "SHA-256",
-     "content": "061d089901319463a1160e4596191e355d2a9b4cce4852dac5adc301b085ac2f"
+     "content": "06ba41b90d1cf018cbe9a5474958dbdd2a72ec946ace8d314021d24e42ae2f39"
     },
     {
      "alg": "SHA-256",
-     "content": "09b10bd68223d57cce39c08947efae3f91ac40b552e07c7c869c3350a0fc4c23"
+     "content": "06e30b673ec8a89b398e95052c2c42d9e0bc0163940cdb7d32f36a79c0d12f3b"
     },
     {
      "alg": "SHA-256",
-     "content": "0df76cf1ca680ad745bd378a6299a058611a8a784eeaeb4ed78ad4a0b7ce2003"
+     "content": "08634599ccbeee6528b645f08516d1781a009422b22723a27b3331e26955d95f"
     },
     {
      "alg": "SHA-256",
-     "content": "11185c72b5372369166cb721537943f8e1e6e42a399e9bac19e02f3ee20592a4"
+     "content": "09a78681468ecae9b3e65de8afe20e74f36bf5c5d63c4c26ffc28b05858e3bdf"
     },
     {
      "alg": "SHA-256",
-     "content": "116cad2685f16398c3486e30832e07197a7e12147e465a44a187c250059f23d0"
+     "content": "09d190d37a002bd2984e3ebdbaf81f7530bb848736860bbd22e81cf417b067bd"
     },
     {
      "alg": "SHA-256",
-     "content": "143cea634f03f9a8009fdeaeab46808031ab05bf0c50ec0aa25da51c29bdeeb8"
+     "content": "0aace49c6d0fc854bf600037df099ddc375ac2673747b6b0f29cdc6a3f96f37d"
     },
     {
      "alg": "SHA-256",
-     "content": "173054351d863ddada188284e309e87a9f030132c8d534e05458971ff061aa1e"
+     "content": "0b239d72e4a6b35d5ddb7e6f3442e4c350def6165b1adabef65b8fa9a025cb6d"
     },
     {
      "alg": "SHA-256",
-     "content": "17f8c68bd35bb76b2d9ef1097941fb783ef9ef6604c1d2a72c2e276430aeffca"
+     "content": "0b63166df937ad4948a4a35ba67106a73b529c132e46a0ffbe82076abb0bbe57"
     },
     {
      "alg": "SHA-256",
-     "content": "1cf433bcb77696cc915552d7f1e8d9117a5dae5aff9fceb06a69d74b3b3c2bd1"
+     "content": "0bf96e2ef5b5395adc7120de938a457d820fd27bcd9cdb300964140906e6777f"
     },
     {
      "alg": "SHA-256",
-     "content": "22c8d0873168a54f614e381559ea83d547b2cc5488b95b049bdc92667586bd5f"
+     "content": "105a13be11045347a78e1599adbcdad895c32067696bca9ba02754ac32f82699"
     },
     {
      "alg": "SHA-256",
-     "content": "22eeeb297ced15cd7571aca242aede6a59141dcc3282c29c987fbc83f05c823b"
+     "content": "10a62fe79b1f4861760e50aa968be71348b6a0ec6914e20221a2d8c506925280"
     },
     {
      "alg": "SHA-256",
-     "content": "2549e503185897de1fc5ca7730d5daed0d27d0b26df4a059dcdd33ebe81b7b4b"
+     "content": "141f4bb653b9acadd33edd2c524ab85ec97cf5d781eea0e6f6c4fb8b517203a5"
     },
     {
      "alg": "SHA-256",
-     "content": "29f47da90629119646ef90c52f6185131a10b6ed811b26490b01c31a9e9b2453"
+     "content": "1da7b54a7b3da71abbee002c0854f843f43452d778026db7cd65ff6432806540"
     },
     {
      "alg": "SHA-256",
-     "content": "2ca1b380f940fbd94c1df94d7b502b9c496fe9a62f5200e0c6feaa8db7175401"
+     "content": "1fc68555af5ccfe5c6637e84a556319a82ff21d9150d3208533722bf3108db17"
     },
     {
      "alg": "SHA-256",
-     "content": "2f77b77b716f005b2dc3cc059d56df6a919bfb5b439e4149890a9df6c36be9e3"
+     "content": "205dfb38f3d8bac38dedec30110160db0331d71c7f04e6180e5b4e07d1debf0d"
     },
     {
      "alg": "SHA-256",
-     "content": "3033ddeeeb34c6c536622c07e932a20f8c9f58d6dd76e56595a76b55a25011ff"
+     "content": "28876f64e7a5458acc972013e5366e0e53c59ba04c6a4a4fdeece58318aaeeaa"
     },
     {
      "alg": "SHA-256",
-     "content": "375ef1bf78bc269a220963163d2580d5377898ed23a00bdd98a02d755421573d"
+     "content": "2895f18e332143a70f4e226d789beaa6ddb6e6b5fb9568e5d9afc3a6dcad7d03"
     },
     {
      "alg": "SHA-256",
-     "content": "399d3e212cb557d5bd1ca6f79981e8c3f45c0f6be60b63a9ded790396a81af08"
+     "content": "2b4fb02b7cb4e7c76de89e13824b30bff45b2fbbc585a468b9a9a1588e5ef744"
     },
     {
      "alg": "SHA-256",
-     "content": "3cc3292040c980e9f1a54b14da76cf938a6a04a27e8acf6cb7709e9c3a40935b"
+     "content": "2feca3677281ed655a68b64aee68262cb867675cae8ef5066edd065a7fac4106"
     },
     {
      "alg": "SHA-256",
-     "content": "3eb1907fc67aacc160276e7f61c1f71a7a38c10e84ff87b74d90cae0abd137bb"
+     "content": "3418927e5f2a5bab86ea7ceec378fe7760feb736d200f0027d22660c5720c5b0"
     },
     {
      "alg": "SHA-256",
-     "content": "3f566787cb3a6a25ad8c5170e90167d4e8ea103d412aa4ea95021a6df0b95964"
+     "content": "35e930696d2add7671e4ef7738e90a54d7cbc31fa0da8efe3c4a76a684c25cfa"
     },
     {
      "alg": "SHA-256",
-     "content": "46a50f5d226e9321970867c91252a71485301b67eaee2f76db92b2f6bea5fdcb"
+     "content": "36e3192f86fbb32d7267af6a05e36d1ad4c5ede3d7c17165bddb6a7585b3ddad"
     },
     {
      "alg": "SHA-256",
-     "content": "4c4666b9884e4a807b27835ab236056278915ea9549a2405e83d86297e7ba0da"
+     "content": "399082c1cc5ec4ed117b46501194ad3c99ac89902679916caed0047018e2ceac"
     },
     {
      "alg": "SHA-256",
-     "content": "5173207b8fe1ddfc1d451c420a2a9cbbd0734b4a19896b8080e3744497e1c20c"
+     "content": "4523d270fcbf771ab3e25942485530b0209567e3368036ebd6c5a6636f6856aa"
     },
     {
      "alg": "SHA-256",
-     "content": "51e290080415325b66a94d20f6360e310606acb832f2bd677d4fcb95728e7ce1"
+     "content": "47e2bbdc32e7bb26ecb796a60bacfe5fa673f01d0a6f1f06377c201495159a6b"
     },
     {
      "alg": "SHA-256",
-     "content": "5541a110ac4bb6377c785aea1b8f0b4d6658ed0ca5061ed1115d0725062b026b"
+     "content": "4b8c3559fb4382136a45b12a9546055781bcc5898a6b223ae8bd9d873c210df1"
     },
     {
      "alg": "SHA-256",
-     "content": "59a56be2e4e972061f9d5c1d5b01763b8b2207b48b956fbb6879c7443f5817f7"
+     "content": "5af2275f5607c10bfbf69de4339ecc98d17a8ae5ae67f6686c30d6a6cc52e5b7"
     },
     {
      "alg": "SHA-256",
-     "content": "59dbd7412531da0124df8667a244b5155773632e9bd79a5c2ead393b11b59de5"
+     "content": "656bc82cf54f90c2e3909c5f9416710a46475deac462607bf7ee2ef9f47900af"
     },
     {
      "alg": "SHA-256",
-     "content": "5a6871ee159a943d874012de835d56d0544ee871a99dbae05bc053da315b2c23"
+     "content": "68eeca1191731d101bae85e3dbc6447c66ea6768d1f49bae104e2875e9e24814"
     },
     {
      "alg": "SHA-256",
-     "content": "5cefa5badc13df1c9082bacdfa435c8eb6dcb9b32717f51d09d1e160a599646f"
+     "content": "69aea77b5d8a64e95d01fd7ec54985c84b4a8ef3cac3108e9271145441400c1b"
     },
     {
      "alg": "SHA-256",
-     "content": "65eece9d9494e46de1eb3d49eb438acfcecf059e7a92a2f3daf72ec26d371757"
+     "content": "6b9844ecf59d389648cf3ce2b387475f81b02c2d32f16b95a554ca535a68ba13"
     },
     {
      "alg": "SHA-256",
-     "content": "6a51c56afdb880e9f83736a2e81c02dd002fe1c5ad68346a35d97a2e135b1568"
+     "content": "7508d657d624d88508fa5e6d05487073edafed57a222d4a8bddbe8a7aead3fbb"
     },
     {
      "alg": "SHA-256",
-     "content": "6c229afac414d691d2f69a6f4e294ac5b5fd334c49da1f4fb86ab7f2a466271d"
+     "content": "862af4d5858840f2f444821d86c38c75d13288fc18ab114f0f876644620fd3ac"
     },
     {
      "alg": "SHA-256",
-     "content": "6eb2fc3c1e8d2498d944b6ff64d32a63a5c900a14892c200626e701e69187113"
+     "content": "8a76bd79630e18b1defd176b889dd16cd88a44c73a3660a29594ff110dc626d9"
     },
     {
      "alg": "SHA-256",
-     "content": "7133bd0ac969ba1a108508975e0c26229329cadaaa48844f0a038dafa610693b"
+     "content": "8af07d4dc094fb81d218c05176bba00e3c75d67fbe813b47b8b3593a27add533"
     },
     {
      "alg": "SHA-256",
-     "content": "72ddd7a8ec187d02de0ef316a15aaf381ddcc594958247b02a3dcdb4c42f0b02"
+     "content": "8b710c896f3e3c59cb70b5bf73c8e28e13e7c60a2e28ea478bc182198efc6725"
     },
     {
      "alg": "SHA-256",
-     "content": "740e96dfb99a615c8056070d3747efe8bce4c145e5953ccc9e4b004c139de0d2"
+     "content": "8bc4081dd7c17c073f2384ad0f5ee968e63b43507b2e024a3523c000a06d70da"
     },
     {
      "alg": "SHA-256",
-     "content": "7af1c92255cf8d50e87a808ce41096907332acdd09f285426a52f7c300e152db"
+     "content": "8dd7ae94cbbb6e58d1c03de044b8029d571f445feafb6fafc1c8a21598706f8a"
     },
     {
      "alg": "SHA-256",
-     "content": "85891e0828e76a77fe912995dbc3ee949099488ba0a2ab323535d2e767446b20"
+     "content": "92604cdd92b62ea56e8b04d6ce40a939a18a75c87b7a74e86cd4c562178afccb"
     },
     {
      "alg": "SHA-256",
-     "content": "898d86c22640fe52ffe02b4abc043a3c6754b4875837599e739be440966dffa1"
+     "content": "92810a47ed62fc17088e3d7f3c8bde407b53bcd1c113a50e2d9433631bb3c230"
     },
     {
      "alg": "SHA-256",
-     "content": "926c61c589c3bebb6c540ba0b60fd9a2e8eaf6b5ae9e3ec94cb2cbb2fe10a022"
+     "content": "92f87e53ded137e29231e05409eae97fcec0d0289378e98e26d0d327a1a1bf03"
     },
     {
      "alg": "SHA-256",
-     "content": "92a0bb0595331c8e40bc615a67cc7bca9b761487409d1bf46c598b6ba5c0754d"
+     "content": "9587623885c13b7c53354fa39a5edc7cf5388dec708e4e6d04e7b6868941a2c6"
     },
     {
      "alg": "SHA-256",
-     "content": "9bb993b1d0890a2da90589684c3d09de75df82c06aa8f7eda246c7cd0ea3e820"
+     "content": "99577caccafc97b712f250c0e251546e97e6e64676213cf6085a63386fa48595"
     },
     {
      "alg": "SHA-256",
-     "content": "9edda6c6e22113702d9603b1178f1ab16f5120b49995134b407f11ebb4446b91"
+     "content": "9e08e91fbb02d7d659586d8f778fbc4d388c02e2592d245cc98b454ad9169d42"
     },
     {
      "alg": "SHA-256",
-     "content": "a0b80f91d9ed92be7a134278ea2e83a693c07d9986824ca51d859af9e57e18f5"
+     "content": "a092e37949aec29964e3692a40b40380604fa7dc0186aeae372f64a072e9049f"
     },
     {
      "alg": "SHA-256",
-     "content": "a534a39a9247a17843d9f6e34a0877d1a2af870b273e53e1c453b3a65f93c28e"
+     "content": "a4fec84bfe7a466ce29d2c01740b29217ec6a64c7da10975475649bf1e1a6513"
     },
     {
      "alg": "SHA-256",
-     "content": "a72e062d2d38826dd89231df692fb40f12d7d1b9d118be23bcc1cf93c6e31782"
+     "content": "a6dcab1a7200ef01f9b01cfc351673973c0c856264dd396ba71570c58916339c"
     },
     {
      "alg": "SHA-256",
-     "content": "ad305d5fed915340464441dfed47086303936288ed0a5ebc1a0b2ed41678fa41"
+     "content": "aaf1e9adb18645bec3eeedf89342d2970103399207123b096284c3741b64217a"
     },
     {
      "alg": "SHA-256",
-     "content": "b3732a60b01560c9efee3b9ea188dc12614b2642ffce4f8235c4fbf72dd40fe8"
+     "content": "abec8d471bb08ecae25b08b24284e11439b215ec9d09ffbbddb23f9b3a8b425a"
     },
     {
      "alg": "SHA-256",
-     "content": "b3ad20cd035392f2b91a6466e24643990c1378beda80c9bda87a3a41e841e838"
+     "content": "acc8de93461dd9259c5e5eb42c26199a94ea2631f49a11d659d00e375294d48f"
     },
     {
      "alg": "SHA-256",
-     "content": "b79ee943e2e12246f873345762b83dbadd1fcfc3e832eab83272d672704dbdea"
+     "content": "aea7192a4a21d0b6999a4ebdab76af6d31d8c2d7397b2ef1008301c63e31ab78"
     },
     {
      "alg": "SHA-256",
-     "content": "bac60969b1a96f8ee4db82c647a3370860f76b2a41dd7b95f578a8421c7c87bb"
+     "content": "b1a12d2b8411bee0cd8d6b3aea3282ecef1dcc61f0aafb094b9849ad559f7301"
     },
     {
      "alg": "SHA-256",
-     "content": "bc09dd22c3fc491a2df7d16ca4167de35573f40c2e82dd4d6ddae589a73e7032"
+     "content": "b592cd60907988c30186d6a1ab157ac5692d2fc505d4e7f872c56acf69835149"
     },
     {
      "alg": "SHA-256",
-     "content": "bc1a61d7f42e71746b5a2e10e90a6b174b4add441b7b6cf14278f1e029b2b800"
+     "content": "b85a44c87df33eed672d062d43eb9f01c7162a755cee5bce11c995c4fceba2ee"
     },
     {
      "alg": "SHA-256",
-     "content": "c228084025a28aa038aef9b821d842508650fe12fe51f06e9cdaa4393be7812c"
+     "content": "bbc66d47ac0ccfc73f99980533502077a95c3252c1a8fa4da446ad597ddb2ba7"
     },
     {
      "alg": "SHA-256",
-     "content": "c3ffbe6c680c626403b7e9697d92465501078731b9e8863b1410826e66b950e1"
+     "content": "befc454b74ef9584e4c06471a6caaf20ef2b43659e152b50f5c3d61832073f50"
     },
     {
      "alg": "SHA-256",
-     "content": "c76d4cb9c76a6906563133449a76d9eae6c8529ca09484b8615ca604442b442e"
+     "content": "bf31d4e8f8dc964d7a314a26b5d7f5cda245f9acab0145fd4fb19b7605803e94"
     },
     {
      "alg": "SHA-256",
-     "content": "cb7afa85837f56cd07235dbb05858f5137d5fe7a1e813b12669a52462a1b6ae5"
+     "content": "ce0e9058f3819cd0b7db8191941dd19ae82dc1b97dc0617e9df25984d00ee61c"
     },
     {
      "alg": "SHA-256",
-     "content": "cc44dcc80e89a006af415edffc7409b1f2976a4597065449c166987f95801ab4"
+     "content": "ce7c1e3a45ce6d64ec3ed06ec6c0e288711482f1990115c9b4cbe4da2626a424"
     },
     {
      "alg": "SHA-256",
-     "content": "ce8d3de4e0489671fa023dea3f769360df02b2df6e482a44f8fa4421dd41c0ae"
+     "content": "cfd71226e277e4f54bec6b27652c04c5498aa9a913cddaf32d17126ce058ac90"
     },
     {
      "alg": "SHA-256",
-     "content": "db34eefaf992c84460ab26ecf2fc2bdcc68965d6becfae8182cae0efeaa3e8f8"
+     "content": "d1dcb218893c207ea8faf8729f4f3a3c5d1641c5a9f11134ededc8a06daf647a"
     },
     {
      "alg": "SHA-256",
-     "content": "dc1c86db97372e6bba18a7bcf0f6150dbdd808237f0f52802ef0bec676a94642"
+     "content": "d2dc85ccb5e224f0c5be165d70a1d04a3a754afb53fffddc4c410509fabae430"
     },
     {
      "alg": "SHA-256",
-     "content": "def2f117a6ec0a25202ee36a148bbcfad3d43e2f2bb2e698e6d4448c6db5cb19"
+     "content": "d63dfd83282891c91f1dce85ce211cccb5c06573830a60f8d1a747164975ed4b"
     },
     {
      "alg": "SHA-256",
-     "content": "df7e71ed051e4003e73484ef6547aacfb3a2322aac0c230d530c97e48e77b4d7"
+     "content": "db7777f7ae23175aaef0778d718d5d6f5005bc8979fc3b9b494455a0556cc050"
     },
     {
      "alg": "SHA-256",
-     "content": "e9418d87b55c469c2f1328246d4533238cdc43134c695d6b9a6b7a87da49d463"
+     "content": "dc1ab4740247b7601ad44a992a9571389bc5e5e4a8807fa23485767c3fd5a08d"
     },
     {
      "alg": "SHA-256",
-     "content": "ea4cb5022462d9f15e7b72a52c267385aa97ac224c8503ac63ba90c0067ad0d9"
+     "content": "deaa7d41f95e085e4962d5d65f97a13e47c51c631f7e4c080c332c5c5c0da786"
     },
     {
      "alg": "SHA-256",
-     "content": "ee7267d7ffed80c370dfdd7ad1c741d0227f0e8054b83d00715fb99307bd330c"
+     "content": "e0ade636fb77c4e4156edd584292d2b1d2033fe544da8288590561257c99bd03"
     },
     {
      "alg": "SHA-256",
-     "content": "f029b2f7114623c03f762596f313515a2358004c44eb18924a15940f2e27d30f"
+     "content": "e1e7515eca2f4dfc48385edb61964c96bfb7b8efc2e6a2421da3ac07e29d82cd"
     },
     {
      "alg": "SHA-256",
-     "content": "f4d30723171d511ec16ac057872a38b9b395420c0aaf81b2f94dd7bf1345c5fe"
+     "content": "e25fc1e5df892b800bb1cf5d9e5f7005620976f02ecde90859decea1aa85a1e9"
     },
     {
      "alg": "SHA-256",
-     "content": "f5173a6e60a15090f9e2348a8ca94cc13de72796c16733f3b62fbb22acba07b8"
+     "content": "e4e2bfa6ce7916776afd3db02006c56d90a7362ed72774afd9071ffe03cd8188"
     },
     {
      "alg": "SHA-256",
-     "content": "f5bc7fb93f1c17efefeb062bc4d2742ad1b71d56c36e6e2898a371ac6a56839a"
+     "content": "f50e34ebdf4ad7c96d89cfb05418e11ed23d3ac46f1f59f3d2e1d8da8091a0eb"
     },
     {
      "alg": "SHA-256",
-     "content": "fb8dcd5e1cc12fdd4d490819ec7a56e8c02e86ca9087a472e28b422ff932bae0"
+     "content": "ffe69b75459d90529f603d9594255c41d6a503f69220740510373374198735f6"
     }
    ],
    "properties": [
@@ -3340,7 +3340,7 @@
     "pkg:npm/jquery@3.7.1",
     "pkg:npm/monaco-editor@0.52.2",
     "pkg:pypi/blinker@1.9.0",
-    "pkg:pypi/certifi@2026.10.19",
+    "pkg:pypi/certifi@2026.10.23",
     "pkg:pypi/cffi@2.1.1",
     "pkg:pypi/charset-normalizer@3.5.2",
     "pkg:pypi/click@8.5.0",
@@ -3356,14 +3356,14 @@
     "pkg:pypi/markupsafe@3.0.4",
     "pkg:pypi/packaging@26.3",
     "pkg:pypi/pluggy@1.7.0",
-    "pkg:pypi/psycopg-binary@3.3.6",
-    "pkg:pypi/psycopg@3.3.6",
-    "pkg:pypi/pycparser@3.11",
+    "pkg:pypi/psycopg-binary@3.3.8",
+    "pkg:pypi/psycopg@3.3.8",
+    "pkg:pypi/pycparser@3.12",
     "pkg:pypi/pyelftools@0.32",
     "pkg:pypi/pygments@2.21.0",
-    "pkg:pypi/pytest@9.1.1",
+    "pkg:pypi/pytest@9.2.0",
     "pkg:pypi/requests@2.34.2",
-    "pkg:pypi/sqlalchemy@2.1.5",
+    "pkg:pypi/sqlalchemy@2.1.8",
     "pkg:pypi/typing-extensions@4.16.0",
     "pkg:pypi/urllib3@2.8.0",
     "pkg:pypi/werkzeug@3.1.9"

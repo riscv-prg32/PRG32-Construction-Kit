@@ -2,15 +2,18 @@ version: 2
 updates:
   - package-ecosystem: github-actions
     directory: /
+    target-branch: development   # the kit's work branch; main only receives development
     schedule:
       interval: weekly
 
   - package-ecosystem: pip
     directory: /
+    target-branch: development   # the kit's work branch; main only receives development
     schedule:
       interval: weekly
 
   - package-ecosystem: docker
     directory: /
+    target-branch: development   # the kit's work branch; main only receives development
     schedule:
       interval: weekly
