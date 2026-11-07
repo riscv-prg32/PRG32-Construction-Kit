@@ -3,9 +3,9 @@
 The GitHub Actions workflow in `.github/workflows/tests.yml` checks every push
 and pull request before it can become a classroom build. It has four stages:
 
-1. Python 3.11 and 3.12 both run the complete pytest suite. CI installs a
-   RISC-V assembler so the generated `.S` teaching files are assembled and
-   compared with generated C. Python and JavaScript syntax are checked first.
+1. Python 3.11 (the oldest supported) and 3.15 (the Docker image's) both run
+   the complete pytest suite. CI installs a RISC-V assembler so the generated
+   `.S` teaching files are assembled and compared with generated C. Python and JavaScript syntax are checked first.
 2. Pull requests receive a dependency review. A newly introduced dependency
    with a high or critical known vulnerability fails the check. If the
    repository's Dependency graph is off, the job audits `requirements.lock`
@@ -78,7 +78,7 @@ settings.
 For protected `main`, require these checks before merging:
 
 - `Python 3.11 tests`
-- `Python 3.12 tests`
+- `Python 3.15 tests`
 - `Dependency review`
 - `Toolchain container and real cartridges`
 

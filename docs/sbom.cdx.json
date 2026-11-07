@@ -1,7 +1,7 @@
 {
  "bomFormat": "CycloneDX",
  "specVersion": "1.5",
- "serialNumber": "urn:uuid:da801cb4-7ea3-50fd-9a97-d92d8da0d98b",
+ "serialNumber": "urn:uuid:6b68350d-8c6c-5542-9a34-be168b191d36",
  "version": 1,
  "metadata": {
   "component": {
@@ -1417,18 +1417,18 @@
   },
   {
    "type": "library",
-   "bom-ref": "pkg:pypi/click@8.5.0",
+   "bom-ref": "pkg:pypi/click@8.5.1",
    "name": "click",
-   "version": "8.5.0",
-   "purl": "pkg:pypi/click@8.5.0",
+   "version": "8.5.1",
+   "purl": "pkg:pypi/click@8.5.1",
    "hashes": [
     {
      "alg": "SHA-256",
-     "content": "255bc9599cf7748b4b1a446ccc735421bd08a2ae529a8b88597d3de5664ee360"
+     "content": "8bb5376d2006950386f8c6427613334a2acadc5f559cb80e638d00b4df957e37"
     },
     {
      "alg": "SHA-256",
-     "content": "ba0d2089de75ea0310e2dde03160e6ca10009947fb95a182f9b54021bb272e34"
+     "content": "9bbfada76703fd1d784b83eea012e3e8c6a001a876543ef104fa56aaaeb072b4"
     }
    ],
    "properties": [
@@ -1852,18 +1852,18 @@
   },
   {
    "type": "library",
-   "bom-ref": "pkg:pypi/markdown@3.11.2",
+   "bom-ref": "pkg:pypi/markdown@3.11.3",
    "name": "markdown",
-   "version": "3.11.2",
-   "purl": "pkg:pypi/markdown@3.11.2",
+   "version": "3.11.3",
+   "purl": "pkg:pypi/markdown@3.11.3",
    "hashes": [
     {
      "alg": "SHA-256",
-     "content": "87bf5d90f2d2882e2c02fcda182c2800456b985bff38913867c49706481514b0"
+     "content": "81eb91631dc97ad1efbc76019ef0f80fe90ca49ddf81546752d79989c3bfff3e"
     },
     {
      "alg": "SHA-256",
-     "content": "f80390747a2a0ff2ba54da074ce4f862f72a6685f608cd2637b646a6d83993f5"
+     "content": "e1a31a112232504d753e5c01bb8c2de90d3f0ba986b063e10770cf7695b09e73"
     }
    ],
    "properties": [
@@ -3343,7 +3343,7 @@
     "pkg:pypi/certifi@2026.10.23",
     "pkg:pypi/cffi@2.1.1",
     "pkg:pypi/charset-normalizer@3.5.2",
-    "pkg:pypi/click@8.5.0",
+    "pkg:pypi/click@8.5.1",
     "pkg:pypi/cryptography@50.0.2",
     "pkg:pypi/flask-sqlalchemy@3.1.1",
     "pkg:pypi/flask@3.1.3",
@@ -3352,7 +3352,7 @@
     "pkg:pypi/iniconfig@2.3.1",
     "pkg:pypi/itsdangerous@2.2.0",
     "pkg:pypi/jinja2@3.1.6",
-    "pkg:pypi/markdown@3.11.2",
+    "pkg:pypi/markdown@3.11.3",
     "pkg:pypi/markupsafe@3.0.4",
     "pkg:pypi/packaging@26.3",
     "pkg:pypi/pluggy@1.7.0",

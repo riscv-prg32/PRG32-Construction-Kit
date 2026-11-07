@@ -31,7 +31,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.11", "3.12"]
+        python-version: ["3.11", "3.15"]
     steps:
       - name: Check out the repository
         uses: actions/checkout@v7
@@ -117,7 +117,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v7
         with:
-          python-version: "3.12"
+          python-version: "3.15"
           cache: pip
           cache-dependency-path: requirements.txt
 
@@ -196,7 +196,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v7
         with:
-          python-version: "3.12"
+          python-version: "3.15"
           cache: pip
           cache-dependency-path: requirements.txt
 
@@ -250,7 +250,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v7
         with:
-          python-version: "3.12"
+          python-version: "3.15"
 
       - name: Install the kit's and the Store's requirements
         run: python -m pip install --disable-pip-version-check -r requirements.txt -r CartridgeStore/requirements.txt
@@ -289,7 +289,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v7
         with:
-          python-version: "3.12"
+          python-version: "3.15"
 
       - name: Install dependencies and Chromium
         run: |
@@ -395,7 +395,7 @@ jobs:
         if: steps.graph.outputs.available != 'true'
         uses: actions/setup-python@v7
         with:
-          python-version: "3.12"
+          python-version: "3.15"
       - name: Audit requirements.lock (Dependency graph off)
         if: steps.graph.outputs.available != 'true'
         run: |
@@ -416,7 +416,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v7
         with:
-          python-version: "3.12"
+          python-version: "3.15"
 
       - name: Install the kit's packages exactly as locked, and the quality tools
         run: |
@@ -449,7 +449,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v7
         with:
-          python-version: "3.12"
+          python-version: "3.15"
       - name: Audit requirements.lock
         run: |
           python -m pip install --disable-pip-version-check "pip-audit==2.9.0"
