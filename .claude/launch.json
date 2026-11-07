@@ -106,6 +106,15 @@
         "PORT=5099 PRG32_KIT_DATA=/private/tmp/claude-501/-Users-raffaelemontella-devel-riscv-prg32-PRG32-Construction-Kit/bd2058a1-18d7-42cd-84cd-6c2aa4618bb6/scratchpad/artdata PYTHONPATH=$PWD/../PRG32 PATH=$HOME/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/bin:$PATH exec python3 app.py"
       ],
       "port": 5099
+    },
+    {
+      "name": "kit-usb",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": [
+        "-c",
+        "PORT=5103 PRG32_ADMIN_PASSWORD=check-admin-pass PRG32_KIT_DATA=/private/tmp/claude-501/-Users-raffaelemontella-devel-riscv-prg32-PRG32-Construction-Kit/95342eab-66fd-4fae-aac9-a411a6f3d36b/scratchpad/usbdata PYTHONPATH=$PWD/../PRG32 PATH=$HOME/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/bin:$PATH exec python3 app.py"
+      ],
+      "port": 5103
     }
   ]
 }
