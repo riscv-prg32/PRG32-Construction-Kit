@@ -61,6 +61,12 @@ SIGNATURES: dict[str, tuple[str, list[str]]] = {
     "prg32_scoreboard_show": ("int", ["str", "str"]),
     "prg32_score_player_prompt": ("int", []),
     "prg32_multiplayer_join": ("int", ["str", "u32"]),
+    "prg32_multiplayer_leave": ("int", []),
+    "prg32_multiplayer_local_player_id": ("u32", []),
+    "prg32_multiplayer_set_input": ("int", ["u32"]),
+    "prg32_input_axis_x": ("int", []),
+    "prg32_input_axis_y": ("int", []),
+    "prg32_input_has_analog": ("int", []),
     "prg32_multiplayer_tick": ("void", []),
     "prg32_multiplayer_set_local_state": ("int", ["i16", "i16", "u16", "u16"]),
     "prg32_multiplayer_get_peer_count": ("int", []),
@@ -148,8 +154,16 @@ def _c_stubs() -> str:
         elif name == "prg32_multiplayer_get_peer":
             lines += ["    if (p0 < 0 || p0 > 1) return -1;",
                       "    p1->player_id = 100u + (uint32_t)p0; p1->x = (int16_t)(-5 - p0); p1->y = (int16_t)(20 + p0);",
-                      "    p1->sprite = (uint16_t)(0x8000 + p0); p1->flags = 0; p1->input = 0; p1->frame = 0; p1->last_seen_ms = 0;",
+                      "    p1->sprite = (uint16_t)(0x8000 + p0); p1->flags = (uint16_t)(0x9000 + p0); p1->input = 0x10u + (uint32_t)p0; p1->frame = 0; p1->last_seen_ms = 0;",
                       "    return 0;"]
+        elif name == "prg32_multiplayer_local_player_id":
+            lines.append("    return 42;")
+        elif name == "prg32_input_axis_x":
+            lines.append("    return -50;")
+        elif name == "prg32_input_axis_y":
+            lines.append("    return 60;")
+        elif name == "prg32_input_has_analog":
+            lines.append("    return 1;")
         elif result != "void":
             lines.append("    return 0;")
         lines.append("}")
@@ -295,9 +309,17 @@ class RV32IM:
             index = _s32(a[0])
             if 0 <= index <= 1:
                 self.mem[a[1]:a[1] + 24] = struct.pack("<IhhHHIII", 100 + index, -5 - index, 20 + index,
-                                                       0x8000 + index, 0, 0, 0, 0)
+                                                       0x8000 + index, 0x9000 + index, 0x10 + index, 0, 0)
             else:
                 value = -1
+        elif name == "prg32_multiplayer_local_player_id":
+            value = 42
+        elif name == "prg32_input_axis_x":
+            value = -50
+        elif name == "prg32_input_axis_y":
+            value = 60
+        elif name == "prg32_input_has_analog":
+            value = 1
         self.x[10] = value & 0xFFFFFFFF
 
     def decode(self, pc: int) -> tuple:

@@ -2,6 +2,59 @@
 
 ## Unreleased
 
+### USB deploy: clearer messages, no slot chosen for you
+
+- **A pulled cable is not a busy port:** the Deploy page used to say "The USB port is busy" both
+  when another program had the port and when the PRG32 was unplugged during a transfer. It now says
+  the PRG32 was disconnected, and whether the slot may have been changed ([deploy.md](deploy.md)).
+- **Pick the slot yourself:** the USB slot starts empty instead of on `cart0`, so a deploy never
+  replaces the first slot's game by accident.
+- `tools/usb_device_check.mjs` takes **performance** and checks the results of a cartridge that
+  measures itself; with **store** and **run** it no longer calls "no performance test results" a
+  retrieval. An unplugged console ends the check with a message instead of a crash.
+- Checked on an ESP32-C6 with PRG32 `main`: 66 kit cartridges stored and run over USB, and the
+  Deploy page in Chrome with a person picking the port (store, run, debug refused, performance).
+
+### Multiplayer in the browser, a controller per window
+
+- **Two windows, two players:** windows and tabs of the same browser that play the same room now see
+  each other, in the Player (the PRG32 core) and in the quick Blocks preview, so a Blocks multiplayer
+  game can be tried without consoles. Nothing is sent over the network: the numbers go from window to
+  window inside the browser (ADR-0031, [multiplayer.md](multiplayer.md)). The Player's status line
+  shows the room and how many others are in it.
+- **Controller for this window:** with two game controllers, each window can use its own, so two
+  players sit at one computer ([game_controllers.md](game_controllers.md)).
+- Checked against PRG32 `main` (`1fa8474`) and PRG32-QT `main` (`7683be1`): still the newest, ABI 1.8;
+  the multiplayer blocks follow the firmware's rules and Poing Wall's use of the calls.
+
+### PRG32 and PRG32-QT `main` as the reference
+
+- The browser core is built from PRG32 `1fa8474` and PRG32-QT `7683be1`, the `main` branches. The
+  ABI is still 1.8. From the SDK: every cartridge starts with a fresh mixer (no leftover volume from
+  the setup menu or the game before), and an audio block whose events overlap its samples is refused,
+  as the kit's own check already did.
+- PRG32-QT now has the host-call hooks and the firmware audio engine the kit proposed, so the kit no
+  longer patches them in; it adds only the analog stick.
+- Upstream: the frame clock and fresh mixer are in PRG32 `main`, PRG32-QT#1 is merged, and the
+  buzzer retirement (PRG32#45) was closed without merging; its patch is kept rebased onto `main`. A
+  new PRG32-QT patch (PRG32-QT#2, open) lets PRG32-QT build against SDK `main` ([upstream/README.md](upstream/README.md)).
+
+### PRG32 ABI 1.8: analog stick, game controllers, working multiplayer
+
+- **Aligned with PRG32 ABI 1.8** (`0x71b93e23`) and the merged PRG32 and PRG32-QT. New buttons **C, D,
+  L, R** everywhere. **Player 2 buttons are gone**, as in the firmware: a saved block that uses one
+  shows it as *removed* and does not build until another button is chosen; C and assembly naming
+  `PRG32_P2_BTN_*` and PRG32 Python naming `prg32.P2_*` are refused.
+- **Analog stick:** `stick_x()`, `stick_y()` and `has_stick()` in Blocks and PRG32 Python, and the
+  ABI calls in C and assembly. It works in the browser. ([game_controllers.md](game_controllers.md))
+- **Game controllers** on the computer running the browser work in the IDE, the Player and the
+  offline pages, and an **on-screen stick** stands in without one.
+- **Multiplayer fixed in Blocks and PRG32 Python:** a game whose title had a space or other unusual
+  character never got into a room, because the firmware refused its name; a game that only read other players
+  never kept its connection; and a join block running every frame kept forgetting the others. Rooms
+  now have a valid name, which you can choose. New: *leave*, *share my buttons*, flags, `peer_flags`,
+  `peer_input`, `peer_id`, `my_id`. Games with multiplayer but no join get a warning. ([multiplayer.md](multiplayer.md))
+
 ### Project art in every kind of project
 
 - **Sprites, backgrounds and sounds by name, in Blocks, Python, C and assembly** (ADR-0029). New

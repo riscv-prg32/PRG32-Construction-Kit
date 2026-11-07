@@ -1,0 +1,195 @@
+{
+ "blocks": {
+  "languageVersion": 0,
+  "blocks": [
+   {
+    "type": "prg32_on_start",
+    "inputs": {
+     "DO": {
+      "block": {
+       "type": "prg32_mp_join",
+       "fields": {
+        "ROOM": "kit-two-windows"
+       }
+      }
+     }
+    }
+   },
+   {
+    "type": "prg32_update",
+    "inputs": {
+     "DO": {
+      "block": {
+       "type": "prg32_set_state",
+       "fields": {
+        "VAR": "player_x",
+        "VALUE": "150 + stick_x()"
+       },
+       "next": {
+        "block": {
+         "type": "prg32_set_state",
+         "fields": {
+          "VAR": "player_y",
+          "VALUE": "60"
+         },
+         "next": {
+          "block": {
+           "type": "prg32_mp_share",
+           "fields": {
+            "X": "player_x",
+            "Y": "player_y",
+            "LOOK": "7",
+            "FLAGS": "3"
+           },
+           "next": {
+            "block": {
+             "type": "prg32_mp_send_buttons",
+             "fields": {}
+            }
+           }
+          }
+         }
+        }
+       }
+      }
+     }
+    }
+   },
+   {
+    "type": "prg32_draw",
+    "inputs": {
+     "DO": {
+      "block": {
+       "type": "prg32_clear_screen",
+       "fields": {
+        "COLOR": "BLACK"
+       },
+       "next": {
+        "block": {
+         "type": "prg32_draw_rect",
+         "fields": {
+          "X": "player_x",
+          "Y": "player_y",
+          "W": "8",
+          "H": "8",
+          "COLOR": "YELLOW"
+         },
+         "next": {
+          "block": {
+           "type": "prg32_if",
+           "fields": {
+            "COND": "peers() > 0"
+           },
+           "inputs": {
+            "DO": {
+             "block": {
+              "type": "prg32_draw_rect",
+              "fields": {
+               "X": "peer_x(0)",
+               "Y": "peer_y(0) + 40",
+               "W": "8",
+               "H": "8",
+               "COLOR": "CYAN"
+              }
+             }
+            }
+           },
+           "next": {
+            "block": {
+             "type": "prg32_if",
+             "fields": {
+              "COND": "peer_look(0) == 7 && peer_flags(0) == 3"
+             },
+             "inputs": {
+              "DO": {
+               "block": {
+                "type": "prg32_draw_rect",
+                "fields": {
+                 "X": "0",
+                 "Y": "0",
+                 "W": "8",
+                 "H": "8",
+                 "COLOR": "GREEN"
+                }
+               }
+              }
+             },
+             "next": {
+              "block": {
+               "type": "prg32_if",
+               "fields": {
+                "COND": "peer_input(0) & 16"
+               },
+               "inputs": {
+                "DO": {
+                 "block": {
+                  "type": "prg32_draw_rect",
+                  "fields": {
+                   "X": "16",
+                   "Y": "0",
+                   "W": "8",
+                   "H": "8",
+                   "COLOR": "RED"
+                  }
+                 }
+                }
+               },
+               "next": {
+                "block": {
+                 "type": "prg32_if",
+                 "fields": {
+                  "COND": "my_id() != 0"
+                 },
+                 "inputs": {
+                  "DO": {
+                   "block": {
+                    "type": "prg32_draw_rect",
+                    "fields": {
+                     "X": "32",
+                     "Y": "0",
+                     "W": "8",
+                     "H": "8",
+                     "COLOR": "BLUE"
+                    }
+                   }
+                  }
+                 },
+                 "next": {
+                  "block": {
+                   "type": "prg32_if",
+                   "fields": {
+                    "COND": "peer_id(0) != 0 && peer_id(0) != my_id()"
+                   },
+                   "inputs": {
+                    "DO": {
+                     "block": {
+                      "type": "prg32_draw_rect",
+                      "fields": {
+                       "X": "48",
+                       "Y": "0",
+                       "W": "8",
+                       "H": "8",
+                       "COLOR": "MAGENTA"
+                      }
+                     }
+                    }
+                   }
+                  }
+                 }
+                }
+               }
+              }
+             }
+            }
+           }
+          }
+         }
+        }
+       }
+      }
+     }
+    }
+   }
+  ]
+ }
+}

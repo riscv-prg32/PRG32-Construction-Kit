@@ -26,6 +26,7 @@ OBSOLETE_FUNCTIONS = {
 }
 OBSOLETE_TYPES = {"prg32_note_t": "prg32_midi_note_t (prg32_audio_notes) or an AudioStudio soundtrack"}
 _OBSOLETE = re.compile(r"\b(prg32_buzzer_\w*|prg32_note_t|PRG32_PIN_BUZZER)\b")
+_NO_PLAYER_2 = re.compile(r"\bPRG32_P2_BTN_\w+\b")
 
 
 def _refuse_obsolete(code: str, where=lambda _offset: "") -> None:
@@ -34,6 +35,12 @@ def _refuse_obsolete(code: str, where=lambda _offset: "") -> None:
         name = found.group(1)
         instead = OBSOLETE_FUNCTIONS.get(name) or OBSOLETE_TYPES.get(name) or "the PRG32 audio engine (prg32_audio_*)"
         raise ValueError(say("source", "{value}{name} belongs to the old PRG32 buzzer, which is no longer supported. Use {instead}.", value=where(found.start()), name=name, instead=instead))
+
+
+def _refuse_player_2(code: str, where=lambda _offset: "") -> None:
+    found = _NO_PLAYER_2.search(code)
+    if found:
+        raise ValueError(say("source", "{value}{name}: PRG32 no longer has player 2 buttons. Use the buttons C, D, L and R, or multiplayer (prg32_multiplayer_*).", value=where(found.start()), name=found.group(0)))
 
 
 def _without_comments(source: str) -> str:
@@ -166,6 +173,7 @@ def validate_c_source(source: str, title: str) -> str:
     if forbidden:
         raise ValueError(say("source", "'{value}' is not supported in PRG32 cartridge C", value=forbidden.group(0)))
     _refuse_obsolete(bare)
+    _refuse_player_2(bare)
     prefix = c_identifier(title, "prg32_game")
     found = set(re.findall(_LIFECYCLE.format(prefix=re.escape(prefix)), bare))
     required = {f"{prefix}_{phase}" for phase in ("init", "update", "draw")}
@@ -240,6 +248,7 @@ def validate_asm_source(source: str, title: str) -> str:
         raise ValueError(say("source", "'{value}' is not allowed in PRG32 cartridge assembly: it could read files on the server", value=found.group(0)))
     lines = bare.splitlines()
     _refuse_obsolete("\n".join(lines), lambda offset: f"Line {source_line[bare[:offset].count(chr(10))]}: ")
+    _refuse_player_2("\n".join(lines), lambda offset: f"Line {source_line[bare[:offset].count(chr(10))]}: ")
     for index, line in enumerate(bare.splitlines()):
         number = source_line[index]
         if _DIRECTIVE_START.match(line):

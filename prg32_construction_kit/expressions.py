@@ -58,10 +58,18 @@ FUNCTIONS = {
     "peer_x": (1, "prg32_kit_peer_x"),
     "peer_y": (1, "prg32_kit_peer_y"),
     "peer_look": (1, "prg32_kit_peer_look"),
+    "peer_flags": (1, "prg32_kit_peer_flags"),
+    "peer_input": (1, "prg32_kit_peer_input"),
+    "peer_id": (1, "prg32_kit_peer_id"),
+    "my_id": (0, "prg32_kit_my_id"),
+    "stick_x": (0, "prg32_kit_stick_x"),
+    "stick_y": (0, "prg32_kit_stick_y"),
+    "has_stick": (0, "prg32_kit_has_stick"),
 }
 # Functions that need an optional PRG32 service (a cartridge feature bit).
 FUNCTION_FEATURES = {"tile": "tilemap", "peers": "multiplayer", "peer_x": "multiplayer",
-                     "peer_y": "multiplayer", "peer_look": "multiplayer"}
+                     "peer_y": "multiplayer", "peer_look": "multiplayer", "peer_flags": "multiplayer",
+                     "peer_input": "multiplayer", "peer_id": "multiplayer", "my_id": "multiplayer"}
 
 # Named PRG32 constants an expression may use, with their values.
 CONSTANTS: dict[str, int] = {
@@ -71,9 +79,8 @@ CONSTANTS: dict[str, int] = {
     "PRG32_PLAYFIELD_LAYERS": 2, "PRG32_PLAYFIELD_COLS": 64, "PRG32_PLAYFIELD_ROWS": 32,
     "PRG32_BTN_LEFT": 1 << 0, "PRG32_BTN_RIGHT": 1 << 1, "PRG32_BTN_UP": 1 << 2, "PRG32_BTN_DOWN": 1 << 3,
     "PRG32_BTN_A": 1 << 4, "PRG32_BTN_B": 1 << 5, "PRG32_BTN_START": 1 << 6, "PRG32_BTN_SELECT": 1 << 6,
-    "PRG32_P2_BTN_LEFT": 1 << 8, "PRG32_P2_BTN_RIGHT": 1 << 9, "PRG32_P2_BTN_UP": 1 << 10,
-    "PRG32_P2_BTN_DOWN": 1 << 11, "PRG32_P2_BTN_A": 1 << 12, "PRG32_P2_BTN_B": 1 << 13,
-    "PRG32_P2_BTN_START": 1 << 14, "PRG32_P2_BTN_SELECT": 1 << 14,
+    "PRG32_BTN_C": 1 << 7, "PRG32_BTN_D": 1 << 8, "PRG32_BTN_L": 1 << 9, "PRG32_BTN_R": 1 << 10,
+    "PRG32_INPUT_BUTTONS_MASK": 0x7FF,
     "PRG32_COLOR_BLACK": 0x0000, "PRG32_COLOR_WHITE": 0xFFFF, "PRG32_COLOR_RED": 0xF800,
     "PRG32_COLOR_GREEN": 0x07E0, "PRG32_COLOR_BLUE": 0x001F, "PRG32_COLOR_YELLOW": 0xFFE0,
     "PRG32_COLOR_CYAN": 0x07FF, "PRG32_COLOR_MAGENTA": 0xF81F, "PRG32_COLOR_ORANGE": 0xFD20,

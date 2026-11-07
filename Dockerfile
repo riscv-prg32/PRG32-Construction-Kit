@@ -1,4 +1,4 @@
-FROM python:3.12-slim
+FROM python:3.15-slim
 
 # --- Cartridge build toolchain ---------------------------------------------------
 # With PRG32_TOOLCHAIN=1 (the default) the image can build real .prg32 cartridges:

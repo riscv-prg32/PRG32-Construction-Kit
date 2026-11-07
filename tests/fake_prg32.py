@@ -24,7 +24,7 @@ import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, urlsplit
 
-ABI_HASH = 0x260F6136
+ABI_HASH = 0x71B93E23
 
 
 class FakePrg32:

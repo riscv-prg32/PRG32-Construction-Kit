@@ -30,14 +30,11 @@
 #define PRG32_BTN_B (1u << 5)
 #define PRG32_BTN_START (1u << 6)
 #define PRG32_BTN_SELECT PRG32_BTN_START
-#define PRG32_P2_BTN_LEFT (1u << 8)
-#define PRG32_P2_BTN_RIGHT (1u << 9)
-#define PRG32_P2_BTN_UP (1u << 10)
-#define PRG32_P2_BTN_DOWN (1u << 11)
-#define PRG32_P2_BTN_A (1u << 12)
-#define PRG32_P2_BTN_B (1u << 13)
-#define PRG32_P2_BTN_START (1u << 14)
-#define PRG32_P2_BTN_SELECT PRG32_P2_BTN_START
+#define PRG32_BTN_C (1u << 7)
+#define PRG32_BTN_D (1u << 8)
+#define PRG32_BTN_L (1u << 9)
+#define PRG32_BTN_R (1u << 10)
+#define PRG32_INPUT_BUTTONS_MASK 0x7ffu
 #define PRG32_COLOR_BLACK 0x0000
 #define PRG32_COLOR_WHITE 0xffff
 #define PRG32_COLOR_RED 0xf800
@@ -105,6 +102,12 @@ int prg32_score_submit_current_player(const char *game, uint32_t score);
 int prg32_scoreboard_show(const char *game, const char *title);
 int prg32_score_player_prompt(void);
 int prg32_multiplayer_join(const char *cartridge_signature, uint32_t flags);
+int prg32_multiplayer_leave(void);
+uint32_t prg32_multiplayer_local_player_id(void);
+int prg32_multiplayer_set_input(uint32_t input);
+int32_t prg32_input_axis_x(void);
+int32_t prg32_input_axis_y(void);
+int prg32_input_has_analog(void);
 void prg32_multiplayer_tick(void);
 int prg32_multiplayer_set_local_state(int16_t x, int16_t y, uint16_t sprite, uint16_t flags);
 int prg32_multiplayer_get_peer_count(void);

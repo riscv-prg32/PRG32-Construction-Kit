@@ -27,7 +27,7 @@ gate, who closes it, what the kit already has ready, and what evidence closes it
 | | |
 | --- | --- |
 | Who | the PRG32 and PRG32-QT maintainers |
-| Ready | three tested patches and their pull requests ([upstream/README.md](upstream/README.md): riscv-prg32/PRG32#45, #46, riscv-prg32/PRG32-QT#1) |
+| Ready | PRG32-QT#1 merged and #46's commit in PRG32 `main` (the pins follow both); riscv-prg32/PRG32#45 (buzzer) closed without merging, its patch kept rebased onto `main`; a new PRG32-QT patch for SDK `main` ([upstream/README.md](upstream/README.md)) |
 | After the merge | move the pins (`static/wasm/BUILD.json`, CI's SDK and PRG32-QT revisions), then regenerate and check: `python3 tools/build_language_index.py`, `python3 tools/build_audio_fixtures.py`, `python3 tools/build_debug_fixtures.py`, `python3 tools/build_contract_fixtures.py`, `python3 tools/build_wasm.py`; `tests/test_upstream_sdk_patches.py` then tests the merged SDK itself |
 | Closes it | the upstream conformance run green on the merged revisions, with the patches deleted from `docs/upstream/` |
 

@@ -42,9 +42,8 @@ COLOR_NAMES = ["BLACK", "WHITE", "RED", "GREEN", "BLUE", "YELLOW", "CYAN", "MAGE
 COLOR_MAP = {name: f"PRG32_COLOR_{name}" for name in COLOR_NAMES}
 COLOR_DEFINES = {macro: f"0x{CONSTANTS[macro]:04X}" for macro in COLOR_MAP.values()}
 
-BUTTON_NAMES = ["LEFT", "RIGHT", "UP", "DOWN", "A", "B", "START", "SELECT"]
+BUTTON_NAMES = ["LEFT", "RIGHT", "UP", "DOWN", "A", "B", "C", "D", "L", "R", "START", "SELECT"]
 BUTTON_MAP = {name: f"PRG32_BTN_{name}" for name in BUTTON_NAMES}
-BUTTON_MAP.update({f"P2_{name}": f"PRG32_P2_BTN_{name}" for name in BUTTON_NAMES})
 
 MAX_LIST_SIZE = 1024
 MAX_REPEAT = 1024
@@ -151,6 +150,15 @@ def button_macro(value: Any) -> str:
     if key in BUTTON_MAP.values():
         return key
     return BUTTON_MAP.get(key, "PRG32_BTN_A")
+
+
+def room_signature(room: Any, title: Any) -> str:
+    """The name of a multiplayer room. Only consoles with the same name see each other.
+
+    The firmware and the server accept 1-47 characters from A-Z a-z 0-9 _ - . : and nothing else,
+    so "Star Catcher" becomes "Star-Catcher". The room block's name wins; without one, the game's title."""
+    name = str(room or "").strip() or str(title or "").strip()
+    return re.sub(r"[^A-Za-z0-9_.:-]+", "-", name).strip("-")[:47] or "prg32-game"
 
 
 def bitmap_rows(block: dict[str, Any]) -> list[int]:
@@ -344,6 +352,10 @@ def parse_statement(block: dict[str, Any], ctx: ParseContext) -> dict[str, Any] 
         return {"op": "list_change", "list": name, "index": f("INDEX", 0), "delta": f("DELTA", 1)}
     if btype in {"prg32_if_button", "prg32_if_button_once"}:
         button = str(field_value(block, "BUTTON", "A")).upper()
+        if button.startswith("P2_"):   # a project saved when PRG32 had local player-2 buttons
+            raise RetiredButtonError(say("blocks", "The block reads button {button}, but PRG32 no longer has "
+                                         "player 2 buttons: choose another button, or use the Multiplayer blocks",
+                                         button=button), str(btype), [str(block.get("id", ""))])
         if button not in BUTTON_MAP:
             button = "A"
         return {"op": "if_button" if btype == "prg32_if_button" else "if_button_once", "button": button,
@@ -490,10 +502,17 @@ def parse_statement(block: dict[str, Any], ctx: ParseContext) -> dict[str, Any] 
         return {"op": "player_name"}
     if btype == "prg32_mp_join":
         ctx.features.add("multiplayer")
-        return {"op": "mp_join"}
+        return {"op": "mp_join", "room": _text(block, "ROOM", "", 47)}
+    if btype == "prg32_mp_leave":
+        ctx.features.add("multiplayer")
+        return {"op": "mp_leave"}
+    if btype == "prg32_mp_send_buttons":
+        ctx.features.add("multiplayer")
+        return {"op": "mp_send_buttons"}
     if btype == "prg32_mp_share":
         ctx.features.add("multiplayer")
-        return {"op": "mp_share", "x": f("X", "player_x"), "y": f("Y", "player_y"), "look": f("LOOK", 0)}
+        return {"op": "mp_share", "x": f("X", "player_x"), "y": f("Y", "player_y"), "look": f("LOOK", 0),
+                "flags": f("FLAGS", 0)}
     if btype == "prg32_comment":
         return {"op": "comment", "text": str(field_value(block, "TEXT", "comment"))}
     ctx.warnings.append(f"Skipped unsupported block type: {str(btype)[:40]}")
@@ -524,6 +543,10 @@ class EventBlockError(ValueError):
         super().__init__(message)
         self.block_type = block_type
         self.block_ids = block_ids
+
+
+class RetiredButtonError(EventBlockError):
+    """A saved button block names a player-2 button, which PRG32 no longer has."""
 
 
 def check_event_blocks(top_blocks: list[dict[str, Any]]) -> None:
@@ -603,9 +626,26 @@ def blocks_to_ir_traced(blocks_json: Any, project: dict[str, Any] | None = None)
         "init": init,
         "update": update,
         "draw": draw,
-        "warnings": ctx.warnings,
+        "warnings": ctx.warnings + multiplayer_warnings(ctx.features, init, update, draw),
     }
     return with_art(game_ir, ctx.art, ctx.used_art), ctx.origins
+
+
+def _ops(statements: Any):
+    """Every op in a statement list, nested ones too."""
+    for stmt in statements if isinstance(statements, list) else []:
+        if isinstance(stmt, dict):
+            yield stmt.get("op")
+            for value in stmt.values():
+                if isinstance(value, list):
+                    yield from _ops(value)
+
+
+def multiplayer_warnings(features: Any, *phases: Any) -> list[str]:
+    """A game that shares or reads players but never joins a room stays alone, without any error."""
+    if "multiplayer" not in features or any("mp_join" in _ops(phase) for phase in phases):
+        return []
+    return ["This game uses multiplayer but never joins a room, so it will always be alone: add a join step."]
 
 
 def with_art(game_ir: dict[str, Any], art: dict[str, Any] | None, used: dict[str, set[str]]) -> dict[str, Any]:
@@ -632,7 +672,7 @@ def _button_words(value: Any) -> str:
     key = str(value or "A").upper().strip()
     if key not in BUTTON_MAP:
         key = "A"
-    return key.replace("P2_", "player 2 ")
+    return key
 
 
 def narrate(sentence: str, python: bool) -> str:
@@ -791,10 +831,15 @@ def describe_statement(stmt: dict[str, Any], show: Callable[[Any], str] | None =
     if op == "player_name":
         return 'Block "ask player name": the firmware shows its keyboard so the player can type a name.'
     if op == "mp_join":
-        return 'Block "join multiplayer": connect to other PRG32 players of this game through the Cartridge Store relay.'
+        return ('Block "join multiplayer": ask the PRG32 Multiplayer Server for a place in this room. '
+                'The answer takes a moment: my_id() stays 0 until the server has said yes.')
+    if op == "mp_leave":
+        return 'Block "leave multiplayer": leave the room; the other players stop seeing this console.'
+    if op == "mp_send_buttons":
+        return 'Block "share my buttons": the other players read these buttons with peer_input(i).'
     if op == "mp_share":
-        return (f'Block "share my position": send x {v("x")}, y {v("y")} and look {v("look")} to the other players, '
-                f'then exchange messages with the relay.')
+        return (f'Block "share my position": give the firmware x {v("x")}, y {v("y")}, look {v("look")} and flags '
+                f'{v("flags")}; it sends them at the end of this frame\'s update.')
     return ""
 
 
@@ -1005,14 +1050,21 @@ _HELPER_SOURCE: dict[str, list[Any]] = {
         ("}", ""),
     ],
     "peer_value": [
-        *_doc("prg32_kit_peer_value(index, what): one value about another player on the Cartridge Store relay.",
-              "what = 0 gives x, 1 gives y, 2 gives the 'look' (sprite) number. When the player",
-              "does not exist (for example when playing alone) the answer is 0.",
+        *_doc("prg32_kit_peer_value(index, what): one value about another player in the multiplayer room.",
+              "what = 0 gives x, 1 y, 2 the 'look' (sprite) number, 3 the flags, 4 the buttons, 5 the",
+              "player ID. When the player does not exist (for example when playing alone) the answer is 0.",
               "The firmware fills a structure (a group of named values) that lives on the stack."),
         ("static int prg32_kit_peer_value(int index, int what) {", ""),
         ("    prg32_player_state_t peer;", "space for the other player's data"),
         ("    if (prg32_multiplayer_get_peer(index, &peer) != 0) return 0;", "&peer is the address the firmware fills"),
-        ("    return what == 0 ? peer.x : what == 1 ? peer.y : peer.sprite;", "pick one field of the structure"),
+        ("    switch (what) {", "pick one field of the structure"),
+        ("        case 0: return peer.x;", ""),
+        ("        case 1: return peer.y;", ""),
+        ("        case 2: return peer.sprite;", ""),
+        ("        case 3: return peer.flags;", ""),
+        ("        case 4: return (int)peer.input;", ""),
+        ("        default: return (int)peer.player_id;", ""),
+        ("    }", ""),
         ("}", ""),
     ],
     "peers": [
@@ -1022,6 +1074,45 @@ _HELPER_SOURCE: dict[str, list[Any]] = {
     "peer_x": [("static int prg32_kit_peer_x(int index) { return prg32_kit_peer_value(index, 0); }", "x of player 'index'")],
     "peer_y": [("static int prg32_kit_peer_y(int index) { return prg32_kit_peer_value(index, 1); }", "y of player 'index'")],
     "peer_look": [("static int prg32_kit_peer_look(int index) { return prg32_kit_peer_value(index, 2); }", "look of player 'index'")],
+    "peer_flags": [("static int prg32_kit_peer_flags(int index) { return prg32_kit_peer_value(index, 3); }", "flags of player 'index'")],
+    "peer_input": [("static int prg32_kit_peer_input(int index) { return prg32_kit_peer_value(index, 4); }", "buttons of player 'index'")],
+    "peer_id": [("static int prg32_kit_peer_id(int index) { return prg32_kit_peer_value(index, 5); }", "ID of player 'index'")],
+    "my_id": [
+        *_doc("prg32_kit_my_id(): the player ID the server gave this console, 0 while it is not in the room."),
+        ("static int prg32_kit_my_id(void) { return (int)prg32_multiplayer_local_player_id(); }", ""),
+    ],
+    "mp_join": [
+        *_doc("prg32_kit_mp_join(room): ask for a place in the room, once.",
+              "Every firmware join forgets the other players, so a join block that runs",
+              "every frame would never see anyone. The static variable lets only the first one through."),
+        ("static int prg32_kit_mp_joined;", "0 until the first join"),
+        ("static void prg32_kit_mp_join(const char *room) {", ""),
+        ("    if (prg32_kit_mp_joined) return;", "already asked"),
+        ("    prg32_kit_mp_joined = 1;", ""),
+        ("    prg32_multiplayer_join(room, PRG32_MP_FLAG_ENABLE);", "0 means 'asked', not 'in the room': see my_id()"),
+        ("}", ""),
+    ],
+    "mp_leave": [
+        *_doc("prg32_kit_mp_leave(): leave the room; a later join block may ask again."),
+        ("static void prg32_kit_mp_leave(void) {", ""),
+        ("    prg32_kit_mp_joined = 0;", ""),
+        ("    prg32_multiplayer_leave();", ""),
+        ("}", ""),
+    ],
+    "stick_x": [
+        *_doc("prg32_kit_stick_x(): how far the stick is tilted, -127 (left) to 127 (right), 0 at rest.",
+              "Without an analog stick the left and right buttons give -127 and 127."),
+        ("static int prg32_kit_stick_x(void) { return (int)prg32_input_axis_x(); }", ""),
+    ],
+    "stick_y": [
+        *_doc("prg32_kit_stick_y(): how far the stick is tilted, -127 (up) to 127 (down), 0 at rest.",
+              "Without an analog stick the up and down buttons give -127 and 127."),
+        ("static int prg32_kit_stick_y(void) { return (int)prg32_input_axis_y(); }", ""),
+    ],
+    "has_stick": [
+        *_doc("prg32_kit_has_stick(): 1 when this console has an analog stick, 0 when it has only buttons."),
+        ("static int prg32_kit_has_stick(void) { return prg32_input_has_analog(); }", ""),
+    ],
     "once": [
         *_doc("The buttons held during the previous frame, for the 'was just pressed' blocks.",
               "A button was just pressed when its bit is 1 now and was 0 one frame ago."),
@@ -1201,9 +1292,11 @@ _HELPER_SOURCE: dict[str, list[Any]] = {
 HELPERS: dict[str, list[str]] = {name: annotate_c(rows) for name, rows in _HELPER_SOURCE.items()}
 # Helpers that call other helpers.
 _HELPER_NEEDS = {"cos": {"sin"}, "band": {"number"}, "peer_x": {"peer_value"}, "peer_y": {"peer_value"},
-                 "peer_look": {"peer_value"}}
+                 "peer_look": {"peer_value"}, "peer_flags": {"peer_value"}, "peer_input": {"peer_value"},
+                 "peer_id": {"peer_value"}, "mp_leave": {"mp_join"}}
 _HELPER_ORDER = ["list_get", "list_set", "list_fill", "div", "mod", "abs", "sign", "min", "max", "clamp", "sin", "cos", "rgb", "random", "frame", "tile",
-                 "peer_value", "peers", "peer_x", "peer_y", "peer_look", "once", "beep", "number", "band", "frame_rect", "line", "circle", "bitmap"]
+                 "peer_value", "peers", "peer_x", "peer_y", "peer_look", "peer_flags", "peer_input", "peer_id", "my_id", "mp_join", "mp_leave",
+                 "stick_x", "stick_y", "has_stick", "once", "beep", "number", "band", "frame_rect", "line", "circle", "bitmap"]
 
 
 def needed_helpers(needs: set[str]) -> list[str]:
@@ -1448,10 +1541,15 @@ class _Emitter:
         if op == "player_name":
             return [f"{indent}prg32_score_player_prompt();"]
         if op == "mp_join":
-            return [f"{indent}prg32_multiplayer_join(\"{c_string(self.title[:31])}\", PRG32_MP_FLAG_ENABLE);"]
+            self.needs.add("mp_join")
+            return [f"{indent}prg32_kit_mp_join(\"{c_string(room_signature(stmt.get('room'), self.title))}\");"]
+        if op == "mp_leave":
+            self.needs.add("mp_leave")
+            return [f"{indent}prg32_kit_mp_leave();"]
+        if op == "mp_send_buttons":
+            return [f"{indent}prg32_multiplayer_set_input(prg32_input_read());"]
         if op == "mp_share":
-            return [f"{indent}prg32_multiplayer_set_local_state({x(stmt.get('x'))}, {x(stmt.get('y'))}, {x(stmt.get('look'))}, 0);",
-                    f"{indent}prg32_multiplayer_tick();"]
+            return [f"{indent}prg32_multiplayer_set_local_state({x(stmt.get('x'))}, {x(stmt.get('y'))}, {x(stmt.get('look'))}, {x(stmt.get('flags', 0))});"]
         if op == "comment":
             return [f"{indent}/* {c_comment(stmt.get('text'))} */"]
         return [f"{indent}/* Unsupported op: {c_comment(op)} */"]
@@ -1637,6 +1735,8 @@ def ir_to_c(game_ir: dict[str, Any], explain: bool = True, trace: dict[int, str]
         lines.extend(annotate([read_input]))
     lines.extend(bodies["update"])
     tail: list[Any] = []
+    if "multiplayer" in (game_ir.get("required_features") or []):
+        tail.append(("    prg32_multiplayer_tick();", "every frame: send our state, receive the others'"))
     if "once" in needs:
         tail.append(("    prg32_kit_previous_input = input;", "remember this frame's buttons for the next frame"))
     if "frame" in needs:

@@ -2,30 +2,30 @@
   "schema": "prg32-kit-wasm-build-1",
   "core": {
     "repository": "https://github.com/riscv-prg32/PRG32-QT",
-    "revision": "f6d80addf49d0512c2e4390251a81d797a35b157",
+    "revision": "7683be1faf71dd6208d92c4f70e60b46d65798db",
     "version": "0.4.1",
     "license": "MIT"
   },
   "audio": {
     "repository": "https://github.com/riscv-prg32/PRG32",
-    "revision": "679dfb58783bd007125de9ca0b75eaa077908739",
+    "revision": "1fa8474427bb3998a79d2b350550efdb2578b3be",
     "sources": "components/prg32_audio (audio.c, audio_assets.c, audio_mixer.c, audio_synth.c, audio_tracker.c)",
     "license": "MIT"
   },
   "abi": {
     "major": 1,
-    "minor": 6,
-    "hash": "0x260f6136"
+    "minor": 8,
+    "hash": "0x71b93e23"
   },
   "emscripten": "emcc (Emscripten gcc/clang-like replacement + linker emulating GNU ld) 6.0.12-git",
   "files": {
     "prg32-core.js": {
-      "sha256": "f9051a393fe4305778be1314aec9d58d36cd22ef7530e7970ce10153517ed217",
-      "bytes": 18048
+      "sha256": "2d7eb80d8fc2e8676bfd9c4efa53c9c5e14a21e1274260c49fb5baf9f27ccd05",
+      "bytes": 18664
     },
     "prg32-core.wasm": {
-      "sha256": "9dcdaa7e443e91bd6b64515e66b6b02834cffbaddeff02e1f10fcb2c977b2708",
-      "bytes": 143655
+      "sha256": "262af0907d389c19ef080614698b425410b507201c78fbbecd229c68e2fe88fd",
+      "bytes": 150765
     }
   }
 }

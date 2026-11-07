@@ -12,8 +12,8 @@
 /* The tracker logs every event on the console's serial port; the browser stays quiet. */
 #define printf(...) ((void)0)
 
-typedef void *SemaphoreHandle_t;
-typedef void *TaskHandle_t;
+typedef void* SemaphoreHandle_t;
+typedef void* TaskHandle_t;
 typedef uint32_t TickType_t;
 typedef int BaseType_t;
 

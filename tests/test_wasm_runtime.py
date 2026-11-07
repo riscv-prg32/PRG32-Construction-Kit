@@ -106,7 +106,7 @@ DEBUG_SCRIPT = ("step:500", "stepi:50", "over:40", "out:3", "break:update", "bre
 def test_committed_module_matches_its_build_record():
     record = json.loads((STATIC_WASM / "BUILD.json").read_text())
     assert record["schema"] == "prg32-kit-wasm-build-1"
-    assert record["abi"] == {"major": 1, "minor": 6, "hash": "0x260f6136"}
+    assert record["abi"] == {"major": 1, "minor": 8, "hash": "0x71b93e23"}
     assert len(record["core"]["revision"]) == 40 and record["core"]["license"] == "MIT"
     for name, expected in record["files"].items():
         data = (STATIC_WASM / name).read_bytes()

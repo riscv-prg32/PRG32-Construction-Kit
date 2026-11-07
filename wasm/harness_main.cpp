@@ -27,6 +27,7 @@ extern "C" {
 int prg32_load(const uint8_t* data, uint32_t size);
 const char* prg32_last_error();
 int prg32_frame(uint32_t input);
+void prg32_set_stick(int present, int x, int y);
 const char* prg32_state_json();
 const uint16_t* prg32_framebuffer();
 int prg32_width();
@@ -135,6 +136,9 @@ int main(int argc, char** argv) {
     const int every = std::stoi(argv[3]);
     std::printf("%s\n", prg32_state_json());
     for (int frame = 0; frame < frames; ++frame) {
+        // A stick that sweeps both axes, the same as tools/wasm_harness.mjs. Cartridges that
+        // never read it (PRG32-QT's golden ones) run exactly as they do on prg32qt-headless.
+        prg32_set_stick(1, (frame % 64 - 32) * 3, 32 - frame % 32 * 2);
         if (!prg32_frame(scriptedInput(frame))) {
             std::fprintf(stderr, "frame %d: %s\n", frame, prg32_last_error());
             return 4;

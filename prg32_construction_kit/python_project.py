@@ -189,11 +189,15 @@ STATEMENTS: dict[str, tuple[str, list[_P], str | None, str]] = {
                           ("accent", "accent", "color", "YELLOW")], None,
                "Show the title screen for ms milliseconds."),
     "player_name": ("player_name", [], None, "Ask the player for their name."),
-    "mp_join": ("mp_join", [], "multiplayer", "Join a multiplayer game."),
-    "mp_share": ("mp_share", [("x", "x", "int", None), ("y", "y", "int", None), ("look", "look", "int", 0)],
-                 "multiplayer", "Share this player's position and look with the others."),
+    "mp_join": ("mp_join", [("room", "room", "text", "")], "multiplayer",
+                "Join a multiplayer room (without a name: the game's title)."),
+    "mp_leave": ("mp_leave", [], "multiplayer", "Leave the multiplayer room."),
+    "mp_share": ("mp_share", [("x", "x", "int", None), ("y", "y", "int", None), ("look", "look", "int", 0),
+                              ("flags", "flags", "int", 0)],
+                 "multiplayer", "Share this player's position, look and flags with the others."),
+    "mp_send_buttons": ("mp_send_buttons", [], "multiplayer", "Share the buttons held now with the others."),
 }
-_TEXT_LIMITS = {"band": 24, "scoreboard": 32, "splash": 32}
+_TEXT_LIMITS = {"band": 24, "scoreboard": 32, "splash": 32, "mp_join": 47}
 
 # Conditions: only as the whole test of an ``if`` (or joined with ``and``), never with else/elif.
 CONDITIONS: dict[str, tuple[str, list[_P], str]] = {
@@ -215,8 +219,15 @@ VALUE_HELP = {
     "frame": "The number of frames since the game started.", "tile": "tile(layer, tx, ty): the tile there.",
     "peers": "How many other players are connected.", "peer_x": "peer_x(n): x of player n.",
     "peer_y": "peer_y(n): y of player n.", "peer_look": "peer_look(n): the look of player n.",
+    "peer_flags": "peer_flags(n): the flags of player n.", "peer_input": "peer_input(n): the buttons of player n.",
+    "peer_id": "peer_id(n): the ID of player n.",
+    "my_id": "This console's player ID: 0 until the server lets it into the room.",
+    "stick_x": "How far the stick is tilted: -127 (left) to 127 (right), 0 at rest.",
+    "stick_y": "How far the stick is tilted: -127 (up) to 127 (down), 0 at rest.",
+    "has_stick": "1 when the console has an analog stick, 0 when it has only buttons.",
 }
-_IMPURE = {"random", "frame", "peers", "peer_x", "peer_y", "peer_look", "tile"}
+_IMPURE = {"random", "frame", "peers", "peer_x", "peer_y", "peer_look", "peer_flags", "peer_input", "peer_id", "my_id",
+           "stick_x", "stick_y", "has_stick", "tile"}
 BUILTIN_VALUES = {"abs": 1, "min": 2, "max": 2}
 
 # prg32.<NAME> constants: every PRG32_<NAME> the expression language knows, plus colour and
@@ -423,7 +434,7 @@ class _Compiler:
         description = self.project.get("description") or ""
         if not description and docstring.strip():
             description = docstring.strip().splitlines()[0][:200]
-        from .generator import with_art
+        from .generator import multiplayer_warnings, with_art
 
         return with_art({
             "abi": IR_ABI,
@@ -437,7 +448,7 @@ class _Compiler:
             "init": self.prelude + phases["init"],
             "update": phases["update"],
             "draw": phases["draw"],
-            "warnings": [],
+            "warnings": multiplayer_warnings(self.features, phases["init"], phases["update"], phases["draw"]),
             "source_mode": "python",
             "python_language_version": LANGUAGE_VERSION,
         }, self.art, self.used_art)
@@ -1042,9 +1053,8 @@ class _Compiler:
             return constant
         if kind == "button":
             constant = self.prg32_name(node)
-            if constant not in BUTTON_MAP:   # player 2's buttons too: prg32.P2_LEFT, ...
-                raise self.fail("button", "Name a button: " + ", ".join(f"prg32.{b}" for b in BUTTON_NAMES)
-                                + " (player 2: prg32.P2_LEFT, ...)", node)
+            if constant not in BUTTON_MAP:
+                raise self.fail("button", "Name a button: " + ", ".join(f"prg32.{b}" for b in BUTTON_NAMES), node)
             return constant
         if kind == "flag":
             if not (isinstance(node, ast.Constant) and isinstance(node.value, bool)):

@@ -686,13 +686,13 @@ def feature_tour() -> dict:
         comment("Palette entries 16..19 make an indexed colour ramp."),
         palette(16, "RED"), palette(17, "ORANGE"), palette(18, "YELLOW"), palette(19, "LIME"),
         make_list("trail_x", 16, 160), make_list("trail_y", 16, 100),
-        set_("hero_x", 152), set_("hero_y", 120), set_("p2_x", 40), set_("angle", 0), set_("beeps", 0),
+        set_("hero_x", 152), set_("hero_y", 120), set_("friend_x", 40), set_("angle", 0), set_("beeps", 0),
     ]
     update = [
         held("LEFT", change("hero_x", -3)), held("RIGHT", change("hero_x", 3)),
         held("UP", change("hero_y", -3)), held("DOWN", change("hero_y", 3)),
         wrap("hero_x", 0, 304), keep("hero_y", 40, 176),
-        held("P2_LEFT", change("p2_x", -3)), held("P2_RIGHT", change("p2_x", 3)), keep("p2_x", 0, 304),
+        change("friend_x", "stick_x() / 42"), keep("friend_x", 0, 304),
         pressed("A", change("beeps", 1), note("60 + beeps % 12", 1, 120)),
         pressed("B", stop_sound(1)),
         change("angle", 4), wrap("angle", 0, 359),
@@ -702,7 +702,7 @@ def feature_tour() -> dict:
         camera(0, 0),
         mp_share("hero_x", "hero_y", 1),
         band("BEEPS", "beeps"),
-        touching(("hero_x", "hero_y", 16, 16), ("p2_x", 176, 16, 8), set_("hero_y", 150)),
+        touching(("hero_x", "hero_y", 16, 16), ("friend_x", 176, 16, 8), set_("hero_y", 150)),
     ]
     draw = [
         draw_playfield(0),
@@ -718,8 +718,8 @@ def feature_tour() -> dict:
         line(270, 60, "270 + cos(angle) * 18 / 256", "60 + sin(angle) * 18 / 256", "RED"),
         repeat("i", 0, 15, rect("trail_x[i] - 1", "trail_y[i] - 1", 2, 2, "ORANGE")),
         picture(star, "hero_x", "hero_y", "YELLOW", 2),
-        sprite8(star, "p2_x", 176, "MAGENTA", "BLACK"),
-        text("A: NOTE  B: STOP  P2: J/L", 64, 188, "GRAY", "NAVY"),
+        sprite8(star, "friend_x", 176, "MAGENTA", "BLACK"),
+        text("A: NOTE  B: STOP  STICK MOVES", 64, 188, "GRAY", "NAVY"),
     ]
     return program(start, update, draw)
 

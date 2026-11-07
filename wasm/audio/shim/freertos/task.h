@@ -7,7 +7,7 @@
 
 #define vTaskDelay(ticks) prg32_kit_audio_delay_ms((uint32_t)(ticks))
 #define vTaskDelete(handle) ((void)(handle))
-#define xTaskCreate(function, name, stack, argument, priority, handle) \
+#define xTaskCreate(function, name, stack, argument, priority, handle)                                       \
     ((void)(function), (void)(name), (void)(stack), (void)(argument), (void)(priority), *(handle) = 0, pdPASS)
 
 #endif

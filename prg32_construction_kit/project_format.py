@@ -56,9 +56,9 @@ PYTHON_LANGUAGE_VERSION = 1
 
 # The portable PRG32 cartridge ABI the kit builds for. These copy
 # prg32/abi/abi_generated.py in the PRG32 SDK (tests check they still match).
-SDK_ABI = {"name": "prg32-portable-abi", "major": 1, "minor": 6, "hash": "0x260f6136"}
+SDK_ABI = {"name": "prg32-portable-abi", "major": 1, "minor": 8, "hash": "0x71b93e23"}
 # Older ABI hashes a firmware with SDK_ABI still runs (COMPATIBLE_ABI_HASHES there).
-SDK_COMPATIBLE_ABI_HASHES = (6563778, 1810294992)
+SDK_COMPATIBLE_ABI_HASHES = (6563778, 1810294992, 638542134, 3011795237)
 
 # Limits for archives coming from outside. They are far above any classroom
 # project and stop a "zip bomb" from filling the server's memory.

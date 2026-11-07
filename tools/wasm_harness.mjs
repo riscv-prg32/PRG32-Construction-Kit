@@ -91,6 +91,7 @@ const frames = Number(framesText);
 const every = Number(everyText);
 const lines = [core.UTF8ToString(core._prg32_state_json())];
 for (let frame = 0; frame < frames; frame += 1) {
+  core._prg32_set_stick(1, (frame % 64 - 32) * 3, 32 - frame % 32 * 2); // the same sweep as the native harness
   if (!core._prg32_frame(scriptedInput(frame))) {
     console.error(`frame ${frame}: ` + core.UTF8ToString(core._prg32_last_error()));
     process.exit(4);

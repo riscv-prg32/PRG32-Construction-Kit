@@ -111,11 +111,20 @@ def build(name: str, work: Path) -> dict[str, bytes]:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--check", action="store_true")
+    parser.add_argument("--check-if-comparable", action="store_true",
+                        help="like --check, but only when the SDK and compiler match BUILD.json "
+                             "(docs/evidence/qemu-audio records these exact cartridges)")
     args = parser.parse_args()
     if not toolchain_present(Config.PRG32_BUILD_COMMAND):
         print("the PRG32 toolchain is not installed", file=sys.stderr)
         return 2
     sys.path.insert(0, str(ROOT / "tools"))
+    if args.check_if_comparable:
+        recorded = json.loads(RECORD.read_text())
+        if recorded != inputs():
+            print(f"not comparable: built with {recorded}; this machine has {inputs()}")
+            return 0
+        args.check = True
     stale = []
     with tempfile.TemporaryDirectory() as tmp:
         for name in JOBS:

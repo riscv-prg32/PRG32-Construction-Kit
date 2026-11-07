@@ -1,0 +1,42 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index e15633f..2ef039a 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -11,7 +11,7 @@ option(PRG32QT_TV_MODE "Build a controller-first fullscreen TV application" OFF)
+ # mix. On by default; OFF keeps the older float mixer (no ADSR), which is not an audio reference.
+ option(PRG32QT_FIRMWARE_AUDIO "Render sound with the PRG32 firmware audio engine" ON)
+ set(PRG32_SDK_DIR "" CACHE PATH "PRG32 SDK checkout (default: the pinned PRG32_SDK_REVISION, fetched)")
+-set(PRG32_SDK_REVISION "679dfb58783bd007125de9ca0b75eaa077908739" CACHE STRING "PRG32 SDK commit fetched when PRG32_SDK_DIR is empty")
++set(PRG32_SDK_REVISION "1fa8474427bb3998a79d2b350550efdb2578b3be" CACHE STRING "PRG32 SDK commit fetched when PRG32_SDK_DIR is empty")
+ 
+ file(WRITE "${CMAKE_BINARY_DIR}/prg32qt-version.txt" "${PRG32QT_VERSION}\n")
+ 
+diff --git a/src/core/firmware_audio/shim/esp_log.h b/src/core/firmware_audio/shim/esp_log.h
+new file mode 100644
+index 0000000..3df3795
+--- /dev/null
++++ b/src/core/firmware_audio/shim/esp_log.h
+@@ -0,0 +1,11 @@
++/* The engine's log lines (PRG32 1fa8474 logs only in its QEMU audio path). The browser has no
++ * console to write them to, so they are left out. */
++#ifndef PRG32_KIT_ESP_LOG_H
++#define PRG32_KIT_ESP_LOG_H
++
++#define ESP_LOGE(tag, ...) ((void)(tag))
++#define ESP_LOGW(tag, ...) ((void)(tag))
++#define ESP_LOGI(tag, ...) ((void)(tag))
++#define ESP_LOGD(tag, ...) ((void)(tag))
++
++#endif
+diff --git a/src/core/firmware_audio/shim/freertos/semphr.h b/src/core/firmware_audio/shim/freertos/semphr.h
+index 93777a5..0352de5 100644
+--- a/src/core/firmware_audio/shim/freertos/semphr.h
++++ b/src/core/firmware_audio/shim/freertos/semphr.h
+@@ -5,6 +5,7 @@
+ #include "FreeRTOS.h"
+ 
+ #define xSemaphoreCreateMutex() ((SemaphoreHandle_t)1)
++#define xSemaphoreCreateBinary() ((SemaphoreHandle_t)1)
+ #define xSemaphoreTake(handle, ticks) ((void)(handle), (void)(ticks), 1)
+ #define xSemaphoreGive(handle) ((void)(handle), 1)
+ #define vSemaphoreDelete(handle) ((void)(handle))

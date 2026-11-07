@@ -139,7 +139,92 @@ class QueueAudioSink final : public prg32::AudioSink {
     }
 };
 
+// --- Multiplayer on this computer (ADR-0031) -----------------------------------------------
+//
+// PRG32-QT's core asks a MultiplayerService for ABI calls #32 to #40 and #139. On a console
+// that service talks to the PRG32 Multiplayer Server; here the page is the transport: it reads
+// the room and this player's state after each frame (prg32_mp_room, prg32_mp_local_json) and
+// gives the core the other windows' players before the next one (prg32_mp_clear_peers,
+// prg32_mp_put_peer). static/js/prg32_multiplayer.js carries them between windows of this
+// browser; nothing goes over the network. The rules are the firmware's
+// (components/prg32/prg32_multiplayer.c): a room name is 1 to 47 of A-Z a-z 0-9 _ . : -,
+// sharing works only after a join, a join forgets the other players, the buttons are the
+// eleven PRG32 buttons. With no page feeding it (the native harness) a game is alone in its room.
+
+constexpr size_t MaxPeers = 8;               // PRG32_MP_MAX_PEERS
+constexpr uint32_t ButtonsMask = 0x7ffu;     // PRG32_INPUT_BUTTONS_MASK: LEFT .. R
+uint32_t kitPlayerId = 1;                    // the page gives each window its own (prg32_mp_set_player_id)
+
+bool validRoom(const std::string& room) {
+    if (room.empty() || room.size() > 47)
+        return false;
+    for (char c : room) {
+        const bool ok = (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') ||
+                        c == '_' || c == '.' || c == ':' || c == '-';
+        if (!ok)
+            return false;
+    }
+    return true;
+}
+
+class KitMultiplayer final : public prg32::MultiplayerService {
+  public:
+    std::string room;                         // empty while not in a room
+    prg32::MultiplayerPeer local;             // what this player shares
+    std::vector<prg32::MultiplayerPeer> peers;
+    uint32_t nowMs = 0;                       // the cartridge's time at the last call
+
+    void initialize() override {}
+    bool available() const override { return true; }
+    int join(const std::string& signature, uint32_t) override {
+        if (!validRoom(signature))
+            return -1;
+        room = signature;
+        local = {};
+        local.playerId = kitPlayerId;
+        peers.clear();                        // as the firmware: a join forgets the others
+        return 0;
+    }
+    int leave() override {
+        room.clear();
+        peers.clear();
+        return 0;
+    }
+    void tick(uint32_t now) override { nowMs = now; }
+    int setLocalState(int16_t x, int16_t y, uint16_t sprite, uint16_t flags) override {
+        if (room.empty())
+            return -1;
+        local.x = x;
+        local.y = y;
+        local.sprite = sprite;
+        local.flags = flags;
+        ++local.frame;
+        local.lastSeenMs = nowMs;
+        return 0;
+    }
+    int setInput(uint32_t input) override {
+        if (room.empty())
+            return -1;
+        local.input = input & ButtonsMask;
+        return 0;
+    }
+    int peerCount(uint32_t now) override {
+        nowMs = now;
+        return int(peers.size());
+    }
+    int peer(int index, uint32_t now, prg32::MultiplayerPeer& output) override {
+        nowMs = now;
+        if (index < 0 || size_t(index) >= peers.size())
+            return -1;
+        output = peers[size_t(index)];
+        return 0;
+    }
+    uint32_t localPlayerId() const override { return room.empty() ? 0 : kitPlayerId; }
+};
+
 struct Session {
+    // Before the runtime: stopping the runtime leaves the room, so the service must outlive it.
+    KitMultiplayer multiplayer;
     prg32::Runtime runtime;
     QueueAudioSink audio;
     // The firmware audio engine (see the top of this file).
@@ -339,6 +424,7 @@ PRG32_EXPORT int prg32_load(const uint8_t* data, uint32_t size) {
     auto next = std::make_unique<Session>();
     next->runtime.setAudioSink(&next->audio);
     next->runtime.setHostHooks(beforeHostCall, afterHostCall);
+    next->runtime.setMultiplayerService(&next->multiplayer);
     // As the console: the engine is running before the cartridge starts, and the cartridge's
     // audio block (if any) replaces the assets; a block the engine refuses stops the load.
     if (prg32_kit_audio_start() != 0)
@@ -371,6 +457,67 @@ PRG32_EXPORT void prg32_unload() {
     if (session)
         session->runtime.stop();
     session.reset();
+}
+
+/**
+ * The analog stick for the frames that follow: present 0 or 1 and each axis in -127..127,
+ * where -127 is left and up. A cartridge reads it with prg32_input_axis_x/y (ABI #140, #141).
+ * The direction bits of the input mask stay the caller's work (static/js/prg32_controllers.js).
+ */
+PRG32_EXPORT void prg32_set_stick(int present, int x, int y) {
+    if (session)
+        session->runtime.setKitStick(present != 0, std::clamp(x, -127, 127), std::clamp(y, -127, 127));
+}
+
+// --- Multiplayer on this computer (see KitMultiplayer above) --------------------------------
+
+/** This window's player ID (not 0), used from the next join on. */
+PRG32_EXPORT void prg32_mp_set_player_id(uint32_t id) {
+    kitPlayerId = id ? id : 1;
+    if (session && !session->multiplayer.room.empty())
+        session->multiplayer.local.playerId = kitPlayerId;
+}
+
+/** The room the cartridge joined, or "" when it is in none. */
+PRG32_EXPORT const char* prg32_mp_room() {
+    return session ? session->multiplayer.room.c_str() : "";
+}
+
+/** What this player shares: {"id":..,"x":..,"y":..,"look":..,"flags":..,"input":..,"frame":..}. */
+PRG32_EXPORT const char* prg32_mp_local_json() {
+    static std::string text;
+    const prg32::MultiplayerPeer p = session ? session->multiplayer.local : prg32::MultiplayerPeer{};
+    text = "{\"id\":" + std::to_string(p.playerId) + ",\"x\":" + std::to_string(p.x) + ",\"y\":" +
+           std::to_string(p.y) + ",\"look\":" + std::to_string(p.sprite) + ",\"flags\":" +
+           std::to_string(p.flags) + ",\"input\":" + std::to_string(p.input) + ",\"frame\":" +
+           std::to_string(p.frame) + "}";
+    return text.c_str();
+}
+
+/** Forget the other players; the page then gives the ones it still hears from. */
+PRG32_EXPORT void prg32_mp_clear_peers() {
+    if (session)
+        session->multiplayer.peers.clear();
+}
+
+/** One other player in this room. Returns 1 when kept, 0 when not (no room, itself, or full). */
+PRG32_EXPORT int prg32_mp_put_peer(uint32_t id, int x, int y, int look, int flags, uint32_t input, uint32_t frame) {
+    if (!session || session->multiplayer.room.empty() || id == 0 || id == kitPlayerId)
+        return 0;
+    auto& mp = session->multiplayer;
+    if (mp.peers.size() >= MaxPeers)
+        return 0;
+    prg32::MultiplayerPeer peer;
+    peer.playerId = id;
+    peer.x = int16_t(std::clamp(x, -32768, 32767));
+    peer.y = int16_t(std::clamp(y, -32768, 32767));
+    peer.sprite = uint16_t(std::clamp(look, 0, 65535));
+    peer.flags = uint16_t(std::clamp(flags, 0, 65535));
+    peer.input = input & ButtonsMask;
+    peer.frame = frame;
+    peer.lastSeenMs = mp.nowMs;
+    mp.peers.push_back(peer);
+    return 1;
 }
 
 /** Run one update + draw with the PRG32 input bit mask. Returns 1 on success, 0 on a guest trap. */

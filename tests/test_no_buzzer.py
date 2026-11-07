@@ -130,10 +130,10 @@ def test_the_index_builder_skips_retired_abi_slots(tmp_path):
 
     abi = tmp_path / "prg32" / "abi"
     abi.mkdir(parents=True)
-    (abi / "abi_generated.py").write_text("ABI_MAJOR = 1\nABI_MINOR = 7\nABI_HASH = 0xb32d1d76\n"
+    (abi / "abi_generated.py").write_text("ABI_MAJOR = 1\nABI_MINOR = 9\nABI_HASH = 0xa9f89cec\n"
                                           "IMPORT_NAMES = ['prg32_ticks_ms', None, 'prg32_audio_note']\n")
     (abi / "prg32_abi.json").write_text(json.dumps({"functions": [
-        {"name": "prg32_ticks_ms"}, {"name": "prg32_buzzer_tone", "retired": {"since": "1.7"}},
+        {"name": "prg32_ticks_ms"}, {"name": "prg32_buzzer_tone", "retired": {"since": "1.9"}},
         {"name": "prg32_audio_note"}]}))
     loaded = build_language_index.load_abi(tmp_path)
     assert loaded["imports"] == ["prg32_ticks_ms", "prg32_audio_note"]

@@ -67,7 +67,7 @@ def test_manifest_describes_a_blocks_project(client):
                                     "update": "archive_game_update", "draw": "archive_game_draw"}
     assert [entry["path"] for entry in data["assets"]] == [
         "assets/sprites/01-ship.json", "assets/sprites/02-ship.json", "assets/data/01-level-1.json"]
-    assert data["sdk"]["hash"] == "0x260f6136"
+    assert data["sdk"]["hash"] == "0x71b93e23"
 
 
 def test_archive_is_deterministic_and_holds_only_source(client):

@@ -516,7 +516,7 @@ The cartridge calls the firmware through the **portable ABI table**, so the same
 
 ## Exercises
 
-1. **Two players:** replace the computer with the *player 2 up / down* buttons (PRG32 controller bits 8-14).
+1. **Two players:** replace the computer with a friend on another console, through the Multiplayer blocks (`multiplayer.md`).
 2. **Difficulty levels:** choose `cpu_error`'s range from a variable set by A (easy) or B (hard) on the title screen.
 3. **Speed physics:** what happens if the maximum speed is 9? Explain the result with the paddle width (tunnelling).
 4. **Sound design:** play a different MIDI note for wall bounces, paddle hits and points.

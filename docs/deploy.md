@@ -40,7 +40,8 @@ Chrome and Edge can deploy the selected `esp32c6` PRG32 cartridge directly to an
 USB. Plug the cable into the board's connector labelled **USB** (not **UART**). On the Deploy
 page, choose the project and compiled cartridge, then use **USB device**:
 
-1. choose `cart0` through `cart7`, select **store**, **run**, **performance**, or **debug**, and
+1. choose a slot, `cart0` through `cart7` (none is chosen for you: pick one whose game nobody
+   needs), select **store**, **run**, **performance**, or **debug**, and
    confirm that the slot may be replaced;
 2. press **Connect and deploy over USB**. The browser lists only ESP32-C6 native USB devices; a
    PRG32 you already allowed is reused without asking again;
@@ -53,8 +54,13 @@ page, choose the project and compiled cartridge, then use **USB device**:
    slot and progress bar, verifies the slot, reports success or failure, and returns to setup after
    **store**. **run** and **performance** start the cartridge.
 
-A 24 KB cartridge takes under two seconds. If the cable is pulled during a transfer, the console
-shows UPLOAD TIMED OUT within ten seconds, erases the half-written slot and returns to setup.
+A 24 KB cartridge takes under two seconds. If the cable is pulled during a transfer, the page says
+the PRG32 was disconnected and that the slot may now be empty or hold half a cartridge. A
+half-written cartridge never starts: the console checks every cartridge's CRC before running it
+and refuses it ("cartridge payload CRC mismatch"). If the console keeps running (it has its own
+power) it also shows UPLOAD TIMED OUT within ten seconds, erases the slot and returns to setup. A
+console powered only by the USB cable restarts instead, and the half-written slot stays until the
+next deploy replaces it.
 
 Use **Retrieve performance results** to read the latest performance JSON through the same USB
 connection. **debug** starts the cartridge under PRG32-QT's debugger. Physical PRG32 firmware
@@ -73,6 +79,7 @@ restarts the console, which would stop the running game. Other USB tools must fo
 | You see | What to do |
 | --- | --- |
 | The USB port is busy | close serial monitors (idf.py, PlatformIO, Arduino) and the PRG32 command line, then try again |
+| The PRG32 was disconnected | check the cable and plug it in again; if it happened during the transfer, deploy again |
 | The PRG32 device did not answer | use a data cable, the **USB** connector, and PRG32 firmware from October 2026 or newer |
 | The cartridge needs ABI … but this PRG32 runs ABI … | the console's firmware is from another PRG32 version: ask your teacher |
 
@@ -103,11 +110,30 @@ run the same module under Node. It writes the slot you name:
 node tools/usb_device_check.mjs /dev/cu.usbmodem101 build/game.prg32 cart7 store
 ```
 
+The last word can be **store**, **run** or **performance**. With **performance**, give it a
+cartridge that measures itself, such as the kit's `examples/evaluation/prg32_evaluation.c` built
+as an Advanced C project: the tool waits until the console has results and checks them. With
+**store** or **run** it only checks that the console answers a performance request ("no
+performance test results" is the right answer for a game that measures nothing).
+
 Recorded 2026-10-29 with this tool on the physical ESP32-C6 (firmware `5202077-dirty`): all 32
 `esp32c6` cartridges published at `https://store.prg32.uniparthenope.it` were downloaded, matched
 their catalog SHA-256 and size, and were stored in `cart7` with 8/8 checks each, from 2,317 to
 62,679 bytes in 1.50-2.05 s; the largest, Cockroaches, then went to `cart7` with **run** and was
-reported running.
+reported running. That record's "performance retrieval" check only proved that the console
+answered: the tool then accepted any JSON, including "no performance test results".
+
+Recorded 2026-11-04 and 2026-11-05 on the physical ESP32-C6 (firmware `1fa8474`, PRG32 `main`): 66 cartridges
+built by the kit for `esp32c6` (the six ways of writing a game and every bundled example, as C and
+as assembly where it has both) were stored and run in `cart7` with this tool, 8/8 checks each, in
+1.49-1.63 s (6.9 s when Feature Tour was running before: a cartridge in a multiplayer room waits
+up to five seconds for its network to close). In desktop Chrome with the port picked by a person,
+the Deploy page stored and ran Pong, refused **debug** before writing, and ran the evaluation
+cartridge with **performance**; **Retrieve performance results** returned 5 cases, 300 frames,
+9.0 fps. With this tool's **performance** command the same cartridge gave 5 cases, 300 frames,
+9.02 fps. A cable pulled halfway through an upload restarted that console, and the half-written
+slot was refused on its CRC; an upload stopped halfway with the cable in was erased by the
+firmware's timeout.
 
 Register each target once, at the bottom of the Deploy page (administrators only):
 

@@ -28,7 +28,9 @@
       <span title="${Kit.escape(tr('js.player.instructions_title', 'RISC-V instructions executed so far'))}">${Kit.escape(tr('js.player.instructions', '{count} instructions', { count: Number(status.retired).toLocaleString(PRG32I18n.locale) }))}</span>
       <span>${Kit.escape(tr('js.player.speed', 'Speed {speed}×', { speed: status.speed }))}</span>
       ${status.legacySoundCalls ? `<span class="text-warning" title="${Kit.escape(tr('js.player.legacy_sound_title', 'PRG32 games now use the eight-voice audio engine'))}">
-        ${Kit.escape(tr('js.player.legacy_sound_calls', 'Old sound calls ({count}): no longer supported, so they are silent', { count: status.legacySoundCalls }))}</span>` : ''}`);
+        ${Kit.escape(tr('js.player.legacy_sound_calls', 'Old sound calls ({count}): no longer supported, so they are silent', { count: status.legacySoundCalls }))}</span>` : ''}
+      ${status.multiplayer && status.multiplayer.room ? `<span id="multiplayerStatus" title="${Kit.escape(tr('js.player.multiplayer_title', 'Other windows of this browser in the same room play with this one'))}">
+        <i class="bi bi-people" aria-hidden="true"></i> ${Kit.escape(tr('js.player.multiplayer_room', 'Room {room}: {count} other players', { room: status.multiplayer.room, count: status.multiplayer.peers }))}</span>` : ''}`);
   }
 
   // options.quiet: no "loaded" toast, and a failure is passed on to the caller (the IDE says it itself).

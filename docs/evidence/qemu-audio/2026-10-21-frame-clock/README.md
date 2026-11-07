@@ -5,7 +5,7 @@ over the whole recording, in every run.
 
 | | |
 |---|---|
-| Firmware | PRG32 `679dfb5` + [`prg32-sdk-audio-clock-and-reset.patch`](../../../upstream/prg32-sdk-audio-clock-and-reset.patch) (as in [riscv-prg32/PRG32#46](https://github.com/riscv-prg32/PRG32/pull/46)), ESP-IDF v5.4, QEMU profile + `tests/fixtures/audio/sdkconfig.qemu-stereo` (`firmware-sdkconfig`) |
+| Firmware | PRG32 `679dfb5` + [`prg32-sdk-audio-clock-and-reset-679dfb5.patch`](prg32-sdk-audio-clock-and-reset-679dfb5.patch) (as in [riscv-prg32/PRG32#46](https://github.com/riscv-prg32/PRG32/pull/46)), ESP-IDF v5.4, QEMU profile + `tests/fixtures/audio/sdkconfig.qemu-stereo` (`firmware-sdkconfig`) |
 | QEMU | 9.0.0 (esp_develop_9.0.0_20240606), SDL dummy display, `-icount shift=3,sleep=off` |
 | Browser core | `static/wasm` (kit `46b24aa` plus the frame-clock change in `wasm/prg32_core_api.cpp`) |
 

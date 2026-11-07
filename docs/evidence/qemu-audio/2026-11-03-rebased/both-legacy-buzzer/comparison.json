@@ -1,0 +1,44 @@
+{
+ "cartridge": {
+  "file": "legacy_buzzer.prg32",
+  "sha256": "48c737a871537d2de5ab73a7c941a2127f1ab168cf65a398fa5fc0ee0725c4ec"
+ },
+ "firmware": {
+  "sdk_revision": "1eff2e20b8663d1fc816e5d68f773b8a22e65dd1",
+  "flash_sha256": "b4b210550d6ebe5c5c70043c44022a4dd80fbb9fb4794ee6d7f21eb550f9c71e",
+  "qemu": "QEMU emulator version 9.0.0 (esp_develop_9.0.0_20240606)",
+  "patches": [
+   {
+    "file": "prg32-sdk-audio-clock-and-reset.patch",
+    "sha256": "7247d965f87b0a2f8d27073ada3ca3eb1ef7646d45063bee264885683306ae31"
+   },
+   {
+    "file": "prg32-sdk-retire-buzzer.patch",
+    "sha256": "cd70d8d33e028c2750dd3d40cf9d31d9a7da5a76ba43321ec29acee84fa22caa"
+   }
+  ],
+  "overlay": "# The firmware build for the QEMU audio comparison (tools/qemu_audio_capture.py, ADR-0021):\n# the PRG32 QEMU profile with stereo output (PRG32 Audio Plus). The QEMU profile sets the\n# I2S pins to -1, and the firmware's audio set-up refuses -1 pins even though QEMU sends the\n# sound over UART1 instead; any free ESP32-C3 pins make it start (4 and 5 are UART1).\n# CONFIG_PRG32_AUDIO_MODE_MONO is not set\nCONFIG_PRG32_AUDIO_MODE_STEREO=y\nCONFIG_PRG32_AUDIO_I2S_BCLK_GPIO=6\nCONFIG_PRG32_AUDIO_I2S_LRCLK_GPIO=7\nCONFIG_PRG32_AUDIO_I2S_DATA_GPIO=10\n"
+ },
+ "kit_revision": "cbb18e957383e8a30a537d5adab9a5eeca7a0315",
+ "seconds": 3.0,
+ "firmware_pcm_sha256": "39aae763b0cb272253dbce5bae2d88305407acfa8f729b31072ea4c11bbad5a2",
+ "browser_pcm_sha256": "a8df041925e5c1bb9388fc80d5664827c8ca7ee6a7feff2deb78210b103d95af",
+ "qemu_options": [
+  "-icount",
+  "shift=3,sleep=off"
+ ],
+ "aligned": {
+  "shift_chunks": 0,
+  "equal_chunks": 150,
+  "compared_chunks": 150,
+  "differing_chunks": [],
+  "whole_recording_equal": true,
+  "firmware_aligned_sha256": "a8df041925e5c1bb9388fc80d5664827c8ca7ee6a7feff2deb78210b103d95af",
+  "browser_sha256": "a8df041925e5c1bb9388fc80d5664827c8ca7ee6a7feff2deb78210b103d95af"
+ },
+ "browser_chunks": 150,
+ "firmware_chunks": 160,
+ "browser_sounding_chunks": 0,
+ "identical_sounding_chunks": 0,
+ "segments": []
+}

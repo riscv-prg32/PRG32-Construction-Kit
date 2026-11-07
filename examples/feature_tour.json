@@ -15,7 +15,7 @@
     "blocks": [
      {
       "type": "prg32_on_start",
-      "id": "feature_tour-71",
+      "id": "feature_tour-68",
       "inputs": {
        "DO": {
         "block": {
@@ -197,7 +197,7 @@
                                              "type": "prg32_set_state",
                                              "id": "feature_tour-20",
                                              "fields": {
-                                              "VAR": "p2_x",
+                                              "VAR": "friend_x",
                                               "VALUE": "40"
                                              },
                                              "next": {
@@ -264,7 +264,7 @@
      },
      {
       "type": "prg32_update",
-      "id": "feature_tour-72",
+      "id": "feature_tour-69",
       "inputs": {
        "DO": {
         "block": {
@@ -362,192 +362,160 @@
                    },
                    "next": {
                     "block": {
-                     "type": "prg32_if_button",
-                     "id": "feature_tour-34",
+                     "type": "prg32_change_state",
+                     "id": "feature_tour-33",
                      "fields": {
-                      "BUTTON": "P2_LEFT"
-                     },
-                     "inputs": {
-                      "DO": {
-                       "block": {
-                        "type": "prg32_change_state",
-                        "id": "feature_tour-33",
-                        "fields": {
-                         "VAR": "p2_x",
-                         "DELTA": "-3"
-                        }
-                       }
-                      }
+                      "VAR": "friend_x",
+                      "DELTA": "stick_x() / 42"
                      },
                      "next": {
                       "block": {
-                       "type": "prg32_if_button",
-                       "id": "feature_tour-36",
+                       "type": "prg32_clamp_state",
+                       "id": "feature_tour-34",
                        "fields": {
-                        "BUTTON": "P2_RIGHT"
-                       },
-                       "inputs": {
-                        "DO": {
-                         "block": {
-                          "type": "prg32_change_state",
-                          "id": "feature_tour-35",
-                          "fields": {
-                           "VAR": "p2_x",
-                           "DELTA": "3"
-                          }
-                         }
-                        }
+                        "VAR": "friend_x",
+                        "LOW": "0",
+                        "HIGH": "304"
                        },
                        "next": {
                         "block": {
-                         "type": "prg32_clamp_state",
+                         "type": "prg32_if_button_once",
                          "id": "feature_tour-37",
                          "fields": {
-                          "VAR": "p2_x",
-                          "LOW": "0",
-                          "HIGH": "304"
+                          "BUTTON": "A"
+                         },
+                         "inputs": {
+                          "DO": {
+                           "block": {
+                            "type": "prg32_change_state",
+                            "id": "feature_tour-35",
+                            "fields": {
+                             "VAR": "beeps",
+                             "DELTA": "1"
+                            },
+                            "next": {
+                             "block": {
+                              "type": "prg32_audio_note",
+                              "id": "feature_tour-36",
+                              "fields": {
+                               "NOTE": "60 + beeps % 12",
+                               "CHANNEL": "1",
+                               "MS": "120"
+                              }
+                             }
+                            }
+                           }
+                          }
                          },
                          "next": {
                           "block": {
                            "type": "prg32_if_button_once",
-                           "id": "feature_tour-40",
+                           "id": "feature_tour-39",
                            "fields": {
-                            "BUTTON": "A"
+                            "BUTTON": "B"
                            },
                            "inputs": {
                             "DO": {
                              "block": {
-                              "type": "prg32_change_state",
+                              "type": "prg32_audio_stop",
                               "id": "feature_tour-38",
                               "fields": {
-                               "VAR": "beeps",
-                               "DELTA": "1"
-                              },
-                              "next": {
-                               "block": {
-                                "type": "prg32_audio_note",
-                                "id": "feature_tour-39",
-                                "fields": {
-                                 "NOTE": "60 + beeps % 12",
-                                 "CHANNEL": "1",
-                                 "MS": "120"
-                                }
-                               }
+                               "CHANNEL": "1"
                               }
                              }
                             }
                            },
                            "next": {
                             "block": {
-                             "type": "prg32_if_button_once",
-                             "id": "feature_tour-42",
+                             "type": "prg32_change_state",
+                             "id": "feature_tour-40",
                              "fields": {
-                              "BUTTON": "B"
-                             },
-                             "inputs": {
-                              "DO": {
-                               "block": {
-                                "type": "prg32_audio_stop",
-                                "id": "feature_tour-41",
-                                "fields": {
-                                 "CHANNEL": "1"
-                                }
-                               }
-                              }
+                              "VAR": "angle",
+                              "DELTA": "4"
                              },
                              "next": {
                               "block": {
-                               "type": "prg32_change_state",
-                               "id": "feature_tour-43",
+                               "type": "prg32_wrap_state",
+                               "id": "feature_tour-41",
                                "fields": {
                                 "VAR": "angle",
-                                "DELTA": "4"
+                                "LOW": "0",
+                                "HIGH": "359"
                                },
                                "next": {
                                 "block": {
-                                 "type": "prg32_wrap_state",
-                                 "id": "feature_tour-44",
+                                 "type": "prg32_list_set",
+                                 "id": "feature_tour-42",
                                  "fields": {
-                                  "VAR": "angle",
-                                  "LOW": "0",
-                                  "HIGH": "359"
+                                  "LIST": "trail_x",
+                                  "INDEX": "frame() % 16",
+                                  "VALUE": "hero_x + 8"
                                  },
                                  "next": {
                                   "block": {
                                    "type": "prg32_list_set",
-                                   "id": "feature_tour-45",
+                                   "id": "feature_tour-43",
                                    "fields": {
-                                    "LIST": "trail_x",
+                                    "LIST": "trail_y",
                                     "INDEX": "frame() % 16",
-                                    "VALUE": "hero_x + 8"
+                                    "VALUE": "hero_y + 8"
                                    },
                                    "next": {
                                     "block": {
-                                     "type": "prg32_list_set",
-                                     "id": "feature_tour-46",
+                                     "type": "prg32_playfield_scroll",
+                                     "id": "feature_tour-44",
                                      "fields": {
-                                      "LIST": "trail_y",
-                                      "INDEX": "frame() % 16",
-                                      "VALUE": "hero_y + 8"
+                                      "LAYER": "0",
+                                      "X": "frame() / 2",
+                                      "Y": "0"
                                      },
                                      "next": {
                                       "block": {
-                                       "type": "prg32_playfield_scroll",
-                                       "id": "feature_tour-47",
+                                       "type": "prg32_playfield_camera",
+                                       "id": "feature_tour-45",
                                        "fields": {
-                                        "LAYER": "0",
-                                        "X": "frame() / 2",
+                                        "X": "0",
                                         "Y": "0"
                                        },
                                        "next": {
                                         "block": {
-                                         "type": "prg32_playfield_camera",
-                                         "id": "feature_tour-48",
+                                         "type": "prg32_mp_share",
+                                         "id": "feature_tour-46",
                                          "fields": {
-                                          "X": "0",
-                                          "Y": "0"
+                                          "X": "hero_x",
+                                          "Y": "hero_y",
+                                          "LOOK": "1"
                                          },
                                          "next": {
                                           "block": {
-                                           "type": "prg32_mp_share",
-                                           "id": "feature_tour-49",
+                                           "type": "prg32_band_text",
+                                           "id": "feature_tour-47",
                                            "fields": {
-                                            "X": "hero_x",
-                                            "Y": "hero_y",
-                                            "LOOK": "1"
+                                            "TEXT": "BEEPS",
+                                            "VALUE": "beeps"
                                            },
                                            "next": {
                                             "block": {
-                                             "type": "prg32_band_text",
-                                             "id": "feature_tour-50",
+                                             "type": "prg32_if_touching",
+                                             "id": "feature_tour-49",
                                              "fields": {
-                                              "TEXT": "BEEPS",
-                                              "VALUE": "beeps"
+                                              "AX": "hero_x",
+                                              "AY": "hero_y",
+                                              "AW": "16",
+                                              "AH": "16",
+                                              "BX": "friend_x",
+                                              "BY": "176",
+                                              "BW": "16",
+                                              "BH": "8"
                                              },
-                                             "next": {
-                                              "block": {
-                                               "type": "prg32_if_touching",
-                                               "id": "feature_tour-52",
-                                               "fields": {
-                                                "AX": "hero_x",
-                                                "AY": "hero_y",
-                                                "AW": "16",
-                                                "AH": "16",
-                                                "BX": "p2_x",
-                                                "BY": "176",
-                                                "BW": "16",
-                                                "BH": "8"
-                                               },
-                                               "inputs": {
-                                                "DO": {
-                                                 "block": {
-                                                  "type": "prg32_set_state",
-                                                  "id": "feature_tour-51",
-                                                  "fields": {
-                                                   "VAR": "hero_y",
-                                                   "VALUE": "150"
-                                                  }
-                                                 }
+                                             "inputs": {
+                                              "DO": {
+                                               "block": {
+                                                "type": "prg32_set_state",
+                                                "id": "feature_tour-48",
+                                                "fields": {
+                                                 "VAR": "hero_y",
+                                                 "VALUE": "150"
                                                 }
                                                }
                                               }
@@ -596,12 +564,12 @@
      },
      {
       "type": "prg32_draw",
-      "id": "feature_tour-73",
+      "id": "feature_tour-70",
       "inputs": {
        "DO": {
         "block": {
          "type": "prg32_playfield_draw",
-         "id": "feature_tour-53",
+         "id": "feature_tour-50",
          "fields": {
           "LAYER": "0",
           "TRANSPARENT": "OPAQUE"
@@ -609,7 +577,7 @@
          "next": {
           "block": {
            "type": "prg32_draw_text",
-           "id": "feature_tour-54",
+           "id": "feature_tour-51",
            "fields": {
             "TEXT": "FEATURE TOUR",
             "X": "4",
@@ -620,7 +588,7 @@
            "next": {
             "block": {
              "type": "prg32_draw_text",
-             "id": "feature_tour-55",
+             "id": "feature_tour-52",
              "fields": {
               "TEXT": "PEERS",
               "X": "232",
@@ -631,7 +599,7 @@
              "next": {
               "block": {
                "type": "prg32_draw_number",
-               "id": "feature_tour-56",
+               "id": "feature_tour-53",
                "fields": {
                 "VALUE": "peers()",
                 "X": "280",
@@ -642,7 +610,7 @@
                "next": {
                 "block": {
                  "type": "prg32_repeat",
-                 "id": "feature_tour-58",
+                 "id": "feature_tour-55",
                  "fields": {
                   "VAR": "i",
                   "FROM": "0",
@@ -652,7 +620,7 @@
                   "DO": {
                    "block": {
                     "type": "prg32_draw_rect_indexed",
-                    "id": "feature_tour-57",
+                    "id": "feature_tour-54",
                     "fields": {
                      "X": "8 + i * 12",
                      "Y": "20",
@@ -666,7 +634,7 @@
                  "next": {
                   "block": {
                    "type": "prg32_draw_pixel_indexed",
-                   "id": "feature_tour-59",
+                   "id": "feature_tour-56",
                    "fields": {
                     "X": "60",
                     "Y": "25",
@@ -675,7 +643,7 @@
                    "next": {
                     "block": {
                      "type": "prg32_draw_pixel",
-                     "id": "feature_tour-60",
+                     "id": "feature_tour-57",
                      "fields": {
                       "X": "64",
                       "Y": "25",
@@ -684,7 +652,7 @@
                      "next": {
                       "block": {
                        "type": "prg32_draw_frame",
-                       "id": "feature_tour-61",
+                       "id": "feature_tour-58",
                        "fields": {
                         "X": "70",
                         "Y": "18",
@@ -695,7 +663,7 @@
                        "next": {
                         "block": {
                          "type": "prg32_draw_rect_rgb",
-                         "id": "feature_tour-62",
+                         "id": "feature_tour-59",
                          "fields": {
                           "X": "72",
                           "Y": "20",
@@ -706,7 +674,7 @@
                          "next": {
                           "block": {
                            "type": "prg32_draw_circle",
-                           "id": "feature_tour-63",
+                           "id": "feature_tour-60",
                            "fields": {
                             "X": "270",
                             "Y": "60",
@@ -717,7 +685,7 @@
                            "next": {
                             "block": {
                              "type": "prg32_draw_circle",
-                             "id": "feature_tour-64",
+                             "id": "feature_tour-61",
                              "fields": {
                               "X": "270",
                               "Y": "60",
@@ -728,7 +696,7 @@
                              "next": {
                               "block": {
                                "type": "prg32_draw_line",
-                               "id": "feature_tour-65",
+                               "id": "feature_tour-62",
                                "fields": {
                                 "X1": "270",
                                 "Y1": "60",
@@ -739,7 +707,7 @@
                                "next": {
                                 "block": {
                                  "type": "prg32_repeat",
-                                 "id": "feature_tour-67",
+                                 "id": "feature_tour-64",
                                  "fields": {
                                   "VAR": "i",
                                   "FROM": "0",
@@ -749,7 +717,7 @@
                                   "DO": {
                                    "block": {
                                     "type": "prg32_draw_rect",
-                                    "id": "feature_tour-66",
+                                    "id": "feature_tour-63",
                                     "fields": {
                                      "X": "trail_x[i] - 1",
                                      "Y": "trail_y[i] - 1",
@@ -763,7 +731,7 @@
                                  "next": {
                                   "block": {
                                    "type": "prg32_draw_bitmap",
-                                   "id": "feature_tour-68",
+                                   "id": "feature_tour-65",
                                    "fields": {
                                     "X": "hero_x",
                                     "Y": "hero_y",
@@ -781,9 +749,9 @@
                                    "next": {
                                     "block": {
                                      "type": "prg32_draw_sprite8",
-                                     "id": "feature_tour-69",
+                                     "id": "feature_tour-66",
                                      "fields": {
-                                      "X": "p2_x",
+                                      "X": "friend_x",
                                       "Y": "176",
                                       "FG": "MAGENTA",
                                       "BG": "BLACK",
@@ -799,9 +767,9 @@
                                      "next": {
                                       "block": {
                                        "type": "prg32_draw_text",
-                                       "id": "feature_tour-70",
+                                       "id": "feature_tour-67",
                                        "fields": {
-                                        "TEXT": "A: NOTE  B: STOP  P2: J/L",
+                                        "TEXT": "A: NOTE  B: STOP  STICK MOVES",
                                         "X": "64",
                                         "Y": "188",
                                         "FG": "GRAY",

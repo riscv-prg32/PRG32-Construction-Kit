@@ -141,3 +141,56 @@ def test_the_usb_card_explains_a_browser_without_web_serial(browser, deploy_kit)
     assert page.is_disabled("#usbDeployStart") and page.is_disabled("#usbPerformanceGet")
     assert api(page, "/api/deploy/targets") is not None
     context.close()
+
+
+def test_no_slot_is_chosen_for_the_student(browser, deploy_kit):  # noqa: F811
+    """The page never starts on cart0: the student picks the slot whose game may be replaced."""
+    context, _record, page = usb_page(browser, deploy_kit)
+    project = compiled_project(page, "USB No Slot")
+    page.goto(f"{deploy_kit.url}/deploy?project={project['id']}")
+    wait_until(page, "document.querySelectorAll('#deployCartridge option[value]:not([value=\"\"])').length > 0")
+    assert page.input_value("#usbDeploySlot") == ""
+    page.check("#usbDeployConfirm")
+    assert page.is_disabled("#usbDeployStart")
+    page.select_option("#usbDeploySlot", "cart3")
+    page.check("#usbDeployConfirm")
+    assert not page.is_disabled("#usbDeployStart")
+    context.close()
+
+
+def test_a_busy_port_says_to_close_other_programs(browser, deploy_kit):  # noqa: F811
+    context, _record, page = usb_page(browser, deploy_kit, busy=True)
+    open_usb_deploy(page, deploy_kit, "USB Busy", "cart4", "store")
+    page.click("#usbDeployStart")
+    wait_until(page, "document.querySelector('#usbDeployStatus .text-danger') !== null", timeout=30)
+    assert page.text_content("#usbDeployStatus") == (
+        "The USB port is busy. Close serial monitors and other programs that use the PRG32, then try again.")
+    assert device(page, "requests") == []
+    context.close()
+
+
+def test_a_cable_pulled_during_the_transfer_is_not_called_a_busy_port(browser, deploy_kit):  # noqa: F811
+    """Chrome reports a pulled cable with the same error name as a busy port (NetworkError)."""
+    context, record, page = usb_page(browser, deploy_kit, unplugAfterChunks=1, hello={"max_chunk": 512})
+    open_usb_deploy(page, deploy_kit, "USB Unplugged", "cart6", "store")
+    page.click("#usbDeployStart")
+    wait_until(page, "document.querySelector('#usbDeployStatus .text-danger') !== null", timeout=30)
+    message = page.text_content("#usbDeployStatus")
+    assert message == ("The PRG32 was disconnected during the transfer. cart6 may now be empty or hold half a "
+                       "cartridge, which never starts. Plug the PRG32 in again and deploy again.")
+    assert "busy" not in message
+    assert device(page, "slots").get("cart6") is None
+    assert not page.is_disabled("#usbDeployStart")
+    assert record.csp_violations() == [] and serious(page) == []
+    context.close()
+
+
+def test_a_cable_pulled_before_anything_was_sent_says_nothing_was_written(browser, deploy_kit):  # noqa: F811
+    context, _record, page = usb_page(browser, deploy_kit, authorized=True)
+    page.goto(f"{deploy_kit.url}/deploy")
+    page.evaluate("window.__fakeSerial.port.device.unplugged = true")
+    page.click("#usbPerformanceGet")
+    wait_until(page, "document.querySelector('#usbDeployStatus .text-danger') !== null", timeout=30)
+    assert page.text_content("#usbDeployStatus") == (
+        "The PRG32 was disconnected. Nothing was written. Plug it in again and try again.")
+    context.close()

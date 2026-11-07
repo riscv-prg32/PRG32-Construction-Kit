@@ -1,5 +1,5 @@
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index c055275..204d00d 100644
+index 657daa2..9d763f1 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
 @@ -6,6 +6,12 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -11,7 +11,7 @@ index c055275..204d00d 100644
 +# mix. On by default; OFF keeps the older float mixer (no ADSR), which is not an audio reference.
 +option(PRG32QT_FIRMWARE_AUDIO "Render sound with the PRG32 firmware audio engine" ON)
 +set(PRG32_SDK_DIR "" CACHE PATH "PRG32 SDK checkout (default: the pinned PRG32_SDK_REVISION, fetched)")
-+set(PRG32_SDK_REVISION "679dfb58783bd007125de9ca0b75eaa077908739" CACHE STRING "PRG32 SDK commit fetched when PRG32_SDK_DIR is empty")
++set(PRG32_SDK_REVISION "1eff2e20b8663d1fc816e5d68f773b8a22e65dd1" CACHE STRING "PRG32 SDK commit fetched when PRG32_SDK_DIR is empty")
  
  file(WRITE "${CMAKE_BINARY_DIR}/prg32qt-version.txt" "${PRG32QT_VERSION}\n")
  
@@ -53,7 +53,7 @@ index c055275..204d00d 100644
  if(PRG32QT_BUILD_TESTS)
    enable_testing()
    add_executable(prg32qt-headless src/core/headless.cpp)
-@@ -71,6 +108,18 @@ if(PRG32QT_BUILD_APP)
+@@ -72,6 +109,18 @@ if(PRG32QT_BUILD_APP)
      list(APPEND PRG32QT_APP_SOURCES src/qt/MdnsAdvertiser_udp.cpp)
    endif()
  
@@ -310,10 +310,10 @@ index 0000000..e20b9db
 +};
 +} // namespace prg32
 diff --git a/src/core/Runtime.cpp b/src/core/Runtime.cpp
-index ceb5bba..31610df 100644
+index bb6fa34..af56a8d 100644
 --- a/src/core/Runtime.cpp
 +++ b/src/core/Runtime.cpp
-@@ -772,6 +772,13 @@ uint32_t Runtime::performanceCall(uint32_t i, uint32_t p, uint32_t arg) {
+@@ -785,6 +785,13 @@ uint32_t Runtime::performanceCall(uint32_t i, uint32_t p, uint32_t arg) {
      return uint32_t(-1);
  }
  void Runtime::hostCall(uint32_t i) {
@@ -328,10 +328,10 @@ index ceb5bba..31610df 100644
      // scalar result is returned in a0. Every numeric case below is a stable public table index.
      auto a = [&](int n) { return cpu_.reg(10 + n); };
 diff --git a/src/core/Runtime.h b/src/core/Runtime.h
-index 5018eba..7d957ce 100644
+index ded2a25..7cdf93f 100644
 --- a/src/core/Runtime.h
 +++ b/src/core/Runtime.h
-@@ -126,6 +126,15 @@ class Runtime {
+@@ -131,6 +131,15 @@ class Runtime {
      void setPresentCallback(std::function<void()> cb) {
          present_ = std::move(cb);
      }
@@ -347,7 +347,7 @@ index 5018eba..7d957ce 100644
      void setLEDCallback(std::function<void(RGBState)> cb) {
          ledCallback_ = std::move(cb);
      }
-@@ -160,6 +169,7 @@ class Runtime {
+@@ -165,6 +174,7 @@ class Runtime {
  
    private:
      void hostCall(uint32_t);
@@ -355,7 +355,7 @@ index 5018eba..7d957ce 100644
      uint32_t performanceCall(uint32_t, uint32_t, uint32_t);
      uint32_t guestPtr(uint32_t off) const {
          return base_ + off;
-@@ -221,6 +231,7 @@ class Runtime {
+@@ -226,6 +236,7 @@ class Runtime {
      Framebuffer fb_;
      std::function<void()> present_;
      std::function<void(RGBState)> ledCallback_;
@@ -793,7 +793,7 @@ index 166f68a..82e2b31 100644
          std::cout << "MEDIA graphics_non_black=" << maximumNonBlackPixels
                    << " unique_frame_hashes=" << frameHashes.size() << " audio_declared=" << bool(c->audio())
 diff --git a/src/qt/AppController.cpp b/src/qt/AppController.cpp
-index 89c4d0d..c5ef1a4 100644
+index 6f6c647..19b1e8e 100644
 --- a/src/qt/AppController.cpp
 +++ b/src/qt/AppController.cpp
 @@ -48,7 +48,9 @@ AppController::AppController(QObject* p)
@@ -817,7 +817,7 @@ index 89c4d0d..c5ef1a4 100644
          ++frameCount_;
          ++frameRateCount_;
          const qint64 elapsedMilliseconds = frameRateTimer_.elapsed();
-@@ -222,6 +228,15 @@ bool AppController::loadBytes(const QByteArray& d, const QString& suggestedName)
+@@ -259,6 +265,15 @@ bool AppController::loadBytes(const QByteArray& d, const QString& suggestedName)
      }
      timer_.stop();
      rt_.stop();
@@ -834,7 +834,7 @@ index 89c4d0d..c5ef1a4 100644
          setStatus(QString::fromStdString(e));
          return false;
 diff --git a/src/qt/AppController.h b/src/qt/AppController.h
-index 2fedfac..f813e5a 100644
+index 8117c9f..ff1c601 100644
 --- a/src/qt/AppController.h
 +++ b/src/qt/AppController.h
 @@ -1,4 +1,7 @@
@@ -845,7 +845,7 @@ index 2fedfac..f813e5a 100644
  #include "InputState.h"
  #include "Runtime.h"
  #include <QByteArray>
-@@ -198,6 +201,10 @@ class AppController : public QObject {
+@@ -239,6 +242,10 @@ class AppController : public QObject {
      void refreshIp();
      QString slotPath(int) const;
      prg32::Runtime rt_;

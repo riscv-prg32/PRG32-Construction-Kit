@@ -1,7 +1,7 @@
-"""The kit's proposed PRG32 SDK changes (docs/upstream/) still apply and do what they say.
+"""The kit's proposed PRG32 SDK change (docs/upstream/) still applies and does what it says.
 
-The kit never changes the SDK checkout: both patches are applied to a copy. This proves:
-they apply together, the SDK's generated ABI files match its ABI table, the buzzer slots
+The kit never changes the SDK checkout: the patch is applied to a copy. (The audio frame clock
+and fresh mixer, the kit's other SDK proposal, is in the SDK since 01663b7.) This proves: it applies, the SDK's generated ABI files match its ABI table, the buzzer slots
 keep their indices but lose their names, no public header offers the buzzer, and every
 other entry keeps its index. PRG32_REQUIRE_SDK=1 (CI's WebAssembly job) turns a missing
 checkout into a failure. The SDK's own test suite is run by hand (docs/upstream/README.md).
@@ -19,11 +19,16 @@ from pathlib import Path
 
 import pytest
 
-from test_wasm_runtime import PRG32_SDK
+import test_wasm_runtime
 
 ROOT = Path(__file__).resolve().parent.parent
-PATCHES = [ROOT / "docs" / "upstream" / "prg32-sdk-audio-clock-and-reset.patch",
-           ROOT / "docs" / "upstream" / "prg32-sdk-retire-buzzer.patch"]
+sys.path.insert(0, str(ROOT / "tools"))
+from pinned_sdk import pinned_checkout  # noqa: E402
+
+# The patch is made against the SDK commit the kit pins (docs/upstream/README.md, static/wasm/BUILD.json).
+PATCH_BASE = "1fa8474427bb3998a79d2b350550efdb2578b3be"
+PRG32_SDK = test_wasm_runtime.PRG32_SDK
+PATCHES = [ROOT / "docs" / "upstream" / "prg32-sdk-retire-buzzer.patch"]
 
 
 @pytest.fixture(scope="module")
@@ -34,8 +39,12 @@ def patched(tmp_path_factory):
         pytest.skip(f"no PRG32 SDK checkout at {PRG32_SDK} (set PRG32_SOURCE)")
     if shutil.which("git") is None:
         pytest.skip("needs git")
+    base = pinned_checkout(PRG32_SDK, PATCH_BASE)
+    if base is None:
+        pytest.skip(f"this SDK checkout does not have {PATCH_BASE[:7]}, the patches' base")
+    globals()["PRG32_SDK"] = base
     copy = tmp_path_factory.mktemp("sdk") / "PRG32"
-    shutil.copytree(PRG32_SDK, copy, ignore=shutil.ignore_patterns(".git", "build", "build-*", "managed_components", "__pycache__"))
+    shutil.copytree(base, copy, ignore=shutil.ignore_patterns(".git", "build", "build-*", "managed_components", "__pycache__"))
     for patch in PATCHES:
         applied = subprocess.run(["git", "apply", "--directory=", str(patch)], cwd=copy, capture_output=True, text=True)
         assert applied.returncode == 0, f"{patch.name} no longer applies: {applied.stderr}"
@@ -57,7 +66,8 @@ def test_the_generated_abi_files_match_the_patched_table(patched):
 def test_the_buzzer_slots_are_retired_and_every_other_slot_keeps_its_index(patched):
     original = json.loads((PRG32_SDK / "prg32/abi/prg32_abi.json").read_text())
     table = json.loads((patched / "prg32/abi/prg32_abi.json").read_text())
-    assert (table["major"], table["minor"]) == (1, 7)
+    assert (table["major"], table["minor"]) == (1, 9)       # upstream used 1.7 and 1.8 for other things
+    assert all(fn["retired"]["since"] == "1.9" for fn in table["functions"] if fn.get("retired"))
     assert len(table["functions"]) == len(original["functions"])
     for index, (before, after) in enumerate(zip(original["functions"], table["functions"])):
         assert before["name"] == after["name"], index          # the slot's history stays readable
@@ -65,7 +75,8 @@ def test_the_buzzer_slots_are_retired_and_every_other_slot_keeps_its_index(patch
     names = generated(patched)["IMPORT_NAMES"]
     assert [index for index, name in enumerate(names) if name is None] == [5, 7, 8]
     assert not any(name and "buzzer" in name for name in names)
-    assert generated(patched)["COMPATIBLE_ABI_HASHES"][-1] == 0x260F6136   # 1.6 cartridges still load
+    # 1.6, 1.7 and 1.8 cartridges still load
+    assert generated(patched)["COMPATIBLE_ABI_HASHES"][-3:] == [0x260F6136, 0xB3845925, 0x71B93E23]
     c_table = (patched / "components/prg32/prg32_abi_table.c").read_text()
     assert c_table.count("(const void *)prg32_abi_retired_silent") == 3 and "buzzer" not in c_table
 

@@ -530,6 +530,8 @@ BROWSER_STORAGE = (
      "how_long": "until you clear this site's data", "needed": True},
     {"name": "prg32-kit-color-scheme", "kind": "localStorage", "why": "Day or Night colours, if you chose them "
      "with the switch in the menu bar", "how_long": "until you clear this site's data", "needed": True},
+    {"name": "prg32-kit-controller-choice", "kind": "sessionStorage", "why": "which game controller this window "
+     "uses (Controller for this window)", "how_long": "until you close the tab", "needed": True},
     {"name": "prg32-kit-ide-layout", "kind": "localStorage", "why": "the sizes of the IDE's panes and which "
      "ones you hid", "how_long": "until you clear this site's data", "needed": True},
     {"name": "prg32-kit-last-project", "kind": "localStorage", "why": "the project AudioStudio offers to "

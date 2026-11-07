@@ -304,7 +304,7 @@ def test_the_earlier_patched_recordings_are_intact():
 @pytest.mark.parametrize("name", sorted(FRAME_CLOCK_CARTRIDGES))
 def test_qemu_firmware_equals_the_browser_core_over_the_whole_recording(name, tmp_path):
     """docs/evidence/qemu-audio/2026-10-21-frame-clock: the firmware recording is intact and made with
-    today's SDK patch; this browser core renders the recorded browser side; and at shift 0 every
+    the patch kept beside it, which changes the same lines as today's SDK patch; this browser core renders the recorded browser side; and at shift 0 every
     20 ms chunk is equal, so the aligned firmware PCM has the browser PCM's SHA-256. Three runs."""
     import hashlib
     import sys
@@ -316,8 +316,13 @@ def test_qemu_firmware_equals_the_browser_core_over_the_whole_recording(name, tm
     report = json.loads((FRAME_CLOCK / name / "comparison.json").read_text())
     cartridge = FRAME_CLOCK_CARTRIDGES[name]
     assert hashlib.sha256(cartridge.read_bytes()).hexdigest() == report["cartridge"]["sha256"]
+    # Recorded at SDK 679dfb5. Rebasing the patch moved its context lines, not what it changes.
+    recorded = FRAME_CLOCK / "prg32-sdk-audio-clock-and-reset-679dfb5.patch"
+    assert report["firmware"]["patches"][0]["sha256"] == hashlib.sha256(recorded.read_bytes()).hexdigest()
     patch = ROOT / "docs" / "upstream" / "prg32-sdk-audio-clock-and-reset.patch"
-    assert report["firmware"]["patches"][0]["sha256"] == hashlib.sha256(patch.read_bytes()).hexdigest()
+    changed = [[line for line in path.read_text().splitlines() if line[:1] in "+-" and line[:3] not in ("+++", "---")]
+               for path in (recorded, patch)]
+    assert changed[0] == changed[1]
     with wave.open(str(FRAME_CLOCK / name / "firmware.wav")) as source:
         firmware = source.readframes(source.getnframes())
     assert hashlib.sha256(firmware).hexdigest() == report["firmware_pcm_sha256"]
@@ -369,15 +374,18 @@ def test_a_one_buffer_shift_of_one_effect_breaks_whole_recording_equality():
 @pytest.mark.skipif(os.environ.get("PRG32_LIVE_QEMU") != "1",
                     reason="live QEMU firmware run is opt-in: PRG32_LIVE_QEMU=1 (needs ESP-IDF and Espressif QEMU)")
 def test_live_qemu_audio_does_not_drift(tmp_path):
-    """Builds the PRG32 firmware with the proposed SDK patch, records the console check in QEMU and
-    fails unless the whole recording equals the browser core's, sample for sample."""
+    """Builds the PRG32 firmware, records the console check in QEMU and fails unless the whole
+    recording equals the browser core's, sample for sample. The frame clock is in the SDK since
+    01663b7; an older SDK gets the kit's patch (docs/upstream/prg32-sdk-audio-clock-and-reset.patch)."""
     out = tmp_path / "evidence"
     env = {**os.environ, "PRG32_QEMU_EXTRA": "-icount shift=3,sleep=off"}
     # ESP-IDF's own Python (export.sh sets IDF_PYTHON_ENV_PATH): the firmware build runs idf.py with it.
     idf_python = Path(os.environ.get("IDF_PYTHON_ENV_PATH", "")) / "bin" / "python"
     python = str(idf_python) if idf_python.is_file() else sys.executable
-    result = subprocess.run([python, str(ROOT / "tools" / "qemu_audio_capture.py"), "--build",
-                             "--patch", str(ROOT / "docs" / "upstream" / "prg32-sdk-audio-clock-and-reset.patch"),
+    sdk = Path(os.environ.get("PRG32_SOURCE") or ROOT.parent / "PRG32")
+    patch = [] if (sdk / "components/prg32_audio/include/prg32_audio_frame_clock.h").is_file() else \
+        ["--patch", str(ROOT / "docs" / "upstream" / "prg32-sdk-audio-clock-and-reset.patch")]
+    result = subprocess.run([python, str(ROOT / "tools" / "qemu_audio_capture.py"), "--build", *patch,
                              str(FIXTURES / "hardware" / "audio_check-qemu.prg32"), "--seconds", "11", "--out", str(out)],
                             capture_output=True, text=True, timeout=3600, env=env)
     assert result.returncode == 0, result.stderr[-3000:]

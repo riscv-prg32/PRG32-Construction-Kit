@@ -3,7 +3,7 @@
   "description": "The PRG32 audio engine as the firmware implements it: what the Construction Kit's browser runtime, AudioStudio and packager must match. Every value comes from the PRG32 SDK sources named below; tests/test_audio_contract.py checks them against a checkout. docs/audio_engine.md explains them.",
   "reference": {
     "repository": "riscv-prg32/PRG32",
-    "checked_against": "679dfb58783bd007125de9ca0b75eaa077908739",
+    "checked_against": "1fa8474427bb3998a79d2b350550efdb2578b3be",
     "code": [
       "components/prg32_audio/include/prg32_audio.h",
       "components/prg32_audio/audio_config.h",

@@ -346,7 +346,7 @@
   // --- preview (Blocks) -------------------------------------------------------------------------
   function refreshPreview() {
     if (!previewMode || !blocklyReady || !simulator) return;
-    simulator.loadBlocks(PRG32Blocks.save());
+    simulator.loadBlocks(PRG32Blocks.save(), project ? project.title : "");
   }
 
   // --- problems ---------------------------------------------------------------------------------
@@ -631,7 +631,7 @@
         if (err.code === 'no_toolchain' && mode === 'blocks' && blocklyReady) {
           // This server cannot compile: Blocks still run in the JavaScript preview.
           usePreview(true);
-          simulator.loadBlocks(PRG32Blocks.save());
+          simulator.loadBlocks(PRG32Blocks.save(), project ? project.title : "");
           if (!simulator.running) simulator.toggle();
           setBuildStatus(tr('js.ide.running_blocks_preview', 'Running (Blocks preview)'));
           log(tr('js.ide.run_this_server_cannot_compile_so', 'Run: this server cannot compile, so the Blocks preview runs instead of the PRG32 core.'), 'error');

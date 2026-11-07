@@ -52,7 +52,7 @@ my-game.prg32project.zip
 | `source` | The file holding your program. |
 | `entry_points` | The names of the cartridge's `init`, `update` and `draw` functions, made from the title. |
 | `required_features` | PRG32 features an Advanced C or assembly game needs (for example `sprites`). |
-| `sdk` | The PRG32 cartridge ABI the kit builds for (1.6, hash `0x260f6136`). |
+| `sdk` | The PRG32 cartridge ABI the kit builds for (1.8, hash `0x71b93e23`). |
 | `targets` | Where cartridges can be built: `esp32c6` (the console) and `qemu`. |
 | `assets` | The list of sprite and asset files. |
 

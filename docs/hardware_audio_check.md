@@ -29,7 +29,8 @@ The screen shows `PRG32 AUDIO CHECK` and the frame counter.
 - A PRG32 console wired for **stereo** (two MAX98357A amplifiers, `hardware.md` in the
   PRG32 repository), with firmware built with `CONFIG_PRG32_AUDIO_MODE_STEREO=y`. With the
   shipped mono profile both channels carry the same sound and the left/right checks fail.
-- **Firmware:** preferably with `docs/upstream/prg32-sdk-audio-clock-and-reset.patch`. On SDK
+- **Firmware:** SDK `01663b7` or later (`main`), which starts every cartridge with a fresh mixer;
+  for an older SDK, `docs/upstream/prg32-sdk-audio-clock-and-reset.patch`. On SDK
   `679dfb5` a sound played before the cartridge (the setup menu's, for example) leaves its
   voice quieter for the cartridge's soundtrack. Voice 0 is the left-only voice here, so its
   bit-exact check would fail for that reason alone. Without the patch, power the console on

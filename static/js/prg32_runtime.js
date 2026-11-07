@@ -17,12 +17,12 @@
 (function () {
   'use strict';
 
-  const BUTTONS = { LEFT: 1, RIGHT: 2, UP: 4, DOWN: 8, A: 16, B: 32, SELECT: 64 };
+  const BUTTONS = { LEFT: 1, RIGHT: 2, UP: 4, DOWN: 8, A: 16, B: 32, SELECT: 64, C: 128, D: 256, L: 512, R: 1024 };
   // The same keys as PRG32-QT (qml/Main.qml).
   const KEYS = {
     ArrowLeft: 'LEFT', KeyA: 'LEFT', ArrowRight: 'RIGHT', KeyD: 'RIGHT', ArrowUp: 'UP', KeyW: 'UP',
     ArrowDown: 'DOWN', KeyS: 'DOWN', KeyZ: 'A', KeyJ: 'A', KeyX: 'B', KeyK: 'B',
-    Enter: 'SELECT', NumpadEnter: 'SELECT', Space: 'SELECT'
+    Enter: 'SELECT', NumpadEnter: 'SELECT', Space: 'SELECT', KeyC: 'C', KeyV: 'D', KeyQ: 'L', KeyE: 'R'
   };
   const FRAME_MS = 33; // PRG32 VirtualClock::FramePeriodNanoseconds
   // PRG32-QT's debugger speeds (AppController::setDebugSpeed).
@@ -170,6 +170,7 @@
       this.core = null;
       this.running = false;
       this.speed = 1;
+      this.stick = null;  // the last reading of the controllers: { mask, x, y, stick }
       this.held = 0;      // buttons held now
       this.pressed = 0;   // buttons pressed since the last frame (a quick tap still counts)
       this.frames = 0;
@@ -184,6 +185,8 @@
       this.sha256 = '';
       this.instructionsPerFrame = 8192; // measured each frame, sets the slice size at slow speeds
       this.instructionsThisFrame = 0;
+      // Multiplayer between the windows of this browser (prg32_multiplayer.js, ADR-0031).
+      this.link = window.PRG32Multiplayer ? new window.PRG32Multiplayer.Link() : null;
       this.tick = this.tick.bind(this);
       this.keyHandler = this.keyHandler.bind(this);
       window.addEventListener('keydown', this.keyHandler);
@@ -194,6 +197,10 @@
       this.pause();
       this.core = await loadCore(this.base);
       const data = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
+      if (this.link) {
+        this.link.leave();                       // a new cartridge starts outside every room
+        this.core._prg32_mp_set_player_id(this.link.id);
+      }
       const pointer = this.core._malloc(data.length);
       this.core.HEAPU8.set(data, pointer);
       const ok = this.core._prg32_load(pointer, data.length);
@@ -211,6 +218,7 @@
       this.sha256 = await sha256Hex(data);
       for (const address of storedBreakpoints(this.sha256)) this.core._prg32_breakpoint(address >>> 0, 1);
       this.audio.stopAll();
+      this.shareMultiplayer();                 // init may have joined a room
       this.draw();
       this.status();
       return { name: this.core.UTF8ToString(this.core._prg32_cartridge_name()) };
@@ -240,10 +248,34 @@
       if (down) { this.held |= bit; this.pressed |= bit; } else this.held &= ~bit;
     }
 
+    // Game controllers and the on-screen stick (prg32_controllers.js): the buttons, and the stick
+    // the cartridge reads with prg32_input_axis_x/y. Runs on every animation frame as well as on
+    // every game frame, so a quick press between two game frames still counts.
+    pollControllers() {
+      const controllers = window.PRG32Controllers;
+      if (!controllers) return;
+      this.stick = controllers.hub.poll();
+      this.pressed |= this.stick.mask;
+    }
+
     input() {
-      const mask = this.held | this.pressed;
+      this.pollControllers();
+      const mask = this.held | this.pressed | (this.stick ? this.stick.mask : 0);
       this.pressed = 0;
+      if (this.stick && this.core) this.core._prg32_set_stick(this.stick.stick ? 1 : 0, this.stick.x, this.stick.y);
+      if (this.link && this.loaded) window.PRG32Multiplayer.beforeFrame(this.link, this.core);
       return mask;
+    }
+
+    // After a frame: the room the cartridge is in, and what it shares, to the other windows.
+    shareMultiplayer() {
+      if (this.link && this.loaded) window.PRG32Multiplayer.afterFrame(this.link, this.core);
+    }
+
+    // The other players this window sees now (for the status line and the tests).
+    multiplayerStatus() {
+      if (!this.link) return { available: false, room: '', id: 0, peers: 0 };
+      return { available: this.link.available, room: this.link.room, id: this.link.id, peers: this.link.room ? this.link.peers().length : 0 };
     }
 
     frame() {
@@ -254,6 +286,7 @@
         this.pause();
         return false;
       }
+      this.shareMultiplayer();
       this.playAudio();
       return true;
     }
@@ -370,6 +403,7 @@
       this.pressed = 0;
       this.instructionsPerFrame = Math.max(1, this.instructionsThisFrame);
       this.instructionsThisFrame = 0;
+      this.shareMultiplayer();
       this.playAudio();
     }
 
@@ -555,7 +589,8 @@
         frames: this.frames, guestMs: this.frames * FRAME_MS, wallMs: Math.round(this.wallMs),
         retired: state ? state.retired : 0, pc: state ? state.pc : null,
         // An old cartridge that calls the obsolete buzzer: silent, as on a console without one.
-        legacySoundCalls: this.loaded ? this.core._prg32_audio_buzzer_calls() : 0
+        legacySoundCalls: this.loaded ? this.core._prg32_audio_buzzer_calls() : 0,
+        multiplayer: this.multiplayerStatus()
       });
     }
 
@@ -563,6 +598,7 @@
       this.pause();
       window.removeEventListener('keydown', this.keyHandler);
       window.removeEventListener('keyup', this.keyHandler);
+      if (this.link) this.link.leave();
       if (this.core) this.core._prg32_unload();
     }
   }

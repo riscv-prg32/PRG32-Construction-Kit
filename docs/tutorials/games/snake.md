@@ -461,7 +461,7 @@ PRG32-QT found a portability detail: it skips tiles that were never defined, whi
 
 1. **Wrap-around arena:** remove the walls and let the snake leave one side and enter on the other.
 2. **Obstacles:** add wall tiles at random places each time an apple is eaten.
-3. **Two snakes:** a second snake on the *player 2* buttons, with its own ring buffer.
+3. **Two snakes:** a second snake on a second console, through the Multiplayer blocks, with its own ring buffer.
 4. **Scrolling world:** make the board 64 x 32 and follow the head with *move playfield camera*.
 5. **Analysis:** estimate the average number of retries to place an apple when half the board is full.
 

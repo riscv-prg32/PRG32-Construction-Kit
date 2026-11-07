@@ -43,12 +43,19 @@
           <tr><td>A</td><td><kbd>Z</kbd> {{ t("player.or") }} <kbd>J</kbd></td></tr>
           <tr><td>B</td><td><kbd>X</kbd> {{ t("player.or") }} <kbd>K</kbd></td></tr>
           <tr><td>{{ t("player.select_start") }}</td><td><kbd>Enter</kbd> {{ t("player.or") }} <kbd>Space</kbd></td></tr>
+          <tr><td>C, D, L, R</td><td><kbd>C</kbd> <kbd>V</kbd> <kbd>Q</kbd> <kbd>E</kbd></td></tr>
         </table>
         <div class="d-flex flex-wrap gap-1" id="touchButtons" aria-label="{{ t('common.on_screen_buttons') }}">
-          {% for name in ["LEFT", "RIGHT", "UP", "DOWN", "A", "B", "SELECT"] %}
+          {% for name in ["LEFT", "RIGHT", "UP", "DOWN", "A", "B", "C", "D", "L", "R", "SELECT"] %}
           <button class="btn btn-outline-secondary btn-sm touch-button" data-button="{{ name }}">{{ name }}</button>
           {% endfor %}
         </div>
+        <div class="d-flex align-items-center gap-2 mt-2">
+          <div class="analog-stick" data-analog-stick role="img" aria-label="{{ t('common.on_screen_stick') }}"><span></span></div>
+          <span class="text-muted" data-controller-status aria-live="polite"></span>
+        </div>
+        <label class="form-label small mt-2 mb-1" for="controllerChoice">{{ t("common.controller_for_this_window") }}</label>
+        <select class="form-select form-select-sm" id="controllerChoice" data-controller-choice></select>
       </div>
     </div>
     <div class="card shadow-sm">
@@ -68,6 +75,8 @@
 {# Blockly's own menus in the reader's language (ADR-0027), before Monaco's AMD loader exists. #}
 {% if blockly_pack %}<script src="{{ url_for('static', filename='vendor/blockly/11.2.1/msg/' ~ blockly_pack ~ '.js') }}"></script>{% endif %}
 <script src="{{ url_for('static', filename='js/blockly_blocks.js') }}"></script>
+<script src="{{ url_for('static', filename='js/prg32_controllers.js') }}"></script>
+<script src="{{ url_for('static', filename='js/prg32_multiplayer.js') }}"></script>
 <script src="{{ url_for('static', filename='js/prg32_runtime.js') }}"></script>
 <script src="{{ url_for('static', filename='js/player.js') }}"></script>
 <script src="{{ url_for('static', filename='js/prg32_debugger.js') }}"></script>

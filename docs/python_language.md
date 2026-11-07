@@ -163,18 +163,19 @@ not have stops the translation on that line.
 `sound_stop_all()`. The old buzzer does not exist.
 
 **Tests for `if`:** `held(button)` (every frame while held), `pressed(button)` (only the
-frame it goes down; player 2's buttons are `prg32.P2_LEFT`, `prg32.P2_A`, ...), `touching(ax, ay, aw, ah, bx, by, bw, bh)` (two rectangles overlap). They
+frame it goes down; the buttons are `prg32.LEFT`, `RIGHT`, `UP`, `DOWN`, `A`, `B`, `C`, `D`, `L`, `R`, `START` and `SELECT`), `touching(ax, ay, aw, ah, bx, by, bw, bh)` (two rectangles overlap). They
 are used as the whole test, or joined with `and`: `if prg32.pressed(prg32.A) and playing:`.
 **Cartridge rule:** such an `if` cannot have `elif`/`else` yet; write a second `if`.
 
 **Values:** `clamp(v, low, high)`, `sign(x)`, `sin(degrees)` and `cos(degrees)` (times 256),
 `rgb(r, g, b)`, `random(low, high)` (both included), `frame()` (the frame count; `frame(x, y, w, h)`
-still draws an outline), and for multiplayer `peers()`,
-`peer_x(n)`, `peer_y(n)`, `peer_look(n)`.
+still draws an outline), for the analog stick `stick_x()`, `stick_y()` (-127 to 127) and `has_stick()`
+([game_controllers.md](game_controllers.md)), and for multiplayer `peers()`, `peer_x(n)`, `peer_y(n)`,
+`peer_look(n)`, `peer_flags(n)`, `peer_input(n)`, `peer_id(n)`, `my_id()` ([multiplayer.md](multiplayer.md)).
 
 **Game services:** `band("TEXT", value)`, `score_submit(value)`, `scoreboard("TITLE")`,
-`splash("TITLE", "SUBTITLE", ms, bg, fg, accent)`, `player_name()`, `mp_join()`,
-`mp_share(x, y, look)`.
+`splash("TITLE", "SUBTITLE", ms, bg, fg, accent)`, `player_name()`, `mp_join(room="")`,
+`mp_share(x, y, look=0, flags=0)`, `mp_send_buttons()`, `mp_leave()`.
 
 Text given to `text`, `band`, `scoreboard` and `splash` uses the PRG32 8x8 font: English letters,
 digits and the usual signs, up to 64 characters (`band` 24, titles 32).
