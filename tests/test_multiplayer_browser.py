@@ -88,8 +88,9 @@ def test_two_windows_in_one_room_see_each_other(browser, live_kit):  # noqa: F81
 
     # A window that closes leaves the room at once.
     second.close()
-    gone = seen(first, "!s.other")
-    assert "kit-two-windows: 0" in gone["status"]
+    # The status line is redrawn on its own beat, so wait for it too, not only for the screen.
+    gone = seen(first, "!s.other && s.status.includes('kit-two-windows: 0')")
+    assert gone["other"] is None and "kit-two-windows: 0" in gone["status"]
     context.close()
 
 
